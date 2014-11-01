@@ -1,22 +1,18 @@
 (function() {
 
         var YEvent = YAHOO.util.Event;
-        /**
-         * contextual variables
-         * note: these are all fixed at the moment but will be dynamic
-         * //http://admin.cstudio.www--sandbox.127-0-0-1.ip.alfrescodemo.net:8180/downloads
-         */
+
         CStudioAuthoringContext = {
             user: CStudioAuthoring.Utils.Cookies.readCookie("username").replace("\"","").replace("\"",""),
-            site: "bestmoviesbyfarr",
-      collabSandbox: "",
+            site: CStudioAuthoring.Utils.Cookies.readCookie("crafterSite"),
+            collabSandbox: "",
             baseUri: "/proxy/authoring",
             authoringAppBaseUri: "http://127.0.0.1:8080/studio",
-            formServerUri: "http://127.0.0.1:8080/form-server",
+            formServerUri: "NOT USED",
             previewAppBaseUri: "http://127.0.0.1:8080",
             contextMenuOffsetPage: true,
-            brandedLogoUri: "/proxy/alfresco-noauth/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
-            homeUri: "/page/site/" + "rosie" + "/dashboard",
+            brandedLogoUri: "/proxy/authoring/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
+            homeUri: "/site-dashboard?site=" + CStudioAuthoring.Utils.Cookies.readCookie("crafterSite"),
             navContext: "default",
             cookieDomain: "127.0.0.1",
             openSiteDropdown: false,
