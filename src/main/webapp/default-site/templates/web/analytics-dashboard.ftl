@@ -4,7 +4,7 @@
 <head>
   <#include "/templates/web/common/page-fragments/head.ftl" />
 
-   <title>Crafter Studioc</title>
+   <title>Crafter Studio</title>
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/analytics-dashboard.js"></script>
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>

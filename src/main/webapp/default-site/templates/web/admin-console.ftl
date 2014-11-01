@@ -4,7 +4,7 @@
 <head>
   <#include "/templates/web/common/page-fragments/head.ftl" />
 
-   <title>Crafter Studioc</title>
+   <title>Crafter Studio</title>
 
      <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/console.css" />  
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/amplify-core.js"></script>
