@@ -28,7 +28,7 @@ CStudioAuthoring.ContextualNav.GaAnalytics = CStudioAuthoring.ContextualNav.GaAn
 			parentFolderLinkEl.innerHTML = "Analytics Dashboard";
 			parentFolderLinkEl.onclick = function() {
 				document.location = CStudioAuthoringContext.authoringAppBaseUri +
-				"/analytics-dashboard?sites=" + CStudioAuthoringContext.site;
+				"/analytics-dashboard?site=" + CStudioAuthoringContext.site;
 			};
 			
 			dropdownInnerEl.appendChild(parentFolderEl);
