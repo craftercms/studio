@@ -1,1 +1,0 @@
-<@renderComponent componentPath = componentPath />

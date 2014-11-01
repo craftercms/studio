@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-  <internal-name>Entry</internal-name>
-  <display-template>/templates/web/entry.ftl</display-template>
-  <merge-strategy>inherit-levels</merge-strategy>
-</page>
