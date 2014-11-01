@@ -1,0 +1,1 @@
+define(["dojo/_base/declare"],function(a){return a(null,{dynamicallyAddWidgetTopic:"ALF_DYNAMICALLY_ADD_WIDGET"})});

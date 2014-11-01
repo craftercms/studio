@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/layout/LeftAndRight"],function(b,a){return b([a],{cssRequirements:[{cssFile:"./css/Header.css"}]})});

@@ -1,0 +1,43 @@
+html {
+   overflow-y: scroll;
+}
+
+/*
+body {
+   margin: 0;
+   font-family: arial, sans-serif;
+   color: #5d5d5d;
+}
+*/
+
+.alfresco-share
+{
+	font:13px/1.231 Open Sans,arial,helvetica,clean,sans-serif;
+}
+
+.clear-both {
+   clear: both;
+}
+
+.horizontal-widgets {
+}
+
+.horizontal-widget {
+   float: left;
+}
+
+.left-widgets {
+   float: left;
+}
+
+.right-widgets {
+   float: right;
+}
+
+.share-hidden {
+   display: none;
+}
+
+.undo-share-margin {
+   margin: 0 -10px;
+}

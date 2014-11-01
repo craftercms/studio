@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="crafter.urlTransformationService" class="org.craftercms.engine.service.UrlTransformationService" />
+
+    <!-- Alias defined so that calling the SpEL expressions don't get too big  when using the bean -->
+    <alias name="crafter.urlTransformationService" alias="urlTransformationService" />
+
+    <bean id="crafter.urlTransformationEngine" class="org.craftercms.core.url.impl.UrlTransformationEngineImpl">
+        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+        <property name="transformers">
+            <map>
+                <entry key="renderUrlToStoreUrl" value-ref="crafter.renderUrlToStoreUrlTransformer" />
+                <entry key="storeUrlToRenderUrl" value-ref="crafter.storeUrlToRenderUrlTransformer" />
+                <entry key="storeUrlToFullRenderUrl" value-ref="crafter.storeUrlToFullRenderUrlTransformer" />
+                <entry key="toWebAppRelativeUrl" value-ref="crafter.addContextPathUrlTransformer"/>
+                <entry key="toServletRelativeUrl" value-ref="crafter.toServletRelativeUrlTransfomerPipeline"/>
+                <entry key="toFullUrl" value-ref="crafter.toFullUrlTransformerPipeline"/>
+                <entry key="toFullHttpsUrl" value-ref="crafter.toFullHttpsUrlTransformerPipeline"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="crafter.renderUrlToStoreUrlTransformer" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.addIndexIfFolderUrlTransformer" />
+                <ref bean="crafter.replacePageExtWithDescriptorExtUrlTransformer" />
+                <ref bean="crafter.addPageDescriptorsPathUrlTransformer" />
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.storeUrlToFullRenderUrlTransformer" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.storeUrlToRenderUrlTransformer" />
+                <ref bean="crafter.addSchemeAndDomainAndServerPortUrlTransformer" />
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.storeUrlToRenderUrlTransformer" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.removeIndexUrlTransformer" />
+                <ref bean="crafter.removePageDescriptorsPathUrlTransformer" />
+                <ref bean="crafter.replaceDescriptorExtWithPageExtUrlTransformer" />
+                <ref bean="crafter.toServletRelativeUrlTransfomerPipeline" />
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.addIndexIfFolderUrlTransformer" class="org.craftercms.engine.url.AddIndexIfFolderUrlTransformer" />
+
+    <bean id="crafter.replacePageExtWithDescriptorExtUrlTransformer"
+          class="org.craftercms.core.url.impl.ReplaceSubstringUrlTransformer">
+        <property name="substringToReplace" value="${crafter.engine.page.url.extension}" />
+        <property name="replacement" value="${crafter.core.store.descriptorFile.extension}" />
+    </bean>
+
+    <bean id="crafter.addPageDescriptorsPathUrlTransformer"
+          class="org.craftercms.core.url.impl.AddPrefixAndSuffixUrlTransformer">
+        <property name="prefix" value="${crafter.engine.site.default.descriptors.pages.path}" />
+    </bean>
+
+    <bean id="crafter.removeIndexUrlTransformer"
+          class="org.craftercms.core.url.impl.RemovePrefixAndSuffixUrlTransformer">
+        <property name="suffix" value="/index.xml" />
+    </bean>
+
+    <bean id="crafter.removePageDescriptorsPathUrlTransformer"
+          class="org.craftercms.core.url.impl.RemovePrefixAndSuffixUrlTransformer">
+        <property name="prefix" value="${crafter.engine.site.default.descriptors.pages.path}" />
+    </bean>
+
+    <bean id="crafter.replaceDescriptorExtWithPageExtUrlTransformer"
+          class="org.craftercms.core.url.impl.ReplaceSubstringUrlTransformer">
+        <property name="substringToReplace" value="${crafter.core.store.descriptorFile.extension}" />
+        <property name="replacement" value="${crafter.engine.page.url.extension}" />
+    </bean>
+
+    <bean id="crafter.addSchemeAndDomainAndServerPortUrlTransformer"
+          class="org.craftercms.core.url.impl.AddSchemeAndDomainAndServerPortUrlTransformer" />
+
+    <bean id="crafter.addSchemeAndDomainAndServerPortHttpsUrlTransformer"
+          class="org.craftercms.core.url.impl.AddSchemeAndDomainAndServerPortUrlTransformer">
+        <property name="forceHttps" value="true"/>
+        <property name="httpsPort" value="${crafter.engine.https.port}"/>
+    </bean>
+
+    <bean id="crafter.toServletRelativeUrlTransfomerPipeline" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.addServletPathUrlTransformer"/>
+                <ref bean="crafter.addContextPathUrlTransformer"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.toFullUrlTransformerPipeline" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.addServletPathUrlTransformer"/>
+                <ref bean="crafter.addContextPathUrlTransformer"/>
+                <ref bean="crafter.addSchemeAndDomainAndServerPortUrlTransformer"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.toFullHttpsUrlTransformerPipeline" class="org.craftercms.core.url.impl.UrlTransformerPipeline">
+        <constructor-arg>
+            <list>
+                <ref bean="crafter.addServletPathUrlTransformer"/>
+                <ref bean="crafter.addContextPathUrlTransformer"/>
+                <ref bean="crafter.addSchemeAndDomainAndServerPortHttpsUrlTransformer"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="crafter.addServletPathUrlTransformer" class="org.craftercms.core.url.impl.AddServletPathUrlTransformer"/>
+
+    <bean id="crafter.addContextPathUrlTransformer" class="org.craftercms.core.url.impl.AddContextPathUrlTransformer"/>
+
+</beans>

@@ -1,0 +1,401 @@
+.floatLeft {
+    float: left;
+}
+
+#wcm-popup-container {
+
+    border: 3px solid #000000;
+}
+
+#contentTypePreviewImg {
+    margin: 5px 0 0 0;
+}
+
+.contentTypePopupInner {
+    background: url(../images/bg/gradient_workflow.gif) repeat-x;
+    background-color: #D6D6D6;
+    border: 5px solid #000;
+    height: 434px;
+    width: 598px;
+}
+
+.contentTypePopupContent {
+    margin: 15px 25px 15px 25px;
+}
+
+.contentTypeOuter {
+    margin: 30px 0 20px 0;
+}
+
+.contentType {
+    padding: 0 10px 0 0px;
+    height: 260px;
+    width: 250px;
+}
+
+.floatLeft {
+    float: left;
+}
+
+#wcm-popup-container {
+
+    border: 3px solid #000000;
+}
+
+#cstudio-wcm-popup-table {
+
+    width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+#cstudio-wcm-popup-table .tbody {
+    margin-top: 10px;
+}
+
+#contentTypePreviewImg {
+    margin: 5px 0 0 0;
+}
+
+.contentTypePopupInner {
+    background: url(../images/bg/gradient_workflow.gif) repeat-x;
+    background-color: #D6D6D6;
+    border: 5px solid #000;
+    height: 434px;
+    width: 598px;
+}
+
+.contentTypePopupContent {
+    margin: 15px 25px 15px 25px;
+}
+
+.contentTypeOuter {
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.contentType {
+    padding: 0 10px 0 0px;
+    height: 260px;
+    width: 250px;
+}
+
+/* -- Preview Toolbar -- */
+#controls-overlay { display: block; position: absolute; left:0; z-index: 99999; }
+#controls-overlay div, #controls-overlay span, #controls-overlay select, #controls-overlay option, #controls-overlay a, #controls-overlay table td {
+    cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none; font-stretch: normal;
+    letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto; text-outline: none; text-shadow: none;
+    text-transform: none; white-space: normal; word-spacing: normal; word-break: normal; word-wrap: normal;
+}
+
+/* -- Go Live and Schedule Overlay -- */
+#acnVersionWrapper div, #acnVersionWrapper span,
+#acnVersionWrapper label, #acnVersionWrapper h1, #acnVersionWrapper h2, #acnVersionWrapper h3, #acnVersionWrapper h4,
+#acnVersionWrapper b, #acnVersionWrapper textarea {
+    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
+    text-outline: none; text-shadow: none; text-transform: none; white-space: normal; word-spacing: normal; word-break: normal;
+    word-wrap: normal;
+}
+#acnVersionWrapper select, #acnVersionWrapper option {
+	cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
+    text-outline: none; text-shadow: none; text-transform: none; white-space: pre; word-spacing: normal; word-break: normal;
+    word-wrap: normal;
+}
+#acnVersionWrapper input[type="radio"], #acnVersionWrapper input[type="checkbox"] { margin: 0; }
+
+#acnVersionWrapper .dialog-main { overflow: hidden; }
+#acnVersionWrapper .comment { clear: both; padding-right: 3px; }
+#acnVersionWrapper .comment label { font-size: 12px; font-weight: bold; display: block; padding: 10px 0 3px 0; }
+#acnVersionWrapper .comment textarea { height: 40px; border: 1px solid #7F9DB9; width: 100%; margin: 0; padding: 0; }
+
+#acnVersionWrapper.schedule .publishing-channels { min-height: 100px; }
+#acnVersionWrapper.go-live .publishing-channels { min-height: 100px; }
+
+#acnVersionWrapper h3,
+#submitPanel .acnBox h3 {
+    font: normal 1.8em Arial;
+    margin: 0;
+    padding: 6px 0;
+}
+#acnVersionWrapper.acnBox .publishing-channels h3 {
+    font-size: 18px;
+    border-bottom: 1px solid #7F9DB9;
+    padding: 0;
+}
+#acnVersionWrapper .publishing-channels {
+    padding: 20px 15px;
+    border: 1px solid #7F9DB9;
+    float: left;
+    margin: 5px 0 0 10px;
+}
+#acnVersionWrapper .publishing-channels .pub-status label {
+    display: block;
+    padding: 5px 0 0 0;
+    float: none;
+    text-align: left;
+}
+#acnVersionWrapper .publishing-channels .pub-msg { padding-top: 5px; }
+#acnVersionWrapper .publishing-channels .pub-msg span.counter { margin: 3px 0; font-style: italic; }
+#acnVersionWrapper .publishing-channels .pub-msg b.emphasize,
+#acnVersionWrapper .publishing-channels .pub-msg .over-limit b {
+    color: #D92626;
+}
+#acnVersionWrapper .publishing-channels .pub-msg .over-limit span {
+    font-weight: bold;
+    font-size: 12px;
+}
+#acnVersionWrapper .publishing-channels .pub-channel > label {
+    margin-right: 5px;
+    font-weight: bold;
+    padding: 5px 0 0 0;
+    float: none;
+    text-align: left;
+}
+#acnVersionWrapper .publishing-channels .pub-channel > select {
+    width: 135px;
+    border: 1px solid #C5D6E2;
+    font-weight: normal;
+}
+#acnVersionWrapper .publishing-channels .pub-channel { padding-top: 15px; font-size: 12px; }
+#acnVersionWrapper .publishing-channels .pub-status { padding-top: 15px; font-size: 12px; }
+#acnVersionWrapper .publishing-channels .pub-status textarea {
+    font-family: arial, sans-serif;
+    font-size: 1em;
+    height: 80px;
+    margin: 5px 0 0 0;
+    padding: 2px;
+}
+#acnVersionWrapper .publishing-channels .pub-msg span.counter,
+#acnVersionWrapper .publishing-channels .pub-status textarea {
+    width: 240px;
+    border: 1px solid #C5D6E2;
+    font-weight: normal;
+}
+#acnVersionWrapper .publishing-channels .pub-status h4 {
+    font-weight: bold;
+    font-size: 1em;
+    margin: 0 0 6px 0;
+	padding: 0;
+}
+
+#ct_contentTypePopupInner .contentTypePopupBtn,
+.contentTypePopupContent .contentTypePopupBtn,
+#submitPanel .acnBox .acnSubmitButtons,
+#messageOverlay .acnSubmitButtons,
+#acnVersionWrapper .acnSubmitButtons,
+.acn-submit-buttons {
+	margin:8px 0 4px 0;
+	padding:0;
+	text-align: center;
+}
+
+#ct_contentTypePopupInner .contentTypePopupBtn input,
+.contentTypePopupContent .contentTypePopupBtn input,
+#schedulePolicyPanel .schedulePolicySubmitButtons input,  
+#submitPanel .acnBox .acnSubmitButtons input, /* For confirmation dialogs */
+#acnVersionWrapper .acnSubmitButtons input,  /* Applies to Delete, Reject, Schedule and GoLive */
+#messageOverlay .acnSubmitButtons input,
+.acn-submit-buttons button {
+	background-color: #C0C0C0;
+	border: 1px solid #002185;
+	color: #000000;
+	font: normal 12px Arial, Helvetica;
+	border-radius:3px;
+	padding: 5px 10px;
+	min-width: 6em;
+}
+
+#ct_contentTypePopupInner .contentTypePopupBtn input:hover,
+.contentTypePopupContent .contentTypePopupBtn input:hover,
+#schedulePolicyPanel .schedulePolicySubmitButtons input:hover,
+#submitPanel .acnBox .acnSubmitButtons input:hover,
+#acnVersionWrapper .acnSubmitButtons input:hover,
+#messageOverlay .acnSubmitButtons input:hover,
+.acn-submit-buttons button:hover {
+	cursor: pointer;
+	color: #FFFFFF;
+	background-color: #6C88A2;
+}
+
+#cstudio-wcm-popup-div .contentTypePopupContent .contentTypePopupBtn input[disabled] {
+    background-color: #D3D3D3;
+    color: #818181;
+    border: 1px solid #838DAD;
+    cursor: default;
+}
+
+#acnVersionWrapper .publishing-channels .show { display: block; }
+#acnVersionWrapper .publishing-channels .hidden { display: none; }
+
+#acnVersionWrapper #calendarContainer .calheader { text-align: center; }
+/* -- END Go Live and Schedule Overlay -- */
+
+
+/* -- Upload Overlay -- */
+#cstudio-wcm-popup-div div, #cstudio-wcm-popup-div span,
+#cstudio-wcm-popup-div label, #cstudio-wcm-popup-div h1, #cstudio-wcm-popup-div h2, #cstudio-wcm-popup-div h3,
+#cstudio-wcm-popup-div b {
+    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
+    text-outline: none; text-shadow: none; text-transform: none; white-space: normal; word-spacing: normal; word-break: normal;
+    word-wrap: normal;
+}
+#cstudio-wcm-popup-div select, #cstudio-wcm-popup-div option {
+	cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
+    text-outline: none; text-shadow: none; text-transform: none; white-space: pre; word-spacing: normal; word-break: normal;
+    word-wrap: normal;
+}
+
+#cstudio-wcm-popup-div.yui-panel .hd {
+    height: 0px;
+    display: none;
+    width: 400px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .bd {
+    background: url(../images/bg/gradient_workflow.gif) repeat-x;
+    background-color: #D6D6D6;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    width: 400px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .ft {
+
+    height: 0px;
+    display: none;
+}
+#cstudio-wcm-popup-div.yui-panel .header-title {
+    font-size: 14px;
+    color: black;
+    font-weight: bold;
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .cstudio-wcm-popup-label {
+    font-weight: bold;
+}
+
+#cstudio-wcm-popup-div.yui-panel .templateName,
+#cstudio-wcm-popup-div.yui-panel .previewImage {
+    width:275px;
+    float:left;
+}
+
+#cstudio-wcm-popup-div.yui-panel .templateName .contentTypeDropdown {
+    margin-right:2px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .previewImage .contentTypePreview {
+    margin-left:8px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .cstudio-wcm-popup-select-control {
+    height: 260px;
+    width: 235px;
+    margin: 5px 0 0 0;
+}
+
+#cstudio-wcm-popup-div .yui-resize .yui-resize-handle-br {
+	background-position: -20px -58px;
+	height:12px;
+	width:10px;
+}
+
+#cstudio-wcm-popup-div.yui-panel .cstudio-wcm-popup-select-control {
+	color: #000000;
+	border:1px solid #C5D6E2;
+	background: #ffffff;
+	padding:1px 0 1px 0;
+	border-radius:0px;
+	box-shadow: 0px;
+	border-radius:0px;
+	-moz-box-shadow:0 0 0 0 #000000 inset;
+}
+
+#cstudio-wcm-popup-div.yui-panel .cstudio-wcm-popup-select-control option {
+	padding:0 5px 0 3px;
+}
+
+#cstudio-wcm-popup-div .contentTypePopupHeader {
+    font: normal 1.8em arial;
+	margin: 0;
+	padding: 6px 0;
+}
+#cstudio-wcm-popup-div .contentTypePopupBtn {
+    margin: 15px 0 0 0;
+    padding: 0;
+    text-align: center;
+}
+#cstudio-wcm-popup-div .contentTypePopupBtn input {
+	margin-right: 10px;	
+}
+
+#cstudio-wcm-popup-div_h {
+	display: block;
+}
+/* -- END Upload Overlay -- */
+
+/* -- Channels Publishing Overlay : appears when no publishing channels have been set up -- */
+#messageOverlay .bd {
+    padding:0;
+    border: 0;
+    margin: 0;  
+}
+
+#messageOverlay .message {
+    background-color: #E2E1E1;
+    border:4px #000 solid;
+    color:#000;
+    margin:0;
+    padding:15px 25px;
+    position:relative;
+    width: 320px;
+}
+
+#messageOverlay .header {
+    font-size: 16px;        
+    padding-bottom: 10px;
+}
+
+#messageOverlay .acnSubmitButtons { margin-top: 20px; }
+
+#messageOverlay .acnSubmitButtons input {
+    padding: 4px 15px;
+}
+/* -- END Channels Publishing Overlay -- */
+
+/* -- Create Content Type Overlay : appears in admin console after clicking on "Create New Type" -- */
+.contentTypePopupContent .content { margin-top: 15px; }
+.contentTypePopupContent .content label { display: block; margin-bottom: 10px; }
+.contentTypePopupContent .content label span { display:inline-block; width: 40%; padding-right: 8px; }
+.contentTypePopupContent .content label input { font-size: 12px; padding: 3px; width: 50%; }
+.contentTypePopupContent .content .selectInput label { display: inline-block; width: 40%; margin-bottom: 10px; padding-right: 8px; }
+.contentTypePopupContent .content .selectInput select { line-height: 20px; }
+.contentTypePopupContent .content label.checkboxInput {}
+.contentTypePopupContent .content .checkboxInput input { padding: 0; vertical-align: 4px; width: 15px;}
+
+#cstudio-wcm-popup-div { border: none; }
+#cstudio-wcm-popup-div .content span,
+#cstudio-wcm-popup-div .content .selectInput label { text-align: right; }    /* Need to use ID selector or else styles are overriden */
+
+.acnDisabledContent {
+    background-color: #CC3333;
+    border: 1px solid #FF0000;
+    color: white;
+    display: block;
+    font-weight: bold !important;
+    padding: 1px;
+    position: absolute;
+    text-align: center !important;
+    top: 31px;
+    width: 100%;
+}
+/* -- END Create Content Type Overlay -- */

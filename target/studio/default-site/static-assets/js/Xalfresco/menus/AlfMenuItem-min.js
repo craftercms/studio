@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","dijit/MenuItem","alfresco/menus/_AlfMenuItemMixin","alfresco/core/Core"],function(b,d,e,c){return b([d,e,c],{postCreate:function a(){this.setupIconNode();this.inherited(arguments)}})});

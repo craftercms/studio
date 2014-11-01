@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","dojo/_base/lang"],function(a,c){return a(null,{constructor:function b(d){c.mixin(this,d);if(this.currentItem!=null){if(typeof this.currentItem.jsNode==="undefined"&&this.currentItem.node!=null){this.currentItem.jsNode=new Alfresco.util.Node(this.currentItem.node)}}}})});

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+    <content-type>/acme-com/page/entry</content-type>
+    <file-name valid="true">index.xml</file-name>
+    <internal-name>Acme Home</internal-name>
+    <meta-description>test</meta-description>
+    <corporateKeywords/>
+    <meta-keywords>keyword-a</meta-keywords>
+    <display-template>/templates/web/entry.ftl</display-template>
+    <merge-strategy>inherit-levels</merge-strategy>
+    <components/>
+    <lastModifiedBy>admin</lastModifiedBy>
+    <lastModifiedDate>2011-05-02T18:08:27-00:00</lastModifiedDate>
+    <template-version>1.3</template-version>
+</page>

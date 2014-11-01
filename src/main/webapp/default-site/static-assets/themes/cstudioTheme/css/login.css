@@ -1,0 +1,120 @@
+body
+{
+   background-color:#FAFAFA;
+   text-align:center;
+}
+
+a {
+	color: #0176b1;
+	text-decoration: none;
+}
+
+		a:link {	
+		color:#005986;	
+		}
+
+		a:visited {			
+		}
+
+		a:hover {
+			color: #005986;  
+		}
+
+		a:active {
+			
+		}
+
+input
+{
+  
+   
+  font-size: 9px;
+
+border: 1px solid #534A3D;
+padding: 2px;
+color:#999999;
+margin-bottom: 6px;
+
+}
+
+
+
+.login-panel
+{
+ 
+   padding-top:20%;
+   
+}
+
+.login-button
+{
+   background-color: #f0f0f0;
+}
+
+
+
+
+#footer {
+    
+	border-width: 1px 0 0 0;
+	border-style: dotted;
+	border-color: #000;
+	clear: both;
+	margin:30px 30px 30px 30px;	
+	padding: 10px 0 0 0;
+	height:30px;
+	
+
+	
+
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+  }
+
+.login-copyright {
+	float: right;
+}
+
+.login-contact	{
+	float: left;
+	color:#0176b1;
+		
+}
+
+.login-logo
+{
+   
+    margin-left:46.5%;
+   height: 33px;
+   width: 450px;
+
+
+  
+ 
+  background: transparent url("../images/app-logo.png") no-repeat;
+}
+
+.submitButtonstyle
+{
+	border: 1px solid #006;
+	color:#534A3D;
+	font-size:11px;
+	
+}
+
+.inputStyle
+{
+	font-size:11px;
+	
+}
+
+.errorStyle
+{
+	color:red;
+	
+	font-size:15px;
+}
+.

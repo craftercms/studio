@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/menus/AlfMenuItem"],function(a,b){return a([b],{cssRequirements:[{cssFile:"./css/AlfMenuItem.css"}]})});

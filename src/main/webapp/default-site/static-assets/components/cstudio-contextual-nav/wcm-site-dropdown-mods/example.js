@@ -1,0 +1,2 @@
+POST http://127.0.0.1:8080/share/proxy/alfresco/cstudio/wcm/search/search?site=gcb
+	{"contentTypes": [ ],"includeAspects": [ ],"excludeAspects": [ ],"keyword": "Show", "page": "1","pageSize": "20","sortBy": "","sortAscending": "true","filters": [], "columns":[] }

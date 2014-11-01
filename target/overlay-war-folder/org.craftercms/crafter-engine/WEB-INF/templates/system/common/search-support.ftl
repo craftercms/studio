@@ -1,0 +1,1 @@
+<#macro escapeUserSearchQuery q>${statics["org.craftercms.search.utils.SolrQueryUtils"].escapeUserSearchQuery(q)}</#macro>

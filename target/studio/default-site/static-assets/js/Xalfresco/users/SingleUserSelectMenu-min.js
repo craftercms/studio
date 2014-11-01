@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","dijit/form/_ComboBoxMenu","alfresco/core/Core","dojo/dom-class"],function(b,a,d,c){return b([a,d],{_createMenuItem:function e(f){var g=this.inherited(arguments);c.add(g,"alfresco-users-UserItem");return g}})});

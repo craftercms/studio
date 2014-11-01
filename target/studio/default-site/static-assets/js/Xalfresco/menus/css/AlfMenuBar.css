@@ -1,0 +1,61 @@
+.alfresco-share .alf-menu-groups {
+   font-family: Open Sans,arial,sans-serif;
+}
+
+.alfresco-share .alf-menu-bar .dijitMenuBar {
+   font-family: Open Sans,arial,sans-serif;
+   background-color: transparent;
+   background-image: none;
+   background-repeat: no-repeat;
+   border: none;
+   margin: 0;
+   padding: 0 0 0 6px;
+}
+
+.alfresco-share .alf-menu-bar .dijitSelectMenu .dijitMenuItemHover,
+.alfresco-share .alf-menu-bar .dijitSelectMenu .dijitMenuItemSelected {
+   background-image: none;
+   background-repeat: no-repeat;
+}
+
+.alfresco-share .alf-menu-bar .dijitMenuBar .dijitMenuItem {
+   margin: 0;
+   padding: 0;
+   color: #333;
+}
+
+.alfresco-share .alf-menu-bar .dijitMenuBar .dijitMenuPassive .dijitMenuItemHover,
+.alfresco-share .alf-menu-bar .dijitMenuBar .dijitMenuItemHover,
+.alfresco-share .alf-menu-bar .dijitMenuBar .dijitMenuItemSelected {
+    background-color: #f0f0f0;
+    background-image: none;
+    background-repeat: no-repeat;
+    border: none;
+    padding: 2px 5px;
+}
+
+.alfresco-share .alf-menu-group .dijitMenuPassive .dijitMenuItemHover,
+.alfresco-share .alf-menu-group .dijitMenuItemHover 
+.alfresco-share .alf-menu-group .dijitMenuItemSelected {
+    background-image: none;
+    background-repeat: no-repeat;
+    background-color: #f0f0f0;
+    color: #717171;
+}
+
+.alfresco-share .alf-menu-groups {
+   background-color: #fff;
+   color: #333 !important;
+   border: 1px solid #ccc;
+   border-radius: 0 0 10px 10px;
+   padding: 5px;
+}
+
+.alfresco-share .alf-menu-group-title {
+   font-family: Open Sans,arial,sans-serif;
+   border-bottom: 1px solid #ccc;
+   color: #ccc;
+   margin-bottom: 10px;
+   margin-top: 15px;
+   padding-bottom: 5px;
+}

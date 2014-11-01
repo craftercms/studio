@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/renderers/Property"],function(a,b){return a([b],{nonAmdDependencies:["/js/alfresco.js"],postMixInProperties:function c(){if(this.currentItem!=null){this.renderedValue=Alfresco.util.formatFileSize(this.currentItem.jsNode.size)}}})});

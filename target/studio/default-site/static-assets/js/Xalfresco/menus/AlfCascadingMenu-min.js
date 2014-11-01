@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","dijit/PopupMenuItem","alfresco/menus/_AlfMenuItemMixin","alfresco/menus/AlfMenuGroups","alfresco/core/Core"],function(a,e,f,d,c){return a([e,f,c],{closeOnClick:false,postCreate:function b(){this.setupIconNode();this.inherited(arguments);this.popup=new d({pubSubScope:this.pubSubScope,widgets:this.widgets});this.registerPopupCloseEvent()}})});

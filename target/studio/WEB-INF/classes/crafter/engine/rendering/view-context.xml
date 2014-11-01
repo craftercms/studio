@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--		View Resolvers				-->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
+
+    <bean id="crafter.mainViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="order" value="0" />
+        <property name="contentNegotiationManager">
+            <bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+                <!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
+                <property name="ignoreAcceptHeader" value="true" />
+                <property name="defaultContentType" value="text/html" />
+                <property name="mediaTypes">
+                    <map>
+                        <entry key="html" value="text/html" />
+                        <entry key="xml" value="application/xml" />
+                        <entry key="json" value="application/json" />
+                    </map>
+                </property>
+            </bean>
+        </property>
+        <property name="viewResolvers">
+            <list>
+                <bean class="org.craftercms.engine.view.CrafterPageViewResolver">
+                    <property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
+                    <property name="urlTransformerName" value="renderUrlToStoreUrl" />
+                    <property name="fullHttpsUrlTransformerName" value="toFullHttpsUrl" />
+                    <property name="urlTransformationService" ref="crafter.urlTransformationService" />
+                    <property name="localizeViews" value="${crafter.engine.page.view.localized}" />
+                    <property name="localizedUrlDelimiter" value="_" />
+                    <property name="urlParser" ref="crafter.contentBundleUrlParser" />
+                    <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+                    <property name="siteItemService" ref="crafter.siteItemService" />
+                    <property name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
+                    <property name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}" />
+                    <property name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}" />
+                    <property name="redirectContentType" value="${crafter.engine.page.redirect.contentType}" />
+					<property name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}" />
+                    <property name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}" />
+                    <property name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}" />
+					<property name="modePreview" value="${crafter.engine.preview}" />
+                    <property name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
+                    <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
+                    <property name="accessManager" ref="crafter.pageAccessManager"/>
+                    <property name="scriptFactory" ref="crafter.scriptFactory"/>
+                    <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
+                </bean>
+            </list>
+        </property>
+        <property name="defaultViews">
+            <list>
+                <ref bean="crafter.jsonView"/>
+                <ref bean="crafter.xmlView"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="crafter.freeMarkerViewResolver" class="org.craftercms.engine.view.freemarker.CrafterFreeMarkerViewResolver">
+        <property name="order" value="10" />
+        <property name="cache" value="false" />
+        <property name="contentType" value="text/html;charset=UTF-8" />
+        <property name="siteItemService" ref="crafter.siteItemService" />
+        <property name="scriptFactory" ref="crafter.scriptFactory" />
+        <property name="componentTemplateXPathQuery" value="${crafter.engine.component.view.name.xpathQuery}" />
+        <property name="componentIncludeElementName" value="${crafter.engine.component.include.element.name}" />
+        <property name="requestContextAttribute" value="requestContext" />
+        <property name="componentScriptResolver" ref="crafter.componentScriptResolver"/>
+    </bean>
+
+</beans>

@@ -1,0 +1,1 @@
+define(["dojo/_base/declare"],function(b){return b(null,{nonAmdDependencies:["/js/alfresco.js"],getRelativeTime:function a(c){return Alfresco.util.relativeTime(c)}})});

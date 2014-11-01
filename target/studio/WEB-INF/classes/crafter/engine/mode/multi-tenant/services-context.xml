@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--			 Filters				-->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
+
+    <bean id="crafter.siteContextResolvingFilter" class="org.craftercms.engine.servlet.filter.SiteContextFromRequestUriResolvingFilter">
+        <property name="siteNameRegex" value="${crafter.engine.request.uri.siteNameRegex}" />
+        <property name="siteNameRegexGroup" value="${crafter.engine.request.uri.siteNameRegexGroup}"/>
+        <property name="siteContextRegistry" ref="crafter.siteContextRegistry" />
+        <property name="siteContextFactory" ref="crafter.siteContextFactory" />
+        <property name="fallbackSiteContextFactory" ref="crafter.fallbackSiteContextFactory" />
+        <property name="fallbackSiteName" value="default"/>
+    </bean>
+
+</beans>

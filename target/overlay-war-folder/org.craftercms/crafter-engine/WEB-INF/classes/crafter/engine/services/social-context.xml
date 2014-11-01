@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:utils="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <utils:map id="crafter.connectionFactoryLocators">
+    <!-- Override to provide the ConnectionFactoryLocators for each site -->
+    </utils:map>
+
+    <bean id="crafter.connectionFactoryLocator"
+          class="org.craftercms.engine.util.spring.social.ConnectionFactoryBySiteLocator">
+        <property name="connectionFactoryLocators" ref="crafter.connectionFactoryLocators"/>
+    </bean>
+
+    <bean id="crafter.tenantResolver" class="org.craftercms.security.utils.social.RequestTenantResolver"/>
+
+    <bean id="crafter.textEncryptor" class="org.craftercms.commons.crypto.impl.NoOpTextEncryptor"/>
+
+    <bean id="crafter.usersConnectionRepository"
+          class="org.craftercms.profile.social.ProfileUsersConnectionRepository">
+        <property name="connectionFactoryLocator" ref="crafter.connectionFactoryLocator"/>
+        <property name="tenantResolver" ref="crafter.tenantResolver"/>
+        <property name="profileService" ref="crafter.profileServiceRestClient"/>
+        <property name="encryptor" ref="crafter.textEncryptor"/>
+    </bean>
+
+</beans>
