@@ -1,13 +1,19 @@
 var openerChildformMgr;
 var parentWindowLocation;
 
-if(window.opener) {
-    openerChildformMgr = window.opener.CStudioAuthoring.ChildFormManager;
-    parentWindowLocation = window.opener.location.href;
+try {
+    if(window.opener) {
+        openerChildformMgr = window.opener.CStudioAuthoring.ChildFormManager;
+        parentWindowLocation = window.opener.location.href;
+    }
+    else {
+        openerChildformMgr = window.CStudioAuthoring.ChildFormManager;
+        parentWindowLocation = window.location.href;
+    }
 }
-else {
+catch(err) {
     openerChildformMgr = window.CStudioAuthoring.ChildFormManager;
-    parentWindowLocation = window.location.href;
+    parentWindowLocation = window.location.href;    
 }
 
 var CStudioForms = CStudioForms || function() {
@@ -615,7 +621,7 @@ var CStudioForms = CStudioForms || function() {
          */
         render: function(formId, style) {
             var _self = this;
-            CStudioAuthoring.Utils.addCss('/themes/cstudioTheme/css/forms-'+style+'.css');
+            CStudioAuthoring.Utils.addCss('/static-assets/themes/cstudioTheme/css/forms-'+style+'.css');
 
             // load the definition
             var formId = CStudioAuthoring.Utils.getQueryVariable(location.search, "form");
@@ -735,9 +741,14 @@ var CStudioForms = CStudioForms || function() {
             var path = CStudioAuthoring.Utils.getQueryVariable(location.search, "path");
             var edit = CStudioAuthoring.Utils.getQueryVariable(location.search, "edit");
 
+            try {
             if(window.opener) {
                 window.previewTargetWindowId = (window.opener.previewTargetWindowId)
                     ? window.opener.previewTargetWindowId : window.opener.name;
+            }
+            }
+            catch(err) {
+
             }
 
             var contentDom = content.responseXML.documentElement;
@@ -1279,7 +1290,7 @@ var CStudioForms = CStudioForms || function() {
 
                 CStudioAuthoring.Module.requireModule(
                     "cstudio-forms-controls-" + datasourceDef.type,
-                    '/components/cstudio-forms/data-sources/' + datasourceDef.type + ".js",
+                    '/static-assets/components/cstudio-forms/data-sources/' + datasourceDef.type + ".js",
                     { config: datasourceDef },
                     cb);
             }
@@ -1621,7 +1632,7 @@ var CStudioForms = CStudioForms || function() {
 
             CStudioAuthoring.Module.requireModule(
                 "cstudio-forms-controls-" + field.type,
-                '/components/cstudio-forms/controls/' + field.type + ".js",
+                '/static-assets/components/cstudio-forms/controls/' + field.type + ".js",
                 { config: { field: field,
                     repeatField: repeatField,
                     repeatIndex: repeatIndex}},
