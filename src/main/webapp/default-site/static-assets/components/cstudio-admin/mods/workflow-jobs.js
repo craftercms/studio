@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addCss("/components/cstudio-admin/mods/workflow-jobs.css");
+CStudioAuthoring.Utils.addCss("/static-assets/components/cstudio-admin/mods/workflow-jobs.css");
 CStudioAdminConsole.Tool.WorkflowJobs = CStudioAdminConsole.Tool.WorkflowJobs ||  function(config, el)  {
 	this.containerEl = el;
 	this.config = config;

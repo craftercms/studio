@@ -1,17 +1,17 @@
 CStudioAuthoring.Module.requireModule(
 	'codemirror',
-	'/components/cstudio-common/codemirror/lib/codemirror.js', {}, {
+	'/static-assets/components/cstudio-common/codemirror/lib/codemirror.js', {}, {
 	moduleLoaded: function() {
 
-		CStudioAuthoring.Utils.addJavascript("/components/cstudio-common/codemirror/lib/util/formatting.js");
-		CStudioAuthoring.Utils.addJavascript("/components/cstudio-common/codemirror/mode/xml/xml.js");
-		CStudioAuthoring.Utils.addJavascript("/components/cstudio-common/codemirror/mode/javascript/javascript.js");
-		CStudioAuthoring.Utils.addJavascript("/components/cstudio-common/codemirror/mode/htmlmixed/htmlmixed.js");
-		CStudioAuthoring.Utils.addJavascript("/components/cstudio-common/codemirror/mode/css/css.js");
-		CStudioAuthoring.Utils.addCss("/components/cstudio-common/codemirror/lib/codemirror.css");
-		CStudioAuthoring.Utils.addCss("/themes/cstudioTheme/css/template-editor.css");
+		CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/codemirror/lib/util/formatting.js");
+		CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/codemirror/mode/xml/xml.js");
+		CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/codemirror/mode/javascript/javascript.js");
+		CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/codemirror/mode/htmlmixed/htmlmixed.js");
+		CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/codemirror/mode/css/css.js");
+		CStudioAuthoring.Utils.addCss("/static-assets/components/cstudio-common/codemirror/lib/codemirror.css");
+		CStudioAuthoring.Utils.addCss("/static-assets/themes/cstudioTheme/css/template-editor.css");
 
-		CStudioAuthoring.Utils.addCss("/components/cstudio-admin/mods/admin-configurations.css");
+		CStudioAuthoring.Utils.addCss("/static-assets/components/cstudio-admin/mods/admin-configurations.css");
 		CStudioAdminConsole.Tool.AdminConfig = CStudioAdminConsole.Tool.AdminConfig ||  function(config, el)  {
 			this.containerEl = el;
 			this.config = config;
@@ -126,7 +126,7 @@ CStudioAuthoring.Module.requireModule(
 						var descriptionEl = document.getElementById("config-description");
 						descriptionEl.innerHTML = itemSelectEl[selectedIndex].getAttribute("description");
 						// load configuration into editor
-						var url = '/share/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+						var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
 							          CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
 						var getConfigCb = {
 							success: function(response) {
@@ -146,7 +146,7 @@ CStudioAuthoring.Module.requireModule(
 						var samplePath = itemSelectEl[selectedIndex].getAttribute("sample");
 						var viewSampleButtonEl = document.getElementById("view-sample-button");
 						if (samplePath != 'undefined' && samplePath != '') {
-							var url = '/share/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+							var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
 								    CStudioAuthoringContext.site + itemSelectEl[selectedIndex].getAttribute("sample");
 							var getSampleCb = {
 								success: function(response) {
@@ -224,7 +224,7 @@ CStudioAuthoring.Module.requireModule(
 					var xml = editor.getValue();
 					var savePath = itemSelectEl[selectedIndex].value;
 					if (savePath != 'undefined' && savePath != '') {
-						var url = '/share/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+						var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
 							CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
 
 						YAHOO.util.Connect.setDefaultPostHeader(false);

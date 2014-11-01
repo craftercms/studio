@@ -1,6 +1,6 @@
 CStudioAuthoring.Module.requireModule(
 	"cstudio-forms-engine",
-	'/components/cstudio-forms/forms-engine.js',
+	'/static-assets/components/cstudio-forms/forms-engine.js',
 	{  },
 	{ moduleLoaded: function() {
 
@@ -49,7 +49,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 							           failure: function() { alert('Save Failed'); } 
 							};
 							
-							var url = '/share/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+							var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
 							          CStudioAuthoringContext.site +
 							          '/content-types' + formDef.contentType + 
 							          '/form-definition.xml'
@@ -220,7 +220,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			
 		    		CStudioAuthoring.Module.requireModule(
                 		"cstudio-forms-controls-" + controls[j],
-                    	'/components/cstudio-forms/controls/' + controls[j] + ".js",
+                    	'/static-assets/components/cstudio-forms/controls/' + controls[j] + ".js",
                     	{ config: controls[j] },
                    	cb);
 				}
@@ -266,7 +266,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			
 		    		CStudioAuthoring.Module.requireModule(
                 		"cstudio-forms-controls-" + datasources[l],
-                    	'/components/cstudio-forms/data-sources/' + datasources[l] + ".js",
+                    	'/static-assets/components/cstudio-forms/data-sources/' + datasources[l] + ".js",
                     	{ config: datasources[l] },
                    	cb);
 				}
@@ -308,7 +308,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 				};
 				
 				CStudioAuthoring.Module.requireModule("dialog-select-template",
-					"/components/cstudio-dialogs/select-content-type.js",
+					"/static-assets/components/cstudio-dialogs/select-content-type.js",
 					moduleConfig,
 					selectTemplateDialogCb);
 	 		},
@@ -349,7 +349,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 		};
 		
 		CStudioAuthoring.Module.requireModule("new-content-type-dialog",
-			"/components/cstudio-dialogs/new-content-type.js",
+			"/static-assets/components/cstudio-dialogs/new-content-type.js",
 			moduleConfig,
 			dialogLoadedCb);
 
@@ -593,7 +593,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 					if(!deleteEl) {
 						deleteEl = document.createElement("img");
 						deleteEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-						         + "/themes/cstudioTheme/images/icons/delete.png";
+						         + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 						YDom.addClass(deleteEl, "deleteControl");
 						YDom.addClass(deleteEl, "delete-control-section");
 						listeningEl.insertBefore(deleteEl, listeningEl.children[0]);
@@ -1442,7 +1442,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		
 		CStudioAuthoring.Module.requireModule(
         	"cstudio-console-tools-content-types-proptype-"+propType,
-            '/components/cstudio-admin/mods/content-type-propsheet/' + propType + '.js',
+            '/static-assets/components/cstudio-admin/mods/content-type-propsheet/' + propType + '.js',
             {},
             propTypeCb);
 	}

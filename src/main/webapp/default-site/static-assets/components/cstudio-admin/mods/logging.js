@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addCss("/components/cstudio-admin/mods/logging.css");
+CStudioAuthoring.Utils.addCss("/static-assets/components/cstudio-admin/mods/logging.css");
 CStudioAdminConsole.Tool.Logging = CStudioAdminConsole.Tool.Logging ||  function(config, el)  {
 	this.containerEl = el;
 	this.config = config;

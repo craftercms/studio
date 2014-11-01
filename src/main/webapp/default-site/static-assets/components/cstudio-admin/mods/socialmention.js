@@ -9,12 +9,12 @@ CStudioAdminConsole.Tool.SocialMention = CStudioAdminConsole.Tool.SocialMention 
 YAHOO.extend(CStudioAdminConsole.Tool.SocialMention, CStudioAdminConsole.Tool, {
 	renderWorkarea: function() {
 		var workareaEl = document.getElementById("cstudio-admin-console-workarea");
-		workareaEl.innerHTML = "<div class='cs-socialmention-spinner' ><img src='" + CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/wait.gif" + "'></div>";
+		workareaEl.innerHTML = "<div class='cs-socialmention-spinner' ><img src='" + CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/wait.gif" + "'></div>";
 		
 		var cssEl = document.createElement("link");
 		cssEl.setAttribute("type", "text/css");
 		cssEl.setAttribute("rel", "stylesheet");
-		cssEl.setAttribute("href", CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-admin/mods/socialmention/plugin.css");
+		cssEl.setAttribute("href", CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-admin/mods/socialmention/plugin.css");
 		document.head.appendChild(cssEl);
 		
 		CStudioAdminConsole.Tool.SocialMentionRender.query = this.config.query;

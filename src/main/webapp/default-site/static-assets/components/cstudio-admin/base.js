@@ -69,7 +69,7 @@ CStudioAdminConsole = {
 			
 		    		CStudioAuthoring.Module.requireModule(
                 		"cstudio-console-tools-" + config.tools[j].name,
-                    	'/components/cstudio-admin/mods/' + config.tools[j].name + ".js",
+                    	'/static-assets/components/cstudio-admin/mods/' + config.tools[j].name + ".js",
                     	{ config: config.tools[j] },
                    	 	cb);
 				}

@@ -55,7 +55,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 		var liLoadingEl = document.createElement("li");
 		liLoadingEl.id = "loading-" + widgetId;		
 		var imgEl = document.createElement("img");
-		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/themes/cstudioTheme/images/treeview-loading.gif";
+		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 		liLoadingEl.appendChild(imgEl);
 		
 		

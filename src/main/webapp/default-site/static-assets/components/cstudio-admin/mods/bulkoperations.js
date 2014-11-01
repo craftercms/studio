@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addCss("/components/cstudio-admin/mods/bulkoperations.css");
+CStudioAuthoring.Utils.addCss("/static-assets/components/cstudio-admin/mods/bulkoperations.css");
 CStudioAdminConsole.Tool.BulkOperations = CStudioAdminConsole.Tool.BulkOperations ||  function(config, el)  {
     this.containerEl = el;
     this.config = config;
@@ -29,7 +29,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
             var srcPath = document.getElementById("bulk-rename-src-path").value;
             var targetPath = document.getElementById("bulk-rename-target-path").value;
             if (srcPath && targetPath) {
-                var serviceUri = "/proxy/alfresco/cstudio/util/bulk-rename?site="+CStudioAuthoringContext.site+"&srcPath="+srcPath+"&targetPath="+targetPath;
+                var serviceUri = "/studio/alfresco/cstudio/util/bulk-rename?site="+CStudioAuthoringContext.site+"&srcPath="+srcPath+"&targetPath="+targetPath;
                 var renameOpMessage = document.getElementById("bulk-rename-message");
 
                 var cb = {
