@@ -58,7 +58,7 @@ CStudioAuthoring.ContextualNav.PreviewToolsMod = CStudioAuthoring.ContextualNav.
 							
 							CStudioAuthoring.Module.requireModule(
 			                    "preview-tools-controller",
-			                    '/components/cstudio-preview-tools/preview-tools.js',
+			                    '/static-assets/components/cstudio-preview-tools/preview-tools.js',
 			                    0,
 			                    cb
 			                );
@@ -78,8 +78,8 @@ CStudioAuthoring.ContextualNav.PreviewToolsMod = CStudioAuthoring.ContextualNav.
 
                     ptoOn = !!(sessionStorage.getItem('pto-on'));   // cast string value to a boolean
 
-                    imageEl.src = (ptoOn) ? CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/tools_icon.png" :
-                                        CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/tools_off_icon.png";
+                    imageEl.src = (ptoOn) ? CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/tools_icon.png" :
+                                        CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/tools_off_icon.png";
 
 					containerEl.appendChild(imageEl);
 					el.appendChild(containerEl);

@@ -26,7 +26,7 @@ CStudioAuthoring.ContextualNav.AdminConsole = CStudioAuthoring.ContextualNav.Adm
             parentFolderLinkEl.innerHTML = "Admin Console";
             parentFolderLinkEl.onclick = function() {
             document.location = CStudioAuthoringContext.authoringAppBaseUri +
-                "/page/site/" + CStudioAuthoringContext.site + "/cstudio-admin-console";
+                "/admin-console?site=" + CStudioAuthoringContext.site;
             };
 
             dropdownInnerEl.appendChild(parentFolderEl);

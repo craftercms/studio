@@ -839,34 +839,35 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
                 if( node.isContainer == false){
 
-                    var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
+                    // remove this preview
+                    // var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
 
-                    if(reportContainerEl) {
-                        document.body.removeChild(reportContainerEl);
-                    }
+                    // if(reportContainerEl) {
+                    //     document.body.removeChild(reportContainerEl);
+                    // }
 
-                    var reportContainerEl = document.createElement("div");
-                    reportContainerEl.id = "cstudioPreviewAnalyticsOverlay";
-                    YAHOO.util.Dom.addClass(reportContainerEl, "cstudio-analytics-overlay");
+                    // var reportContainerEl = document.createElement("div");
+                    // reportContainerEl.id = "cstudioPreviewAnalyticsOverlay";
+                    // YAHOO.util.Dom.addClass(reportContainerEl, "cstudio-analytics-overlay");
 
-                    reportContainerEl.style.position = "fixed";
-                    reportContainerEl.style.width = "800px";
-                    reportContainerEl.style.top = "100px";
+                    // reportContainerEl.style.position = "fixed";
+                    // reportContainerEl.style.width = "800px";
+                    // reportContainerEl.style.top = "100px";
 
-                    var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
-                    reportContainerEl.style.left = x+"px";
-
-
-                    document.body.appendChild(reportContainerEl);
-                    reportContainerEl.innerHTML =
-                        "<div style='line-height: 111px; text-align: center;'><img src='"+CStudioAuthoringContext.baseUri + "/themes/cstudioTheme/images/wait.gif'/></div>";
+                    // var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
+                    // reportContainerEl.style.left = x+"px";
 
 
-                    var url = CStudioAuthoringContext.authoringAppBaseUri + "/page/site/" + CStudioAuthoringContext.site + "/cstudio-itempreview-overlay?nodeRef="+node.nodeRef;
-                    reportContainerEl.innerHTML = "<iframe id='cstudioPreviewAnalyticsOverlayFrame' style='border: none; margin-left: 100px; width: 600px; height:400px; margin-top:25px; margin-bottom: 25px;' src='"+ url + "' />";
-                    var iframe = document.getElementById("cstudioPreviewAnalyticsOverlayFrame");
-                    var iframeBody = iframe.contentDocument.getElementsByTagName('body')[0]
-                    iframeBody.style = "background: none transparent !important;";
+                    // document.body.appendChild(reportContainerEl);
+                    // reportContainerEl.innerHTML =
+                    //     "<div style='line-height: 111px; text-align: center;'><img src='"+CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/wait.gif'/></div>";
+
+
+                    // var url = CStudioAuthoringContext.authoringAppBaseUri + "/page/site/" + CStudioAuthoringContext.site + "/cstudio-itempreview-overlay?nodeRef="+node.nodeRef;
+                    // reportContainerEl.innerHTML = "<iframe id='cstudioPreviewAnalyticsOverlayFrame' style='border: none; margin-left: 100px; width: 600px; height:400px; margin-top:25px; margin-bottom: 25px;' src='"+ url + "' />";
+                    // var iframe = document.getElementById("cstudioPreviewAnalyticsOverlayFrame");
+                    // var iframeBody = iframe.contentDocument.getElementsByTagName('body')[0]
+                    // iframeBody.style = "background: none transparent !important;";
                 }
             },
             moutFn = function(evt) {

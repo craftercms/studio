@@ -23,7 +23,7 @@ CStudioAuthoring.ContextualNav.UserDashboard = CStudioAuthoring.ContextualNav.Us
 			parentFolderLinkEl.id = "user-dashboard";
 			parentFolderLinkEl.innerHTML = "User Dashboard";
 			parentFolderLinkEl.onclick = function() {
-				document.location = CStudioAuthoringContext.authoringAppBaseUri;
+				document.location = CStudioAuthoringContext.authoringAppBaseUri + "/user-dashboard";
 			};
 			
 			dropdownInnerEl.appendChild(parentFolderEl);

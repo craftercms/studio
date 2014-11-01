@@ -55,7 +55,7 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 						var option = document.createElement("option");
 				
 						option.text = "View: " + curSite.label;
-						option.value = CStudioAuthoringContext.authoringAppBaseUri + curSite.link;
+						option.value = curSite.shortName;
 						sitesNavSelect.options.add(option);
 				
 						// Find out what dashboard we are on and select based on that.
@@ -68,8 +68,11 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 				sitesNavSelect.onchange = function() {
 					var sitesNavSelect = document.getElementById("acn-site-dropdown");
 					var selectedIndex = sitesNavSelect.selectedIndex;
-					var link = sitesNavSelect.options[selectedIndex].value;
-					window.location =link;
+					var shortName = sitesNavSelect.options[selectedIndex].value;
+
+					// set the cookie for preview and then redirect
+					CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
+					window.location =CStudioAuthoringContext.authoringAppBaseUri + "/site-dashboard?site="+shortName;
 				};
 			},
 			failure: function() {

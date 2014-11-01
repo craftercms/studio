@@ -3376,7 +3376,7 @@ YConnect.failureEvent.subscribe(function() {
 						
 						if(sitesModel.length) {
 							for(var i=0; i<sitesModel.length; i++) {
-								menuModel.push({label: sitesModel[i].title, link: "/page/site/"+ sitesModel[i].shortName + "/dashboard"});
+								menuModel.push({label: sitesModel[i].title, shortName: sitesModel[i].shortName, link: "/site-dashboard?site="+ sitesModel[i].shortName});
 							}
 						}
 						

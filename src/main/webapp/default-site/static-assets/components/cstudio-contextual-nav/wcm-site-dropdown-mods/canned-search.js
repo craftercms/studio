@@ -24,9 +24,7 @@ CStudioAuthoring.ContextualNav.CannedSearch = CStudioAuthoring.ContextualNav.Can
 			var parentFolderLinkEl = document.createElement("a");
 			parentFolderLinkEl.innerHTML = "<br/>&nbsp;&nbsp;+&nbsp;&nbsp;&nbsp;Downloads Canned Search Example";
 			parentFolderLinkEl.onclick = function() { 
-				var url = CStudioAuthoringContext.authoringAppBaseUri + "/page" +
-					"/site/" + CStudioAuthoringContext.site +
-					"/cstudio-wcm-search?context=download&selection=-1&mode=act";
+				var url = CStudioAuthoringContext.authoringAppBaseUri + "/search?site="+CStudioAuthoringContext.site+"&context=download&selection=-1&mode=act";
 		     
 					window.location = url;	
 				 }; 

@@ -390,7 +390,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                         });
                         CStudioAuthoring.Module.requireModule(
                             module.name,
-                            '/components/cstudio-contextual-nav/wcm-site-dropdown-mods/' + module.name + ".js",
+                            '/static-assets/components/cstudio-contextual-nav/wcm-site-dropdown-mods/' + module.name + ".js",
                             module,
                             cb
                         );

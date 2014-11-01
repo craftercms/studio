@@ -775,7 +775,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         if(item.renderId != null) {
                             var loadingImageEl = document.createElement("img");
                                 loadingImageEl.id = item.renderId.toLowerCase() + "-loading";
-                                loadingImageEl.src = contextPath + CStudioAuthoringContext.baseUri + "/themes/cstudioTheme/images/treeview-loading.gif";                                                        
+                                loadingImageEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";                                                        
                             linkContainerEl.appendChild(loadingImageEl);                            
                         }
                     }

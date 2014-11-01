@@ -9,7 +9,7 @@ CStudioAuthoring.ContextualNav.WcmLogoutMod = CStudioAuthoring.ContextualNav.Wcm
 	 * initialize module
 	 */
 	initialize: function(config) {
-		YDom.get("acn-logout-link").href = CStudioAuthoringContext.authoringAppBaseUri + "/page/dologout";   
+		YDom.get("acn-logout-link").href = CStudioAuthoringContext.authoringAppBaseUri + "/logout";   
 	}
 }
 
