@@ -11,7 +11,7 @@ CStudioAuthoring.Dialogs.DialogReject = CStudioAuthoring.Dialogs.DialogReject ||
 }; 
 
 CStudioAuthoring.Module.requireModule("publish-dialog",
-        		"/components/cstudio-dialogs/publish-dialog.js",
+        		"/static-assets/components/cstudio-dialogs/publish-dialog.js",
         		{},
         		{ moduleLoaded: function(moduleName, dialogClass) 
         			{

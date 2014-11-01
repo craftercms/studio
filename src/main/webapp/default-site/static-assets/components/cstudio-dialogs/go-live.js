@@ -9,7 +9,7 @@ CStudioAuthoring.Dialogs.DialogGoLive = CStudioAuthoring.Dialogs.DialogGoLive ||
     this.moduleName = "goLive";
 };
 
-CStudioAuthoring.Module.requireModule("publish-dialog", "/components/cstudio-dialogs/publish-dialog.js", {}, {
+CStudioAuthoring.Module.requireModule("publish-dialog", "/static-assets/components/cstudio-dialogs/publish-dialog.js", {}, {
     moduleLoaded: function(moduleName, parentClass) {
 
         var Y = YAHOO,
@@ -602,7 +602,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog", "/components/cstudio-dia
                             me.dialog = dialog;
 
                             YDom.get('acnScrollBoxDiv').innerHTML = CSA.StringUtils.format(
-                                '<div class="spinner"><img src="{0}/themes/cstudioTheme/images/wait.gif"> <span class="warn">{1}</span></div>',
+                                '<div class="spinner"><img src="{0}/static-assets/themes/cstudioTheme/images/wait.gif"> <span class="warn">{1}</span></div>',
                                 CSAContext.authoringAppBaseUri, 'Loading items &amp; dependecies, please wait.');
 
                             YEvent.addListener("golivecancelButton", "click", me.closeDialog, me, true);

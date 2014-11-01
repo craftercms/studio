@@ -72,7 +72,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 										'</div></div>'+
 										'<div class="previewImage" id="previewImage">'+
 										'<div class="contentTypePreview">'+
-											'<div>Preview: </div><img src="'+CStudioAuthoringContext.baseUri+'/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
+											'<div>Preview: </div><img src="'+CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
 										'</div></div>'+
 									'</div> '+
 									'<div class="contentTypePopupBtn"> '+
@@ -173,7 +173,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 	setDefaultTemplate: function(contentTypes) {
 		var contentTypesSelect = YDom.get("wcm-content-types-dropdown");
 		if (!contentTypesSelect) return;
-		var defaultSrc = CStudioAuthoringContext.baseUri+'/themes/cstudioTheme/images/';
+		var defaultSrc = CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/';
 		var defaultImg = "default-contentType.jpg";
 		var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 
@@ -232,7 +232,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		YAHOO.util.Event.addListener("wcm-content-types-dropdown", "change", function(){
 
 
-			var defaultSrc = CStudioAuthoringContext.baseUri+'/themes/cstudioTheme/images/';
+			var defaultSrc = CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/';
 			var defaultImg = "default-contentType.jpg";
 			var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 

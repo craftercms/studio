@@ -107,7 +107,7 @@ CStudioAuthoring.Dialogs.UploadFlickrDialog = CStudioAuthoring.Dialogs.UploadFli
 		        }
 		    }, this, true);
 		    
-		    var oACDS = new YAHOO.util.XHRDataSource("/share/form-controller/flickr/service-search.jsp");
+		    var oACDS = new YAHOO.util.XHRDataSource("/studio/form-controller/flickr/service-search.jsp");
 		    oACDS.responseSchema = {
 		        resultNode: "photo",
 		        fields: ["url"]

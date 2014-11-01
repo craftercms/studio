@@ -204,7 +204,7 @@ CStudioAuthoring.Dialogs.DialogSelectTaxonomyType = CStudioAuthoring.Dialogs.Dia
 		YAHOO.util.Event.addListener("wcm-content-types-dropdown", "change", function(){
 
 
-			var defaultSrc = CStudioAuthoringContext.baseUri+'/themes/cstudioTheme/images/';
+			var defaultSrc = CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/';
 			var defaultImg = "default-contentType.jpg";
 			var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 

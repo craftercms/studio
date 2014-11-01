@@ -133,7 +133,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		var contentAsFolder = (
 			type == 'component' ? false : params.asFolderEl.checked
 		);
-		var baseServicePath = '/share/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+		var baseServicePath = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
 			CStudioAuthoringContext.site +
 			'/content-types/' + type + '/' + name + 
 			'/';
