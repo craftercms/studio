@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-	<content-type>/page/entry</content-type>	<placeInNav>true</placeInNav>
-	<display-template>/templates/web/login.ftl</display-template>
+	<content-type>/page/entry</content-type>	
+	<placeInNav>true</placeInNav>
+	<display-template>/templates/web/entry.ftl</display-template>
 	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
 	<placeInNav>false</placeInNav>
 	<file-name>index.xml</file-name>
-	<internal-name>Home</internal-name>
-	<title>A Page</title>
-	<meta-description>example</meta-description>
-	<meta-keywords>example</meta-keywords>
-	<orderDefault_f>-1</orderDefault_f>
-	<objectGroupId>aedf</objectGroupId>
-	<objectId>aedfb50f-7a55-b9f9-ee87-5994d3aee6fd</objectId>
-	<folder-name/>
 	<servicesBody>&lt;div class="row service-blocks"&gt;
 &lt;div class="columns medium-12 text-center"&gt;
 &lt;h2 class="section-heading"&gt;Features&lt;br /&gt;&lt;/h2&gt;
