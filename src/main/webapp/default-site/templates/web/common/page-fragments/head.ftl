@@ -27,43 +27,8 @@
    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css" />
    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/contextNav.css"/>
    <script type="text/javascript" src="/studio/static-assets/js/bubbling.v1.5.0.js"></script>
-   <script type="text/javascript" src="/studio/static-assets/js/flash/AC_OETags.js"></script>
-   <script type="text/javascript" src="/studio/static-assets/service/messages.js?locale=en_US"></script>
-   <script type="text/javascript" src="/studio/static-assets/js/alfresco.js"></script>
-   <script type="text/javascript" src="/studio/static-assets/js/forms-runtime.js"></script>
-   <script type="text/javascript">//<![CDATA[
-      Alfresco.constants.DEBUG = false;
-      Alfresco.constants.PROXY_URI = window.location.protocol + "//" + window.location.host + "/studio/static-assets/proxy/alfresco/";
-      Alfresco.constants.PROXY_URI_RELATIVE = "/studio/static-assets/proxy/alfresco/";
-      Alfresco.constants.PROXY_FEED_URI = window.location.protocol + "//" + window.location.host + "/studio/static-assets/proxy/alfresco-feed/";
-      Alfresco.constants.THEME = "cstudioTheme";
-      Alfresco.constants.URL_CONTEXT = "/studio/static-assets/";
-      Alfresco.constants.URL_PAGECONTEXT = "/studio/static-assets/page/";
-      Alfresco.constants.URL_SERVICECONTEXT = "/studio/static-assets/service/";
-      Alfresco.constants.URL_FEEDSERVICECONTEXT = "/studio/static-assets/feedservice/";
-      Alfresco.constants.USERNAME = "admin";
-   //]]></script>
-   <script type="text/javascript">//<![CDATA[
-      Alfresco.constants.URI_TEMPLATES =
-      {
-         remote-site-page: "/site/{site}/{pageid}/p/{pagename}",
-         remote-page: "/{pageid}/p/{pagename}",
-         share-site-page: "/site/{site}/{pageid}/ws/{webscript}",
-         sitedashboardpage: "/site/{site}/dashboard",
-         contextpage: "/context/{pagecontext}/{pageid}",
-         sitepage: "/site/{site}/{pageid}",
-         userdashboardpage: "/user/{userid}/dashboard",
-         userpage: "/user/{userid}/{pageid}",
-         userprofilepage: "/user/{userid}/profile",
-         userdefaultpage: "/user/{pageid}",
-         consoletoolpage: "/console/{pageid}/{toolid}",
-         consolepage: "/console/{pageid}",
-         share-page: "/{pageid}/ws/{webscript}"
-      }
-   //]]></script>
-   <script type="text/javascript">//<![CDATA[
-      Alfresco.constants.HTML_EDITOR = 'tinyMCE';
-   //]]></script>
+ 
+
 
 
 <!-- Component Assets -->
