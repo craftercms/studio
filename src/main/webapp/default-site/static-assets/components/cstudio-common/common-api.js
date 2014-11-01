@@ -2040,7 +2040,7 @@ YConnect.failureEvent.subscribe(function() {
 			setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
 			getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
 			createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
-            verifyAlfrescoTicketUrl: "/service/cstudio/services/login/ticket/",
+            verifyAlfrescoTicketUrl: "/proxy/alfresco/api/login/ticket",
 						
 			/** 
 			 * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
@@ -6649,28 +6649,17 @@ CStudioAuthoring.InContextEdit = {
 
                     if (document.hasFocus()) {
                         alfrescoTicket = CStudioAuthoring.Utils.Cookies.readCookie("alf_ticket");
-                        serviceUri = CStudioAuthoring.Service.verifyAlfrescoTicketUrl + alfrescoTicket;
+                        serviceUri = CStudioAuthoring.Service.verifyAlfrescoTicketUrl + "/" + alfrescoTicket;
 
                         serviceCallback = {
                             success: function(response) {
-                                var resObj;
-                                try {
-                                    resObj = JSON.parse(response.responseText);
-                                } catch (e) {
-                                    throw new Error('Error retrieving session ticket information: ' + e.message);
-                                }
-                                if (YAHOO.lang.isObject(resObj)) {
-                                    if (resObj.code === 200) {
-                                        // Ticket is valid
-                                        setTimeout(function() {
-                                            authLoop(configObj);
-                                        }, delay);
-                                    } else {
-                                        // Ticket is invalid
-                                        authRedirect(configObj);
-                                    }
+                                var resObj = response.responseText
+
+                                if (resObj.indexOf("TICKET" != -1)) {
+                                    setTimeout(function() { authLoop(configObj); }, delay);
                                 } else {
-                                    throw new Error('Invalid format for session ticket information');
+                                    // Ticket is invalid
+                                    authRedirect(configObj);
                                 }
                             },
                             failure: function(response) {
