@@ -294,7 +294,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadVideoEl = document.createElement("img");
-        downloadVideoEl.src = Alfresco.constants.URL_CONTEXT + "themes/cstudioTheme/images/download.png";
+        downloadVideoEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadVideoEl);
 
         YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');

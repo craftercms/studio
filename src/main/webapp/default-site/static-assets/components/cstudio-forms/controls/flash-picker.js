@@ -286,7 +286,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadFlashEl = document.createElement("img");
-        downloadFlashEl.src = Alfresco.constants.URL_CONTEXT + "themes/cstudioTheme/images/download.png";
+        downloadFlashEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadFlashEl);
         YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');
 

@@ -12,7 +12,7 @@ CStudioForms.Controls.ImagePicker = CStudioForms.Controls.ImagePicker ||
         this.id = id;
         this.datasources = null;
         this.upload_dialog = null;
-        this.validExtensions = ["jpg", "jpeg", "gif", "png", "tiff", "tif", "bmp", "JPG", "JPEG", "GIF", "PNG", "TIFF", "TIF", "BMP"];
+        this.validExtensions = ["jpg", "jpeg", "gif", "png", "tiff", "tif", "bmp", "svg", "JPG", "JPEG", "GIF", "PNG", "TIFF", "TIF", "BMP", "SVG"];
         this.readonly = readonly;
         this.originalWidth = null;
         this.originalHeight = null;
@@ -352,7 +352,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadImageEl = document.createElement("img");
-        downloadImageEl.src = Alfresco.constants.URL_CONTEXT + "themes/cstudioTheme/images/download.png";
+        downloadImageEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadImageEl);
         YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');
         downloadEl.style.display = "none";

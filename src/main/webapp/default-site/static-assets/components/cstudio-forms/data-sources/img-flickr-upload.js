@@ -1,5 +1,5 @@
-CStudioAuthoring.Utils.addJavascript("/yui/datasource/datasource-min.js");
-CStudioAuthoring.Utils.addJavascript("/yui/autocomplete/autocomplete-min.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/yui/datasource/datasource-min.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/yui/autocomplete/autocomplete-min.js");
 
 CStudioForms.Datasources.ImgFlickrUpload = CStudioForms.Datasources.ImgFlickrUpload ||  
 function(id, form, properties, constraints)  {
@@ -61,7 +61,7 @@ YAHOO.extend(CStudioForms.Datasources.ImgFlickrUpload, CStudioForms.CStudioFormD
 			isUploadOverwrite: isUploadOverwrite
 		}
 		
-		CStudioAuthoring.Module.requireModule("flickr-dialog", "/components/cstudio-dialogs/upload-flickr-dialog.js", moduleConfig, openFlickrDialogCb);
+		CStudioAuthoring.Module.requireModule("flickr-dialog", "/static-assets/components/cstudio-dialogs/upload-flickr-dialog.js", moduleConfig, openFlickrDialogCb);
 
 	},
 	

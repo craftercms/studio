@@ -29,7 +29,7 @@ CStudioForms.Controls.RTE.plugins =  CStudioForms.Controls.RTE.plugins || {};
 
 CStudioAuthoring.Module.requireModule(
 	"cstudio-forms-rte-config-manager",
-	'/components/cstudio-forms/controls/rte-config-manager.js',
+	'/static-assets/components/cstudio-forms/controls/rte-config-manager.js',
 	{  },
 	{ moduleLoaded: function() {
 
@@ -628,7 +628,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	_handleImageDoubleClick: function(editor, event) {
 		CStudioAuthoring.Module.requireModule(
 			"cstudio-forms-controls-rte-edit-image",
-			'/components/cstudio-forms/controls/rte-plugins/edit-image.js',
+			'/static-assets/components/cstudio-forms/controls/rte-plugins/edit-image.js',
 			{  },
 			{ moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
 					moduleClass.renderImageEdit(editor,event.target);
@@ -679,7 +679,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	 * return the style sheets that should be applied to the RTE given the current context it is in
 	 */
 	_getCurrentStyleSheets: function(channel) {
-		var stylesheets  = "/share/themes/cstudioTheme/css/forms-rte.css";
+		var stylesheets  = "/studio/static-assets/themes/cstudioTheme/css/forms-rte.css";
 		var rteConfig = this.rteConfig;
 		
 		for(var i=0; i<rteConfig.rteStylesheets.length; i++) {
@@ -764,7 +764,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		for(var i=0; i<plugins.length; i++) {
 			CStudioAuthoring.Module.requireModule(
 				"cstudio-forms-controls-rte-"+ plugins[i],
-				'/components/cstudio-forms/controls/rte-plugins/' + plugins[i] + '.js',
+				'/static-assets/components/cstudio-forms/controls/rte-plugins/' + plugins[i] + '.js',
 				{ context: this},
 				loadedCb);		
 		}
