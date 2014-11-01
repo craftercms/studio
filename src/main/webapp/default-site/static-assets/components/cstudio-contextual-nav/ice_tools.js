@@ -29,13 +29,13 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 					       	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(
 					       			function() {
 					       				var el = YDom.get("acn-ice-tools-container");
-					       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit_off.png";
+					       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
 					       			});
 
 					       	CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(
 					       			function() {
 					       				var el = YDom.get("acn-ice-tools-container");
-					       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit.png";
+					       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
 					       			});
 
 //						}
@@ -54,13 +54,13 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 									       	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(
 									       			function() {
 									       				var el = YDom.get("acn-ice-tools-container");
-									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit_off.png";
+									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
 									       			});
 
 									       	CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(
 									       			function() {
 									       				var el = YDom.get("acn-ice-tools-container");
-									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit.png";
+									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
 									       			});
 
 											CStudioAuthoring.Module.requireModule(
@@ -86,7 +86,7 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 							
 							CStudioAuthoring.Module.requireModule(
 			                    "ice-tools-controller",
-			                    '/components/cstudio-preview-tools/ice-tools.js',
+			                    '/static-assets/components/cstudio-preview-tools/ice-tools.js',
 			                    0,
 			                    cb
 			                );
@@ -107,8 +107,8 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 
 					iceOn = !!(sessionStorage.getItem('ice-on'));   // cast string value to a boolean
 
-                    imageEl.src = (iceOn) ? CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit.png" :
-                                        CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit_off.png";
+                    imageEl.src = (iceOn) ? CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png" :
+                                        CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
 
 					containerEl.appendChild(imageEl);
 					el.appendChild(containerEl);
