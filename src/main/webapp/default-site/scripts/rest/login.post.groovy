@@ -2,7 +2,7 @@ def result = [:]
 def username = params.username;
 def password = params.password;
 
-def url = "http://authoring.cloud.craftersoftware.com/alfresco/service/api/login?u=" + username + "&pw=" + password;
+def url = "http://127.0.0.1:8080/alfresco/service/api/login?u=" + username + "&pw=" + password;
 def srvresponse = "";
 def invalidpw = false;
 
@@ -16,27 +16,27 @@ def invalidpw = false;
    //session.setAttribute("alfticket", srvresponse);
    def cookie = new javax.servlet.http.Cookie('ccticket', srvresponse);
    cookie.setPath("/");
-   cookie.setDomain(".craftersoftware.com");
+   cookie.setDomain("127.0.0.1");
    response.addCookie(cookie);
 
    def ucookie = new javax.servlet.http.Cookie('ccu', username);
    ucookie.setPath("/");
-   ucookie.setDomain(".craftersoftware.com");
+   ucookie.setDomain("127.0.0.1");
    response.addCookie(ucookie);
 
    def acookie = new javax.servlet.http.Cookie('alf_ticket', srvresponse);
    acookie.setPath("/");
-   acookie.setDomain(".craftersoftware.com");
+   acookie.setDomain("127.0.0.1");
    response.addCookie(acookie);
 
    def aucookie = new javax.servlet.http.Cookie('username', username);
    aucookie.setPath("/");
-   aucookie.setDomain(".craftersoftware.com");
+   aucookie.setDomain("127.0.0.1");
    response.addCookie(aucookie);
    
    def aucookie3 = new javax.servlet.http.Cookie('alfUsername3', username);
    aucookie3.setPath("/");
-   aucookie3.setDomain(".craftersoftware.com");
+   aucookie3.setDomain("127.0.0.1");
    response.addCookie(aucookie3);
    
    
@@ -49,7 +49,7 @@ def invalidpw = false;
     invalidpw = true;
     result.exception = err;
     result.response = srvresponse;
-   result.type = "error";
+	result.type = "error";
     result.message = "Invalid user name or password";
  }
 

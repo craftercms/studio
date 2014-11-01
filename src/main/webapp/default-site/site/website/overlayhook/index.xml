@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+  <internal-name>Overlay Hook</internal-name>
+  <display-template>/templates/web/overlayhook.ftl</display-template>
+  <content-type>/page/overlayhook</content-type>
+  <merge-strategy>inherit-levels</merge-strategy>
+</page>
