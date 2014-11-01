@@ -8,7 +8,7 @@ CStudioForms.Controls.RTE.InsertPredefinedTable = CStudioForms.Controls.RTE.Inse
             if (name == "predefinedTable" && predefinedTables && predefinedTables.length) {
                 var c = cm.createMenuButton('predefinedTable', {
                     title: 'Insert predefined table',
-                    image: CStudioAuthoringContext.authoringAppBaseUri + '/themes/cstudioTheme/images/icons/predefined-table.png',
+                    image: CStudioAuthoringContext.authoringAppBaseUri + '/static-assets/themes/cstudioTheme/images/icons/predefined-table.png',
                     icons: false
                 });
 

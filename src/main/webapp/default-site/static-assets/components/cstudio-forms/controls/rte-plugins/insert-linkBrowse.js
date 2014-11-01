@@ -1,7 +1,7 @@
 CStudioForms.Controls.RTE.InsertLinkBrowse = CStudioForms.Controls.RTE.InsertLinkBrowse || (function () {
 
-	var WAITING_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/themes/cstudioTheme/images/wait.gif' alt='Loading ...' />",
-		ERROR_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/themes/cstudioTheme/images/fail.png' alt='Loading failed' />",
+	var WAITING_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/static-assets/themes/cstudioTheme/images/wait.gif' alt='Loading ...' />",
+		ERROR_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/static-assets/themes/cstudioTheme/images/fail.png' alt='Loading failed' />",
 		moveEl,
 		editEl,
 		deleteEl;

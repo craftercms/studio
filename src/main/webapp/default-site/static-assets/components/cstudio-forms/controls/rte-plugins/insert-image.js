@@ -77,7 +77,7 @@ CStudioForms.Controls.RTE.ImageInsert = CStudioForms.Controls.RTE.ImageInsert ||
                     if (name == "managedImage" && imageManagerNames) {
                         var c = cm.createMenuButton('managedImage', {
                             title: 'Insert Image',
-                            image: CStudioAuthoringContext.authoringAppBaseUri + '/themes/cstudioTheme/images/insert_image.png',
+                            image: CStudioAuthoringContext.authoringAppBaseUri + '/static-assets/themes/cstudioTheme/images/insert_image.png',
                             icons: false
                         });
 

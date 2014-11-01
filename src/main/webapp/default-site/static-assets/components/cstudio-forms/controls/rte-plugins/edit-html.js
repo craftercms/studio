@@ -2,15 +2,15 @@
 
 CStudioAuthoring.Module.requireModule(
 	'codemirror',
-	'/components/cstudio-common/codemirror/lib/codemirror.js', {}, {
+	'/static-assets/components/cstudio-common/codemirror/lib/codemirror.js', {}, {
 	moduleLoaded: function() {
 
-		CStudioAuthoring.Utils.addJavascript('/components/cstudio-common/codemirror/mode/xml/xml.js');
-		CStudioAuthoring.Utils.addJavascript('/components/cstudio-common/codemirror/mode/javascript/javascript.js');
-		CStudioAuthoring.Utils.addJavascript('/components/cstudio-common/codemirror/mode/htmlmixed/htmlmixed.js');
-		CStudioAuthoring.Utils.addJavascript('/components/cstudio-common/codemirror/mode/css/css.js');
-		CStudioAuthoring.Utils.addCss('/components/cstudio-common/codemirror/lib/codemirror.css');
-		CStudioAuthoring.Utils.addCss('/themes/cstudioTheme/css/template-editor.css');
+		CStudioAuthoring.Utils.addJavascript('/static-assets/components/cstudio-common/codemirror/mode/xml/xml.js');
+		CStudioAuthoring.Utils.addJavascript('/static-assets/components/cstudio-common/codemirror/mode/javascript/javascript.js');
+		CStudioAuthoring.Utils.addJavascript('/static-assets/components/cstudio-common/codemirror/mode/htmlmixed/htmlmixed.js');
+		CStudioAuthoring.Utils.addJavascript('/static-assets/components/cstudio-common/codemirror/mode/css/css.js');
+		CStudioAuthoring.Utils.addCss('/static-assets/components/cstudio-common/codemirror/lib/codemirror.css');
+		CStudioAuthoring.Utils.addCss('/static-assets/themes/cstudioTheme/css/template-editor.css');
 
 		var YDom = YAHOO.util.Dom,
 			componentSelector = '.crComponent',
@@ -22,7 +22,7 @@ CStudioAuthoring.Module.requireModule(
 
 				ed.addButton('edithtml', {
 					title: 'Edit Code',
-					image: CStudioAuthoringContext.authoringAppBaseUri + '/themes/cstudioTheme/images/icons/code-edit.gif',
+					image: CStudioAuthoringContext.authoringAppBaseUri + '/static-assets/themes/cstudioTheme/images/icons/code-edit.gif',
 					onclick: function(e) {
 
 						if (!this.controlManager.get('edithtml').active) {
