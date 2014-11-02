@@ -1941,21 +1941,21 @@ YConnect.failureEvent.subscribe(function() {
             },
             getScheduleForDeleteView: function(callback) {
                 var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/service/ui/workflow-actions/schedule-for-delete?site={site}");
+                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}");
                 srv._getView({
                     url: url,
                     callback: callback,
-                    method: "POST",
+                    method: "GET",
                     defaultPostHeader: true
                 });
             },
             getDeleteView: function(callback) {
                 var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/service/ui/workflow-actions/delete?site={site}");
+                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/delete.html?site={site}");
                 srv._getView({
                     url: url,
                     callback: callback,
-                    method: "POST",
+                    method: "GET",
                     defaultPostHeader: true
                 });
             },
