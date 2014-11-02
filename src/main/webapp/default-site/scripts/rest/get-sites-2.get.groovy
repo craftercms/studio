@@ -1,6 +1,8 @@
 import groovy.json.JsonSlurper;
 def crafterSites = [];
-def urlbase = "http://127.0.0.1:8080/alfresco/service/api";
+def serverProperties = applicationContext.get("studio.crafter.properties")
+def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
+def urlbase = alfrescoUrl + "/service/api";
 
 try {
 

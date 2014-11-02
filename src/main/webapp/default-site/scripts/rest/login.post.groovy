@@ -19,7 +19,7 @@ def invalidpw = false;
    //session.setAttribute("alfticket", srvresponse);
    def cookie = new javax.servlet.http.Cookie('ccticket', srvresponse);
    cookie.setPath("/");
-   cookie.setDomain("127.0.0.1");
+   cookie.setDomain(cookieDomain);
    response.addCookie(cookie);
 
    def ucookie = new javax.servlet.http.Cookie('ccu', username);

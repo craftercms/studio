@@ -3,6 +3,8 @@
 
 import groovy.json.JsonSlurper;
 def crafterUser = [:];
+def serverProperties = applicationContext.get("studio.crafter.properties")
+def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
 
 try {
 
@@ -21,7 +23,7 @@ try {
     }
   }
 
-  def sitesurl = "http://127.0.0.1:8080/alfresco/service/api/people?filter="+ccu+"&maxResults=1&alf_ticket="+ticket;
+  def sitesurl = alfrescoUrl + "/service/api/people?filter="+ccu+"&maxResults=1&alf_ticket="+ticket;
   
   def response = (sitesurl).toURL().getText();
   def users = new JsonSlurper().parseText( response );
