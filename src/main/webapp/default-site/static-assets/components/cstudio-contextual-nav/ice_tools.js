@@ -65,7 +65,7 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 
 											CStudioAuthoring.Module.requireModule(
 								                    "preview-tools-controller",
-								                    '/components/cstudio-preview-tools/preview-tools.js',
+								                    '/static-assets/components/cstudio-preview-tools/preview-tools.js',
 								                    0,
 								                    {
 								                    	moduleLoaded: function(moduleName, moduleClass, moduleConfig) {

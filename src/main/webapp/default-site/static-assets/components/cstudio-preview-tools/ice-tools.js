@@ -1,5 +1,5 @@
-CStudioAuthoring.Utils.addJavascript("/modules/editors/tiny_mce/tiny_mce.js");
-CStudioAuthoring.Utils.addJavascript("/components/cstudio-forms/forms-engine.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/modules/editors/tiny_mce/tiny_mce.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-forms/forms-engine.js");
 /**
  * In-Context Editing (ICE)
  */
