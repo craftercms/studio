@@ -84,7 +84,7 @@
 
     CStudioAuthoring.Env.Loader = new CStudioAuthoring.Component.Loader({
         loadOptional: true,
-        base: CStudioAuthoringContext.baseUri + "/components/"
+        base: CStudioAuthoringContext.baseUri + "/static-assets/components/"
     });
 
     var Env = CStudioAuthoring.Env,

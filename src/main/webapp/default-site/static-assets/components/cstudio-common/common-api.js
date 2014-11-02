@@ -1988,7 +1988,7 @@ YConnect.failureEvent.subscribe(function() {
 			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
 			cutContentToClipboardServiceUri: "/service/cstudio/services/clipboard/cut",
 			pasteContentFromClipboardServiceUri: "/service/cstudio/services/clipboard/paste",
-			getClipboardItemsServiceUri: "/service/cstudio/services/clipboard/getItems",
+			getClipboardItemsServiceUri: "/api/1/services/clipboard/get-items.json",
 			deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
 			contextServiceUri: "/context-nav",
 			lookupContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-pages",
