@@ -33,7 +33,8 @@
             <list>
                 <value>classpath:crafter/core/core.properties</value>
                 <value>classpath:crafter/engine/server-config.properties</value>
-                <!-- STUDIO CHANGE value>classpath*:crafter/engine/extension/server-config.properties</value-->
+                <value>classpath:crafter/engine/studio-server-config.properties</value>
+                <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true" />

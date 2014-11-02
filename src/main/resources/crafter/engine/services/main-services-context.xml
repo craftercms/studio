@@ -26,7 +26,8 @@
             <list>
                 <value>classpath:crafter/core/core.properties</value>
                 <value>classpath:crafter/engine/server-config.properties</value>
-                <!-- STUDIO CHANGE value>classpath*:crafter/engine/extension/server-config.properties</value-->
+                <value>classpath:crafter/engine/studio-server-config.properties</value>
+                <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true" />
@@ -266,7 +267,15 @@
     </bean>
 
 <!-- STUDIO CHANGES -->
-
+    <bean name="studio.crafter.properties" class="java.util.HashMap">
+         <constructor-arg>
+            <map key-type="java.lang.String" value-type="java.lang.String">
+                <entry key="cookieDomain" value="${cookieDomain}" />
+                <entry key="alfrescoUrl" value="${alfrescoUrl}" />
+            </map>
+        </constructor-arg>       
+    </bean>
+    
     <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry" />
 
     <bean id="crafter.proxy.alfresco" class="org.craftercms.engine.http.impl.AlfrescoHttpProxy">
