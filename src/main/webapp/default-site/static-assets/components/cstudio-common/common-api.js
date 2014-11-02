@@ -1931,11 +1931,11 @@ YConnect.failureEvent.subscribe(function() {
 			
             getHistoryView: function(callback) {
                 var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/service/ui/workflow-actions/history-and-diff?site={site}");
+                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/history.html?site={site}");
                 srv._getView({
                     url: url,
                     callback: callback,
-                    method: "POST",
+                    method: "GET",
                     defaultPostHeader: true
                 });
             },
