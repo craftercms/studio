@@ -1971,7 +1971,7 @@ YConnect.failureEvent.subscribe(function() {
 
             getInContextEditView: function(callback) {
                 var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/service/ui/workflow-actions/in-context-edit");
+                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html");
                 srv._getView({
                     url: url,
                     callback: callback,
@@ -6258,7 +6258,7 @@ CStudioAuthoring.InContextEdit = {
 			var controlBoxEl = document.createElement("div");
 			
 			var editControlEl = document.createElement("img");
-			editControlEl.src = "/proxy/authoring/themes/cstudioTheme/images/edit.png";
+			editControlEl.src = "/proxy/authoring/static-assets/themes/cstudioTheme/images/edit.png";
 	
             var contentItem;
             var itemIsLoaded = true;
