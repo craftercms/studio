@@ -34,13 +34,13 @@ CStudioAuthoring.ContextualNav.PreviewToolsMod = CStudioAuthoring.ContextualNav.
 											CStudioAuthoring.PreviewTools.PreviewToolsOffEvent.subscribe(
 									       			function() {
 									       				var el = YDom.get("acn-preview-tools-container");
-									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/tools_off_icon.png";
+									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/tools_off_icon.png";
 									       			});
 
 											CStudioAuthoring.PreviewTools.PreviewToolsOnEvent.subscribe(
 									       			function() {
 									       				var el = YDom.get("acn-preview-tools-container");
-									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/tools_icon.png";
+									       				el.children[0].src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/tools_icon.png";
 
 									       			});
 
