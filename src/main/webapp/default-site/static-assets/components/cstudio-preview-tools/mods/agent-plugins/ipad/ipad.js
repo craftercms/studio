@@ -34,7 +34,7 @@ CStudioAuthoring.MediumPanel.IPad = CStudioAuthoring.MediumPanel.IPad || {
             emulateEl.style.width = "850px";
             emulateEl.style.height = "1100px";
             emulateEl.style.top = "32px";
-            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/ipad/ipad.gif')";
+            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/ipad/ipad.gif')";
             emulateEl.style.marginLeft = ""+ ((CStudioAuthoring.Utils.viewportWidth()/2)-440) +"px";
             
             var iframeEl = document.createElement("iframe");
@@ -51,7 +51,7 @@ CStudioAuthoring.MediumPanel.IPad = CStudioAuthoring.MediumPanel.IPad || {
             var rotateControlEl = document.createElement("div");
             emulateEl.appendChild(rotateControlEl);
         
-            rotateControlEl.style.background = "url('"+     CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/ipad/object-rotate-right.png')";
+            rotateControlEl.style.background = "url('"+     CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/ipad/object-rotate-right.png')";
 
             rotateControlEl.style.width = "30px";
             rotateControlEl.style.height = "32px";
@@ -66,7 +66,7 @@ CStudioAuthoring.MediumPanel.IPad = CStudioAuthoring.MediumPanel.IPad || {
             emulateEl.style.width = "1100px";
             emulateEl.style.height = "850px";
             emulateEl.style.top = "32px";
-            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/ipad/ipad-hozbg.gif') repeat scroll 0px 0pt transparent";
+            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/ipad/ipad-hozbg.gif') repeat scroll 0px 0pt transparent";
             emulateEl.style.marginLeft = ""+ ((CStudioAuthoring.Utils.viewportWidth()/2)-540) +"px";
 	
             var iframeEl = document.createElement("iframe");
@@ -83,7 +83,7 @@ CStudioAuthoring.MediumPanel.IPad = CStudioAuthoring.MediumPanel.IPad || {
             var rotateControlEl = document.createElement("div");
             emulateEl.appendChild(rotateControlEl);
         
-            rotateControlEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/ipad/object-rotate-left.png')";
+            rotateControlEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/ipad/object-rotate-left.png')";
 
             rotateControlEl.style.width = "30px";
             rotateControlEl.style.height = "32px";

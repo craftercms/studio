@@ -34,7 +34,7 @@ CStudioAuthoring.MediumPanel.IPhoneVert = CStudioAuthoring.MediumPanel.IPhoneVer
             emulateEl.style.width = "399px";
             emulateEl.style.height = "746px";
             emulateEl.style.top = "32px";
-            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/iphone/iphonebg.png')";
+            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/iphone/iphonebg.png')";
             emulateEl.style.marginLeft = ""+ ((CStudioAuthoring.Utils.viewportWidth()/2)-200) +"px";
 	
             var iframeEl = document.createElement("iframe");
@@ -51,7 +51,7 @@ CStudioAuthoring.MediumPanel.IPhoneVert = CStudioAuthoring.MediumPanel.IPhoneVer
             var rotateControlEl = document.createElement("div");
             emulateEl.appendChild(rotateControlEl);
         
-            rotateControlEl.style.background = "url('"+     CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/iphone/object-rotate-right.png')";
+            rotateControlEl.style.background = "url('"+     CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/iphone/object-rotate-right.png')";
 
             rotateControlEl.style.width = "30px";
             rotateControlEl.style.height = "32px";
@@ -66,7 +66,7 @@ CStudioAuthoring.MediumPanel.IPhoneVert = CStudioAuthoring.MediumPanel.IPhoneVer
             emulateEl.style.width = "750px";
             emulateEl.style.height = "390px";
             emulateEl.style.top = "32px";
-            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/iphone/iphone-hozbg.png') repeat scroll -125px 0pt transparent";
+            emulateEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/iphone/iphone-hozbg.png') repeat scroll -125px 0pt transparent";
             emulateEl.style.marginLeft = ""+ ((CStudioAuthoring.Utils.viewportWidth()/2)-400) +"px";
 	
             var iframeEl = document.createElement("iframe");
@@ -83,7 +83,7 @@ CStudioAuthoring.MediumPanel.IPhoneVert = CStudioAuthoring.MediumPanel.IPhoneVer
             var rotateControlEl = document.createElement("div");
             emulateEl.appendChild(rotateControlEl);
         
-            rotateControlEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/components/cstudio-preview-tools/mods/agent-plugins/iphone/object-rotate-left.png')";
+            rotateControlEl.style.background = "url('"+ CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/components/cstudio-preview-tools/mods/agent-plugins/iphone/object-rotate-left.png')";
 
             rotateControlEl.style.width = "30px";
             rotateControlEl.style.height = "32px";

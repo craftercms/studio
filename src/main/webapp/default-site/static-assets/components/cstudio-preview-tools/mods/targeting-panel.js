@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addJavascript(CStudioAuthoringContext.authoringAppBaseUri + "/yui/carousel/carousel-min.js");
+CStudioAuthoring.Utils.addJavascript(CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/yui/carousel/carousel-min.js");
 
 CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
@@ -69,7 +69,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							}
 
 							personaEl.personaDescription = config[i].description;
-							personaImgEl.src = CStudioAuthoringContext.baseUri + '/proxy/alfresco-noauth/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
+							personaImgEl.src = CStudioAuthoringContext.baseUri + '/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
 							
 							personalListEl.appendChild(personaEl);
 						}
@@ -296,11 +296,11 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
 									if(carousel.activePersona.username != item.personaName) {
 										overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/themes/cstudioTheme/images/overlay-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Assume</div>";
+									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Assume</div>";
 									}
 									else {
 									overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/themes/cstudioTheme/images/overlay-green-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Update</div>";
+									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-green-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Update</div>";
 									}
 									
 									

@@ -1,5 +1,5 @@
-CStudioAuthoring.Utils.addJavascript("/modules/editors/tiny_mce/tiny_mce.js");
-CStudioAuthoring.Utils.addJavascript("/components/cstudio-forms/forms-engine.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/modules/editors/tiny_mce/tiny_mce.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-forms/forms-engine.js");
 
 
 /**
@@ -33,10 +33,10 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		iceOn = !!(sessionStorage.getItem('ice-on'));   // cast string value to a boolean
 
 		if (iceOn) {
-    	    imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit.png";
+    	    imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
     	    labelEl.innerHTML = "In-Context Edit On";
 		} else {
-            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit_off.png";
+            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
             labelEl.innerHTML = "In-Context Edit Off";
 		}
 
@@ -101,7 +101,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		var templateImageEl = document.createElement("img");
 		var templateLabelEl = document.createElement("span");
 		
-        templateImageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/icons/code-edit.gif";
+        templateImageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/icons/code-edit.gif";
     	templateLabelEl.innerHTML = "Edit Template";
     	    
         YDom.addClass(templateLabelEl, "acn-ptools-ice-label");
@@ -131,7 +131,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 				
 					CStudioAuthoring.Module.requireModule(
                     	"medium-panel-"+CStudioAuthoringContext.channel,
-                    	'/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+CStudioAuthoringContext.channel+'.js',
+                    	'/static-assets/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+CStudioAuthoringContext.channel+'.js',
                     	0,
                    	 	cb);
 
@@ -156,13 +156,13 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 
        	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(
        			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit_off.png";
+       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
     				labelEl.innerHTML = "In-Context Edit Off";
        			});
 
        	CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(
        			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/themes/cstudioTheme/images/edit.png";
+       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
        				YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
        				labelEl.innerHTML = "In-Context Edit On";
        			});

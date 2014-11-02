@@ -1,15 +1,15 @@
-CStudioAuthoring.Utils.addJavascript("/yui/dragdrop/dragdrop-min.js");
+CStudioAuthoring.Utils.addJavascript("/static-assets/yui/dragdrop/dragdrop-min.js");
 
 CStudioAuthoring.Module.requireModule(
 	"publish-subscribe",
-    '/components/cstudio-common/amplify-core.js',
+    '/static-assets/components/cstudio-common/amplify-core.js',
 	{  },
 	{ moduleLoaded: function () {
 		
  
 CStudioAuthoring.Module.requireModule(
 	"cstudio-forms-engine",
-    '/components/cstudio-forms/forms-engine.js',
+    '/static-assets/components/cstudio-forms/forms-engine.js',
 	{  },
 	{ moduleLoaded: function () {
 		

@@ -49,7 +49,7 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 				
 				CStudioAuthoring.Module.requireModule(
                     "medium-panel-"+channel.value,
-                    '/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+channel.value+'.js',
+                    '/static-assets/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+channel.value+'.js',
                     0,
                     cb
                 );

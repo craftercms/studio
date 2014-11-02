@@ -183,7 +183,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
 				
                 CStudioAuthoring.Module.requireModule(
                     module.moduleName,
-                    '/components/cstudio-preview-tools/mods/' + module.moduleName + ".js",
+                    '/static-assets/components/cstudio-preview-tools/mods/' + module.moduleName + ".js",
                     { config: module },
                     cb
                 );
