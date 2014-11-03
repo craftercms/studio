@@ -49,3 +49,8 @@
 <!-- MSIE CSS fix overrides -->
    <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/ie6.css" /><![endif]-->
    <!--[if IE 7]><link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/ie7.css" /><![endif]-->
+
+<script>
+   <!-- make sure child window domain -->
+   document.domain = "${envConfig.cookieDomain}";
+</script>
