@@ -5,6 +5,10 @@ import groovy.json.JsonSlurper;
 def crafterUser = [:];
 def serverProperties = applicationContext.get("studio.crafter.properties")
 def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
+def user = ""
+def ticket = ""
+def sitesurl ="";
+def response = ""
 
 try {
 
@@ -13,6 +17,7 @@ try {
   for (int i = 0; i < cookies.length; i++) {
     def name = cookies[i].getName(); 
     def value = cookies[i].getValue();
+
     
     if(name == "ccu") {
       user = value;
@@ -23,19 +28,16 @@ try {
     }
   }
 
-  def sitesurl = alfrescoUrl + "/service/api/people?filter="+ccu+"&maxResults=1&alf_ticket="+ticket;
+  sitesurl = alfrescoUrl + "/service/api/people?filter="+user+"&maxResults=1&alf_ticket="+ticket
   
-  def response = (sitesurl).toURL().getText();
-  def users = new JsonSlurper().parseText( response );
+  response = (sitesurl).toURL().getText()
+  def result = new JsonSlurper().parseText( response )
   
-  for(int j = 0; j < 1; j++) {
-     def alfUser = users[j];
- 
-     crafterUser.name = alfUser.firstName;;
-     crafterUser.surname = alfUser.lastName;
-     crafterUser.email = ccu;
-  }
-  
+  def alfUser = result.people[0];
+  crafterUser.name = alfUser.firstName;;
+  crafterUser.surname = alfUser.lastName;
+  crafterUser.email = alfUser.email;
+
 }
 catch(err) {
   crafterUser.err = err;
