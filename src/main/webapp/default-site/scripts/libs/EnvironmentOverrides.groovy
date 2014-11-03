@@ -8,13 +8,13 @@ class EnvironmentOverrides {
 		def result = [:]
 		def serverProperties = appContext.get("studio.crafter.properties")
 		def cookies = request.getCookies();
-		
+
 		result.environment = serverProperties["environment"] // local
 		result.alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
 		result.cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1
 
 		 
-		result.role = "admin"
+		result.role = "author" // default
 		
 		for (int i = 0; i < cookies.length; i++) {
 		    def name = cookies[i].getName(); 
@@ -40,6 +40,17 @@ class EnvironmentOverrides {
 		  
 		  def response = (overridesUrl).toURL().getText();
 		  def config = new JsonSlurper().parseText( response );
+
+
+		 def puburl = result.alfrescoUrl + "/service/api/groups/site_"+result.site+"_SiteManager/children?sortBy=displayName&maxItems=50&skipCount=0&alf_ticket="+result.ticket;
+		 def pubresponse = (puburl).toURL().getText();
+		 def pubgroups = new JsonSlurper().parseText( pubresponse );
+
+		 for(int k = 0; k < pubgroups.data.size; k++) {
+		   if(pubgroups.data[k].shortName == result.user) {
+		   		result.role = "admin"
+		   }
+		 }
 
 	      result.previewServerUrl = config["preview-server-url"];
 	      result.authoringServerUrl = config["authoring-server-url"]
