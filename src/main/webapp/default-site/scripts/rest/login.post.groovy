@@ -1,3 +1,5 @@
+import scripts.libs.Cookies
+
 def result = [:]
 def username = params.username;
 def password = params.password;
@@ -16,33 +18,11 @@ def invalidpw = false;
    srvresponse = srvresponse.replace("<ticket>", "");
    srvresponse = srvresponse.replace("</ticket>", "");
 
-   //session.setAttribute("alfticket", srvresponse);
-   def cookie = new javax.servlet.http.Cookie('ccticket', srvresponse);
-   cookie.setPath("/");
-   cookie.setDomain(cookieDomain);
-   response.addCookie(cookie);
-
-   def ucookie = new javax.servlet.http.Cookie('ccu', username);
-   ucookie.setPath("/");
-   ucookie.setDomain(cookieDomain);
-   response.addCookie(ucookie);
-
-   def acookie = new javax.servlet.http.Cookie('alf_ticket', srvresponse);
-   acookie.setPath("/");
-   acookie.setDomain(cookieDomain);
-   response.addCookie(acookie);
-
-   def aucookie = new javax.servlet.http.Cookie('username', username);
-   aucookie.setPath("/");
-   aucookie.setDomain(cookieDomain);
-   response.addCookie(aucookie);
-   
-   def aucookie3 = new javax.servlet.http.Cookie('alfUsername3', username);
-   aucookie3.setPath("/");
-   aucookie3.setDomain(cookieDomain);
-   response.addCookie(aucookie3);
-   
-   
+   Cookies.createCookie('ccticket', srvresponse, cookieDomain, "/", response)
+   Cookies.createCookie('ccu', username, cookieDomain, "/", response)
+   Cookies.createCookie('alf_ticket', srvresponse, cookieDomain, "/", response)
+   Cookies.createCookie('username', username, cookieDomain, "/", response)
+   Cookies.createCookie('alfUsername3', username, cookieDomain, "/", response)
 
    result.type = "success";
    result.message = "Login successful";
