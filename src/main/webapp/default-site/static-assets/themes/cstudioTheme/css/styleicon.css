@@ -1,0 +1,334 @@
+/* Reset */
+a,
+abbr,
+acronym,
+address,
+applet,
+b,
+big,
+blockquote,
+body,
+center,
+cite,
+code,
+del, dfn, div,
+dd,dl, dt, ol, ul, li,
+em,
+fieldset, form, label, legend,
+font,
+h1, h2, h3, h4, h5, h6,
+html,
+iframe,
+img,
+ins,
+kbd,
+object,
+p,
+pre,
+q,
+s,samp,small, strike, strong, sub, sup,
+span,
+table, caption, tbody, tfoot, thead, tr, th, td,
+tt,
+u, i,
+var {
+	border:	0;
+	font-size: 12px;
+	margin:	0;
+	outline: 0;
+	padding: 0;
+	vertical-align:	baseline;
+}
+
+ol, ul  {
+	list-style: none;
+}
+
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after, q:before, q:after {
+	content: '';
+	content: none;
+}
+
+:focus {
+	outline: 0;
+}
+
+ins {
+	text-decoration: none;
+}
+
+del {
+	text-decoration: line-through;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+/* end of Reset */
+
+/* base styles */
+html, body {
+	height: 100%;
+    min-height: 100%;
+	margin: 0px;
+}
+
+body {
+	color:#444444;
+	font-family: Arial;
+	font-size:0.75em;
+	margin:0;
+	padding:0;
+	
+}
+
+
+strong, b {
+	font-weight: bold;
+}
+
+em, i {
+	font-style: italic;
+}
+
+sup {
+	bottom: 0.33em;
+	color: #76797c;
+	font-size: 10px !important;
+	font-weight: normal !important;
+	padding-left: 1px;
+	position: relative;
+	_position: static !important;
+	vertical-align: baseline;
+}
+
+.clearfix:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+
+.clearfix {
+	display: inline-block;
+}
+
+html[xmlns] .clearfix {
+	display: block;
+}
+
+* html .clearfix {
+	height: 1%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	color: #FFF;
+	text-decoration: underline;
+}
+
+/* end of base styles */
+
+/* Utils */
+.clear {
+	clear: both;
+}
+
+.floatRight {
+	float: right;
+}
+
+.floatLeft	{
+	float: left;
+}
+
+.borderNone {
+	border: 0px;
+}
+.toppadding {
+	padding: 5px 0 0 0;
+}
+.topmargin {
+	margin: 5px 0 0 0;
+}
+.leftmargin {
+	margin-left: 6px;
+}
+
+/* End Of Utils */
+
+
+/* index Layout */
+
+
+.iconGuide {
+	margin: 0;
+	padding: 0;
+	width: 250px;
+}
+.headerStripIcon{
+	background: url(../images/bg/bar_bg.gif);
+	border-bottom: #a1a1a1 1px solid;
+	float: left;
+	margin: 0 ;
+	padding: 0;
+	height: 30px;
+	width:250px;
+}
+
+.headerIcon{
+	background: #f0f0f0;
+	float: left;
+	width: 250px;
+}
+.iconLeft {
+	float: left;
+	padding: 10px 15px 0px 15px;
+	width: 111px;
+}
+
+.iconRight {
+	float: left;
+	padding: 10px 15px 0px 15px;
+	width: 111px;
+}
+
+.iconName{
+	margin: 2px 0 0 0;
+	float: left;
+	height: 18px;
+	width: 91px;
+}
+
+.iconNameR{
+	margin: 2px 0 0 0;
+	float: left;
+	height: 18px;
+	width: 80px;
+
+}
+.iconPlainPaper { 
+	background: transparent url(../images/icons/icon_strip.gif) -300px 0px no-repeat;
+	display: block;
+	float: left ;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconPuzzle{ 
+	background: transparent url(../images/icons/icon_strip.gif) -500px 0px no-repeat;
+	display: block;
+	float: left ; 
+	height: 20px;
+	width : 20px; 
+	
+}
+.iconPen {
+	background: transparent url(../images/icons/icon_strip.gif) -140px 0px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconFlag { 
+	background: transparent url(../images/icons/icon_strip.gif) -160px 0px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconDoc { 
+	background: transparent url(../images/icons/icon_strip.gif) -400px 0px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconSchedule { 
+	background: transparent url(../images/icons/icon_strip.gif) -180px 0px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconDelete { 
+	background: transparent url(../images/icons/icon_strip_vertical.gif) 0px -640px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconInFlight{ 
+	background: transparent url(../images/icons/icon_strip_vertical.gif) 0px -1081px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconLocked{ 
+	background: transparent url(../images/icons/icon_strip_vertical.gif) 0px -1061px no-repeat;
+	display: block;
+	float: left;
+	height : 20px;
+	width : 20px; 
+	
+}
+
+.iconPaper {
+	background: transparent url(../images/icons/icon_strip.gif) -200px 0px no-repeat;
+	float: left;
+	height: 20px;
+	width: 20px; 
+	
+}
+
+.iconMinus { 
+	background: transparent url(../images/icons/icon_strip.gif) -20px 0px no-repeat;
+	float:left;
+	height : 20px;
+	margin: 8px 0px 5px 15px;
+	_margin: 8px 0px 5px 8px;
+	width : 20px; 
+	
+}
+
+.widgetHeader{
+	float:left;
+	margin: 8px 0 0 0;
+
+}
+.iconSpace {
+	float: left;
+	height: 16px;
+	margin: 4px 0 0 0;
+	width: 20px; 
+}
+
+.iconText {
+	float: left;
+	padding: 0 0 10px 0;
+	width: 120px; 
+	text-decoration: line-through;
+}

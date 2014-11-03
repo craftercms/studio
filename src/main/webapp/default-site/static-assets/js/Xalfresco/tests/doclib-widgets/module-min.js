@@ -1,0 +1,1 @@
+require(["doh/runner"],function(a){try{a.registerUrl("DocLib Widgets Test Suite","/share/page/dp/ws/doclib-widgets-test",50000)}catch(b){a.debug(b)}});

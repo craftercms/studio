@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/dialogs/AlfDialog","alfresco/documentlibrary/views/layouts/_MultiItemRendererMixin","dojo/_base/lang","dojo/_base/array","dojo/dom-construct","dojo/dom-class","dojo/html","dojo/aspect"],function(e,i,b,c,g,d,h,f,a){return e([i,b],{})});

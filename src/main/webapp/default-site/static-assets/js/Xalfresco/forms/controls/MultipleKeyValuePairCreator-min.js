@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/forms/controls/MultipleEntryCreator","alfresco/forms/controls/MultipleEntryElementWrapper","alfresco/forms/controls/MultipleKeyValuePairElement"],function(b,d,c,a){return b([d],{enableDND:false,createElementWidget:function(e){return new a(e)}})});

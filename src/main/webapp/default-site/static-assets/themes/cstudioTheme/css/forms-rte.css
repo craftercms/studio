@@ -1,0 +1,43 @@
+
+#cstudio-component-controls {
+	position: absolute;
+	margin: 0;
+	padding: 5px 4px 3px 8px;
+	background-color: #E1E9F0;
+	border: 1px solid #81A1BE;
+	z-index: 10;
+	border-radius: 3px;
+}
+#cstudio-component-controls li { display: inline-block; }
+#cstudio-component-controls li a:hover { cursor: pointer; }
+
+#cstudio-component-controls .edit > a, 
+#cstudio-component-controls .move > a,
+#cstudio-component-controls .delete > a { 
+	width: 20px; 
+	height: 20px; 
+	display: inline-block; 
+	background-repeat: no-repeat; 
+	background-position: 0 0;
+	background-color: transparent; 
+	margin-right: 4px;
+}
+
+#cstudio-component-controls .delete > a { background-image: url("../images/icons/delete-s.png"); }
+#cstudio-component-controls .edit > a { background-image: url("../images/edit.png"); }
+#cstudio-component-controls .move > a { background-image: url("../images/move.png"); }
+
+.hidden {
+	display:none !important;
+}
+
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}

@@ -1,0 +1,62 @@
+.configuration-window {
+    position: relative;
+    top: 15px;
+    left:250px;
+    right:auto;
+    width:1000px;
+}
+
+#config-list {
+	margin: 10px;
+}
+
+#edit-area {
+}
+
+#menu-area {
+	display: inline-block;
+	margin: 10px;
+	width: 100%
+}
+
+#config-description {
+	float: left;
+}
+
+#config-buttons {
+	float: right;
+}
+
+.edit-button {
+    width: 100px;
+    background: #000000;
+    color: #FFFFFF;
+    border: none;
+    margin: 5px;
+    height: 20px;
+}
+
+#edit-window {
+	margin: 5px;
+	float: left;
+}
+
+#edit-window textarea {
+	height: 100%;
+	resize: none;
+	width: 100%;
+	font-size: 12px;
+    font-family: monospace, sans-serif;
+}
+
+#sample-window {
+	float:right;
+	height: 100%;
+	width: 45%;
+	margin: 5px;
+}
+
+#sample-text {
+	height: 600px;
+	width: 500px;
+}

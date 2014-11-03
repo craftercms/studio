@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/forms/Form"],function(b,a){return b([a],{_onOK:function d(){},createButtons:function c(){}})});

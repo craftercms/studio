@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+  <internal-name>Admin Console</internal-name>
+  <content-type>/page/admin-console</content-type>	
+  <display-template>/templates/web/admin-console.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+</page>

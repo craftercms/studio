@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/menus/AlfCascadingMenu","dojo/dom-class","dojo/dom-construct"],function(b,d,c,a){return b([d],{cssRequirements:[{cssFile:"./css/AlfCascadingMenu.css"}],postCreate:function e(){this.inherited(arguments);if(this.popup&&this.popup.domNode){c.add(this.popup.domNode,"alf-header-cascading-menu")}}})});

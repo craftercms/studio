@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/logout</content-type>	<display-template>/templates/web/logout.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>00c5</objectGroupId>
+	<objectId>00c50f87-535e-acf2-bcf0-572852d6d563</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>logout</folder-name>
+	<internal-name>Log Out</internal-name>
+	<createdDate>5/13/2014 3:14:41</createdDate>
+	<lastModifiedDate>5/13/2014 3:14:41</lastModifiedDate>
+</page>

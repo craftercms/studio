@@ -1,0 +1,1 @@
+define([],function(){return{tagQueryTopic:"ALF_TAG_QUERY"}});

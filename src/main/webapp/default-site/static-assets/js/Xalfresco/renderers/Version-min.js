@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/renderers/Property"],function(a,b){return a([b],{cssRequirements:[{cssFile:"./css/Version.css"}],renderedValueClass:"version",propertyToRender:"version"})});

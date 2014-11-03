@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","dijit/_WidgetBase","alfresco/core/Core"],function(b,a,c){return b([a,c],{title:"",postCreate:function d(){this.alfPublish("ALF_UPDATE_PAGE_TITLE",{title:this.title})}})});

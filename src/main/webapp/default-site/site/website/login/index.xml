@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/redirect</content-type>	
+	<display-template>NONE</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>980e</objectGroupId>
+	<file-name>index.xml</file-name>
+	<internal-name>Login</internal-name>
+	<redirect-url>/</redirect-url>
+</page>

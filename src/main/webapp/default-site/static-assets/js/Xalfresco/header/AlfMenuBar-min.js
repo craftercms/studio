@@ -1,0 +1,1 @@
+define(["dojo/_base/declare","alfresco/menus/AlfMenuBar"],function(a,b){return a([b],{cssRequirements:[{cssFile:"./css/AlfMenuBar.css"}],i18nRequirements:[{i18nFile:"./i18n/AlfMenuBar.properties"}]})});

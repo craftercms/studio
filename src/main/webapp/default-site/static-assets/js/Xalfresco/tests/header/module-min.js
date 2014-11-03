@@ -1,0 +1,1 @@
+require(["doh/runner"],function(a){try{a.registerUrl("Header Test Suite","/share/page/dp/ws/header-test",50000);a.registerUrl("Sites Menu Test Suite","/share/page/dp/ws/sitesmenu-test",50000)}catch(b){a.debug(b)}});

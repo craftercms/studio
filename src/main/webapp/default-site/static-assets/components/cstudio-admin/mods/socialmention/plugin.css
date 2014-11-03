@@ -1,0 +1,109 @@
+.cs-socialmention-spinner {
+	padding: 100px;
+}
+
+.cs-socialmention-query {
+    float: right;
+    width: 75%;
+}
+
+.cs-socialmention-query-lastupdate {
+    color: #888888;
+    float: right;
+    font-weight: bold;
+    padding: 10px;
+}
+
+.cs-socialmention-query-heading {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+}
+
+.cs-socialmention-query-terms {
+    color: #888888;
+    margin-left: -250px;
+    padding: 10px 10px 0;
+}
+
+.cs-socialmention-query-count {
+    padding: 10px 10px 0;
+    margin-left: -250px;
+}
+
+.cs-socialmention-results {
+}
+
+.cs-socialmention-result-item {
+	display: block;
+}
+
+.cs-socialmention-result {
+    background: none repeat scroll 0 0 #F5FAFE;
+    border: 1px solid #0176B1;
+    clear: both;
+    display: block;
+    margin-left: 250px;
+    margin-top: 5px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-top: 20px;
+    width: 75%;
+}
+
+.cs-socialmention-result-time {
+	float: left;
+	margin-left: 10px;
+	width: 100px;
+}
+
+.cs-socialmention-result-source {
+	float: left;
+	margin-left: 10px;
+    background-image: url("./social-media-icons.gif");
+    background-position: 500px center;
+    float: left;
+    height: 35px;
+    margin-left: 10px;
+    margin-top: -17px;
+    width: 41px;	
+}
+
+.cs-socialmention-result-source-friendfeed {
+    background-position: 343px 770px;
+}
+
+.cs-socialmention-result-source-facebook {
+	background-position: -32px -328px;    
+}    
+
+.cs-socialmention-result-source-twitter {
+background-position: -273px -249px;
+}
+    
+.cs-socialmention-result-type {
+	float: left;
+	margin-left: 10px;
+	display: none;
+}
+
+.cs-socialmention-result-title {
+    float: left;
+    font-weight: bold;
+    height: 15px;
+    margin-left: 10px;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    width: 60%;
+    word-break: keep-all;
+    word-wrap: break-word;
+}
+
+.cs-socialmention-result-description {
+	display: block;
+    clear: both;
+    padding-left: 160px;
+}
+
