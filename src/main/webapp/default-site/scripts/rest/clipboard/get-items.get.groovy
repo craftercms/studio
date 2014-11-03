@@ -1,13 +1,12 @@
-def result = [:]
-result.count = "0"
-result.type = "content"
-result.items = []
+import scripts.libs.Clipboard
 
-// service doesn't exist yet
-//	var collection = cstudioClipboardService.getItems(site);
-// each item
-//{	path: '${clip.path}',
-//cut: '${clip.isCutFlag()?string}',
-//deep: '${clip.isDeep()?string}'
-//}
+def result = [:]
+def site = params.site
+def session = request.session
+
+def clipboardItem = Clipboard.getItem(site, session)
+
+result.site = site
+result.item = clipboardItem.item
+
 return result
