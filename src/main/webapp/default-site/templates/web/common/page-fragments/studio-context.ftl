@@ -8,20 +8,20 @@
 	 * note: these are all fixed at the moment but will be dynamic
 	 */
 	CStudioAuthoringContext = {
-		user: "${user}",
-		role: "${role}", 
-		site: "${site}",
+		user: "${envConfig.user}",
+		role: "${envConfig.role}", 
+		site: "${envConfig.site}",
 		collabSandbox: "",
 		baseUri: "/studio",
-		authoringAppBaseUri: "http://127.0.0.1:8080/studio",
-		formServerUri: "http://127.0.0.1:8080/form-server",
-		previewAppBaseUri: "http://127.0.0.1:8080",
+		authoringAppBaseUri: "${envConfig.authoringServerUrl}",
+		formServerUri: "${envConfig.formServerUrl}",
+		previewAppBaseUri: "${envConfig.previewServerUrl}",
 		contextMenuOffsetPage: false,
 		brandedLogoUri: "/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
-		homeUri: "/site-dashboard?site=${site}",
+		homeUri: "/site-dashboard?site=${envConfig.site}",
 		navContext: "default",
-		cookieDomain: "127.0.0.1",
-		openSiteDropdown: false,
+		cookieDomain: "${envConfig.cookieDomain}",
+		openSiteDropdown: ${envConfig.openSiteDropdown},
 		isPreview: false
 	};
 
