@@ -2,11 +2,12 @@ import scripts.libs.Clipboard
 
 def result = [:]
 def site = params.site
+def deep = true
 def session = request.session
+def requestBody = request.reader.text
 
-def clipboardItem = Clipboard.getItem(site, session)
+Clipboard.cut(site, session, requestBody, deep)
 
 result.site = site
-result.item = clipboardItem.item
 
 return result
