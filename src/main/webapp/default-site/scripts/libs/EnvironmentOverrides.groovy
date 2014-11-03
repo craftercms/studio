@@ -9,9 +9,10 @@ class EnvironmentOverrides {
 		def serverProperties = appContext.get("studio.crafter.properties")
 		def cookies = request.getCookies();
 		
-		result.environment = "local" //serverProperties["environment"] // 
+		result.environment = serverProperties["environment"] // local
 		result.alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
 		result.cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1
+
 		 
 		result.role = "admin"
 		

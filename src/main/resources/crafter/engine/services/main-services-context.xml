@@ -272,6 +272,7 @@
             <map key-type="java.lang.String" value-type="java.lang.String">
                 <entry key="cookieDomain" value="${cookieDomain}" />
                 <entry key="alfrescoUrl" value="${alfrescoUrl}" />
+                <entry key="environment" value="${environment}" />
             </map>
         </constructor-arg>       
     </bean>
