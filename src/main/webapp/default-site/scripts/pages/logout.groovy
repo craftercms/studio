@@ -1,37 +1,19 @@
-model.err = "none";
+import scripts.libs.Cookies
 
-try {
+def serverProperties = applicationContext.get("studio.crafter.properties")
+def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
+def cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1
 
-   def cookie = new javax.servlet.http.Cookie('ccticket', "");
-   cookie.setPath("/");
-   cookie.setDomain(".craftersoftware.com");
-   cookie.setMaxAge(-1);
-   response.addCookie(cookie);
+Cookies.removeCookie('ccticket', cookieDomain, "/", response)
+Cookies.removeCookie('crafterSite', cookieDomain, "/", response)
+Cookies.removeCookie('crafterSite', cookieDomain, "/", response)
+Cookies.removeCookie('ccu', cookieDomain, "/", response)
+Cookies.removeCookie('alf_ticket', cookieDomain, "/", response)
+Cookies.removeCookie('username', cookieDomain, "/", response)
+Cookies.removeCookie('alfUsername3', cookieDomain, "/", response)
+Cookies.removeCookie('alfLogin', cookieDomain, "/", response)
+Cookies.removeCookie('alfUser0', cookieDomain, "/", response)
+Cookies.removeCookie('alfUsername3', cookieDomain, "/share", response)
+Cookies.removeCookie('alfLogin', cookieDomain, "/share", response)
+Cookies.removeCookie('alfUser0', cookieDomain, "/alfresco", response)
 
-   def ucookie = new javax.servlet.http.Cookie('ccu', "");
-   ucookie.setPath("/");
-   ucookie.setDomain(".craftersoftware.com");
-   ucookie.setMaxAge(-1);
-   response.addCookie(ucookie);
-
-   def acookie = new javax.servlet.http.Cookie('alf_ticket', "");
-   acookie.setPath("/");
-   acookie.setDomain(".craftersoftware.com");
-   acookie.setMaxAge(-1);
-   response.addCookie(acookie);
-
-   def aucookie = new javax.servlet.http.Cookie('username', "");
-   aucookie.setPath("/");
-   aucookie.setDomain(".craftersoftware.com");
-   aucookie.setMaxAge(-1);
-   response.addCookie(aucookie);
-
-   def aucookie3 = new javax.servlet.http.Cookie('alfUsername3', "");
-   aucookie3.setPath("/");
-   aucookie3.setDomain(".craftersoftware.com");
-   aucookie3.setMaxAge(-1);
-   response.addCookie(aucookie3);
-}
-catch(err) {
-  model.err = err;
-}
