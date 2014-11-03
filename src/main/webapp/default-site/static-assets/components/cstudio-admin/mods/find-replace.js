@@ -94,9 +94,6 @@ YAHOO.extend(CStudioAdminConsole.Tool.FindReplace, CStudioAdminConsole.Tool, {
 
 					     		};
 
-                               //http://127.0.0.1:8080/share/proxy/alfresco/cstudio/wcm/content/write-content
-                               //?site=gcb&phase=onSave&path=/site/website/hp-chromebook-11/index.xml
-                               //&fileName=index.xml&user=admin&contentType=/page/product&unlock=false
 					     		CStudioAuthoring.Service.writeContent(
 					     			item.uri, 
 					     			item.name, 

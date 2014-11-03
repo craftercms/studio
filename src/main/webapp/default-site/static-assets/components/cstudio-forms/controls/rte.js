@@ -865,7 +865,7 @@ YEvent.delegate("formContainer", "click", function(e, matchedEl) {
 
 /* -------------------------------------------- */
 /* --- Patch tinymce's ColorSplitButton methods --- */
-/* Original File : <share-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
+/* Original File : <studio-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
 /* -------------------------------------------- */
 tinymce.ui.ColorSplitButton.prototype.renderMenu = function() {
 	var d = tinymce, c = d.DOM, a = d.dom.Event, b = d.is, e = d.each;
@@ -958,7 +958,7 @@ tinymce.ui.ColorSplitButton.prototype.showMenu = function() {
 
 /* --------------------------------------- */
 /* --- Patch tinymce's ListBox methods --- */
-/* Original File : <share-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
+/* Original File : <studio-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
 /* --------------------------------------- */
 tinymce.ui.ListBox.prototype.renderMenu =  function() {
 	var e = tinymce.each,
@@ -1034,7 +1034,7 @@ tinymce.ui.ListBox.prototype.showMenu = function() {
 
 /* ------------------------------------------ */
 /* --- Patch tinymce's MenuButton methods --- */
-/* Original File : <share-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
+/* Original File : <studio-root>/src/main/webapp/modules/editors/tinymce/tiny_mce.js
 /* ------------------------------------------ */
 tinymce.ui.MenuButton.prototype.renderMenu = function() {
     var f = this, e;

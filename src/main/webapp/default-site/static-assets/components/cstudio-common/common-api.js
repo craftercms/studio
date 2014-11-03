@@ -6631,12 +6631,12 @@ CStudioAuthoring.InContextEdit = {
                             window.location.assign(redirectUrl);
                         } else {
                             // If authConfig's redirectUrl value is undefined, then 
-                            // use share's login authentication
+                            // use login authentication
                             location.reload();
                         }
                     } else {
                         // If authConfig is not an object or it's null, then 
-                        // use share's login authentication
+                        // use login authentication
                         location.reload();
                     }
                 }
