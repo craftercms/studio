@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
   <internal-name>Site Dashboard</internal-name>
+  <content-type>/page/search</content-type>	
   <display-template>/templates/web/search.ftl</display-template>
   <merge-strategy>inherit-levels</merge-strategy>
 </page>
