@@ -1,7 +1,4 @@
-<#assign user = cookies["username"] />
-<#assign role = cookies["ccu"] />
-<#assign site = RequestParameters["site"] />
-
+<#assign site = envConfig.site />
 <script>
 	/**
 	 * contextual variables 

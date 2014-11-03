@@ -3,21 +3,22 @@
         var YEvent = YAHOO.util.Event;
 
         CStudioAuthoringContext = {
-            user: CStudioAuthoring.Utils.Cookies.readCookie("username").replace("\"","").replace("\"",""),
-            site: CStudioAuthoring.Utils.Cookies.readCookie("crafterSite"),
+            user: "${envConfig.user}",
+            role: "${envConfig.role}", 
+            site: "${envConfig.site}",
             collabSandbox: "",
-            baseUri: "/proxy/authoring",
-            authoringAppBaseUri: "http://127.0.0.1:8080/studio",
-            formServerUri: "NOT USED",
-            previewAppBaseUri: "http://127.0.0.1:8080",
+            baseUri: "/studio",
+            authoringAppBaseUri: "${envConfig.authoringServerUrl}",
+            formServerUri: "${envConfig.formServerUrl}",
+            previewAppBaseUri: "${envConfig.previewServerUrl}",
             contextMenuOffsetPage: true,
             brandedLogoUri: "/proxy/authoring/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
-            homeUri: "/site-dashboard?site=" + CStudioAuthoring.Utils.Cookies.readCookie("crafterSite"),
+            homeUri: "/site-dashboard?site=${envConfig.site}",
             navContext: "default",
-            cookieDomain: "127.0.0.1",
-            openSiteDropdown: false,
+            cookieDomain: "${envConfig.cookieDomain}",
+            openSiteDropdown: ${envConfig.openSiteDropdown},
             isPreview: true,
-            previewCurrentPath: "/site/website/"
+            previewCurrentPath: "/site/website${RequestParameters['page']}/index.xml"
         };
       roleCb = {
           success: function(result) {
@@ -26,16 +27,16 @@
           failure: function(response) {}
       };
       CStudioAuthoring.Service.lookupAuthoringRole(CStudioAuthoringContext.site, CStudioAuthoringContext.user, roleCb);
-CStudioAuthoring.OverlayRequiredResources.loadRequiredResources();
-CStudioAuthoring.OverlayRequiredResources.loadContextNavCss();
+      CStudioAuthoring.OverlayRequiredResources.loadRequiredResources();
+      CStudioAuthoring.OverlayRequiredResources.loadContextNavCss();
 
-CStudioAuthoring.Events.contextNavLoaded.subscribe(function() {
-  CStudioAuthoring.ContextualNav.hookNavOverlayFromAuthoring();
-  CStudioAuthoring.InContextEdit.autoInitializeEditRegions();
+      CStudioAuthoring.Events.contextNavLoaded.subscribe(function() {
+      CStudioAuthoring.ContextualNav.hookNavOverlayFromAuthoring();
+      CStudioAuthoring.InContextEdit.autoInitializeEditRegions();
 });   
 
         CStudioAuthoring.Events.moduleActiveContentReady.subscribe(function() {
-            var currentPage = "/site/website/";
+            var currentPage = "/site/website${RequestParameters['page']}/index.xml";
             currentPage = currentPage.replace(".html", ".xml");
             
             if(currentPage.indexOf(".xml") == -1) {
