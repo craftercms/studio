@@ -1,3 +1,4 @@
+<#assign mode = RequestParameters["mode"] />
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -34,7 +35,9 @@
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
 
-    <#include "/templates/web/common/page-fragments/context-nav.ftl" />
+    <#if mode == "act" >
+      <#include "/templates/web/common/page-fragments/context-nav.ftl" />
+    </#if>
 </head>
 
 <body class="yui-skin-cstudioTheme">
@@ -129,7 +132,11 @@
   </div>  
     </div>
 
-</div>  <div id="cstudio-command-controls"></div>
+</div>  
+
+    <#if mode == "select" >
+      <div id="cstudio-command-controls"></div>
+    </#if>
    </div>
 
 </html>
