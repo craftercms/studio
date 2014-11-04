@@ -2,16 +2,20 @@ package scripts.libs
 
 @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7' )
 
+import groovy.json.JsonBuilder
+import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.ContentType
+import groovyx.net.http.Method
+
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log
-import groovyx.net.http.HTTPBuilder
 
 @Log
 class Clipboard {
 
-/*
     public static paste(site, session, destination, serverUrl, ticket) {
-        def clipboardItem = getItem(site, session)
+
+        def clipboardItem = Clipboard.getItem(site, session)
         def serviceUrl = serverUrl
         serviceUrl += "?site=" + site
         serviceUrl += "&destination=" + destination
@@ -19,21 +23,20 @@ class Clipboard {
         serviceUrl += "&alf_ticket=" + ticket
         log.info "[Clipboard] requesting paste to " + serviceUrl
 
+        def requestItem = [:]
+        requestItem.item = clipboardItem.item
+
         def http = new HTTPBuilder(serviceUrl);
-        http.request( POST, JSON ) { req ->
-            body = clipboardItem.item
+        http.request( Method.POST, ContentType.JSON ) { req ->
+            body = new JsonBuilder(requestItem).toPrettyString()
             response.success = { resp, json ->
-                // response handling here
+                return resp.status
             }
-            response.'500' = { resp ->
-                log.error "failed"
+            response.failure = { resp ->
+                return resp.status
             }
         }
-        //def respJson = serviceUrl.toURL().getText()
-        //def result = new JsonSlurper().parseText( respJson )
-
     }
-    */
 
     public static cut(site, session, requestJson, deep) {
         Clipboard.clip(site, session, requestJson, true, deep)
@@ -70,5 +73,3 @@ class Clipboard {
     }
 
 }
-
-
