@@ -29,7 +29,7 @@
     <div id="global_x002e_cstudio-dashboard-title_x0023_default">
       <!-- dashboard title -->
     <div id="pageTitle">
-      <div class="dashHeader"><h1><span>${site} Dashboard</span></h1></div>
+      <div class="dashHeader"><h1><span>${envConfig.siteTitle} Dashboard</span></h1></div>
       <!--
        <ul id="pageNav">
         <li>  |  </li>
