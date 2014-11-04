@@ -507,7 +507,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 					if(!deleteEl) {
 						deleteEl = document.createElement("img");
 						deleteEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-						         + "/themes/cstudioTheme/images/icons/delete.png";
+						         + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 						YDom.addClass(deleteEl, "deleteControl");
 						listeningEl.appendChild(deleteEl);
 					
@@ -694,7 +694,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 				if(!deleteEl) {
 					deleteEl = document.createElement("img");
 					deleteEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-					         + "/themes/cstudioTheme/images/icons/delete.png";
+					         + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 					YDom.addClass(deleteEl, "deleteControl");
 					YDom.addClass(deleteEl, "delete-control-repeat");
 					listeningEl.insertBefore(deleteEl, listeningEl.children[0]);
@@ -781,7 +781,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 				if(!deleteEl) {
 					deleteEl = document.createElement("img");
 					deleteEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-					         + "/themes/cstudioTheme/images/icons/delete.png";
+					         + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 					YDom.addClass(deleteEl, "deleteControl");
 					listeningEl.appendChild(deleteEl);
 				
