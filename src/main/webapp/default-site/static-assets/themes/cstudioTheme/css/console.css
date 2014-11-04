@@ -256,6 +256,7 @@ body,tbody {
     height: 30px;
     position: fixed;
     width: 100%;
+    padding-left: 40%;
 }
 
 .property-wrapper {
