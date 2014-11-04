@@ -2026,7 +2026,7 @@ YConnect.failureEvent.subscribe(function() {
 			unlockContentItemUrl: "/proxy/alfresco/cstudio/wcm/workflow/unlockItem",
 			retrieveSitesUrl: "/proxy/alfresco/api/sites",
 			revertContentItemUrl: "/proxy/alfresco/cstudio/wcm/content/revert-content",
-			getAnalyticsReportUrl: "/service/cstudio/services/analytics/get-report",
+			getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
 			getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             lookupAuthoringRoleServiceUrl : "/proxy/alfresco/cstudio/permission/get-user-roles",
@@ -6631,12 +6631,12 @@ CStudioAuthoring.InContextEdit = {
                             window.location.assign(redirectUrl);
                         } else {
                             // If authConfig's redirectUrl value is undefined, then 
-                            // use share's login authentication
+                            // use login authentication
                             location.reload();
                         }
                     } else {
                         // If authConfig is not an object or it's null, then 
-                        // use share's login authentication
+                        // use login authentication
                         location.reload();
                     }
                 }

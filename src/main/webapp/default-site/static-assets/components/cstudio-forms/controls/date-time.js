@@ -147,7 +147,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	
 	createServiceUri: function(time, srcTimezone, destTimezone, dateFormat){
 		var baseUrl = CStudioAuthoringContext.authoringAppBaseUri;
-		var serviceUrl = "/service/cstudio/services/util/time/convert?";
+		var serviceUrl = "/studio/api/1/services/util/time/convert-time.json?";
 		var url = baseUrl;
 		url += serviceUrl;
 		url += "time=" + time;
