@@ -1,1 +1,0 @@
-define(["dojo/_base/declare","alfresco/menus/AlfMenuBarPopup","dojo/dom-class","dojo/dom-construct"],function(c,a,d,b){return c([a],{cssRequirements:[{cssFile:"./css/AlfMenuBarPopup.css"}],showArrow:true,postCreate:function e(){this.inherited(arguments);if(this.popup&&this.popup.domNode){d.add(this.popup.domNode,"alf-header-menu-bar")}}})});

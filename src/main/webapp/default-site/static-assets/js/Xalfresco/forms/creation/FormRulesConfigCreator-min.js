@@ -1,1 +1,0 @@
-define(["alfresco/forms/controls/MultipleEntryCreator","alfresco/forms/creation/FormRulesConfigCreatorElement","dojo/_base/declare","dojo/_base/array","dijit/registry","dojo/_base/lang"],function(f,c,b,e,a,d){return b([f],{createElementWidget:function(g){return new c(g)}})});
