@@ -43,5 +43,36 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletRecentDeployColEndpoint: "Server",
       dashletRecentDeployColDeployBy: "Published By",
 
+      dashletMyRecentActivityTitle: "My Recent Activity",
+      dashletMyRecentActivityHideLiveItems: "Hide Live Items",
+      dashletMyRecentActivityShowLiveItems: "Show Live Items", 
+      ddashletMyRecentActivityShow: "Show",
+      dashletMyRecentActivityColPageName: "Item Name",
+      dashletMyRecentActivityColEdit: "Edit",
+      dashletMyRecentActivityColURL: "URL",
+      dashletMyRecentActivityColPublishDate: "Publish Date",
+      dashletMyRecentActivityColLastEditedBy: "Last Edited By",
+      dashletMyRecentActivityColMyLastEdit: "My Last Edit",
+
+      dashletIconGuideTitle: "Workflow Icon Guide",
+      dashletIconGuideNavigationPage: "Navigation Page",
+      dashletIconGuideFloatingPage: "Floating Page",
+      dashletIconGuideComponent: "Component",
+      dashletIconGuideDocument: "Document",
+      dashletIconGuideStateNew: "Never published",
+      dashletIconGuideStateDisabled: "Disabled",
+      dashletIconGuideStateDeleted: "Deleted",
+      dashletIconGuideStateInProgress: "Edited",
+      dashletIconGuideStateInWorkflow: "In Workflow",
+      dashletIconGuideStateScheduled: "Scheduled",
+      dashletIconGuideStateSystemProcessing: "Processing",
+      dashletIconGuideStateLocked: "Locked for edit",
+
+
+
+
+
+
+
 
 });

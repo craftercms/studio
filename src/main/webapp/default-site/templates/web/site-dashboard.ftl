@@ -165,7 +165,7 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-MyRecentActivity"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');">My Recent Activity</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletMyRecentActivityTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='MyRecentActivity-total-count'></span>)
         </div>
 
@@ -212,7 +212,7 @@
 					id="widget-toggle-icon-guide" 
 					onclick="return WcmDashboardWidgetCommon.toggleWidget('icon-guide','site/rosie/dashboard');"> 
 			</span>	
-			Icon Guide 
+			<script>CMgs.display(langBundle, "dashletIconGuideTitle")</script>
 		</div>
     </div>			
 
@@ -221,32 +221,32 @@
         <div id="icon-guide-widget" class="headerIcon clearfix" style="width:290px;">
           <div class="iconLeft">
       		<div class="iconPaper"></div>
-      		<div class="iconName">Navigation Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideNavigationPage")</script></div>
             <div class="iconPlainPaper"></div>
-      		<div class="iconName">Floating Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideFloatingPage")</script></div>
 
             <div class="iconPuzzle"></div>
-      		<div class="iconName">Component</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideComponent")</script></div>
             <div class="iconDoc"></div>
-      		<div class="iconName">Document</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideDocument")</script></div>
             <div class="iconSpace">*</div>
-      		<div class="iconName">New Page</div>
-            <div class="iconText">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disabled Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideStateNew")</script></div>
+            <div class="iconText">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script>CMgs.display(langBundle, "dashletIconGuideStateDisabled")</script></div>
 
       </div>
       <div class="iconRight">
       		<div class="iconPen"></div>
-      		<div class="iconNameR">In Progress</div>
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateInProgress")</script></div>
             <div class="iconFlag"></div>
-      		<div class="iconNameR">Submitted</div>
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateInWorkflow")</script></div>
             <div class="iconSchedule"></div>
-      		<div class="iconNameR">Scheduled</div>				
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateScheduled")</script></div>				
             <div class="iconDelete"></div>
-            <div class="iconNameR">Deletion</div>
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateDeleted")</script></div>
             <div class="iconInFlight"></div>
-            <div class="iconNameR">Processing</div>
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateSystemProcessing")</script></div>
             <div class="iconLocked"></div>
-            <div class="iconNameR">In Edit</div>				
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateLocked")</script></div>				
       </div>
 
 
