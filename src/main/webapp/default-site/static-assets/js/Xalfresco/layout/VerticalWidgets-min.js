@@ -1,1 +1,0 @@
-define(["alfresco/core/ProcessWidgets","dojo/_base/declare","dojo/dom-construct","dojo/_base/array"],function(c,b,a,d){return b([c],{})});

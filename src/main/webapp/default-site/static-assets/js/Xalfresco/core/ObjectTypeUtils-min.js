@@ -1,1 +1,0 @@
-define(["dojo/_base/lang"],function(d){return{isString:function c(e){return d.isString(e)},isObject:function b(e){return d.isObject(e)},isArray:function a(e){return d.isArray(e)}}});

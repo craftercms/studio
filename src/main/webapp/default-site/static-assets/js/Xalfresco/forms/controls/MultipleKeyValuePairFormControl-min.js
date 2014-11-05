@@ -1,1 +1,0 @@
-define(["alfresco/forms/controls/MultipleEntryFormControl","dojo/_base/declare","alfresco/forms/controls/MultipleKeyValuePairCreator","dojo/_base/array"],function(c,a,b,d){return a([c],{createFormControl:function(e,f){return new b(e)}})});

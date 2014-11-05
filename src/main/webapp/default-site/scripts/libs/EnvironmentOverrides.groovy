@@ -1,6 +1,7 @@
 package scripts.libs
 
-import groovy.json.JsonSlurper;
+import groovy.json.JsonSlurper
+import scripts.libs.Cookies
 
 class EnvironmentOverrides {
 
@@ -17,22 +18,21 @@ class EnvironmentOverrides {
 		result.role = "author" // default
 
 		try {		
-			for (int i = 0; i < cookies.length; i++) {
-			    def name = cookies[i].getName(); 
-			    def value = cookies[i].getValue();
-			    
-			    if(name == "ccu") {
-			      result.user = value;
-			    }
-			    
-			    if(name == "ccticket") {
-			      result.ticket = value;
-			    }
+			result.user = Cookies.getCookieValue("ccu", request)
+			result.ticket = Cookies.getCookieValue("ccticket", request)
+			result.site = Cookies.getCookieValue("crafterSite", request)
 
-			    if(name == "crafterSite") {
-			      result.site = value;
-			    }		    
-			  }
+
+  			def sitesurl = result.alfrescoUrl + "/service/api/people/"+result.user+"/sites?roles=user&size=100&alf_ticket="+result.ticket;
+			def sitesResponse = (sitesurl).toURL().getText();
+			def sites = new JsonSlurper().parseText( sitesResponse );
+			
+		     for(int j = 0; j < sites.size; j++) {
+		        def alfSite = sites[j];
+		        if(alfSite.shortName == result.site) {
+		     		result.siteTitle = alfSite.title
+		     	}
+		     }
 
 			  def overridesUrl = result.alfrescoUrl + 
 			  	"/service/cstudio/site/get-configuration"+

@@ -12,7 +12,6 @@
     <script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js"></script> 
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/yui/assets/skins/sam/calendar.css" />
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css" />
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-form/swfobject.js"></script>
 
   <!-- filter templates -->
    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/common.js"></script>
@@ -31,14 +30,16 @@
    <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css" type="text/css" rel="stylesheet">
    <link href="/studio/static-assets/yui/container/assets/container.css" type="text/css" rel="stylesheet">
 
-    <#if mode == "act" >
+    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
+
+    <#if mode == "act">
       <#include "/templates/web/common/page-fragments/context-nav.ftl" />
     </#if>
 
-    <#include "/templates/web/common/page-fragments/context-nav.ftl" />
 </head>
 
 <body class="yui-skin-cstudioTheme">
+
    <div class="sticky-wrapper">
 <div id="global_x002e_cstudio-search">
     <div id="global_x002e_cstudio-search_x0023_default">
@@ -52,7 +53,7 @@
       <br />
       <span>Keywords (optional):</span>
       <br />
-      <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox"  value="m"/>
+      <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox"  value="${RequestParameters["s"]!''}"/>
 
       <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
             

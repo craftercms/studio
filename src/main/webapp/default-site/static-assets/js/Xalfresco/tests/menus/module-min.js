@@ -1,1 +1,0 @@
-require(["doh/runner"],function(a){try{a.registerUrl("Advanced Menus Test Suite","/share/page/dp/ws/advanced-menus-test",50000)}catch(b){a.debug(b)}});
