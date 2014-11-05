@@ -2,6 +2,12 @@
 CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
     { dashboardTitle: "{0} Dashboard",
   
+      dashletFilterPages: "Pages",
+      dashletFilterComponents: "Components",
+      dashletFilterDocuments: "Documents",
+      dashletFilterAssets: "Assets",
+      dashletFilterAll: "All",
+
       dashletGoLiveQueueTitle: "Items Waiting For Approval",
       dashletGoLiveCollapseAll: "Collapse All",
       dashletGoLiveExpandAll: "Expand All",
@@ -17,5 +23,14 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletGoLiveComponents: "Components ({0})",
       dashletGoLiveAssets: "Assets ({0})",
       dashletGoLiveEdit: "Edit",
+
+      dashletApprovedSchedTitle: "Approved Scheduled Items",
+      dashletApprovedSchedCollapseAll: "Collapse All",
+      dashletApprovedSchedShow: "Show",
+      dashletApprovedSchedColGoLiveDate: "Go Live Date",
+      dashletApprovedSchedColEdit: "Edit",
+      dashletApprovedSchedColURL: "URL",
+      dashletApprovedSchedColLastEdited: "Last Edited",
+
 
 });
