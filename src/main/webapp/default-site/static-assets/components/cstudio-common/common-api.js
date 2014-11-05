@@ -2008,7 +2008,8 @@ YConnect.failureEvent.subscribe(function() {
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			/* this will change - be generalized */
 			getComponentPreviewServiceUrl: "/crafter-controller/component",
-			searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
+			//searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
+            searchServiceUrl: "/api/1/services/search/search.json",      
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
 			getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",

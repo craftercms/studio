@@ -19,7 +19,8 @@
 		navContext: "default",
 		cookieDomain: "${envConfig.cookieDomain}",
 		openSiteDropdown: ${envConfig.openSiteDropdown},
-		isPreview: false
+		isPreview: false,
+		liveAppBaseUri:""
 	};
 
    	if(CStudioAuthoringContext.role === "") {
