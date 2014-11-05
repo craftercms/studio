@@ -6245,6 +6245,49 @@ YConnect.failureEvent.subscribe(function() {
 
 })();
 
+/**
+ * simple internationalization mechanism
+ */
+CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
+   bundles: { },
+   
+   registerBundle: function(namespace, lang, bundle) {
+        var M = CStudioAuthoring.Messages;
+ 
+        if(!M.bundles[namespace]) {
+            M.bundles[namespace] = { };
+        }
+
+        M.bundles[namespace][lang] = bundle; 
+   },
+
+   getBundle: function(namespace, lang) {
+        var bundle;
+        var M = CStudioAuthoring.Messages;
+        var namespace = M.bundles[namespace];
+        if(namespace) {
+            bundle = namespace[lang];
+
+            if(!bundle && lang != "en") {
+                // fallback
+                bundle = namespace["en"];                
+            }
+        }
+
+        return bundle;
+   },
+
+   format: function(bundle, messageId, a, b, c, d, e, f, g) {
+        var formattedMessage = messageId;
+
+        if(bundle[messageId]) {
+            formattedMessage = bundle[messageId];
+        }
+
+        return formattedMessage;
+   }
+}
+
 CStudioAuthoring.InContextEdit = {
 		regions: [],
 		

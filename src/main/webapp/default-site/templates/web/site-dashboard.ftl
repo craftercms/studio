@@ -2,10 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <#include "/templates/web/common/page-fragments/head.ftl" />
+    <title>Crafter Studio</title>
 
-   <title>Crafter Studio</title>
+    <#include "/templates/web/common/page-fragments/head.ftl" />
 
+
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/en-resources/site-dashboard.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/lib/wcm-dashboardwidget-common.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/go-live-queue.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/recently-made-live.js"></script>
@@ -16,6 +18,11 @@
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
+
+    <script>
+      CMgs = CStudioAuthoring.Messages;
+      langBundle = CMgs.getBundle("siteDashboard", "en");
+    </script>
 </head>
 
 <body class="yui-skin-cstudioTheme">
@@ -48,7 +55,7 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-GoLiveQueue"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');">Go Live Queue</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"><script>document.write(CMgs.format(langBundle, "dashletGoLiveQueueTitle"))</script></span>
             (<span class='cstudio-dash-totalcount' id='GoLiveQueue-total-count'></span>)
         </div>
 
