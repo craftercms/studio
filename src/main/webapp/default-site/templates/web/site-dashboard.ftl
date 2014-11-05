@@ -7,7 +7,9 @@
     <#include "/templates/web/common/page-fragments/head.ftl" />
 
 
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/en-resources/site-dashboard.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/site-dashboard.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/fr/site-dashboard.js"></script>
+
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/lib/wcm-dashboardwidget-common.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/go-live-queue.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/recently-made-live.js"></script>
@@ -21,7 +23,7 @@
 
     <script>
       CMgs = CStudioAuthoring.Messages;
-      langBundle = CMgs.getBundle("siteDashboard", "en");
+      langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
     </script>
 </head>
 
@@ -55,14 +57,14 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-GoLiveQueue"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"><script>document.write(CMgs.format(langBundle, "dashletGoLiveQueueTitle"))</script></span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletGoLiveQueueTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='GoLiveQueue-total-count'></span>)
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-GoLiveQueue" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');"><script>CMgs.display(langBundle, "dashletGoLiveCollapseAll")</script></a>
             </li>
         </ul>
 

@@ -21,9 +21,6 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
     this.tooltipLabels=null;
     WcmDashboardWidgetCommon.init(this);
 
-    CMgs = CStudioAuthoring.Messages;
-    langBundle = CMgs.getBundle("siteDashboard", "en");
-
     /**
      * get table data
      */

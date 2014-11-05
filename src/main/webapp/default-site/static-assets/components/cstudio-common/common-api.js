@@ -6268,9 +6268,9 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
         if(namespace) {
             bundle = namespace[lang];
 
-            if(!bundle && lang != "en") {
+            if(lang != "en") {
                 // fallback
-                bundle = namespace["en"];                
+                bundle.fallbackBundle = namespace["en"];                
             }
         }
 
@@ -6283,8 +6283,17 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
         if(bundle[messageId]) {
             formattedMessage = bundle[messageId];
         }
+        else if(bundle.fallbackBundle[messageId]) {
+            formattedMessage = bundle.fallbackBundle[messageId];
+        }
+
 
         return formattedMessage;
+   },
+
+   display: function(bundle, messageId, a, b, c, d, e, f, g) {
+        var formattedMessage = CStudioAuthoring.Messages.format(bundle, messageId, a, b, c, d, e, f, g);
+        document.write(formattedMessage);
    }
 }
 

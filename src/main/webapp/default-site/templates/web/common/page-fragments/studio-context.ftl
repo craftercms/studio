@@ -20,7 +20,8 @@
 		cookieDomain: "${envConfig.cookieDomain}",
 		openSiteDropdown: ${envConfig.openSiteDropdown},
 		isPreview: false,
-		liveAppBaseUri:""
+		liveAppBaseUri:"",
+		lang: "en"
 	};
 
    	if(CStudioAuthoringContext.role === "") {
