@@ -26,11 +26,22 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
 
       dashletApprovedSchedTitle: "Approved Scheduled Items",
       dashletApprovedSchedCollapseAll: "Collapse All",
+      dashletApprovedSchedExpandAll: "Expand All",
       dashletApprovedSchedShow: "Show",
       dashletApprovedSchedColGoLiveDate: "Go Live Date",
       dashletApprovedSchedColEdit: "Edit",
       dashletApprovedSchedColURL: "URL",
       dashletApprovedSchedColLastEdited: "Last Edited",
+
+      dashletRecentDeployTitle: "Recently Published",
+      dashletRecentDeployCollapseAll: "Collapse All",
+      dashletRecentDeployExpandAll: "Expand All",
+      dashletRecentDeployShow: "Show",
+      dashletRecentDeployColMadeLiveDateDate: "Publish Date",
+      dashletRecentDeployColEdit: "Edit",
+      dashletRecentDeployColURL: "URL",
+      dashletRecentDeployColEndpoint: "Server",
+      dashletRecentDeployColDeployBy: "Published By",
 
 
 });

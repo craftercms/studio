@@ -92,18 +92,16 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-approvedScheduledItems"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');">Approved Scheduled Items</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletApprovedSchedTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='approvedScheduledItems-total-count'></span>)
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-approvedScheduledItems" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');"><script>CMgs.display(langBundle, "approvedScheduledCollapseAll")</script></a>
             </li>
         </ul>
-
-        <!-- TODO Sajan please change this to classes with generic names .. what wwere they thinking?! -->
     </div>
 
 
@@ -127,13 +125,13 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-recentlyMadeLive"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');">Recently Made Live</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletRecentDeployTitle")</script></span>
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-recentlyMadeLive" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');"><script>CMgs.display(langBundle, "dashletRecentDeployCollapseAll")</script></a>
             </li>
         </ul>
 
