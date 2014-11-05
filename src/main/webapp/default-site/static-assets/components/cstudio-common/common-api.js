@@ -708,7 +708,7 @@ YConnect.failureEvent.subscribe(function() {
 				var searchUrl = CStudioAuthoringContext.authoringAppBaseUri +
 								"/search?site=" +
 								CStudioAuthoringContext.site +
-								"&s=";
+								"&s="+searchContext.keywords;
 
 				if (searchType) {
 					searchUrl += "&context=" + searchType;

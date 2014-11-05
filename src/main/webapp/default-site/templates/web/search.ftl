@@ -53,7 +53,7 @@
       <br />
       <span>Keywords (optional):</span>
       <br />
-      <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox"  value="m"/>
+      <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox"  value="${RequestParameters["s"]!''}"/>
 
       <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
             

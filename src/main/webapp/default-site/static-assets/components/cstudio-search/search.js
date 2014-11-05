@@ -520,7 +520,7 @@ CStudioSearch.preFireSearch = function(searchContext) {
 	var resultHeaderInProgress = YDom.get("cstudio-wcm-search-result-in-progress");
 	var contextPath = document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + CStudioAuthoringContext.baseUri+"/";  
 	var imgEl = document.createElement("img");
-	imgEl.src = contextPath + "themes/cstudioTheme/images/treeview-loading.gif";
+	imgEl.src = contextPath + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 	resultHeaderInProgress.appendChild(imgEl);
 	
 	// clear out pagination
