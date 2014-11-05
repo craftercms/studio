@@ -9,6 +9,7 @@
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/site-dashboard.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/fr/site-dashboard.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/site-dashboard.js"></script>
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/lib/wcm-dashboardwidget-common.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/go-live-queue.js"></script>
