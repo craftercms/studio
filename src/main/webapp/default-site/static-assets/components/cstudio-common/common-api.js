@@ -2008,7 +2008,8 @@ YConnect.failureEvent.subscribe(function() {
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			/* this will change - be generalized */
 			getComponentPreviewServiceUrl: "/crafter-controller/component",
-			searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
+			//searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
+            searchServiceUrl: "/api/1/services/search/search.json",      
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
 			getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
@@ -6243,6 +6244,73 @@ YConnect.failureEvent.subscribe(function() {
     });
 
 })();
+
+/**
+ * simple internationalization mechanism
+ */
+CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
+   bundles: { },
+   
+   registerBundle: function(namespace, lang, bundle) {
+        var M = CStudioAuthoring.Messages;
+ 
+        if(!M.bundles[namespace]) {
+            M.bundles[namespace] = { };
+        }
+
+        M.bundles[namespace][lang] = bundle; 
+   },
+
+   getBundle: function(namespace, lang) {
+        var bundle;
+        var M = CStudioAuthoring.Messages;
+        var namespace = M.bundles[namespace];
+        if(namespace) {
+            bundle = namespace[lang];
+
+            if(bundle && lang != "en") {
+                // fallback
+                bundle.fallbackBundle = namespace["en"];                
+            }
+            else {
+                bundle = namespace["en"];
+            }
+        }
+
+        return bundle;
+   },
+
+   format: function(bundle, messageId, a, b, c, d, e, f, g) {
+        var formattedMessage = messageId;
+        var spaceRegex = new RegExp(" ", 'g');
+        var starRegex = new RegExp("\\*", 'g');
+        var key = messageId.replace(spaceRegex, '');
+        key = key.replace(starRegex, '');
+        
+        if(bundle[key]) {
+            formattedMessage = bundle[key];
+        }
+        else if(bundle.fallbackBundle && bundle.fallbackBundle[key]) {
+            formattedMessage = bundle.fallbackBundle[key];
+        }
+
+        if(a) formattedMessage = formattedMessage.replace("{0}", a);
+        if(b) formattedMessage = formattedMessage.replace("{1}", b);
+        if(c) formattedMessage = formattedMessage.replace("{2}", c);
+        if(d) formattedMessage = formattedMessage.replace("{3}", d);
+        if(e) formattedMessage = formattedMessage.replace("{4}", e);
+        if(f) formattedMessage = formattedMessage.replace("{5}", f);
+        if(g) formattedMessage = formattedMessage.replace("{6}", g);
+
+
+        return formattedMessage;
+   },
+
+   display: function(bundle, messageId, a, b, c, d, e, f, g) {
+        var formattedMessage = CStudioAuthoring.Messages.format(bundle, messageId, a, b, c, d, e, f, g);
+        document.write(formattedMessage);
+   }
+}
 
 CStudioAuthoring.InContextEdit = {
 		regions: [],

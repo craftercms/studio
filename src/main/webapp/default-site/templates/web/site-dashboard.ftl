@@ -2,9 +2,13 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <#include "/templates/web/common/page-fragments/head.ftl" />
+    <title>Crafter Studio</title>
 
-   <title>Crafter Studio</title>
+    <#include "/templates/web/common/page-fragments/head.ftl" />
+
+
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/lib/wcm-dashboardwidget-common.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/go-live-queue.js"></script>
@@ -16,6 +20,11 @@
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
+
+    <script>
+      CMgs = CStudioAuthoring.Messages;
+      langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
+    </script>
 </head>
 
 <body class="yui-skin-cstudioTheme">
@@ -27,7 +36,7 @@
     <div id="page_x002e_title_x002e_site_x007e_rosie_x007e_dashboard_x0023_default">
       <!-- dashboard title -->
 		<div id="pageTitle">
-			<div class="dashHeader"><h1><span>${envConfig.siteTitle} Dashboard</span></h1></div>
+			<div class="dashHeader"><h1><span><script>CMgs.display(langBundle, "dashboardTitle","${envConfig.siteTitle}")</script></span></h1></div>
 			<!--
 			 <ul id="pageNav">
 				<li>  |  </li>
@@ -48,14 +57,14 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-GoLiveQueue"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');">Go Live Queue</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('GoLiveQueue','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletGoLiveQueueTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='GoLiveQueue-total-count'></span>)
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-GoLiveQueue" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');"><script>CMgs.display(langBundle, "dashletGoLiveCollapseAll")</script></a>
             </li>
         </ul>
 
@@ -83,18 +92,16 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-approvedScheduledItems"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');">Approved Scheduled Items</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('approvedScheduledItems','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletApprovedSchedTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='approvedScheduledItems-total-count'></span>)
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-approvedScheduledItems" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');"><script>CMgs.display(langBundle, "approvedScheduledCollapseAll")</script></a>
             </li>
         </ul>
-
-        <!-- TODO Sajan please change this to classes with generic names .. what wwere they thinking?! -->
     </div>
 
 
@@ -118,13 +125,13 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-recentlyMadeLive"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');">Recently Made Live</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('recentlyMadeLive','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletRecentDeployTitle")</script></span>
         </div>
 
         <ul id="ttNav" class='cstudio-widget-controls'>
             <li>
                 <a id="expand-all-recentlyMadeLive" class="widget-expand-state" href="#"
-                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');">Collapse All</a>
+                   OnClick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');"><script>CMgs.display(langBundle, "dashletRecentDeployCollapseAll")</script></a>
             </li>
         </ul>
 
@@ -158,7 +165,7 @@
         <div class="ttWidgetHdr">
             <span class="ttClose" style="cursor:pointer;" id="widget-toggle-MyRecentActivity"
                   onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');"></span>
-        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');">My Recent Activity</span>
+        	<span class="dashboard-widget-title" onclick="return WcmDashboardWidgetCommon.toggleWidget('MyRecentActivity','site/rosie/dashboard');"><script>CMgs.display(langBundle, "dashletMyRecentActivityTitle")</script></span>
             (<span class='cstudio-dash-totalcount' id='MyRecentActivity-total-count'></span>)
         </div>
 
@@ -205,7 +212,7 @@
 					id="widget-toggle-icon-guide" 
 					onclick="return WcmDashboardWidgetCommon.toggleWidget('icon-guide','site/rosie/dashboard');"> 
 			</span>	
-			Icon Guide 
+			<script>CMgs.display(langBundle, "dashletIconGuideTitle")</script>
 		</div>
     </div>			
 
@@ -214,32 +221,32 @@
         <div id="icon-guide-widget" class="headerIcon clearfix" style="width:290px;">
           <div class="iconLeft">
       		<div class="iconPaper"></div>
-      		<div class="iconName">Navigation Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideNavigationPage")</script></div>
             <div class="iconPlainPaper"></div>
-      		<div class="iconName">Floating Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideFloatingPage")</script></div>
 
             <div class="iconPuzzle"></div>
-      		<div class="iconName">Component</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideComponent")</script></div>
             <div class="iconDoc"></div>
-      		<div class="iconName">Document</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideDocument")</script></div>
             <div class="iconSpace">*</div>
-      		<div class="iconName">New Page</div>
-            <div class="iconText">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disabled Page</div>
+      		<div class="iconName"><script>CMgs.display(langBundle, "dashletIconGuideStateNew")</script></div>
+            <div class="iconText">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script>CMgs.display(langBundle, "dashletIconGuideStateDisabled")</script></div>
 
       </div>
       <div class="iconRight">
       		<div class="iconPen"></div>
-      		<div class="iconNameR">In Progress</div>
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateInProgress")</script></div>
             <div class="iconFlag"></div>
-      		<div class="iconNameR">Submitted</div>
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateInWorkflow")</script></div>
             <div class="iconSchedule"></div>
-      		<div class="iconNameR">Scheduled</div>				
+      		<div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateScheduled")</script></div>				
             <div class="iconDelete"></div>
-            <div class="iconNameR">Deletion</div>
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateDeleted")</script></div>
             <div class="iconInFlight"></div>
-            <div class="iconNameR">Processing</div>
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateSystemProcessing")</script></div>
             <div class="iconLocked"></div>
-            <div class="iconNameR">In Edit</div>				
+            <div class="iconNameR"><script>CMgs.display(langBundle, "dashletIconGuideStateLocked")</script></div>				
       </div>
 
 

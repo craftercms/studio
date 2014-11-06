@@ -228,7 +228,7 @@ WcmDashboardWidgetCommon.Ajax = {
 		}
 		
 		WcmDashboardWidgetCommon.Ajax.loadingImage = document.createElement("img");		
-		WcmDashboardWidgetCommon.Ajax.loadingImage.src = contextPath + CStudioAuthoringContext.baseUri + "/themes/cstudioTheme/images/treeview-loading.gif";					
+		WcmDashboardWidgetCommon.Ajax.loadingImage.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";					
 		
 		document.body.appendChild(WcmDashboardWidgetCommon.Ajax.container);
 		document.body.appendChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
@@ -1241,10 +1241,10 @@ WcmDashboardWidgetCommon.initFilterToWidget= function(widgetId, widgetFilterBy) 
         filterByEl.setAttribute("id", "widget-filterBy-" + widgetId);
     }
 
-    filterByEl.options[0]=new Option("Pages", "pages", true, false);
-    filterByEl.options[1]=new Option("Components", "components", true, false);
-    filterByEl.options[2]=new Option("Documents", "documents", true, false);
-    filterByEl.options[3]=new Option("All", "all", true, false);
+	filterByEl.options[0]=new Option(CMgs.format(langBundle, "dashletFilterPages"), "pages", true, false);
+	filterByEl.options[1]=new Option(CMgs.format(langBundle, "dashletFilterComponents"), "components", true, false);
+	filterByEl.options[2]=new Option(CMgs.format(langBundle, "dashletFilterDocuments"), "documents", true, false);
+	filterByEl.options[3]=new Option(CMgs.format(langBundle, "dashletFilterAll"), "all", true, false);
 
     //set default value from cookie
     if (widgetFilterBy) {

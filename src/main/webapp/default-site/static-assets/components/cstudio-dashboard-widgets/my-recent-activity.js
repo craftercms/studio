@@ -118,10 +118,10 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 			_self.excludeLiveItems = !_self.excludeLiveItems;
 
 			if(!_self.excludeLiveItems) {
-				this.innerHTML = "Hide Live Items";
+				this.innerHTML = CMgs.format(langBundle, "dashletMyRecentActivityHideLiveItems");
 			}
 			else {
-				this.innerHTML = "Show Live Items";
+				this.innerHTML = CMgs.format(langBundle, "dashletMyRecentActivityShowLiveItems");
 			}
 			var sortBy=_self.currentSortBy? _self.currentSortBy:_self.defaultSortBy;
 			var searchNumber=_self.searchNumber? _self.searchNumber:_self.defaultSearchNumber;
@@ -142,13 +142,13 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             Common = WcmDashboardWidgetCommon;
 
         var header = [
-            Common.getSortableRow("internalName", widgetId, "Page Name", "minimize"),
-            Common.getSimpleRow("edit", widgetId, "Edit", "minimize"),
-            Common.getSortableRow("browserUri", widgetId, "URL", "maximize"),
+            Common.getSortableRow("internalName", widgetId,  CMgs.format(langBundle, "dashletMyRecentActivityColPageName"), "minimize"),
+            Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColEdit"), "minimize"),
+            Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColURL"), "maximize"),
             '<th id="fullUri" class="width0"></th>',
-            Common.getSimpleRow("scheduledDate", widgetId, "Publish Date &amp; Time", ""),
-            Common.getSortableRow("userLastName", widgetId, "Last Edited By", "alignRight minimize"),
-            Common.getDefaultSortRow("eventDate",widgetId,"My Last Edit","ttThColLast alignRight minimize")
+            Common.getSimpleRow("scheduledDate", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColPublishDate"), ""),
+            Common.getSortableRow("userLastName", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColLastEditedBy"), "alignRight minimize"),
+            Common.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletMyRecentActivityColMyLastEdit"),"ttThColLast alignRight minimize")
         ].join('');
 
 		return header;

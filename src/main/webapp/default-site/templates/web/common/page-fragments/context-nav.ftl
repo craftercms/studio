@@ -6,5 +6,4 @@ CStudioAuthoring.Events.contextNavLoaded.subscribe(function() {
 	CStudioAuthoring.ContextualNav.hookNavOverlayFromAuthoring();
 	CStudioAuthoring.InContextEdit.autoInitializeEditRegions();
 });		
-
 </script>

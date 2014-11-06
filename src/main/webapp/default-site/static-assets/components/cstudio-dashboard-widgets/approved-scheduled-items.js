@@ -40,11 +40,11 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 	this.renderItemsHeading = function() {
 	
 		var widgetId = this._self.widgetId;
-		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,"Go Live Date","minimize")+
-                     WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,"Edit","minimize")+
-		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,"URL","maximize")+
+		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColGoLiveDate"),"minimize")+
+                     WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColEdit"),"minimize")+
+		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColURL"),"maximize")+
 		             "<th id='fullUri' class='width0'></th>"+
-                     WcmDashboardWidgetCommon.getSimpleRow("lastEdit",widgetId,"Last Edited","ttThColLast alignRight minimize");
+                     WcmDashboardWidgetCommon.getSimpleRow("lastEdit",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColLastEdited"),"ttThColLast alignRight minimize");
 		return header;	
 	};
 	
@@ -64,7 +64,7 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 										"widgetFilterBy");
 		var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
 		containerEl.appendChild(filterBydiv);
-		filterBydiv.innerHTML = "Show:"
+		filterBydiv.innerHTML = CMgs.format(langBundle, "dashletApprovedSchedShow")
 		filterByEl.style.marginLeft = "3px";
 		filterBydiv.appendChild(filterByEl);
 		
@@ -74,10 +74,10 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 			
 			var _self = this._self;
 			var selectedItems = filterByEl.selectedIndex;
-			filterByEl.options[0]=new Option("Pages", "pages", true, false);
-			filterByEl.options[1]=new Option("Components", "components", true, false);
-			filterByEl.options[2]=new Option("Documents", "documents", true, false);
-			filterByEl.options[3]=new Option("All", "all", true, false);
+			filterByEl.options[0]=new Option(CMgs.format(langBundle, "dashletApprovedSchedFilterPages"), "pages", true, false);
+			filterByEl.options[1]=new Option(CMgs.format(langBundle, "dashletApprovedSchedFilterComponents"), "components", true, false);
+			filterByEl.options[2]=new Option(CMgs.format(langBundle, "dashletApprovedSchedFilterDocuments"), "documents", true, false);
+			filterByEl.options[3]=new Option(CMgs.format(langBundle, "dashletApprovedSchedFilterAll"), "all", true, false);
 			filterByEl.options[selectedItems].selected =true;
 			var newState = filterByEl.value;
 

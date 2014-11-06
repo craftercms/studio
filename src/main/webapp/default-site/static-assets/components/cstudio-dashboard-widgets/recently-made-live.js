@@ -45,12 +45,12 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 	
 		var widgetId = this._self.widgetId;
 		
-		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,"Made Live Date","minimize")+
-                     WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,"Edit","minimize")+
-		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,"URL","maximize")+
-                     WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,"Endpoint","minimize")+
+		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
+                     WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEdit"),"minimize")+
+		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletRecentDeployColURL"),"maximize")+
+                     WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+
 		             "<th id='fullUri' class='width0'></th>"+		             
-                     WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,"Made Live","ttThColLast alignRight minimize");
+                     WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColDeployBy"),"ttThColLast alignRight minimize");
 		
 		return header;	
 	};
@@ -79,10 +79,10 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 			
 			var _self = this._self;
 			var selectedItems = filterByEl.selectedIndex;
-			filterByEl.options[0]=new Option("Pages", "pages", true, false);
-			filterByEl.options[1]=new Option("Components", "components", true, false);
-			filterByEl.options[2]=new Option("Documents", "documents", true, false);
-			filterByEl.options[3]=new Option("All", "all", true, false);
+			filterByEl.options[0]=new Option(CMgs.format(langBundle, "dashletFilterPages"), "pages", true, false);
+			filterByEl.options[1]=new Option(CMgs.format(langBundle, "dashletFilterComponents"), "components", true, false);
+			filterByEl.options[2]=new Option(CMgs.format(langBundle, "dashletFilterDocuments"), "documents", true, false);
+			filterByEl.options[3]=new Option(CMgs.format(langBundle, "dashletFilterAll"), "all", true, false);
 			filterByEl.options[selectedItems].selected =true;
 			var newState = filterByEl.value;
 

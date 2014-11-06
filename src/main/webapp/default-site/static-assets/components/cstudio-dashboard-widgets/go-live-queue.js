@@ -53,7 +53,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
         liLoadingEl.appendChild(imgEl);
 
         
-        itemFilterEl.innerHTML = "Show \"In-Progress\" Items ";
+        itemFilterEl.innerHTML = CMgs.format(langBundle, "dashletGoLiveShowInProgress");  
         itemFilterEl.hfref = "javascript:void(0);";
         itemFilterEl.id = "widget-expand-state-" + widgetId;
         YDom.addClass(itemFilterEl, "widget-expand-state");
@@ -70,10 +70,10 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
             _self.showInprogressItems = !_self.showInprogressItems;
 
             if (_self.showInprogressItems) {
-                this.innerHTML = "Hide \"In-Progress\" Items";
+                this.innerHTML = CMgs.format(langBundle, "dashletGoLiveHideInProgress"); 
             }
             else {
-                this.innerHTML = "Show \"In-Progress\" Items";
+                this.innerHTML = CMgs.format(langBundle, "dashletGoLiveShowInProgress");  
             }
 
             /* 
@@ -106,13 +106,13 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
             Common = WcmDashboardWidgetCommon;
 
         var header = [
-            Common.getSortableRow("internalName", widgetId, "Page Name", "minimize"),
-            Common.getSimpleRow("edit", widgetId, "Edit", "minimize"),
-            Common.getSortableRow("browserUri", widgetId, "URL", "maximize"),
+            Common.getSortableRow("internalName", widgetId, CMgs.format(langBundle, "dashletGoLiveColPageName"), "minimize"),
+            Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletGoLiveColEdit"), "minimize"),
+            Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletGoLiveColURL"), "maximize"),
             '<th id="fullUri" class="width0"></th>',
-            Common.getSimpleRow("scheduledDate", widgetId, "Publish Date &amp; Time", ""),
-            Common.getSortableRow("userLastName", widgetId, "Last Edited By", "alignRight minimize"),
-            Common.getSortableRow("eventDate", widgetId, "Last Edited", "ttThColLast alignRight minimize")
+            Common.getSimpleRow("scheduledDate", widgetId, CMgs.format(langBundle, "dashletGoLiveColPublishDate"), ""),
+            Common.getSortableRow("userLastName", widgetId, CMgs.format(langBundle, "dashletGoLiveColLastEditedBy"), "alignRight minimize"),
+            Common.getSortableRow("eventDate", widgetId, CMgs.format(langBundle, "dashletGoLiveColLastEditedDate"), "ttThColLast alignRight minimize")
         ].join('');
 
         return header;
