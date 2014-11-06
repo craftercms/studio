@@ -83,8 +83,18 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
       wcmContentApprove: "Approve & Publish",
       wcmContentDuplicate: "Duplicate",
       wcmContentHistory: "History",
+      wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
       
       InProgress: "Edited",
+      Deleted: "Deleted",
+      SubmittedforDelete: "Submitted for Delete",
       mixedStates: "Items (Mixed States)",
+      Submitted: "Submitted for Publish",
+      Live: "Live",
+      Scheduled: "Scheduled",
+
+      search: "Search",
+
+      logout: "Log Out",
 
 });

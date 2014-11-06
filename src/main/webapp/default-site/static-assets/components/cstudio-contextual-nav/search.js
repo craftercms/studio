@@ -9,8 +9,14 @@ CStudioAuthoring.ContextualNav.WcmSearchMod = CStudioAuthoring.ContextualNav.Wcm
 	 * initialize module
 	 */
 	initialize: function(config) {
+		var el = YDom.get("acn-search");
+		el.innerHTML = '<span class="acn-search-container">' +
+	                     '<input type="text" class="search-input" id="acn-searchtext" value="" maxlength="256" />' +
+	  				   '</span>';
+
+
 		this.definePlugin();
-		CStudioAuthoring.ContextualNav.WcmSearch.init();		
+		CStudioAuthoring.ContextualNav.WcmSearch.init();
 	},
 	
 	definePlugin: function() {
@@ -21,11 +27,12 @@ CStudioAuthoring.ContextualNav.WcmSearchMod = CStudioAuthoring.ContextualNav.Wcm
 		 */
 		CStudioAuthoring.register({
 			"ContextualNav.WcmSearch": {
-				init: function() {
+				init: function() { 
 					var e = YDom.get("acn-searchtext");
 					YAHOO.util.Event.addListener(e, "focus", this.focusSearchText);
 					YAHOO.util.Event.addListener(e, "blur", this.blurSearchText);
 					new YAHOO.util.KeyListener(e,{keys: 13},{fn:this.doSearch},"keydown").enable();
+					this.setDefaultSearchText();
 					this.blurSearchText();
 				},
 				/**
@@ -50,7 +57,10 @@ CStudioAuthoring.ContextualNav.WcmSearchMod = CStudioAuthoring.ContextualNav.Wcm
 				 * set the search box to it's default search text value
 				 */
 				setDefaultSearchText: function() {
-					YDom.get("acn-searchtext").value="Search";
+					var CMgs = CStudioAuthoring.Messages;
+        			var contextNavLangBundle = CMgs.getBundle("contextnav", CStudioAuthoringContext.lang);
+
+					YDom.get("acn-searchtext").value=CMgs.format(contextNavLangBundle, "search");
 				},
 				/**
 				 * perform the search
