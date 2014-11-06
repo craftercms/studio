@@ -2,9 +2,13 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <#include "/templates/web/common/page-fragments/head.ftl" />
-
    <title>Crafter Studio</title>
+
+    <#include "/templates/web/common/page-fragments/head.ftl" />
+    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
+
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
 
      <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/yui/assets/rte.css" /> 
      <script type="text/javascript" src="/studio/static-assets/modules/editors/tiny_mce/tiny_mce.js"></script>
@@ -12,7 +16,6 @@
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/amplify-core.js"></script>
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-forms/forms-engine.js"></script> 
 
-    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
 </head>
 
 <body class="yui-skin-cstudioTheme">

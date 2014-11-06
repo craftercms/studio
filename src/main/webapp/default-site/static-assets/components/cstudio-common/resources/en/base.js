@@ -98,3 +98,26 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
       logout: "Log Out",
 
 });
+
+CStudioAuthoring.Messages.registerBundle("forms", "en", { 
+      expandAll: "Expand All",
+      collapseAll: "Collapse All",
+      pageName: "Item Name",
+      location: "Location",
+      sectionValidation: "{0} of {1} field requirements are invalid",
+      saveAndClose: "Save and Close",
+      saveAndPreview: "Save and Preview",
+      cancel: "Cancel",
+      close: "Close",
+      repeatAddAnother: "Add Another",
+      repeatMoveUp: "Move Up",
+      repeatMoveDown: "Move Down",
+      repeatDelete: "Delete",
+      errMissingRequirements: "You cannot save until all form requirements are satisfied",
+      errSaveFailed: "Unable to save form content. Please try again or contact or your system administrator.",
+      errOnRepeat: "Error on repeater operation: {0}",
+      errFailedToLoadContent: "Error loading content: {0}",
+      errExpectedIndexXml: "Not expecting file-name other than index.xml",
+      
+
+});

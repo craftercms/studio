@@ -19,6 +19,9 @@ catch(err) {
 var CStudioForms = CStudioForms || function() {
     var cfe = {};
 
+    var CMgs = CStudioAuthoring.Messages;
+    var formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+
     // private methods
 
     /**
@@ -451,8 +454,7 @@ var CStudioForms = CStudioForms || function() {
                 YAHOO.util.Dom.removeClass(indicatorEl, 'cstudio-form-section-invalid');
 
                 if(state.requirements > 0 && state.invalid != 0) {
-                    validationEl.innerHTML = "" + state.invalid + " of " + state.requirements
-                        + " field requirements are invalid";
+                    validationEl.innerHTML = CMgs.format(formsLangBundle, "sectionValidation", state.invalid, state.requirements);
 
                     YAHOO.util.Dom.addClass(indicatorEl, 'cstudio-form-section-invalid');
 
@@ -656,7 +658,7 @@ var CStudioForms = CStudioForms || function() {
                                                                 _self._renderFormWithContent(content, formId, formDef, style, customControllerClass, readonly);
                                                             },
                                                             failure: function(err) {
-                                                                alert("failed to load content");
+                                                                alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
                                                             }
                                                         });
                                                     }
@@ -898,7 +900,7 @@ var CStudioForms = CStudioForms || function() {
                     index_html = "/index.xml";
                     if (fileName != index_html.substring(1))
                     {
-                        alert("Not expecting file-name other than index.xml");
+                        alert(CMgs.format(formsLangBundle, "errExpectedIndexXml"));
                     }
                     if (entityId.indexOf(index_html) == length - 10)
                         entityId = entityId.substring(0, length - 10);
@@ -938,7 +940,7 @@ var CStudioForms = CStudioForms || function() {
                 var entityId = buildEntityIdFn();
                 var entityFile = entityId.substring(entityId.lastIndexOf('/') + 1);
                 if(form.isInError()) {
-                    alert("You cannot save until all form requirements are satisfied");
+                    alert(CMgs.format(formsLangBundle, "errMissingRequirements"));
                     if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
                     return;
@@ -1061,7 +1063,7 @@ var CStudioForms = CStudioForms || function() {
                         try{
                             alert(YAHOO.lang.JSON.parse(err.responseText).callstack[1].substring( YAHOO.lang.JSON.parse(err.responseText).callstack[1].indexOf(':')+1))
                         }catch (e) {
-                            alert("Unable to save form content. Please try again or contact or your system administrator.");
+                            alert(CMgs.format(formsLangBundle, "errSaveFailed"));
                         }
                         if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                         if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
@@ -1184,7 +1186,7 @@ var CStudioForms = CStudioForms || function() {
                 YDom.addClass(saveButtonEl, "cstudio-button");
                 YDom.addClass(saveButtonEl, "cstudio-button-first");
                 saveButtonEl.type = "button";
-                saveButtonEl.value = "Save and Close";
+                saveButtonEl.value = CMgs.format(formsLangBundle, "saveAndClose");;
                 formButtonContainerEl.appendChild(saveButtonEl);
 
                 saveButtonEl.onclick = function() {
@@ -1204,7 +1206,7 @@ var CStudioForms = CStudioForms || function() {
                 previewButtonEl.id = "cstudioSaveAndPreview";
                 previewButtonEl.style.display = "none";
                 previewButtonEl.type = "button";
-                previewButtonEl.value = "Save and Preview";
+                previewButtonEl.value = CMgs.format(formsLangBundle, "saveAndPreview");
                 formButtonContainerEl.appendChild(previewButtonEl);
 
                 //In Context Edit, the preview button must not be shown
@@ -1237,7 +1239,7 @@ var CStudioForms = CStudioForms || function() {
                 YDom.addClass(cancelButtonEl, "cstudio-form-control-button ");
                 YDom.addClass(cancelButtonEl, "cstudio-button");
                 cancelButtonEl.type = "button";
-                cancelButtonEl.value = "Cancel";
+                cancelButtonEl.value = CMgs.format(formsLangBundle, "cancel");
                 formButtonContainerEl.appendChild(cancelButtonEl);
 
                 YAHOO.util.Event.addListener(window, "beforeunload", beforeUnloadFn, this);
@@ -1248,7 +1250,7 @@ var CStudioForms = CStudioForms || function() {
                 YDom.addClass(closeButtonEl, "cstudio-form-control-button ");
                 YDom.addClass(closeButtonEl, "cstudio-button");
                 closeButtonEl.type = "button";
-                closeButtonEl.value = "Close";
+                closeButtonEl.value = CMgs.format(formsLangBundle, "close");
                 formButtonContainerEl.appendChild(closeButtonEl);
                 YDom.setStyle(formButtonContainerEl,"text-align","center");
 
@@ -1476,7 +1478,7 @@ var CStudioForms = CStudioForms || function() {
                 var addEl = document.createElement("a");
                 repeatInstanceContainerEl.appendChild(addEl);
                 YAHOO.util.Dom.addClass(addEl, 'cstudio-form-repeat-control');
-                addEl.innerHTML = "Add Another";
+                addEl.innerHTML = CMgs.format(formsLangBundle, "repeatAddAnother");;
                 if(form.readOnly || maxOccurs != "*" && currentCount >= maxOccurs) {
                     YAHOO.util.Dom.addClass(addEl, 'cstudio-form-repeat-control-disabled');
                 }
@@ -1493,7 +1495,7 @@ var CStudioForms = CStudioForms || function() {
                 var upEl = document.createElement("a");
                 repeatInstanceContainerEl.appendChild(upEl);
                 YAHOO.util.Dom.addClass(upEl, 'cstudio-form-repeat-control');
-                upEl.innerHTML = "Move Up";
+                upEl.innerHTML = CMgs.format(formsLangBundle, "repeatMoveUp");
                 if(form.readOnly || i == 0) {
                     YAHOO.util.Dom.addClass(upEl, 'cstudio-form-repeat-control-disabled');
                 }
@@ -1513,7 +1515,7 @@ var CStudioForms = CStudioForms || function() {
                 var downEl = document.createElement("a");
                 repeatInstanceContainerEl.appendChild(downEl);
                 YAHOO.util.Dom.addClass(downEl, 'cstudio-form-repeat-control');
-                downEl.innerHTML = "Move Down";
+                downEl.innerHTML = CMgs.format(formsLangBundle, "repeatMoveDown");
                 if(form.readOnly || i == repeatCount-1) {
                     YAHOO.util.Dom.addClass(downEl, 'cstudio-form-repeat-control-disabled');
                 }
@@ -1533,7 +1535,7 @@ var CStudioForms = CStudioForms || function() {
                 var deleteEl = document.createElement("a");
                 repeatInstanceContainerEl.appendChild(deleteEl);
                 YAHOO.util.Dom.addClass(deleteEl, 'cstudio-form-repeat-control');
-                deleteEl.innerHTML = "Delete";
+                deleteEl.innerHTML = CMgs.format(formsLangBundle, "repeatDelete");
                 if(form.readOnly || currentCount <= minOccurs) {
                     YAHOO.util.Dom.addClass(deleteEl, 'cstudio-form-repeat-control-disabled');
                 }
@@ -1713,18 +1715,18 @@ var CStudioForms = CStudioForms || function() {
 
             html +="<div class='cstudio-form-expandcollapseall-container'>"
                 +   "<div class='cstudio-form-expandcollapseall'>"
-                +		"<a id='cstudio-form-expand-all'>Expand All</a>"
+                +		"<a id='cstudio-form-expand-all'>"+CMgs.format(formsLangBundle, "expandAll")+"</a>"
                 +   "</div>"
                 +   "<div class='cstudio-form-expandcollapseall'>"
-                +		"<a id='cstudio-form-collapse-all'>Collapse All</a>"
+                +		"<a id='cstudio-form-collapse-all'>"+CMgs.format(formsLangBundle, "collapseAll")+"</a>"
                 +   "</div>"
                 + "</div>";
 
             html +="<div class='cstudio-form-description'>"
                 +   "<span>"+formDef.description+"</span>"
                 + "</div>"
-                + "<div class='page-name'><b>Page Name:</b> <span id='page-name'>" + formDef.pageName + "</span></div>"
-                + "<div class='page-location'><b>Location:</b> <span id='page-location'>" + formDef.pageLocation + "</span></div>"
+                + "<div class='page-name'><b>"+CMgs.format(formsLangBundle, "pageName")+":</b> <span id='page-name'>" + formDef.pageName + "</span></div>"
+                + "<div class='page-location'><b>"+CMgs.format(formsLangBundle, "location")+":</b> <span id='page-location'>" + formDef.pageLocation + "</span></div>"
                 +  "</div>";
 
 
@@ -2050,7 +2052,7 @@ var CStudioForms = CStudioForms || function() {
                     }
                 }
                 catch(repeatErr) {
-                    alert("error on repeat: "+repeatErr);
+                    alert(CMgs.format(formsLangBundle, "errOnRepeat"), ""+repeatErr);
                 }
             }
         },
