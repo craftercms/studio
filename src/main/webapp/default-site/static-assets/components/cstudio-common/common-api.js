@@ -6282,12 +6282,16 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
 
    format: function(bundle, messageId, a, b, c, d, e, f, g) {
         var formattedMessage = messageId;
-
-        if(bundle[messageId]) {
-            formattedMessage = bundle[messageId];
+        var spaceRegex = new RegExp(" ", 'g');
+        var starRegex = new RegExp("\\*", 'g');
+        var key = messageId.replace(spaceRegex, '');
+        key = key.replace(starRegex, '');
+        
+        if(bundle[key]) {
+            formattedMessage = bundle[key];
         }
-        else if(bundle.fallbackBundle && bundle.fallbackBundle[messageId]) {
-            formattedMessage = bundle.fallbackBundle[messageId];
+        else if(bundle.fallbackBundle && bundle.fallbackBundle[key]) {
+            formattedMessage = bundle.fallbackBundle[key];
         }
 
         if(a) formattedMessage = formattedMessage.replace("{0}", a);

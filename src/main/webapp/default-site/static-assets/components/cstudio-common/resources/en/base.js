@@ -67,9 +67,24 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletIconGuideStateScheduled: "Scheduled",
       dashletIconGuideStateSystemProcessing: "Processing",
       dashletIconGuideStateLocked: "Locked for edit",
+
 });
 
-CStudioAuthoring.Messages.registerBundle("contextnav", "en",
-    {  siteContent: "Site Content",
-  
+CStudioAuthoring.Messages.registerBundle("contextnav", "en", { 
+      siteContent: "Site Content",
+
+      wcmContentEdit: "Edit",
+      wcmContentView: "View",
+      wcmContentSubmit: "Request Publish",
+      wcmContentDelete: "Delete",
+      wcmContentSubmitDelete: "Request Delete",
+      wcmContentReject: "Reject",
+      wcmContentSchedule: "Schedule",
+      wcmContentApprove: "Approve & Publish",
+      wcmContentDuplicate: "Duplicate",
+      wcmContentHistory: "History",
+      
+      InProgress: "Edited",
+      mixedStates: "Items (Mixed States)",
+
 });

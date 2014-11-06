@@ -26,21 +26,24 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
             _this; // Reference to CStudioAuthoring.ContextualNav.WcmActiveContent
             contextPath = location.protocol + "//" + location.hostname + ":" + location.port;
 
+        var CMgs = CStudioAuthoring.Messages;
+        var contextNavLangBundle = CMgs.getBundle("contextnav", CStudioAuthoringContext.lang);
+
         /**
          * WCM Site Dropdown Contextual Active Content
          */
         _this = CStudioAuthoring.register({
             "ContextualNav.WcmActiveContent": {
                 options: [
-                    { name: "Edit", allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "Edit" },
-                    { name: "Submit to Go Live", allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "SimpleSubmit"  },
-                    { name: "Delete", allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Delete"  },
-                    { name: "Submit for Delete", allowAuthor: true, allowAdmin: false, allowBulk: true, renderId: "ScheduleForDelete"  },
-                    { name: "Reject", allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Reject"  },
-                    { name: "Schedule", allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
-                    { name: "Go Live Now", allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
-                    { name: "Duplicate", allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "Duplicate" },
-                    { name: "History", allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "VersionHistory" }
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentEdit"), allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "Edit" },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentSubmit"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "SimpleSubmit"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentDelete"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Delete"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentRequestDelete"), allowAuthor: true, allowAdmin: false, allowBulk: true, renderId: "ScheduleForDelete"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentReject"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Reject"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentSchedule"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentApprove"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentDuplicate"), allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "Duplicate" },
+                    { name: CMgs.format(contextNavLangBundle, "wcmContentHistory"), allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "VersionHistory" }
                 ],
 
                 /**
@@ -68,7 +71,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                         var noticeEl = document.createElement("div");
                                         this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                         YDom.addClass(noticeEl, "acnDisabledContent");
-                                        noticeEl.innerHTML = "Page is disabled: When deployed, a live visitor will see page not found (404) error.";
+                                        noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
 
                                     }
                                 },
@@ -105,7 +108,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                    noticeEl = document.createElement("div");
                                    _this.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                    YDom.addClass(noticeEl, "acnDisabledContent");
-                                   noticeEl.innerHTML = "Page is disabled: When deployed, a live visitor will see page not found (404) error.";
+                                   noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
                                 }
                             } else {
                                 _this.renderSelectNone();
@@ -200,7 +203,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                var noticeEl = document.createElement("div");
                                 this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                YDom.addClass(noticeEl, "acnDisabledContent");
-                               noticeEl.innerHTML = "Page is disabled: When deployed, a live visitor will see page not found (404) error.";
+                               noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
                             
                             }
                         },
@@ -387,10 +390,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                     YDom.addClass(navLabelEl, [icon, 'context-nav-title-element'].join(" "));
 
                     if(!isBulk || statSplit.length <= 1) {
-                        navLabelEl.innerHTML = " " + state;
+                        var newIndicator = (state.indexOf("*") != -1) ? "*" : "";
+
+                        navLabelEl.innerHTML = " " + CMgs.format(contextNavLangBundle, state) + newIndicator;
                     } else {
                         if (statSplit.length >= 2) {
-                            navLabelEl.innerHTML = " Items (Mixed States)";
+                            navLabelEl.innerHTML = " "+CMgs.format(contextNavLangBundle, "mixedStates");;
                         }
                     }
 
@@ -476,9 +481,9 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 
                         /** for edit, if in read-only mode, it should display View, not Edit **/
                         if (isWrite == false) {
-                            option.name = "View";
+                            option.name = CMgs.format(contextNavLangBundle, "wcmContentView");
                         } else {
-                            option.name = "Edit";
+                            option.name =CMgs.format(contextNavLangBundle, "wcmContentEdit");
                         }           
 
                         _this.createNavItem(option, isBulk, isAdmin, rflag, false, !isWrite);
