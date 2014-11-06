@@ -6268,9 +6268,12 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
         if(namespace) {
             bundle = namespace[lang];
 
-            if(lang != "en") {
+            if(bundle && lang != "en") {
                 // fallback
                 bundle.fallbackBundle = namespace["en"];                
+            }
+            else {
+                bundle = namespace["en"];
             }
         }
 
@@ -6283,7 +6286,7 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
         if(bundle[messageId]) {
             formattedMessage = bundle[messageId];
         }
-        else if(bundle.fallbackBundle[messageId]) {
+        else if(bundle.fallbackBundle && bundle.fallbackBundle[messageId]) {
             formattedMessage = bundle.fallbackBundle[messageId];
         }
 

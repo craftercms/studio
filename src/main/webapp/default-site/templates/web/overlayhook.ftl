@@ -1,5 +1,5 @@
 (function() {
-
+        
         var YEvent = YAHOO.util.Event;
 
         CStudioAuthoringContext = {
@@ -20,12 +20,16 @@
             isPreview: true,
             previewCurrentPath: "/site/website${RequestParameters['page']}/index.xml"
         };
+
+        CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-common/resources/en/base.js");
+
       roleCb = {
           success: function(result) {
               CStudioAuthoringContext.role = result.role;
           },
           failure: function(response) {}
       };
+
       CStudioAuthoring.Service.lookupAuthoringRole(CStudioAuthoringContext.site, CStudioAuthoringContext.user, roleCb);
       CStudioAuthoring.OverlayRequiredResources.loadRequiredResources();
       CStudioAuthoring.OverlayRequiredResources.loadContextNavCss();

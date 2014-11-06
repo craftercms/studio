@@ -68,3 +68,8 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletIconGuideStateSystemProcessing: "Processing",
       dashletIconGuideStateLocked: "Locked for edit",
 });
+
+CStudioAuthoring.Messages.registerBundle("contextnav", "en",
+    {  siteContent: "Site Content",
+  
+});
