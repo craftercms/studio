@@ -233,7 +233,7 @@ CStudioSearch.initializeSearchFilter = function(filter) {
 		}
 	}
 	else {
-		sortBySelectEl.options[0] = new Option("Relevance", "relevance");
+		sortBySelectEl.options[0] = new Option(CMgs.format(langBundle, "sortRelevance"), "relevance");
 	}
 	
 	// render filter body 
@@ -359,9 +359,9 @@ CStudioSearch.emptyResultMessage = function(searchContext, searchFailed, failCau
 	var msg = "<br />";
 	
 	if (searchFailed) {
-		msg += "Search Failed.  Failure reason "+ failCause +".  You may try adjusting your filters in less Search space or contact Administrator";
+		msg += CMgs.format(langBundle, "errSearchFailed", failCause);
 	} else {
-		msg += "<p align='center'><strong>Your search returned no results.</strong></p>";
+		msg += "<p align='center'><strong>"+CMgs.format(langBundle, "errNoResults")+"</strong></p>";
 	}
 	return msg;
 }
@@ -392,7 +392,7 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		var endItem   = (parseInt(startItem) + parseInt(searchContext.itemsPerPage) -1);
 		if( endItem > resultCount) 
 			endItem  = resultCount;  
-		resultHeaderCount.innerHTML = "(Showing "+startItem+"-"+endItem+" of "+resultCount+")";
+		resultHeaderCount.innerHTML = CMgs.format(langBundle, "showing", startItem, endItem, resultCount);
 	}
 	
 	// construct previous control
@@ -400,12 +400,12 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 
 	if(previousDisabled) { // this can be done by disbaling the link+ccs right?
 		previousEl = document.createElement("span");
-  	    previousEl.innerHTML = "&laquo; Previous &nbsp;";
+  	    previousEl.innerHTML = "&laquo; "+CMgs.format(langBundle, "pagePrevious")+" &nbsp;";
 		YDom.addClass(previousEl, "disabled");
 	}
 	else {
 	    previousEl = document.createElement("a");
-		previousEl.innerHTML = "&laquo; Previous &nbsp;";
+		previousEl.innerHTML = "&laquo; "+CMgs.format(langBundle, "pagePrevious")+" &nbsp;";
 		previousEl.className = "cstudio-wcm-search-pagination-number";
 
 		previousEl.onclick = function() {
@@ -427,12 +427,12 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		
 	if(nextDisabled) { 
 		nextEl = document.createElement("span");
-		nextEl.innerHTML = "&nbsp; Next &raquo;";
+		nextEl.innerHTML = "&nbsp; "+CMgs.format(langBundle, "pageNext")+" &raquo;";
 		YDom.addClass(nextEl, "disabled");
 	}
 	else {
 		nextEl = document.createElement("a");
-		nextEl.innerHTML = "Next &raquo;";
+		nextEl.innerHTML = CMgs.format(langBundle, "pageNext")+" &raquo;";
 		nextEl.className = "cstudio-wcm-search-pagination-number";
 
 		nextEl.onclick = function() {
@@ -791,7 +791,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			    sortDropDown.disabled = "";
 
 				//	var searchFailedFlag = ,"searchFailed":false,"failCause":"",		        
-			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>Unable to Retrieve Search Result. Please Try again.</strong><br><br><br><i>If this is consistent, please contact Crafter Studio Administrator.</i></p>";//+"<br><br><p align='center'>For Developers only, will be removed later.  <br></p><br><br><br>" + o.responseText + "<br>";
+			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>"+CMgs.format(langBundle, "errSearchFailed", "")+"</strong></i></p>";
 			},
 			        
 			searchContext: searchContext		
@@ -817,11 +817,11 @@ CStudioSearch.toggleResultDetail = function(state){
 	}
 	if(state == CStudioSearch.DETAIL_OPEN) {
 		YAHOO.util.Dom.removeClass(elements, cssClass);		
-		link.set("innerHTML", "Hide Descriptions");
+		link.set("innerHTML", CMgs.format(langBundle, "showDescriptions"));
 	}
 	else if(state == CStudioSearch.DETAIL_CLOSE) {
 		YAHOO.util.Dom.addClass(elements, cssClass);
-		link.set("innerHTML", "Show Descriptions");		
+		link.set("innerHTML", CMgs.format(langBundle, "hideDescriptions"));		
 	}
 	else {
 		
@@ -1111,10 +1111,10 @@ CStudioSearch.ContentTypeConfigMap = [];
 CStudioSearch.toggleDescriptionLink =  function(){	
 	var link = YDom.get('cstudio-wcm-search-description-toggle-link');
 	if(link){
-		if(link.innerHTML == 'Show Descriptions'){		
-			link.innerHTML =  "Hide Descriptions";			
+		if(link.innerHTML == CMgs.format(langBundle, "showDescriptions")){		
+			link.innerHTML =  CMgs.format(langBundle, "hideDescriptions");			
 		}else{		
-			link.innerHTML = "Show Descriptions";			
+			link.innerHTML = CMgs.format(langBundle, "showDescriptions");			
 		}	
 	}	
 }

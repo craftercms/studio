@@ -121,3 +121,23 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
       
 
 });
+
+CStudioAuthoring.Messages.registerBundle("search", "en", { 
+      defaultTitle: "WCM Search",
+      searchButtonLabel: "Search",
+      keywordsLabel: "Keywords (optional)",
+      searchResults: "Search Results", 
+      showing: "(Showing {0}-{1} of {2})", 
+      hideDescriptions: "Hide Descriptions",
+      showDescriptions: "Show Descriptions",
+      show: "Show",
+      sort: "Sort",
+      sortRelevance: "Relevance",
+      sortAlphabetical: "Alphabetical",
+      sortCreateDate: "Create Date",
+      pagePrevious: "Previous",
+      pageNext: "Next",
+      errSearchFailed: "Search Failed. Try adjusting your filters. Cause: If issue persists contact administrator with error: {0}",
+      errNoResults: "Your search returned no results.",
+      
+});
