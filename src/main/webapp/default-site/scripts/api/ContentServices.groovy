@@ -7,6 +7,10 @@ import scripts.api.ServiceFactory
  */
 class ContentServices {
 
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
+
 	/**
 	 * Write content
 	 * @param site - the project ID
@@ -41,8 +45,8 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
 	 */
-	static getContent(site, path) {
-		def contentServicesImpl = ServiceFactory.getContentServices()
+	static getContent(site, path, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContent(site, path)
 	}
 

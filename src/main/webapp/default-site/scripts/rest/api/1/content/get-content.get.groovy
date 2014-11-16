@@ -4,6 +4,8 @@ def result = [:]
 def site = params.site
 def path = params.path
 
-result.content = ContentServices.getContent(site, path)
+def context = ContentServices.createContext(applicationContext, request)
 
-return result
+result.content = ContentServices.getContent(site, path, context)
+
+return result 
