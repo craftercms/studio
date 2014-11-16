@@ -1,5 +1,7 @@
 package scripts.api.alfresco
 
+import groovy.json.JsonSlurper;
+
 /**
  * content services
  */
@@ -64,9 +66,9 @@ class AlfContentServices {
 			"/service/cstudio/wcm/content/get-content" +
 			"?site=" + site +
 			"&path=" + path +
-			"&alf_ticket=" + getAlfrescoTicket();
+			"&alf_ticket=" + getAlfrescoTicket()
 
-		def response = (alfServiceApiUrl).toURL().getText();
+		def response = (alfServiceApiUrl).toURL().getText()
 
 		return response
 	}
@@ -86,7 +88,6 @@ class AlfContentServices {
 	 * @param rootPath - the path to root at
 	 */
 	def getContentItemTree(site, rootPath){
-
 	}
 
 	/**
@@ -95,7 +96,18 @@ class AlfContentServices {
 	 * @param path - the path of the content item
 	 */
 	def getContentItem(site, path) {
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/content/get-item" +
+			"?site=" + site +
+			"&path=" + path +
+			"&populateDependencies=false" +
+			"&alf_ticket=" + getAlfrescoTicket()
 
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+ 
+		return result
 	}
 
 	/**

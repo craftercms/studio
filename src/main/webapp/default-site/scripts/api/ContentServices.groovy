@@ -17,7 +17,7 @@ class ContentServices {
 	 * @param path - the path to wrtie the content
 	 * @param content - the content to write
 	 */
-	def writeContent(site, path, content){
+	static writeContent(site, path, content){
 
 	}
 
@@ -27,7 +27,7 @@ class ContentServices {
 	 * @param path - the path to wrtie the content
 	 * @param content - the content to write
 	 */
-	def writeAsset(site, path, content){
+	static writeAsset(site, path, content){
 
 	}
 
@@ -36,7 +36,7 @@ class ContentServices {
 	 * @param site - the projectId
 	 * @param path - the path to delete
 	 */
-	def deleteContent(site, path) {
+	static deleteContent(site, path) {
 
 	}
 
@@ -55,7 +55,7 @@ class ContentServices {
   	 * @param site - the project ID
   	 * @param path - the path to check
   	 */
-	def doesContentItemExist(site, path) {
+	static doesContentItemExist(site, path) {
 
 	}
 
@@ -64,7 +64,7 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param rootPath - the path to root at
 	 */
-	def getContentItemTree(site, rootPath){
+	static getContentItemTree(site, rootPath){
 
 	}
 
@@ -73,8 +73,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content item
 	 */
-	def getContentItem(site, path) {
-
+	static getContentItem(site, path, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.getContentItem(site, path) 
 	}
 
 	/**
@@ -83,7 +84,7 @@ class ContentServices {
 	 * @param path - the path of the item
 	 * @param filters - filters to apply to the dependencies
 	 */
-	def getContentDependencies(site, path, filters) {
+	static getContentDependencies(site, path, filters) {
 
 	}
 
@@ -92,7 +93,7 @@ class ContentServices {
   	 * @param site - the project ID
   	 * @param path - the parent path containing the ordered objects
   	 */
-	def getContentItemOrders(site, path) {
+	static getContentItemOrders(site, path) {
 
 	}
 
@@ -101,7 +102,7 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the parent
 	 */
-	def getNextOrderInSequence(site, path) {
+	static getNextOrderInSequence(site, path) {
 
 	}
 
@@ -111,7 +112,7 @@ class ContentServices {
 	 * @param path - the list of paths for the items
 	 * @param orders - the orders object
 	 */
-	def orderItems(site, path, orders) {
+	static orderItems(site, path, orders) {
 
 	}
 
@@ -120,7 +121,7 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the item to lock
 	 */
-	def lockContentItem(site, path) {
+	static lockContentItem(site, path) {
 
 	}
 
@@ -129,7 +130,7 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the item to unlock
 	 */
-	def unlockContentItem(site, path) {
+	static unlockContentItem(site, path) {
 
 	}
 
@@ -138,7 +139,7 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the item 
 	 */
-	def getContentItemVersionHistory(site, path) {
+	static getContentItemVersionHistory(site, path) {
 
 	}
 
@@ -148,7 +149,7 @@ class ContentServices {
 	 * @param path - the path of the item to "revert"
 	 * @param version - old version ID to base to version on
 	 */
-	def revertContentItem(site, path, version){
+	static revertContentItem(site, path, version){
 		
 	}
 
@@ -161,6 +162,6 @@ class ContentServices {
 	 * @param page - page to start on
 	 * @param resultsPerPage - items to return per page
 	 */
-	def search(site, keywords, filters, sort, page, resultsPerPage) {
+	static search(site, keywords, filters, sort, page, resultsPerPage) {
 	}
 }	
