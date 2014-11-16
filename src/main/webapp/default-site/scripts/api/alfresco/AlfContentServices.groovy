@@ -1,11 +1,22 @@
-package scripts.api
-
-import scripts.api.ServiceFactory
+package scripts.api.alfresco
 
 /**
  * content services
  */
-class ContentServices {
+class AlfContentServices {
+
+	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
+	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"		
+
+	static getAlfrescoUrl() {
+		def propertiesMap = null //applicationContext.get(SERVER_PROPERTIES_BEAN_NAME)
+		def alfrescoUrl = "http://127.0.0.1:8080/alfresco"; //propertiesMap[ALFRESCO_URL_PROPERTY]
+		return alfrescoUrl;
+	}
+
+	static getAlfrescoTicket() {
+		return "TICKET_9aaf3ad2ded3a4b038ab4838f8b4d0f1364b7dd1";
+	}
 
 	/**
 	 * Write content
@@ -42,8 +53,16 @@ class ContentServices {
 	 * @param path - the path of the content to get
 	 */
 	static getContent(site, path) {
-		def contentServicesImpl = ServiceFactory.getContentServices()
-		return contentServicesImpl.getContent(site, path)
+
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/content/get-content" +
+			"?site=" + site +
+			"&path=" + path +
+			"&alf_ticket=" + getAlfrescoTicket();
+
+		def response = (alfServiceApiUrl).toURL().getText();
+
+		return response
 	}
 
   	/**
