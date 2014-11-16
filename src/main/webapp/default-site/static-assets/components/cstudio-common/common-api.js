@@ -2632,7 +2632,8 @@ YConnect.failureEvent.subscribe(function() {
 				return CStudioAuthoringContext.baseUri + this.getContentUri + 
                     "?site=" + CStudioAuthoringContext.site + 
                     "&path=" + path + 
-                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket");
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache="+ new Date();
 			},
 			/**
 			 * check, if the content is edited by another user.
