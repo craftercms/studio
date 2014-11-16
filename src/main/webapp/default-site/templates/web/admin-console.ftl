@@ -7,6 +7,10 @@
    <title>Crafter Studio</title>
 
      <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/console.css" />  
+
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/amplify-core.js"></script>
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-admin/base.js"></script> 
 
