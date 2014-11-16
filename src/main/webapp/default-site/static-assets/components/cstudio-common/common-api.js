@@ -1983,6 +1983,11 @@ YConnect.failureEvent.subscribe(function() {
 			defaultNavContext: "default",
 			ALFRESCO_PROXY: "/proxy/alfresco",
 			// service uris
+
+            // content services
+            getContentUri: "/studio/api/1/services/api/1/content/get-content.json",
+
+            // not ported yet
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
 			changeWcmContentTemplateServiceUri: "/proxy/alfresco/cstudio/wcm/content/add-wcm-properties",
 			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
@@ -2000,7 +2005,6 @@ YConnect.failureEvent.subscribe(function() {
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
 			lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-			getContentUri: "/proxy/alfresco/cstudio/wcm/content/get-content",
 			getDeploymentHistoryServiceUrl: "/proxy/alfresco/cstudio/wcm/deployment/get-deployment-history",
 			getUserActivitiesServiceUrl: "/proxy/alfresco/cstudio/wcm/activity/get-user-activities",
 			getScheduledItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-scheduled-items",
@@ -2625,7 +2629,10 @@ YConnect.failureEvent.subscribe(function() {
 			 * Constructs get-content service url with the given path as a parameter
 			 */
 			createGetContentServiceUri: function(path) {				
-				return CStudioAuthoringContext.baseUri + this.getContentUri + "?site=" + CStudioAuthoringContext.site + "&path=" + path + "&edit=false";
+				return CStudioAuthoringContext.baseUri + this.getContentUri + 
+                    "?site=" + CStudioAuthoringContext.site + 
+                    "&path=" + path + 
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket");
 			},
 			/**
 			 * check, if the content is edited by another user.
