@@ -64,8 +64,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param rootPath - the path to root at
 	 */
-	static getContentItemTree(site, rootPath){
-
+	static getContentItemTree(site, path, context){
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.getContentItemTree(site, path) 
 	}
 
 	/**

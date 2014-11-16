@@ -1987,6 +1987,8 @@ YConnect.failureEvent.subscribe(function() {
             // content services
             getContentUri: "/api/1/services/api/1/content/get-content.json",
             lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+            lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+
 
             // not ported yet
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
@@ -1997,7 +1999,6 @@ YConnect.failureEvent.subscribe(function() {
 			getClipboardItemsServiceUri: "/api/1/services/clipboard/get-items.json",
 			deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
 			contextServiceUri: "/context-nav",
-			lookupContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-pages",
 			lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
 			allContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-content-types",
 			allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",

@@ -87,7 +87,21 @@ class AlfContentServices {
 	 * @param site - the project ID
 	 * @param rootPath - the path to root at
 	 */
-	def getContentItemTree(site, rootPath){
+	def getContentItemTree(site, path){
+
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/content/get-pages" +
+			"?site=" + site +
+			"&path=" + path +
+			"&depth=1" + 
+			"&order=default" +
+			"&alf_ticket=" + getAlfrescoTicket()
+
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+ 
+		return result
 	}
 
 	/**
