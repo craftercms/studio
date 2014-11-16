@@ -64,14 +64,16 @@ CStudioAuthoring.Module.requireModule(
 				});
 				
 				amplify.subscribe('/page-model/loaded', function (data) {
+					dom = ( new window.DOMParser()).parseFromString(data.model.responseText, "text/xml");
+                    dom = dom.children[0];
 
-					var contentMap = CStudioForms.Util.xmlModelToMap(data.model.responseXML.documentElement);
+					var contentMap = CStudioForms.Util.xmlModelToMap(dom);
 
 					switch (data.operation) {
 
 						case "init-components":
 							// console.log('linking model to components');
-							self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(data.model.responseXML.documentElement);
+							self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
 							self.linkComponentsToModel(contentMap);
 							amplify.publish('/operation/completed');
 							return;
