@@ -22,7 +22,7 @@ body,tbody {
 }
 
 #admin-console .categories-panel {
-    background: url("/share/themes/cstudioTheme/images/sidebar-shadow.png") repeat-y scroll right center #F0F0F0;
+    background: url("/studio/static-assets/themes/cstudioTheme/images/sidebar-shadow.png") repeat-y scroll right center #F0F0F0;
     border-right: 1px solid #A1A1A1;
     margin: 0 0;
     left: 0;
