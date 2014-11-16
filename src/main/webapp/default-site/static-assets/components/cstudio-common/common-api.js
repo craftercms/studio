@@ -1985,7 +1985,7 @@ YConnect.failureEvent.subscribe(function() {
 			// service uris
 
             // content services
-            getContentUri: "/studio/api/1/services/api/1/content/get-content.json",
+            getContentUri: "/api/1/services/api/1/content/get-content.json",
 
             // not ported yet
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
@@ -2632,8 +2632,9 @@ YConnect.failureEvent.subscribe(function() {
 				return CStudioAuthoringContext.baseUri + this.getContentUri + 
                     "?site=" + CStudioAuthoringContext.site + 
                     "&path=" + path + 
+                    "&edit=false" +
                     "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
-                    "&nocache="+ new Date();
+                    "&nocache=" + new Date();
 			},
 			/**
 			 * check, if the content is edited by another user.
@@ -2647,7 +2648,13 @@ YConnect.failureEvent.subscribe(function() {
 						callback.failure(response);
 					}
 				};
-				var serviceUri = this.createServiceUri(this.getContentUri) + "?site=" + CStudioAuthoringContext.site + "&path=" + path + "&edit=true"; 
+				var serviceUri = this.createServiceUri(this.getContentUri) + 
+                    "?site=" + CStudioAuthoringContext.site + 
+                    "&path=" + path + 
+                    "&edit=true" +
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache=" + new Date();
+
 				YConnect.asyncRequest('GET',serviceUri, serviceCallback);				
 			},
 
@@ -2658,12 +2665,15 @@ YConnect.failureEvent.subscribe(function() {
              getContent: function(path, edit, callback){
                 var serviceUrl = CStudioAuthoring.Service.getContentUri
                     + "?site=" + CStudioAuthoringContext.site
-                    + "&path=" + path
-                    + "&edit=" + edit;
+                    + "&path=" + path +
+                    "&edit=" + edit +
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache=" + new Date();
 
                 var serviceCallback = {
                     success: function(content) {
-                        callback.success(content);
+                        var contentData = YAHOO.lang.JSON.parse(content.responseText)
+                        callback.success(contentData.content);
                     },
                     failure: function(err) {
                         callback.failure(err);

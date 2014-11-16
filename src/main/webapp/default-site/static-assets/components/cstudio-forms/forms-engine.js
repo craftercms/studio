@@ -655,7 +655,17 @@ var CStudioForms = CStudioForms || function() {
                                                     if((edit && edit=="true") || readonly == true){
                                                         CStudioAuthoring.Service.getContent(path, !readonly, {
                                                             success: function(content) {
-                                                                _self._renderFormWithContent(content, formId, formDef, style, customControllerClass, readonly);
+                                                                var dom = null;
+
+                                                                try {
+                                                                    dom = ( new window.DOMParser()).parseFromString(content, "text/xml");
+                                                                    dom = dom.children[0];
+                                                                }
+                                                                catch(err) {
+                                                                    alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
+                                                                }
+
+                                                                _self._renderFormWithContent(dom, formId, formDef, style, customControllerClass, readonly);
                                                             },
                                                             failure: function(err) {
                                                                 alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
@@ -753,7 +763,7 @@ var CStudioForms = CStudioForms || function() {
 
             }
 
-            var contentDom = content.responseXML.documentElement;
+            var contentDom = content; 
             var contentMap = CStudioForms.Util.xmlModelToMap(contentDom);
 
 
