@@ -2013,7 +2013,6 @@ YConnect.failureEvent.subscribe(function() {
             lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
     
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-			changeWcmContentTemplateServiceUri: "/proxy/alfresco/cstudio/wcm/content/add-wcm-properties",
 			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
 			cutContentToClipboardServiceUri: "/service/cstudio/services/clipboard/cut",
 			pasteContentFromClipboardServiceUri: "/service/cstudio/services/clipboard/paste",
@@ -2569,25 +2568,6 @@ YConnect.failureEvent.subscribe(function() {
 				YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback, JSON.stringify(taxonomies));
             },
             
-			/**
-			 * change the content type/template for a given wcm object
-			 */
-			changeWcmContentTemplate: function(site, author, contentPath, contentType, changeTemplateCb) {
-				var serviceUrl = this.changeWcmContentTemplateServiceUri;
-				serviceUrl += "?site=" + site;
-				serviceUrl += "&path=" + contentPath;
-				serviceUrl += "&contentType=" + contentType;
-				serviceUrl += "&author=" + author;
-				var serviceCallback = {
-					success: function(response) {
-						changeTemplateCb.success();
-					},
-					failure: function(response) {
-						changeTemplateCb.failure(response);
-					}
-				};
-				YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-			},
 			/**
 			 * change template functionality. 
 			 */
