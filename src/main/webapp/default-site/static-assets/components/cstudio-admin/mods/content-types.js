@@ -15,6 +15,10 @@ CStudioAdminConsole.Tool.ContentTypes = CStudioAdminConsole.Tool.ContentTypes ||
  * Overarching class that drives the content type tools
  */
 YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
+
+ 	 CMgs: CStudioAuthoring.Messages,
+     langBundle: CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang),
+
 	renderWorkarea: function() {
 		var workareaEl = document.getElementById("cstudio-admin-console-workarea");
 		
@@ -25,17 +29,23 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			"</div>";
 			
 			var actions = [
-				{ name: "Open Existing Type", context: this, method: this.onOpenExistingClick },
-				{ name: "Create New Type",    context: this, method: this.onNewClick }
+				{ name: this.CMgs.format(this.langBundle, "openExistingType"), context: this, method: this.onOpenExistingClick },
+				{ name: this.CMgs.format(this.langBundle, "createNewType"),    context: this, method: this.onNewClick }
 			];
 			CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 	},
 	
 	openExistingItemRender: function(contentType) {
+		this.CMgs = CStudioAdminConsole.Tool.ContentTypes.CMgs;
+		this.langBundle = CStudioAdminConsole.Tool.ContentTypes.langBundle;		
 		var _self = this;
 		
 		this.loadFormDefinition(contentType, {
+			langBundle: CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang),
+			CMgs: CStudioAuthoring.Messages,
+
 			success: function(formDef) {
+
 				// render content type container in canvas
 				this.context.renderContentTypeVisualContainer(formDef);
 					
@@ -43,10 +53,10 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 				this.context.renderContentTypeTools(this.context.config);
 				
 				// render save bar
-				CStudioAdminConsole.CommandBar.render([{label:"Save", fn: function() {
+				CStudioAdminConsole.CommandBar.render([{label:this.CMgs.format(this.langBundle, "save"), fn: function() {
 							var xml = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.serializeDefinitionToXml(formDef);
-							var cb = { success: function() { alert('Saved'); }, 
-							           failure: function() { alert('Save Failed'); } 
+							var cb = { success: function() { alert(this.CMgs.format(this.langBundle, "saved")); }, 
+							           failure: function() { alert(this.CMgs.format(this.langBundle, "saveFailed")); } 
 							};
 							
 							var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
@@ -116,6 +126,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 	 * render tools on the right
 	 */
 	renderContentTypeTools: function(config) {
+		this.CMgs = CStudioAuthoring.Messages;
+     	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
 		var controls = config.controls;
 		var datasources = config.datasources;
 		var toolbarEl = document.getElementById("content-type-tools");
@@ -131,15 +144,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 		
 		toolbarEl.innerHTML = 
 			"<div id='type-properties-container' class='content-type-tools-panel content-type-tools-panel-first'>" +
-				"<h4 id=\"properties-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose \"></span>Property Explorer</h4>" +
+				"<h4 id=\"properties-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose \"></span>"+this.CMgs.format(this.langBundle, "propertiesExplorer")+"</h4>" +
 			    "<div id='properties-container'></div>" +
 			"</div>" +
 			"<div class='content-type-tools-panel'>" +
-			   "<h4 id=\"control-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose \"></span>Controls</h4>" +
+			   "<h4 id=\"control-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose \"></span>"+this.CMgs.format(this.langBundle, "controls")+"</h4>" +
 			    "<div id='widgets-container'></div>" +
 			"</div>"+
                         "<div class='content-type-tools-panel'>" +
-			    "<h4 id=\"datasources-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose\"></span>Datasources</h4>" +                        
+			    "<h4 id=\"datasources-tools-panel\"><span class=\"content-type-tools-panel-icon ttClose\"></span>"+this.CMgs.format(this.langBundle, "datasources")+"</h4>" +                        
 			    "<div id='datasources-container'></div>" +
 			"</div>";
 
@@ -160,7 +173,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			var controlContainerEl = document.createElement("div");
 			controlsPanelEl.appendChild(controlContainerEl);								
 			YDom.addClass(controlContainerEl, "control");
-			controlContainerEl.innerHTML = "Form Section";
+			controlContainerEl.innerHTML = this.CMgs.format(this.langBundle, "formSection");
 			var dd = new DragAndDropDecorator(controlContainerEl);
 			YDom.addClass(controlContainerEl, "control-section");
 
@@ -168,7 +181,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			var repeatContainerEl = document.createElement("div");
 			controlsPanelEl.appendChild(repeatContainerEl);								
 			YDom.addClass(repeatContainerEl, "control");
-			repeatContainerEl.innerHTML = "Repeating Group";
+			repeatContainerEl.innerHTML = this.CMgs.format(this.langBundle, "repeatingGroup");
 			var dd = new DragAndDropDecorator(repeatContainerEl);
 			YDom.addClass(repeatContainerEl, "new-control-type");
 			repeatContainerEl.prototypeField = {
@@ -178,8 +191,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 					return "repeat";
 				},
 				getSupportedProperties: function() {
-					return [ { label: "minOccurs", name: "minOccurs", type: "string", defaultValue: "0" },
-					         { label: "maxOccurs", name: "maxOccurs", type: "string", defaultValue: "*" }  ];
+					return [ { label: this.CMgs.format(this.langBundle, "minOccurs"), name: "minOccurs", type: "string", defaultValue: "0" },
+					         { label: this.CMgs.format(this.langBundle, "maxOccurs"), name: "maxOccurs", type: "string", defaultValue: "*" }  ];
 				},
 				getSupportedConstraints: function() {
 					return [ ];
@@ -374,6 +387,9 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 	 * render form visualization
 	 */
 	render: function() {
+		this.CMgs = CStudioAuthoring.Messages;
+     	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
 	        var that = this;
 	        if (CStudioAdminConsole.Tool.ContentTypes.FormDefMain.dragActionTimer) {
 	            // If the drag action timer is set, changes are still occurring to the form
@@ -430,7 +446,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 		
 		var datasourcesNameEl = document.createElement("span");
 		YDom.addClass(datasourcesNameEl, "content-section-name");
-		datasourcesNameEl.innerHTML = "Data Sources";
+		datasourcesNameEl.innerHTML = this.CMgs.format(this.langBundle, "datasources");
 		datasourcesContainerEl.appendChild(datasourcesNameEl);
 		var tar = new YAHOO.util.DDTarget(datasourcesContainerEl); 	
 		
@@ -642,6 +658,9 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 	 * render a field
 	 */
 	renderRepeat: function(section, field) {
+		this.CMgs = CStudioAdminConsole.Tool.ContentTypes.CMgs;
+		this.langBundle = CStudioAdminConsole.Tool.ContentTypes.langBundle;
+
 		var fieldContainerEl = document.createElement("div");
 		
 		YDom.addClass(fieldContainerEl, "content-type-visual-repeat-container");		
@@ -658,7 +677,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 		var minValue = (field.properties[0] && field.properties[0].value != "") ? field.properties[0].value : "0"; 
 		var maxValue = (field.properties[0] && field.properties[1].value != "") ? field.properties[1].value : "*"; 
 
-		fieldNameEl.innerHTML = field.title + " repeating group [" + minValue + " ... " +  maxValue + "]";
+		fieldNameEl.innerHTML = field.title + " "+this.CMgs.format(this.langBundle, "repeatingGroup")+" [" + minValue + " ... " +  maxValue + "]";
 		fieldContainerEl.appendChild(fieldNameEl);
 		
 		var fieldClickFn = function(evt) {
@@ -1080,10 +1099,11 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	 * main render method 
 	 */
 	render: function(item) {	
-	    
+
 		this.containerEl.innerHTML = "";
 		YAHOO.util.Dom.setStyle(this.containerEl,"height","220px");
 		
+		try { 
 		var sheetEl = document.createElement("div");
 		this.containerEl.appendChild(sheetEl);
 
@@ -1109,15 +1129,22 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				this.renderFormPropertySheet(item, sheetEl);
 			}
 		}
+		}
+		catch(err) {
+			alert(err);
+		}
 	},
 
 	renderFormPropertySheet: function(item, sheetEl) {
-		this.createRowHeading("Form Basics", sheetEl);
-		this.createRowFn("Title", "title", item.title, "", "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn("Description", "description", item.description, "", "string", sheetEl,  function(e, el) { item.description = el.value; });
-		this.createRowFn("Object Type", "objectType", item.objectType, "", "readonly", sheetEl,  function(e, el) { item.objectType = el.value; });
-		this.createRowFn("Content Type", "content-type", item.contentType, "", "readonly", sheetEl,  function(e, el) { item["content-type"] = el.value; });
-		
+ 	 	this.CMgs = CStudioAuthoring.Messages;
+ 	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
+		this.createRowHeading(this.CMgs.format(this.langBundle, "formBasics"), sheetEl);
+		this.createRowFn(this.CMgs.format(this.langBundle, "fotmTitle"), "title", item.title, "", "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "", "string", sheetEl,  function(e, el) { item.description = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "objectType"), "objectType", item.objectType, "", "readonly", sheetEl,  function(e, el) { item.objectType = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "contentType"), "content-type", item.contentType, "", "readonly", sheetEl,  function(e, el) { item["content-type"] = el.value; });
+
 		for(var i=0; i<item.properties.length; i++) {
 			var property = item.properties[i];
 
@@ -1169,6 +1196,8 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		}
 
 		function updateSelected(defaultArray, selectedDefault, selectedValue) {
+	 	 	this.CMgs = CStudioAuthoring.Messages;
+	 	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 			var sdobj, svobj;
 
@@ -1196,11 +1225,11 @@ CStudioAdminConsole.PropertySheet.prototype = {
 
 		var valueSelected, defaultSelected;
 
-		this.createRowHeading("Datasource Basics", sheetEl);
-		this.createRowFn("Title", "title", item.title, "", "string",  sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn("Name",  "name", item.id, "", "string",  sheetEl,  function(e, el) { item.id = el.value; });
+		this.createRowHeading(this.CMgs.format(this.langBundle, "datasourceBasics"), sheetEl);
+		this.createRowFn(this.CMgs.format(this.langBundle, "title"), "title", item.title, "", "string",  sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(this.CMgs.format(this.langBundle, "name"),  "name", item.id, "", "string",  sheetEl,  function(e, el) { item.id = el.value; });
 
-		this.createRowHeading("Properties", sheetEl);		
+		this.createRowHeading(this.CMgs.format(this.langBundle, "properties"), sheetEl);		
 		var type = CStudioAdminConsole.Tool.ContentTypes.datasources[item.type];
 		var properties = type.getSupportedProperties();
 		
@@ -1265,6 +1294,9 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	},
 
 	renderSectionPropertySheet: function(item, sheetEl) {
+ 	 	this.CMgs = CStudioAuthoring.Messages;
+ 	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
 		var reSectionTitle = new RegExp(CStudioForms.Util.defaultSectionTitle + " \\d+");
 
 		if (!item.title || reSectionTitle.test(item.title)) {
@@ -1272,7 +1304,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 			item.timestamp = Number(new Date());	// Save a timestamp to append to the default section name later on
 		}
 
-		this.createRowHeading("Section Basics", sheetEl);
+		this.createRowHeading(this.CMgs.format(this.langBundle, "sectionBasics"), sheetEl);
 		this.createRowFn("Title", "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
 		this.createRowFn("Description",  "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
 		this.createRowFn("Default Open", "defaultOpen", item.defaultOpen, false, "boolean",  sheetEl,  function(e, el) { item.defaultOpen = el.value; });
@@ -1280,28 +1312,34 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	},
 
 	renderRepeatPropertySheet: function(item, sheetEl) {
+ 	 	this.CMgs = CStudioAuthoring.Messages;
+ 	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
 		this.createRowHeading("Repeat Group Basics", sheetEl);
-		this.createRowFn("Title", "title", item.title, "",  "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn("Variable / Name", "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "title"), "title", item.title, "",  "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(this.CMgs.format(this.langBundle, "varibleName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
 		
-		this.createRowFn("ICE Group", "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
-		this.createRowFn("Description", "description", item.description, "", "string",  sheetEl,  function(e, el) { item.description = el.value; });
-		this.createRowFn("Minimim Occurrence", "minOccurs", item.properties[0].value, "", "string",  sheetEl,  function(e, el) { item.properties[0].value = el.value; });
-		this.createRowFn("Maximum Occurrence", "maxOccurs", item.properties[1].value, "*", "string",  sheetEl,  function(e, el) { item.properties[1].value = el.value; });	
+		this.createRowFn(this.CMgs.format(this.langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "", "string",  sheetEl,  function(e, el) { item.description = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "minOccurs"), "minOccurs", item.properties[0].value, "", "string",  sheetEl,  function(e, el) { item.properties[0].value = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "maxOccurs"), "maxOccurs", item.properties[1].value, "*", "string",  sheetEl,  function(e, el) { item.properties[1].value = el.value; });	
 	},
 	
 	renderFieldPropertySheet: function(item, sheetEl) {
-		this.createRowHeading("Field Basics", sheetEl);
-		this.createRowFn("Title", "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn("Variable / Name", "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
-		this.createRowFn("ICE Group", "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
-		this.createRowFn("Description", "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
-		this.createRowFn("Default Value", "defaultValue", item.defaultValue, "", "string", sheetEl,  function(e, el) { item.defaultValue = el.value; });
-		this.createRowFn("Help", "help", item.help, "",  "richText",  sheetEl,  function(e, el) { item.help = el.value; });
+ 	 	this.CMgs = CStudioAuthoring.Messages;
+ 	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+
+		this.createRowHeading(this.CMgs.format(this.langBundle, "fieldBasics"), sheetEl);
+		this.createRowFn(this.CMgs.format(this.langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(this.CMgs.format(this.langBundle, "variableNamve"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "defaultValue"), "defaultValue", item.defaultValue, "", "string", sheetEl,  function(e, el) { item.defaultValue = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "help"), "help", item.help, "",  "richText",  sheetEl,  function(e, el) { item.help = el.value; });
 		
 
 		//////////////////////
-		this.createRowHeading("Properties", sheetEl);		
+		this.createRowHeading(this.CMgs.format(this.langBundle, "Properties"), sheetEl);		
 		var type = CStudioAdminConsole.Tool.ContentTypes.types[item.type];
 		var properties = type.getSupportedProperties(),
 			property, itemProperty, value;
@@ -1351,7 +1389,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		}
 		
 		//////////////////////////////////////////////////////
-		this.createRowHeading("Constraints", sheetEl);
+		this.createRowHeading(this.CMgs.format(this.langBundle, "constraints"), sheetEl);
 
 		var constraints = type.getSupportedConstraints();
 

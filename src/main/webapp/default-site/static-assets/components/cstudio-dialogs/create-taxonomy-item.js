@@ -49,7 +49,7 @@ CStudioAuthoring.Dialogs.DialogCreateTaxonomy = CStudioAuthoring.Dialogs.DialogC
 		newdiv.className= "yui-pe-content";
 		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:240px;">'+
 								'<div class="contentTypePopupContent" id="ct_contentTypePopupContent"> '+
-									'<form name="contentFromWCM" action="submit.jsp"> '+
+									'<form name="contentFromWCM" action=""> '+
 									'<div class="contentTypePopupHeader">Create Taxonomy Item of type '+
 									taxonomyName + '</div> '+
 									'<div class="contentTypeOuter">' +

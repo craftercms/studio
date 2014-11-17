@@ -1982,51 +1982,63 @@ YConnect.failureEvent.subscribe(function() {
 			// constants
 			defaultNavContext: "default",
 			ALFRESCO_PROXY: "/proxy/alfresco",
+
+            // UI (legacy pattern)
+            contextServiceUri: "/context-nav",
+            getComponentPreviewServiceUrl: "/crafter-controller/component",
+
 			// service uris
+
+            // content services
+                // READ OPS
+                getContentUri: "/api/1/services/api/1/content/get-content.json",
+                contentExistsUrl: "/api/1/services/api/1/content/content-exists.json",
+                lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+                getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
+                lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+                searchServiceUrl: "/api/1/services/api/1/content/search.json",      
+
+                // WRITE OPS
+                getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
+                unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
+
+            // not ported yet
+            writeContentServicecUrl: "/cstudio/wcm/content/write-content",
+            writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
+            deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
+            lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
+            getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
+            getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
+            reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
+            lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
+    
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
 			changeWcmContentTemplateServiceUri: "/proxy/alfresco/cstudio/wcm/content/add-wcm-properties",
 			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
 			cutContentToClipboardServiceUri: "/service/cstudio/services/clipboard/cut",
 			pasteContentFromClipboardServiceUri: "/service/cstudio/services/clipboard/paste",
 			getClipboardItemsServiceUri: "/api/1/services/clipboard/get-items.json",
-			deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
-			contextServiceUri: "/context-nav",
-			lookupContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-pages",
-			lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
-			lookupContentItemServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-item",
 			allContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-content-types",
 			allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
-			lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-			getContentUri: "/proxy/alfresco/cstudio/wcm/content/get-content",
 			getDeploymentHistoryServiceUrl: "/proxy/alfresco/cstudio/wcm/deployment/get-deployment-history",
 			getUserActivitiesServiceUrl: "/proxy/alfresco/cstudio/wcm/activity/get-user-activities",
 			getScheduledItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-scheduled-items",
 			getGoLiveQueueItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-go-live-items",
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
-			/* this will change - be generalized */
-			getComponentPreviewServiceUrl: "/crafter-controller/component",
-			//searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
-            searchServiceUrl: "/api/1/services/search/search.json",      
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-			getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
-			getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
-			reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
             getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
 			changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
 			cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
 			getConfigurationUrl: "/proxy/alfresco/cstudio/site/get-configuration",
-			contentExistsUrl: "/proxy/alfresco/cstudio/wcm/content/content-exists",
             updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
 			allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-			unlockContentItemUrl: "/proxy/alfresco/cstudio/wcm/workflow/unlockItem",
 			retrieveSitesUrl: "/proxy/alfresco/api/sites",
-			revertContentItemUrl: "/proxy/alfresco/cstudio/wcm/content/revert-content",
 			getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
 			getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
@@ -2034,10 +2046,6 @@ YConnect.failureEvent.subscribe(function() {
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
 			getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
-			getVersionHistoryServiceUrl: "/proxy/alfresco/cstudio/wcm/version/get-history",
-			getRevertContentServiceUrl: "/proxy/alfresco/cstudio/wcm/version/revert",
-			writeContentServicecUrl: "/cstudio/wcm/content/write-content",
-			writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
 			setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
 			getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
 			createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
@@ -2418,27 +2426,6 @@ YConnect.failureEvent.subscribe(function() {
 			},
 
 			/**
-			 * revert the content item
-			 */
-			revertContentItem: function(site, path, callback) {
-                var serviceUrl = this.revertContentItemUrl +
-                        "?site=" + site + 
-                        "&path=" + path;
-
-                var serviceCallback = {
-                    success: function(response) {
-                        callback.success();
-                    },
-                    failure: function(response) {
-                        callback.failure();
-                    }
-                };
-
-				YConnect.setDefaultPostHeader(false);
-				YConnect.initHeader("Content-Type", "application/json; charset=utf-8");
-				YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback, JSON.stringify(path))					},
-
-			/**
 			 * unlock the content item
 			 */
 			unlockContentItem: function(site, path, callback) {
@@ -2625,7 +2612,12 @@ YConnect.failureEvent.subscribe(function() {
 			 * Constructs get-content service url with the given path as a parameter
 			 */
 			createGetContentServiceUri: function(path) {				
-				return CStudioAuthoringContext.baseUri + this.getContentUri + "?site=" + CStudioAuthoringContext.site + "&path=" + path + "&edit=false";
+				return CStudioAuthoringContext.baseUri + this.getContentUri + 
+                    "?site=" + CStudioAuthoringContext.site + 
+                    "&path=" + path + 
+                    "&edit=false" +
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache=" + new Date();
 			},
 			/**
 			 * check, if the content is edited by another user.
@@ -2639,7 +2631,13 @@ YConnect.failureEvent.subscribe(function() {
 						callback.failure(response);
 					}
 				};
-				var serviceUri = this.createServiceUri(this.getContentUri) + "?site=" + CStudioAuthoringContext.site + "&path=" + path + "&edit=true"; 
+				var serviceUri = this.createServiceUri(this.getContentUri) + 
+                    "?site=" + CStudioAuthoringContext.site + 
+                    "&path=" + path + 
+                    "&edit=true" +
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache=" + new Date();
+
 				YConnect.asyncRequest('GET',serviceUri, serviceCallback);				
 			},
 
@@ -2650,12 +2648,15 @@ YConnect.failureEvent.subscribe(function() {
              getContent: function(path, edit, callback){
                 var serviceUrl = CStudioAuthoring.Service.getContentUri
                     + "?site=" + CStudioAuthoringContext.site
-                    + "&path=" + path
-                    + "&edit=" + edit;
+                    + "&path=" + path +
+                    "&edit=" + edit +
+                    "&ticket=" + CStudioAuthoring.Utils.Cookies.readCookie("ccticket") +
+                    "&nocache=" + new Date();
 
                 var serviceCallback = {
                     success: function(content) {
-                        callback.success(content);
+                        var contentData = YAHOO.lang.JSON.parse(content.responseText)
+                        callback.success(contentData.content);
                     },
                     failure: function(err) {
                         callback.failure(err);

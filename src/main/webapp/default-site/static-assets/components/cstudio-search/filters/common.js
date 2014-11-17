@@ -29,14 +29,14 @@ CStudioSearch.FilterRenderer.Common = function() {
 		getSortOptions: function() {
 			// sort order will be changed, *only* when content type is *only* news-item
 			if (this.contentTypes && (this.contentTypes.length > 0)) {
-				return [ { "label" : "Relevance", "value" : "relevance" },
-						{ "label" : "Alphabetical", "value" : "cstudio-core:internalName,cstudio-core:title" },
+				return [ { "label" : CMgs.format(langBundle, "sortRelevance"), "value" : "relevance" },
+						{ "label" : CMgs.format(langBundle, "sortAlphabetical"), "value" : "cstudio-core:internalName,cstudio-core:title" },
 					];
 			}
 			
-			return [ { "label" : "Relevance", "value" : "relevance" },
-					 { "label" : "Alphabetical", "value" : "cstudio-core:internalName,cstudio-core:title" },
-					 { "label" : "Create Date", "value": "cm:created"}
+			return [ { "label" : CMgs.format(langBundle, "sortRelevance"), "value" : "relevance" },
+					 { "label" : CMgs.format(langBundle, "sortAlphabetical"), "value" : "cstudio-core:internalName,cstudio-core:title" },
+					 { "label" : CMgs.format(langBundle, "sortCreateDate"), "value": "cm:created"}
 				   ];
 		},
 
