@@ -134,15 +134,15 @@ class ContentServices {
 
 	}
 
-	/** 
-	 * lock a given item
-	 * @param site - the project ID
-	 * @param path - the path of the item to lock
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static lockContentItem(site, path, context) {
-
-	}
+	//  Currently not supporting this as edit operations will lock for the caller autormaticall
+	//	/** 
+	//	 * lock a given item
+	//	 * @param site - the project ID
+	//	 * @param path - the path of the item to lock
+	//	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
+	//	 */
+	//	static lockContentItem(site, path, context) {
+	//	}
 
 	/** 
 	 * unlock a given item
@@ -151,7 +151,8 @@ class ContentServices {
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static unlockContentItem(site, path, context) {
-
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.unlockContentItem(site, path) 
 	}
 
 	/** 

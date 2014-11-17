@@ -2000,13 +2000,13 @@ YConnect.failureEvent.subscribe(function() {
 
                 // WRITE OPS
                 getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
+                unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
 
             // not ported yet
             writeContentServicecUrl: "/cstudio/wcm/content/write-content",
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
             deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
             lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
-            unlockContentItemUrl: "/proxy/alfresco/cstudio/wcm/workflow/unlockItem",
             getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
             getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
             reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",

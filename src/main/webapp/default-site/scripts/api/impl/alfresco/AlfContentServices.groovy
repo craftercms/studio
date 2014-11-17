@@ -175,21 +175,23 @@ class AlfContentServices {
 	}
 
 	/** 
-	 * lock a given item
-	 * @param site - the project ID
-	 * @param path - the path of the item to lock
-	 */
-	def lockContentItem(site, path) {
-
-	}
-
-	/** 
 	 * unlock a given item
 	 * @param site - the project ID
 	 * @param path - the path of the item to unlock
 	 */
 	def unlockContentItem(site, path) {
 
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/workflow/unlockItem" +
+			"?site=" + site +
+			"&path=" + path +
+			"&alf_ticket=" + getAlfrescoTicket()
+
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+ 
+		return result
 	}
 
 	/** 
