@@ -81,6 +81,17 @@ class AlfContentServices {
   	 */
 	def doesContentItemExist(site, path) {
 
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/content/content-exists" +
+			"?site=" + site +
+			"&path=" + path +
+			"&alf_ticket=" + getAlfrescoTicket()
+
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+ 
+		return result
 	}
 
 	/**

@@ -66,7 +66,8 @@ class ContentServices {
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
   	 */
 	static doesContentItemExist(site, path, context) {
-
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.doesContentItemExist(site, path) 
 	}
 
 	/**
