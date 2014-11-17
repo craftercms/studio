@@ -214,7 +214,7 @@ class AlfContentServices {
 
 	/** 
 	 * search the repository
-	 * @param site - the project ID	 
+	 * @param site - the project ID	  
 	 * @param keywords - keywords
 	 * @param filters - Filters object (document based)
 	 * @param sort - sort object
@@ -223,6 +223,6 @@ class AlfContentServices {
 	 */
 	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
 
-		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage);
+		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage, this.context);
 	}
 }	

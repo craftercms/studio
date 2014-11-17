@@ -17,8 +17,10 @@ class SolrSearch {
 	 * @param resultsPerPage - items to return per page
 	 */
 	static search(site, keywords, searchParams, sort, page, pageSize, context) {
-		def results = []
-		def searchService = context.applicationContext.get("searchService")
+		def results = [:]
+		results.objectList = []
+
+		def searchService = context.applicationContext.get("crafter.searchService")
 
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
@@ -50,7 +52,7 @@ class SolrSearch {
 		}
 
 		try {
-			def executedQuery = searchService.search(query)   
+ 			def executedQuery = searchService.search(query)   
 			def queryResults = executedQuery.response.documents
 
 			results.resultCount = executedQuery.response.numFound   

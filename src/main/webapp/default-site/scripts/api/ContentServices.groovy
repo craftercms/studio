@@ -187,6 +187,6 @@ class ContentServices {
 	 */
 	static search(site, keywords, searchParams, sort, page, resultsPerPage, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage, context)
+		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage)
 	}
 }	
