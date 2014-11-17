@@ -1985,8 +1985,10 @@ YConnect.failureEvent.subscribe(function() {
 			// service uris
 
             // content services
+                // READ OPS
             getContentUri: "/api/1/services/api/1/content/get-content.json",
             lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+            getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
             lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
 
 
@@ -2039,7 +2041,6 @@ YConnect.failureEvent.subscribe(function() {
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
 			getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
-			getVersionHistoryServiceUrl: "/proxy/alfresco/cstudio/wcm/version/get-history",
 			getRevertContentServiceUrl: "/proxy/alfresco/cstudio/wcm/version/revert",
 			writeContentServicecUrl: "/cstudio/wcm/content/write-content",
 			writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",

@@ -187,6 +187,18 @@ class AlfContentServices {
 	 */
 	def getContentItemVersionHistory(site, path) {
 
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/version/get-history" +
+			"?site=" + site +
+			"&path=" + path +
+			"&maxhistory=100" +
+			"&alf_ticket=" + getAlfrescoTicket()
+
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+ 
+		return result
 	}
 
 	/** 

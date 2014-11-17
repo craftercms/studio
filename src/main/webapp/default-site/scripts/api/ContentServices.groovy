@@ -7,6 +7,11 @@ import scripts.api.ServiceFactory
  */
 class ContentServices {
 
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc) 
+	 * @param request - web request if in web request context
+	 */
 	static createContext(applicationContext, request) {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
@@ -16,8 +21,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
 	 * @param content - the content to write
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static writeContent(site, path, content){
+	static writeContent(site, path, content, context){
 
 	}
 
@@ -26,8 +32,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
 	 * @param content - the content to write
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static writeAsset(site, path, content){
+	static writeAsset(site, path, content, context){
 
 	}
 
@@ -35,8 +42,9 @@ class ContentServices {
 	 * delete a content item
 	 * @param site - the projectId
 	 * @param path - the path to delete
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static deleteContent(site, path) {
+	static deleteContent(site, path, context) {
 
 	}
 
@@ -44,6 +52,7 @@ class ContentServices {
 	 * get the actual content at a given path
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static getContent(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
@@ -54,8 +63,9 @@ class ContentServices {
   	 * check if content at path exits
   	 * @param site - the project ID
   	 * @param path - the path to check
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
   	 */
-	static doesContentItemExist(site, path) {
+	static doesContentItemExist(site, path, context) {
 
 	}
 
@@ -63,6 +73,7 @@ class ContentServices {
 	 * get the tree of content items (metadata) beginning at a root
 	 * @param site - the project ID
 	 * @param rootPath - the path to root at
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static getContentItemTree(site, path, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
@@ -73,6 +84,7 @@ class ContentServices {
 	 * get the content item (metadata) at a specific path
 	 * @param site - the project ID
 	 * @param path - the path of the content item
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static getContentItem(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
@@ -84,8 +96,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the item
 	 * @param filters - filters to apply to the dependencies
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentDependencies(site, path, filters) {
+	static getContentDependencies(site, path, filters, context) {
 
 	}
 
@@ -93,8 +106,9 @@ class ContentServices {
 	 * get content orders for a given path (usually used for navigation)
   	 * @param site - the project ID
   	 * @param path - the parent path containing the ordered objects
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
   	 */
-	static getContentItemOrders(site, path) {
+	static getContentItemOrders(site, path, context) {
 
 	}
 
@@ -102,8 +116,9 @@ class ContentServices {
 	 * Get the next value in the sequence for an order at a given path
 	 * @param site - the project ID
 	 * @param path - the path of the parent
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getNextOrderInSequence(site, path) {
+	static getNextOrderInSequence(site, path, context) {
 
 	}
 
@@ -112,8 +127,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the list of paths for the items
 	 * @param orders - the orders object
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static orderItems(site, path, orders) {
+	static orderItems(site, path, orders, context) {
 
 	}
 
@@ -121,8 +137,9 @@ class ContentServices {
 	 * lock a given item
 	 * @param site - the project ID
 	 * @param path - the path of the item to lock
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static lockContentItem(site, path) {
+	static lockContentItem(site, path, context) {
 
 	}
 
@@ -130,8 +147,9 @@ class ContentServices {
 	 * unlock a given item
 	 * @param site - the project ID
 	 * @param path - the path of the item to unlock
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static unlockContentItem(site, path) {
+	static unlockContentItem(site, path, context) {
 
 	}
 
@@ -139,9 +157,11 @@ class ContentServices {
 	 * get the version history for an item
 	 * @param site - the project ID
 	 * @param path - the path of the item 
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentItemVersionHistory(site, path) {
-
+	static getContentItemVersionHistory(site, path, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.getContentItemVersionHistory(site, path) 
 	}
 
 	/** 
@@ -149,8 +169,9 @@ class ContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the item to "revert"
 	 * @param version - old version ID to base to version on
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static revertContentItem(site, path, version){
+	static revertContentItem(site, path, version, context){
 		
 	}
 
@@ -162,7 +183,8 @@ class ContentServices {
 	 * @param sort - sort object
 	 * @param page - page to start on
 	 * @param resultsPerPage - items to return per page
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static search(site, keywords, filters, sort, page, resultsPerPage) {
+	static search(site, keywords, filters, sort, page, resultsPerPage, context) {
 	}
 }	
