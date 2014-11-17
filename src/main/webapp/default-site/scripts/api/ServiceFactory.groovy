@@ -1,7 +1,7 @@
 package scripts.api
 
 import scripts.libs.Cookies
-import scripts.api.alfresco.AlfContentServices;
+import scripts.api.impl.alfresco.AlfContentServices;
 /** 
  * workflow services
  */

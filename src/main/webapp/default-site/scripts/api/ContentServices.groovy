@@ -185,6 +185,8 @@ class ContentServices {
 	 * @param resultsPerPage - items to return per page
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static search(site, keywords, filters, sort, page, resultsPerPage, context) {
+	static search(site, keywords, searchParams, sort, page, resultsPerPage, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage, context)
 	}
 }	

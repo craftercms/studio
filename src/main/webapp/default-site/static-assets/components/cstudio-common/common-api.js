@@ -1986,10 +1986,11 @@ YConnect.failureEvent.subscribe(function() {
 
             // content services
                 // READ OPS
-            getContentUri: "/api/1/services/api/1/content/get-content.json",
-            lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
-            getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
-            lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+                getContentUri: "/api/1/services/api/1/content/get-content.json",
+                lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+                getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
+                lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+                searchServiceUrl: "/api/1/services/api/1/content/search.json",      
 
 
             // not ported yet
@@ -2016,7 +2017,6 @@ YConnect.failureEvent.subscribe(function() {
 			/* this will change - be generalized */
 			getComponentPreviewServiceUrl: "/crafter-controller/component",
 			//searchServiceUrl: "/proxy/alfresco/cstudio/wcm/search/search",
-            searchServiceUrl: "/api/1/services/search/search.json",      
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
 			getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",

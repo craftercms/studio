@@ -1,6 +1,7 @@
-package scripts.api.alfresco
+package scripts.api.impl.alfresco
 
 import groovy.json.JsonSlurper;
+import scripts.api.impl.subsystems.search.SolrSearch;
 
 /**
  * content services
@@ -220,6 +221,8 @@ class AlfContentServices {
 	 * @param page - page to start on
 	 * @param resultsPerPage - items to return per page
 	 */
-	def search(site, keywords, filters, sort, page, resultsPerPage) {
+	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
+
+		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage);
 	}
 }	
