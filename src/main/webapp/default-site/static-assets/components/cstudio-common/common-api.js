@@ -1998,6 +1998,8 @@ YConnect.failureEvent.subscribe(function() {
                 lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
                 searchServiceUrl: "/api/1/services/api/1/content/search.json",      
 
+                // WRITE OPS
+                getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
 
             // not ported yet
             writeContentServicecUrl: "/cstudio/wcm/content/write-content",
@@ -2005,9 +2007,11 @@ YConnect.failureEvent.subscribe(function() {
             deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
             lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
             unlockContentItemUrl: "/proxy/alfresco/cstudio/wcm/workflow/unlockItem",
-            revertContentItemUrl: "/proxy/alfresco/cstudio/wcm/content/revert-content",
-            getRevertContentServiceUrl: "/proxy/alfresco/cstudio/wcm/version/revert",
-
+            getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
+            getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
+            reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
+            lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
+    
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
 			changeWcmContentTemplateServiceUri: "/proxy/alfresco/cstudio/wcm/content/add-wcm-properties",
 			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
@@ -2018,7 +2022,6 @@ YConnect.failureEvent.subscribe(function() {
 			allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
-			lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
 			getDeploymentHistoryServiceUrl: "/proxy/alfresco/cstudio/wcm/deployment/get-deployment-history",
 			getUserActivitiesServiceUrl: "/proxy/alfresco/cstudio/wcm/activity/get-user-activities",
@@ -2027,9 +2030,6 @@ YConnect.failureEvent.subscribe(function() {
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-			getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
-			getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
-			reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
             getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
 			changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
@@ -2424,27 +2424,6 @@ YConnect.failureEvent.subscribe(function() {
 				};
 				YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
 			},
-
-			/**
-			 * revert the content item
-			 */
-			revertContentItem: function(site, path, callback) {
-                var serviceUrl = this.revertContentItemUrl +
-                        "?site=" + site + 
-                        "&path=" + path;
-
-                var serviceCallback = {
-                    success: function(response) {
-                        callback.success();
-                    },
-                    failure: function(response) {
-                        callback.failure();
-                    }
-                };
-
-				YConnect.setDefaultPostHeader(false);
-				YConnect.initHeader("Content-Type", "application/json; charset=utf-8");
-				YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback, JSON.stringify(path))					},
 
 			/**
 			 * unlock the content item

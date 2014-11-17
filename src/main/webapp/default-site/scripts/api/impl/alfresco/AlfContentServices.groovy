@@ -220,7 +220,18 @@ class AlfContentServices {
 	 * @param version - old version ID to base to version on
 	 */
 	def revertContentItem(site, path, version){
-		
+		def alfServiceApiUrl = getAlfrescoUrl() +
+			"/service/cstudio/wcm/version/revert" +
+			"?site=" + site +
+			"&path=" + path +
+			"&version=" + version +
+			"&alf_ticket=" + getAlfrescoTicket()
+
+		def response = (alfServiceApiUrl).toURL().getText()
+ 
+ 		def result = new JsonSlurper().parseText( response )
+
+		return result		
 	}
 
 	/** 
