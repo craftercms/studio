@@ -1,0 +1,7 @@
+<webscript>
+  <shortname>sequence-service</shortname>
+  <description>Sequence Service Webscript for CStudio</description>
+  <url>/cstudio/sequence/create?namespace={namespace}</url>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-deleted-item</shortname>
+  <description>Get a content item from WCM</description>
+  <url>/cstudio/wcm/content/get-deleted-item?site={site}&amp;sub={sub?}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

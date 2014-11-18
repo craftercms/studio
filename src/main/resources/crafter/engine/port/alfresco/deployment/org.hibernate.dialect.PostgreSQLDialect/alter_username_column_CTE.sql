@@ -1,0 +1,1 @@
+ALTER TABLE cstudio_copytoenvironment ALTER COLUMN username TYPE VARCHAR(255);

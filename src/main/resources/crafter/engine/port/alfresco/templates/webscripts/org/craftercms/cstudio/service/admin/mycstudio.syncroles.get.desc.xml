@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>mycstudio-sync-roles</shortname>
+  <description>MyCStudio Sync Roles</description>
+  <url>/cstudio/admin/mycstudio-sync-roles?site={site}</url>
+  <format default="xml">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

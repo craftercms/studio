@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!--import resource="classpath:alfresco/module/cstudioAmp/context/service-context.xml" />
+	<import resource="classpath:alfresco/module/cstudioAmp/context/dm-service-context.xml" /-->
+
+    <bean id="cstudioServicesManager" class="org.craftercms.cstudio.alfresco.service.ServicesManager">
+        <property name="servicesMap">
+            <map key-type="java.lang.Class">
+                <entry key="org.alfresco.service.cmr.security.AuthenticationService">
+                    <ref bean="authenticationService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.security.AuthorityService">
+                    <ref bean="authorityService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.publishing.channels.ChannelService">
+                    <ref bean="channelService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.repository.ContentService">
+                    <ref bean="contentService"/>
+                </entry>
+                <entry key="org.alfresco.service.cmr.repository.CopyService">
+                    <ref bean="copyService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.dictionary.DictionaryService">
+                    <ref bean="dictionaryService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.model.FileFolderService">
+                    <ref bean="fileFolderService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.lock.LockService">
+                    <ref bean="lockService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.repository.MimetypeService">
+                    <ref bean="mimetypeService" />
+                </entry>
+                <entry key="org.alfresco.service.namespace.NamespaceService">
+                    <ref bean="namespaceService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.repository.NodeService">
+                    <ref bean="nodeService"/>
+                </entry>
+                <entry key="org.alfresco.service.cmr.security.PersonService">
+                    <ref bean="personService"/>
+                </entry>
+                <entry key="org.alfresco.service.cmr.security.PermissionService">
+                    <ref bean="permissionService"/>
+                </entry>
+                <entry key="org.alfresco.service.cmr.publishing.PublishingService">
+                    <ref bean="publishingService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.repository.ScriptService">
+                    <ref bean="scriptService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.search.SearchService">
+                    <ref bean="searchService" />
+                </entry>
+                <entry key="org.alfresco.service.ServiceRegistry">
+                    <ref bean="ServiceRegistry" />
+                </entry>
+                <entry key="org.alfresco.service.transaction.TransactionService">
+                    <ref bean="transactionService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.version.VersionService">
+                    <ref bean="versionService" />
+                </entry>
+                <entry key="org.alfresco.service.cmr.workflow.WorkflowService">
+                    <ref bean="WorkflowService" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+	<import resource="classpath:alfresco/module/cstudioAmp/context/cstudio-dao-context.xml" />
+	<import resource="classpath:alfresco/module/cstudioAmp/context/cstudio-service-context.xml" />
+	<import resource="classpath:alfresco/module/cstudioAmp/context/cstudio-service-jscript-context.xml" />
+	<import resource="classpath:alfresco/module/cstudioAmp/context/cstudio-service-rest-context.xml" />
+	<import resource="classpath:alfresco/module/cstudioAmp/context/cstudio-unused-context.xml" />
+
+
+
+    <bean id="cstudioModule.bootstrapAuthorities" class="org.alfresco.repo.module.ImporterModuleComponent" parent="module.baseComponent">
+        <property name="moduleId" value="crafterContentModel" />
+        <property name="name" value="cstudioBootstrap" />
+        <property name="description" value="Installing Crafter Studio Custom Authority Store" />
+        <property name="sinceVersion" value="1.0" />
+        <property name="appliesFromVersion" value="1.0" />
+        <property name="importer" ref="spacesBootstrap"/>
+        <property name="bootstrapViews">
+            <list>
+                <props>
+                    <prop key="path">/${system.system_container.childname}</prop>
+                    <prop key="location">alfresco/module/cstudioAmp/crafterAuthoritiesStore.xml</prop>
+                </props>
+            </list>
+        </property>
+    </bean>
+
+	<bean id="cstudioModule.bootstrap" class="org.alfresco.repo.module.ImporterModuleComponent"
+		parent="module.baseComponent">
+
+		<!-- Module Details -->
+		<property name="moduleId" value="crafterContentModel" />
+		<property name="name" value="cstudioBootstrap" />
+		<property name="description" value="Installing Crafter Studio based configuration" />
+		<property name="sinceVersion" value="1.0" />
+		<property name="appliesFromVersion" value="1.0" />
+
+		<!-- Data properties -->
+		<property name="importer" ref="spacesBootstrap" />
+		<property name="bootstrapViews">
+			<list>
+				<props>
+					<prop key="path">/${spaces.company_home.childname}</prop>
+					<prop key="location">alfresco/module/cstudioAmp/cstudio-config-space.acp</prop>
+				</props>
+				<props>
+					<prop key="path">/${spaces.company_home.childname}</prop>
+					<prop key="location">alfresco/module/cstudioAmp/cstudio-web-projects.acp</prop>
+				</props>
+
+				<props>
+					<prop key="path">/${spaces.company_home.childname}/cm:cstudio/cm:site-blueprints</prop>
+					<prop key="location">alfresco/module/cstudioAmp/blueprint-empty-site.acp</prop>
+				</props>
+				
+				<props>
+					<prop key="path">/${spaces.company_home.childname}/cm:cstudio/cm:site-blueprints</prop>
+					<prop key="location">alfresco/module/cstudioAmp/blueprint-corporate-site.acp</prop>
+				</props>
+
+			</list>
+		</property>
+
+	</bean>
+
+    <import resource="classpath:alfresco/module/cstudioAmp/context/service-context-custom*.xml" />
+    <import resource="classpath*:crafter/cstudio/extension/cstudio-services-cfg.xml" />
+
+</beans>

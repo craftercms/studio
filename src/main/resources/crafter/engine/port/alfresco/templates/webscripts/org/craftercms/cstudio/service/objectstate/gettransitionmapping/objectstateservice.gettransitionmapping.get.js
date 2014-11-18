@@ -1,0 +1,1 @@
+model.result = objectStateService.getTransitionMapping();

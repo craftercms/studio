@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>submit-item-to-go-live</shortname>
+  <description>Submit an item to go live queue.</description>
+  <url>/cstudio/wcm/workflow/submit-to-go-live?site={site}&amp;sub={sub?}&amp;path={path}&amp;scheduledDate={scheduledDate?}&amp;sendEmail={sendEmail?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

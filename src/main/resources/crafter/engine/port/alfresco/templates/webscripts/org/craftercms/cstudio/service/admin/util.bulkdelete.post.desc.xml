@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>Bulk Delete</shortname>
+  <description>Utility service for deleting pages that are root of subtree with large set of pages</description>
+  <url>/cstudio/util/bulk-delete?site={site}&amp;publishingEnvironment={environment}&amp;path={path}&amp;</url>
+  <format default="html">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

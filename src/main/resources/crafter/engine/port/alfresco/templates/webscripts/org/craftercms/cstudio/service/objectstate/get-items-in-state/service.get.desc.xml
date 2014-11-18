@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get items in state jobs</shortname>
+  <description>Get items in state Jobs</description>
+  <url>/cstudio/objectstate/get-items</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

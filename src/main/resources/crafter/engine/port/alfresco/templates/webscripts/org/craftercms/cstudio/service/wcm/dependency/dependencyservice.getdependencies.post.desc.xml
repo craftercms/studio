@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-dependencies</shortname>
+  <description>get WCM item dependencies</description>
+  <url>/cstudio/wcm/dependency/get-dependencies?site={site}&amp;deletedep={deletedep?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

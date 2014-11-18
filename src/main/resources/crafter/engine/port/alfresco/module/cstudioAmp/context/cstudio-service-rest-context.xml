@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- ////////////////////////////////////// -->
+    <!--      Webscripts       -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioSynchronizationScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.script.SynchronizationServiceScript">
+        <property name="extensionName">
+            <value>synchronizationService</value>
+        </property>
+        <property name="servicesManager" ref="cstudioServicesManager"/>
+    </bean>
+
+    <bean id="webscript.org.craftercms.cstudio.service.wcm.content.contentservice.getcontent.get"
+          class="org.craftercms.cstudio.alfresco.dm.webscript.content.GetContentWebScript"
+          parent="webscript">
+        <property name="servicesManager" ref="cstudioServicesManager"/>
+    </bean>
+
+
+    <bean id="webscript.org.alfresco.repository.content.stream.cstudio"
+          class="org.alfresco.repo.web.scripts.content.StreamContent" parent="webscript" scope="prototype">
+        <property name="permissionService" ref="PermissionService"/>
+        <property name="nodeService" ref="NodeService"/>
+        <property name="mimetypeService" ref="MimetypeService"/>
+        <property name="delegate" ref="webscript.content.streamer"/>
+    </bean>
+
+</beans>

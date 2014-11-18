@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-content-exists</shortname>
+  <description>check whether the content exists</description>
+  <url>/cstudio/wcm/content/content-exists?site={site}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

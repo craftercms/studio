@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>create taxonomy</shortname>
+  <description>Create Taxonomy</description>
+  <url>/cstudio/taxonomy/create?type={type}&amp;name={name}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-duplicate</shortname>
+  <description>dupliate the content at the given path</description>
+  <url>/cstudio/wcm/clipboard/duplicate?site={site}&amp;sub={sub?}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

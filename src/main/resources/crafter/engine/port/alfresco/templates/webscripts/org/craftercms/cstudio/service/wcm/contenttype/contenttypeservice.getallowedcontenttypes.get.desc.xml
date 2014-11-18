@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-alllowed-content-types</shortname>
+  <description>get allowed wcm content types at the given path</description>
+  <url>/cstudio/wcm/contenttype/get-allowed-content-types?site={site}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

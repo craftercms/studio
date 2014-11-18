@@ -1,0 +1,1 @@
+ALTER TABLE [dbo].[cstudio_publishtotarget] ALTER column [username] [nvarchar](255);

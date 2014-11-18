@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get a list of avm webprojects</shortname>
+  <description></description>
+  <url>/avmtocr/webprojects/list</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

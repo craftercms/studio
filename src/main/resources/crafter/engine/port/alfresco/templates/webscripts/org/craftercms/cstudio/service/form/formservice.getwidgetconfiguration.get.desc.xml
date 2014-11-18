@@ -1,0 +1,8 @@
+<webscript>
+	<shortname>get-widget-configuration</shortname>
+	<description>Get Widget configuration properties</description>
+	<url>/cstudio/form/get-widget-configuration?siteType={siteType}&amp;form={form?}&amp;widget={widget}</url>
+	<format default="json">argument</format>
+	<authentication>user</authentication>
+	<transaction>required</transaction>
+</webscript>
