@@ -17,7 +17,6 @@
 package org.craftercms.cstudio.alfresco.dm.content.pipeline.impl;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.service.cmr.avm.AVMService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.craftercms.cstudio.alfresco.constant.CStudioContentModel;
 import org.craftercms.cstudio.alfresco.content.pipeline.api.PipelineContent;
@@ -78,12 +77,9 @@ public class ImportAddDmMetadataProcessor extends BaseContentProcessor {
 	 */
 	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
 		String fullPath = content.getProperty(DmConstants.KEY_FULL_PATH);
-		//String sandbox = content.getProperty(WcmConstants.KEY_SANDBOX);
-		// String fullPath = path.getRelativePath();
 		if (logger.isDebugEnabled())
 			logger.debug("[DMIMPORTSERVICE] addDmProperties: filePath [" + fullPath + "] ");
 		// add dm properties
-		//_avmService.addAspect(fullPath, CStudioContentModel.ASPECT_COLLABORATIVE_SANDBOX);
         PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
         NodeRef node = persistenceManagerService.getNodeRef(fullPath);
         persistenceManagerService.addAspect(node, CStudioContentModel.ASPECT_COLLABORATIVE_SANDBOX, null);

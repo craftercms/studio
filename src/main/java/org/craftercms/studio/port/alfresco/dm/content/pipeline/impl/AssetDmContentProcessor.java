@@ -40,7 +40,6 @@ import org.craftercms.cstudio.alfresco.to.ContentAssetInfoTO;
 import org.craftercms.cstudio.alfresco.to.ResultTO;
 import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
 import org.craftercms.cstudio.alfresco.util.ContentUtils;
-import org.craftercms.cstudio.alfresco.webscript.constant.CStudioWebScriptConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,11 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Map;
 
-public class AssetDmContentProcessor extends FormDmContentProcessor {
+public class AssetDmContentProcessor extends org.craftercms.cstudio.alfresco.dm.content.pipeline.impl.FormDmContentProcessor {
+
+    public static final int READ_BUFFER_LENGTH = 32 * 1024;
+    public static final String FILE_SIZE_MB = "MB";
+    public static final String FILE_SIZE_KB = "KB";
 
     private static final Logger logger = LoggerFactory.getLogger(AssetDmContentProcessor.class);
 
@@ -186,9 +189,9 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 ContentReader reader = persistenceManagerService.getReader(persistenceManagerService.getNodeRef(contentPath));
                 ContentData data = reader.getContentData();
                 long size = data.getSize();
-                double convertedSize = size / new Double(CStudioWebScriptConstants.READ_BUFFER_LENGTH * 32) * 1024;
+                double convertedSize = size / new Double(READ_BUFFER_LENGTH * 32) * 1024;
                 if(convertedSize >= 1024){
-                    assetInfo.setSizeUnit(CStudioWebScriptConstants.FILE_SIZE_MB);
+                    assetInfo.setSizeUnit(FILE_SIZE_MB);
                     assetInfo.setSize(convertedSize/1024);
                 }else{
                     if(convertedSize > 0 && convertedSize < 1){
@@ -197,7 +200,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                         assetInfo.setSize(Math.round(convertedSize));
                     }
 
-                    assetInfo.setSizeUnit(CStudioWebScriptConstants.FILE_SIZE_KB);
+                    assetInfo.setSizeUnit(FILE_SIZE_KB);
                 }
                 //assetInfo.setSize(size / new Double(CStudioWebScriptConstants.READ_BUFFER_LENGTH * 32) * 1024);
                 assetInfo.setFileExtension(ext);

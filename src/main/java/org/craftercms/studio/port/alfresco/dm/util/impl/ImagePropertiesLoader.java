@@ -19,7 +19,6 @@ package org.craftercms.cstudio.alfresco.dm.util.impl;
 import java.io.Serializable;
 import java.util.List;
 
-import org.alfresco.service.cmr.avm.AVMService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.model.FileNotFoundException;
 import org.alfresco.service.cmr.repository.NodeRef;

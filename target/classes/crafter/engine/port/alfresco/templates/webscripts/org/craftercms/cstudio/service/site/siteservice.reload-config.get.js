@@ -1,0 +1,1 @@
+ authoringSiteService.reloadSiteConfigurations();

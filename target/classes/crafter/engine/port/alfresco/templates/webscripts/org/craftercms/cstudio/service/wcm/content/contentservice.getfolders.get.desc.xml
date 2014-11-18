@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-folders</shortname>
+  <description>Get Folders Webscript for WCM</description>
+  <url>/cstudio/wcm/content/get-folders?site={site}&amp;sub={sub?}&amp;path={path}&amp;depth={depth?}&amp;order={order?}&amp;populateDependencies={populateDependencies?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-content-type-by-path</shortname>
+  <description>get content type config information for the content at the given path</description>
+  <url>/cstudio/wcm/contenttype/get-content-type-by-path?site={site}&amp;sub={sub}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

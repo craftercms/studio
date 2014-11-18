@@ -1,0 +1,8 @@
+<webscript>
+    <shortname>sync-site</shortname>
+    <description>synchronize site</description>
+    <url>/cstudio/wcm/sync/sync-site?site={site}</url>
+    <format default="json">argument</format>
+    <authentication>user</authentication>
+    <transaction>required</transaction>
+</webscript>

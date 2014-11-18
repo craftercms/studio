@@ -17,17 +17,7 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.dm.util;
 
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
-
 public interface FileLockService {
-
-    void lock(AVMNodeDescriptor node, String user);
-
-    boolean isLocked(AVMNodeDescriptor node);
-
-    String getLockOwner(AVMNodeDescriptor node);
-
-    void unlockLock(AVMNodeDescriptor node);
 
     void unlockLock(String  fullpath);
 }

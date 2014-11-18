@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.dm.content.pipeline.api;
 
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
 import org.alfresco.service.cmr.repository.NodeRef;
 
 /**

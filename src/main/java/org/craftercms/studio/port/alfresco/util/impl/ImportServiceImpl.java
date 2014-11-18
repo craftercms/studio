@@ -31,10 +31,7 @@ import java.util.TimeZone;
 import javolution.util.FastMap;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.action.evaluator.CompareMimeTypeEvaluator;
-import org.alfresco.repo.action.evaluator.ComparePropertyValueEvaluator;
 import org.alfresco.repo.action.executer.AddFeaturesActionExecuter;
-import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ActionCondition;
 import org.alfresco.service.cmr.action.CompositeAction;

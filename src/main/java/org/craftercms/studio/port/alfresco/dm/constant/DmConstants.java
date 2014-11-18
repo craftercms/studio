@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 
 import org.alfresco.config.JNDIConstants;
 import org.alfresco.model.WCMWorkflowModel;
-import org.alfresco.repo.version.Version2Model;
 import org.alfresco.service.namespace.QName;
 import org.craftercms.cstudio.alfresco.constant.CStudioContentModel;
 

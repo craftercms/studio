@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-authoring-server-url</shortname>
+  <description>get content authoring server URL</description>
+  <url>/cstudio/site/get-authoring-server-url?site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

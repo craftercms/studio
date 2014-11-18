@@ -24,9 +24,6 @@ import javolution.util.FastTable;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
-import org.alfresco.service.cmr.avm.AVMBadArgumentException;
-import org.alfresco.service.cmr.avm.AVMException;
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
 import org.alfresco.service.cmr.lock.LockStatus;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.model.FileInfo;
@@ -208,67 +205,6 @@ public class DmContentServiceImpl extends AbstractRegistrableService implements 
             return persistenceManagerService.getReader(contentNode).getContentInputStream();
         } else {
             throw new ContentNotFoundException(path + " is not found in site: " + site);
-        }
-    }
-
-    /**
-     * load common properties from the content
-     *
-     * @param site
-     * @param node
-     * @param item
-     * @param populateDependencies
-     * @param populateUpdatedDependecinesOnly
-     *
-     * @throws ServiceException
-     */
-    @SuppressWarnings("unchecked")
-    protected void loadCommonProperties(String site, AVMNodeDescriptor node, DmContentItemTO item,
-                                        boolean populateDependencies, boolean populateUpdatedDependecinesOnly) throws ServiceException {
-        String path = node.getPath();
-        if (logger.isDebugEnabled()) {
-            logger.debug("loading common properties for " + path);
-        }
-        // set component flag
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        item.setComponent(matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)));
-        if (item.getName().equals(servicesConfig.getLevelDescriptorName(site))) {
-            item.setLevelDescriptor(true);
-            // level descriptors are components
-            item.setComponent(true);
-        }
-        // set document flag
-        item.setDocument(matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site)));
-        // if the content type meta is empty, populate properties from the file
-        Document content = null;
-        // read common metadata
-        Serializable internalNameValue = getPropertyValue(path, CStudioContentModel.PROP_INTERNAL_NAME);
-        String internalName = (internalNameValue != null) ? internalNameValue.toString() : null;
-        if (!StringUtils.isEmpty(item.getContentType()) && !StringUtils.isEmpty(internalName)) {
-            loadContentProperties(path, item);
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("content type is not found from the content metadata. loading properties from XML.");
-            }
-            content = loadPropertiesFromXml(site, path, item);
-        }
-        content = loadHideInAuthoringPropertyFromXml(site, path, item);
-        if (content == null) {
-            content = getDocumentFromDmContent(path);
-        }
-        // populate dependencies
-        if (populateDependencies) {
-            DmDependencyService dmDependencyService = getService(DmDependencyService.class);
-            dmDependencyService.populateDependencyContentItems(site, item, populateUpdatedDependecinesOnly);
-        }
-        // TODO: remove this when order extraction is ready
-        if (item.getOrders() == null) {
-            if (content != null) {
-                Element root = content.getRootElement();
-                //item.setOrders(getItemOrders(root.selectNodes("//" + DmXmlConstants.ELM_ORDERS + "/"
-                //        + DmXmlConstants.ELM_ORDER)));
-                item.setOrders(getItemOrders(root.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
-            }
         }
     }
 

@@ -1,5 +1,5 @@
 package org.alfresco.service.cmr.model;
 
-public class FileNotFoundException {
+public class FileNotFoundException extends Exception {
 
 }

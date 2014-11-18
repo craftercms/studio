@@ -30,7 +30,6 @@ import org.alfresco.repo.nodelocator.CompanyHomeNodeLocator;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.repo.version.Version2Model;
 import org.alfresco.service.cmr.action.*;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;

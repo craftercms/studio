@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Workflow to support direct submit -->
+
+<process-definition xmlns="urn:jbpm.org:jpdl-3.1" name="dmwf:cstudio-submitdirect">
+
+    <swimlane name="initiator"/>
+
+    <!--              -->
+    <!-- Start Review -->
+    <!--              -->
+
+    <start-state name="start">
+        <task name="dmwf:submitDirectTask" swimlane="initiator"/>
+        <transition name="" to="onsubmit"/>
+    </start-state>
+
+    <decision name="onsubmit">
+        <transition name="launchnow" to="submitted" />
+        <transition name="launchpending" to="submitpending">
+            <condition>#{dmwf_launchDate != null}</condition>
+        </transition>
+    </decision>
+
+    <task-node name="submitpending" end-tasks="true">
+        <task name="dmwf:submitpendingTask" swimlane="initiator">
+            <event type="task-create">
+
+            </event>
+            <timer duedate="#{dmwf_launchDate}" transition="launch" >
+                <action class="org.alfresco.repo.workflow.jbpm.AlfrescoJavaScript">
+                    <script>
+                        logger.log("DM Submission " + bpm_workflowDescription + " submitted at " + dmwf_launchDate + " by " + person.properties.userName);
+                    </script>
+                </action>
+            </timer>
+        </task>
+        <transition name="cancel" to="end" />
+        <transition name="launch" to="submitted" />
+    </task-node>
+
+    <task-node name="submitted" end-tasks="true">
+        <task name="dmwf:submittedDirectTask" swimlane="initiator">
+            <timer duedate="2 seconds" transition="onsubmit">
+                <action class="org.alfresco.repo.workflow.jbpm.AlfrescoJavaScript">
+                    <script>
+                        logger.log("onsubmit action: " + workflowinstanceid);
+                        logger.log("DM Submit Process: Triggering submit for " + bpm_workflowDescription);
+                    </script>
+                </action>
+            </timer>
+
+            <event type="task-end">
+                <script>
+                    <variable name="submitfailed" access="write"/>
+                    <expression>submitfailed = false;</expression>
+                </script>
+
+                <action class="org.alfresco.repo.workflow.jbpm.AlfrescoJavaScript">
+                    <script>
+                        logger.log("before submit direct - preparing submission");
+                        dmWorkflowService.prepareSubmission(bpm_package.nodeRef, workflowinstanceid,bpm_workflowDescription);
+                        logger.log("DM Submit Process: Start submit for " + bpm_workflowDescription + " (by " + person.properties.userName + ")");
+                    </script>
+                </action>
+
+                <action class="org.alfresco.repo.workflow.jbpm.AlfrescoJavaScript">
+                        dmPublishingService.publish(bpm_package.nodeRef, workflowinstanceid, bpm_workflowDescription);
+                </action>
+
+                <action class="org.alfresco.repo.workflow.jbpm.AlfrescoJavaScript">
+                    <script>
+                        dmWorkflowService.postSubmission(bpm_package.nodeRef, workflowinstanceid,bpm_workflowDescription);
+                        logger.log("DM Submit Process: End submit for " + bpm_workflowDescription + " (by " + person.properties.userName + ")");
+                    </script>
+                </action>
+            </event>
+        </task>
+        <transition name="onsubmit" to="checkfailedsubmit">
+            <exception-handler>
+                <script>
+                    <variable name="submitfailed" access="write"/>
+                    <expression>
+                        logger.log("DM Submit Process: Submit failed for " + bpm_workflowDescription + " (by " + person.properties.userName + ")");
+                        submitfailed = true;
+                    </expression>
+                </script>
+            </exception-handler>
+        </transition>
+    </task-node>
+
+    <decision name="checkfailedsubmit">
+        <transition name="failure" to="submitfailed">
+            <condition>#{submitfailed == true}</condition>
+        </transition>
+        <transition name="success" to="end">
+            <condition>#{submitfailed == false}</condition>
+        </transition>
+    </decision>
+
+    <task-node name="submitfailed">
+        <task name="dmwf:submitfailedTask" swimlane="initiator"/>
+        <transition name="" to="end"/>
+    </task-node>
+
+    <!--                 -->
+    <!-- End the Process -->
+    <!--                 -->
+
+    <end-state name="end"/>
+
+</process-definition>

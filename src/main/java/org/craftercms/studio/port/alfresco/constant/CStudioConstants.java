@@ -20,7 +20,6 @@ package org.craftercms.cstudio.alfresco.constant;
 import java.text.SimpleDateFormat;
 
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.springframework.extensions.webscripts.Status;
 
 /**
  * CStudio Common constants

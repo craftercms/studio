@@ -25,9 +25,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.WCMWorkflowModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.repo.workflow.WorkflowModel;
-import org.alfresco.service.cmr.avm.AVMBadArgumentException;
-import org.alfresco.service.cmr.avmsync.AVMDifference;
 import org.alfresco.service.cmr.lock.LockStatus;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -37,7 +34,6 @@ import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.cmr.workflow.WorkflowTaskQuery;
 import org.alfresco.service.cmr.workflow.WorkflowTransition;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.wcm.util.WCMUtil;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.cstudio.alfresco.cache.cstudioCacheManager;
 import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
@@ -1589,10 +1585,9 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
      * @param workflowSandbox
      * @param node
      * @param status
-     * @param list
      * @param date
      */
-    protected void updateItemStatus(String site, String workflowSandbox, NodeRef node, String status, List<AVMDifference> list, Date date) {
+    protected void updateItemStatus(String site, String workflowSandbox, NodeRef node, String status, Date date) {
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
         String workflowPath = persistenceManagerService.getNodePath(node);
         FileInfo nodeInfo = persistenceManagerService.getFileInfo(node);
@@ -1600,25 +1595,14 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
             List<FileInfo> children = persistenceManagerService.list(node);
             if (children != null) {
                 for (FileInfo childInfo : children) {
-                    updateItemStatus(site, workflowSandbox, childInfo.getNodeRef(), status, list, date);
+                    updateItemStatus(site, workflowSandbox, childInfo.getNodeRef(), status, date);
                 }
             }
         } else {
             DmPathTO path = new DmPathTO(workflowPath);
-            //path.setStoreName(WcmUtils.createStoreName(site, sandbox));
-            //String fullPath = path.toString();
-            /*WcmStateManager wcmStateManager = getWcmStateManager();
-            AVMNodeDescriptor avmNodeDescriptor = _avmService.lookup(-1, fullPath);
-            if (avmNodeDescriptor != null) {
-                if (date != null) {
-                    wcmStateManager.markScheduled(avmNodeDescriptor, date, site);
-                }
-            }*/
 
             if (!StringUtils.isEmpty(workflowSandbox)) {
                 long start=System.currentTimeMillis();
-                //List<AVMDifference> avmDifferenceList = createDiff(site, fullPath, workflowSandbox);
-                //list.addAll(avmDifferenceList);
             }
         }
 

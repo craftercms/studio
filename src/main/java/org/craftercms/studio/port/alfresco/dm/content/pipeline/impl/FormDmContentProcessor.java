@@ -18,7 +18,6 @@ package org.craftercms.cstudio.alfresco.dm.content.pipeline.impl;
 
 import javolution.util.FastMap;
 import org.alfresco.model.ContentModel;
-import org.alfresco.service.cmr.avm.AVMBadArgumentException;
 import org.alfresco.service.cmr.lock.LockStatus;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.model.FileInfo;
@@ -161,8 +160,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 throw new ContentNotFoundException(path + " does not exist in site: " + site);
             }
-        } catch (AVMBadArgumentException e) {
-            throw new ContentNotFoundException(path + " is not found in site: " + site, e);
         } catch (ContentNotFoundException e) {
             throw e;
         } catch (Exception e) {

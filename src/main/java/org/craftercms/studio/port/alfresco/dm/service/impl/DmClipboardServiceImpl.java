@@ -23,7 +23,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.cmr.avm.AVMBadArgumentException;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.DuplicateChildNodeNameException;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -154,8 +153,6 @@ public class DmClipboardServiceImpl extends AbstractRegistrableService implement
             } else {
                 throw new ContentNotFoundException(path + " does not exist.");
             }
-        } catch (AVMBadArgumentException e) {
-            throw new ContentNotFoundException(path + " does not exist.");
         }finally{
             AuthenticationUtil.setFullyAuthenticatedUser(user);
         }

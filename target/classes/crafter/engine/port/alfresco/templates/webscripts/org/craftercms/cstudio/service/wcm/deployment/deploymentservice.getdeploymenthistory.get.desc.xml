@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get deployment history</shortname>
+  <description>Get Deployment History in given Site</description>
+  <url>/cstudio/wcm/deployment/get-deployment-history?site={site}&amp;days={days}&amp;num={num}&amp;filterType={filterType?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

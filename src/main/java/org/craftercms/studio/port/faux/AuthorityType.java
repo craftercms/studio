@@ -1,5 +1,12 @@
 package org.alfresco.service.cmr.security;
 
-public class AuthorityType {
-
+public enum AuthorityType {
+    ADMIN,
+    EVERYONE,
+    OWNER,
+    GUEST,
+    GROUP,
+    ROLE,
+    USER,
+    WILDCARD
 }

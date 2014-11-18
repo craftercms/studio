@@ -23,14 +23,12 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.WCMWorkflowModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.repo.version.Version2Model;
 import org.alfresco.service.cmr.lock.LockStatus;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.wcm.util.WCMUtil;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
@@ -42,7 +40,6 @@ import org.craftercms.cstudio.alfresco.dm.util.DmContentItemComparator;
 import org.craftercms.cstudio.alfresco.dm.util.DmUtils;
 import org.craftercms.cstudio.alfresco.dm.util.ScheduleItem;
 import org.craftercms.cstudio.alfresco.dm.util.WorkflowProgress;
-import org.craftercms.cstudio.alfresco.dm.util.impl.ScheduleDeleteHandler;
 import org.craftercms.cstudio.alfresco.dm.workflow.GoLiveContext;
 import org.craftercms.cstudio.alfresco.dm.workflow.MultiChannelPublishingContext;
 import org.craftercms.cstudio.alfresco.dm.workflow.RequestContext;
@@ -80,17 +77,6 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
 
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) {
         this._workflowProcessor = workflowProcessor;
-    }
-
-    protected boolean isScheduleDeleteHandlerThrStarted;
-    protected ScheduleDeleteHandler _scheduleDeleteHandler = null;
-
-    public ScheduleDeleteHandler getScheduleDeleteHandler() {
-        return _scheduleDeleteHandler;
-    }
-
-    public void setScheduleDeleteHandler(ScheduleDeleteHandler scheduleDeleteHandler) {
-        this._scheduleDeleteHandler = scheduleDeleteHandler;
     }
 
     protected boolean customContentTypeNotification;

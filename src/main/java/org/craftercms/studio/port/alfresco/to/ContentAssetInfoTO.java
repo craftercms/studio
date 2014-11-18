@@ -21,7 +21,6 @@ import java.io.Serializable;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 
-import org.craftercms.cstudio.alfresco.webscript.constant.CStudioWebScriptConstants;
 
 /**
  * This class contains content asset information that exists in the repository
@@ -30,6 +29,8 @@ import org.craftercms.cstudio.alfresco.webscript.constant.CStudioWebScriptConsta
  *
  */
 public class ContentAssetInfoTO implements Serializable {
+
+	public static final String FILE_SIZE_KB = "KB";
 
 	/**
 	 * 
@@ -48,7 +49,7 @@ public class ContentAssetInfoTO implements Serializable {
 	/** the image height if the asset is an image **/
 	protected int _height = -1;
 	
-	protected String sizeUnit =CStudioWebScriptConstants.FILE_SIZE_KB;
+	protected String sizeUnit = FILE_SIZE_KB;
 
 	public String getSizeUnit() {
 		return sizeUnit;

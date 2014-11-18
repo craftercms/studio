@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-workflow-affected-paths</shortname>
+  <description>Get workflow affected paths that can be taken out of workflow</description>
+  <url>/cstudio/wcm/workflow/get-workflow-affected-path?site={site}&amp;path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

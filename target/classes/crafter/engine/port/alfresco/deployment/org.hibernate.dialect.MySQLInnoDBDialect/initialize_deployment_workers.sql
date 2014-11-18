@@ -1,0 +1,33 @@
+CREATE  TABLE `cstudio_copytoenvironment` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `site` VARCHAR(50) NOT NULL ,
+  `environment` VARCHAR(20) NOT NULL ,
+  `path` TEXT NOT NULL ,
+  `oldpath` TEXT NULL ,
+  `username` VARCHAR(255) NULL ,
+  `scheduleddate` DATETIME NOT NULL ,
+  `state` VARCHAR(50) NOT NULL ,
+  `action` VARCHAR(20) NOT NULL ,
+  `contenttypeclass` VARCHAR(20) NULL,
+  PRIMARY KEY (`id`) ,
+  INDEX `cstudio_cte_site_idx` (`site` ASC) ,
+  INDEX `cstudio_cte_environment_idx` (`environment` ASC) ,
+  INDEX `cstudio_cte_path_idx` (`path`(250) ASC) ,
+  INDEX `cstudio_cte_sitepath_idx` (`site` ASC, `path`(250) ASC) ,
+  INDEX `cstudio_cte_state_idx` (`state` ASC) );
+
+CREATE  TABLE `cstudio_publishtotarget` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `site` VARCHAR(50) NOT NULL ,
+  `environment` VARCHAR(20) NOT NULL ,
+  `path` TEXT NOT NULL ,
+  `oldpath` TEXT NULL ,
+  `username` VARCHAR(255) NOT NULL ,
+  `version` BIGINT NOT NULL ,
+  `action` VARCHAR(20) NOT NULL ,
+  `contenttypeclass` VARCHAR(20) NULL,
+  PRIMARY KEY (`id`) ,
+  INDEX `cstudio_ptt_site_idx` (`site` ASC) ,
+  INDEX `cstudio_ptt_environment_idx` (`environment` ASC) ,
+  INDEX `cstudio_ptt_path` (`path`(250) ASC) ,
+  INDEX `cstudio_ptt_sitepath_idx` (`site` ASC, `path`(250) ASC) );

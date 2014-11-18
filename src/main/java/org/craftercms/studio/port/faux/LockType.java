@@ -1,5 +1,6 @@
 package org.alfresco.service.cmr.lock;
 
-public class LockType {
+public enum LockType {
 
+    WRITE_LOCK
 }

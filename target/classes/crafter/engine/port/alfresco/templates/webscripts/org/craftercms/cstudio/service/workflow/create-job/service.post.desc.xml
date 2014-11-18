@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>create workflow jobs</shortname>
+  <description>Create Workflow Jobs</description>
+  <url>/cstudio/workflow/create-jobs</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>
