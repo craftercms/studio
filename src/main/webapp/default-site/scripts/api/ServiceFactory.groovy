@@ -2,7 +2,9 @@ package scripts.api
 
 import scripts.libs.Cookies
 import scripts.api.impl.alfresco.AlfContentServices;
-/** 
+import scripts.api.impl.alfresco.AlfClipboardServices;
+
+/**
  * workflow services
  */
 class ServiceFactory {
@@ -29,4 +31,14 @@ class ServiceFactory {
 	static getContentServices(context) {
 		return new AlfContentServices(context)
 	}
+
+    /**
+     * return the implementation for clipboard services
+     *
+     * @param context site context
+     * @return ClipboardServices
+     */
+    static getClipboardServices(context) {
+        return new AlfClipboardServices(context)
+    }
 }
