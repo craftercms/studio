@@ -41,6 +41,11 @@
 			<name>Sumer Jabri</name>
 			<email>sumer.jabri@craftercms.org</email>
 		</developer>
+        <developer>
+            <id>dejanbrkic</id>
+            <name>Dejan Brkic</name>
+            <email>dejan.brkic@craftercms.org</email>
+        </developer>
 	</developers>
 	<scm>
 		<connection>scm:git:git://github.com/craftercms/studio</connection>
@@ -73,6 +78,11 @@
     <dependencies>
         <!-- ported alf layer -->
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>3.0.5.RELEASE</version>
+        </dependency>
+        <dependency>
             <groupId>javolution</groupId>
             <artifactId>javolution</artifactId>
             <version>5.5.0</version>
@@ -99,6 +109,42 @@
             <artifactId>ibatis-sqlmap</artifactId>
             <version>2.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>acegisecurity</groupId>
+            <artifactId>acegi-security</artifactId>
+            <version>0.8.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-mock</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ehcache</groupId>
+                    <artifactId>ehcache</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>antlr</artifactId>
+                    <groupId>antlr</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>2.1.1</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>3.0.5.RELEASE</version>
+        </dependency>
+
 
 
         <!-- Crafter Engine -->

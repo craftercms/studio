@@ -18,7 +18,6 @@
 package org.craftercms.cstudio.alfresco.util.impl;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.search.impl.lucene.AbstractLuceneQueryParser;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.SearchLanguageConversion;

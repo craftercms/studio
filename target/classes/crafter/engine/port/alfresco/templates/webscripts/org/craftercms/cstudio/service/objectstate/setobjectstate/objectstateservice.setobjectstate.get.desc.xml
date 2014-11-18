@@ -1,0 +1,8 @@
+<webscript>
+    <shortname>set-object-state</shortname>
+    <description>Set Object State</description>
+    <url>/cstudio/objectstate/set-object-state?site={site}&amp;path={path}&amp;state={state}&amp;systemprocessing={systemprocessing}</url>
+    <format default="json">argument</format>
+    <authentication>user</authentication>
+    <transaction>required</transaction>
+</webscript>

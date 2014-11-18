@@ -23,7 +23,6 @@ import javolution.util.FastSet;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
-import org.alfresco.service.cmr.avm.AVMBadArgumentException;
 import org.alfresco.service.cmr.lock.LockType;
 
 import org.alfresco.service.cmr.model.FileInfo;

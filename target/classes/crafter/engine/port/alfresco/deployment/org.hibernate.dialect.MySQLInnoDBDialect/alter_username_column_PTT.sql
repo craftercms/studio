@@ -1,0 +1,1 @@
+ALTER TABLE `cstudio_publishtotarget` modify `username` VARCHAR(255);

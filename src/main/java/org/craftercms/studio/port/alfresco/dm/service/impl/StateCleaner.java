@@ -23,7 +23,6 @@ import java.util.List;
 import org.alfresco.model.WCMWorkflowModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.cmr.avm.AVMService;
 
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.model.FileNotFoundException;
@@ -36,7 +35,6 @@ import org.alfresco.wcm.sandbox.SandboxService;
 import org.craftercms.cstudio.alfresco.constant.CStudioContentModel;
 import org.craftercms.cstudio.alfresco.dm.constant.DmConstants;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmSearchService;
-import org.craftercms.cstudio.alfresco.dm.service.api.DmStateManager;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmTransactionService;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmWorkflowService;
 import org.craftercms.cstudio.alfresco.dm.to.DmPathTO;
@@ -55,7 +53,6 @@ public class StateCleaner {
     
     protected static final Logger logger = LoggerFactory.getLogger(StateCleaner.class);
 
-    protected AVMService _avmService;
 
 	protected DmSearchService _dmSearchService;
 
@@ -66,8 +63,6 @@ public class StateCleaner {
 	protected DmWorkflowService _dmWorkflowService;
 
 	protected SandboxService _sandboxService;
-
-	protected DmStateManager _dmStateManager;
 
 	protected SearchService _searchService;
 
@@ -186,7 +181,6 @@ public class StateCleaner {
 			@Override
 			public List<String> execute() throws Throwable {
 				List<String> stringList = _search(status, site);
-				DmStateManager dmStateManager = getDmStateManager();
 				List<String> relativePaths = new ArrayList<String>();
 				for (String s : stringList) {
 					DmPathTO path = new DmPathTO(s);
@@ -220,10 +214,6 @@ public class StateCleaner {
 		return relativePaths;
 	}
 
-	public void setAvmService(AVMService _avmService) {
-		this._avmService = _avmService;
-	}
-
 	public void setDmSearchService(DmSearchService dmSearchService) {
 		this._dmSearchService = dmSearchService;
 	}
@@ -247,14 +237,6 @@ public class StateCleaner {
 
 	public void setSandboxService(SandboxService sandboxService) {
 		this._sandboxService = sandboxService;
-	}
-
-	public void setDmStateManager(DmStateManager dmStateManager) {
-		_dmStateManager = dmStateManager;
-	}
-
-	public DmStateManager getDmStateManager() {
-		return _dmStateManager;
 	}
 
 }

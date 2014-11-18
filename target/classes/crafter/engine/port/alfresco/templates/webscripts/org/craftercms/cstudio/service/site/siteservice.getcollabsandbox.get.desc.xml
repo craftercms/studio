@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-collab-sandbox</shortname>
+  <description>get the collaborative sandbox</description>
+  <url>/cstudio/site/get-collab-sandbox?site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -17,7 +17,6 @@
 package org.craftercms.cstudio.alfresco.dm.service.impl;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.scripts.ScriptException;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.model.FileNotFoundException;
 import org.alfresco.service.cmr.repository.ContentReader;

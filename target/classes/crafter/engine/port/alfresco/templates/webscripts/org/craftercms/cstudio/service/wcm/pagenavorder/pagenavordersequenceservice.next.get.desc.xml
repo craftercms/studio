@@ -1,0 +1,7 @@
+<webscript>
+  <shortname>pagenavorder-service</shortname>
+  <description>Page Navigation Order Service Webscript for CStudio</description>
+  <url>/cstudio/pagenavorder/next?site={site?}&amp;parentpath={parentpath?}</url>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

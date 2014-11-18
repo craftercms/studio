@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-user-activities</shortname>
+  <description>get user activities from a site</description>
+  <url>/cstudio/wcm/activity/get-user-activities?site={site}&amp;user={user}&amp;num={num?}&amp;excludeLive={excludeLive?}&amp;filterType={filterType?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>delete-site</shortname>
+  <description>delete site configuration by key</description>
+  <url>/cstudio/site/delete-site</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

@@ -1,0 +1,1 @@
+alter table [dbo].[cstudio_objectstate] alter column [path] [nvarchar](2000);

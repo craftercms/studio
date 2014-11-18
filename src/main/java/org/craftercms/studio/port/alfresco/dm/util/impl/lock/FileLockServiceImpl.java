@@ -16,8 +16,6 @@
  */
 package org.craftercms.cstudio.alfresco.dm.util.impl.lock;
 
-import org.alfresco.repo.security.permissions.AccessDeniedException;
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
 import org.craftercms.cstudio.alfresco.dm.util.FileLockService;
 import org.craftercms.cstudio.alfresco.service.AbstractRegistrableService;
 import org.slf4j.Logger;
@@ -33,53 +31,10 @@ public class FileLockServiceImpl extends AbstractRegistrableService implements F
     protected Map<String, String> lockedFiles = new HashMap<String, String>();
 
     @Override
-    public synchronized void lock(AVMNodeDescriptor node, String user) {
-        if (node != null) {
-            if(isLocked(node)){
-                String owner = getLockOwner(node);
-                if(!user.equals(owner)){
-                    throw new AccessDeniedException("The content is already checked out by " + owner + ".");
-                }
-            }
-            lockedFiles.put(node.getPath(), user);
-            if (logger.isDebugEnabled()) {
-                logger.debug("[" + user + "] locked file [" + node.getPath() + "]");
-            }
-        }
-    }
-
-    @Override
     public void register() {
         getServicesManager().registerService(FileLockService.class, this);
     }
 
-    @Override
-    public boolean isLocked(AVMNodeDescriptor node) {
-        return node != null && lockedFiles.containsKey(node.getPath());
-    }
-
-    @Override
-    public String getLockOwner(AVMNodeDescriptor node) {
-        if (node != null) {
-            String owner = lockedFiles.get(node.getPath());
-            if (logger.isDebugEnabled()) {
-                logger.debug("getting the lock owner of " + node.getPath() + ": " + owner);
-            }
-            return owner;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public synchronized void unlockLock(AVMNodeDescriptor node) {
-        if (node != null) {
-            lockedFiles.remove(node.getPath());
-            if (logger.isDebugEnabled()) {
-                logger.debug("unlocked file [" + node.getPath() + "]");
-            }
-        }
-    }
 
     @Override
     public synchronized void unlockLock(String fullpath) {

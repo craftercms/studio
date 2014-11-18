@@ -16,7 +16,6 @@
  */
 package org.craftercms.cstudio.alfresco.dm.util.api;
 
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.craftercms.cstudio.alfresco.dm.to.DmContentItemTO;
 
@@ -38,7 +37,6 @@ public interface ContentPropertyLoader {
      * @param item
      * @return
      */
-    //public boolean isEligible(AVMNodeDescriptor node, DmContentItemTO item);
     public boolean isEligible(NodeRef node, DmContentItemTO item);
 
     /**
@@ -46,6 +44,5 @@ public interface ContentPropertyLoader {
      *
      * @param item
      */
-    //public void loadProperties(AVMNodeDescriptor node, DmContentItemTO item);
     public void loadProperties(NodeRef node, DmContentItemTO item);
 }

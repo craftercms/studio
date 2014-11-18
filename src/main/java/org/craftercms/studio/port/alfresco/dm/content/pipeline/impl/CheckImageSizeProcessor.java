@@ -28,7 +28,6 @@ import org.craftercms.cstudio.alfresco.to.ContentAssetInfoTO;
 import org.craftercms.cstudio.alfresco.to.ResultTO;
 import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
 import org.craftercms.cstudio.alfresco.util.ContentUtils;
-import org.craftercms.cstudio.alfresco.webscript.constant.CStudioWebScriptConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

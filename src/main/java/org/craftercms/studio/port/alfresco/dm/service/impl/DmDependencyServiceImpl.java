@@ -27,7 +27,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.wcm.util.WCMWorkflowUtil;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.cstudio.alfresco.dm.constant.DmXmlConstants;
 import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;

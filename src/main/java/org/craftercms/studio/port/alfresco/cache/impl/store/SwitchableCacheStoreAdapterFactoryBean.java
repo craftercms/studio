@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Required;
  *
  * @author Alfonso Vásquez
  */
-public class SwitchableCacheStoreAdapterFactoryBean implements FactoryBean<CacheStoreAdapter> {
+public class SwitchableCacheStoreAdapterFactoryBean implements org.springframework.beans.factory.FactoryBean<org.craftercms.cstudio.alfresco.cache.api.CacheStoreAdapter> {
 
     private CacheStoreAdapter offCacheStoreAdapter;
     private CacheStoreAdapter onCacheStoreAdapter;

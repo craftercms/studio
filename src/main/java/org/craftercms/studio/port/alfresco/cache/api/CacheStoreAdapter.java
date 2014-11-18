@@ -95,7 +95,7 @@ public interface CacheStoreAdapter {
      * @return the requested item if found, null otherwise
      * @throws Exception
      */
-    CacheItem get(String scope, Object key) throws Exception;
+    org.craftercms.cstudio.alfresco.cache.api.CacheItem get(String scope, Object key) throws Exception;
 
     /**
      * Puts an item in a scope. The scope is obtained through {@link CacheItem#getScope()}.
@@ -104,7 +104,7 @@ public interface CacheStoreAdapter {
      *          the item to put
      * @throws Exception
      */
-    void put(CacheItem item) throws Exception;
+    void put(org.craftercms.cstudio.alfresco.cache.api.CacheItem item) throws Exception;
 
     /**
      * Removes an item from a scope.

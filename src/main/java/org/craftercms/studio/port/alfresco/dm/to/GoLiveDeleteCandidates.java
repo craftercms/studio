@@ -16,8 +16,6 @@
  */
 package org.craftercms.cstudio.alfresco.dm.to;
 
-import org.alfresco.service.cmr.avm.AVMNodeDescriptor;
-import org.alfresco.service.cmr.avm.AVMService;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmContentService;
 
 import java.util.HashSet;
@@ -44,8 +42,6 @@ public class GoLiveDeleteCandidates {
     protected Set<String> _liveDependencyItems = new HashSet<String>(); //live items that hass been removed
 
     protected DmContentService _dmContentService;
-
-    protected AVMService _avmService;
 
     protected String _site;
 
@@ -81,15 +77,6 @@ public class GoLiveDeleteCandidates {
      */
     public boolean addDependency(String uri){
 
-        String fullPath = _dmContentService.getContentFullPath(_site, uri);
-        AVMNodeDescriptor node = _avmService.lookup(-1, fullPath);
-        if(node!=null){
-            if(!_dmContentService.isNew(_site, uri)){
-                _liveDependencyItems.add(node.getPath());
-            }
-            _dependencies.add(node.getPath());
-            return true;
-        }
         return false;
     }
 
@@ -99,20 +86,7 @@ public class GoLiveDeleteCandidates {
      * @param uri
      */
     public void addDependencyParentFolder(String uri){
-        String parentFolderPath = _dmContentService.getContentFullPath(_site, uri);
-        AVMNodeDescriptor node = _avmService.lookup(-1, parentFolderPath);
-        if(node!=null){
-            if(!_dmContentService.isNew(_site, uri)){
-                for (Iterator iterator = _liveDependencyItems.iterator(); iterator.hasNext();) {
-                    String liveItem = (String) iterator.next();
-                    if(liveItem.startsWith(parentFolderPath)){
-                        iterator.remove();
-                    }
-                }
-                _liveDependencyItems.add(node.getPath());
-            }
-            _dependencies.add(node.getPath());
-        }
+
     }
 
     public Set<String> getPaths() {
