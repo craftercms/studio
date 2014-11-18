@@ -2013,11 +2013,10 @@ YConnect.failureEvent.subscribe(function() {
             lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
     
 			wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-			changeWcmContentTemplateServiceUri: "/proxy/alfresco/cstudio/wcm/content/add-wcm-properties",
-			copyContentToClipboardServiceUri: "/service/cstudio/services/clipboard/copy",
-			cutContentToClipboardServiceUri: "/service/cstudio/services/clipboard/cut",
-			pasteContentFromClipboardServiceUri: "/service/cstudio/services/clipboard/paste",
-			getClipboardItemsServiceUri: "/api/1/services/clipboard/get-items.json",
+			copyContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/copy-item.json",
+			cutContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/cut-item.json",
+			pasteContentFromClipboardServiceUri: "/api/1/services/api/1/clipboard/paste-item.json",
+			getClipboardItemsServiceUri: "/api/1/services/api/1/clipboard/get-items.json",
 			allContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-content-types",
 			allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
@@ -2570,25 +2569,6 @@ YConnect.failureEvent.subscribe(function() {
             },
             
 			/**
-			 * change the content type/template for a given wcm object
-			 */
-			changeWcmContentTemplate: function(site, author, contentPath, contentType, changeTemplateCb) {
-				var serviceUrl = this.changeWcmContentTemplateServiceUri;
-				serviceUrl += "?site=" + site;
-				serviceUrl += "&path=" + contentPath;
-				serviceUrl += "&contentType=" + contentType;
-				serviceUrl += "&author=" + author;
-				var serviceCallback = {
-					success: function(response) {
-						changeTemplateCb.success();
-					},
-					failure: function(response) {
-						changeTemplateCb.failure(response);
-					}
-				};
-				YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-			},
-			/**
 			 * change template functionality. 
 			 */
 			changeContentType: function(site, contentPath, contentType, changeContentTypeCb) {
@@ -2777,7 +2757,7 @@ YConnect.failureEvent.subscribe(function() {
 						callback.failure(response);
 					}
 				};
-				YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+				YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUrl), serviceCallback);
 			},
 
 			previewServerSyncAll: function(site, callback) {
