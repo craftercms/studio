@@ -63,7 +63,7 @@
 
     <repositories>
 <!-- TO BE REMOVED BEGIN -->
-        <repository>
+<!--        <repository>
             <id>alfresco</id>
             <name>Alfresco Repo</name>
             <url>https://artifacts.alfresco.com/nexus/content/groups/public/</url>
@@ -83,7 +83,7 @@
                 <updatePolicy>always</updatePolicy>
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
-        </repository>
+        </repository>-->
 <!-- TO BE REMOVED END -->
 
 
@@ -108,8 +108,7 @@
 
 
     <dependencies>
-        <!-- alf deps to be removed -->
-         <!-- *3.4* -->
+<!--
         <dependency>
             <groupId>org.springframework.extensions.surf</groupId>
             <artifactId>spring-webscripts</artifactId>
@@ -117,7 +116,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency><!-- *3.4* -->
+        <dependency> 
             <groupId>org.springframework.extensions.surf</groupId>
             <artifactId>spring-surf-core</artifactId>
             <version>1.0.0</version>
@@ -233,7 +232,7 @@
             <classifier>jdk15</classifier>
             <scope>compile</scope>
         </dependency>
-
+-->
 
         <!-- ported alf layer -->
         <dependency>
