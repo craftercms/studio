@@ -1,5 +1,5 @@
 package org.alfresco.service;
 
-public class ServiceException {
+public class ServiceException extends RuntimeException {
 
 }
