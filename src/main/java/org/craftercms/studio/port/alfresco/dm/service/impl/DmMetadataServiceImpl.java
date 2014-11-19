@@ -171,7 +171,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
         if (nodeRef.getStoreRef().getProtocol().equals(StoreRef.PROTOCOL_WORKSPACE)) {
             return new ScriptNode(nodeRef, serviceRegistry);
         } else {
-            return new AVMNode(nodeRef, serviceRegistry);
+        //PORT    return new AVMNode(nodeRef, serviceRegistry);
         }
     }
 }

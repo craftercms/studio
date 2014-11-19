@@ -545,7 +545,7 @@ public class DmContentTypeServiceImpl extends ConfigurableServiceBase implements
             } else {
                 throw new ContentNotFoundException(relativePath + " is not found in site: " + site + " sub: " + sub);
             }
-        } catch (AVMBadArgumentException e) {
+        } catch (Exception e) { // PORT AVMBadArgumentException e) {
             throw new ContentNotFoundException(relativePath + " is not valid in site: " + site + " sub: " + sub);
         }
     }
