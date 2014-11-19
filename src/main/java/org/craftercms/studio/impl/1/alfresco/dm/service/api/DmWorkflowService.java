@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.dm.service.api;
 
-import org.alfresco.service.cmr.repository.NodeRef;
+//import org.alfresco.service.cmr.repository.NodeRef;
 import org.craftercms.cstudio.alfresco.dm.to.DmDependencyTO;
 import org.craftercms.cstudio.alfresco.dm.to.DmError;
 import org.craftercms.cstudio.alfresco.dm.util.DmContentItemComparator;
@@ -232,9 +232,9 @@ public interface DmWorkflowService {
      * @param sendNotice
      * 			send approval notice?
      */
-    public void prepareSubmission(NodeRef packageRef, String taskId, String desc, boolean sendNotice);
+    //public void prepareSubmission(NodeRef packageRef, String taskId, String desc, boolean sendNotice);
 
-    public void postSubmission(NodeRef packageRef, String workflowId,String desc);
+    //public void postSubmission(NodeRef packageRef, String workflowId,String desc);
 
     /**
      * update all items' status associated with the given task id to the status provided
@@ -243,9 +243,9 @@ public interface DmWorkflowService {
      * @param status
      * @param date
      */
-    public void updateItemStatus(NodeRef packageRef, String status, Date date);
+    //public void updateItemStatus(NodeRef packageRef, String status, Date date);
 
-    public void scheduleDeleteSubmission(NodeRef packageRef,String workflowId,String description);
+    //public void scheduleDeleteSubmission(NodeRef packageRef,String workflowId,String description);
 
     public List<DmContentItemTO> getWorkflowAffectedPaths(String site, String path);
 }
