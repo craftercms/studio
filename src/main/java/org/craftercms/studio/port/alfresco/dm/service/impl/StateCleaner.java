@@ -117,27 +117,30 @@ public class StateCleaner {
 	}
 
 	protected List<String> _search(String status, String storeName) {
-		AuthenticationUtil.setFullyAuthenticatedUser("cstudioadmin");
-		StoreRef ref = new StoreRef(StoreRef.PROTOCOL_AVM, storeName);
-		StringBuilder builder = new StringBuilder(query).append("\"")
-				.append(status).append("\"");
-		System.out.println("query = " + builder);
-		SearchParameters parameters = new SearchParameters();
-		parameters.addStore(ref);
-		parameters.setQuery(builder.toString());
-		parameters.setLanguage(SearchService.LANGUAGE_LUCENE);
-		ResultSet resultSet = _dmSearchService.query(parameters);
-		List<NodeRef> refList = resultSet.getNodeRefs();
-		List<String> list = new ArrayList<String>();
-        PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
-		for (NodeRef nodeRef : refList) {
-            ObjectStateService.State state = persistenceManagerService.getObjectState(nodeRef);
-            if (!ObjectStateService.State.isLive(state)) {
-                String nodePath = getNodePath(nodeRef);
-                list.add(nodePath);
-            }
-		}
-		return list;
+// PORT
+		return null;
+
+		// AuthenticationUtil.setFullyAuthenticatedUser("cstudioadmin");
+		// StoreRef ref = new StoreRef(StoreRef.PROTOCOL_AVM, storeName);
+		// StringBuilder builder = new StringBuilder(query).append("\"")
+		// 		.append(status).append("\"");
+		// System.out.println("query = " + builder);
+		// SearchParameters parameters = new SearchParameters();
+		// parameters.addStore(ref);
+		// parameters.setQuery(builder.toString());
+		// parameters.setLanguage(SearchService.LANGUAGE_LUCENE);
+		// ResultSet resultSet = _dmSearchService.query(parameters);
+		// List<NodeRef> refList = resultSet.getNodeRefs();
+		// List<String> list = new ArrayList<String>();
+  //       PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
+		// for (NodeRef nodeRef : refList) {
+  //           ObjectStateService.State state = persistenceManagerService.getObjectState(nodeRef);
+  //           if (!ObjectStateService.State.isLive(state)) {
+  //               String nodePath = getNodePath(nodeRef);
+  //               list.add(nodePath);
+  //           }
+		// }
+		// return list;
 	}
 
 	protected String getNodePath(NodeRef node) {

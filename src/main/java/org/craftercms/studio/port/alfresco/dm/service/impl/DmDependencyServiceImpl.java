@@ -1137,7 +1137,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         String storeName = DmUtils.createStoreName(site);
         //Alfresco Internal class can't proxy it so use The service
         WorkflowService workflowService = getService(WorkflowService.class);
-        List<WorkflowTask> tasks = WCMWorkflowUtil.getAssociatedTasksForSandbox(workflowService, storeName);
+        List<WorkflowTask> tasks = null; //PORT WCMWorkflowUtil.getAssociatedTasksForSandbox(workflowService, storeName);
         _updateDependencies(site,path,tasks,state);
     }
 

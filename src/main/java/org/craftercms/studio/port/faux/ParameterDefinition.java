@@ -1,5 +1,5 @@
 package org.alfresco.service.cmr.action;
 
-public class ParameterDefinition {
+public interface ParameterDefinition {
 
 }
