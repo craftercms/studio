@@ -384,8 +384,8 @@ public class ImportServiceImpl extends ImportServiceBase implements ImportServic
         Action action = persistenceManagerService.createAction(actionName);
         compositeAction.addAction(action);
         // add action condition
-        ActionCondition mimeTypeCondition = persistenceManagerService.createActionCondition(CompareMimeTypeEvaluator.NAME);
-        mimeTypeCondition.setParameterValue(ComparePropertyValueEvaluator.PARAM_VALUE, MimetypeMap.MIMETYPE_XML);
+        ActionCondition mimeTypeCondition = null; //port persistenceManagerService.createActionCondition(CompareMimeTypeEvaluator.NAME);
+        //port mimeTypeCondition.setParameterValue(ComparePropertyValueEvaluator.PARAM_VALUE, MimetypeMap.MIMETYPE_XML);
         compositeAction.addActionCondition(mimeTypeCondition);
         // disabled for now
         // ActionCondition textPropertyCondition =

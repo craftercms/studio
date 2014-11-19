@@ -108,7 +108,7 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
         ByteArrayOutputStream byteOutput = null;
         try {
             byteOutput = new ByteArrayOutputStream();
-            byte[] buffer = new byte[CStudioWebScriptConstants.READ_BUFFER_LENGTH];
+            byte[] buffer = new byte[1024];//PORT CStudioWebScriptConstants.READ_BUFFER_LENGTH];
             int read = 0;
             while ((read = in.read(buffer)) > 0) {
                 byteOutput.write(buffer, 0, read);

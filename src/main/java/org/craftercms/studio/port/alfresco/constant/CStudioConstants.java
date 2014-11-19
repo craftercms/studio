@@ -64,7 +64,7 @@ public interface CStudioConstants {
 
  	/** error codes **/
 	public static final int HTTP_STATUS_IMAGE_SIZE_ERROR = 499;
-	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = Status.STATUS_INTERNAL_SERVER_ERROR;
+	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500; //PORT Status.STATUS_INTERNAL_SERVER_ERROR;
 
     public static final String CONTENT_TYPE = "content-type";
  

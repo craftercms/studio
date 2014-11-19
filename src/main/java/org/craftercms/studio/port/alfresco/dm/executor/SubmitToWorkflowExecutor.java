@@ -125,10 +125,10 @@ public class SubmitToWorkflowExecutor extends AbstractTransactionalExecutor {
 	protected Map<QName, Serializable> getWorkflowParameters(int priority, String assignee, boolean autoDeploy) {
 		Map<QName, Serializable> parameters = new HashMap<QName, Serializable>();
 		List<NodeRef> assignees = new ArrayList<NodeRef>(1);
-		parameters.put(WorkflowModel.PROP_WORKFLOW_PRIORITY, priority);
+		//PORT parameters.put(WorkflowModel.PROP_WORKFLOW_PRIORITY, priority);
         ProfileService profileService = getServicesManager().getService(ProfileService.class);
 		NodeRef personRef = profileService.getUserRef(assignee);
-		parameters.put(WorkflowModel.ASSOC_ASSIGNEE, personRef);
+		//PORT parameters.put(WorkflowModel.ASSOC_ASSIGNEE, personRef);
 		assignees.add(personRef);
 		parameters.put(WF_ASSIGNEES, (Serializable) assignees);
 		parameters.put(WCMWorkflowModel.PROP_AUTO_DEPLOY, autoDeploy);

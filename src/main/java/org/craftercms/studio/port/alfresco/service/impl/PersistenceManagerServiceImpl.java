@@ -410,7 +410,7 @@ public class PersistenceManagerServiceImpl extends AbstractRegistrableService im
                     contentItemTO.setSubmittedByLastName(profile.getProfile().get(ContentModel.PROP_LASTNAME.getLocalName()));
                 }
             }
-            String submissionComment = DefaultTypeConverter.INSTANCE.convert(String.class, nodeProperties.get(Version2Model.PROP_QNAME_VERSION_DESCRIPTION));
+            String submissionComment = ""; //PORT DefaultTypeConverter.INSTANCE.convert(String.class, nodeProperties.get(Version2Model.PROP_QNAME_VERSION_DESCRIPTION));
             if (!StringUtils.isEmpty(submissionComment)) {
                 contentItemTO.setSubmissionComment(submissionComment);
             }

@@ -87,7 +87,7 @@ public class RenditionServiceImpl extends AbstractRegistrableService implements 
 			
 			try {
 				persistenceManagerService.executeScript(scriptNodeRef, ContentModel.PROP_CONTENT, model);
-			} catch (ScriptException e) {
+			} catch (Exception e) {
 				// if any script error, release content streams in all renditions
 				List<Rendition> renditions = renditionContainer.getRenditions();
 				if (renditions != null) {

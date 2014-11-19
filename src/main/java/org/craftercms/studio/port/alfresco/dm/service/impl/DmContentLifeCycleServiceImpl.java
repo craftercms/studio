@@ -107,7 +107,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
         try {
             persistenceManagerService.executeScriptString(script, model);
-        } catch (ScriptException e) {
+        } catch (Exception e) {
             if (logger.isErrorEnabled()) {
                 logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
             }

@@ -165,8 +165,6 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
             } else {
                 throw new ContentNotFoundException(path + " does not exist in site: " + site);
             }
-        } catch (Exception e) { // PORT AVMBadArgumentException e) {
-            throw new ContentNotFoundException(path + " is not found in site: " + site, e);
         } catch (ContentNotFoundException e) {
             throw e;
         } catch (Exception e) {

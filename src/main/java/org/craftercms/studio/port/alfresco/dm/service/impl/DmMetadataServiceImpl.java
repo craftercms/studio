@@ -119,7 +119,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
             try {
                 persistenceManagerService.executeScript(scriptNodeRef, ContentModel.PROP_CONTENT, model);
-            } catch (ScriptException e) {
+            } catch (Exception e) {
                 throw new ServiceException(e);
             }
         } else {
@@ -172,6 +172,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             return new ScriptNode(nodeRef, serviceRegistry);
         } else {
         //PORT    return new AVMNode(nodeRef, serviceRegistry);
+            return null;
         }
     }
 }

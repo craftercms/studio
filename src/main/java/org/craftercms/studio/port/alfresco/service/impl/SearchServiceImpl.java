@@ -357,7 +357,7 @@ return null;
 	 */
 	public void setQueryBuilders(Map<String, SearchQueryBuilder> queryBuilders) {
 //PORT
-return null;
+ 
 		// this._queryBuilders = queryBuilders;
 	}
 
@@ -366,7 +366,7 @@ return null;
 	 */
 	public void setSearchResultExtractor(SearchResultExtractor searchResultExtractor) {
 //PORT
-return null;
+ 
 //		this._searchResultExtractor = searchResultExtractor;
 	}
 	
