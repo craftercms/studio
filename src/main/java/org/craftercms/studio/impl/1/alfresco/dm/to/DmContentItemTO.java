@@ -1060,7 +1060,7 @@ public class DmContentItemTO implements Serializable {
 	}
 	
 	public String toString() {
-		return ":/" + DmConstants.WEB_PROJECT_ROOT + "/" + _defaultWebApp + _uri;
+		return null; //":/" + DmConstants.WEB_PROJECT_ROOT + "/" + _defaultWebApp + _uri;
 	}
 	
 	public String getForm() {

@@ -17,8 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.dm.service.api;
 
-import org.alfresco.repo.security.permissions.AccessDeniedException;
-import org.dom4j.Document;
+//import org.alfresco.repo.security.permissions.AccessDeniedException;
+//import org.dom4j.Document;
 import org.craftercms.cstudio.alfresco.dm.to.DmContentItemTO;
 import org.craftercms.cstudio.alfresco.dm.to.DmOrderTO;
 import org.craftercms.cstudio.alfresco.dm.to.GoLiveDeleteCandidates;
@@ -54,7 +54,7 @@ public interface DmContentService {
      * @throws org.alfresco.repo.security.permissions.AccessDeniedException
      * @throws ContentNotFoundException
      */
-    public InputStream getContent(String site, String path, boolean edit, boolean mergePrototype) throws AccessDeniedException, ContentNotFoundException;
+    //public InputStream getContent(String site, String path, boolean edit, boolean mergePrototype) throws AccessDeniedException, ContentNotFoundException;
 
     /**
      * TODO
@@ -65,7 +65,7 @@ public interface DmContentService {
      * @throws AccessDeniedException
      * @throws ContentNotFoundException
      */
-    public InputStream getContent(String site, String path) throws AccessDeniedException, ContentNotFoundException;
+    //public InputStream getContent(String site, String path) throws AccessDeniedException, ContentNotFoundException;
 
     /**
      * get content as an input stream from the draft/preview store
@@ -81,7 +81,7 @@ public interface DmContentService {
      * @throws AccessDeniedException
      * @throws ContentNotFoundException
      */
-    public InputStream getContentFromDraft(String site, String path, boolean edit, boolean mergePrototype) throws AccessDeniedException, ContentNotFoundException;
+    //public InputStream getContentFromDraft(String site, String path, boolean edit, boolean mergePrototype) throws AccessDeniedException, ContentNotFoundException;
 
 
 //    /**TODO
@@ -325,9 +325,9 @@ public interface DmContentService {
      * @throws ContentNotFoundException
      * @throws AccessDeniedException
      */
-    public Document getContentXml(String site, String sub, String path) throws AccessDeniedException, ContentNotFoundException;
+    //public Document getContentXml(String site, String sub, String path) throws AccessDeniedException, ContentNotFoundException;
 
-    public Document getContentXmlByVersion(String site, String sub, String path, String version) throws AccessDeniedException, ContentNotFoundException;
+    //public Document getContentXmlByVersion(String site, String sub, String path, String version) throws AccessDeniedException, ContentNotFoundException;
 
     public String getContentType(String site, String uri);
 
@@ -384,7 +384,7 @@ public interface DmContentService {
 
 	public GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
 
-	public Document getContentAsDocument(String site, String relativePath) throws AccessDeniedException, ContentNotFoundException;
+	//public Document getContentAsDocument(String site, String relativePath) throws AccessDeniedException, ContentNotFoundException;
 
 	public List<String> deleteContents(String site, List<String> itemsToDelete,
 			boolean generateActivity, String approver) throws ServiceException;
