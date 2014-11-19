@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.cstudio.api.repository;
 
-import org.craftercms.cstudio.alfresco.deployment.DeploymentEventItem;
+//import org.craftercms.cstudio.alfresco.deployment.DeploymentEventItem;
 import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.cstudio.api.service.deployment.DeploymentException;
 import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
@@ -135,7 +135,7 @@ public interface ContentRepository {
 
     InputStream getMetadataStream(String site, String path);
 
-    void publishDeployEvent(String endpoint, List<DeploymentEventItem> items);
+    //void publishDeployEvent(String endpoint, List<DeploymentEventItem> items);
 
     void deleteContent(CopyToEnvironmentItem item);
 
