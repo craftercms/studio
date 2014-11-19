@@ -136,7 +136,7 @@ public class CStudioActivityFeedDAO implements Serializable {
         
         jo.put("id", id);
         jo.put("postUserId", userId);
-        jo.put("postDate", ISO8601DateFormat.format(modifiedDate));
+        jo.put("postDate", "");//portISO8601DateFormat.format(modifiedDate));
         if (userId != null) { jo.put("feedUserId", userId); } // eg. site feed
         jo.put("siteNetwork", siteNetwork);
         jo.put("activityType", type);

@@ -171,53 +171,54 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
         String fullPath = dmContentService.getContentFullPath(site, dependencyTO.getUri());
         DmPathTO path = new DmPathTO(fullPath);
         final NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-        final DmStateManager action = getService(DmStateManager.class);
+ //PORT       final DmStateManager action = null; //PORT getService(DmStateManager.class);
 
         DmTransactionService dmTransactionService = getService(DmTransactionService.class);
         RetryingTransactionHelper transactionHelper = dmTransactionService.getRetryingTransactionHelper();
         final NotificationService notificationService = getService(NotificationService.class);
-        transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback() {
-            @Override
-            public Object execute() throws Throwable {
-                /**
-                 * added to handle issue with submitting locked content (Dejan 2012/04/12)
-                 */
+// PORT
+//         transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback() {
+//             @Override
+//             public Object execute() throws Throwable {
+//                 /**
+//                  * added to handle issue with submitting locked content (Dejan 2012/04/12)
+//                  */
 
-                if (!persistenceManagerService.getLockStatus(node).equals(LockStatus.NO_LOCK)) {
-//                	persistenceManagerService.unlock(node);
-                }
-                /****** end ******/
-                //action.markSubmit(node, user, sendEmail, scheduledDate, submitForDeletion);
-                Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(node);
-                nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY, user);
-                nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SEND_EMAIL, sendEmail);
-                nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION, submitForDeletion);
+//                 if (!persistenceManagerService.getLockStatus(node).equals(LockStatus.NO_LOCK)) {
+// //                	persistenceManagerService.unlock(node);
+//                 }
+//                 /****** end ******/
+//                 //action.markSubmit(node, user, sendEmail, scheduledDate, submitForDeletion);
+//                 Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(node);
+//                 nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY, user);
+//                 nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SEND_EMAIL, sendEmail);
+//                 nodeProperties.put(CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION, submitForDeletion);
 
-                nodeProperties.put(Version2Model.PROP_QNAME_VERSION_DESCRIPTION, submissionComment);
+//                 //PORT nodeProperties.put(Version2Model.PROP_QNAME_VERSION_DESCRIPTION, submissionComment);
 
-                if (null == scheduledDate) {
-                    nodeProperties.remove(WCMWorkflowModel.PROP_LAUNCH_DATE);
-                } else {
-                    nodeProperties.put(WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
-                }
-                persistenceManagerService.setProperties(node, nodeProperties);
-                if (scheduledDate != null) {
-                    persistenceManagerService.transition(node, ObjectStateService.TransitionEvent.SUBMIT_WITH_WORKFLOW_SCHEDULED);
-                } else {
-                    persistenceManagerService.transition(node, ObjectStateService.TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
-                }
-                _listener.postSubmitToGolive(site, dependencyTO);
-                if (notifyAdmin) {
-                    ServicesConfig servicesConfig = getService(ServicesConfig.class);
-                    PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                    String fullPath = servicesConfig.getRepositoryRootPath(site) + dependencyTO.getUri();
-                    DmContentItemTO contentItem = persistenceManagerService.getContentItem(fullPath);
-                    boolean isPreviewable = contentItem.isPreviewable();
-                    notificationService.sendContentSubmissionNotification(site, AuthenticationUtil.getAdminUserName(), dependencyTO.getUri(), user, scheduledDate, isPreviewable, submitForDeletion);
-                }
-                return null;
-            }
-        });
+//                 if (null == scheduledDate) {
+//   //PORT                  nodeProperties.remove(WCMWorkflowModel.PROP_LAUNCH_DATE);
+//                 } else {
+//   //PORT                  nodeProperties.put(WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
+//                 }
+//                 persistenceManagerService.setProperties(node, nodeProperties);
+//                 if (scheduledDate != null) {
+//                     persistenceManagerService.transition(node, ObjectStateService.TransitionEvent.SUBMIT_WITH_WORKFLOW_SCHEDULED);
+//                 } else {
+//                     persistenceManagerService.transition(node, ObjectStateService.TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
+//                 }
+//                 _listener.postSubmitToGolive(site, dependencyTO);
+//                 if (notifyAdmin) {
+//                     ServicesConfig servicesConfig = getService(ServicesConfig.class);
+//                     PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+//                     String fullPath = servicesConfig.getRepositoryRootPath(site) + dependencyTO.getUri();
+//                     DmContentItemTO contentItem = persistenceManagerService.getContentItem(fullPath);
+//                     boolean isPreviewable = contentItem.isPreviewable();
+//  //PORT                   notificationService.sendContentSubmissionNotification(site, AuthenticationUtil.getAdminUserName(), dependencyTO.getUri(), user, scheduledDate, isPreviewable, submitForDeletion);
+//                 }
+//                 return null;
+//             }
+//         });
 
     }
 
@@ -463,8 +464,8 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
         String path = dmContentService.getContentFullPath(site, dmDependencyTO.getUri());
         NodeRef node = persistenceManagerService.getNodeRef(path);
-        Serializable scheduledDateValue = persistenceManagerService.getProperty(node, WCMWorkflowModel.PROP_LAUNCH_DATE);
-        Date scheduledDate = DefaultTypeConverter.INSTANCE.convert(Date.class, scheduledDateValue);
+        Serializable scheduledDateValue = null; //persistenceManagerService.getProperty(node, WCMWorkflowModel.PROP_LAUNCH_DATE);
+        Date scheduledDate = null; // PORT DefaultTypeConverter.INSTANCE.convert(Date.class, scheduledDateValue);
         if (!dmDependencyTO.isSubmitted() && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
             if (persistenceManagerService.isScheduled(path)) {
                 return;
@@ -554,7 +555,7 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
                 return null;
             }
         };
-        txnHelper.doInTransaction(cancelWorkflowCallBack, false, true);
+        //PORT txnHelper.doInTransaction(cancelWorkflowCallBack, false, true);
     }
 
     @Override
@@ -576,7 +577,7 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
                 return dmContentService.deleteContents(site, itemsToDelete, generateActivity, approver);
             }
         };
-        return txnHelper.doInTransaction(cancelWorkflowCallBack, false, false);
+        return null; //PORT txnHelper.doInTransaction(cancelWorkflowCallBack, false, false);
     }
 
     protected void cleanUrisFromWorkflow(final String sandBox, final Set<String> uris, final String site) {
@@ -1068,11 +1069,11 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
         long start = System.currentTimeMillis();
         SearchService searchService = getService(SearchService.class);
         try {
-            StoreRef storeRef = packageRef.getStoreRef();
-            String store = storeRef.getIdentifier();
+            StoreRef storeRef = null;//PORT packageRef.getStoreRef();
+            String store = null; //PORT storeRef.getIdentifier();
             String[] tokens = store.split("--");
             String site = tokens[0];
-            String workflowSandbox = WCMUtil.getWorkflowId(storeRef.getIdentifier());
+            String workflowSandbox = ""; //PORT WCMUtil.getWorkflowId(storeRef.getIdentifier());
             if (logger.isDebugEnabled()) {
                 logger.debug("preparing staging submission for " + workflowSandbox + " site: " + site + ", store: " + store);
             }
@@ -1112,12 +1113,14 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
     }
 
     protected synchronized void addScheduleItem(ScheduleItem item) {
-        if (!isScheduleDeleteHandlerThrStarted) {
-            isScheduleDeleteHandlerThrStarted = true;
-            Thread thread = new Thread(_scheduleDeleteHandler);
-            thread.start();
-        }
-        _scheduleDeleteHandler.addToQueue(item);
+ //PORT
+
+    //     if (!isScheduleDeleteHandlerThrStarted) {
+    //         isScheduleDeleteHandlerThrStarted = true;
+    //         Thread thread = new Thread(_scheduleDeleteHandler);
+    //         thread.start();
+    //     }
+    //     _scheduleDeleteHandler.addToQueue(item);
     }
 
     @Override
@@ -1131,7 +1134,7 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
             if (node != null) {
                 //dmStateManager.markScheduled(node, date, context.getSite());
                 Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(node);
-                nodeProperties.put(WCMWorkflowModel.PROP_LAUNCH_DATE, date);
+                //PORT nodeProperties.put(WCMWorkflowModel.PROP_LAUNCH_DATE, date);
                 persistenceManagerService.setProperties(node, nodeProperties);
             }
         }
@@ -1163,8 +1166,8 @@ public class DmSimpleWorkflowServiceImpl extends DmWorkflowServiceImpl {
             super.updateItemStatus(packageRef, status, date);
 
         } finally {
-            StoreRef storeRef = packageRef.getStoreRef();
-            String store = storeRef.getIdentifier();
+            StoreRef storeRef = null; //packageRef.getStoreRef();
+            String store = ""; //PORT ßstoreRef.getIdentifier();
             String[] tokens = store.split("--");
             String site = tokens[0];
         }

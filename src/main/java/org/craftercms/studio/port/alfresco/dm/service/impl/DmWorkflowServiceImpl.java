@@ -74,14 +74,14 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
     /**
      * dm workflow property qnames *
      */
-    protected static final QName WF_PROP_REVIEW_TYPE = QName.createQName(
-            org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "reviewType");
-    protected static final QName WF_PROP_REVIEWER_CNT = QName.createQName(
-            org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "reviewerCnt");
-    protected static final QName WF_PROP_APPROVE_CNT = QName.createQName(
-            org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "approveCnt");
-    protected static final QName WF_ASSIGNEES = QName.createQName(
-            org.alfresco.service.namespace.NamespaceService.BPM_MODEL_1_0_URI, "assignees");
+    protected static final QName WF_PROP_REVIEW_TYPE = null;//port QName.createQName(
+            //org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "reviewType");
+    protected static final QName WF_PROP_REVIEWER_CNT = null;//port QName.createQName(
+            //org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "reviewerCnt");
+    protected static final QName WF_PROP_APPROVE_CNT = null;//port QName.createQName(
+            //org.alfresco.service.namespace.NamespaceService.WCMWF_MODEL_1_0_URI, "approveCnt");
+    protected static final QName WF_ASSIGNEES = null;//port QName.createQName(
+            //org.alfresco.service.namespace.NamespaceService.BPM_MODEL_1_0_URI, "assignees");
 
     /**
      * dm workflow proerty values *
@@ -194,7 +194,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
      * @param task
      */
     protected void cancelWorkflow(WorkflowTask task) {
-        String workflowId = task.path.instance.id;
+        String workflowId =  null;//PORT  task.path.instance.id;
         
         getService(PersistenceManagerService.class).cancelWorkflow(workflowId);
         if (logger.isDebugEnabled()) {
@@ -238,7 +238,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
                 }
             } else {
                 // do nothing if deleted
-                String topLevelItem = WCMUtil.getStoreRelativePath(fullPath);
+                String topLevelItem = null;//PORT WCMUtil.getStoreRelativePath(fullPath);
                 paths.add(topLevelItem);
             }
         } else {
@@ -284,7 +284,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
                 persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_CHILDREN, (Serializable) childDependencies);
                 // set a scheduled date
 
-                persistenceManagerService.setProperty(node, WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
+                persistenceManagerService.setProperty(node, null /*PORT WCMWorkflowModel.PROP_LAUNCH_DATE */, scheduledDate);
                 Map<QName, Serializable> properties = persistenceManagerService.getProperties(node);
                 // add parent URI if not null
                 if (!StringUtils.isEmpty(parentUri)) {
@@ -299,7 +299,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
             } else {
                 includedItems.add(submittedItem.getUri());
             }
-        } catch (AVMBadArgumentException e) {
+        } catch (Exception e) { //PORTAVMBadArgumentException e) {
             throw new ServiceException(submittedItem.getUri() + " does not exist");
         }
     }
@@ -467,13 +467,13 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
         // create parameter maps
         Map<QName, Serializable> workflowParameters = new HashMap<QName, Serializable>();
         List<NodeRef> assignees = new ArrayList<NodeRef>(1);
-        workflowParameters.put(WorkflowModel.PROP_WORKFLOW_PRIORITY, priority);
+        workflowParameters.put(/* PORT WorkflowModel.PROP_WORKFLOW_PRIORITY)*/WF_PROP_REVIEW_TYPE, priority);
         ProfileService profileService = getService(ProfileService.class);
         NodeRef personRef = profileService.getUserRef(assignee);
-        workflowParameters.put(WorkflowModel.ASSOC_ASSIGNEE, personRef);
+//PORT        workflowParameters.put(/* PORT WorkflowModel.ASSOC_ASSIGNEE*/WF_PROP_REVIEW_TYPE, personRef);
         assignees.add(personRef);
         workflowParameters.put(WF_ASSIGNEES, (Serializable) assignees);
-        workflowParameters.put(WCMWorkflowModel.PROP_AUTO_DEPLOY, autoDeploy);
+//PORT        workflowParameters.put(/*PORT WCMWorkflowModel.PROP_AUTO_DEPLOY*/WF_PROP_REVIEW_TYPE, autoDeploy);
         workflowParameters.put(WF_PROP_REVIEW_TYPE, REVIEW_TYPE_SERIAL);
         workflowParameters.put(WF_PROP_REVIEWER_CNT, 1);
         workflowParameters.put(WF_PROP_APPROVE_CNT, 1);
@@ -495,7 +495,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
      */
     protected String getAssignee(String site, String sub) {
         // TODO: find assignee from configuration
-        return AuthenticationUtil.getAdminUserName();
+        return null; //PORT AuthenticationUtil.getAdminUserName();
     }
 
     protected void invokeListeners(List<DmDependencyTO> submittedItems, String site, Operation operation) {
@@ -612,7 +612,6 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
      * @param site
      * @param sub
      * @param storeName
-
      */
     protected List<DmContentItemTO> getCategoryItems(final String site, final String sub, final String storeName) {
         ServicesConfig servicesConfig = getService(ServicesConfig.class);
@@ -997,7 +996,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
                             return null;
                         }
                     };
-                    txnHelper.doInTransaction(cancelWorkflowCallBack, false, true);
+                    //PORT txnHelper.doInTransaction(cancelWorkflowCallBack, false, true);
                     canceledTaskIds.add(taskId);
                 }
             }
@@ -1016,7 +1015,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
             }
         };
         // submit to workflow
-        List<String> packagePaths = txnHelper.doInTransaction(workflowCallback, false, true);
+        List<String> packagePaths = null;//PORT txnHelper.doInTransaction(workflowCallback, false, true);
         String label = buffer.toString();
         if (label.length() > 255) {
             label = label.substring(0, 252) + "..";
@@ -1056,7 +1055,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
                             .isSendEmail());
                 }
             };
-            List<String> paths = txnHelper.doInTransaction(workflowCallback, false, true);
+            List<String> paths = null; // PORT txnHelper.doInTransaction(workflowCallback, false, true);
             String label = submittedItem.getUri();
             if (label.length() > 255) {
                 label = label.substring(0, 252) + "..";
@@ -1067,12 +1066,12 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
         } else {
             // if workflow already started, approve or launch the pending workflow
             Map<QName, Serializable> params = new HashMap<QName, Serializable>(1);
-            params.put(WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
+         //PORT    params.put(WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
             for (String taskId : tasks) {
                 WorkflowTask task = persistenceManagerService.getTaskById(taskId);
-                WorkflowTransition[] transitions = task.path.node.transitions;
+                WorkflowTransition[] transitions = null; //task.path.node.transitions;
                 for (WorkflowTransition transition : transitions) {
-                    if (transition.id.equals(TRNASITION_LAUNCH)) {
+                    if (false) { //PORT transition.id.equals(TRNASITION_LAUNCH)) {
                         if (scheduledDate == null || scheduledDate.before(new Date())) {
                             // launch the workflow
                             persistenceManagerService.endTask(taskId, TRNASITION_LAUNCH);
@@ -1083,7 +1082,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
                     } else {
                         // update launch date
                         persistenceManagerService.updateTask(taskId, params, null, null);
-                        if (transition.id.equals(TRNASITION_APPROVE)) {
+                        if (false) { //PORT transition.id.equals(TRNASITION_APPROVE)) {
                             // approve the workflow
                             persistenceManagerService.endTask(taskId, TRNASITION_APPROVE);
                             break;
@@ -1157,7 +1156,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
             persistenceManagerService.setProperty(node, CStudioContentModel.PROP_STATUS, dmStatus);
         } else {
             String currentUser = persistenceManagerService.getCurrentUserName();
-            String lockOwner = DefaultTypeConverter.INSTANCE.convert(String.class, persistenceManagerService.getProperty(node, ContentModel.PROP_LOCK_OWNER));
+            String lockOwner = ""; //PORT DefaultTypeConverter.INSTANCE.convert(String.class, persistenceManagerService.getProperty(node, ContentModel.PROP_LOCK_OWNER));
             AuthenticationUtil.setFullyAuthenticatedUser(lockOwner);
             persistenceManagerService.removeAspect(node, CStudioContentModel.ASPECT_WORKFLOW_SUBMITTED);
             persistenceManagerService.setProperty(node, CStudioContentModel.PROP_STATUS, dmStatus);
@@ -1264,9 +1263,9 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
         HashMap<QName, Object> props = new HashMap<QName, Object>(1, 1.0f);
 
         //props.put(WCMWorkflowModel.PROP_FROM_PATH, fromPath);
-        query.setWorkflowDefinitionName("activiti$cstudioPublishWebContent");
+        //PORT query.setWorkflowDefinitionName("activiti$cstudioPublishWebContent");
         //query.setProcessCustomProps(props);
-        query.setActive(true);
+        //PORT query.setActive(true);
 
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
         List<WorkflowTask> tasks = persistenceManagerService.queryTasks(query);
@@ -1285,7 +1284,7 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
             for (DmContentItemTO item : allItemsToCancel) {
                 try {
                     _deploymentService.cancelWorkflow(site, item.getUri());
-                    NodeRef nodeRef = new NodeRef(item.getNodeRef());
+                    NodeRef nodeRef = null; //PORT new NodeRef(item.getNodeRef());
                     nodeRefs.add(nodeRef.getId());
                 } catch (DeploymentException e) {
                     logger.error("Error occurred while trying to cancel workflow for path [" + dmPathTO.getRelativePath() + "], site " + dmPathTO.getSiteName(), e);
@@ -1556,26 +1555,27 @@ public class DmWorkflowServiceImpl extends AbstractRegistrableService implements
 
     @Override
     public void updateItemStatus(NodeRef packageRef, String status, Date date) {
-        // find site information
-        StoreRef storeRef = packageRef.getStoreRef();
-        String store = storeRef.getIdentifier();
-        String[] tokens = store.split("--");
-        String site = tokens[0];
-        //String sandbox = _servicesConfig.getSandbox(site);
-        String workflowSandbox = WCMUtil.getWorkflowId(storeRef.getIdentifier());
+// PORT AVM?!
+        // // find site information
+        // StoreRef storeRef = null; //PORT packageRef.getStoreRef();
+        // String store = storeRef.getIdentifier();
+        // String[] tokens = store.split("--");
+        // String site = tokens[0];
+        // //String sandbox = _servicesConfig.getSandbox(site);
+        // String workflowSandbox =  ""; //PORT WCMUtil.getWorkflowId(storeRef.getIdentifier());
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("updating item status for for " + workflowSandbox + " site: "
-                    + site + ", store: " + store);
-        }
-        SearchService searchService = getService(SearchService.class);
-        List<NodeRef> changeSet = searchService.findNodes(CStudioConstants.STORE_REF, getListChangedQuery(site));
-        List<AVMDifference> avmDifferenceList = new ArrayList<AVMDifference>();
-        if (changeSet != null && changeSet.size() > 0) {
-            for (NodeRef node : changeSet) {
-                updateItemStatus(site, workflowSandbox, node, status, avmDifferenceList, date);
-            }
-        }
+        // if (logger.isDebugEnabled()) {
+        //     logger.debug("updating item status for for " + workflowSandbox + " site: "
+        //             + site + ", store: " + store);
+        // }
+        // SearchService searchService = getService(SearchService.class);
+        // List<NodeRef> changeSet = searchService.findNodes(CStudioConstants.STORE_REF, getListChangedQuery(site));
+        // List<AVMDifference> avmDifferenceList = new ArrayList<AVMDifference>();
+        // if (changeSet != null && changeSet.size() > 0) {
+        //     for (NodeRef node : changeSet) {
+        //         updateItemStatus(site, workflowSandbox, node, status, avmDifferenceList, date);
+        //     }
+        // }
     }
 
     /**

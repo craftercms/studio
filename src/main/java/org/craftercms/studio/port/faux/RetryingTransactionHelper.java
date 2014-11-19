@@ -7,5 +7,6 @@ public class RetryingTransactionHelper {
 	}
 
 	public void setMaxRetries(int maxRetries) { }
+	public void doInTransaction(RetryingTransactionCallback<Object> cb, boolean a, boolean b) { }
 
 }

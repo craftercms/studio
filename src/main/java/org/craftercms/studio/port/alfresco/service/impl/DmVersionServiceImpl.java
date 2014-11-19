@@ -84,136 +84,147 @@ public class DmVersionServiceImpl extends AbstractRegistrableService implements 
 	 * @throws ServiceException
 	 */
 	public List<DmVersionDetailTO> getVersionHistory(String site, String path, int maxHistory, boolean showMinor) throws ServiceException {
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		NodeRef orgNodeRef = persistenceManagerService.getNodeRef(fullPath);
+//PORT
+return null;
+  //       ServicesConfig servicesConfig = getService(ServicesConfig.class);
+  //       String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
+  //       PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+		// NodeRef orgNodeRef = persistenceManagerService.getNodeRef(fullPath);
         
 		
-		/**
-		 * get Version history and populate domain object
-		 */
-		VersionHistory history = persistenceManagerService.getVersionHistory(orgNodeRef);
-		List<DmVersionDetailTO> versions = new ArrayList();
+		// /**
+		//  * get Version history and populate domain object
+		//  */
+		// VersionHistory history = persistenceManagerService.getVersionHistory(orgNodeRef);
+		// List<DmVersionDetailTO> versions = new ArrayList();
 		
-		if(history != null)
-		{
-			Map<QName, Serializable> props = persistenceManagerService.getProperties(orgNodeRef);
-	        String currentVersion = DefaultTypeConverter.INSTANCE.convert(String.class, props.get(ContentModel.PROP_VERSION_LABEL));
-	        int idx = currentVersion.indexOf(".");
-	        String currentMajorVerssion = currentVersion.substring(0, idx);
-			Collection<Version> versionList = history.getAllVersions();
-			Iterator versionListIt = versionList.iterator();
-			DmVersionDetailTO versionDetail = new DmVersionDetailTO();
-			while(versionListIt.hasNext())       {
-		        Version version = (Version)versionListIt.next();
-                String versionId = version.getVersionLabel();
-                boolean condition = !versionId.startsWith(currentMajorVerssion) && (!showMinor && !versionId.endsWith(".0"));
-                if (condition) continue;
-                versionDetail = new DmVersionDetailTO();
-				versionDetail.setLastModifier(version.getFrozenModifier());
-				Date lastModifiedDate = version.getFrozenModifiedDate();
-                versionDetail.setTimeZone(Calendar.getInstance().getTimeZone().getID());
-				versionDetail.setLastModifiedDate(lastModifiedDate);
-				versionDetail.setVersionNumber(versionId.toString());
-                DmContentItemTO contentItem = persistenceManagerService.getContentItem(fullPath);
-                versionDetail.setContentItem(contentItem);
-                versionDetail.setComment(version.getDescription());
-				versions.add(versionDetail);
-			}
-		}
+		// if(history != null)
+		// {
+		// 	Map<QName, Serializable> props = persistenceManagerService.getProperties(orgNodeRef);
+	 //        String currentVersion = DefaultTypeConverter.INSTANCE.convert(String.class, props.get(ContentModel.PROP_VERSION_LABEL));
+	 //        int idx = currentVersion.indexOf(".");
+	 //        String currentMajorVerssion = currentVersion.substring(0, idx);
+		// 	Collection<Version> versionList = history.getAllVersions();
+		// 	Iterator versionListIt = versionList.iterator();
+		// 	DmVersionDetailTO versionDetail = new DmVersionDetailTO();
+		// 	while(versionListIt.hasNext())       {
+		//         Version version = (Version)versionListIt.next();
+  //               String versionId = version.getVersionLabel();
+  //               boolean condition = !versionId.startsWith(currentMajorVerssion) && (!showMinor && !versionId.endsWith(".0"));
+  //               if (condition) continue;
+  //               versionDetail = new DmVersionDetailTO();
+		// 		versionDetail.setLastModifier(version.getFrozenModifier());
+		// 		Date lastModifiedDate = version.getFrozenModifiedDate();
+  //               versionDetail.setTimeZone(Calendar.getInstance().getTimeZone().getID());
+		// 		versionDetail.setLastModifiedDate(lastModifiedDate);
+		// 		versionDetail.setVersionNumber(versionId.toString());
+  //               DmContentItemTO contentItem = persistenceManagerService.getContentItem(fullPath);
+  //               versionDetail.setContentItem(contentItem);
+  //               versionDetail.setComment(version.getDescription());
+		// 		versions.add(versionDetail);
+		// 	}
+		// }
 		
-		return versions;
+		// return versions;
 	}
 
     public void restore(String site, String path, String versionLabel) throws ServiceException {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+  //PORT
+        // PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
 
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
-        persistenceManagerService.setSystemProcessing(fullPath, true);
+        // ServicesConfig servicesConfig = getService(ServicesConfig.class);
+        // String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
+        // persistenceManagerService.setSystemProcessing(fullPath, true);
 
-        NodeRef orgNodeRef = persistenceManagerService.getNodeRef(fullPath);
-        Set<QName> aspects = persistenceManagerService.getAspects(orgNodeRef);
-        FileInfo nodeInfo = persistenceManagerService.getFileInfo(orgNodeRef);
-        if (nodeInfo.isFolder()) {
-            List<FileInfo> children = persistenceManagerService.list(orgNodeRef);
-            for (FileInfo child : children) {
-                if (child.getName().equals(DmConstants.INDEX_FILE)) {
-                    orgNodeRef = child.getNodeRef();
-                    break;
-                }
-            }
-        }
+        // NodeRef orgNodeRef = persistenceManagerService.getNodeRef(fullPath);
+        // Set<QName> aspects = persistenceManagerService.getAspects(orgNodeRef);
+        // FileInfo nodeInfo = persistenceManagerService.getFileInfo(orgNodeRef);
+        // if (nodeInfo.isFolder()) {
+        //     List<FileInfo> children = persistenceManagerService.list(orgNodeRef);
+        //     for (FileInfo child : children) {
+        //         if (child.getName().equals(DmConstants.INDEX_FILE)) {
+        //             orgNodeRef = child.getNodeRef();
+        //             break;
+        //         }
+        //     }
+        //}
 		
 		/**
 		 * Setting up version object
 		 */
-		VersionHistory history = persistenceManagerService.getVersionHistory(orgNodeRef);
-		Version versionTo = null;
-		if(history != null) {
-			versionTo = history.getVersion(versionLabel);
-		}
-		persistenceManagerService.revert(orgNodeRef, versionTo);
-        persistenceManagerService.setProperty(orgNodeRef, CStudioContentModel.PROP_STATUS, DmConstants.DM_STATUS_IN_PROGRESS);
-		restoreAspects(orgNodeRef, aspects);
+		// VersionHistory history = persistenceManagerService.getVersionHistory(orgNodeRef);
+		// Version versionTo = null;
+		// if(history != null) {
+		// 	versionTo = history.getVersion(versionLabel);
+		// }
+		// persistenceManagerService.revert(orgNodeRef, versionTo);
+  //       persistenceManagerService.setProperty(orgNodeRef, CStudioContentModel.PROP_STATUS, DmConstants.DM_STATUS_IN_PROGRESS);
+		// restoreAspects(orgNodeRef, aspects);
 
-        createNextMinorVersion(site, path, String.format(REVERT_COMMENT, versionLabel));
+  //       createNextMinorVersion(site, path, String.format(REVERT_COMMENT, versionLabel));
 
-        persistenceManagerService.transition(orgNodeRef, ObjectStateService.TransitionEvent.REVERT);
-        persistenceManagerService.setSystemProcessing(fullPath, false);
+  //       persistenceManagerService.transition(orgNodeRef, ObjectStateService.TransitionEvent.REVERT);
+  //       persistenceManagerService.setSystemProcessing(fullPath, false);
 	}
 
     @Override
     public void createNextMajorVersion(String site, String path) {
-        createNewVersion(site, path, true, null);
+// PORT
+//        createNewVersion(site, path, true, null);
     }
 
     @Override
     public void createNextMajorVersion(String site, String path, String comment) {
-        createNewVersion(site, path, true, comment);
+//        createNewVersion(site, path, true, comment);
     }
 
     @Override
     public void createNextMajorVersion(String site, List<String> pathList) {
-        for (String path : pathList) {
-            createNewVersion(site, path, true, null);
-        }
+// PORT
+        // for (String path : pathList) {
+        //     createNewVersion(site, path, true, null);
+        // }
     }
 
     @Override
     public void createNextMajorVersion(String site, List<String> pathList, String comment) {
-        for (String path : pathList) {
-            createNewVersion(site, path, true, comment);
-        }
+// PORT
+        // for (String path : pathList) {
+        //     createNewVersion(site, path, true, comment);
+        // }
     }
 
     @Override
     public void createNextMinorVersion(String site, String path) {
-        createNewVersion(site, path, false, null);
+//PORT
+//        createNewVersion(site, path, false, null);
     }
 
     @Override
     public void createNextMinorVersion(String site, String path, String comment) {
-        createNewVersion(site, path, false, comment);
+  // PORT
+  //      createNewVersion(site, path, false, comment);
     }
 
     @Override
     public void createNextMinorVersion(String site, List<String> pathList) {
-        for (String path : pathList) {
-            createNewVersion(site, path, false, null);
-        }
-    }
+ //PORT
+    //     for (String path : pathList) {
+    //         createNewVersion(site, path, false, null);
+    //     }
+     }
 
     @Override
     public void createNextMinorVersion(String site, List<String> pathList, String comment) {
-        for (String path : pathList) {
-            createNewVersion(site, path, false, comment);
-        }
+//PORT
+// //        for (String path : pathList) {
+//             createNewVersion(site, path, false, comment);
+//         }
     }
     
     protected Version createNewVersion(String site, String path, boolean majorVersion, String comment) {
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
+//PORT
+/*        ServicesConfig servicesConfig = getService(ServicesConfig.class);
         String repoPath = servicesConfig.getRepositoryRootPath(site);
         String fullPath = path;
         if (!fullPath.startsWith(repoPath)) {
@@ -245,24 +256,29 @@ public class DmVersionServiceImpl extends AbstractRegistrableService implements 
         } else {
             return null;
         }
+*/
+        return null;
     }
     
     protected void restoreAspects(NodeRef node, Set<QName> aspects) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        for (QName aspect : aspects) {
-            if (!persistenceManagerService.hasAspect(node, aspect)) {
-                persistenceManagerService.addAspect(node, aspect, null);
-            }
-        }
+//PORT
+        // PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        // for (QName aspect : aspects) {
+        //     if (!persistenceManagerService.hasAspect(node, aspect)) {
+        //         persistenceManagerService.addAspect(node, aspect, null);
+        //     }
+        // }
     }
 
     @Override
     public void disableVersionable() {
-        this.policyBehaviourFilter.disableBehaviour(ContentModel.ASPECT_VERSIONABLE);
+//PORT
+//        this.policyBehaviourFilter.disableBehaviour(ContentModel.ASPECT_VERSIONABLE);
     }
 
     @Override
     public void enableVersionable() {
-        this.policyBehaviourFilter.enableBehaviour(ContentModel.ASPECT_VERSIONABLE);
+//PORT
+//        this.policyBehaviourFilter.enableBehaviour(ContentModel.ASPECT_VERSIONABLE);
     }
 }

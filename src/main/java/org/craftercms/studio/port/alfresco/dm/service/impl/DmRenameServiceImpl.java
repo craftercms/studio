@@ -137,7 +137,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         NodeRef cutPathNode = persistenceManagerService.getNodeRef(fullCutPath);
         String originalUrl = (String)persistenceManagerService.getProperty(cutPathNode, CStudioContentModel.PROP_RENAMED_OLD_URL);
         return originalUrl;
-
     }
 
     protected String getIndexFilePath(String path){
@@ -153,7 +152,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      */
     @Override
     public boolean isItemRenamed(String site, DmDependencyTO item) {
-
         if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
             return isItemRenamed(site, item.getUri());
         } else {
@@ -174,7 +172,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         String fullPath = servicesConfig.getRepositoryRootPath(site) + uri;
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
         NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        return nodeService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
+        return false; //PORT nodeService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
     }
 
     /**
@@ -185,13 +183,13 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     protected NodeRef getNode(final String site, String uri) {
-        NodeRef node;
+              NodeRef node;
         try{
             DmContentService dmContentService = getService(DmContentService.class);
             String fullPath = dmContentService.getContentFullPath(site, uri);
             PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
             node = persistenceManagerService.getNodeRef(fullPath);
-        }catch(AVMNotFoundException e){
+        }catch(Exception e) {//PORT AVMNotFoundException e){
             return null;
         }
         return node;
@@ -202,7 +200,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      */
     @Override
     public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver) throws ServiceException {
-        goLive(site, sub, submittedItems, approver, null);
+                goLive(site, sub, submittedItems, approver, null);
     }
 
     /**
@@ -210,7 +208,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      */
     @Override
     public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
-        long start = System.currentTimeMillis();
+                long start = System.currentTimeMillis();
 
         try {
             Date now = new Date();
@@ -244,7 +242,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected void submitWorkflow(final String site, final String sub, final List<DmDependencyTO> submittedItems, Date now, Date scheduledDate,
                                   final String approver, MultiChannelPublishingContext mcpContext) throws ServiceException, org.craftercms.cstudio.alfresco.service.exception.ServiceException{
 
-        final String assignee = DmUtils.getAssignee(site, sub);
+                final String assignee = DmUtils.getAssignee(site, sub);
         ServicesConfig servicesConfig = getService(ServicesConfig.class);
         final String pathPrefix = servicesConfig.getRepositoryRootPath(site);
         final PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
@@ -336,19 +334,19 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         for (String uri :childUris){
             //find all child items that are already live and revert the sandbox to staging version
             String oldStagingUri = getStoredStagingUri(site, uri);
-            /*
+            
             if (oldStagingUri != null){
                 if (isRenameDeleteTag(site, uri)){
                     // handles the file content submission
                     if (submittedUri.endsWith(DmConstants.XML_PATTERN) && !submittedUri.endsWith(DmConstants.INDEX_FILE)) {
-                        pathsToRemove.add(pathPrefix + oldStagingUri);
+                       //PORT  pathsToRemove.add(pathPrefix + oldStagingUri);
                     } else {
                         //submit the old url for delete in staging
                         String folderToRemoveInStaging = DmUtils.getParentUrl(oldStagingUri);
-                        pathsToRemove.add(pathPrefix+ folderToRemoveInStaging);
+                       //PORT  pathsToRemove.add(pathPrefix+ folderToRemoveInStaging);
                     }
                 }
-            } */
+            } 
 
             if(submittedChildUris.contains(uri) || submittedItem.getUri().equals(uri)){
                 //if child is one of the submitted item then add itself and references
@@ -592,10 +590,10 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                     DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
         } catch (FileNotFoundException e) {
             throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
-        } catch (AVMBadArgumentException e) {
-            throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
-        } catch (AVMNotFoundException e) {
-            throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
+        //PORT } catch (AVMBadArgumentException e) {
+        //     throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
+        //PORT } catch (AVMNotFoundException e) {
+        //    throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
         } finally{
             AuthenticationUtil.setFullyAuthenticatedUser(user);
         }

@@ -90,7 +90,7 @@ public class DmUtils {
      * @return the Store root path
      */
     public static String getStoreRootPath(String store) {
-        return store + ':' + JNDIConstants.DIR_DEFAULT_WWW_APPBASE;
+        return store + ':' ;//PORT+ JNDIConstants.DIR_DEFAULT_WWW_APPBASE;
     }
 
     /**
@@ -212,7 +212,7 @@ public class DmUtils {
 
     public static String getAssignee(String site, String sub) {
         // TODO: find assignee from configuration
-        return AuthenticationUtil.getAdminUserName();
+        return ""; //PORT AuthenticationUtil.getAdminUserName();
     }
 
 

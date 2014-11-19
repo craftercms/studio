@@ -190,8 +190,8 @@ public class DmConstants {
     public static QName[] SUBMITTED_PROPERTIES = new QName[]{
             CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY,
             CStudioContentModel.PROP_WEB_WF_SEND_EMAIL,
-            CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION,
-            Version2Model.PROP_QNAME_VERSION_DESCRIPTION,
-            WCMWorkflowModel.PROP_LAUNCH_DATE
+            CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION//,
+            //PORT Version2Model.PROP_QNAME_VERSION_DESCRIPTION,
+            //PORTWCMWorkflowModel.PROP_LAUNCH_DATE
     };
 }

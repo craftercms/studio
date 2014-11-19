@@ -55,20 +55,22 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
 
     @Override
     public String createQuery(SearchCriteriaTO criteria) {
-        StringBuffer buffer = new StringBuffer();
-        String site = criteria.getSite();
-        addSitePathQuery(buffer, site);
-        // add content type query if provided
-        addContentTypeQuery(buffer, site, criteria.getContentTypes());
-        if (criteria.isExcludeWorkingCopy()) {
-            excludeWorkingCopy(buffer);
-        }
-        // search for keyword provided
-        addKeywordQuery(buffer, site, criteria.getKeyword(), criteria.getColumns(), criteria.getContentTypes(), criteria.isApplyBaseSearchableColumns());
-        // search for the properties selected
-        addFilterQuery(buffer, site, criteria.getFilters());
-        addAspectQuery(buffer, site, criteria.getIncludeAspects(), criteria.getExcludeAspects());
-        return buffer.toString();
+//PORT
+        return null;
+        // StringBuffer buffer = new StringBuffer();
+        // String site = criteria.getSite();
+        // addSitePathQuery(buffer, site);
+        // // add content type query if provided
+        // addContentTypeQuery(buffer, site, criteria.getContentTypes());
+        // if (criteria.isExcludeWorkingCopy()) {
+        //     excludeWorkingCopy(buffer);
+        // }
+        // // search for keyword provided
+        // addKeywordQuery(buffer, site, criteria.getKeyword(), criteria.getColumns(), criteria.getContentTypes(), criteria.isApplyBaseSearchableColumns());
+        // // search for the properties selected
+        // addFilterQuery(buffer, site, criteria.getFilters());
+        // addAspectQuery(buffer, site, criteria.getIncludeAspects(), criteria.getExcludeAspects());
+        // return buffer.toString();
     }
 
     /**
@@ -81,34 +83,36 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      */
     protected void addAspectQuery(StringBuffer buffer, String site, List<String> includeAspects,
                                   List<String> excludeAspects) {
-        NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
-        if (includeAspects != null && includeAspects.size() > 0) {
-            if (buffer.length() > 0) {
-                buffer.append(" AND ");
-            }
-            buffer.append("(");
-            boolean added = false;
-            for (String aspect : includeAspects) {
-                if (added) {
-                    buffer.append(" OR ");
-                }
-                QName aspectName = namespaceService.createQName(aspect);
-                buffer.append("(+" + SearchUtils.createAspectQuery(aspectName) + ")");
-                added = true;
-            }
-            buffer.append(")");
-        }
-        if (excludeAspects != null && excludeAspects.size() > 0) {
-            boolean added = false;
-            for (String aspect : excludeAspects) {
-                if (added) {
-                    buffer.append(" ");
-                }
-                QName aspectName = namespaceService.createQName(aspect);
-                buffer.append("-" + SearchUtils.createAspectQuery(aspectName));
-                added = true;
-            }
-        }
+// PORT
+
+        // NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
+        // if (includeAspects != null && includeAspects.size() > 0) {
+        //     if (buffer.length() > 0) {
+        //         buffer.append(" AND ");
+        //     }
+        //     buffer.append("(");
+        //     boolean added = false;
+        //     for (String aspect : includeAspects) {
+        //         if (added) {
+        //             buffer.append(" OR ");
+        //         }
+        //         QName aspectName = namespaceService.createQName(aspect);
+        //         buffer.append("(+" + SearchUtils.createAspectQuery(aspectName) + ")");
+        //         added = true;
+        //     }
+        //     buffer.append(")");
+        // }
+        // if (excludeAspects != null && excludeAspects.size() > 0) {
+        //     boolean added = false;
+        //     for (String aspect : excludeAspects) {
+        //         if (added) {
+        //             buffer.append(" ");
+        //         }
+        //         QName aspectName = namespaceService.createQName(aspect);
+        //         buffer.append("-" + SearchUtils.createAspectQuery(aspectName));
+        //         added = true;
+        //     }
+        // }
     }
 
     /**
@@ -119,11 +123,12 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param filters
      */
     protected void addFilterQuery(StringBuffer buffer, String site, List<FilterTO> filters) {
-        if (filters != null) {
-            for (FilterTO filter : filters) {
-                addFilterQuery(site, buffer, filter);
-            }
-        }
+// PORT 
+        // if (filters != null) {
+        //     for (FilterTO filter : filters) {
+        //         addFilterQuery(site, buffer, filter);
+        //     }
+        // }
     }
 
     /**
@@ -137,34 +142,35 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param isApplyBaseSearchableColumns
      */
     protected void addKeywordQuery(StringBuffer buffer, String site, String keyword, List<SearchColumnTO> columns, List<String> contentTypes, boolean isApplyBaseSearchableColumns) {
-        // set the base filters
-        NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
-        ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
-        if (isApplyBaseSearchableColumns) {
-            List<SearchColumnTO> baseColumns = null;
-            QName type = null;
-            if (contentTypes.size() == 1) {
-                type = namespaceService.createQName(contentTypes.get(0));
-            }
-            // if there is only one type provided, get base columns of the content type
-            // otherwise get the common base columns for all content types
-            if (type != null) {
-                ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, namespaceService.getPrefixedTypeName(type));
-                baseColumns = config.getSearchConfig().getBaseSearchableColumns();
-            } else {
-                SearchConfigTO config = servicesConfig.getDefaultSearchConfig(site);
-                if (config != null) {
-                    baseColumns = config.getBaseSearchableColumns();
-                }
-            }
-            if (baseColumns != null) {
-                columns.addAll(baseColumns);
-            }
-        }
-        // add searchable column queries
-        if (columns != null) {
-            addKeywordSearch(buffer, keyword, columns);
-        }
+//PORT
+        // // set the base filters
+        // NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
+        // ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
+        // if (isApplyBaseSearchableColumns) {
+        //     List<SearchColumnTO> baseColumns = null;
+        //     QName type = null;
+        //     if (contentTypes.size() == 1) {
+        //         type = namespaceService.createQName(contentTypes.get(0));
+        //     }
+        //     // if there is only one type provided, get base columns of the content type
+        //     // otherwise get the common base columns for all content types
+        //     if (type != null) {
+        //         ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, namespaceService.getPrefixedTypeName(type));
+        //         baseColumns = config.getSearchConfig().getBaseSearchableColumns();
+        //     } else {
+        //         SearchConfigTO config = servicesConfig.getDefaultSearchConfig(site);
+        //         if (config != null) {
+        //             baseColumns = config.getBaseSearchableColumns();
+        //         }
+        //     }
+        //     if (baseColumns != null) {
+        //         columns.addAll(baseColumns);
+        //     }
+        // }
+        // // add searchable column queries
+        // if (columns != null) {
+        //     addKeywordSearch(buffer, keyword, columns);
+        // }
     }
 
     /**
@@ -173,10 +179,10 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param buffer
      */
     protected void excludeWorkingCopy(StringBuffer buffer) {
-        if (buffer.length() > 0) {
-            buffer.append(" AND ");
-        }
-        buffer.append("-" + SearchUtils.createAspectQuery(ContentModel.ASPECT_WORKING_COPY));
+        // if (buffer.length() > 0) {
+        //     buffer.append(" AND ");
+        // }
+        // buffer.append("-" + SearchUtils.createAspectQuery(ContentModel.ASPECT_WORKING_COPY));
     }
 
     /**
@@ -187,24 +193,25 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param contentTypes
      */
     protected void addContentTypeQuery(StringBuffer buffer, String site, List<String> contentTypes) {
-        if (contentTypes != null && contentTypes.size() > 0) {
-            buffer.append("(");
-            boolean added = false;
-            NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
-            for (String contentType : contentTypes) {
-                if (!StringUtils.isEmpty(contentType)) {
-                    QName type = namespaceService.createQName(contentType);
-                    if (type != null) {
-                        if (added) {
-                            buffer.append(" OR ");
-                        }
-                        buffer.append(SearchUtils.createTypeQuery(type));
-                        added = true;
-                    }
-                }
-            }
-            buffer.append(")");
-        }
+//PORT
+        // if (contentTypes != null && contentTypes.size() > 0) {
+        //     buffer.append("(");
+        //     boolean added = false;
+        //     NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
+        //     for (String contentType : contentTypes) {
+        //         if (!StringUtils.isEmpty(contentType)) {
+        //             QName type = namespaceService.createQName(contentType);
+        //             if (type != null) {
+        //                 if (added) {
+        //                     buffer.append(" OR ");
+        //                 }
+        //                 buffer.append(SearchUtils.createTypeQuery(type));
+        //                 added = true;
+        //             }
+        //         }
+        //     }
+        //     buffer.append(")");
+        // }
     }
 
     /**
@@ -215,60 +222,63 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param columns
      */
     protected void addKeywordSearch(StringBuffer buffer, String keyword, List<SearchColumnTO> columns) {
-        String lkeyword = "";
-        lkeyword = removeUnexpectedCharacter(keyword);
-        String[] terms = {};
+//PORT
+        // String lkeyword = "";
+        // lkeyword = removeUnexpectedCharacter(keyword);
+        // String[] terms = {};
 
-        if (!StringUtils.isEmpty(lkeyword)) {
-            lkeyword = lkeyword.trim();
-            terms = lkeyword.split("\\s+");
-        }
-        if (terms.length > 0) {
-            if (buffer.length() > 0) {
-                buffer.append(" AND ");
-            }
-            buffer.append(" (");
-            buffer.append(" (");
-            for (String term : terms) {
-                term = modifySearchTerm(SearchLanguageConversion.escapeForLucene(term));
-                for (SearchColumnTO column : columns) {
-                    if (column.isSearchable()) {
-                        if (column.isUseWildCard()) {
-                            buffer.append("+@" + column.getName().replaceFirst(":", "\\\\:") + ":\"*" + term + "*\" ");
-                        } else {
-                            buffer.append("+@" + column.getName().replaceFirst(":", "\\\\:") + ":\"" + term + "\" ");
-                        }
-                    }
-                }
-                buffer.append("+TEXT:\"*" + term + "*\" ");
-            }
-            buffer.append(") ");
-            buffer.append(" OR (+TEXT:\"*" + modifySearchTerm(SearchLanguageConversion.escapeForLucene(lkeyword)) + "*\"^10)");
-            buffer.append(") ");
-        } else {
-            if(columns.size() > 0) {
-                if (buffer.length() > 0) {
-                    buffer.append(" AND ");
-                }
-                buffer.append(" (");
-                for (SearchColumnTO column : columns) {
-                    if (column.isSearchable()) {
-                        if (column.isUseWildCard()) {
-                            buffer.append("@" + column.getName().replaceFirst(":", "\\\\:") + ":* ");
-                        }
-                    }
-                }
-                buffer.append("TEXT:* " );
-                buffer.append(") ");
-            }
-        }
+        // if (!StringUtils.isEmpty(lkeyword)) {
+        //     lkeyword = lkeyword.trim();
+        //     terms = lkeyword.split("\\s+");
+        // }
+        // if (terms.length > 0) {
+        //     if (buffer.length() > 0) {
+        //         buffer.append(" AND ");
+        //     }
+        //     buffer.append(" (");
+        //     buffer.append(" (");
+        //     for (String term : terms) {
+        //         term = modifySearchTerm(SearchLanguageConversion.escapeForLucene(term));
+        //         for (SearchColumnTO column : columns) {
+        //             if (column.isSearchable()) {
+        //                 if (column.isUseWildCard()) {
+        //                     buffer.append("+@" + column.getName().replaceFirst(":", "\\\\:") + ":\"*" + term + "*\" ");
+        //                 } else {
+        //                     buffer.append("+@" + column.getName().replaceFirst(":", "\\\\:") + ":\"" + term + "\" ");
+        //                 }
+        //             }
+        //         }
+        //         buffer.append("+TEXT:\"*" + term + "*\" ");
+        //     }
+        //     buffer.append(") ");
+        //     buffer.append(" OR (+TEXT:\"*" + modifySearchTerm(SearchLanguageConversion.escapeForLucene(lkeyword)) + "*\"^10)");
+        //     buffer.append(") ");
+        // } else {
+        //     if(columns.size() > 0) {
+        //         if (buffer.length() > 0) {
+        //             buffer.append(" AND ");
+        //         }
+        //         buffer.append(" (");
+        //         for (SearchColumnTO column : columns) {
+        //             if (column.isSearchable()) {
+        //                 if (column.isUseWildCard()) {
+        //                     buffer.append("@" + column.getName().replaceFirst(":", "\\\\:") + ":* ");
+        //                 }
+        //             }
+        //         }
+        //         buffer.append("TEXT:* " );
+        //         buffer.append(") ");
+        //     }
+        // }
     }
 
     protected String removeUnexpectedCharacter(String str) {
-        String ret = new String(str);
-        if (StringUtils.isEmpty(str))
-            return str;
-        return ret.replaceAll(unwantedCharsInKeyword, " ");
+// PORT
+        return null;
+        // String ret = new String(str);
+        // if (StringUtils.isEmpty(str))
+        //     return str;
+        // return ret.replaceAll(unwantedCharsInKeyword, " ");
     }
 
     /**
@@ -277,10 +287,12 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @return
      */
     protected String modifySearchTerm(String str) {
-        String ret = new String(str);
-        if (StringUtils.isEmpty(str))
-            return str;
-        return ret.replaceAll(unwantedCharsInKeywordTerm, "?");
+//PORT
+        return null;
+        // String ret = new String(str);
+        // if (StringUtils.isEmpty(str))
+        //     return str;
+        // return ret.replaceAll(unwantedCharsInKeywordTerm, "?");
     }
 
     /**
@@ -290,149 +302,151 @@ public class SolrSearchQueryBuilder implements SearchQueryBuilder {
      * @param filter
      */
     protected void addFilterQuery(String site, StringBuffer buffer, FilterTO filter) {
-        String key = filter.getKey();
-        NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
-        PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
-        QName propName = namespaceService.createQName(key);
-        // if the key is a property qname, create a property query
-        if (propName != null) {
-            PropertyDefinition propDef = persistenceManagerService.getProperty(propName);
-            if (propDef != null) {
-                String javaClassName = propDef.getDataType().getJavaClassName();
-                if (!StringUtils.isEmpty(javaClassName) &&
-                        (!StringUtils.isEmpty(filter.getValue())
-                                || !StringUtils.isEmpty(filter.getStartDate())
-                                || !StringUtils.isEmpty(filter.getEndDate()))) {
-                    String query = SearchUtils.createPropertyQuery(propName, javaClassName, filter.getValue(),
-                            filter.getStartDate(), filter.getEndDate(), !filter.isUseWildcard(),
-                            org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE,
-                            namespaceService);
-                    if (buffer.length() > 0) {
-                        buffer.append(" AND ");
-                    }
-                    buffer.append(query);
-                }
-            }
-            else {
-                // seperate the localname into components e.g. cm:content.mimetype seperates into content -> mimetype
-                String qNameParts[] = propName.getLocalName().split("\\.");
-                if (qNameParts != null && qNameParts.length > 1) {
-                    QName propRootQName = namespaceService.createQName(QName.splitPrefixedQName(propName.toPrefixString())[0].concat(":").concat(qNameParts[0]));
+//PORT
+        // String key = filter.getKey();
+        // NamespaceService namespaceService = getServicesManager().getService(NamespaceService.class);
+        // PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
+        // QName propName = namespaceService.createQName(key);
+        // // if the key is a property qname, create a property query
+        // if (propName != null) {
+        //     PropertyDefinition propDef = persistenceManagerService.getProperty(propName);
+        //     if (propDef != null) {
+        //         String javaClassName = propDef.getDataType().getJavaClassName();
+        //         if (!StringUtils.isEmpty(javaClassName) &&
+        //                 (!StringUtils.isEmpty(filter.getValue())
+        //                         || !StringUtils.isEmpty(filter.getStartDate())
+        //                         || !StringUtils.isEmpty(filter.getEndDate()))) {
+        //             String query = SearchUtils.createPropertyQuery(propName, javaClassName, filter.getValue(),
+        //                     filter.getStartDate(), filter.getEndDate(), !filter.isUseWildcard(),
+        //                     org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE,
+        //                     namespaceService);
+        //             if (buffer.length() > 0) {
+        //                 buffer.append(" AND ");
+        //             }
+        //             buffer.append(query);
+        //         }
+        //     }
+        //     else {
+        //         // seperate the localname into components e.g. cm:content.mimetype seperates into content -> mimetype
+        //         String qNameParts[] = propName.getLocalName().split("\\.");
+        //         if (qNameParts != null && qNameParts.length > 1) {
+        //             QName propRootQName = namespaceService.createQName(QName.splitPrefixedQName(propName.toPrefixString())[0].concat(":").concat(qNameParts[0]));
 
-                    if (propRootQName != null) {
-                        PropertyDefinition propRootDef = persistenceManagerService.getProperty(propRootQName);
-                        if (propRootDef != null) {
-                            String propRootJavaClassName = propRootDef.getDataType().getJavaClassName();
-                            if (!StringUtils.isEmpty(propRootJavaClassName) &&
-                                    (!StringUtils.isEmpty(filter.getValue())
-                                            || !StringUtils.isEmpty(filter.getStartDate())
-                                            || !StringUtils.isEmpty(filter.getEndDate()))) {
+        //             if (propRootQName != null) {
+        //                 PropertyDefinition propRootDef = persistenceManagerService.getProperty(propRootQName);
+        //                 if (propRootDef != null) {
+        //                     String propRootJavaClassName = propRootDef.getDataType().getJavaClassName();
+        //                     if (!StringUtils.isEmpty(propRootJavaClassName) &&
+        //                             (!StringUtils.isEmpty(filter.getValue())
+        //                                     || !StringUtils.isEmpty(filter.getStartDate())
+        //                                     || !StringUtils.isEmpty(filter.getEndDate()))) {
 
-                                String className = propRootJavaClassName;
-                                boolean found = false;
+        //                         String className = propRootJavaClassName;
+        //                         boolean found = false;
 
-                                for (int i = 1; i < qNameParts.length; i++) {
-                                    found = false;
+        //                         for (int i = 1; i < qNameParts.length; i++) {
+        //                             found = false;
 
-                                    String methodNamePart = qNameParts[i];
-                                    methodNamePart = "get".concat(Character.toUpperCase(methodNamePart.charAt(0)) + methodNamePart.substring(1));
+        //                             String methodNamePart = qNameParts[i];
+        //                             methodNamePart = "get".concat(Character.toUpperCase(methodNamePart.charAt(0)) + methodNamePart.substring(1));
 
-                                    try {
-                                        Class c = Class.forName(className);
-                                        Method mehtods[] = c.getMethods();
-                                        for (Method m:mehtods) {
-                                            if (m.getName().equals(methodNamePart)) {
-                                                className = m.getReturnType().getName();
-                                                if (className.indexOf('.') < 0) {
-                                                    if (className.equals("int")) {
-                                                        className = "integer";
-                                                    } else if (className.equals("char")) {
-                                                        className = "character";
-                                                    }
+        //                             try {
+        //                                 Class c = Class.forName(className);
+        //                                 Method mehtods[] = c.getMethods();
+        //                                 for (Method m:mehtods) {
+        //                                     if (m.getName().equals(methodNamePart)) {
+        //                                         className = m.getReturnType().getName();
+        //                                         if (className.indexOf('.') < 0) {
+        //                                             if (className.equals("int")) {
+        //                                                 className = "integer";
+        //                                             } else if (className.equals("char")) {
+        //                                                 className = "character";
+        //                                             }
 
-                                                    className = "java.lang.".concat(Character.toUpperCase(className.charAt(0)) + className.substring(1));
-                                                }
-                                                found = true;
-                                                break;
-                                            }
-                                        }
-                                    } catch (Exception e) {
-                                        // TODO: Log Error
-                                    }
-                                }
+        //                                             className = "java.lang.".concat(Character.toUpperCase(className.charAt(0)) + className.substring(1));
+        //                                         }
+        //                                         found = true;
+        //                                         break;
+        //                                     }
+        //                                 }
+        //                             } catch (Exception e) {
+        //                                 // TODO: Log Error
+        //                             }
+        //                         }
 
-                                if (found) {
-                                    String query = SearchUtils.createPropertyQuery(propName, className, filter.getValue(),
-                                            filter.getStartDate(), filter.getEndDate(), filter.isUseWildcard(),
-                                            org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE,
-                                            namespaceService);
-                                    if (buffer.length() > 0) {
-                                        buffer.append(" AND ");
-                                    }
-                                    buffer.append(query);
+        //                         if (found) {
+        //                             String query = SearchUtils.createPropertyQuery(propName, className, filter.getValue(),
+        //                                     filter.getStartDate(), filter.getEndDate(), filter.isUseWildcard(),
+        //                                     org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE,
+        //                                     namespaceService);
+        //                             if (buffer.length() > 0) {
+        //                                 buffer.append(" AND ");
+        //                             }
+        //                             buffer.append(query);
 
-                                }
-                            }
-                        }
-                    }
+        //                         }
+        //                     }
+        //                 }
+        //             }
 
-                } else {
-                    // Is this a possible scenario?
-                }
-            }
+        //         } else {
+        //             // Is this a possible scenario?
+        //         }
+        //     }
 
-        } else if (!StringUtils.isEmpty(key)){
-            // otherwise, it's a full txt search on article body
-            // TODO: make sure to check on body tags
-            if (!StringUtils.isEmpty(filter.getValue())) {
-                if (key.equalsIgnoreCase(AbstractLuceneQueryParser.FIELD_PATH)) {
-                    ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
-                    String filterPath = servicesConfig.getRepositoryRootPath(site) + filter.getValue();
-                    String[] pathSegments = filterPath.split("/");
-                    StringBuilder location = new StringBuilder();
-                    for (String segment : pathSegments) {
-                        if (StringUtils.isNotEmpty(segment)) {
-                            location.append("/cm:").append(segment);
-                        }
-                    }
-                    if (StringUtils.isNotEmpty(location.toString())) {
-                        if (buffer.length() > 0) {
-                            buffer.append(" AND ");
-                        }
-                        buffer.append("(").append("PATH:\"/app:company_home").append(location.toString());
-                        buffer.append("//*\"").append(")");
-                    }
-                } else {
-                    if (buffer.length() > 0) {
-                        buffer.append(" AND ");
-                    }
-                    buffer.append(" ( ");
-                    String[] terms = filter.getValue().split(" ");
-                    for (String term : terms) {
-                        buffer.append("TEXT:*" + term + "* ");
-                    }
-                    buffer.append(" )");
-                }
-            }
-        }
+        // } else if (!StringUtils.isEmpty(key)){
+        //     // otherwise, it's a full txt search on article body
+        //     // TODO: make sure to check on body tags
+        //     if (!StringUtils.isEmpty(filter.getValue())) {
+        //         if (key.equalsIgnoreCase(AbstractLuceneQueryParser.FIELD_PATH)) {
+        //             ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
+        //             String filterPath = servicesConfig.getRepositoryRootPath(site) + filter.getValue();
+        //             String[] pathSegments = filterPath.split("/");
+        //             StringBuilder location = new StringBuilder();
+        //             for (String segment : pathSegments) {
+        //                 if (StringUtils.isNotEmpty(segment)) {
+        //                     location.append("/cm:").append(segment);
+        //                 }
+        //             }
+        //             if (StringUtils.isNotEmpty(location.toString())) {
+        //                 if (buffer.length() > 0) {
+        //                     buffer.append(" AND ");
+        //                 }
+        //                 buffer.append("(").append("PATH:\"/app:company_home").append(location.toString());
+        //                 buffer.append("//*\"").append(")");
+        //             }
+        //         } else {
+        //             if (buffer.length() > 0) {
+        //                 buffer.append(" AND ");
+        //             }
+        //             buffer.append(" ( ");
+        //             String[] terms = filter.getValue().split(" ");
+        //             for (String term : terms) {
+        //                 buffer.append("TEXT:*" + term + "* ");
+        //             }
+        //             buffer.append(" )");
+        //         }
+        //     }
+        // }
     }
     
     protected void addSitePathQuery(StringBuffer buffer, String site) {
-        ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
-        String siteRepoPath = servicesConfig.getRepositoryRootPath(site);
-        String[] pathSegments = siteRepoPath.split("/");
-        StringBuilder location = new StringBuilder();
-        for (String segment : pathSegments) {
-            if (StringUtils.isNotEmpty(segment)) {
-                location.append("/cm:").append(segment);
-            }
-        }
-        if (StringUtils.isNotEmpty(location.toString())) {
-            if (buffer.length() > 0) {
-                buffer.append(" AND ");
-            }
-            buffer.append("(").append("PATH:\"/app:company_home").append(location.toString());
-            buffer.append("//*\"").append(")");
-        }
+// PORT
+        // ServicesConfig servicesConfig = getServicesManager().getService(ServicesConfig.class);
+        // String siteRepoPath = servicesConfig.getRepositoryRootPath(site);
+        // String[] pathSegments = siteRepoPath.split("/");
+        // StringBuilder location = new StringBuilder();
+        // for (String segment : pathSegments) {
+        //     if (StringUtils.isNotEmpty(segment)) {
+        //         location.append("/cm:").append(segment);
+        //     }
+        // }
+        // if (StringUtils.isNotEmpty(location.toString())) {
+        //     if (buffer.length() > 0) {
+        //         buffer.append(" AND ");
+        //     }
+        //     buffer.append("(").append("PATH:\"/app:company_home").append(location.toString());
+        //     buffer.append("//*\"").append(")");
+        // }
     }
 }

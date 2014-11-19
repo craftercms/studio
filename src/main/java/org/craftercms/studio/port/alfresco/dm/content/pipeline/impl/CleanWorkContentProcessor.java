@@ -74,7 +74,7 @@ public class CleanWorkContentProcessor extends BaseContentProcessor {
         String parentFileName = content.getProperty(DmConstants.KEY_FILE_NAME);
         String parentPath = parentPagePath + "/" + parentFileName;
         AuthenticationService authenticationService = getServicesManager().getService(AuthenticationService.class);
-        String usr = authenticationService.getCurrentUserName();
+        String usr = "";//PORT authenticationService.getCurrentUserName();
         //if (sandBox != null) {
         //    AuthenticationUtil.setFullyAuthenticatedUser(sandBox);
         //}

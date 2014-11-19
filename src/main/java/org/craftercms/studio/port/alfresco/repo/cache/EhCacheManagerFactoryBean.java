@@ -66,7 +66,8 @@ public class EhCacheManagerFactoryBean implements FactoryBean, InitializingBean,
 
     public void afterPropertiesSet() throws IOException, CacheException
     {
-        PropertyCheck.mandatory(this, "configLocation", configLocation);
+        //PORT
+        //PropertyCheck.mandatory(this, "configLocation", configLocation);
 
         // Double-check the config location or EHCache will throw an NPE
         try

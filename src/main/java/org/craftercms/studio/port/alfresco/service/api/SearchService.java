@@ -41,12 +41,12 @@ import org.craftercms.cstudio.alfresco.to.SearchResultTO;
  */
 public interface SearchService {
 
-	public static final String LANGUAGE_LUCENE = org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE;
-	public static final String LANGUAGE_XPATH = org.alfresco.service.cmr.search.SearchService.LANGUAGE_XPATH;
+	public static final String LANGUAGE_LUCENE = "";// org.alfresco.service.cmr.search.SearchService.LANGUAGE_LUCENE;
+	public static final String LANGUAGE_XPATH = "";//org.alfresco.service.cmr.search.SearchService.LANGUAGE_XPATH;
 	
-	public static final String LANGUAGE_SOLR_FTS_ALFRESCO = org.alfresco.service.cmr.search.SearchService.LANGUAGE_SOLR_FTS_ALFRESCO;
+	public static final String LANGUAGE_SOLR_FTS_ALFRESCO = ""; //org.alfresco.service.cmr.search.SearchService.LANGUAGE_SOLR_FTS_ALFRESCO;
 	
-	public static final String DEFAULT_QUERY_LANGUAGE = LANGUAGE_SOLR_FTS_ALFRESCO;
+	public static final String DEFAULT_QUERY_LANGUAGE = ""; //LANGUAGE_SOLR_FTS_ALFRESCO;
 	
 	/**
 	 * find a nodeRef given the query from the store specified
