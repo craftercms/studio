@@ -25,6 +25,9 @@
 		<tika.version>1.5</tika.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
+
+        <!-- to be removed -->
+        <alfresco.version>4.2.e</alfresco.version>
 	</properties>
 
 	<licenses>
@@ -42,6 +45,10 @@
 			<email>sumer.jabri@craftercms.org</email>
 		</developer>
         <developer>
+            <name>Russ Danner</name>
+            <email>russ.danner@craftercms.org</email>
+        </developer>
+        <developer>
             <id>dejanbrkic</id>
             <name>Dejan Brkic</name>
             <email>dejan.brkic@craftercms.org</email>
@@ -55,6 +62,31 @@
 
 
     <repositories>
+<!-- TO BE REMOVED BEGIN -->
+        <repository>
+            <id>alfresco</id>
+            <name>Alfresco Repo</name>
+            <url>https://artifacts.alfresco.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>opensymphony-releases-opensymphony</id>
+            <name>Opensymphony Releases</name>
+            <url>https://oss.sonatype.org/content/repositories/opensymphony-releases</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
+<!-- TO BE REMOVED END -->
+
+
         <repository>
             <id>sonatype-snapshots</id>
             <name>sonatype Snapshots</name>
@@ -76,6 +108,108 @@
 
 
     <dependencies>
+        <!-- alf deps to be removed -->
+         <!-- *3.4* -->
+        <dependency>
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-webscripts</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency><!-- *3.4* -->
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-surf-core</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-cmis-framework</artifactId>
+            <version>1.2.0-M14</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-surf</artifactId>
+            <version>1.2.0-M14</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-webscripts-api</artifactId>
+            <version>1.2.0-M14</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-repository</artifactId>
+            <version>${alfresco.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-security-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-core</artifactId>
+            <version>${alfresco.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-data-model</artifactId>
+            <version>${alfresco.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-web-client</artifactId>
+            <version>${alfresco.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.alfresco</groupId>
+                    <artifactId>alfresco-web-framework-commons</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-web-framework-commons</artifactId>
+            <version>${alfresco.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.yahoo.platform.yui</groupId>
+                    <artifactId>yuicompressor</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-wdr-deployment</artifactId>
+            <version>4.2.e</version>
+            <scope>provided</scope>
+        </dependency>
+
+
         <!-- ported alf layer -->
         <dependency>
             <groupId>org.springframework</groupId>
