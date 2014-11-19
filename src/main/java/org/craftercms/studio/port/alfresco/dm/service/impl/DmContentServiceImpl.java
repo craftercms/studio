@@ -602,27 +602,22 @@ public class DmContentServiceImpl extends AbstractRegistrableService implements 
     @Override
     public boolean contentExists(String site, String relativePath, String originalPath) {
         String fullPath = getContentFullPath(site, relativePath);
-        try {
-            if (fullPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                fullPath = DmUtils.getParentUrl(fullPath);
-            }
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            NodeRef contentNode = persistenceManagerService.getNodeRef(fullPath);
+        if (fullPath.endsWith("/" + DmConstants.INDEX_FILE)) {
+            fullPath = DmUtils.getParentUrl(fullPath);
+        }
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        NodeRef contentNode = persistenceManagerService.getNodeRef(fullPath);
 
-            //deleted content but not in staging
-            if (contentNode == null) { //&& contentNode.isDeleted() && contentInStaging == null) {
-                return false;
-            }
+        //deleted content but not in staging
+        if (contentNode == null) { //&& contentNode.isDeleted() && contentInStaging == null) {
+            return false;
+        }
 
-            //we get the node if deleted as well and check if its a revert rename case which is allowed
-            DmRenameService dmRenameService = getService(DmRenameService.class);
-            if (!dmRenameService.isRevertRename(site, originalPath, relativePath)) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (AVMBadArgumentException e) {
-            // this exception means that the path is not valid. ignore the error
+        //we get the node if deleted as well and check if its a revert rename case which is allowed
+        DmRenameService dmRenameService = getService(DmRenameService.class);
+        if (!dmRenameService.isRevertRename(site, originalPath, relativePath)) {
+            return true;
+        } else {
             return false;
         }
     }
@@ -1094,39 +1089,35 @@ public class DmContentServiceImpl extends AbstractRegistrableService implements 
     @Override
     public boolean isUpdatedOrNew(String site, String relativePath) {
         String fullPath = getContentFullPath(site, relativePath);
-        try {
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-            if (node != null) {
-                FileInfo fileInfo = persistenceManagerService.getFileInfo(node);
-                if (fileInfo.isFolder()) {
-                    return false;
-                }
-                if (persistenceManagerService.isUpdatedOrNew(node)) {
-                    return true;
-                }
-                String versionLabel = (String) persistenceManagerService.getProperty(node, ContentModel.PROP_VERSION_LABEL);
-                if (versionLabel == null) {
-                    return false;
-                }
-                if ("1.0".compareTo(versionLabel) > 0) {
-                    return true;
-                }
-                String[] verisonNumbers = versionLabel.split("\\.");
-                if (verisonNumbers[1].compareTo("0") > 0) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
 
-                // TODO: implement deleted check
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        NodeRef node = persistenceManagerService.getNodeRef(fullPath);
+        if (node != null) {
+            FileInfo fileInfo = persistenceManagerService.getFileInfo(node);
+            if (fileInfo.isFolder()) {
+                return false;
             }
-        } catch (AVMException e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Cannot find the content at " + fullPath, e);
+            if (persistenceManagerService.isUpdatedOrNew(node)) {
+                return true;
             }
+            String versionLabel = (String) persistenceManagerService.getProperty(node, ContentModel.PROP_VERSION_LABEL);
+            if (versionLabel == null) {
+                return false;
+            }
+            if ("1.0".compareTo(versionLabel) > 0) {
+                return true;
+            }
+            String[] verisonNumbers = versionLabel.split("\\.");
+            if (verisonNumbers[1].compareTo("0") > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+
+            // TODO: implement deleted check
         }
+
         return false;
     }
 
@@ -1425,33 +1416,29 @@ public class DmContentServiceImpl extends AbstractRegistrableService implements 
 
     protected InputStream getContentByVersion(String site, String path, boolean edit, String version) throws AccessDeniedException, ContentNotFoundException {
         String fullPath = getContentFullPath(site, path);
-        try {
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            NodeRef contentNode = persistenceManagerService.getNodeRef(fullPath);
-            if (contentNode != null) {
-                if (edit) {
-                    getService(PersistenceManagerService.class).lock(contentNode, LockType.WRITE_LOCK);
-                }
-                FileInfo contentNodeInfo = persistenceManagerService.getFileInfo(contentNode);
-                if (contentNodeInfo.isFolder()) {
-                    List<FileInfo> children = persistenceManagerService.list(contentNode);
-                    for (FileInfo child : children) {
-                        if (child.getName().equals(DmConstants.INDEX_FILE)) {
-                            contentNode = child.getNodeRef();
-                            break;
-                        }
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        NodeRef contentNode = persistenceManagerService.getNodeRef(fullPath);
+        if (contentNode != null) {
+            if (edit) {
+                getService(PersistenceManagerService.class).lock(contentNode, LockType.WRITE_LOCK);
+            }
+            FileInfo contentNodeInfo = persistenceManagerService.getFileInfo(contentNode);
+            if (contentNodeInfo.isFolder()) {
+                List<FileInfo> children = persistenceManagerService.list(contentNode);
+                for (FileInfo child : children) {
+                    if (child.getName().equals(DmConstants.INDEX_FILE)) {
+                        contentNode = child.getNodeRef();
+                        break;
                     }
                 }
-
-                VersionHistory history = getService(PersistenceManagerService.class).getVersionHistory(contentNode);
-                Version ver = history.getVersion(version);
-                NodeRef contentVersionRef = ver.getFrozenStateNodeRef();
-                return persistenceManagerService.getReader(contentVersionRef).getContentInputStream();
-            } else {
-                throw new ContentNotFoundException(path + " is not found in site: " + site);
             }
-        } catch (AVMBadArgumentException e) {
-            throw new ContentNotFoundException(path + " is not found in site: " + site, e);
+
+            VersionHistory history = getService(PersistenceManagerService.class).getVersionHistory(contentNode);
+            Version ver = history.getVersion(version);
+            NodeRef contentVersionRef = ver.getFrozenStateNodeRef();
+            return persistenceManagerService.getReader(contentVersionRef).getContentInputStream();
+        } else {
+            throw new ContentNotFoundException(path + " is not found in site: " + site);
         }
     }
 
@@ -1481,48 +1468,44 @@ public class DmContentServiceImpl extends AbstractRegistrableService implements 
         String[] levels = path.split("/");
         int length = levels.length;
         if (length > 0) {
-            try {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-                if (node != null) {
-                    FileInfo nodeInfo = persistenceManagerService.getFileInfo(node);
-                    String name = nodeInfo.getName();
-                    //String parentPath = fullPath.replace("/" + name, "");
-                    String parentPath = DmUtils.getParentUrl(fullPath);
-                    NodeRef parentNode = persistenceManagerService.getPrimaryParent(node).getParentRef();
-                    if (parentNode != null) {
-                        int lastIndex = name.lastIndexOf(".");
-                        String ext = (nodeInfo.isFolder()) ? "" : name.substring(lastIndex);
-                        String originalName = (nodeInfo.isFolder()) ? name : name.substring(0, lastIndex);
-                        List<FileInfo> children = persistenceManagerService.list(parentNode);
-                        // pattern matching doesn't work here
-                        // String childNamePattern = originalName + "%" + ext;
-                        int lastNumber = 0;
-                        String namePattern = originalName + "\\-[0-9]+" + ext;
-                        if (children != null && children.size() > 0) {
-                            // since it is already sorted, we only care about the last matching item
-                            for (FileInfo child : children) {
-                                if ((nodeInfo.isFolder() == child.isFolder())) {
-                                    String childName = child.getName();
-                                    if (childName.matches(namePattern)) {
-                                        Pattern pattern = (nodeInfo.isFolder()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
-                                        Matcher matcher = pattern.matcher(childName);
-                                        if (matcher.matches()) {
-                                            int helper = ContentFormatUtils.getIntValue(matcher.group(2));
-                                            lastNumber = (helper > lastNumber) ? helper : lastNumber;
-                                        }
+            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+            NodeRef node = persistenceManagerService.getNodeRef(fullPath);
+            if (node != null) {
+                FileInfo nodeInfo = persistenceManagerService.getFileInfo(node);
+                String name = nodeInfo.getName();
+                //String parentPath = fullPath.replace("/" + name, "");
+                String parentPath = DmUtils.getParentUrl(fullPath);
+                NodeRef parentNode = persistenceManagerService.getPrimaryParent(node).getParentRef();
+                if (parentNode != null) {
+                    int lastIndex = name.lastIndexOf(".");
+                    String ext = (nodeInfo.isFolder()) ? "" : name.substring(lastIndex);
+                    String originalName = (nodeInfo.isFolder()) ? name : name.substring(0, lastIndex);
+                    List<FileInfo> children = persistenceManagerService.list(parentNode);
+                    // pattern matching doesn't work here
+                    // String childNamePattern = originalName + "%" + ext;
+                    int lastNumber = 0;
+                    String namePattern = originalName + "\\-[0-9]+" + ext;
+                    if (children != null && children.size() > 0) {
+                        // since it is already sorted, we only care about the last matching item
+                        for (FileInfo child : children) {
+                            if ((nodeInfo.isFolder() == child.isFolder())) {
+                                String childName = child.getName();
+                                if (childName.matches(namePattern)) {
+                                    Pattern pattern = (nodeInfo.isFolder()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
+                                    Matcher matcher = pattern.matcher(childName);
+                                    if (matcher.matches()) {
+                                        int helper = ContentFormatUtils.getIntValue(matcher.group(2));
+                                        lastNumber = (helper > lastNumber) ? helper : lastNumber;
                                     }
                                 }
                             }
                         }
-                        String nextName = originalName + "-" + ++lastNumber + ext;
-                        return nextName;
-                    } else {
-                        // if parent doesn't exist, it is new item so the current name is available one
                     }
+                    String nextName = originalName + "-" + ++lastNumber + ext;
+                    return nextName;
+                } else {
+                    // if parent doesn't exist, it is new item so the current name is available one
                 }
-            } catch (AVMBadArgumentException e) {
-                // ignore the exception
             }
         } else {
             // cannot generate a name

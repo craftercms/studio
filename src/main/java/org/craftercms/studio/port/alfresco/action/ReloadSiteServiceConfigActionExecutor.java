@@ -41,12 +41,12 @@ public class ReloadSiteServiceConfigActionExecutor extends ActionExecuterAbstrac
         this._siteService = siteService;
     }
 
-    @Override
+
     protected void executeImpl(Action action, NodeRef actionedUponNodeRef) {
         this._siteService.reloadSiteConfigurations();
     }
 
-    @Override
+
     protected void addParameterDefinitions(List<ParameterDefinition> paramList) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
