@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+       <bean id="cstudioServicesManager" class="org.craftercms.cstudio.alfresco.service.ServicesManager" />
+
+       <bean id="cstudioRegistrableService" class="org.craftercms.cstudio.alfresco.service.AbstractRegistrableService"
+             abstract="true" init-method="register">
+              <property name="servicesManager" ref="cstudioServicesManager" />
+       </bean>
+
+       <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.cstudio.impl.service.deployment.DeploymentServiceImpl" >
+              <!--property name="contentRepository" ref="cstudioContentRepository" / -->
+              <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
+       </bean>
+
+       <bean id="cstudioDmDeploymentService" class="org.craftercms.cstudio.alfresco.dm.service.impl.DmDeploymentServiceImpl"
+             parent="cstudioRegistrableService">
+              <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
+       </bean>
+</beans>
