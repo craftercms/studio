@@ -25,9 +25,6 @@
 		<tika.version>1.5</tika.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
-
-        <!-- to be removed -->
-        <alfresco.version>4.2.e</alfresco.version>
 	</properties>
 
 	<licenses>
@@ -62,31 +59,6 @@
 
 
     <repositories>
-<!-- TO BE REMOVED BEGIN -->
-<!--        <repository>
-            <id>alfresco</id>
-            <name>Alfresco Repo</name>
-            <url>https://artifacts.alfresco.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>
-
-        <repository>
-            <id>opensymphony-releases-opensymphony</id>
-            <name>Opensymphony Releases</name>
-            <url>https://oss.sonatype.org/content/repositories/opensymphony-releases</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>-->
-<!-- TO BE REMOVED END -->
-
-
         <repository>
             <id>sonatype-snapshots</id>
             <name>sonatype Snapshots</name>
@@ -108,174 +80,50 @@
 
 
     <dependencies>
-<!--
-        <dependency>
-            <groupId>org.springframework.extensions.surf</groupId>
-            <artifactId>spring-webscripts</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency> 
-            <groupId>org.springframework.extensions.surf</groupId>
-            <artifactId>spring-surf-core</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.extensions.surf</groupId>
-            <artifactId>spring-cmis-framework</artifactId>
-            <version>1.2.0-M14</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.extensions.surf</groupId>
-            <artifactId>spring-surf</artifactId>
-            <version>1.2.0-M14</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.extensions.surf</groupId>
-            <artifactId>spring-webscripts-api</artifactId>
-            <version>1.2.0-M14</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-repository</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-security-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-core</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-data-model</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-web-client</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.alfresco</groupId>
-                    <artifactId>alfresco-web-framework-commons</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xml-apis</groupId>
-                    <artifactId>xml-apis</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-web-framework-commons</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.yahoo.platform.yui</groupId>
-                    <artifactId>yuicompressor</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-wdr-deployment</artifactId>
-            <version>4.2.e</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-mbeans</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-jlan-embed</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-deployment</artifactId>
-            <version>${alfresco.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.2.3</version>
-            <classifier>jdk15</classifier>
-            <scope>compile</scope>
-        </dependency>
--->
 
         <!-- ported alf layer -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>3.0.5.RELEASE</version>
-        </dependency>
         <dependency>
             <groupId>javolution</groupId>
             <artifactId>javolution</artifactId>
             <version>5.5.0</version>
+            <scope>provided</scope>
         </dependency>
       <dependency>
             <groupId>javax.transaction</groupId>
             <artifactId>jta</artifactId>
             <version>1.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.sf.json-lib</groupId>
             <artifactId>json-lib</artifactId>
             <version>2.2.3</version>
             <classifier>jdk15</classifier>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20141113</version>
+            <scope>provided</scope>
         </dependency>        
         <dependency>
             <groupId>org.apache.ibatis</groupId>
             <artifactId>ibatis-sqlmap</artifactId>
             <version>2.3.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>acegisecurity</groupId>
             <artifactId>acegi-security</artifactId>
             <version>0.8.2</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -296,13 +144,14 @@
             <artifactId>ehcache</artifactId>
             <version>2.1.1</version>
             <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>3.0.5.RELEASE</version>
+            <scope>provided</scope>
         </dependency>
 
+        <dependency>  
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>4.0.3.RELEASE</version>
+        </dependency>
 
 
         <!-- Crafter Engine -->
