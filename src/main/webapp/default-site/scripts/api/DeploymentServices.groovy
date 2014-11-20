@@ -20,4 +20,14 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getContentServices(context)
         return deploymentServicesImpl.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
+
+    /** 
+     * get the scheduled items for a site
+     * @param site - the project ID
+     * @param filter - filters to apply to listing
+     */ 
+    static getScheduledItems(site, filter) {
+
+    }
+
 }

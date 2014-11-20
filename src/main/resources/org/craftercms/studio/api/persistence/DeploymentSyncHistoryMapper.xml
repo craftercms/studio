@@ -16,11 +16,11 @@
     GROUP BY dsh2.site, dsh2.path, dsh2.target, DATE(dsh2.syncdate)) as dsh3
     ON dsh1.path = dsh3.path and dsh1.target = dsh3.target and dsh1.syncdate = dsh3.syncdate
     WHERE dsh1.site = #site#
-    <dynamic prepend=" AND ">
+    <!--dynamic prepend=" AND ">
       <isNotNull property="filter">
         dsh1.contenttypeclass=#filter#
       </isNotNull>
-    </dynamic>
+    </dynamic-->
     ORDER BY dsh1.syncdate desc LIMIT #limit#
   </select>
 
