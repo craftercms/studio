@@ -3,7 +3,7 @@ package scripts.api
 import scripts.libs.Cookies
 import scripts.api.impl.alfresco.AlfContentServices;
 import scripts.api.impl.alfresco.AlfClipboardServices;
-import scripts.api.impl.subsystems.deployment.DeploymentServiceFacade;
+import scripts.api.impl.subsystems.deployment.SpringDeploymentServices;
 
 /**
  * workflow services
@@ -12,16 +12,16 @@ class ServiceFactory {
 	
 	static createContext(applicationContext, request) {
 		def context = [:]
+		context.token = ""
+		context.applicationContext = applicationContext
 
 		if(request != null) {
 			context.token = Cookies.getCookieValue("ccticket", request) 
 		
 			if(context.token == null) {
-				context.token = request.getParameter("ticket");	
+				context.token = request.getParameter("ticket")
 			}
 		}
-
-		context.applicationContext = applicationContext
 
 		return context
 	}
@@ -49,7 +49,7 @@ class ServiceFactory {
 	 * @param context site context
 	 * @return DeploymentServices
 	 */
-	static getClipboardServices(context) {
-		return new DeploymentServiceFacade(context)
+	static getDeploymentServices(context) {
+		return new SpringDeploymentServices(context)
 	}
 }

@@ -16,8 +16,18 @@ class DeploymentServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
-    static getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType) {
-        def deploymentServicesImpl = ServiceFactory.getContentServices(context)
+    /** 
+     * Return deployment history for a give nsite
+     * @param site - the project ID
+     * @param daysFromToday - number of days back to get
+     * @param numberOfItems - number of items to get 
+     * @param sort - field to sort on
+     * @param ascending - true or false
+     * @param filterType - pages/components/all 
+     * @paran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType, context) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
 
