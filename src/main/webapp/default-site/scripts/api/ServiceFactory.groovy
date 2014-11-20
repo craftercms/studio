@@ -3,6 +3,7 @@ package scripts.api
 import scripts.libs.Cookies
 import scripts.api.impl.alfresco.AlfContentServices;
 import scripts.api.impl.alfresco.AlfClipboardServices;
+import scripts.api.impl.subsystems.deployment.DeploymentServiceFacade;
 
 /**
  * workflow services
@@ -41,4 +42,14 @@ class ServiceFactory {
     static getClipboardServices(context) {
         return new AlfClipboardServices(context)
     }
+
+	/**
+	 * return the implementation for deployment services
+	 *
+	 * @param context site context
+	 * @return DeploymentServices
+	 */
+	static getClipboardServices(context) {
+		return new DeploymentServiceFacade(context)
+	}
 }
