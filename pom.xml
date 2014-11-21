@@ -158,7 +158,6 @@
             <groupId>javax.transaction</groupId>
             <artifactId>jta</artifactId>
             <version>1.1</version>
-            <!--scope>provided</scope-->
         </dependency>
 
         <!-- collections -->
@@ -166,7 +165,6 @@
             <groupId>javolution</groupId>
             <artifactId>javolution</artifactId>
             <version>5.5.0</version>
-            <!--scope>provided</scope-->
         </dependency>
 
     </dependencies>
