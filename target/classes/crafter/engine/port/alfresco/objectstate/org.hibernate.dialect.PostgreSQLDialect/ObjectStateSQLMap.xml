@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL MAP 2.0//EN"
+        "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="objectState">
+
+    <typeAlias alias="objectState"
+               type="org.craftercms.cstudio.alfresco.objectstate.ObjectStateDAO" />
+
+    <typeAlias alias="indexCheckTO"
+               type="org.craftercms.cstudio.alfresco.to.TableIndexCheckTO" />
+
+    <cacheModel id="objectStateCache" type="LRU" readOnly="false">
+        <flushInterval hours="24" />
+        <flushOnExecute statement="objectState.insertEntry" />
+        <flushOnExecute statement="objectState.setObjectState" />
+        <flushOnExecute statement="objectState.setSystemProcessing" />
+        <flushOnExecute statement="objectState.setSystemProcessingBulk" />
+        <flushOnExecute statement="objectState.updateObjectPath" />
+        <flushOnExecute statement="objectState.deleteObjectStatesForSite" />
+        <property name="cache-size" value="1000" />
+    </cacheModel>
+
+    <resultMap id="objectStateResult" class="objectState">
+        <result property="objectId" column="object_id" />
+        <result property="site" column="site" />
+        <result property="path" column="path" />
+        <result property="state" column="state" />
+        <result property="systemProcessing" column="system_processing" />
+
+    </resultMap>
+
+    <select id="checkTableExists" resultClass="java.util.HashMap">
+        SELECT tablename FROM pg_tables WHERE tablename = 'cstudio_objectstate';
+    </select>
+
+    <insert id="createTable">
+        CREATE TABLE cstudio_objectstate
+        (
+        object_id varchar(255) NOT NULL,
+        site varchar(50) NOT NULL,
+        path varchar(2000) NOT NULL,
+        state varchar(255) NOT NULL,
+        system_processing bit(1) NOT NULL,
+        CONSTRAINT cstudio_objectstate_pkey PRIMARY KEY (object_id)
+        );
+    </insert>
+
+    <insert id="addObjectIndex">
+        CREATE INDEX cstudio_objectstate_object_idx
+        ON cstudio_objectstate USING btree (object_id);
+    </insert>
+
+    <select id="checkObjectIndex" resultClass="java.util.HashMap" cacheModel="objectStateCache">
+        select indexname from pg_indexes where indexname = 'cstudio_objectstate_object_idx';
+    </select>
+
+    <select id="checkPathSize" resultClass="java.lang.Integer">
+        SELECT character_maximum_length
+        FROM information_schema.columns
+        WHERE column_name = 'path'
+        AND table_name = 'cstudio_objectstate';
+    </select>
+
+    <select id="getObjectByStatus" resultSetType="FORWARD_ONLY"
+            resultMap="objectStateResult" cacheModel="objectStateCache"  parameterClass="java.util.Map">
+        SELECT object_id, site, path, state, system_processing
+        FROM "cstudio_objectstate"
+        <dynamic prepend=" WHERE state IN ">
+            <iterate property="states"  open="(" close=")" conjunction=",">
+                #states[]#
+            </iterate>
+        </dynamic>
+        and site=#site#
+    </select>
+
+    <select id="getObjectState" parameterClass="java.util.Map" resultMap="objectStateResult" cacheModel="objectStateCache">
+        SELECT object_id, site, path, state, system_processing
+        FROM "cstudio_objectstate"
+        WHERE object_id = #object_id#;
+    </select>
+
+    <update id="setObjectState" parameterClass="java.util.Map">
+        UPDATE "cstudio_objectstate"
+        SET state = #state#
+        WHERE object_id = #object_id#;
+    </update>
+
+    <update id="setSystemProcessing" parameterClass="java.util.Map">
+        UPDATE "cstudio_objectstate"
+        SET system_processing = case when (#system_processing# = TRUE) then 1::bit when (#system_processing# = FALSE) then 0::bit end
+        WHERE object_id = #object_id#;
+    </update>
+
+    <update id="setSystemProcessingBulk" parameterClass="java.util.Map">
+        UPDATE cstudio_objectstate
+        	SET system_processing = case when (#system_processing# = TRUE) then 1::bit when (#system_processing# = FALSE) then 0::bit end
+        <dynamic prepend=" WHERE object_id IN ">
+            <iterate property="object_ids"  open="(" close=")" conjunction=",">
+                #object_ids[]#
+            </iterate>
+        </dynamic>
+    </update>
+
+    <update id="updateObjectPath" parameterClass="java.util.Map">
+        UPDATE "cstudio_objectstate"
+        SET path = #path#
+        WHERE object_id = #object_id#;
+    </update>
+
+    <insert id="insertEntry" parameterClass="objectState" >
+        INSERT INTO
+        "cstudio_objectstate"
+        (object_id, site, path, state, system_processing)
+        VALUES
+        (#objectId#, #site#, #path#, #state#, B'0');
+    </insert>
+
+    <select id="isFolderLive" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        SELECT count(*) FROM "cstudio_objectstate" where site=#site# and path like #path# and state like 'EXISTING%';
+    </select>
+
+    <delete id="deleteObjectStatesForSite" parameterClass="String">
+        DELETE FROM "cstudio_objectstate"
+        WHERE site = #site#;
+    </delete>
+
+    <delete id="deleteObjectState" parameterClass="String">
+        DELETE FROM cstudio_objectstate
+        WHERE object_id = #object_id#;
+    </delete>
+
+    <delete id="deleteObjectStateForPath" parameterClass="java.util.Map">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #site#
+        AND path = #path#;
+    </delete>
+
+    <delete id="deleteObjectStateForPaths" parameterClass="java.util.Map">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #site#
+        <dynamic prepend=" AND path IN ">
+            <iterate property="paths"  open="(" close=")" conjunction=",">
+                #paths[]#
+            </iterate>
+        </dynamic>
+    </delete>
+
+    <select id="getObjectStates" resultSetType="FORWARD_ONLY"
+            resultMap="objectStateResult" cacheModel="objectStateCache"  parameterClass="java.util.Map">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        <dynamic prepend=" WHERE object_id IN ">
+            <iterate property="object_ids"  open="(" close=")" conjunction=",">
+                #object_ids[]#
+            </iterate>
+        </dynamic>
+    </select>
+
+    <update id="setObjectStateBulk" parameterClass="java.util.Map">
+        UPDATE cstudio_objectstate
+        SET state = #state#
+        <dynamic prepend=" WHERE object_id IN ">
+            <iterate property="object_ids"  open="(" close=")" conjunction=",">
+                #object_ids[]#
+            </iterate>
+        </dynamic>
+    </update>
+
+</sqlMap>

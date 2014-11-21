@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-message</shortname>
+  <description>get general message from repo by key</description>
+  <url>/cstudio/notification/get-message?site={site}&amp;key={key}</url>
+  <format default="html">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

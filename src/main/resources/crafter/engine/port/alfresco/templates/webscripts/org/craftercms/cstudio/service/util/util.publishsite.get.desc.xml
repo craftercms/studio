@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>publish a dm site</shortname>
+  <description>publish a dm ste</description>
+  <url>/cstudio/util/publish-site?site={site}&amp;channel={channel}&amp;path={path}&amp;size={size?}</url>
+  <format default="html">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

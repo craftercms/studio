@@ -1,0 +1,12 @@
+<webscript>
+  <shortname>get-cookie-domain</shortname>
+  <description>get the domain to read &amp; write cookies</description>
+  <url>/cstudio/site/get-cookie-domain</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>none</transaction>
+  <cache>
+        <never>false</never>
+        <public/>
+  </cache>
+</webscript>

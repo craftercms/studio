@@ -12878,3 +12878,10 @@ target/studio/default-site/templates/web/overlay-css.ftl
 target/studio/default-site/templates/web/search.ftl
 target/studio/default-site/templates/web/site-dashboard.ftl
 target/studio/default-site/templates/web/user-dashboard.ftl
+crafter-studio-2.iml
+.name
+.idea
+overlays
+createdFiles.lst
+inputFiles.lst
+.gitignore

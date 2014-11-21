@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>DM Retrieve Version History</shortname>
+  <description>DM Retrieve version history for a noderef</description>
+  <url>/cstudio/version/get-history?site={site}&amp;node={node}&amp;maxhistory={maxhistory}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

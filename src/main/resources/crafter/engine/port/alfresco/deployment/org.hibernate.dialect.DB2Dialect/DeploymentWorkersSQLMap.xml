@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL MAP 2.0//EN"
+        "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="deploymentWorkers">
+
+    <typeAlias alias="copyToEnvironmentItem"
+               type="org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem" />
+
+    <typeAlias alias="publishingSyncItem"
+               type="org.craftercms.cstudio.api.service.deployment.PublishingSyncItem" />
+
+    <typeAlias alias="deploymentSyncHistoryItem"
+               type="org.craftercms.cstudio.api.service.deployment.DeploymentSyncHistoryItem" />
+
+    <cacheModel id="deploymentWorkersCache" type="LRU" readOnly="false">
+        <flushInterval hours="24" />
+        <flushOnExecute statement="deploymentWorkers.setupItemsDeploymentState" />
+        <flushOnExecute statement="deploymentWorkers.insertItemForDeployment" />
+        <flushOnExecute statement="deploymentWorkers.insertItemForTargetSync" />
+        <flushOnExecute statement="deploymentWorkers.insertDeploymentSyncHistoryItem" />
+        <flushOnExecute statement="deploymentWorkers.cancelWorkflow" />
+        <property name="cache-size" value="1000" />
+    </cacheModel>
+
+    <resultMap id="copyToEnvironmentItemResult" class="copyToEnvironmentItem">
+        <result property="id" column="id" />
+        <result property="site" column="site" />
+        <result property="environment" column="environment" />
+        <result property="path" column="path" />
+        <result property="oldPath" column="oldpath" nullValue="NULL" />
+        <result property="user" column="username" />
+        <result property="scheduledDate" column="scheduledDate" />
+        <result property="state" column="state" />
+        <result property="action" column="action" />
+        <result property="contentTypeClass" column="contenttypeclass" />
+        <result property="submissionComment" column="submissioncomment" />
+    </resultMap>
+
+    <resultMap id="publishingSyncItemResult" class="publishingSyncItem">
+        <result property="id" column="id" />
+        <result property="site" column="site" />
+        <result property="environment" column="environment" />
+        <result property="path" column="path" />
+        <result property="oldPath" column="oldpath" />
+        <result property="user" column="username" />
+        <result property="timestampVersion" column="version" />
+        <result property="action" column="action" />
+        <result property="contentTypeClass" column="contenttypeclass" />
+    </resultMap>
+
+    <resultMap id="deploymentSyncHistoryItemResult" class="deploymentSyncHistoryItem">
+        <result property="id" column="id" />
+        <result property="syncDate" column="syncdate" />
+        <result property="site" column="site" />
+        <result property="environment" column="environment" />
+        <result property="path" column="path" />
+        <result property="target" column="target" />
+        <result property="user" column="username" />
+        <result property="contentTypeClass" column="contenttypeclass" />
+    </resultMap>
+
+    <select id="checkTableExistsCTE" resultClass="java.util.HashMap">
+        select * from syscat.tables where tabname = 'cstudio_copytoenvironment' AND ownertype = 'U'
+    </select>
+
+    <select id="checkTableExistsPTT" resultClass="java.util.HashMap">
+        select * from syscat.tables where tabname = 'cstudio_publishtotarget' AND ownertype = 'U'
+    </select>
+
+    <select id="checkTableExistsDSH" resultClass="java.util.HashMap">
+        select * from syscat.tables where tabname = 'cstudio_deploymentsynchistory' AND ownertype = 'U'
+    </select>
+
+    <select id="checkIfCTESCExists" resultClass="java.util.HashMap">
+        SELECT * FROM SYSCAT.COLUMNS WHERE "TABNAME" ='cstudio_copytoenvironment' AND COLNAME = 'submissioncomment'
+    </select>
+
+    <select id="checkCTEUsernameSize" resultClass="java.lang.Integer">
+        select length from sysibm.syscolumns where tbname = 'cstudio_copytoenvironment' and name = 'username'
+    </select>
+
+    <select id="checkPTTUsernameSize" resultClass="java.lang.Integer">
+        select length from sysibm.syscolumns where tbname = 'cstudio_publishtotarget' and name = 'username'
+    </select>
+
+    <select id="checkDSHUsernameSize" resultClass="java.lang.Integer">
+        select length from sysibm.syscolumns where tbname = 'cstudio_deploymentsynchistory' and name = 'username'
+    </select>
+
+    <select id="getItemsReadyForDeployment" resultMap="copyToEnvironmentItemResult"
+            cacheModel="deploymentWorkersCache">
+        SELECT *
+        FROM "cstudio_copytoenvironment"
+        WHERE "site" = #site#
+        AND "state" = #state#
+        AND "environment" = #environment#
+        AND "scheduleddate" &lt;= #now#
+        ORDER BY "scheduleddate" ASC
+    </select>
+
+    <update id="setupItemsDeploymentState" parameterClass="java.util.HashMap">
+        UPDATE "cstudio_copytoenvironment"
+        SET "state" = #state#
+        WHERE "id" IN
+        <dynamic prepend=" ">
+            <iterate property="itemIds"  open="(" close=")" conjunction=",">
+                #itemIds[]#
+            </iterate>
+        </dynamic>
+    </update>
+
+    <insert id="insertItemForDeployment" parameterClass="copyToEnvironmentItem">
+        INSERT INTO "cstudio_copytoenvironment" ("site", "environment", "path", "oldpath", "username", "scheduleddate", "state", "action", "contenttypeclass", "submissioncomment")
+        values (#site#, #environment#, #path#
+        <dynamic prepend=",">
+            <isNotNull property="oldPath">
+                #oldPath#
+            </isNotNull>
+            <isNull property="oldPath">
+                null
+            </isNull>
+        </dynamic>
+        <dynamic prepend=",">
+            <isNotNull property="user">
+                #user#
+            </isNotNull>
+            <isNull property="user">
+                null
+            </isNull>
+        </dynamic>
+        , #scheduledDate#, #state#, #action#
+        <dynamic prepend=",">
+            <isNotNull property="contentTypeClass">
+                #contentTypeClass#
+            </isNotNull>
+            <isNull property="contentTypeClass">
+                null
+            </isNull>
+        </dynamic>
+        <dynamic prepend=",">
+            <isNotNull property="submissionComment">
+                #submissionComment#
+            </isNotNull>
+            <isNull property="submissionComment">
+                null
+            </isNull>
+        </dynamic>)
+    </insert>
+
+    <insert id="insertItemForTargetSync" parameterClass="publishingSyncItem">
+        INSERT INTO "cstudio_publishtotarget" ("site", "environment", "path", "oldpath", "username", "version", "action", "contenttypeclass")
+        values (#site#, #environment#, #path#
+        <dynamic prepend=",">
+            <isNotNull property="oldPath">
+                #oldPath#
+            </isNotNull>
+            <isNull property="oldPath">
+                null
+            </isNull>
+        </dynamic>
+        , #user#, #timestampVersion#, #action#
+        <dynamic prepend=",">
+            <isNotNull property="contentTypeClass">
+                #contentTypeClass#
+            </isNotNull>
+            <isNull property="contentTypeClass">
+                null
+            </isNull>
+        </dynamic>)
+    </insert>
+
+    <select id="getItemsReadyForTargetSync" resultMap="publishingSyncItemResult"
+            cacheModel="deploymentWorkersCache">
+        SELECT *
+        FROM "cstudio_publishtotarget"
+        WHERE "site" = #site#
+        AND "environment"
+        <dynamic prepend="  IN ">
+            <iterate property="environments"  open="(" close=")" conjunction=",">
+                #environments[]#
+            </iterate>
+        </dynamic>
+        AND "version" = (
+            SELECT min("version") FROM "cstudio_publishtotarget"
+            WHERE "site" = #site#
+            AND "version" &gt; #version#
+            AND "environment"
+            <dynamic prepend="  IN ">
+                <iterate property="environments"  open="(" close=")" conjunction=",">
+                    #environments[]#
+                </iterate>
+            </dynamic>
+        )
+    </select>
+
+    <insert id="insertDeploymentSyncHistoryItem" parameterClass="deploymentSyncHistoryItem">
+        INSERT INTO "cstudio_deploymentsynchistory" ("syncdate", "site", "environment", "path", "target", "username", "contenttypeclass")
+        values (#syncDate#, #site#, #environment#, #path#, #target#, #user#, #contentTypeClass#)
+    </insert>
+
+    <select id="getDeploymentHistory" resultMap="deploymentSyncHistoryItemResult" cacheModel="deploymentWorkersCache">
+        SELECT "dsh1".*
+        FROM "cstudio_deploymentsynchistory" as "dsh1" INNER JOIN (
+        SELECT "dsh2"."site", "dsh2"."path", "dsh2"."target", MAX("dsh2"."syncdate") as "syncdate"
+        FROM "cstudio_deploymentsynchistory" as "dsh2"
+        WHERE "dsh2"."site" = #site#
+        AND "dsh2"."syncdate" BETWEEN #from_date# AND #to_date#
+        GROUP BY "dsh2"."site", "dsh2"."path", "dsh2"."target", DATE("dsh2"."syncdate")) as "dsh3"
+        ON "dsh1"."path" = "dsh3"."path" and "dsh1"."target" = "dsh3"."target" and "dsh1"."syncdate" = "dsh3"."syncdate"
+        WHERE "dsh1"."site" = #site#
+        <dynamic prepend=" AND ">
+            <isNotNull property="filter">
+                "dsh1"."contenttypeclass"=#filter#
+            </isNotNull>
+        </dynamic>
+        ORDER BY "dsh1"."syncdate" desc
+        fetch first $limit$ rows only
+    </select>
+
+    <select id="getScheduledItems" resultMap="copyToEnvironmentItemResult"
+            cacheModel="deploymentWorkersCache">
+        SELECT *
+        FROM "cstudio_copytoenvironment"
+        WHERE "site" = #site#
+        AND "state" = #state#
+        AND "scheduleddate" &gt; #now#
+        ORDER BY "scheduleddate" ASC
+    </select>
+
+    <update id="cancelWorkflow" parameterClass="java.util.HashMap">
+        UPDATE "cstudio_copytoenvironment"
+        SET "state" = #canceledstate#
+        WHERE "site" = #site#
+        AND "path" = #path#
+        AND "state" = #state#
+        AND "scheduleddate" &gt; #now#
+    </update>
+
+    <delete id="deleteCopyToEnvironmentForSite" parameterClass="String">
+        DELETE FROM "cstudio_copytoenvironment"
+        WHERE "site" = #site#
+    </delete>
+
+    <delete id="deletePublishToTargetForSite" parameterClass="String">
+        DELETE FROM "cstudio_publishtotarget"
+        WHERE "site" = #site#
+    </delete>
+
+    <delete id="deleteDeploymentSyncHistoryForSite" parameterClass="String">
+        DELETE FROM "cstudio_deploymentsynchistory"
+        WHERE "site" = #site#
+    </delete>
+</sqlMap>

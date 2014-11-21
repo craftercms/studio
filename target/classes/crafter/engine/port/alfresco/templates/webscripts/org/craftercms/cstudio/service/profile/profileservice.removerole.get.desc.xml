@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>remove-role</shortname>
+  <description>Remove role assigned to user</description>
+  <url>/cstudio/profile/remove-role?user={user}&amp;role={role}&amp;site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

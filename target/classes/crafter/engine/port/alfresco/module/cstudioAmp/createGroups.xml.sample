@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0" xmlns:cm="http://www.alfresco.org/model/content/1.0"
+           xmlns:sys="http://www.alfresco.org/model/system/1.0" xmlns:usr="http://www.alfresco.org/model/user/1.0" xmlns:app="http://www.alfresco.org/model/application/1.0">
+
+    <!-- The following contents should be imported into spaces store under path /${system.system_container.childname}  -->
+
+    <!-- Create groups GroupName1 and GroupName2 both containing UserName1-->
+    <view:reference view:pathref="sys:authorities">
+        <view:associations>
+            <sys:children>
+                <cm:authorityContainer view:childName="cm:GROUP_GroupName1">
+                    <view:aspects>
+                        <sys:referenceable />
+                    </view:aspects>
+                    <view:properties>
+                        <sys:node-uuid>GROUP_GroupName1</sys:node-uuid>
+                        <cm:name>GROUP_GroupName1</cm:name>
+                        <cm:authorityName>GROUP_GroupName1</cm:authorityName>
+                    </view:properties>
+                </cm:authorityContainer>
+                <cm:authorityContainer view:childName="cm:GROUP_GroupName2">
+                    <view:associations>
+                    </view:associations>
+                    <view:aspects>
+                        <sys:referenceable />
+                    </view:aspects>
+                    <view:properties>
+                        <cm:name>GROUP_GroupName2</cm:name>
+                        <sys:node-uuid>GROUP_GroupName2</sys:node-uuid>
+                        <cm:authorityName>GROUP_GroupName2</cm:authorityName>
+                    </view:properties>
+                </cm:authorityContainer>
+            </sys:children>
+        </view:associations>
+    </view:reference>
+
+    <!-- Add users and groups to AUTH.ALF zone -->
+    <view:reference view:pathref="sys:zones/cm:AUTH.ALF">
+        <view:associations>
+            <cm:inZone>
+                <view:reference view:pathref="sys:authorities/cm:GROUP_GroupName1"
+                                view:childName="cm:GROUP_GroupName1" />
+            </cm:inZone>
+            <cm:inZone>
+                <view:reference view:pathref="sys:authorities/cm:GROUP_GroupName2"
+                                view:childName="cm:GROUP_GroupName2" />
+            </cm:inZone>
+        </view:associations>
+    </view:reference>
+
+    <!-- Add users and groups to AUTH.DEFAULT zone -->
+    <view:reference view:pathref="sys:zones/cm:APP.DEFAULT">
+        <view:associations>
+            <cm:inZone>
+                <view:reference view:pathref="sys:authorities/cm:GROUP_GroupName1"
+                                view:childName="cm:GROUP_GroupName1" />
+            </cm:inZone>
+            <cm:inZone>
+                <view:reference view:pathref="sys:authorities/cm:GROUP_GroupName2"
+                                view:childName="cm:GROUP_GroupName2" />
+            </cm:inZone>
+        </view:associations>
+    </view:reference>
+
+
+</view:view>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Cache Store Adapter -->
+
+    <bean id="crafter.cacheStoreAdapter" class="org.craftercms.cstudio.alfresco.cache.impl.store.EhCacheStoreAdapter"/>
+
+    <bean id="crafter.cacheRefresher" class="org.craftercms.cstudio.alfresco.cache.impl.CacheRefresherImpl"/>
+
+    <bean id="crafter.cache" class="org.craftercms.cstudio.alfresco.cache.impl.CacheImpl">
+        <property name="cacheStoreAdapter" ref="crafter.cacheStoreAdapter"/>
+        <property name="cacheRefresher" ref="crafter.cacheRefresher"/>
+    </bean>
+
+
+
+
+    <!-- Cache Ticker -->
+
+    <bean id="crafter.cacheTickerJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="crafter.cache"/>
+        <property name="targetMethod" value="tick"/>
+    </bean>
+
+    <bean id="crafter.cacheTickerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <property name="jobDetail" ref="crafter.cacheTickerJob"/>
+        <property name="startDelay" value="${crafter.core.cache.tick.frequency}" />
+        <property name="repeatInterval" value="${crafter.core.cache.tick.frequency}" />
+    </bean>
+
+    <bean id="crafter.cacheTickerScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean"
+          destroy-method="destroy">
+        <property name="triggers">
+            <list>
+                <ref bean="crafter.cacheTickerTrigger"/>
+            </list>
+        </property>
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.threadPool.threadCount">1</prop>
+            </props>
+        </property>
+    </bean>
+
+</beans>

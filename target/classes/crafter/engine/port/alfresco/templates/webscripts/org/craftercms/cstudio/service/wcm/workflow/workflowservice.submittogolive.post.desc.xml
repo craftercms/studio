@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>submit-items-to-go-live</shortname>
+  <description>Submit selected items to go live queue that are specifed in request body (json format)</description>
+  <url>/cstudio/wcm/workflow/submit-to-go-live?site={site}&amp;sub={sub?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>none</transaction>
+</webscript>

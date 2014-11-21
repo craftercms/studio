@@ -1,0 +1,3 @@
+{
+	cookieDomain:"${msg("cookieDomain")}"
+}

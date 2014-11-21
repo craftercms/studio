@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-go-live-items</shortname>
+  <description>Get go live items awaiting for approval in workflow</description>
+  <url>/cstudio/wcm/workflow/get-go-live-items?site={site}&amp;sub={sub?}&amp;sort={sort?}&amp;ascending={ascending?}&amp;inProgressOnly={inProgressOnly}&amp;includeInProgress={includeInProgress}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

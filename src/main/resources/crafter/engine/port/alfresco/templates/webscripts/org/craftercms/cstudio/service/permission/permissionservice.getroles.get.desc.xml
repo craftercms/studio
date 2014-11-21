@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-roles</shortname>
+  <description>Get roles </description>
+  <url>/cstudio/permission/get-roles?site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

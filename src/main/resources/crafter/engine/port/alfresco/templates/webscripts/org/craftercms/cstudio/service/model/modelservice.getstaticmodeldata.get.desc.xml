@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-static-model-data</shortname>
+  <description>Get static model data defined in files</description>
+  <url>/cstudio/model/get-static-model-data?site={site}&amp;key={key}</url>
+  <format default="xml">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

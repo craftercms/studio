@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL MAP 2.0//EN"
+        "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="pageNavigationOrderSequence">
+
+    <typeAlias alias="pageNavigationOrderSequence"
+               type="org.craftercms.cstudio.alfresco.pagenavigationordersequence.PageNavigationOrderSequenceDAO" />
+
+    <typeAlias alias="indexCheckTO"
+               type="org.craftercms.cstudio.alfresco.to.TableIndexCheckTO" />
+
+    <cacheModel id="pageNavigationOrderSequenceCache" type="LRU" readOnly="true">
+        <flushInterval hours="24" />
+        <flushOnExecute statement="pageNavigationOrderSequence.increaseSequence" />
+        <flushOnExecute statement="pageNavigationOrderSequence.setSequence" />
+        <flushOnExecute statement="pageNavigationOrderSequence.createSequence" />
+        <flushOnExecute statement="pageNavigationOrderSequence.deleteSequence" />
+        <flushOnExecute statement="pageNavigationOrderSequence.deleteSequencesForSite" />
+        <property name="cache-size" value="1000" />
+    </cacheModel>
+
+    <resultMap id="pageNavigationOrderSequenceResult" class="pageNavigationOrderSequence">
+        <result property="folder_id" column="folder_id" />
+        <result property="site" column="site" />
+        <result property="path" column="path" />
+        <result property="max_count" column="max_count" />
+    </resultMap>
+
+    <select id="checkTableExists" resultClass="java.util.HashMap">
+        SELECT tablename FROM pg_tables WHERE tablename = 'cstudio_pagenavigationordersequence';
+    </select>
+
+    <insert id="createTable">
+        CREATE TABLE cstudio_pagenavigationordersequence
+        (
+        folder_id varchar(100) NOT NULL,
+        site varchar(50) NOT NULL,
+        path varchar(255) NOT NULL,
+        max_count real NOT NULL,
+        CONSTRAINT cstudio_pagenavigationordersequence_pkey PRIMARY KEY (folder_id)
+        );
+    </insert>
+
+    <insert id="addFolderIndex">
+        CREATE INDEX cstudio_pagenavigationorder_folder_idx
+        ON cstudio_pagenavigationordersequence USING btree (folder_id);
+    </insert>
+
+    <select id="checkFolderIndex" resultClass="java.util.HashMap" cacheModel="pageNavigationOrderSequenceCache">
+        select indexname from pg_indexes where indexname = 'cstudio_pagenavigationorder_folder_idx';
+    </select>
+
+    <select id="getSequence" parameterClass="String" resultMap="pageNavigationOrderSequenceResult" cacheModel="pageNavigationOrderSequenceCache">
+        SELECT folder_id, site, path, max_count
+        FROM "cstudio_pagenavigationordersequence"
+        WHERE folder_id = #folder_id#
+    </select>
+
+    <insert id="createSequence" parameterClass="pageNavigationOrderSequence" >
+        INSERT INTO
+        "cstudio_pagenavigationordersequence"
+        (folder_id, site, path, max_count)
+        VALUES
+        (#folder_id#, #site#, #path#, #max_count#)
+    </insert>
+
+    <delete id="deleteSequence" parameterClass="String">
+        DELETE FROM
+        "cstudio_pagenavigationordersequence"
+        WHERE folder_id = #folder_id#
+    </delete>
+
+    <delete id="deleteSequencesForSite" parameterClass="String">
+        DELETE FROM
+        "cstudio_pagenavigationordersequence"
+        WHERE site = #site#
+    </delete>
+
+    <update id="increaseSequence" parameterClass="String" >
+        UPDATE "cstudio_pagenavigationordersequence"
+        SET max_count = (max_count + 1000)
+        WHERE folder_id = #folder_id#
+    </update>
+
+    <update id="setSequence" parameterClass="pageNavigationOrderSequence" >
+        UPDATE "cstudio_pagenavigationordersequence"
+        SET max_count = (max_count + #max_count#)
+        WHERE folder_id = #folder_id#
+    </update>
+
+</sqlMap>

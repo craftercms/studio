@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-write-content-to-preview</shortname>
+  <description>write content to preview</description>
+  <url>/cstudio/wcm/preview/write-content?site={site}&amp;path={path}&amp;fileName={fileName?}&amp;contentType={contentType}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>none</transaction>
+</webscript>

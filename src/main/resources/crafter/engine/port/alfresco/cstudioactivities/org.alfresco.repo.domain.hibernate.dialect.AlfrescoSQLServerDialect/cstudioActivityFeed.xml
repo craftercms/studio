@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap
+        PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="customactivityfeed">
+
+    <typeAlias alias="CStudioActivityFeed" type="org.craftercms.cstudio.alfresco.activityfeed.CStudioActivityFeedDAO"/>
+
+    <typeAlias alias="indexCheckTO"
+               type="org.craftercms.cstudio.alfresco.to.TableIndexCheckTO" />
+
+    <resultMap id="CStudioActivityFeedResult" class="CStudioActivityFeed">
+        <result property="id" column="id"/>
+        <result property="userId" column="post_user_id"/>
+        <!-- not an explicit FK constraint, can dangle if and when activity post is deleted -->
+        <result property="siteNetwork" column="site_network"/>
+        <result property="type" column="activity_type"/>
+        <result property="contentId" column="content_id"/>
+        <result property="contentType" column="content_type"/>
+        <result property="summary" column="summary"/>
+        <result property="summaryFormat" column="summary_format"/>
+        <result property="creationDate" column="creation_date"/>
+        <result property="modifiedDate" column="modified_date" jdbcType="DATETIME" javaType="java.util.Date"/>
+    </resultMap>
+
+    <select id="checkTableExists" resultClass="java.util.HashMap">
+        SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[cstudio_activity]') AND type in (N'U')
+    </select>
+
+    <insert id="createTable">
+CREATE TABLE [dbo].[cstudio_activity](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[modified_date] [datetime] NOT NULL,
+	[creation_date] [datetime] NOT NULL,
+	[summary] [nvarchar](4000) NOT NULL,
+	[summary_format] [nvarchar](255) NOT NULL,
+	[content_id] [nvarchar](4000) NOT NULL,
+	[site_network] [nvarchar](255) NOT NULL,
+	[activity_type] [nvarchar](255) NOT NULL,
+	[content_type] [nvarchar](255) NOT NULL,
+	[post_user_id] [nvarchar](255) NOT NULL,
+ CONSTRAINT [PK_cstudio_activity] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+</insert>
+
+    <insert id="addUserIndex">
+        CREATE NONCLUSTERED INDEX [cstudio_activity_user_idx] ON [dbo].[cstudio_activity] ( [post_user_id] ASC )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+    </insert>
+
+    <select id="checkUserIndex" resultClass="java.util.HashMap">
+        SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[cstudio_activity]') AND name = N'cstudio_activity_user_idx'
+    </select>
+
+    <insert id="addSiteIndex">
+        CREATE NONCLUSTERED INDEX [cstudio_activity_site_idx] ON [dbo].[cstudio_activity] ( [site_network] ASC )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+    </insert>
+
+    <select id="checkSiteIndex" resultClass="java.util.HashMap">
+        SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[cstudio_activity]') AND name = N'cstudio_activity_site_idx'
+    </select>
+
+    <insert id="addContentIndex">
+        CREATE NONCLUSTERED INDEX [cstudio_activity_content_idx] ON [dbo].[cstudio_activity] ( [content_id] ASC )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+    </insert>
+
+    <select id="checkContentIndex" resultClass="java.util.HashMap">
+        SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[cstudio_activity]') AND name = N'cstudio_activity_content_idx'
+    </select>
+
+    <select id="select" parameterClass="java.util.HashMap" resultMap="CStudioActivityFeedResult">
+      <![CDATA[
+      select * from cstudio_activity
+      where post_user_id = #userId#
+      and site_network = #siteNetwork#
+      and summary_format = #summaryFormat#
+      and [id] in
+        (select top (#feedSize:int#) [id] from cstudio_activity
+        where post_user_id = #userId#
+        and site_network = #siteNetwork#
+        and summary_format = #summaryFormat#
+         and id not in
+          (select top (#startPos:int#) [id]
+          from cstudio_activity
+          where post_user_id = #userId#
+          and site_network = #siteNetwork#
+          and summary_format = #summaryFormat#
+          order by modified_date desc)
+        order by modified_date desc)
+      order by modified_date desc
+        ]]>
+   </select>
+
+    <select id="selectByContentType" parameterClass="java.util.HashMap" resultMap="CStudioActivityFeedResult">
+      <![CDATA[
+
+      SELECT * FROM cstudio_activity
+      where post_user_id = #userId#
+      and site_network = #siteNetwork#
+      and summary_format = #summaryFormat#
+      and content_type = #contentType#
+      and [id] IN
+        (SELECT TOP (#feedSize:int#) [id] FROM cstudio_activity
+        where post_user_id = #userId#
+        and site_network = #siteNetwork#
+        and summary_format = #summaryFormat#
+        and content_type = #contentType#
+        and [id] NOT IN
+            (SELECT TOP (#startPos:int#) [id]
+            from cstudio_activity
+              where post_user_id = #userId#
+              and site_network = #siteNetwork#
+              and summary_format = #summaryFormat#
+              and content_type = #contentType#
+              order by modified_date desc)
+        ORDER BY modified_date desc)
+      ORDER BY modified_date desc
+
+        ]]>
+   </select>
+
+    <select id="selectHideLive" parameterClass="java.util.HashMap" resultMap="CStudioActivityFeedResult">
+      <![CDATA[
+      select act.*
+      from cstudio_activity act
+      inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+      where act.post_user_id = #userId#
+      and act.site_network = #siteNetwork#
+      and act.summary_format = #summaryFormat#
+      and act.[id] in
+        (select top (#feedSize:int#) [id] from cstudio_activity
+        where post_user_id = #userId#
+        and site_network = #siteNetwork#
+        and summary_format = #summaryFormat#
+         and id not in
+          (select top (#startPos:int#) [id]
+          from cstudio_activity
+          where post_user_id = #userId#
+          and site_network = #siteNetwork#
+          and summary_format = #summaryFormat#
+          order by modified_date desc)
+        order by modified_date desc)
+        ]]>
+        <dynamic prepend=" and os.state NOT IN ">
+            <iterate property="states"  open="(" close=")" conjunction=",">
+                #states[]#
+            </iterate>
+        </dynamic>
+        <![CDATA[
+      order by act.modified_date desc
+        ]]>
+   </select>
+
+    <select id="selectByContentTypeHideLive" parameterClass="java.util.HashMap" resultMap="CStudioActivityFeedResult">
+      <![CDATA[
+
+      SELECT act.*
+      FROM cstudio_activity act
+      inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+      where act.post_user_id = #userId#
+      and act.site_network = #siteNetwork#
+      and act.summary_format = #summaryFormat#
+      and act.content_type = #contentType#
+      and act.[id] IN
+        (SELECT TOP (#feedSize:int#) [id] FROM cstudio_activity
+        where post_user_id = #userId#
+        and site_network = #siteNetwork#
+        and summary_format = #summaryFormat#
+        and content_type = #contentType#
+        and [id] NOT IN
+            (SELECT TOP (#startPos:int#) [id]
+            from cstudio_activity
+              where post_user_id = #userId#
+              and site_network = #siteNetwork#
+              and summary_format = #summaryFormat#
+              and content_type = #contentType#
+              order by modified_date desc)
+        ORDER BY modified_date desc)
+        ]]>
+        <dynamic prepend=" and os.state NOT IN ">
+            <iterate property="states"  open="(" close=")" conjunction=",">
+                #states[]#
+            </iterate>
+        </dynamic>
+        <![CDATA[
+      ORDER BY act.modified_date desc
+
+        ]]>
+   </select>
+
+    <select id="getCountUserContentFeedEntries" parameterClass="java.util.HashMap" resultClass="int">
+      <![CDATA[
+
+      select count(*)
+      from cstudio_activity
+      where post_user_id = #userId#
+      and site_network = #siteNetwork#
+      and content_id = #contentId#
+
+        ]]>
+   </select>
+
+
+    <insert id="insert" parameterClass="CStudioActivityFeed">
+        insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
+        modified_date, site_network,content_id,content_type)
+        values (#type#, #summary#, #summaryFormat#, #userId#, #creationDate#, #modifiedDate#,
+        #siteNetwork#,#contentId#,#contentType#)
+    </insert>
+
+    <delete id="delete" parameterClass="Date">
+      <![CDATA[
+
+      delete from alf_activity_feed where modified_date < #keepdate#
+
+        ]]>
+   </delete>
+
+    <update id="updatefeedentry" parameterClass="CStudioActivityFeed">
+   <![CDATA[
+
+   	  update cstudio_activity set activity_type=#type#,
+   	   summary=#summary#,
+   	   modified_date=#modifiedDate#,
+   	   content_type=#contentType#
+   	   where content_id = #contentId# and post_user_id = #userId# and site_network=#siteNetwork#
+
+        ]]>
+   </update>
+
+    <update id="updatesummary" parameterClass="CStudioActivityFeed">
+      <![CDATA[
+
+      update cstudio_activity set summary=#summary# 
+      where content_id = #contentId# and site_network = #siteNetwork#
+
+        ]]>
+   </update>
+
+
+	<update id="updateurl" parameterClass="java.util.HashMap">
+      <![CDATA[
+      update cstudio_activity set content_id=#newUrl# where content_id = #oldUrl# and site_network=#site#
+      ]]>
+   </update>
+
+
+   	<delete id="deleteOldActivity" parameterClass="java.util.HashMap">
+      <![CDATA[
+    	DELETE FROM cstudio_activity  where site_network=#site# and  content_id=#newUrl#
+      ]]>
+   </delete>
+
+    <delete id="deleteActivitiesForSite" parameterClass="String">
+        DELETE FROM cstudio_activity
+        WHERE site_network = #site#;
+    </delete>
+
+    <select id="getDeletedActivity" parameterClass="java.util.HashMap" resultMap="CStudioActivityFeedResult">
+      <![CDATA[
+
+      select *
+      from cstudio_activity
+      where site_network = #siteNetwork#
+	  and content_id = #contentId#
+	  and activity_type = #activityType#
+	  order by modified_date DESC
+
+        ]]>
+   </select>
+
+</sqlMap>

@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-taxonomies-all</shortname>
+  <description>Get all taxonomies</description>
+  <url>/cstudio/model/get-taxonomies-all?site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

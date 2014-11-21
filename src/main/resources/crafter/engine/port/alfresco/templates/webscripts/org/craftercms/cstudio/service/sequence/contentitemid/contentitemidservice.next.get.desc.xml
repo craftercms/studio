@@ -1,0 +1,7 @@
+<webscript>
+  <shortname>content-item-id-service</shortname>
+  <description>Content Item Id Service Webscript for CStudio</description>
+  <url>/cstudio/sequence/contentitemid/next</url>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

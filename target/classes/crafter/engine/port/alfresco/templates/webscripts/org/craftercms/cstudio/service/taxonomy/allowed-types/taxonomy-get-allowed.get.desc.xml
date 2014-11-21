@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>allowed taxonomy types</shortname>
+  <description>Allowed Taxonomy</description>
+  <url>/cstudio/taxonomy/allowed-types?path={path}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

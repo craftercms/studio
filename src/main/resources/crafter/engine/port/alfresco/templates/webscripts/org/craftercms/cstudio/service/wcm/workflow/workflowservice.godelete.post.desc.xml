@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-go-delete</shortname>
+  <description>approve WCM items to delete </description>
+  <url>/cstudio/wcm/workflow/go-delete?site={site}&amp;sub={sub?}&amp;user={user?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

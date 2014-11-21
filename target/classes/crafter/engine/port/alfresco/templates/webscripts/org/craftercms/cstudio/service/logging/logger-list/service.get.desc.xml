@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get logger list</shortname>
+  <description>Get Logger List</description>
+  <url>/cstudio/logging/loggers</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

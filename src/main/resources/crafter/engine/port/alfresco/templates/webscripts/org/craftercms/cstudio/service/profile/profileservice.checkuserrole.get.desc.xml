@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>check-user-role</shortname>
+  <description>Check user if that user has that role specified</description>
+  <url>/cstudio/profile/check-user-role?user={user}&amp;site={site}&amp;role={role}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

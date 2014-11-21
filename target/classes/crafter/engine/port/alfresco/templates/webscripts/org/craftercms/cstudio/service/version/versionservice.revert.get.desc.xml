@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>DM Revert Version</shortname>
+  <description>DM Revert Version for a noderef</description>
+  <url>/cstudio/version/revert?site={site}&amp;node={node}&amp;version={version}&amp;deep={deep}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

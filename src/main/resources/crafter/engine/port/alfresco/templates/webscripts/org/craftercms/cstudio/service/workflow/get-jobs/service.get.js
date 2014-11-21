@@ -1,0 +1,1 @@
+model.jobs = cstudioWorkflowService.getActiveJobs();

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- THIS NAME COLLIDES WITH ALFRESCO!! ALL OUR OBJECTS SHOULD START WITH cstudio!!!! -->
+	<bean id="cstudioFormServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.FormServiceScript">
+	    <property name="extensionName"><value>cstudioFormService</value></property>
+		 <property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+	    
+	<bean id="dmActivityServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.dm.script.DmActivityServiceScript">
+	    <property name="extensionName"><value>dmActivityService</value></property>
+	 <property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+    <bean id="dmContentServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmContentServiceScript">
+        <property name="extensionName"><value>dmContentService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmPreviewServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmPreviewServiceScript">
+        <property name="extensionName"><value>dmPreviewService</value></property>
+     <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmContentTypeServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmContentTypeServiceScript">
+        <property name="extensionName"><value>dmContentTypeService</value></property>
+       <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+
+    <bean id="dmDeploymentServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmDeploymentServiceScript">
+        <property name="extensionName"><value>dmDeploymentService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmWorkflowServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmWorkflowServiceScript">
+        <property name="extensionName"><value>dmWorkflowService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmControlScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmWorkflowControlScript">
+        <property name="extensionName"><value>dmWorkflowControlService</value></property>
+       <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmTimeZoneServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.TimeZoneScript">
+        <property name="extensionName"><value>timezoneService</value></property>
+        <property name="serviceManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="dmClipboardServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmClipboardServiceScript">
+        <property name="extensionName"><value>dmClipboardService</value></property>
+       <property name="servicesManager" ref="cstudioServicesManager" />
+        <!--<property name="dmTransactionService" ref="cstudioDmTransactionService" />-->
+    </bean>
+
+
+    <bean id="dmPublishingServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmPublishServiceScript">
+        <property name="extensionName"><value>dmPublishService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager"/>
+    </bean>
+
+    <bean id="dmSearchServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmSearchServiceScript">
+        <property name="extensionName"><value>dmSearchService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+
+	<bean id="cstudioSequenceServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.SequenceServiceScript">
+		<property name="extensionName"><value>sequenceService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+	<bean id="cstudioProfileServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.ProfileServiceScript">
+	    <property name="extensionName"><value>profileService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+	<bean id="cstudioModelServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.ModelServiceScript">
+	    <property name="extensionName"><value>modelService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+	<bean id="cstudioNotificationServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.NotificationServiceScript">
+	    <property name="extensionName"><value>notificationService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+	<bean id="cstudioSearchServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.SearchServiceScript">
+		<property name="extensionName"><value>searchService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+	<bean id="cstudioSiteServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.SiteServiceScript">
+		<property name="extensionName"><value>authoringSiteService</value></property>
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+	
+	<bean id="cstudioTaxonomyServiceScript" parent="baseJavaScriptExtension"
+        class="org.craftercms.cstudio.alfresco.script.TaxonomyServiceScript">
+        <property name="extensionName"><value>taxonomyService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+	
+	<bean id="cstudioDmVersionServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.DmVersionServiceScript">
+		<property name="servicesManager" ref="cstudioServicesManager" />
+	    <property name="extensionName"><value>dmVersionService</value></property>
+	</bean>
+	
+	<bean id="cstudioPermissionServiceScript" parent="baseJavaScriptExtension"
+		class="org.craftercms.cstudio.alfresco.script.PermissionServiceScript">
+	    <property name="extensionName"><value>permissionService</value></property>
+	   <property name="servicesManager" ref="cstudioServicesManager" />
+	</bean>
+
+    <bean id="cstudioContentItemIdServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.script.ContentItemIdServiceScript">
+        <property name="extensionName"><value>contentItemIdService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="cstudioDmImportScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmImportScript">
+        <property name="extensionName"><value>dmImport</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+        <property name="actionService" ref="ActionService" />
+    </bean>
+
+    <bean id="cstudioObjectStateServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.script.ObjectStateServiceScript">
+        <property name="extensionName"><value>objectStateService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="cstudioPageNavOrderSequenceServiceScript" parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.alfresco.dm.script.DmPageNavigationOrderSequenceServiceScript">
+        <property name="extensionName"><value>pageNavOrderSequenceService</value></property>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+
+<!-- ================= -->    
+    <bean id="cstudioWorkflowServiceScript"  parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.impl.servicedist.alfscript.WorkflowServiceScript">
+		<property name="extensionName"><value>cstudioWorkflowService</value></property>
+		<property name="workflowService" ref="cstudioWorkflowService" />
+    </bean>           
+
+    <bean id="cstudioLoggingScript"  parent="baseJavaScriptExtension"
+          class="org.craftercms.cstudio.impl.servicedist.alfscript.LoggingScript">
+		<property name="extensionName"><value>cstudioLogging</value></property>
+    </bean>           
+    
+</beans>

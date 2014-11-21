@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-multi-item-paste</shortname>
+  <description>paste multiple items provided in JSON request to the destination</description>
+  <url>/cstudio/wcm/clipboard/paste?site={site}&amp;sub={sub?}&amp;destination={destination}&amp;cut={cut?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

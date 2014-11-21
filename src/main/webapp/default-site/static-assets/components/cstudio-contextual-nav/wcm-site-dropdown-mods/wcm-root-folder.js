@@ -1588,8 +1588,8 @@ treeNode.getHtml = function() {
 
                         var item = content.item;
                         var jsonString= YAHOO.lang.JSON.stringify(item);
-                        var jsonArray="{item:["+jsonString+"]}";
-                        var cutRequest = CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/copy?site=" + CStudioAuthoringContext.site + "&cut=true";
+                        var jsonArray="{\"item\":["+jsonString+"]}";
+                        var cutRequest = CStudioAuthoringContext.baseUri + "/api/1/services/api/1/clipboard/cut-item.json?site=" + CStudioAuthoringContext.site;
 
                         var onComplete = {
                             success:function(response) {

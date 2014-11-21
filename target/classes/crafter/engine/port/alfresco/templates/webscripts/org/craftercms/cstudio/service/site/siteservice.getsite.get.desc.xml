@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-site</shortname>
+  <description>get site configuration by key</description>
+  <url>/cstudio/site/get-site?key={key}&amp;mappingKey={mappingKey?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>
