@@ -57,7 +57,8 @@ public class LoggerFactory {
 			retLogger = _provider.getLogger(target);
 		}
 		else {
-			throw new RuntimeException("no log provider available");
+			retLogger = new org.craftercms.cstudio.impl.log.ConsoleLoggerImpl();
+			retLogger.warn("no log provider available");
 		}
 		
 		return retLogger;
