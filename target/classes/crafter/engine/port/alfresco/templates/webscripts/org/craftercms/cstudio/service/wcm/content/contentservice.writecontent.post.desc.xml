@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-write-content</shortname>
-  <description>write content to wcm</description>
-  <url>/cstudio/wcm/content/write-content?site={site}&amp;path={path}&amp;fileName={fileName?}&amp;contentType={contentType}&amp;createFolders={createFolders?}&amp;oldContentPath={oldContentPath?};&amp;draft={draft?};&amp;duplicate={duplicate?}&amp;unlock={unlock?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

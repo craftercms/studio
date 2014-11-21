@@ -1,6 +1,0 @@
-<webscript>
-  <shortname>sequence-service</shortname>
-  <description>Sequence Service Webscript for CStudio</description>
-  <url>/cstudio/sequence/exists?namespace={namespace}</url>
-  <authentication>user</authentication>
-</webscript>

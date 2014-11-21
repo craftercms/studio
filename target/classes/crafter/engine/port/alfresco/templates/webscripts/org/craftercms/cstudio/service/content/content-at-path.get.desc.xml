@@ -1,8 +1,0 @@
-<webscript kind="org.alfresco.repository.content.stream.cstudio">
-  <shortname>content-at-path</shortname>
-  <description>get details of config at a given level</description>
-  <url>/cstudio/services/content/content-at-path?path={path}</url>
-  <format default="">argument</format>
-  <authentication>guest</authentication>
-  <transaction>required</transaction>
-</webscript>

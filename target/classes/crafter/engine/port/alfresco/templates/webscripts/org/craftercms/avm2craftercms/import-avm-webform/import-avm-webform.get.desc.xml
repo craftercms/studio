@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>import webform</shortname>
-  <description></description>
-  <url>/avmtocr/importform/action</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

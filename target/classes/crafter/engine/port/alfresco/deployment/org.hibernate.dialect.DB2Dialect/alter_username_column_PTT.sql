@@ -1,1 +1,0 @@
-ALTER TABLE "cstudio_publishtotarget" ALTER COLUMN "username" SET DATA TYPE VARCHAR(255);

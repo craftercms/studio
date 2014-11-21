@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>upload-content-asset</shortname>
-  <description>upload content asset</description>
-  <url>/cstudio/wcm/content/upload-content-asset?draft={draft?}&amp;unlock={unlock?}&amp;systemAsset={systemAsset?}</url>
-  <format default="html">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

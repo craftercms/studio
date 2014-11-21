@@ -1,1 +1,0 @@
-ALTER TABLE `cstudio_copytoenvironment` modify `username` VARCHAR(255);

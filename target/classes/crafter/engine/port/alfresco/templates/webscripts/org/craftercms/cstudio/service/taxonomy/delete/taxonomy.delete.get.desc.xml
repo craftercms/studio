@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>delete taxonomy</shortname>
-  <description>Delete Taxonomy</description>
-  <url>/cstudio/taxonomy/delete?path={path}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

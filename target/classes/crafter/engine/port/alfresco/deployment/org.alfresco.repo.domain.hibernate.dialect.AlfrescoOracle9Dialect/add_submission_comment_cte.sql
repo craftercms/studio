@@ -1,1 +1,0 @@
-ALTER TABLE cstudio_copytoenvironment ADD submissioncomment CLOB NULL;

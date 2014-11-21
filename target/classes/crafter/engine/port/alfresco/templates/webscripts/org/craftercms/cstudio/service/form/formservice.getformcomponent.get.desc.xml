@@ -1,7 +1,0 @@
-<webscript>
-	<shortname>get-form-definition</shortname>
-	<description>Get XForm component from DM</description>
-	<url>/cstudio/form/getformcomponent?formId={formId}&amp;componentName={componentName}</url>
-	<format default="html">argument</format>
-	<authentication>user</authentication>
-</webscript>

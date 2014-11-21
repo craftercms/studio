@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-get-all-content-types</shortname>
-  <description>get all wcm content types</description>
-  <url>/cstudio/wcm/contenttype/get-all-content-types?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>Groups</shortname>
-  <description>Return list of people in a group</description>
-  <url>/cstudio/people/groups?u=${groupName}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

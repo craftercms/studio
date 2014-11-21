@@ -1,1 +1,0 @@
-ALTER TABLE cstudio_deploymentsynchistory modify username VARCHAR2(255);
