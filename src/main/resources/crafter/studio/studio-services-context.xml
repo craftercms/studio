@@ -31,18 +31,18 @@
     </bean>
 
     <bean id="cstudioTransactionServiceSimple" class="org.craftercms.cstudio.impl.service.transaction.TransactionServiceImpl">
-        <!--property name="contentRepository" ref="cstudioContentRepository" /-->
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioAuthenticationServiceSimple" class="org.craftercms.cstudio.impl.service.authentication.AuthenticationServiceImpl">
-        <!--property name="contentRepository" ref="cstudioContentRepository" /-->
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioSiteServiceSimple" class="org.craftercms.cstudio.impl.service.site.SiteServiceImpl">
         <property name="siteServiceDAL">
           <bean id="cstudioRepositorySiteServiceDAL" 
                 class="org.craftercms.cstudio.impl.service.site.dal.RepositorySiteServiceDAL">
-              <!--property name="contentRepository" ref="cstudioContentRepository" /-->
+              <property name="contentRepository" ref="cstudioContentRepository" />
           </bean>
         </property>
     </bean>
@@ -55,7 +55,7 @@
     </bean>
 
      <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.cstudio.impl.service.deployment.DeploymentServiceImpl" >
-            <!--property name="contentRepository" ref="cstudioContentRepository" / -->
+            <property name="contentRepository" ref="cstudioContentRepository" />
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
@@ -90,10 +90,10 @@
       <property name="username" value="username" />
       <property name="password" value="password" />
       <property name="javaMailProperties">
-         <props>
-                  <prop key="mail.smtp.auth">true</prop>
-                  <prop key="mail.smtp.starttls.enable">true</prop>
-               </props>
+        <props>
+          <prop key="mail.smtp.auth">true</prop>
+          <prop key="mail.smtp.starttls.enable">true</prop>
+        </props>
       </property>
     </bean>
 
@@ -116,7 +116,7 @@
     </bean>
 
     <bean id="cstudioTranslationContentDAL" class="org.craftercms.cstudio.impl.service.translation.dal.repository.RepositoryTranslationContentDAL">
-        <!-- property name="contentRepository" ref="cstudioContentRepository" /-->
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioWorkflowManager" class="org.craftercms.cstudio.impl.service.workflow.WorkflowManager">
@@ -210,4 +210,14 @@
         <property name="initializeScriptPath" value="alfresco/workflow/${hibernate.dialect}/initialize.sql"/>
     </bean-->
 
+    <!-- ////////////////////////////////////// -->
+    <!--         repository layer               -->
+    <!-- ////////////////////////////////////// -->
+    <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
+    <bean id="cstudioContentRepository" class="org.craftercms.cstudio.impl.repository.alfresco.AlfrescoContentRepository">
+        <!--property name="dmContentService" ref="cstudioDmContentService" />
+        <property name="servicesManager" ref="cstudioServicesManager" />
+        <property name="transactionService" ref="TransactionService" />
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" /-->
+    </bean>
 </beans>
