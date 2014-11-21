@@ -18,7 +18,7 @@
 package org.craftercms.cstudio.impl.repository.alfresco;
 /*
 import javolution.util.FastMap;
-import net.sf.json.JSONObject;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.model.FileInfo;
@@ -54,6 +54,11 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.net.*;
+
+import net.sf.json.*;
+
+import org.apache.commons.io.IOUtils;
 
 import org.craftercms.cstudio.api.log.Logger;
 import org.craftercms.cstudio.api.log.LoggerFactory;
@@ -146,24 +151,43 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      * @throws ServiceException
      */
     public InputStream getContent(String path) {
-        // InputStream retStream = null;
-        // PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
-        // NodeRef nodeRef = persistenceManagerService.getNodeRef(path);
+        InputStream retStream = null;
 
-        // if (nodeRef != null) {
-        //     FileInfo fileInfo = persistenceManagerService.getFileInfo(nodeRef);
-        //     if (fileInfo.isFolder()) {
-        //         logger.info(MSG_CONTENT_FOR_FOLDER_REQUESTED, path);
-        //     } else {
-        //         ContentReader reader = persistenceManagerService.getReader(nodeRef);
-        //         retStream = reader.getContentInputStream();
-        //     }
-        // }
-        // else {
-        //     logger.info(MSG_NODE_REF_IS_NULL_FOR_PATH, path);
-        // }
-return null;
-        // return retStream;
+        try{
+            String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
+
+            // construct and execute url to look up node ref
+            String nsPath = path.replaceAll("/", "/cm:");
+            String getNodeRefServiceURL = serviceUrlBase + "/slingshot/node/search"+
+                        "?q=PATH/app:company_home" + nsPath +
+                        "&alf_ticket=X";
+
+            URI getNodeRefServiceURI = new URI(getNodeRefServiceURL);
+            String jsonResponse = IOUtils.toString(getNodeRefServiceURI.toURL(), "utf-8");
+            JsonConfig cfg = new JsonConfig();
+            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
+        
+            if(root.getInt("numResults") == 1) {
+                JSONObject result = root.getJSONArray("results").getJSONObject(0);
+                String nodeRef = result.getString("nodeRef");
+                String name = result.getString("prefixedName").replace("cm:","");
+
+                // construct and execute url to download result
+                String downloadURL = serviceUrlBase + "/api/node/content/workspace/SpacesStore/" +
+                "/"+nodeRef +
+                "/"+ name + 
+                "?a=true" +
+                "&alf_ticket=X";
+
+                URI downloadURI = new URI(downloadURL);
+                retStream = downloadURI.toURL().openStream();
+            }
+        }
+        catch(Exception err) {
+
+        }
+
+        return retStream;
     }
 
     public void writeContent(String path, InputStream content) {
