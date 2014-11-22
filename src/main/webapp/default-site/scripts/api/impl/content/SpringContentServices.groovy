@@ -1,6 +1,5 @@
 package scripts.api.impl.content
 
-import groovy.json.JsonSlurper;
 import scripts.api.impl.search.SolrSearch;
 
 /**
@@ -8,8 +7,6 @@ import scripts.api.impl.search.SolrSearch;
  */
 class SpringContentServices {
 
-//	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
-//	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
 
 	def context = null		
@@ -17,16 +14,6 @@ class SpringContentServices {
 	def SpringContentServices(context) {
 		this.context = context
 	}
-
-//	def getAlfrescoUrl() {
-//		def propertiesMap = this.context.applicationContext.get(SERVER_PROPERTIES_BEAN_NAME)
-//		def alfrescoUrl = propertiesMap[ALFRESCO_URL_PROPERTY]
-//		return alfrescoUrl
-//	}
-
-//	def getAlfrescoTicket() {
-//		return this.context.token
-//	}
 
 	/**
 	 * Write content
@@ -66,16 +53,6 @@ class SpringContentServices {
 		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.getContentAsString(contentPath)
-
-		//def alfServiceApiUrl = getAlfrescoUrl() +
-		//	"/service/cstudio/wcm/content/get-content" +
-		//	"?site=" + site +
-		//	"&path=" + path +
-		//	"&alf_ticket=" + getAlfrescoTicket()
-
-		//def response = (alfServiceApiUrl).toURL().getText()
-
-		//return response
 	}
 
   	/**
@@ -84,19 +61,8 @@ class SpringContentServices {
   	 * @param path - the path to check
   	 */
 	def doesContentItemExist(site, path) {
-
-/*		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/content/content-exists" +
-			"?site=" + site +
-			"&path=" + path +
-			"&alf_ticket=" + getAlfrescoTicket()
-
-		def response = (alfServiceApiUrl).toURL().getText()
- 
- 		def result = new JsonSlurper().parseText( response )
- 
-		return result
-*/
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.contentExists(site, path)
 	}
 
 	/**
@@ -257,7 +223,6 @@ class SpringContentServices {
 	 * @param resultsPerPage - items to return per page
 	 */
 	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
-
 		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage, this.context);
 	}
 }	
