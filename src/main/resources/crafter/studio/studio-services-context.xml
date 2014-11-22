@@ -122,7 +122,7 @@
     </bean>
 
     <bean id="cstudioTranslationContentDAL" class="org.craftercms.cstudio.impl.service.translation.dal.repository.RepositoryTranslationContentDAL">
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <bean id="cstudioWorkflowManager" class="org.craftercms.cstudio.impl.service.workflow.WorkflowManager">

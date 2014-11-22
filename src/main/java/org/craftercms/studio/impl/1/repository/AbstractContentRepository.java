@@ -30,6 +30,9 @@ public abstract class AbstractContentRepository implements ContentRepository {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
 
+
+/* ====== */
+//everthing below here must go
     /**
      * write content
      * @param site the site project id

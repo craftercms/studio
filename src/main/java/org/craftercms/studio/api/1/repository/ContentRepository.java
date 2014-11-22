@@ -44,7 +44,7 @@ public interface ContentRepository {
      * @param path
      * @return true if site has content object at path
      */
-    boolean contentExists(String site, String path);
+    boolean contentExists(String path);
 
     /**
      * get document from wcm content
@@ -69,6 +69,12 @@ public interface ContentRepository {
 //   */
 //  String void getContentItemVersionHistory(site, path);
 
+
+/* ===  */
+// Maybes
+    void lockItem(String site, String path);
+
+    void unLockItem(String site, String path);
 
 
 
@@ -165,7 +171,4 @@ public interface ContentRepository {
 
     void unlockRepository();
 
-    void lockItem(String site, String path);
-
-    void unLockItem(String site, String path);
 }

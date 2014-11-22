@@ -35,455 +35,453 @@ import javolution.util.FastTable;
 
 /**
  * This class contains content item metadata
- * 
- * @author hyanghee
- * @author Dejan Brkic
- * 
+ * used by the UI
  */
 public class ContentItemTO  {
 
-    /** the name of item **/
-	protected String _name;
-	
-	/** the name of item specified by the creator **/
-	protected String _internalName;
-	
-	/** wcm content type for associating this content with a form **/
-	protected String _contentType;
-	
-	/** wcm content meta description **/
-	protected String _metaDescription;
-	
-	/** form id **/
-	protected String _form;
-	
-	/** wcm form page path associated with the content type **/
-	protected String _formPagePath;
-	
-	/** user name **/
-	protected String _user;
-	
-	/** the first name of the last editor **/
-	protected String _userFirstName;
-	
-	/** the last name of the last editor **/
-	protected String _userLastName;
-	
-	/** the last edited date **/
-	protected Date _eventDate = null;
-	
-	/** the total number of children under this content item **/
-	protected int _numOfChildren = 0;
-	
-	/** the path **/
-	protected String _path;
-	
-	/**
-	 * the madatory parent must be tied together with this item in workflow
-	 * submission
-	 **/
-	protected String _mandatoryParent;
-	
-	/** the web project default web app **/
-	protected String _defaultWebApp;
-	
-	/** scheduled date if the item is in workflow and a laucn date is scheduled **/
-	protected Date _scheduledDate = null;
-	
-	/**
-	 * the first name of the user who submitted this item to workflow if
-	 * submitted
-	 **/
-	protected String _submittedByFirstName;
-	
-	/**
-	 * the last name of the user who submitted this item to workflow if
-	 * submitted
-	 **/
-	protected String _submittedByLastName;
+	public String name;
+	public String internalName;
+	public String contentType;
 
-    protected String _submissionComment;
+	// /** the name of item specified by the creator **/
+	// private String _internalName;
 	
-	/** who lockekd this content? **/
-	protected String _lockOwner;
+	// /** wcm content type for associating this content with a form **/
+	// private String _contentType;
 	
-	protected int _width;
+	// /** wcm content meta description **/
+	// private String _metaDescription;
 	
-	protected int _height;
+	// /** form id **/
+	// private String _form;
 	
-	/** is the item to be submitted upon approval */
-	protected boolean _isNow = false;
+	// /** wcm form page path associated with the content type **/
+	// private String _formPagePath;
 	
-	/**
-	 * a flag to indicate that this content is new - isNew flag is
-	 * only for user representation
-	 **/
-	protected boolean _isNewFile = false;
+	// /** user name **/
+	// private String _user;
 	
-	/** is the preview page available for this content? **/
-	protected boolean _isPreviewable = false;
+	// /** the first name of the last editor **/
+	// private String _userFirstName;
 	
-	/** status flags **/
-	protected boolean _isInProgress = false;
-	protected boolean _isSubmitted = false;
-	protected boolean _isScheduled = false;
-	protected boolean _isNavigation = false;
-	protected boolean _isFloating = false;
-	protected boolean _isComponent = false;
-	protected boolean _isAsset = false;
-	protected boolean _isContainer = false;
-	protected boolean _isDocument = false;
-	protected boolean _isNew = false;
-	protected boolean _isDisabled = false;
-	protected boolean _isLevelDescriptor = false;
-	protected boolean _isInFlight;
-    protected boolean _renderingTemplate = false;
+	// /** the last name of the last editor **/
+	// private String _userLastName;
 	
-	/**
-	 * is this item deleted from repo
-	 */
-	protected boolean _isDeleted = false;
+	// /** the last edited date **/
+	// private Date _eventDate = null;
 	
-	protected boolean _isDirectory = false;
+	// /** the total number of children under this content item **/
+	// private int _numOfChildren = 0;
 	
-	/**
-	 * is this item submitted for deletion
-	 */
-	protected boolean _submittedForDeletion = false;
+	// /** the path **/
+	// private String _path;
 	
-	/** navigation child content items **/
-	protected List<ContentItemTO> _children;
+	// /**
+	//  * the madatory parent must be tied together with this item in workflow
+	//  * submission
+	//  **/
+	// private String _mandatoryParent;
 	
-	// /** components that this content item is dependent on **/
-	// protected List<ContentItemTO> _components;
+	// /** the web project default web app **/
+	// private String _defaultWebApp;
 	
-	// /** documents that this content item is dependent on **/
-	// protected List<ContentItemTO> _documents;
+	// /** scheduled date if the item is in workflow and a laucn date is scheduled **/
+	// private Date _scheduledDate = null;
 	
-	// /** static assets that this content item is dependent on **/
-	// protected List<ContentItemTO> _assets;
+	// /**
+	//  * the first name of the user who submitted this item to workflow if
+	//  * submitted
+	//  **/
+	// private String _submittedByFirstName;
+	
+	// /**
+	//  * the last name of the user who submitted this item to workflow if
+	//  * submitted
+	//  **/
+	// private String _submittedByLastName;
+
+ //    private String _submissionComment;
+	
+	// /** who lockekd this content? **/
+	// private String _lockOwner;
+	
+	// private int _width;
+	
+	// private int _height;
+	
+	// /** is the item to be submitted upon approval */
+	// private boolean _isNow = false;
+	
+	// /**
+	//  * a flag to indicate that this content is new - isNew flag is
+	//  * only for user representation
+	//  **/
+	// private boolean _isNewFile = false;
+	
+	// /** is the preview page available for this content? **/
+	// private boolean _isPreviewable = false;
+	
+	// /** status flags **/
+	// private boolean _isInProgress = false;
+	// private boolean _isSubmitted = false;
+	// private boolean _isScheduled = false;
+	// private boolean _isNavigation = false;
+	// private boolean _isFloating = false;
+	// private boolean _isComponent = false;
+	// private boolean _isAsset = false;
+	// private boolean _isContainer = false;
+	// private boolean _isDocument = false;
+	// private boolean _isNew = false;
+	// private boolean _isDisabled = false;
+	// private boolean _isLevelDescriptor = false;
+	// private boolean _isInFlight;
+ //    private boolean _renderingTemplate = false;
+	
+	// /**
+	//  * is this item deleted from repo
+	//  */
+	// private boolean _isDeleted = false;
+	
+	// private boolean _isDirectory = false;
+	
+	// /**
+	//  * is this item submitted for deletion
+	//  */
+	// private boolean _submittedForDeletion = false;
+	
+	// /** navigation child content items **/
+	// private List<ContentItemTO> _children;
+	
+	// // /** components that this content item is dependent on **/
+	// // private List<ContentItemTO> _components;
+	
+	// // /** documents that this content item is dependent on **/
+	// // private List<ContentItemTO> _documents;
+	
+	// // /** static assets that this content item is dependent on **/
+	// // private List<ContentItemTO> _assets;
     
- //    * rendering templates that this contetn item is dependent on *
- //    protected List<ContentItemTO> _renderingTemplates;
+ // //    * rendering templates that this contetn item is dependent on *
+ // //    private List<ContentItemTO> _renderingTemplates;
 	
-	// protected List<ContentItemTO> _pages;
+	// // private List<ContentItemTO> _pages;
 	
-	// /** deleted item dependencies **/
-	// protected List<ContentItemTO> _deletedItems;
+	// // /** deleted item dependencies **/
+	// // private List<ContentItemTO> _deletedItems;
 	
-	// /** list of level descriptors located underneath of the current level item **/
-	// protected List<ContentItemTO> _levelDescriptors;
+	// // /** list of level descriptors located underneath of the current level item **/
+	// // private List<ContentItemTO> _levelDescriptors;
 	
-	// /** content order metadata **/
-	// protected List<DmOrderTO> _orders;
+	// // /** content order metadata **/
+	// // private List<DmOrderTO> _orders;
 	
-	/**
-	 * the URI e.g.
-	 * /site/website/product_servcies/upgrade.xml
-	 **/
-	protected String _uri = null;
+	// /**
+	//  * the URI e.g.
+	//  * /site/website/product_servcies/upgrade.xml
+	//  **/
+	// private String _uri = null;
 	
-	/**
-	 * browser URI that the end user is aware of. e.g.
-	 * /product_servcies/upgrade.xml
-	 **/
-	protected String _browserUri = null;
+	// /**
+	//  * browser URI that the end user is aware of. e.g.
+	//  * /product_servcies/upgrade.xml
+	//  **/
+	// private String _browserUri = null;
 	
-	/**
-	 * the root path of the top-level category of this item belongs to. e.g.
-	 * /site/website (for /product_servcies/upgrade.xml)
-	 **/
-	protected String _categoryRoot = null;
+	// /**
+	//  * the root path of the top-level category of this item belongs to. e.g.
+	//  * /site/website (for /product_servcies/upgrade.xml)
+	//  **/
+	// private String _categoryRoot = null;
 	
-	/**
-	 * the nodeRef of the corresponding DM content if the content was published
-	 * from DM
-	 **/
-	protected String _nodeRef = null;
+	// /**
+	//  * the nodeRef of the corresponding DM content if the content was published
+	//  * from DM
+	//  **/
+	// private String _nodeRef = null;
 	
-	/** workflow id if any associted **/
-	protected String _workflowId = null;
+	// /** workflow id if any associted **/
+	// private String _workflowId = null;
 	
-	/** timezone value - defaulted to GMT **/
-	protected String _timezone = null;
+	// /** timezone value - defaulted to GMT **/
+	// private String _timezone = null;
 	
-	/** cstudio-core:title -- for debug purpose; internal replaced by this. **/
-	protected String _title = null;
+	// /** cstudio-core:title -- for debug purpose; internal replaced by this. **/
+	// private String _title = null;
 	
-	protected boolean _hideInAuthoring = false;
+	// private boolean _hideInAuthoring = false;
 	
-	protected String _parentPath = null;
+	// private String _parentPath = null;
 	
-	protected boolean _isReference = false;
+	// private boolean _isReference = false;
 	
-	protected Date _lastEditDate;
+	// private Date _lastEditDate;
 
-    protected boolean _skipDependencies = false;
+ //    private boolean _skipDependencies = false;
 	
-	/** additional properties map **/
-	protected Map<String, String> _properties = new FastMap<String, String>();
+	// /** additional properties map **/
+	// private Map<String, String> _properties = new FastMap<String, String>();
 
 	
-	public boolean isReference() {
-		return _isReference;
-	}
+	// public boolean isReference() {
+	// 	return _isReference;
+	// }
 
-	public void setReference(boolean isReference) {
-		this._isReference = isReference;
-	}
+	// public void setReference(boolean isReference) {
+	// 	this._isReference = isReference;
+	// }
 
-	public String getParentPath() {
-		return _parentPath;
-	}
+	// public String getParentPath() {
+	// 	return _parentPath;
+	// }
 
-	public void setParentPath(String parentPath) {
-		this._parentPath = parentPath;
-	}
+	// public void setParentPath(String parentPath) {
+	// 	this._parentPath = parentPath;
+	// }
 
-	public boolean isHideInAuthoring() {
-		return _hideInAuthoring;
-	}
+	// public boolean isHideInAuthoring() {
+	// 	return _hideInAuthoring;
+	// }
 
-	public void setHideInAuthoring(boolean hideInAuthoring) {
-		this._hideInAuthoring = hideInAuthoring;
-	}
+	// public void setHideInAuthoring(boolean hideInAuthoring) {
+	// 	this._hideInAuthoring = hideInAuthoring;
+	// }
 
-	public String getName() {
-		return _name;
-	}
+	// public String getName() {
+	// 	return _name;
+	// }
 
-	public void setName(String name) {
-		this._name = name;
-	}
+	// public void setName(String name) {
+	// 	this._name = name;
+	// }
 
-	public String getInternalName() {
-		return _internalName;
-	}
+	// public String getInternalName() {
+	// 	return _internalName;
+	// }
 
-	public void setInternalName(String internalName) {
-		this._internalName = internalName;
-	}
+	// public void setInternalName(String internalName) {
+	// 	this._internalName = internalName;
+	// }
 
-	public String getUri() {
-		return _uri;
-	}
+	// public String getUri() {
+	// 	return _uri;
+	// }
 
-	public void setUri(String uri) {
-		this._uri = uri;
-	}
+	// public void setUri(String uri) {
+	// 	this._uri = uri;
+	// }
 
-	public String getUser() {
-		return _user;
-	}
+	// public String getUser() {
+	// 	return _user;
+	// }
 
-	public void setUser(String user) {
-		this._user = user;
-	}
+	// public void setUser(String user) {
+	// 	this._user = user;
+	// }
 
-	public String getUserFirstName() {
-		return _userFirstName;
-	}
+	// public String getUserFirstName() {
+	// 	return _userFirstName;
+	// }
 
-	public void setUserFirstName(String userFirstName) {
-		this._userFirstName = userFirstName;
-	}
+	// public void setUserFirstName(String userFirstName) {
+	// 	this._userFirstName = userFirstName;
+	// }
 
-	public String getUserLastName() {
-		return _userLastName;
-	}
+	// public String getUserLastName() {
+	// 	return _userLastName;
+	// }
 
-	public void setUserLastName(String userLastName) {
-		this._userLastName = userLastName;
-	}
+	// public void setUserLastName(String userLastName) {
+	// 	this._userLastName = userLastName;
+	// }
 	
-	public String getEventDate() {
-		// API Layer cannot talk to impl layer
+	// public String getEventDate() {
+	// 	// API Layer cannot talk to impl layer
 
-		// if (_eventDate != null) {
-		// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
-		// 	String dateStr = ContentFormatUtils.formatDate(format, _eventDate, _timezone);
-		// 	return dateStr;
-		// } else {
-		// 	return null;
-		// }
-		return "not impl";
-	}
+	// 	// if (_eventDate != null) {
+	// 	// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+	// 	// 	String dateStr = ContentFormatUtils.formatDate(format, _eventDate, _timezone);
+	// 	// 	return dateStr;
+	// 	// } else {
+	// 	// 	return null;
+	// 	// }
+	// 	return "not impl";
+	// }
 	
-	public String getLastEditDateAsString() {
-		// API Layer cannot talk to impl layer
+	// public String getLastEditDateAsString() {
+	// 	// API Layer cannot talk to impl layer
 
-		// if (_lastEditDate != null) {
-		// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
-		// 	String dateStr = ContentFormatUtils.formatDate(format, _lastEditDate, _timezone);
-		// 	return dateStr;
-		// } else {
-		// 	return null;
-		// }
-		return "not impl";
-	}
+	// 	// if (_lastEditDate != null) {
+	// 	// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+	// 	// 	String dateStr = ContentFormatUtils.formatDate(format, _lastEditDate, _timezone);
+	// 	// 	return dateStr;
+	// 	// } else {
+	// 	// 	return null;
+	// 	// }
+	// 	return "not impl";
+	// }
 	
-	public String getScheduledDate() {
-		// API Layer cannot talk to impl layer
+	// public String getScheduledDate() {
+	// 	// API Layer cannot talk to impl layer
 
-		// if (_scheduledDate != null) {
-		// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
-		// 	String dateStr = ContentFormatUtils.formatDate(format, _scheduledDate, _timezone);
-		// 	return dateStr;
-		// } else {
-		// 	return null;
-		// }
-		return "not impl";
-	}
+	// 	// if (_scheduledDate != null) {
+	// 	// 	SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+	// 	// 	String dateStr = ContentFormatUtils.formatDate(format, _scheduledDate, _timezone);
+	// 	// 	return dateStr;
+	// 	// } else {
+	// 	// 	return null;
+	// 	// }
+	// 	return "not impl";
+	// }
 
-	public void setScheduledDate(Date scheduledDate) {
-		this._scheduledDate = scheduledDate;
-	}
+	// public void setScheduledDate(Date scheduledDate) {
+	// 	this._scheduledDate = scheduledDate;
+	// }
 	
-	public Date getEventDateAsDate() {
-		return _eventDate;
-	}
+	// public Date getEventDateAsDate() {
+	// 	return _eventDate;
+	// }
 	
-	public Date getScheduledDateAsDate() {
-		return _scheduledDate;
-	}
+	// public Date getScheduledDateAsDate() {
+	// 	return _scheduledDate;
+	// }
 
-	public void setEventDate(Date eventDate) {
-		this._eventDate = eventDate;
-	}
+	// public void setEventDate(Date eventDate) {
+	// 	this._eventDate = eventDate;
+	// }
 
-	public boolean isInProgress() {
-		return _isInProgress;
-	}
+	// public boolean isInProgress() {
+	// 	return _isInProgress;
+	// }
 
-	public void setInProgress(boolean isInProgress) {
-		this._isInProgress = isInProgress;
-	}
+	// public void setInProgress(boolean isInProgress) {
+	// 	this._isInProgress = isInProgress;
+	// }
 
-	public boolean isSubmitted() {
-		return _isSubmitted;
-	}
+	// public boolean isSubmitted() {
+	// 	return _isSubmitted;
+	// }
 
-	public void setSubmitted(boolean isSubmitted) {
-		this._isSubmitted = isSubmitted;
-	}
+	// public void setSubmitted(boolean isSubmitted) {
+	// 	this._isSubmitted = isSubmitted;
+	// }
 	
-	public boolean isLive() {
-		return !(this.isInProgress() || this.isSubmitted() || this.isScheduled() || this.isSubmittedForDeletion() || this.isNew());
-	}
+	// public boolean isLive() {
+	// 	return !(this.isInProgress() || this.isSubmitted() || this.isScheduled() || this.isSubmittedForDeletion() || this.isNew());
+	// }
 	
-	public boolean isScheduled() {
-        if (_isScheduled && _scheduledDate==null){
-            return false;
-        }
-		return _isScheduled;
-	}
+	// public boolean isScheduled() {
+ //        if (_isScheduled && _scheduledDate==null){
+ //            return false;
+ //        }
+	// 	return _isScheduled;
+	// }
 	
-	public void setScheduled(boolean isScheduled) {
-		this._isScheduled = isScheduled;
-	}
+	// public void setScheduled(boolean isScheduled) {
+	// 	this._isScheduled = isScheduled;
+	// }
 	
-	public boolean isNavigation() {
-		return _isNavigation;
-	}
+	// public boolean isNavigation() {
+	// 	return _isNavigation;
+	// }
 	
-	public void setNavigation(boolean isNavigation) {
-		this._isNavigation = isNavigation;
-	}
+	// public void setNavigation(boolean isNavigation) {
+	// 	this._isNavigation = isNavigation;
+	// }
 	
-	public boolean isFloating() {
-		return _isFloating;
-	}
+	// public boolean isFloating() {
+	// 	return _isFloating;
+	// }
 	
-	public void setFloating(boolean isFloating) {
-		this._isFloating = isFloating;
-	}
+	// public void setFloating(boolean isFloating) {
+	// 	this._isFloating = isFloating;
+	// }
 	
-	public boolean isComponent() {
-		return _isComponent;
-	}
+	// public boolean isComponent() {
+	// 	return _isComponent;
+	// }
 	
-	public void setComponent(boolean isComponent) {
-		this._isComponent = isComponent;
-	}
+	// public void setComponent(boolean isComponent) {
+	// 	this._isComponent = isComponent;
+	// }
 	
-	public boolean isDocument() {
-		return _isDocument;
-	}
+	// public boolean isDocument() {
+	// 	return _isDocument;
+	// }
 	
-	public void setDocument(boolean isDocument) {
-		this._isDocument = isDocument;
-	}
+	// public void setDocument(boolean isDocument) {
+	// 	this._isDocument = isDocument;
+	// }
 	
-	public boolean isContainer() {
-		return _isContainer;
-	}
+	// public boolean isContainer() {
+	// 	return _isContainer;
+	// }
 	
-	public void setContainer(boolean isContainer) {
-		_isContainer = isContainer;
-	}
+	// public void setContainer(boolean isContainer) {
+	// 	_isContainer = isContainer;
+	// }
 	
-	public boolean isNew() {
-		return _isNew;
-	}
+	// public boolean isNew() {
+	// 	return _isNew;
+	// }
 	
-	public void setNew(boolean isNew) {
-		this._isNewFile = isNew;
-		this._isNew = isNew;
-	}
+	// public void setNew(boolean isNew) {
+	// 	this._isNewFile = isNew;
+	// 	this._isNew = isNew;
+	// }
 	
-	public boolean isDisabled() {
-		return _isDisabled;
-	}
+	// public boolean isDisabled() {
+	// 	return _isDisabled;
+	// }
 	
-	public void setDisabled(boolean isDisabled) {
-		this._isDisabled = isDisabled;
-	}
+	// public void setDisabled(boolean isDisabled) {
+	// 	this._isDisabled = isDisabled;
+	// }
 
-    public boolean isSkipDependencies() { return _skipDependencies; }
+ //    public boolean isSkipDependencies() { return _skipDependencies; }
 
-    public void setSkipDependencies(boolean skipDependencies) { this._skipDependencies = skipDependencies; }
+ //    public void setSkipDependencies(boolean skipDependencies) { this._skipDependencies = skipDependencies; }
 	
-	public List<ContentItemTO> getChildren() {
-		return _children;
-	}
+	// public List<ContentItemTO> getChildren() {
+	// 	return _children;
+	// }
 	
-	public void setChildren(final List<ContentItemTO> children) {
-		this._children = children;
-	}
+	// public void setChildren(final List<ContentItemTO> children) {
+	// 	this._children = children;
+	// }
 	
-	public String getPath() {
-		return _path;
-	}
+	// public String getPath() {
+	// 	return _path;
+	// }
 	
-	public void setPath(String path) {
-		this._path = path;
-	}
+	// public void setPath(String path) {
+	// 	this._path = path;
+	// }
 
-	public String getDefaultWebApp() {
-		return _defaultWebApp;
-	}
+	// public String getDefaultWebApp() {
+	// 	return _defaultWebApp;
+	// }
 	
-	public void setDefaultWebApp(String defaultWebApp) {
-		this._defaultWebApp = defaultWebApp;
-	}
+	// public void setDefaultWebApp(String defaultWebApp) {
+	// 	this._defaultWebApp = defaultWebApp;
+	// }
 	
-	public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
+	// public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
 
-		if (_uri != null && _uri.equals(itemToAdd.getUri())) {
-			// do not add itself
-			return;
-		}
+	// 	if (_uri != null && _uri.equals(itemToAdd.getUri())) {
+	// 		// do not add itself
+	// 		return;
+	// 	}
 
-		if (recursive && (_isNewFile || _isDeleted || renamed) && !_submittedForDeletion) {
-			//itemToAdd.setMandatoryParent(_uri);
-		}
+	// 	if (recursive && (_isNewFile || _isDeleted || renamed) && !_submittedForDeletion) {
+	// 		//itemToAdd.setMandatoryParent(_uri);
+	// 	}
 
-		if (_children == null) {
-			_children = new FastTable<ContentItemTO>();
-		}
-		_children.add(itemToAdd);
-		_numOfChildren++;
-	}
+	// 	if (_children == null) {
+	// 		_children = new FastTable<ContentItemTO>();
+	// 	}
+	// 	_children.add(itemToAdd);
+	// 	_numOfChildren++;
+	// }
 
 // pass a comparitor?	
 //	public void addChild(final ContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive) {
@@ -771,19 +769,19 @@ public class ContentItemTO  {
 	// 	return -1.0;
 	// }
 	
-	public String getBrowserUri() {
-		// if (isDocument()) {
-		// 	List<ContentItemTO> contentItemTOList = getAssets();
-		// 	if (contentItemTOList != null && contentItemTOList.size() > 0) {
-		// 		return contentItemTOList.get(0).getBrowserUri();
-		// 	}
-		// }
-		return _browserUri;
-	}
+	// public String getBrowserUri() {
+	// 	// if (isDocument()) {
+	// 	// 	List<ContentItemTO> contentItemTOList = getAssets();
+	// 	// 	if (contentItemTOList != null && contentItemTOList.size() > 0) {
+	// 	// 		return contentItemTOList.get(0).getBrowserUri();
+	// 	// 	}
+	// 	// }
+	// 	return _browserUri;
+	// }
 	
-	public void setBrowserUri(String browserUri) {
-		this._browserUri = browserUri;
-	}
+	// public void setBrowserUri(String browserUri) {
+	// 	this._browserUri = browserUri;
+	// }
 	
 	// public String getCategoryRoot() {
 	// 	return _categoryRoot;
@@ -801,235 +799,235 @@ public class ContentItemTO  {
 	// 	this._mandatoryParent = mandatoryParent;
 	// }
 	
-	public boolean isNewFile() {
-		return _isNewFile;
-	}
-	
-	public void setNewFile(boolean isNewFile) {
-		this._isNewFile = isNewFile;
-		this._isNew = isNewFile;
-	}
-	
-	public boolean isNow() {
-		return _isNow;
-	}
-	
-	public void setNow(boolean isNow) {
-		this._isNow = isNow;
-	}
-	
-	public boolean isAsset() {
-		return _isAsset;
-	}
-	
-	public void setAsset(boolean isAsset) {
-		this._isAsset = isAsset;
-	}
-	
-	public String getContentType() {
-		return _contentType;
-	}
-	
-	public void setContentType(String contentType) {
-		this._contentType = contentType;
-	}
-
-	public String getMetaDescription() {
-		return _metaDescription;
-	}
-	
-	public void setMetaDescription(String metaDescription) {
-		this._metaDescription = metaDescription;
-	}
-	
-	public int getNumOfChildren() {
-		return _numOfChildren;
-	}
-	
-	public void setNumOfChildren(int numOfChildren) {
-		_numOfChildren = numOfChildren;
-	}
-	
-	public boolean isLevelDescriptor() {
-		return _isLevelDescriptor;
-	}
-	
-	public void setLevelDescriptor(boolean isLevelDescriptor) {
-		this._isLevelDescriptor = isLevelDescriptor;
-	}
-	
-	public String getFormPagePath() {
-		return _formPagePath;
-	}
-	
-	public void setFormPagePath(String formPagePath) {
-		this._formPagePath = formPagePath;
-	}
-	
-	public String getSubmittedByFirstName() {
-		return _submittedByFirstName;
-	}
-	
-	public void setSubmittedByFirstName(String submittedByFirstName) {
-		this._submittedByFirstName = submittedByFirstName;
-	}
-	
-	public String getSubmittedByLastName() {
-		return _submittedByLastName;
-	}
-	
-	public void setSubmittedByLastName(String submittedByLastName) {
-		this._submittedByLastName = submittedByLastName;
-	}
-
-    public String getSubmissionComment() {
-        return _submissionComment;
-    }
-
-    public void setSubmissionComment(String submissionComment) {
-        this._submissionComment = submissionComment;
-    }
-	
-	public String getNodeRef() {
-		return _nodeRef;
-	}
-	
-	// public void setNodeRef(String nodeRef) {
-	// 	this._nodeRef = nodeRef;
+	// public boolean isNewFile() {
+	// 	return _isNewFile;
 	// }
 	
-	public String getLockOwner() {
-		return _lockOwner;
-	}
+	// public void setNewFile(boolean isNewFile) {
+	// 	this._isNewFile = isNewFile;
+	// 	this._isNew = isNewFile;
+	// }
+	
+	// public boolean isNow() {
+	// 	return _isNow;
+	// }
+	
+	// public void setNow(boolean isNow) {
+	// 	this._isNow = isNow;
+	// }
+	
+	// public boolean isAsset() {
+	// 	return _isAsset;
+	// }
+	
+	// public void setAsset(boolean isAsset) {
+	// 	this._isAsset = isAsset;
+	// }
+	
+	// public String getContentType() {
+	// 	return _contentType;
+	// }
+	
+	// public void setContentType(String contentType) {
+	// 	this._contentType = contentType;
+	// }
+
+	// public String getMetaDescription() {
+	// 	return _metaDescription;
+	// }
+	
+	// public void setMetaDescription(String metaDescription) {
+	// 	this._metaDescription = metaDescription;
+	// }
+	
+	// public int getNumOfChildren() {
+	// 	return _numOfChildren;
+	// }
+	
+	// public void setNumOfChildren(int numOfChildren) {
+	// 	_numOfChildren = numOfChildren;
+	// }
+	
+	// public boolean isLevelDescriptor() {
+	// 	return _isLevelDescriptor;
+	// }
+	
+	// public void setLevelDescriptor(boolean isLevelDescriptor) {
+	// 	this._isLevelDescriptor = isLevelDescriptor;
+	// }
+	
+	// public String getFormPagePath() {
+	// 	return _formPagePath;
+	// }
+	
+	// public void setFormPagePath(String formPagePath) {
+	// 	this._formPagePath = formPagePath;
+	// }
+	
+	// public String getSubmittedByFirstName() {
+	// 	return _submittedByFirstName;
+	// }
+	
+	// public void setSubmittedByFirstName(String submittedByFirstName) {
+	// 	this._submittedByFirstName = submittedByFirstName;
+	// }
+	
+	// public String getSubmittedByLastName() {
+	// 	return _submittedByLastName;
+	// }
+	
+	// public void setSubmittedByLastName(String submittedByLastName) {
+	// 	this._submittedByLastName = submittedByLastName;
+	// }
+
+ //    public String getSubmissionComment() {
+ //        return _submissionComment;
+ //    }
+
+ //    public void setSubmissionComment(String submissionComment) {
+ //        this._submissionComment = submissionComment;
+ //    }
+	
+	// public String getNodeRef() {
+	// 	return _nodeRef;
+	// }
+	
+	// // public void setNodeRef(String nodeRef) {
+	// // 	this._nodeRef = nodeRef;
+	// // }
+	
+	// public String getLockOwner() {
+	// 	return _lockOwner;
+	// }
     
-    public void setLockOwner(String lockOwner) {
-        this._lockOwner = lockOwner;
-    }
+ //    public void setLockOwner(String lockOwner) {
+ //        this._lockOwner = lockOwner;
+ //    }
 	
-	// public boolean equals(Object object) {
-	// 	if (this == object) {
-	// 		return true;
-	// 	}
-	// 	if (!(object instanceof ContentItemTO)) {
-	// 		return false;
-	// 	}
-	// 	ContentItemTO item = (ContentItemTO) object;
-	// 	// it is the same item if the default webapp and the URI
-	// 	// are the same
-	// 	return item.getUri().equals(this._uri)
-	// 			&& item.getDefaultWebApp().equals(this._defaultWebApp);
+	// // public boolean equals(Object object) {
+	// // 	if (this == object) {
+	// // 		return true;
+	// // 	}
+	// // 	if (!(object instanceof ContentItemTO)) {
+	// // 		return false;
+	// // 	}
+	// // 	ContentItemTO item = (ContentItemTO) object;
+	// // 	// it is the same item if the default webapp and the URI
+	// // 	// are the same
+	// // 	return item.getUri().equals(this._uri)
+	// // 			&& item.getDefaultWebApp().equals(this._defaultWebApp);
+	// // }
+	
+	// // public int hashCode() {
+	// // 	int result = 17;
+	// // 	return 31 * result + this.toString().hashCode();
+	// // }
+	
+	// // public String toString() {
+	// // 	return null; //":/" + DmConstants.WEB_PROJECT_ROOT + "/" + _defaultWebApp + _uri;
+	// // }
+	
+	// public String getForm() {
+	// 	return _form;
 	// }
 	
-	// public int hashCode() {
-	// 	int result = 17;
-	// 	return 31 * result + this.toString().hashCode();
+	// public void setForm(String form) {
+	// 	this._form = form;
 	// }
 	
-	// public String toString() {
-	// 	return null; //":/" + DmConstants.WEB_PROJECT_ROOT + "/" + _defaultWebApp + _uri;
+	// public boolean isDeleted() {
+	// 	return _isDeleted;
 	// }
 	
-	public String getForm() {
-		return _form;
-	}
-	
-	public void setForm(String form) {
-		this._form = form;
-	}
-	
-	public boolean isDeleted() {
-		return _isDeleted;
-	}
-	
-	public void setDeleted(boolean isDeleted) {
-		this._isDeleted = isDeleted;
-	}
-	
-	public boolean isSubmittedForDeletion() {
-		return _submittedForDeletion;
-	}
-	
-	public void setSubmittedForDeletion(boolean submittedForDeletion) {
-		this._submittedForDeletion = submittedForDeletion;
-	}
-	
-	// public List<ContentItemTO> getDocuments() {
-	// 	return _documents;
+	// public void setDeleted(boolean isDeleted) {
+	// 	this._isDeleted = isDeleted;
 	// }
 	
-	// public void setDocuments(List<ContentItemTO> documents) {
-	// 	this._documents = documents;
+	// public boolean isSubmittedForDeletion() {
+	// 	return _submittedForDeletion;
 	// }
 	
-	public boolean isPreviewable() {
-		return _isPreviewable;
-	}
+	// public void setSubmittedForDeletion(boolean submittedForDeletion) {
+	// 	this._submittedForDeletion = submittedForDeletion;
+	// }
 	
-	public void setPreviewable(boolean isPreviewable) {
-		this._isPreviewable = isPreviewable;
-	}
+	// // public List<ContentItemTO> getDocuments() {
+	// // 	return _documents;
+	// // }
 	
-	public String getWorkflowId() {
-		return _workflowId;
-	}
+	// // public void setDocuments(List<ContentItemTO> documents) {
+	// // 	this._documents = documents;
+	// // }
 	
-	public void setWorkflowId(String workflowId) {
-		this._workflowId = workflowId;
-	}
+	// public boolean isPreviewable() {
+	// 	return _isPreviewable;
+	// }
 	
-	public String getTimezone() {
-		return _timezone;
-	}
+	// public void setPreviewable(boolean isPreviewable) {
+	// 	this._isPreviewable = isPreviewable;
+	// }
 	
-	public void setTimezone(String timezone) {
-		this._timezone = timezone;
-	}
+	// public String getWorkflowId() {
+	// 	return _workflowId;
+	// }
 	
-	public String getTitle() {
-		return _title;
-	}
+	// public void setWorkflowId(String workflowId) {
+	// 	this._workflowId = workflowId;
+	// }
 	
-	public void setTitle(String title) {
-		this._title = title;
-	}
+	// public String getTimezone() {
+	// 	return _timezone;
+	// }
 	
-	public boolean isDirectory() {
-		return _isDirectory;
-	}
+	// public void setTimezone(String timezone) {
+	// 	this._timezone = timezone;
+	// }
 	
-	public void setDirectory(boolean directory) {
-		_isDirectory = directory;
-	}
+	// public String getTitle() {
+	// 	return _title;
+	// }
 	
-	public Date getLastEditDate() {
-		return _lastEditDate;
-	}
+	// public void setTitle(String title) {
+	// 	this._title = title;
+	// }
 	
-	public void setLastEditDate(Date lastEditDate) {
-		this._lastEditDate = lastEditDate;
-	}
+	// public boolean isDirectory() {
+	// 	return _isDirectory;
+	// }
 	
-	public boolean isInFlight() {
-		return _isInFlight;
-	}
+	// public void setDirectory(boolean directory) {
+	// 	_isDirectory = directory;
+	// }
 	
-	public void setInFlight(boolean inFlight) {
-		_isInFlight = inFlight;
-	}
+	// public Date getLastEditDate() {
+	// 	return _lastEditDate;
+	// }
 	
-	public int getWidth() {
-		return _width;
-	}
+	// public void setLastEditDate(Date lastEditDate) {
+	// 	this._lastEditDate = lastEditDate;
+	// }
 	
-	public void setWidth(int width) {
-		this._width = width;
-	}
+	// public boolean isInFlight() {
+	// 	return _isInFlight;
+	// }
 	
-	public int getHeight() {
-		return _height;
-	}
+	// public void setInFlight(boolean inFlight) {
+	// 	_isInFlight = inFlight;
+	// }
 	
-	public void setHeight(int height) {
-		this._height = height;
-	}	
+	// public int getWidth() {
+	// 	return _width;
+	// }
+	
+	// public void setWidth(int width) {
+	// 	this._width = width;
+	// }
+	
+	// public int getHeight() {
+	// 	return _height;
+	// }
+	
+	// public void setHeight(int height) {
+	// 	this._height = height;
+	// }	
 }

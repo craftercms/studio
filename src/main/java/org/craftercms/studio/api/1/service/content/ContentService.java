@@ -30,11 +30,20 @@ import org.craftercms.cstudio.api.to.ContentItemTO;
  */
 public interface ContentService  {
 
-
     /**
      * @return true if site has content object at path
      */
     public boolean contentExists(String site, String path);
+
+   /**
+     * get document from wcm content
+     *
+     * @param path
+     * @oaram site
+     * @return document
+     * @throws ServiceException
+     */
+    public InputStream getContent(String site, String path);
 
     /**
      * get document from wcm content
@@ -61,6 +70,22 @@ public interface ContentService  {
      * @throws ServiceException
      */
     Document getContentAsDocument(String path) throws DocumentException;
+
+
+    /**
+     * write content
+     * @param path path to content
+     * @param content stream of content to write
+     */
+	void writeContent(String path, InputStream content);
+
+    /**
+     * write content
+     * @param path path to content
+     * @param site 
+     * @param content stream of content to write
+     */
+	void writeContent(String site, String path, InputStream content);
 
 	// /**
 	//  * get the tree of content items (metadata) beginning at a root

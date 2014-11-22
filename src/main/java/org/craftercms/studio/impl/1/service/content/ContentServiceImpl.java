@@ -23,6 +23,7 @@ import java.io.InputStream;
 import org.dom4j.io.SAXReader;
 import java.lang.reflect.Method;
 import org.dom4j.Document;
+import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
@@ -46,7 +47,7 @@ public class ContentServiceImpl implements ContentService {
      * @return true if site has content object at path
      */
     public boolean contentExists(String site, String path) {
-        return this._contentRepository.contentExists(site, path);
+        return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
     }
 
     /**
@@ -58,6 +59,18 @@ public class ContentServiceImpl implements ContentService {
      */
     public InputStream getContent(String path) {
        return this._contentRepository.getContent(path);
+    }
+
+   /**
+     * get document from wcm content
+     *
+     * @param path
+     * @pram site
+     * @return document
+     * @throws ServiceException
+     */
+    public InputStream getContent(String site, String path) {
+       return this._contentRepository.getContent(expandRelativeSitePath(site, path));
     }
 
     /**
@@ -111,6 +124,26 @@ public class ContentServiceImpl implements ContentService {
         return retDocument;
     }
 
+
+    /**
+     * write content
+     * @param path path to content
+     * @param content stream of content to write
+     */
+    public void writeContent(String path, InputStream content) {
+
+    }
+
+    /**
+     * write content
+     * @param path path to content
+     * @param site 
+     * @param content stream of content to write
+     */
+    public void writeContent(String site, String path, InputStream content){
+
+    }
+
     /**
      * get a content item for a given site and path
      * @param site - the site
@@ -119,14 +152,47 @@ public class ContentServiceImpl implements ContentService {
     public ContentItemTO getContentItem(String site, String path) {
         ContentItemTO item = null;
 
-        if(this.contentExists(site, path)) { 
-            // don't keep this check it's too slow
+        try {
+            // this may be faster to get evenything from on of the other services?
             // the idea heare is that repo does not know enough to get an item,
             // this requires either a different servivice/subsystem or a combination of them
-            item = new ContentItemTO();
+            if(path.endsWith(".xml")) {
+                Document contentDoc = this.getContentAsDocument(expandRelativeSitePath(site, path));
+                if(contentDoc != null) {  
+                    Element rootElement = contentDoc.getRootElement();
+                    item = new ContentItemTO();
+                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.internalName = rootElement.valueOf("internal-name");
+                    item.contentType = rootElement.valueOf("content-type");  
+
+                    // populate with workflow states and other metadata                  
+                }
+                else {
+                     logger.error("no xml document could be loaded for path '{0}'", path);    
+                }
+            }
+            else {
+                if (this.contentExists(site, path)) {
+                    item = new ContentItemTO();
+                    item.name = path.substring(path.lastIndexOf("/")+1);
+
+                    // populate with workflow states and other metadata 
+                }                 
+            }
+                
+        }
+        catch(Exception err) {
+            logger.error("error constructing item for object at path '{0}'", err, path);            
         }
 
         return item;
+    }
+
+    /**
+     * take a path like /sites/website/index.xml and root it properly with a fully expanded repo path
+     */
+    protected String expandRelativeSitePath(String site, String relativePath) {
+        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
     private ContentRepository _contentRepository;

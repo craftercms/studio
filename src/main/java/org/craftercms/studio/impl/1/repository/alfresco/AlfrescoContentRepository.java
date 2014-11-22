@@ -99,6 +99,59 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
     private static final String WORK_AREA_REPOSITORY = "work-area";
     private static final String LIVE_REPOSITORY = "live";
 
+    /**
+     * get document from wcm content
+     *
+     * @param path
+     * @return document
+     * @throws ServiceException
+     */
+    public InputStream getContent(String path) {
+        InputStream retStream = null;
+        String name = path.substring(path.lastIndexOf("/")+1);
+
+        try {
+            String nodeRef = getNodeRefForPath(path);
+
+            if(nodeRef != null) {
+                // construct and execute url to download result
+                String downloadURI = "/api/node/content/workspace/SpacesStore/{nodeRef}/{name}?a=true";
+                Map<String, String> lookupContentParams = new HashMap<String, String>();
+                lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
+                lookupContentParams.put("name", name);
+
+                retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+            }
+            else {
+                throw new Exception("nodeRef not found for path: [" + path + "]");
+            }
+        }
+        catch(Exception err) {
+            System.out.println("err getting content: " + err);   
+        }
+
+        return retStream;
+    }
+
+    /**
+     * @return true if site has content object at path
+     */
+    public boolean contentExists(String path) {
+       return (this.getNodeRefForPath(path) != null); 
+    }
+
+
+    public void writeContent(String path, InputStream content) {
+    //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
+    //     //NodeRef nodeRef = persistenceManagerService.getNodeRef(path);
+
+    //     //if (nodeRef != null) {
+    //     ContentWriter writer = persistenceManagerService.getWriter(path);
+    //     writer.putContent(content);
+    //     //}
+    }
+
+
     protected String getAlfTicket() {
         String ticket = "UNSET";
         RequestContext context = RequestContext.getCurrent();
@@ -185,6 +238,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         return nodeRef;
     }
 
+
+
+
+/* ======================= */
+// Everything below this line must go
+
+
     /**
      * get transaction
      */
@@ -193,56 +253,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         return null;
     }
 
-    /**
-     * @return true if site has content object at path
-     */
-    public boolean contentExists(String site, String path) {
-       return (this.getNodeRefForPath("/wem-projects/" + site + "/" + site + "/work-area" + path) != null); 
-    }
 
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
-    public InputStream getContent(String path) {
-        InputStream retStream = null;
-        String name = path.substring(path.lastIndexOf("/")+1);
-
-        try {
-            String nodeRef = getNodeRefForPath(path);
-
-            if(nodeRef != null) {
-                // construct and execute url to download result
-                String downloadURI = "/api/node/content/workspace/SpacesStore/{nodeRef}/{name}?a=true";
-                Map<String, String> lookupContentParams = new HashMap<String, String>();
-                lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
-                lookupContentParams.put("name", name);
-
-                retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
-            }
-            else {
-                throw new Exception("nodeRef not found for path: [" + path + "]");
-            }
-        }
-        catch(Exception err) {
-            System.out.println("err getting content: " + err);   
-        }
-
-        return retStream;
-    }
-
-    public void writeContent(String path, InputStream content) {
-    //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
-    //     //NodeRef nodeRef = persistenceManagerService.getNodeRef(path);
-
-    //     //if (nodeRef != null) {
-    //     ContentWriter writer = persistenceManagerService.getWriter(path);
-    //     writer.putContent(content);
-    //     //}
-    }
 
     @Override
     public void stateTransition(String site, List<String> paths, TransitionEvent event) {
