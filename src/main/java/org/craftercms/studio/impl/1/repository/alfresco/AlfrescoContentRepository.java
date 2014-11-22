@@ -97,6 +97,22 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
     private static final String WORK_AREA_REPOSITORY = "work-area";
     private static final String LIVE_REPOSITORY = "live";
 
+    protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+        InputStream retResponse = null;
+        String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
+        String ticket = "TICKET_669effebc45fca44b3539a69becdb969661aa927";
+
+        for(String key : params.keySet()) {
+            uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
+        }
+
+        URI serviceURI = new URI(serviceUrlBase + uri + "&alf_ticket="+ticket);        
+
+        retResponse = serviceURI.toURL().openStream();
+     
+        return retResponse;
+    }
+
     public Object runAs(final String userName, final Object obj, final Method work, final Object ... args) {
 
         Object retObject = null;
@@ -152,42 +168,48 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      */
     public InputStream getContent(String path) {
         InputStream retStream = null;
+        Map<String, String> params = new HashMap<String, String>();
+        String name = path.substring(path.lastIndexOf("/")+1);
+        String namespacedPath = path.replaceAll("/", "/cm:");
+
+        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        params.put("q", "PATH:\"/app:company_home" + namespacedPath + "\"");
+        params.put("lang","fts-alfresco");
+        params.put("store", "workspace://SpacesStore");
+        params.put("maxResults", "100");
 
         try{
-            String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
-
-            // construct and execute url to look up node ref
-            String nsPath = path.replaceAll("/", "/cm:");
-            String getNodeRefServiceURL = serviceUrlBase + "/slingshot/node/search"+
-                        "?q=PATH/app:company_home" + nsPath +
-                        "&alf_ticket=X";
-
-            URI getNodeRefServiceURI = new URI(getNodeRefServiceURL);
-            String jsonResponse = IOUtils.toString(getNodeRefServiceURI.toURL(), "utf-8");
+            InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
+            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
             JsonConfig cfg = new JsonConfig();
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-        
-            if(root.getInt("numResults") == 1) {
+            int resultCount = root.getInt("numResults");
+
+            if(resultCount == 1) {
                 JSONObject result = root.getJSONArray("results").getJSONObject(0);
                 String nodeRef = result.getString("nodeRef");
-                String name = result.getString("prefixedName").replace("cm:","");
 
                 // construct and execute url to download result
-                String downloadURL = serviceUrlBase + "/api/node/content/workspace/SpacesStore/" +
-                "/"+nodeRef +
-                "/"+ name + 
-                "?a=true" +
-                "&alf_ticket=X";
+                String downloadURI = "/api/node/content/workspace/SpacesStore/{nodeRef}/{name}?a=true";
+                Map<String, String> lookupContentParams = new HashMap<String, String>();
+                lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
+                lookupContentParams.put("name", name);
 
-                URI downloadURI = new URI(downloadURL);
-                retStream = downloadURI.toURL().openStream();
+                retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+            }
+            else {
+                throw new Exception("too many results (" + resultCount + ") for query:" + namespacedPath);
             }
         }
         catch(Exception err) {
-
+            System.out.println("err getting content for path (" + path + "|" +  name+ "): "+err);   
         }
 
         return retStream;
+    }
+
+    public String getContentAsString(String path) throws Exception {
+        return IOUtils.toString(this.getContent(path));
     }
 
     public void writeContent(String path, InputStream content) {

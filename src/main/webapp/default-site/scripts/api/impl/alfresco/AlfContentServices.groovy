@@ -61,17 +61,20 @@ class AlfContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
 	 */
-	def getContent(site, path) {
+	def getContent(site, path) { 
+		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
+        def springBackedService = this.context.applicationContext.get("cstudioContentRepository")
+        return springBackedService.getContentAsString(contentPath)
 
-		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/content/get-content" +
-			"?site=" + site +
-			"&path=" + path +
-			"&alf_ticket=" + getAlfrescoTicket()
+		//def alfServiceApiUrl = getAlfrescoUrl() +
+		//	"/service/cstudio/wcm/content/get-content" +
+		//	"?site=" + site +
+		//	"&path=" + path +
+		//	"&alf_ticket=" + getAlfrescoTicket()
 
-		def response = (alfServiceApiUrl).toURL().getText()
+		//def response = (alfServiceApiUrl).toURL().getText()
 
-		return response
+		//return response
 	}
 
   	/**
