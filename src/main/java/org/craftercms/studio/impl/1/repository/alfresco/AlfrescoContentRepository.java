@@ -68,6 +68,7 @@ import org.craftercms.cstudio.api.service.deployment.DeploymentException;
 import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
 import org.craftercms.cstudio.api.service.fsm.TransitionEvent;
 import org.craftercms.cstudio.impl.repository.AbstractContentRepository;
+import org.craftercms.cstudio.api.to.VersionTO;
 
 import org.craftercms.commons.http.RequestContext;
 /**
@@ -79,25 +80,7 @@ import org.craftercms.commons.http.RequestContext;
 
 public class AlfrescoContentRepository extends AbstractContentRepository {
 
-    protected static final String MSG_ERROR_RUN_AS_FAILED = "err_alfresco_run_as_failure";
-    protected static final String MSG_NODE_REF_IS_NULL_FOR_PATH = "alfresco_noderef_null_for_path";
-    protected static final String MSG_CONTENT_FOR_FOLDER_REQUESTED = "alfresco_content_for_folder_requested";
-
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
-
-    /**
-     * perform operation as a specific user
-     * @param userName the name of the user account performing the operation
-     * @param obj the object that contains the method to executre
-     * @param work the method that represents the work to perform
-     * @param args any number of arguments to pass to the method
-     */
-    private static final String SITE_REPO_ROOT_PATTERN = "/wem-projects/{site}/{site}/work-area";
-    private static final String SITE_ENVIRONMENT_ROOT_PATTERN = "/wem-projects/{site}/{site}/{environment}";
-    private static final String SITE_REPLACEMENT_PATTERN = "\\{site\\}";
-    private static final String ENVIRONMENT_REPLACEMENT_PATTERN = "\\{environment\\}";
-    private static final String WORK_AREA_REPOSITORY = "work-area";
-    private static final String LIVE_REPOSITORY = "live";
 
     /**
      * get document from wcm content
@@ -142,16 +125,87 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
 
 
     public void writeContent(String path, InputStream content) {
-    //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
-    //     //NodeRef nodeRef = persistenceManagerService.getNodeRef(path);
 
-    //     //if (nodeRef != null) {
-    //     ContentWriter writer = persistenceManagerService.getWriter(path);
-    //     writer.putContent(content);
-    //     //}
     }
 
+    /** 
+     * get the version history for an item
+     * @param site - the project ID
+     * @param path - the path of the item 
+     */
+    public VersionTO[] getContentItemVersionHistory(String path) {
+        VersionTO[] versions = new VersionTO[0];
 
+        try {
+            String nodeRef = getNodeRefForPath(path);
+
+            if(nodeRef != null) {
+                // construct and execute url to download result
+                String historyURI = "/api/version?nodeRef={nodeRef}";
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("nodeRef", nodeRef);
+
+                InputStream response = this.alfrescoGetRequest(historyURI, params);
+
+                try{
+                    String jsonResponse = IOUtils.toString(response, "utf-8");
+                    JsonConfig cfg = new JsonConfig();
+                    JSONArray results = JSONArray.fromObject(jsonResponse, cfg);
+                    int resultCount = results.size();
+
+                    if(resultCount > 0) {
+                        versions = new VersionTO[resultCount];
+                        for(int i=0; i<resultCount; i++) {
+                            JSONObject result = results.getJSONObject(i);
+                            JSONObject creator = result.getJSONObject("creator");
+                            VersionTO version = new VersionTO();
+
+                            version.setVersionNumber(result.getString("label"));
+                            version.setLastModifier(creator.getString("userName"));
+                            version.setLastModifiedDate(new Date()); //result.getString("createdDate"));
+                            version.setComment(result.getString("description"));
+
+                            versions[i] = version;
+                        }
+                    }
+// [
+//    {
+//       "nodeRef": "versionStore:\/\/version2Store\/8f32a679-06fc-4999-847b-ed7772fd8051",
+//       "name": "index.xml",
+//       "label": "1.5",
+//       "description": "Reverted to version 1.1",
+//       "": "16 Nov 2014 21:28:09 GMT-0500 (EST)",
+//       "createdDateISO": "2014-11-16T21:28:09.141-05:00",
+//       "creator":
+//       {
+//          "userName": "admin",
+//          "firstName": "Administrator",
+//          "lastName": ""
+//       }
+//    },
+
+
+                }
+                catch(Exception err) {
+                    System.out.println("err getting noderef for path (" + path + "): "+err);   
+                }
+
+
+            }
+            else {
+                throw new Exception("nodeRef not found for path: [" + path + "]");
+            }
+        }
+        catch(Exception err) {
+            System.out.println("err getting content: " + err);   
+        }
+
+        return versions;
+    }
+
+    /**
+     * Get the alfresco ticket from the URL or the cookie or from an authorinization
+     */
     protected String getAlfTicket() {
         String ticket = "UNSET";
         RequestContext context = RequestContext.getCurrent();
@@ -243,6 +297,18 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
 
 /* ======================= */
 // Everything below this line must go
+
+
+    protected static final String MSG_ERROR_RUN_AS_FAILED = "err_alfresco_run_as_failure";
+    protected static final String MSG_NODE_REF_IS_NULL_FOR_PATH = "alfresco_noderef_null_for_path";
+    protected static final String MSG_CONTENT_FOR_FOLDER_REQUESTED = "alfresco_content_for_folder_requested";
+
+    private static final String SITE_REPO_ROOT_PATTERN = "/wem-projects/{site}/{site}/work-area";
+    private static final String SITE_ENVIRONMENT_ROOT_PATTERN = "/wem-projects/{site}/{site}/{environment}";
+    private static final String SITE_REPLACEMENT_PATTERN = "\\{site\\}";
+    private static final String ENVIRONMENT_REPLACEMENT_PATTERN = "\\{environment\\}";
+    private static final String WORK_AREA_REPOSITORY = "work-area";
+    private static final String LIVE_REPOSITORY = "live";
 
 
     /**

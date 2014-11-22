@@ -32,6 +32,7 @@ import org.craftercms.cstudio.api.log.*;
 import org.craftercms.cstudio.api.service.content.*;
 import org.craftercms.cstudio.api.to.ContentItemTO;
 import org.craftercms.cstudio.api.repository.ContentRepository;
+import org.craftercms.cstudio.api.to.VersionTO;
 
 /**
  * Content Services that other services may use
@@ -141,7 +142,7 @@ public class ContentServiceImpl implements ContentService {
      * @param content stream of content to write
      */
     public void writeContent(String site, String path, InputStream content){
-
+        writeContent(expandRelativeSitePath(site, path), content);
     }
 
     /**
@@ -159,13 +160,57 @@ public class ContentServiceImpl implements ContentService {
             if(path.endsWith(".xml")) {
                 Document contentDoc = this.getContentAsDocument(expandRelativeSitePath(site, path));
                 if(contentDoc != null) {  
-                    Element rootElement = contentDoc.getRootElement();
                     item = new ContentItemTO();
-                    item.name = path.substring(path.lastIndexOf("/")+1);
-                    item.internalName = rootElement.valueOf("internal-name");
-                    item.contentType = rootElement.valueOf("content-type");  
 
-                    // populate with workflow states and other metadata                  
+                    Element rootElement = contentDoc.getRootElement();
+                    item.internalName = rootElement.valueOf("internal-name");
+                    item.contentType = rootElement.valueOf("content-type"); 
+                    item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") ); 
+                    item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") ); 
+                    item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") ); 
+
+                    item.uri = path;
+                    item.path = path.substring(0, path.lastIndexOf("/")-1);
+                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.page = (item.contentType.indexOf("/page") != -1);
+                    item.previewable = item.page;
+                    item.component = (item.contentType.indexOf("/component") != -1);
+                    item.document = false;
+                    item.asset = (item.component == false && item.page == false);
+                    item.browserUri = (item.page) ? path.replace("/site/website", "").replace(".xml", "") : null;
+
+                    // populate with workflow states and other metadata
+
+                    item.isNew = true;
+                    item.submitted = false;
+                    item.scheduled = false;
+                    item.deleted = false;
+                    item.submittedForDeletion = false;
+                    item.inProgress = true;
+                    item.live = false;
+
+                    item.lockOwner = "";
+                    item.user = "";
+                    item.userFirstName = "";
+                    item.userLastName = "";
+                    item.nodeRef = "";
+                    item.metaDescription = ""; 
+
+                    // duplicate properties
+                    item.isDisabled = item.disabled;
+                    item.isInProgress = item.inProgress;
+                    item.isLive = item.live;
+                    item.isSubmittedForDeletion = item.submittedForDeletion;
+                    item.isScheduled = item.scheduled;
+                    item.isNavigation = item.navigation;
+                    item.isDeleted = item.deleted;
+                    item.isSubmitted = item.submitted;
+                    item.isFloating = item.floating;
+                    item.isPage = item.page;
+                    item.isPreviewable = item.previewable;
+                    item.isComponent = item.component;
+                    item.isDocument = item.document;
+                    item.isAsset = item.asset;
                 }
                 else {
                      logger.error("no xml document could be loaded for path '{0}'", path);    
@@ -174,9 +219,18 @@ public class ContentServiceImpl implements ContentService {
             else {
                 if (this.contentExists(site, path)) {
                     item = new ContentItemTO();
+                    item.uri = path;
+                    item.path = path.substring(0, path.lastIndexOf("/")-1);
                     item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.isAsset = true;
 
-                    // populate with workflow states and other metadata 
+                    // populate with workflow states and other metadata
+                    item.isNew = true;
+                    item.isSubmitted = false;
+                    item.isScheduled = false;
+                    item.isNavigation = false; 
+                    item.isDeleted = false;
+                    item.isInProgress = true;
                 }                 
             }
                 
@@ -186,6 +240,15 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return item;
+    }
+
+    /** 
+     * get the version history for an item
+     * @param site - the project ID
+     * @param path - the path of the item 
+     */
+    public VersionTO[] getContentItemVersionHistory(String site, String path) {
+        return _contentRepository.getContentItemVersionHistory(expandRelativeSitePath(site, path));
     }
 
     /**

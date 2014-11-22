@@ -6,6 +6,7 @@ def path = params.path
 
 def context = ContentServices.createContext(applicationContext, request)
 
-result = ContentServices.getContentItemVersionHistory(site, path, context) 
+result.item = ContentServices.getContentItem(site, path, context)
+result.versions = ContentServices.getContentItemVersionHistory(site, path, context) 
 
 return result 

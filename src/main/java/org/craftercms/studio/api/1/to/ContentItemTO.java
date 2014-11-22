@@ -39,9 +39,59 @@ import javolution.util.FastTable;
  */
 public class ContentItemTO  {
 
+	// properties
 	public String name;
 	public String internalName;
 	public String contentType;
+	public String uri;
+	public String path;
+	public String browserUri;
+	public boolean navigation;
+    public boolean floating; 
+    public boolean hideInAuthoring;
+    public boolean previewable;
+    public String lockOwner;
+    public String user;
+    public String userFirstName;
+    public String userLastName;
+    public String nodeRef;
+    public String metaDescription;
+
+	// what it is
+	public boolean page;
+	public boolean component;
+	public boolean document;
+	public boolean asset;
+
+	// special states
+	public boolean disabled;
+
+	// workflow states
+	public boolean submitted;
+	public boolean submittedForDeletion;
+	public boolean scheduled;
+	public boolean deleted;
+	public boolean inProgress;
+	public boolean live;
+
+    // duplicate properties (these are probable getters)
+    public boolean isDisabled;
+    public boolean isInProgress;
+    public boolean isLive;
+    public boolean isSubmittedForDeletion;
+    public boolean isScheduled;
+    public boolean isNavigation;
+    public boolean isDeleted;
+    public boolean isNew;
+    public boolean isSubmitted;
+    public boolean isFloating;
+    public boolean isPage;
+    public boolean isPreviewable;
+    public boolean isComponent;
+    public boolean isDocument;
+    public boolean isAsset;
+
+
 
 	// /** the name of item specified by the creator **/
 	// private String _internalName;

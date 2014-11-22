@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
+import org.craftercms.cstudio.api.to.VersionTO;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend 
@@ -62,12 +63,12 @@ public interface ContentRepository {
      */
     void writeContent(String path, InputStream content);
 
-//  /** 
-//   * get the version history for an item
-//   * @param site - the project ID
-//   * @param path - the path of the item 
-//   */
-//  String void getContentItemVersionHistory(site, path);
+    /** 
+     * get the version history for an item
+     * @param site - the project ID
+     * @param path - the path of the item 
+     */
+    VersionTO[] getContentItemVersionHistory(String path);
 
 
 /* ===  */

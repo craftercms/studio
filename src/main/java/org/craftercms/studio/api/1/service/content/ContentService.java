@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.craftercms.cstudio.api.to.VersionTO;
 
 import org.craftercms.cstudio.api.to.ContentItemTO;
 
@@ -101,11 +102,11 @@ public interface ContentService  {
 	 */
 	public ContentItemTO getContentItem(String site,  String path);
 
-// 	/** 
-// 	 * get the version history for an item
-// 	 * @param site - the project ID
-// 	 * @param path - the path of the item 
-// 	 */
-// 	String void getContentItemVersionHistory(site, path);
+	/** 
+	 * get the version history for an item
+	 * @param site - the project ID
+	 * @param path - the path of the item 
+	 */
+	VersionTO[] getContentItemVersionHistory(String site, String path);
 
 }
