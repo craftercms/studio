@@ -170,7 +170,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         InputStream retStream = null;
         Map<String, String> params = new HashMap<String, String>();
         String name = path.substring(path.lastIndexOf("/")+1);
-        String namespacedPath = path.replaceAll("/", "/cm:");
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
 
         String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
         params.put("q", "PATH:\"/app:company_home" + namespacedPath + "\"");
