@@ -15,10 +15,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.log;
-
-import org.craftercms.cstudio.api.log.*;
-import org.craftercms.cstudio.impl.log.*;
+package org.craftercms.cstudio.api.log;
 
 /**
  * Logger object, log4j implementation

@@ -19,6 +19,8 @@ package org.craftercms.cstudio.api.service.content;
 
 import java.io.InputStream;
 import java.net.*;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 
 import org.craftercms.cstudio.api.to.ContentItemTO;
 
@@ -53,9 +55,32 @@ public interface ContentService  {
     public String getContentAsString(String path);
 
     /**
-     * get a content item for a given site and path
-     * @param site - the site
-     * @param path = the path of content to get
+     * get document from wcm content
+     * @param path
+     * @return document
+     * @throws ServiceException
      */
-    public ContentItemTO getContentItem(String site, String path);
+    Document getContentAsDocument(String path) throws DocumentException;
+
+	// /**
+	//  * get the tree of content items (metadata) beginning at a root
+	//  * @param site - the project ID
+	//  * @param path - the path to root at
+	//  */
+	// public getContentItemTree(String site, String path);
+
+	/**
+	 * get the content item (metadata) at a specific path
+	 * @param site - the project ID
+	 * @param path - the path of the content item
+	 */
+	public ContentItemTO getContentItem(String site,  String path);
+
+// 	/** 
+// 	 * get the version history for an item
+// 	 * @param site - the project ID
+// 	 * @param path - the path of the item 
+// 	 */
+// 	String void getContentItemVersionHistory(site, path);
+
 }

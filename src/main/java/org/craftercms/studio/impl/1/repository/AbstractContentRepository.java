@@ -17,17 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository;
 
-import java.io.*;
-import org.dom4j.io.SAXReader;
-import java.lang.reflect.Method;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import javax.transaction.UserTransaction;
-
-import org.apache.commons.io.IOUtils;
-
-import org.craftercms.cstudio.api.service.transaction.*;
 import org.craftercms.cstudio.api.repository.*;
+import java.io.InputStream;
 
 import org.craftercms.cstudio.api.log.*;
 
@@ -36,8 +27,6 @@ import org.craftercms.cstudio.api.log.*;
  * @author russdanner
  */
 public abstract class AbstractContentRepository implements ContentRepository {
-
-	protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
 
@@ -53,6 +42,7 @@ public abstract class AbstractContentRepository implements ContentRepository {
     	writeContent("/wem-projects/"+site+"/"+site+"/"+store + path, content);
     }
 
+    // get rid of this
     /**
      * get content
      * @param site the site project id
@@ -62,41 +52,5 @@ public abstract class AbstractContentRepository implements ContentRepository {
      */
     public InputStream getContent(String site, String variant, String store, String path) {
     	return getContent("/wem-projects/"+site+"/"+site+"/"+store + path);
-    }
-
-    public String getContentAsString(String path) throws Exception {
-        return IOUtils.toString(this.getContent(path));
-    }
-
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
-    public Document getContentAsDocument(String path)
-    throws DocumentException {
-    	Document retDocument = null;
-    	InputStream is = this.getContent(path);
-
-    	if(is != null) {
-    		try {
-	    		SAXReader saxReader = new SAXReader();    		
-	    		retDocument = saxReader.read(is);
-            } 
-    		finally {
-    			try {
-    				if (is != null) {
-    					is.close();
-    				}
-    			} 
-    			catch (IOException err) {
-    				logger.error(MSG_ERROR_IO_CLOSE_FAILED, err, path);
-    			}
-            }   	
-    	}
-
-    	return retDocument;
     }
 }

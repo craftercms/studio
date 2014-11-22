@@ -28,6 +28,8 @@
           <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
+    <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
+
     <bean id="cstudioDmDeploymentService" class="org.craftercms.cstudio.alfresco.dm.service.impl.DmDeploymentServiceImpl"
          parent="cstudioRegistrableService">
           <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
@@ -46,7 +48,7 @@
         <property name="siteServiceDAL">
           <bean id="cstudioRepositorySiteServiceDAL" 
                 class="org.craftercms.cstudio.impl.service.site.dal.RepositorySiteServiceDAL">
-              <property name="contentRepository" ref="cstudioContentRepository" />
+              <property name="contentService" ref="cstudioContentService" />
           </bean>
         </property>
     </bean>

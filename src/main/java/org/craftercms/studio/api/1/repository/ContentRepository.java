@@ -38,12 +38,6 @@ import java.util.Set;
  */
 public interface ContentRepository {
 
-
-    /**
-     * get transaction
-     */
-    UserTransaction getTransaction();
-
     /**
      * Determine if content exists in the repository at a given path
      * @param site name
@@ -51,24 +45,6 @@ public interface ContentRepository {
      * @return true if site has content object at path
      */
     boolean contentExists(String site, String path);
-
-    /**
-     * get document from wcm content
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
-    Document getContentAsDocument(String path)
-            throws DocumentException;
-
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
-    String getContentAsString(String path) throws Exception;
 
     /**
      * get document from wcm content
@@ -80,6 +56,31 @@ public interface ContentRepository {
     InputStream getContent(String path);
 
     /**
+     * write content
+     * @param path path to content
+     * @param content stream of content to write
+     */
+    void writeContent(String path, InputStream content);
+
+//  /** 
+//   * get the version history for an item
+//   * @param site - the project ID
+//   * @param path - the path of the item 
+//   */
+//  String void getContentItemVersionHistory(site, path);
+
+
+
+
+
+
+
+
+
+/* ========================================================================== */
+// everything below here is methods that will not be part of the interface
+
+    /**
      * get content
      * @param site the site project id
      * @param variant variant is a variation of the site (like a translation for example)
@@ -88,13 +89,11 @@ public interface ContentRepository {
      */
     InputStream getContent(String site, String variant, String store, String path);
 
-    /**
-     * write content
-     * @param path path to content
-     * @param content stream of content to write
-     */
-    void writeContent(String path, InputStream content);
 
+    /**
+     * get transaction
+     */
+    UserTransaction getTransaction();
     /**
      * write content
      * @param site the site project id

@@ -17,17 +17,29 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.content;
 
-import java.io.InputStream;
 import java.net.*;
+import java.io.*;
+import java.io.InputStream;
+import org.dom4j.io.SAXReader;
+import java.lang.reflect.Method;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 
+import org.apache.commons.io.IOUtils;
+
+import org.craftercms.cstudio.api.log.*;
 import org.craftercms.cstudio.api.to.ContentItemTO;
 import org.craftercms.cstudio.api.repository.ContentRepository;
+
 /**
  * Content Services that other services may use
  * @author russdanner
  */
 public class ContentServiceImpl  {
 
+    protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
+
+    private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     /**
      * @return true if site has content object at path
@@ -47,24 +59,46 @@ public class ContentServiceImpl  {
        return this._contentRepository.getContent(path);
     }
 
-   /**
-     * get from wcm content
+    /**
+     * get document from wcm content
+     * @param path
+     * @return document
+     * @throws ServiceException
+     */
+    public String getContentAsString(String path) throws Exception {
+        return IOUtils.toString(_contentRepository.getContent(path));
+    }
+
+    /**
+     * get document from wcm content
      *
      * @param path
      * @return document
      * @throws ServiceException
      */
-    public String getContentAsString(String path) {
-        String content = null;
+    public Document getContentAsDocument(String path)
+    throws DocumentException {
+        Document retDocument = null;
+        InputStream is = this.getContent(path);
 
-        try {
-            content = this._contentRepository.getContentAsString(path);
-        }
-        catch(Exception err) {
-            System.out.println("getContent error:"+err);
+        if(is != null) {
+            try {
+                SAXReader saxReader = new SAXReader();          
+                retDocument = saxReader.read(is);
+            } 
+            finally {
+                try {
+                    if (is != null) {
+                        is.close();
+                    }
+                } 
+                catch (IOException err) {
+                    logger.error(MSG_ERROR_IO_CLOSE_FAILED, err, path);
+                }
+            }       
         }
 
-        return content;
+        return retDocument;
     }
 
     /**

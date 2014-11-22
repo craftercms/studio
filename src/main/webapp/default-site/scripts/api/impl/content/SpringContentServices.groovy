@@ -71,21 +71,8 @@ class SpringContentServices {
 	 * @param rootPath - the path to root at
 	 */
 	def getContentItemTree(site, path){
-/*
-		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/content/get-pages" +
-			"?site=" + site +
-			"&path=" + path +
-			"&depth=1" + 
-			"&order=default" +
-			"&alf_ticket=" + getAlfrescoTicket()
-
-		def response = (alfServiceApiUrl).toURL().getText()
- 
- 		def result = new JsonSlurper().parseText( response )
- 
-		return result
-*/
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.getContentItemTree(site, path)
 	}
 
 	/**
@@ -94,20 +81,8 @@ class SpringContentServices {
 	 * @param path - the path of the content item
 	 */
 	def getContentItem(site, path) {
-/*
-		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/content/get-item" +
-			"?site=" + site +
-			"&path=" + path +
-			"&populateDependencies=false" +
-			"&alf_ticket=" + getAlfrescoTicket()
-
-		def response = (alfServiceApiUrl).toURL().getText()
- 
- 		def result = new JsonSlurper().parseText( response )
- 
-		return result
-*/
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.getContentItem(site, path)
 	}
 
 	/**
@@ -154,19 +129,6 @@ class SpringContentServices {
 	 * @param path - the path of the item to unlock
 	 */
 	def unlockContentItem(site, path) {
-/*
-		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/workflow/unlockItem" +
-			"?site=" + site +
-			"&path=" + path +
-			"&alf_ticket=" + getAlfrescoTicket()
-
-		def response = (alfServiceApiUrl).toURL().getText()
- 
- 		def result = new JsonSlurper().parseText( response )
- 
-		return result
-*/
 	}
 
 	/** 
@@ -175,20 +137,8 @@ class SpringContentServices {
 	 * @param path - the path of the item 
 	 */
 	def getContentItemVersionHistory(site, path) {
-/*
-		def alfServiceApiUrl = getAlfrescoUrl() +
-			"/service/cstudio/wcm/version/get-history" +
-			"?site=" + site +
-			"&path=" + path +
-			"&maxhistory=100" +
-			"&alf_ticket=" + getAlfrescoTicket()
-
-		def response = (alfServiceApiUrl).toURL().getText()
- 
- 		def result = new JsonSlurper().parseText( response )
- 
-		return result
-*/
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.getContentItemVersionHistory(site, path)		
 	}
 
 	/** 
@@ -225,4 +175,4 @@ class SpringContentServices {
 	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
 		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage, this.context);
 	}
-}	
+}

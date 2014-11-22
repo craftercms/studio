@@ -15,13 +15,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.log;
+package org.craftercms.cstudio.api.log;
 
 import java.lang.Thread;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
-
-import org.craftercms.cstudio.api.log.*;
 
 /**
  * abstract implementation for logger
