@@ -10,7 +10,7 @@ class SpringContentServices {
 
 //	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
 //	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"
-	static CONTENT_SERVICES_BEAN = "contentServices"
+	static CONTENT_SERVICES_BEAN = "cstudioContentService"
 
 	def context = null		
 	

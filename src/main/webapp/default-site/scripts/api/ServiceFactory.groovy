@@ -30,7 +30,7 @@ class ServiceFactory {
      * return the implementation for content services
 	 */
 	static getContentServices(context) {
-		return new AlfContentServices(context)
+		return new SpringContentServices(context)
 	}
 
     /**
@@ -40,7 +40,7 @@ class ServiceFactory {
      * @return ClipboardServices
      */
     static getClipboardServices(context) {
-        return new AlfClipboardServices(context)
+        return new ClipboardServices(context)
     }
 
 	/**

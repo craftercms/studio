@@ -68,6 +68,15 @@ public interface ContentRepository {
      * @return document
      * @throws ServiceException
      */
+    String getContentAsString(String path) throws Exception;
+
+    /**
+     * get document from wcm content
+     *
+     * @param path
+     * @return document
+     * @throws ServiceException
+     */
     InputStream getContent(String path);
 
     /**

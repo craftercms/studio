@@ -24,6 +24,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import javax.transaction.UserTransaction;
 
+import org.apache.commons.io.IOUtils;
+
 import org.craftercms.cstudio.api.service.transaction.*;
 import org.craftercms.cstudio.api.repository.*;
 
@@ -60,6 +62,10 @@ public abstract class AbstractContentRepository implements ContentRepository {
      */
     public InputStream getContent(String site, String variant, String store, String path) {
     	return getContent("/wem-projects/"+site+"/"+site+"/"+store + path);
+    }
+
+    public String getContentAsString(String path) throws Exception {
+        return IOUtils.toString(this.getContent(path));
     }
 
     /**

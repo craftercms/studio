@@ -234,10 +234,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         return retStream;
     }
 
-    public String getContentAsString(String path) throws Exception {
-        return IOUtils.toString(this.getContent(path));
-    }
-
     public void writeContent(String path, InputStream content) {
     //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
     //     //NodeRef nodeRef = persistenceManagerService.getNodeRef(path);

@@ -44,6 +44,15 @@ public interface ContentService  {
     public InputStream getContent(String path);
 
     /**
+     * get from wcm content
+     *
+     * @param path
+     * @return document
+     * @throws ServiceException
+     */
+    public String getContentAsString(String path);
+
+    /**
      * get a content item for a given site and path
      * @param site - the site
      * @param path = the path of content to get

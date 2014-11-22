@@ -47,6 +47,26 @@ public class ContentServiceImpl  {
        return this._contentRepository.getContent(path);
     }
 
+   /**
+     * get from wcm content
+     *
+     * @param path
+     * @return document
+     * @throws ServiceException
+     */
+    public String getContentAsString(String path) {
+        String content = null;
+
+        try {
+            content = this._contentRepository.getContentAsString(path);
+        }
+        catch(Exception err) {
+            System.out.println("getContent error:"+err);
+        }
+
+        return content;
+    }
+
     /**
      * get a content item for a given site and path
      * @param site - the site
