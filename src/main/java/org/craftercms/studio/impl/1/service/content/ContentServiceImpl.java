@@ -28,6 +28,7 @@ import org.dom4j.DocumentException;
 import org.apache.commons.io.IOUtils;
 
 import org.craftercms.cstudio.api.log.*;
+import org.craftercms.cstudio.api.service.content.*;
 import org.craftercms.cstudio.api.to.ContentItemTO;
 import org.craftercms.cstudio.api.repository.ContentRepository;
 
@@ -35,7 +36,7 @@ import org.craftercms.cstudio.api.repository.ContentRepository;
  * Content Services that other services may use
  * @author russdanner
  */
-public class ContentServiceImpl  {
+public class ContentServiceImpl implements ContentService {
 
     protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
 
@@ -65,8 +66,17 @@ public class ContentServiceImpl  {
      * @return document
      * @throws ServiceException
      */
-    public String getContentAsString(String path) throws Exception {
-        return IOUtils.toString(_contentRepository.getContent(path));
+    public String getContentAsString(String path)  {
+        String content = null;
+
+        try {
+            content = IOUtils.toString(_contentRepository.getContent(path));
+        }
+        catch(Exception err) {
+            logger.error("Failed to get content as string for path '{0}'", err, path);
+        }
+
+        return content;
     }
 
     /**
