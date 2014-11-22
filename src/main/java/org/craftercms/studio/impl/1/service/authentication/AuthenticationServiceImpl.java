@@ -36,7 +36,7 @@ public class AuthenticationServiceImpl implements AuthenticationService  {
 	 * @param args any number of arguments to pass to the method
 	 */
 	public Object runAs(String userName, Object obj, Method work, Object ... args) {
-		return _contentRepository.runAs(userName, obj, work, args);
+		return "not implemented, does not make sense anymore"; //_contentRepository.runAs(userName, obj, work, args);
 	}
 
     @Override

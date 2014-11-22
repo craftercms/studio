@@ -1,31 +1,32 @@
-package scripts.api.impl.alfresco
+package scripts.api.impl.content
 
 import groovy.json.JsonSlurper;
-import scripts.api.impl.subsystems.search.SolrSearch;
+import scripts.api.impl.search.SolrSearch;
 
 /**
  * content services
  */
-class AlfContentServices {
+class SpringContentServices {
 
-	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
-	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"
+//	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
+//	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"
+	static CONTENT_SERVICES_BEAN = "contentServices"
 
 	def context = null		
 	
-	def AlfContentServices(context) {
+	def SpringContentServices(context) {
 		this.context = context
 	}
 
-	def getAlfrescoUrl() {
-		def propertiesMap = this.context.applicationContext.get(SERVER_PROPERTIES_BEAN_NAME)
-		def alfrescoUrl = propertiesMap[ALFRESCO_URL_PROPERTY]
-		return alfrescoUrl
-	}
+//	def getAlfrescoUrl() {
+//		def propertiesMap = this.context.applicationContext.get(SERVER_PROPERTIES_BEAN_NAME)
+//		def alfrescoUrl = propertiesMap[ALFRESCO_URL_PROPERTY]
+//		return alfrescoUrl
+//	}
 
-	def getAlfrescoTicket() {
-		return this.context.token
-	}
+//	def getAlfrescoTicket() {
+//		return this.context.token
+//	}
 
 	/**
 	 * Write content
@@ -63,7 +64,7 @@ class AlfContentServices {
 	 */
 	def getContent(site, path) { 
 		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
-        def springBackedService = this.context.applicationContext.get("cstudioContentRepository")
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.getContentAsString(contentPath)
 
 		//def alfServiceApiUrl = getAlfrescoUrl() +
@@ -84,7 +85,7 @@ class AlfContentServices {
   	 */
 	def doesContentItemExist(site, path) {
 
-		def alfServiceApiUrl = getAlfrescoUrl() +
+/*		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/content/content-exists" +
 			"?site=" + site +
 			"&path=" + path +
@@ -95,6 +96,7 @@ class AlfContentServices {
  		def result = new JsonSlurper().parseText( response )
  
 		return result
+*/
 	}
 
 	/**
@@ -103,7 +105,7 @@ class AlfContentServices {
 	 * @param rootPath - the path to root at
 	 */
 	def getContentItemTree(site, path){
-
+/*
 		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/content/get-pages" +
 			"?site=" + site +
@@ -117,6 +119,7 @@ class AlfContentServices {
  		def result = new JsonSlurper().parseText( response )
  
 		return result
+*/
 	}
 
 	/**
@@ -125,6 +128,7 @@ class AlfContentServices {
 	 * @param path - the path of the content item
 	 */
 	def getContentItem(site, path) {
+/*
 		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/content/get-item" +
 			"?site=" + site +
@@ -137,6 +141,7 @@ class AlfContentServices {
  		def result = new JsonSlurper().parseText( response )
  
 		return result
+*/
 	}
 
 	/**
@@ -183,7 +188,7 @@ class AlfContentServices {
 	 * @param path - the path of the item to unlock
 	 */
 	def unlockContentItem(site, path) {
-
+/*
 		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/workflow/unlockItem" +
 			"?site=" + site +
@@ -195,6 +200,7 @@ class AlfContentServices {
  		def result = new JsonSlurper().parseText( response )
  
 		return result
+*/
 	}
 
 	/** 
@@ -203,7 +209,7 @@ class AlfContentServices {
 	 * @param path - the path of the item 
 	 */
 	def getContentItemVersionHistory(site, path) {
-
+/*
 		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/version/get-history" +
 			"?site=" + site +
@@ -216,6 +222,7 @@ class AlfContentServices {
  		def result = new JsonSlurper().parseText( response )
  
 		return result
+*/
 	}
 
 	/** 
@@ -225,6 +232,7 @@ class AlfContentServices {
 	 * @param version - old version ID to base to version on
 	 */
 	def revertContentItem(site, path, version){
+/*
 		def alfServiceApiUrl = getAlfrescoUrl() +
 			"/service/cstudio/wcm/version/revert" +
 			"?site=" + site +
@@ -235,7 +243,7 @@ class AlfContentServices {
 		def response = (alfServiceApiUrl).toURL().getText()
  
  		def result = new JsonSlurper().parseText( response )
-
+*/
 		return result		
 	}
 

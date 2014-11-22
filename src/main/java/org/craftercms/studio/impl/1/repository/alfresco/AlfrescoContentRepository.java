@@ -186,28 +186,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
     }
 
     /**
-     * this method is no longer meaningful
-     * take it out and clean up the code, it's just an extra later of reflections at this point
-     */
-    public Object runAs(final String userName, final Object obj, final Method work, final Object ... args) {
-        Object retObject = null;
-
-        try {
-            try {
-                retObject =  work.invoke(obj, null);
-            }
-            catch(Exception err) {
-                logger.error(MSG_ERROR_RUN_AS_FAILED, err, userName, obj.getClass().getName());
-            }
-        }
-        catch(Exception err) {
-            logger.error(MSG_ERROR_RUN_AS_FAILED, err, userName, obj.getClass().getName());
-        }
-
-        return retObject;
-    }
-
-    /**
      * get transaction
      */
     public UserTransaction getTransaction() {
@@ -219,8 +197,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      * @return true if site has content object at path
      */
     public boolean contentExists(String site, String path) {
-        return false;
-        //return _dmContentService.contentExists(site, path, path);
+       return (this.getNodeRefForPath("/wem-projects/" + site + "/" + site + "/work-area" + path) != null); 
     }
 
     /**

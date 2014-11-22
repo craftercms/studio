@@ -38,14 +38,6 @@ import java.util.Set;
  */
 public interface ContentRepository {
 
-    /**
-     * perform operation as a specific user
-     * @param userName the name of the user account performing the operation
-     * @param obj the object that contains the method to executre
-     * @param work the method that represents the work to perform
-     * @param args any number of arguments to pass to the method
-     */
-    Object runAs(String userName, Object obj, Method work, Object ... args);
 
     /**
      * get transaction

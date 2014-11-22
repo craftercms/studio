@@ -1,9 +1,9 @@
-package scripts.api.impl.subsystems.search
+package scripts.api.impl.search
 
 import groovy.json.JsonSlurper
 
 /**
- * content services
+ * search implementation
  */
 class SolrSearch {
 

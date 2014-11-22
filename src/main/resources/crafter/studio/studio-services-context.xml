@@ -24,6 +24,10 @@
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
+    <bean id="cstudioContentService" class="org.craftercms.cstudio.impl.service.content.ContentServiceImpl">
+          <property name="contentRepository" ref="cstudioContentRepository" />
+    </bean>
+
     <bean id="cstudioDmDeploymentService" class="org.craftercms.cstudio.alfresco.dm.service.impl.DmDeploymentServiceImpl"
          parent="cstudioRegistrableService">
           <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
@@ -80,11 +84,11 @@
     
     <bean id="cstudioEmailMessageSender" class="org.craftercms.cstudio.alfresco.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="emailService" ref="mailService" />
+        <property name="emailService" ref="mailSenderImpl" />
         <property name="defaultFromAddress"><value>${mail.from.default}</value></property>
     </bean>
 
-    <bean id="mailService" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <bean id="mailSenderImpl" class="org.springframework.mail.javamail.JavaMailSenderImpl">
       <property name="host" value="smtp.gmail.com" />
       <property name="port" value="587" />
       <property name="username" value="username" />

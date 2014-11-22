@@ -1,4 +1,4 @@
-package scripts.api.impl.subsystems.deployment
+package scripts.api.impl.deployment
 
 import org.craftercms.cstudio.api.service.deployment.DeploymentService;
 

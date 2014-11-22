@@ -1,4 +1,4 @@
-package scripts.api.impl.alfresco
+package scripts.api.impl.clipboard
 
 import groovy.json.JsonBuilder
 import groovyx.net.http.HTTPBuilder
@@ -10,10 +10,8 @@ import groovyx.net.http.Method
 /**
  * content services
  */
-class AlfClipboardServices {
+class ClipboardServices {
 
-	static SERVER_PROPERTIES_BEAN_NAME = "studio.crafter.properties"
-	static ALFRESCO_URL_PROPERTY = "alfrescoUrl"
 
 	def context = null		
 
@@ -49,7 +47,7 @@ class AlfClipboardServices {
      * @return response status
      */
     def paste(site, destination, clipboardItem) {
-        def alfrescoUrl =  getAlfrescoUrl()
+/*        def alfrescoUrl =  getAlfrescoUrl()
         def ticket = getAlfrescoTicket()
         def alfServiceApiUrl = alfrescoUrl + "/service/cstudio/wcm/clipboard/paste?site=" + site +
                 "&destination=" + destination + "&cut=" + clipboardItem.cut + "&alf_ticket=" + ticket
@@ -67,8 +65,9 @@ class AlfClipboardServices {
                 return resp.status
             }
         }
+*/
     }
 
-
+// move the logic from the rest calls to here for cut, copy
 
 }	
