@@ -258,7 +258,15 @@ public class ContentServiceImpl implements ContentService {
      * @param version - old version ID to base to version on
      */
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
-        return _contentRepository.revertContentItem(expandRelativeSitePath(site, path), version, major, comment);
+        boolean success = false;
+
+        success = _contentRepository.revertContentItem(expandRelativeSitePath(site, path), version, major, comment);
+
+        if(success) {
+            // publish item udated event or push to preview
+        }
+
+        return success;
     }
 
     /**

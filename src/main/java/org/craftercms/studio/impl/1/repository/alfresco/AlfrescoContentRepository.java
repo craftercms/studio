@@ -215,8 +215,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
                 String result = alfrescoPostRequest("/api/revert", null, bodyStream, "application/json");
                 
                 success = result.contains("true");
-                System.out.println("revert command :'" + revertCommand + "'");
-                System.out.println("revert item result :'" + result + "'");
              }
             catch(Exception err) {
                 System.out.println("err reverting content content: " + err);   
