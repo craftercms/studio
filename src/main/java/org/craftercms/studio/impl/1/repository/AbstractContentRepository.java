@@ -29,31 +29,4 @@ import org.craftercms.cstudio.api.log.*;
 public abstract class AbstractContentRepository implements ContentRepository {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
-
-
-/* ====== */
-//everthing below here must go
-    /**
-     * write content
-     * @param site the site project id
-     * @param variant variant is a variation of the site (like a translation for example)
-     * @param store is an area to write to (live, stage, work-area, ...)
-     * @param path is the file path to write
-     * @param content is the bits to write
-     */
-    public void writeContent(String site, String variant, String store, String path, InputStream content) {
-    	writeContent("/wem-projects/"+site+"/"+site+"/"+store + path, content);
-    }
-
-    // get rid of this
-    /**
-     * get content
-     * @param site the site project id
-     * @param variant variant is a variation of the site (like a translation for example)
-     * @param store is an area to write to (live, stage, work-area, ...)
-     * @param path is the file path to write
-     */
-    public InputStream getContent(String site, String variant, String store, String path) {
-    	return getContent("/wem-projects/"+site+"/"+site+"/"+store + path);
-    }
 }

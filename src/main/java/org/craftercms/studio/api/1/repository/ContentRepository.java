@@ -61,7 +61,19 @@ public interface ContentRepository {
      * @param path path to content
      * @param content stream of content to write
      */
-    void writeContent(String path, InputStream content);
+    boolean writeContent(String path, InputStream content);
+
+    /**
+     * delete content
+     * @param path path to content
+     */
+    boolean deleteContent(String path);
+
+    /**
+     * get immediate children for path
+     * @param path path to content
+     */
+    RepositoryItem[] getContentChildren(String path);
 
     /** 
      * get the version history for an item
@@ -76,6 +88,13 @@ public interface ContentRepository {
      * @param version - old version ID to base to version on
      */
     boolean revertContent(String path, String version, boolean major, String comment);
+
+
+
+
+
+
+
 
 /* ===  */
 // Maybes

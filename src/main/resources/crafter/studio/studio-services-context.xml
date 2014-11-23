@@ -220,10 +220,7 @@
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
-    <bean id="cstudioContentRepository" class="org.craftercms.cstudio.impl.repository.alfresco.AlfrescoContentRepository">
-        <!--property name="dmContentService" ref="cstudioDmContentService" />
-        <property name="servicesManager" ref="cstudioServicesManager" />
-        <property name="transactionService" ref="TransactionService" />
-        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" /-->
+    <bean id="cstudioContentRepository" class="org.craftercms.cstudio.impl.repository.alfresco.AlfrescoContentRepositoryDirty">
+        <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
     </bean>
 </beans>

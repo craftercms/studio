@@ -15,18 +15,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.api.subsystem.repository;
+package org.craftercms.cstudio.api.repository;
 
-public interface Repository {
-
-// THE ONLY ALLOWED METHODS TO THE REPO!
-// getContent
-// getContentItem
-// getContentItemsTree
-// writeContent
-// deleteContent
-// createVersion
-// getContentVersions
-// lockContent
-// unlockContent
+public class RepositoryItem {
+	public String path;
+	public String name;
+	public boolean isFolder;
 }
