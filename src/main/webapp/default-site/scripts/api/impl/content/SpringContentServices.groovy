@@ -70,9 +70,9 @@ class SpringContentServices {
 	 * @param site - the project ID
 	 * @param rootPath - the path to root at
 	 */
-	def getContentItemTree(site, path){
+	def getContentItemTree(site, path, depth){
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentItemTree(site, path)
+        return springBackedService.getContentItemTree(site, path, depth)
 	}
 
 	/**

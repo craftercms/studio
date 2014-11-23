@@ -93,7 +93,7 @@ public interface ContentService  {
 	 * @param site - the project ID
 	 * @param path - the path to root at
 	 */
-	public ContentItemTO[] getContentItemTree(String site, String path);
+	public ContentItemTO getContentItemTree(String site, String path, int depth);
 
 	/**
 	 * get the content item (metadata) at a specific path

@@ -91,7 +91,7 @@ public class ContentItemTO  {
     public boolean isDocument;
     public boolean isAsset;
 
-
+    public ContentItemTO[] children;
 
 	// /** the name of item specified by the creator **/
 	// private String _internalName;

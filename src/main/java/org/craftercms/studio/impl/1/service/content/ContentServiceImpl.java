@@ -248,22 +248,20 @@ public class ContentServiceImpl implements ContentService {
      * @param site - the project ID
      * @param path - the path to root at
      */
-    public ContentItemTO[] getContentItemTree(String site, String path) {
-        ContentItemTO[] children = new ContentItemTO[0];
+    public ContentItemTO getContentItemTree(String site, String path, int depth) {
+        boolean isPages = (path.contains("/site/website"));
+        ContentItemTO root = null;
 
-        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
-
-        children = new ContentItemTO[childRepoItems.length];
-        for(int i=0; i<childRepoItems.length; i++) {
-            RepositoryItem repoItem = childRepoItems[i];
-            String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
-
-            ContentItemTO contentItem = getContentItem(site,  relativePath);
-
-            children[i] = contentItem;
+        if(isPages && path.equals("/site/website")) {
+            root = getContentItem(site, path+"/index.xml");
+        }
+        else {
+            root = getContentItem(site, path);
         }
 
-        return children;
+        root.children = getContentItemTreeInternal(site, path, depth, isPages);
+
+        return root;
     }
 
     /** 
@@ -291,6 +289,40 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return success;
+    }
+
+    /**
+     * get the tree of content items (metadata) beginning at a root
+     * @param site - the project ID
+     * @param path - the path to root at
+     */
+    public ContentItemTO[] getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
+
+        ContentItemTO[] children = new ContentItemTO[0];
+
+        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
+
+        children = new ContentItemTO[childRepoItems.length];
+        for(int i=0; i<childRepoItems.length; i++) {
+            RepositoryItem repoItem = childRepoItems[i];
+            String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
+
+            ContentItemTO contentItem = null;
+            
+            if(repoItem.isFolder && isPages) {
+                contentItem = getContentItem(site,  relativePath+"/index.xml");
+                if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+            }
+            
+            if(contentItem == null) {
+                contentItem = getContentItem(site, relativePath);
+                if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+            }
+
+            children[i] = contentItem;
+        }
+
+        return children;
     }
 
     /**

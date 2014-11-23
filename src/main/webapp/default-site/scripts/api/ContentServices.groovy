@@ -76,9 +76,9 @@ class ContentServices {
 	 * @param rootPath - the path to root at
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentItemTree(site, path, context){
+	static getContentItemTree(site, path, depth, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemTree(site, path) 
+		return contentServicesImpl.getContentItemTree(site, path, depth) 
 	}
 
 	/**
