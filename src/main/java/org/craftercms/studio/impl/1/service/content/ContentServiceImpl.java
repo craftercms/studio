@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.craftercms.cstudio.api.log.*;
 import org.craftercms.cstudio.api.service.content.*;
 import org.craftercms.cstudio.api.to.ContentItemTO;
+import org.craftercms.cstudio.api.repository.RepositoryItem;
 import org.craftercms.cstudio.api.repository.ContentRepository;
 import org.craftercms.cstudio.api.to.VersionTO;
 
@@ -240,6 +241,26 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return item;
+    }
+
+    /**
+     * get the tree of content items (metadata) beginning at a root
+     * @param site - the project ID
+     * @param path - the path to root at
+     */
+    public ContentItemTO[] getContentItemTree(String site, String path) {
+        ContentItemTO[] children = new ContentItemTO[0];
+
+        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
+
+        children = new ContentItemTO[childRepoItems.length];
+        for(int i=0; i<childRepoItems.length; i++) {
+            RepositoryItem repoItem = childRepoItems[i];
+            ContentItemTO contentItem = getContentItem(site, repoItem.path);
+            children[i] = contentItem;
+        }
+
+        return children;
     }
 
     /** 

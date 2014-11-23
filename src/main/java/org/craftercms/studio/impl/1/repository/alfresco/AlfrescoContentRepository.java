@@ -119,7 +119,39 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      * @param path path to content
      */
     public RepositoryItem[] getContentChildren(String path) {
-        return null;
+
+        RepositoryItem[] items = new RepositoryItem[0];
+
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+               cleanPath = cleanPath.replace("/index.xml", "");
+               cleanPath = (cleanPath.endsWith("/")) ? cleanPath.substring(0, cleanPath.length()-1) : cleanPath;
+
+
+        Map<String, String> params = new HashMap<String, String>();
+        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
+        String query = "PATH:\"/app:company_home" + namespacedPath + "/*" +  "\"";
+
+        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        params.put("q", query);
+        params.put("lang","fts-alfresco");
+        params.put("store", "workspace://SpacesStore");
+        params.put("maxResults", "10000");
+
+        try{
+            InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
+            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
+
+            System.out.println("items at path :"+jsonResponse);
+
+            JsonConfig cfg = new JsonConfig();
+            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
+            int resultCount = root.getInt("numResults");
+        }
+        catch(Exception err) {
+            logger.error("error getting children for path (" + path + "): ", err);   
+        }
+
+        return items;
     }
 
     /** 

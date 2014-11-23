@@ -88,12 +88,12 @@ public interface ContentService  {
      */
 	void writeContent(String site, String path, InputStream content);
 
-	// /**
-	//  * get the tree of content items (metadata) beginning at a root
-	//  * @param site - the project ID
-	//  * @param path - the path to root at
-	//  */
-	// public getContentItemTree(String site, String path);
+	/**
+	 * get the tree of content items (metadata) beginning at a root
+	 * @param site - the project ID
+	 * @param path - the path to root at
+	 */
+	public ContentItemTO[] getContentItemTree(String site, String path);
 
 	/**
 	 * get the content item (metadata) at a specific path
