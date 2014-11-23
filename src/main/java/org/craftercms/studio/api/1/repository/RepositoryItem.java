@@ -15,18 +15,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.repository;
+package org.craftercms.cstudio.api.repository;
 
-import org.craftercms.cstudio.api.repository.*;
-import java.io.InputStream;
-
-import org.craftercms.cstudio.api.log.*;
-
-/**
- * Abstract repository interface provides common repository operations across implementations
- * @author russdanner
- */
-public abstract class AbstractContentRepository implements ContentRepository {
-	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
+public class RepositoryItem {
+	public String path;
+	public String name;
+	public boolean isFolder;
 }

@@ -19,7 +19,7 @@ package org.craftercms.cstudio.impl.service.site.dal;
 
 import org.dom4j.Document;
 
-import org.craftercms.cstudio.api.repository.*;
+import org.craftercms.cstudio.api.service.content.ContentService;
 import org.craftercms.cstudio.api.service.site.SiteConfigNotFoundException;
 import org.craftercms.cstudio.impl.service.site.AbstractSiteServiceDAL;
 
@@ -47,7 +47,7 @@ public class RepositorySiteServiceDAL extends AbstractSiteServiceDAL {
 		Document retConfigDoc = null;
 		
 		try {
-			retConfigDoc = _contentRepository.getContentAsDocument("/cstudio/config/sites/"+site+configFilePath);
+			retConfigDoc = _contentService.getContentAsDocument("/cstudio/config/sites/"+site+configFilePath);
 		}
 		catch(Exception err) {
 			throw new SiteConfigNotFoundException();
@@ -56,10 +56,10 @@ public class RepositorySiteServiceDAL extends AbstractSiteServiceDAL {
 		return retConfigDoc;
 	}
 
-	/** getter for content repository */
-	public ContentRepository getContentRepository() { return _contentRepository; }
-	/** setter for content repository */
-	public void setContentRepository(ContentRepository repo) { _contentRepository = repo; }
+	/** getter for content service */
+	public ContentService getContentService() { return _contentService; }
+	/** setter for content service */
+	public void setContentService(ContentService service) { _contentService = service; }
 	
-	protected ContentRepository _contentRepository;
+	protected ContentService _contentService;
 }

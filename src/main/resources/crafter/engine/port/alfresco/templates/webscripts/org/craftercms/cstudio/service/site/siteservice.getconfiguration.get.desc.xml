@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-configuration</shortname>
-  <description>get any site configuration given a path</description>
-  <url>/cstudio/site/get-configuration?site={site?}&amp;path={path}&amp;applyEnv={applyEnv?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

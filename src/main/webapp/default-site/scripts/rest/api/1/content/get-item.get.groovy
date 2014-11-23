@@ -6,6 +6,7 @@ def path = params.path
 
 def context = ContentServices.createContext(applicationContext, request)
 
-result = ContentServices.getContentItem(site, path, context) 
+def item = ContentServices.getContentItem(site, path, context);
+result.item = item;
 
 return result 

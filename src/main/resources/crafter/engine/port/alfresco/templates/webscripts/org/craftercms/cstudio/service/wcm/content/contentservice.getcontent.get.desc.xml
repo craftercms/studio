@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-get-content</shortname>
-  <description>get content from wcm</description>
-  <url>/cstudio/wcm/content/get-content?site={site}&amp;path={path}&amp;edit={edit}&amp;draft={draft}</url>
-  <format default="xml">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

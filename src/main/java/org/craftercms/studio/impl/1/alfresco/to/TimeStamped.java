@@ -15,18 +15,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.repository;
+package org.craftercms.cstudio.alfresco.to;
 
-import org.craftercms.cstudio.api.repository.*;
-import java.io.InputStream;
-
-import org.craftercms.cstudio.api.log.*;
+import java.util.Date;
 
 /**
- * Abstract repository interface provides common repository operations across implementations
- * @author russdanner
+ * 
+ * 
+ * @author hyanghee
+ *
  */
-public abstract class AbstractContentRepository implements ContentRepository {
+public interface TimeStamped {
+
+	/**
+	 * set the last updated date 
+	 * 
+	 * @param lastUpdated
+	 */
+	public void setLastUpdated(Date lastUpdated);
 	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
+	/**
+	 * get the last updated date
+	 * 
+	 * @return last updated date
+	 */
+	public Date getLastUpdated();
+	
 }

@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>create-site</shortname>
-  <description>create site configuration by key</description>
-  <url>/cstudio/site/get-blueprints</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

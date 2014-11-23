@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-model-template</shortname>
-  <description>Get model template</description>
-  <url>/cstudio/model/get-model-template?site={site}&amp;contentType={contentType}&amp;includeDataType={includeDataType?}</url>
-  <format default="xml">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

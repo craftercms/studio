@@ -1,1 +1,0 @@
-ALTER TABLE "cstudio_copytoenvironment" ADD "submissioncomment" VARCHAR(5000) NULL;

@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-form-server-url</shortname>
-  <description>get form server URL</description>
-  <url>/cstudio/site/get-form-server-url?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

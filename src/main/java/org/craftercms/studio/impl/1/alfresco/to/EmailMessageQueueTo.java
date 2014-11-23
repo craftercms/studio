@@ -15,18 +15,40 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.repository;
+package org.craftercms.cstudio.alfresco.to;
 
-import org.craftercms.cstudio.api.repository.*;
-import java.io.InputStream;
+import java.util.Queue;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 
-import org.craftercms.cstudio.api.log.*;
+public class EmailMessageQueueTo {
 
-/**
- * Abstract repository interface provides common repository operations across implementations
- * @author russdanner
- */
-public abstract class AbstractContentRepository implements ContentRepository {
+	protected Queue<EmailMessageTO> pendingEmailMessages= new LinkedList<EmailMessageTO>();
 	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
+	public synchronized EmailMessageTO getNext()
+	{
+		return pendingEmailMessages.poll();
+	}
+	
+	public synchronized List<EmailMessageTO> getAll()
+	{
+		ArrayList<EmailMessageTO> list = new ArrayList<EmailMessageTO>();
+		int size = pendingEmailMessages.size();
+		for(int i=0;i<size;i++)
+		{
+			list.add(pendingEmailMessages.poll());
+		}
+		return list;
+	}
+	
+	public synchronized void addEmailMessage(EmailMessageTO emailMessage)
+	{
+		pendingEmailMessages.add(emailMessage);
+	}
+	
+	public synchronized int size()
+	{
+		return pendingEmailMessages.size();
+	}
 }

@@ -1,9 +1,9 @@
 package scripts.api
 
 import scripts.libs.Cookies
-import scripts.api.impl.alfresco.AlfContentServices;
-import scripts.api.impl.alfresco.AlfClipboardServices;
-import scripts.api.impl.subsystems.deployment.SpringDeploymentServices;
+import scripts.api.impl.content.SpringContentServices;
+import scripts.api.impl.clipboard.ClipboardServices;
+import scripts.api.impl.deployment.SpringDeploymentServices;
 
 /**
  * workflow services
@@ -30,7 +30,7 @@ class ServiceFactory {
      * return the implementation for content services
 	 */
 	static getContentServices(context) {
-		return new AlfContentServices(context)
+		return new SpringContentServices(context)
 	}
 
     /**
@@ -40,7 +40,7 @@ class ServiceFactory {
      * @return ClipboardServices
      */
     static getClipboardServices(context) {
-        return new AlfClipboardServices(context)
+        return new ClipboardServices(context)
     }
 
 	/**

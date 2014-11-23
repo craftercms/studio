@@ -1,1 +1,0 @@
-ALTER TABLE "cstudio_objectstate" ALTER COLUMN "path" SET DATA TYPE VARCHAR(2000);

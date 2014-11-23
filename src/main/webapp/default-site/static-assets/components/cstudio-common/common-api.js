@@ -4392,7 +4392,7 @@ YConnect.failureEvent.subscribe(function() {
 			 */
 			formatDateFromString: function(dateTime, timeFormat) {
 
-
+                try {
 				var updatedDateTime = "";
 
 				if (dateTime != undefined && dateTime != "")
@@ -4474,6 +4474,10 @@ YConnect.failureEvent.subscribe(function() {
 				}
 
 				return updatedDateTime;
+                }
+                catch(err) {
+                    return dateTime;
+                }
 			},
 
 			formatDateFromStringNullToEmpty: function(dateTime, timeFormat) {

@@ -15,18 +15,44 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.repository;
+package org.craftercms.cstudio.alfresco.to;
 
-import org.craftercms.cstudio.api.repository.*;
-import java.io.InputStream;
+public class EmailMessageTemplateTO {
 
-import org.craftercms.cstudio.api.log.*;
-
-/**
- * Abstract repository interface provides common repository operations across implementations
- * @author russdanner
- */
-public abstract class AbstractContentRepository implements ContentRepository {
+	/** message title **/
+	protected String _subject;
+	/** message body **/
+	protected String _message;
 	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
+
+	/**
+	 * @return the title
+	 */
+	public String getSubject() {
+		return _subject;
+	}
+
+	/**
+	 * @param title
+	 *            the title to set
+	 */
+	public void setSubject(final String subject) {
+		this._subject = subject;
+	}
+
+	/**
+	 * @return the body
+	 */
+	public String getMessage() {
+		return _message;
+	}
+
+	/**
+	 * @param body
+	 *            the body to set
+	 */
+	public void setMessage(final String message) {
+		this._message = message;
+	}
+	
 }

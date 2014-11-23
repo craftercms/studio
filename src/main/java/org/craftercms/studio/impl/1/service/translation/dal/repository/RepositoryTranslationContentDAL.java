@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.craftercms.cstudio.api.repository.*;
+import org.craftercms.cstudio.api.service.content.ContentService;
 import org.craftercms.cstudio.api.service.translation.*;
 import org.craftercms.cstudio.impl.service.translation.dal.*;
 
@@ -36,14 +36,14 @@ public class RepositoryTranslationContentDAL extends AbstractTranslationContentD
 	 * @return true if target has sourcePath in project
 	 */
 	protected boolean isSourcePathInTarget(String targetSite, String sourcePath) {
-		return _contentRepository.contentExists(targetSite, sourcePath);
+		return _contentService.contentExists(targetSite, sourcePath);
 	}
 
 	/**
 	 * retrieve the source content
 	 */
 	public InputStream getContent(String site, String path) {
-		return _contentRepository.getContent(site, site, "work-area", path);
+		return _contentService.getContent(site, path);
 	}
 
 	/**
@@ -51,13 +51,13 @@ public class RepositoryTranslationContentDAL extends AbstractTranslationContentD
 	 */
 	public void updateSiteWithTranslatedContent(String site, String path, InputStream content) {
 		
-		_contentRepository.writeContent(site, site, "work-area", path, content);
+		_contentService.writeContent(site, path, content);
 	}
 	
 	/** getter for content repository */
-	public ContentRepository getContentRepository() { return _contentRepository; }
+	public ContentService getContentService() { return _contentService; }
 	/** setter for content repository */
-	public void setContentRepository(ContentRepository repo) { _contentRepository = repo; }
+	public void setContentService(ContentService service) { _contentService = service; }
 	
-	protected ContentRepository _contentRepository;
+	protected ContentService _contentService;
 }

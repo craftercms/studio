@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>DM Get Content By Version</shortname>
-  <description>DM Get Content By Version for a path</description>
-  <url>/cstudio/wcm/version/content?site={site}&amp;path={path}&amp;version={version}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

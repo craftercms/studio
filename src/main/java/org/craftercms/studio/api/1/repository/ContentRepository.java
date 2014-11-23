@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
+import org.craftercms.cstudio.api.to.VersionTO;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend 
@@ -39,35 +40,12 @@ import java.util.Set;
 public interface ContentRepository {
 
     /**
-     * perform operation as a specific user
-     * @param userName the name of the user account performing the operation
-     * @param obj the object that contains the method to executre
-     * @param work the method that represents the work to perform
-     * @param args any number of arguments to pass to the method
-     */
-    Object runAs(String userName, Object obj, Method work, Object ... args);
-
-    /**
-     * get transaction
-     */
-    UserTransaction getTransaction();
-
-    /**
      * Determine if content exists in the repository at a given path
      * @param site name
      * @param path
      * @return true if site has content object at path
      */
-    boolean contentExists(String site, String path);
-
-    /**
-     * get document from wcm content
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
-    Document getContentAsDocument(String path)
-            throws DocumentException;
+    boolean contentExists(String path);
 
     /**
      * get document from wcm content
@@ -79,6 +57,62 @@ public interface ContentRepository {
     InputStream getContent(String path);
 
     /**
+     * write content
+     * @param path path to content
+     * @param content stream of content to write
+     */
+    boolean writeContent(String path, InputStream content);
+
+    /**
+     * delete content
+     * @param path path to content
+     */
+    boolean deleteContent(String path);
+
+    /**
+     * get immediate children for path
+     * @param path path to content
+     */
+    RepositoryItem[] getContentChildren(String path);
+
+    /** 
+     * get the version history for an item
+     * @param site - the project ID
+     * @param path - the path of the item 
+     */
+    VersionTO[] getContentVersionHistory(String path);
+
+    /** 
+     * revert a version (create a new version based on an old version)
+     * @param path - the path of the item to "revert"
+     * @param version - old version ID to base to version on
+     */
+    boolean revertContent(String path, String version, boolean major, String comment);
+
+
+
+
+
+
+
+
+/* ===  */
+// Maybes
+    void lockItem(String site, String path);
+
+    void unLockItem(String site, String path);
+
+
+
+
+
+
+
+
+/* ========================================================================== */
+// everything below here is methods that will not be part of the interface
+
+    /**
      * get content
      * @param site the site project id
      * @param variant variant is a variation of the site (like a translation for example)
@@ -87,13 +121,11 @@ public interface ContentRepository {
      */
     InputStream getContent(String site, String variant, String store, String path);
 
-    /**
-     * write content
-     * @param path path to content
-     * @param content stream of content to write
-     */
-    void writeContent(String path, InputStream content);
 
+    /**
+     * get transaction
+     */
+    UserTransaction getTransaction();
     /**
      * write content
      * @param site the site project id
@@ -165,7 +197,4 @@ public interface ContentRepository {
 
     void unlockRepository();
 
-    void lockItem(String site, String path);
-
-    void unLockItem(String site, String path);
 }
