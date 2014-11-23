@@ -173,9 +173,9 @@ class ContentServices {
 	 * @param version - old version ID to base to version on
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static revertContentItem(site, path, version, context){
+	static revertContentItem(site, path, version, major, comment, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.revertContentItem(site, path, version) 		
+		return contentServicesImpl.revertContentItem(site, path, version, major, comment) 		
 	}
 
 	/** 

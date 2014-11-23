@@ -115,6 +115,6 @@ public interface ContentService  {
 	 * @param path - the path of the item to "revert"
 	 * @param version - old version ID to base to version on
 	 */
-	boolean revertContentItem(String site, String path, String version);
+	boolean revertContentItem(String site, String path, String version, boolean major, String comment);
 
 }

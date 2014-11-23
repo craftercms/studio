@@ -198,29 +198,31 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContentItem(String path, String version) {
+    public boolean revertContentItem(String path, String version, boolean major, String comment) {
         boolean success = false;
         String nodeRef = getNodeRefForPath(path);
         
         if(nodeRef != null) {
-            String revertCommand = "{ " +
-                "\"nodeRef\":\"" + nodeRef + "\", " + 
-                "\"version\":\"" + version + "\", " +
-                "\"majorVersion\":\"false\", " +
-                "\"description\":\"Reverted to version " + version + "\" " +
-                "}";
+            String revertCommand = "{" +
+               "\"nodeRef\":\"" + nodeRef + "\"," + 
+               "\"version\":\"" + version + "\"," +
+               "\"majorVersion\":\"" + major + "\"," +
+               "\"description\":\"" + comment+ "\"" +
+               "}";
 
             try {
                 InputStream bodyStream = IOUtils.toInputStream(revertCommand, "UTF-8");
-                String result = alfrescoPostRequest("/api/revert", null, bodyStream);
+                String result = alfrescoPostRequest("/api/revert", null, bodyStream, "application/json");
                 
                 success = result.contains("true");
+                System.out.println("revert command :'" + revertCommand + "'");
+                System.out.println("revert item result :'" + result + "'");
              }
             catch(Exception err) {
                 System.out.println("err reverting content content: " + err);   
             }
         }
-        
+
         return success;
     }
 
@@ -263,11 +265,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
         String ticket = getAlfTicket();
 
-        for(String key : params.keySet()) {
-            uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
+        if(params != null) {
+            for(String key : params.keySet()) {
+                uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
+            }
         }
 
-        url = serviceUrlBase + uri + "&alf_ticket="+ticket;
+        url = serviceUrlBase + uri;
+        url += (url.contains("?")) ? "&alf_ticket="+ticket : "?alf_ticket="+ticket;
         
         return url;
     }
@@ -282,10 +287,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
         return retResponse;
     }
 
-    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body) throws Exception {
+    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
         String serviceURL = buildAlfrescoRequestURL(uri, params);        
         PostMethod postMethod = new PostMethod(serviceURL);
-        postMethod.setRequestEntity(new InputStreamRequestEntity(body));
+        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+        //postMethod.setRequestHeader("Cookie", "alf_ticket="+getAlfTicket());
 
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         int status = httpClient.executeMethod(postMethod);

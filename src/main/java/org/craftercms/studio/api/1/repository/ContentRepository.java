@@ -75,7 +75,7 @@ public interface ContentRepository {
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    boolean revertContentItem(String path, String version);
+    boolean revertContentItem(String path, String version, boolean major, String comment);
 
 /* ===  */
 // Maybes
