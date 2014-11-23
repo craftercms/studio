@@ -251,6 +251,16 @@ public class ContentServiceImpl implements ContentService {
         return _contentRepository.getContentItemVersionHistory(expandRelativeSitePath(site, path));
     }
 
+    /** 
+     * revert a version (create a new version based on an old version)
+     * @param site - the project ID
+     * @param path - the path of the item to "revert"
+     * @param version - old version ID to base to version on
+     */
+    public boolean revertContentItem(String site, String path, String version) {
+        return _contentRepository.revertContentItem(expandRelativeSitePath(site, path), version);
+    }
+
     /**
      * take a path like /sites/website/index.xml and root it properly with a fully expanded repo path
      */

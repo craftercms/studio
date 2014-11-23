@@ -109,4 +109,12 @@ public interface ContentService  {
 	 */
 	VersionTO[] getContentItemVersionHistory(String site, String path);
 
+	/** 
+	 * revert a version (create a new version based on an old version)
+	 * @param site - the project ID
+	 * @param path - the path of the item to "revert"
+	 * @param version - old version ID to base to version on
+	 */
+	boolean revertContentItem(String site, String path, String version);
+
 }
