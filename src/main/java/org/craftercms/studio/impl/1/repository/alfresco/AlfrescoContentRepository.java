@@ -88,7 +88,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             }
         }
         catch(Exception err) {
-            System.out.println("err getting content: " + err);   
+            logger.error("err getting content: ", err);   
         }
 
         return retStream;
@@ -166,7 +166,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                     }
                 }
                 catch(Exception err) {
-                    System.out.println("err getting noderef for path (" + path + "): "+err);   
+                    logger.error("err getting noderef for path (" + path + "): ", err);   
                 }
             }
             else {
@@ -174,7 +174,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             }
         }
         catch(Exception err) {
-            System.out.println("err getting content: " + err);   
+            logger.error("err getting content: ", err);   
         }
 
         return versions;
@@ -204,11 +204,100 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                 success = result.contains("true");
              }
             catch(Exception err) {
-                System.out.println("err reverting content content: " + err);   
+                logger.error("err reverting content content: ", err);   
             }
         }
 
         return success;
+    }
+
+    /**
+     * given a path, get an alfresco node ref
+     */
+    protected String getNodeRefForPath(String path) { 
+        String nodeRef = null;
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
+        String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
+
+        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        params.put("q", query);
+        params.put("lang","fts-alfresco");
+        params.put("store", "workspace://SpacesStore");
+        params.put("maxResults", "100");
+
+        try{
+            InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
+            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
+            JsonConfig cfg = new JsonConfig();
+            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
+            int resultCount = root.getInt("numResults");
+
+            if(resultCount == 1) {
+                JSONObject result = root.getJSONArray("results").getJSONObject(0);
+                nodeRef = result.getString("nodeRef");
+            }
+            else if(resultCount == 0) {
+                throw new Exception("no results for query (" + query + ")");
+            }
+            else {
+                throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
+            }
+
+        }
+        catch(Exception err) {
+            logger.error("err getting noderef for path (" + path + "): ", err);   
+        }
+
+        return nodeRef;
+    }
+
+    /**
+     * fire GET request to Alfresco with propert security
+     */
+    protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+        InputStream retResponse = null;
+
+        URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
+
+        retResponse = serviceURI.toURL().openStream();
+     
+        return retResponse;
+    }
+
+    /**
+     * fire POST request to Alfresco with propert security
+     */
+    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, params);        
+        PostMethod postMethod = new PostMethod(serviceURL);
+        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        int status = httpClient.executeMethod(postMethod);
+        
+        return postMethod.getResponseBodyAsString();
+    }
+
+    /**
+     * build request URLs 
+     */
+    protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
+        String url = "";
+        String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
+        String ticket = getAlfTicket();
+
+        if(params != null) {
+            for(String key : params.keySet()) {
+                uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
+            }
+        }
+
+        url = serviceUrlBase + uri;
+        url += (url.contains("?")) ? "&alf_ticket="+ticket : "?alf_ticket="+ticket;
+        
+        return url;
     }
 
     /**
@@ -243,84 +332,5 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
 
         return ticket;
-    }
-
-    protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
-        String url = "";
-        String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
-        String ticket = getAlfTicket();
-
-        if(params != null) {
-            for(String key : params.keySet()) {
-                uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
-            }
-        }
-
-        url = serviceUrlBase + uri;
-        url += (url.contains("?")) ? "&alf_ticket="+ticket : "?alf_ticket="+ticket;
-        
-        return url;
-    }
-
-    protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
-        InputStream retResponse = null;
-
-        URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
-
-        retResponse = serviceURI.toURL().openStream();
-     
-        return retResponse;
-    }
-
-    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
-        String serviceURL = buildAlfrescoRequestURL(uri, params);        
-        PostMethod postMethod = new PostMethod(serviceURL);
-        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
-        //postMethod.setRequestHeader("Cookie", "alf_ticket="+getAlfTicket());
-
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-        int status = httpClient.executeMethod(postMethod);
-        
-        return postMethod.getResponseBodyAsString();
-    }
-
-
-    protected String getNodeRefForPath(String path) { 
-        String nodeRef = null;
-        Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
-        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
-        String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
-
-        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
-        params.put("q", query);
-        params.put("lang","fts-alfresco");
-        params.put("store", "workspace://SpacesStore");
-        params.put("maxResults", "100");
-
-        try{
-            InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
-            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
-            JsonConfig cfg = new JsonConfig();
-            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-            int resultCount = root.getInt("numResults");
-
-            if(resultCount == 1) {
-                JSONObject result = root.getJSONArray("results").getJSONObject(0);
-                nodeRef = result.getString("nodeRef");
-            }
-            else if(resultCount == 0) {
-                throw new Exception("no results for query (" + query + ")");
-            }
-            else {
-                throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
-            }
-
-        }
-        catch(Exception err) {
-            System.out.println("err getting noderef for path (" + path + "): "+err);   
-        }
-
-        return nodeRef;
     }
 }
