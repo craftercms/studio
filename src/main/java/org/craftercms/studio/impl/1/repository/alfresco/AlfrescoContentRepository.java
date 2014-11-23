@@ -141,11 +141,24 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
             String jsonResponse = IOUtils.toString(responseStream, "utf-8");
 
-            System.out.println("items at path :"+jsonResponse);
-
             JsonConfig cfg = new JsonConfig();
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
             int resultCount = root.getInt("numResults");
+            JSONArray results = root.getJSONArray("results");
+
+            items = new RepositoryItem[resultCount];
+            for(int i=0; i<resultCount; i++) {
+                JSONObject result = results.getJSONObject(i);
+                JSONObject resultName = result.getJSONObject("name");
+                RepositoryItem item = new RepositoryItem();
+
+                item.path = path;
+                item.name = resultName.getString("prefixedName").replace("cm:", "");
+                item.isFolder = (item.name.contains(".")==false); // weak sauce
+
+                items[i] = item;
+            }
+
         }
         catch(Exception err) {
             logger.error("error getting children for path (" + path + "): ", err);   

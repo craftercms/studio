@@ -256,7 +256,10 @@ public class ContentServiceImpl implements ContentService {
         children = new ContentItemTO[childRepoItems.length];
         for(int i=0; i<childRepoItems.length; i++) {
             RepositoryItem repoItem = childRepoItems[i];
-            ContentItemTO contentItem = getContentItem(site, repoItem.path);
+            String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
+
+            ContentItemTO contentItem = getContentItem(site,  relativePath);
+
             children[i] = contentItem;
         }
 
@@ -295,6 +298,14 @@ public class ContentServiceImpl implements ContentService {
      */
     protected String expandRelativeSitePath(String site, String relativePath) {
         return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
+    }
+
+    /**
+     * take a path like /wem-projects/SITE/SITE/work-area/sites/website/index.xml and 
+     * and return the releative path to the project
+     */
+    protected String getRelativeSitePath(String site, String fullPath) {
+        return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
     }
 
     private ContentRepository _contentRepository;
