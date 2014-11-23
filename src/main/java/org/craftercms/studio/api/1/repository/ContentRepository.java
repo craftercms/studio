@@ -68,14 +68,14 @@ public interface ContentRepository {
      * @param site - the project ID
      * @param path - the path of the item 
      */
-    VersionTO[] getContentItemVersionHistory(String path);
+    VersionTO[] getContentVersionHistory(String path);
 
     /** 
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    boolean revertContentItem(String path, String version, boolean major, String comment);
+    boolean revertContent(String path, String version, boolean major, String comment);
 
 /* ===  */
 // Maybes

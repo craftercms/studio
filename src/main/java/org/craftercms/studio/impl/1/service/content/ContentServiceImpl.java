@@ -248,7 +248,7 @@ public class ContentServiceImpl implements ContentService {
      * @param path - the path of the item 
      */
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
-        return _contentRepository.getContentItemVersionHistory(expandRelativeSitePath(site, path));
+        return _contentRepository.getContentVersionHistory(expandRelativeSitePath(site, path));
     }
 
     /** 
@@ -260,7 +260,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean success = false;
 
-        success = _contentRepository.revertContentItem(expandRelativeSitePath(site, path), version, major, comment);
+        success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
 
         if(success) {
             // publish item udated event or push to preview

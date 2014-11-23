@@ -140,7 +140,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      * @param site - the project ID
      * @param path - the path of the item 
      */
-    public VersionTO[] getContentItemVersionHistory(String path) {
+    public VersionTO[] getContentVersionHistory(String path) {
         VersionTO[] versions = new VersionTO[0];
 
         try {
@@ -198,7 +198,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository {
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContentItem(String path, String version, boolean major, String comment) {
+    public boolean revertContent(String path, String version, boolean major, String comment) {
         boolean success = false;
         String nodeRef = getNodeRefForPath(path);
         
