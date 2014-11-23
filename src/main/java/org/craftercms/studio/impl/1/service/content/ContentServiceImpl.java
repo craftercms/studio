@@ -171,14 +171,15 @@ public class ContentServiceImpl implements ContentService {
                     item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") ); 
 
                     item.uri = path;
-                    item.path = path.substring(0, path.lastIndexOf("/")-1);
+                    item.path = path.substring(0, path.lastIndexOf("/"));
                     item.name = path.substring(path.lastIndexOf("/")+1);
                     item.page = (item.contentType.indexOf("/page") != -1);
+                    item.isContainer = false;
                     item.previewable = item.page;
                     item.component = (item.contentType.indexOf("/component") != -1);
                     item.document = false;
                     item.asset = (item.component == false && item.page == false);
-                    item.browserUri = (item.page) ? path.replace("/site/website", "").replace(".xml", "") : null;
+                    item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
 
                     // populate with workflow states and other metadata
 
@@ -196,23 +197,7 @@ public class ContentServiceImpl implements ContentService {
                     item.userLastName = "";
                     item.nodeRef = "";
                     item.metaDescription = ""; 
-
-                    // duplicate properties
-                    item.isDisabled = item.disabled;
-                    item.isInProgress = item.inProgress;
-                    item.isLive = item.live;
-                    item.isSubmittedForDeletion = item.submittedForDeletion;
-                    item.isScheduled = item.scheduled;
-                    item.isNavigation = item.navigation;
-                    item.isDeleted = item.deleted;
-                    item.isSubmitted = item.submitted;
-                    item.isFloating = item.floating;
-                    item.isPage = item.page;
-                    item.isPreviewable = item.previewable;
-                    item.isComponent = item.component;
-                    item.isDocument = item.document;
-                    item.isAsset = item.asset;
-                }
+               }
                 else {
                      logger.error("no xml document could be loaded for path '{0}'", path);    
                 }
@@ -221,20 +206,61 @@ public class ContentServiceImpl implements ContentService {
                 if (this.contentExists(site, path)) {
                     item = new ContentItemTO();
                     item.uri = path;
+                    item.path = path.substring(0, path.lastIndexOf("/"));
+                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.asset = true;
+                    item.internalName = item.name;
+                    item.contentType = "asset";
+                    item.disabled = false;
+                    item.floating = false; 
+                    item.hideInAuthoring = false;
+
+                    item.uri = path;
                     item.path = path.substring(0, path.lastIndexOf("/")-1);
                     item.name = path.substring(path.lastIndexOf("/")+1);
-                    item.isAsset = true;
+                    item.page = false;
+                    item.isContainer = (item.name.contains(".") == false);
+                    item.previewable = false;
+                    item.component = false;
+                    item.document = false;
+                    item.asset = (item.isContainer == false);
+                    item.browserUri = "";
 
                     // populate with workflow states and other metadata
                     item.isNew = true;
-                    item.isSubmitted = false;
-                    item.isScheduled = false;
-                    item.isNavigation = false; 
-                    item.isDeleted = false;
-                    item.isInProgress = true;
+                    item.submitted = false;
+                    item.scheduled = false;
+                    item.deleted = false;
+                    item.submittedForDeletion = false;
+                    item.inProgress = true;
+                    item.live = false;
                 }                 
             }
-                
+             
+            if(item != null) {
+                item.lockOwner = "";
+                item.user = "";
+                item.userFirstName = "";
+                item.userLastName = "";
+                item.nodeRef = "";
+                item.metaDescription = ""; 
+
+                // duplicate properties
+                item.isDisabled = item.disabled;
+                item.isInProgress = item.inProgress;
+                item.isLive = item.live;
+                item.isSubmittedForDeletion = item.submittedForDeletion;
+                item.isScheduled = item.scheduled;
+                item.isNavigation = item.navigation;
+                item.isDeleted = item.deleted;
+                item.isSubmitted = item.submitted;
+                item.isFloating = item.floating;
+                item.isPage = item.page;
+                item.isPreviewable = item.previewable;
+                item.isComponent = item.component;
+                item.isDocument = item.document;
+                item.isAsset = item.asset;
+            }
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, path);            

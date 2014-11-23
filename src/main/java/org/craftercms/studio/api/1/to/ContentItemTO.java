@@ -62,6 +62,7 @@ public class ContentItemTO  {
 	public boolean component;
 	public boolean document;
 	public boolean asset;
+	public boolean isContainer;
 
 	// special states
 	public boolean disabled;
@@ -90,6 +91,7 @@ public class ContentItemTO  {
     public boolean isComponent;
     public boolean isDocument;
     public boolean isAsset;
+
 
     public ContentItemTO[] children;
 
