@@ -32,10 +32,16 @@
               <property name="dataSource" ref="dataSource" />
               <property name="databaseIdProvider" ref="databaseIdProvider" />
               <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain" />
+              <property name="mapperLocations">
+                     <list>
+                            <value>classpath*:org/craftercms/studio/api/persistence/DeploymentSyncHistoryMapper.xml</value>
+                     </list>
+              </property>
        </bean>
 
        <!-- scan for mappers and let them be autowired -->
        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
               <property name="basePackage" value="org.craftercms.studio.api.persistence" />
+              <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
        </bean>
 </beans>

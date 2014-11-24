@@ -19,6 +19,7 @@ package org.craftercms.cstudio.alfresco.dm.service.api;
 
 import org.craftercms.cstudio.alfresco.service.exception.ServiceException;
 import org.craftercms.cstudio.alfresco.dm.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
 
 import java.util.List;
 
@@ -27,9 +28,9 @@ public interface DmDeploymentService {
     /**
      * get deployment history given a specified date range
      *
-     * @param site
      * @param daysFromToday
      * @param numberOfItems
+     * @param site
      * @param sort
      *            the sort key to sort items within each deployed date
      * @param ascending
@@ -37,7 +38,7 @@ public interface DmDeploymentService {
      * @return list of deployment items
      */
 
-	public List<DmDeploymentTaskTO> getDeploymentHistory(
+	public List<DeploymentSyncHistory> getDeploymentHistory(
 			String site, int days, int number, String sort, boolean ascending,
 			String filterType);
 }
