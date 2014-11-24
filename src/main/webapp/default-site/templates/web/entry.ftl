@@ -80,6 +80,11 @@
     <a class="close-reveal-modal">&#215;</a>
 </form>
 
+<script src="/static-assets/libs/jquery/jquery.js"></script>
+<script src="/static-assets/libs/jquery.browser/dist/jquery.browser.js"></script>
+<script src="/static-assets/libs/foundation/js/foundation/foundation.js"></script>
+<script src="/static-assets/libs/foundation/js/foundation/foundation.reveal.js"></script>
+
 <script>
 
     $(document).foundation();
