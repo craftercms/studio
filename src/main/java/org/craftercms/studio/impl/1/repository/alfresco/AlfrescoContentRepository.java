@@ -115,6 +115,24 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     }
 
     /**
+     * move content from PathA to pathB
+     * @param fromPath source content
+     * @param toPath target path
+     */
+    public boolean moveContent(String fromPath, String toPath) {
+        return false;
+    };
+
+    /**
+     * move content from PathA to pathB
+     * @param path path to content
+     * @param toPath target path
+     */
+    public boolean copyContent(String fromPath, String toPath) {
+        return false;
+    }
+
+    /**
      * get immediate children for path
      * @param path path to content
      */

@@ -70,6 +70,20 @@ public interface ContentRepository {
     boolean deleteContent(String path);
 
     /**
+     * move content from PathA to pathB
+     * @param fromPath source content
+     * @param toPath target path
+     */
+    boolean moveContent(String fromPath, String toPath);
+
+    /**
+     * move content from PathA to pathB
+     * @param path path to content
+     * @param toPath target path
+     */
+    boolean copyContent(String fromPath, String toPath);
+
+    /**
      * get immediate children for path
      * @param path path to content
      */
