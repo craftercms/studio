@@ -79,13 +79,14 @@ public interface ContentRepository {
     boolean moveContent(String fromPath, String toPath);
 
     /**
-     * move contents from PathA to pathB
+     * copy content from PathA to pathB
      *
-     * @param fromPaths paths to content
+     * @param fromPath paths to content
      * @param toPath target path
+     * @param deep copy recursively?
      * @return true if successful
      */
-    boolean copyContent(String [] fromPaths, String toPath);
+    boolean copyContent(String fromPath, String toPath, boolean deep);
 
     /**
      * get immediate children for path
