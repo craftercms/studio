@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository.alfresco;
 
+import org.apache.commons.httpclient.methods.multipart.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -24,10 +25,12 @@ import org.dom4j.Element;
 import javax.transaction.*;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.String;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
+import java.util.HashMap;
 import javax.servlet.http.*;
 import javax.servlet.http.Cookie;
 
@@ -60,13 +63,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
+    @Override
     public InputStream getContent(String path) {
         InputStream retStream = null;
         String name = path.substring(path.lastIndexOf("/")+1);
@@ -94,42 +91,77 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         return retStream;
     }
 
-    /**
-     * @return true if site has content object at path
-     */
+    @Override
     public boolean contentExists(String path) {
        return (this.getNodeRefForPath(path) != null); 
     }
 
 
+    @Override
     public boolean writeContent(String path, InputStream content) {
-        return false;
+        logger.debug("writing content to " + path);
+        String uploadURI = "/api/upload";
+        String mimeType = "text/xml";
+        int splitIndex = path.lastIndexOf("/");
+        String name = path.substring(splitIndex + 1);
+        // find the existing node by path
+        String nodeRef = getNodeRefForPath(path);
+        // find the target folder node by its path
+        String folderPath = path.substring(0, splitIndex);
+        String folderRef = getNodeRefForPath(folderPath);
+        // TODO: here we are assuming the folder already exists
+        // might need to fix this by creating all folders beforehand
+
+        // add parameters
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("filename", name);
+        if (nodeRef == null) {
+            params.put("destination", folderRef);
+        } else {
+            params.put("updateNodeRef", nodeRef);
+        }
+        params.put("uploaddirectory", folderRef);
+        // TODO: add description for version update - do we need this?
+        params.put("contenttype", mimeType);
+        params.put("majorversion", "false");
+        params.put("overwrite", "true");
+        // read back nodeRef
+        logger.debug("request params\n" + params);
+
+        try {
+            String response = this.alfrescoMultipartPostRequest(uploadURI, params, content, mimeType, "UTF-8");
+            logger.debug("done writing content to " + path);
+            logger.debug("response back from the server: " + response);
+            return true;
+        } catch (Exception e) {
+            logger.error("error writing to " + path, e);
+            return false;
+        } finally {
+            IOUtils.closeQuietly(content);
+        }
+            // POST
+            //"/api/upload?Alfresco-CSRFToken=null"
+            // body is inputstream
     }
 
-    /**
-     * delete content
-     * @param path path to content
-     */
+    @Override
     public boolean deleteContent(String path) {
         return false;
+        // DELETE
+        //"/slingshot/doclib/action/file/node/workspace/SpacesStore/ca4362f4-1c84-4666-aa8c-54893dd238c5"
     }
 
-    /**
-     * move content from PathA to pathB
-     * @param fromPath source content
-     * @param toPath target path
-     */
+    @Override
     public boolean moveContent(String fromPath, String toPath) {
         return false;
+        //POST
+         //"/api/path/{store_type}/{store_id}/{nodepath}/children?sourceFolderId={sourceFolderId}&versioningState={versioningState?}""
     };
 
-    /**
-     * move content from PathA to pathB
-     * @param path path to content
-     * @param toPath target path
-     */
-    public boolean copyContent(String fromPath, String toPath) {
+    @Override
+    public boolean copyContent(String fromPath, String toPath, boolean deep) {
         return false;
+        //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
     }
 
     /**
@@ -187,8 +219,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     /** 
      * get the version history for an item
-     * @param site - the project ID
-     * @param path - the path of the item 
+     * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
         VersionTO[] versions = new VersionTO[0];
@@ -342,6 +373,49 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         
         return postMethod.getResponseBodyAsString();
     }
+
+    /**
+     * create a multipart post request and fire to Alfresco
+     *
+     * @param uri
+     *          the target service URI
+     * @param params
+     *          request parameters
+     * @param body
+     *          post data
+     * @param bodyMimeType
+     *          post data mime type
+     * @param charSet
+     *          post data char set
+     * @return response body
+     * @throws Exception
+     */
+    protected String alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, new HashMap<String, String>(0));
+        PostMethod postMethod = new PostMethod(serviceURL);
+        // create multipart request parts
+        int partSize = params.size() + 1;
+        Part[] parts = new Part[partSize];
+        int index = 0;
+        for (String key : params.keySet()) {
+            parts[index] = new StringPart(key, params.get(key));
+            index++;
+        }
+        byte[] bytes = IOUtils.toByteArray(body);
+        String name = params.get("filename");
+        PartSource partSource = new ByteArrayPartSource(name, bytes);
+        parts[index] = new FilePart("filedata", partSource, bodyMimeType, charSet);
+
+        postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+
+        // connect to alfresco and get response
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        logger.debug("Executing multipart post request to " + uri);
+        int status = httpClient.executeMethod(postMethod);
+        logger.debug("Response status back from the server: " + status);
+        return postMethod.getResponseBodyAsString();
+    }
+
 
     /**
      * build request URLs 

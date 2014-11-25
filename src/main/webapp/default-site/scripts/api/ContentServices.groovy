@@ -24,7 +24,8 @@ class ContentServices {
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static writeContent(site, path, content, context){
-
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.writeContent(site, path, content)
 	}
 
 	/**
