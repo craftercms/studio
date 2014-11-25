@@ -33,7 +33,7 @@ import org.craftercms.cstudio.alfresco.service.AbstractRegistrableService;
 //import org.craftercms.cstudio.alfresco.service.exception.ServiceException;
 //import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
 import org.craftercms.cstudio.api.service.deployment.DeploymentService;
-import org.craftercms.cstudio.api.service.deployment.DeploymentSyncHistoryItem;
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,11 +158,11 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
     }*/
     
 	@Override
-	public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
+	public List<DeploymentSyncHistory> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
 		 // get the filtered list of attempts in a specific date range
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
-        List<DeploymentSyncHistoryItem> deployReports = _deploymentService.getDeploymentHistory(site,fromDate,toDate,filterType,numberOfItems); //findDeploymentReports(site, fromDate, toDate);
+        List<DeploymentSyncHistory> deployReports = _deploymentService.getDeploymentHistory(site,fromDate,toDate,filterType,numberOfItems); //findDeploymentReports(site, fromDate, toDate);
         List<DmDeploymentTaskTO> tasks = new FastList<DmDeploymentTaskTO>();
         /*
         if (deployReports != null) {
@@ -195,7 +195,7 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
                     }
             }
         }*/
-        return tasks;
+        return deployReports;
 	}
     
 }

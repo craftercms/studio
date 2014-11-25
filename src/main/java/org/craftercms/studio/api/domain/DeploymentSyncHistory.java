@@ -16,9 +16,12 @@
  */
 package org.craftercms.studio.api.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class DeploymentSyncHistory {
+public class DeploymentSyncHistory implements Serializable {
+
+    private static final long serialVersionUID = 1546577631929363169L;
 
     public String getId() { return _id; }
     public void setId(String id) { this._id = id; }
