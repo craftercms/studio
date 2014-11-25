@@ -26,7 +26,7 @@
 </head>
 <body>
 
-<form id="signInModal" action="/studio/api/1/services/user/login" class="reveal-modal small" data-reveal>
+<form id="signInModal" action="/studio/api/1/services/api/1/user/login" class="reveal-modal small" data-reveal>
     <div class="row">
         <div class="large-12 columns text-center">
             <img src="/studio/static-assets/images/crafter_studio_360.png" style="width: 60%"/>
@@ -57,7 +57,7 @@
     </div>
 </form>
 
-<form id="forgotPasswordModal" action="/studio/api/1/services/user/reset-password" class="reveal-modal small" data-reveal>
+<form id="forgotPasswordModal" action="/studio/api/1/services/api/1/user/reset-password" class="reveal-modal small" data-reveal>
     <div class="row">
         <div class="large-12 columns">
             <h2>Recover Password</h2>
