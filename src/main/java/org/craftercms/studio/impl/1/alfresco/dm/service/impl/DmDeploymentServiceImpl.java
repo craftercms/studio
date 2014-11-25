@@ -17,29 +17,36 @@
 package org.craftercms.cstudio.alfresco.dm.service.impl;
 
 import javolution.util.FastList;
-//import net.sf.json.JSONObject;
+import net.sf.json.JSONObject;
 //import org.craftercms.cstudio.alfresco.activityfeed.CStudioActivityFeedDAO;
-//import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
+import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
+import org.craftercms.cstudio.alfresco.dm.constant.DmConstants;
 //import org.craftercms.cstudio.alfresco.dm.filter.DmFilterWrapper;
 //import org.craftercms.cstudio.alfresco.dm.service.api.DmContentService;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmDeploymentService;
 //import org.craftercms.cstudio.alfresco.dm.to.DmContentItemTO;
 import org.craftercms.cstudio.alfresco.dm.to.DmDeploymentTaskTO;
+import org.craftercms.cstudio.alfresco.dm.to.DmPathTO;
 import org.craftercms.cstudio.alfresco.service.AbstractRegistrableService;
-//import org.craftercms.cstudio.alfresco.service.api.CStudioActivityService;
+import org.craftercms.cstudio.alfresco.service.api.CStudioActivityService;
 //import org.craftercms.cstudio.alfresco.service.api.PersistenceManagerService;
-//import org.craftercms.cstudio.alfresco.service.api.ServicesConfig;
+import org.craftercms.cstudio.alfresco.service.api.ServicesConfig;
 //import org.craftercms.cstudio.alfresco.service.exception.ContentNotFoundException;
 //import org.craftercms.cstudio.alfresco.service.exception.ServiceException;
-//import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
+import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
+import org.craftercms.cstudio.api.service.content.ContentService;
 import org.craftercms.cstudio.api.service.deployment.DeploymentService;
+import org.craftercms.cstudio.api.to.ContentItemTO;
+import org.craftercms.studio.api.domain.ActivityFeed;
 import org.craftercms.studio.api.domain.DeploymentSyncHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 //import java.util.TimeZone;
 
 public class DmDeploymentServiceImpl extends AbstractRegistrableService implements DmDeploymentService {
@@ -62,6 +69,16 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
         this._deploymentService = deploymentService;
     }
 
+    protected ContentService contentService;
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
     @Override
     public void register() {
         getServicesManager().registerService(DmDeploymentService.class, this);
@@ -74,67 +91,119 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
      * @param path
      * @return deployed item
      */
-    /*
-    protected DmContentItemTO getDeployedItem(String site, String path) {
-        DmContentService dmContentService = getService(DmContentService.class);
-        DmContentItemTO item;
-        try {
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
-            item = persistenceManagerService.getContentItem(fullPath, false);
+    protected ContentItemTO getDeployedItem(String site, String path) {
+
+        ContentItemTO item;
+            //ServicesConfig servicesConfig = getService(ServicesConfig.class);
+            //String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
+            item = contentService.getContentItem(site, path);
             if (item == null) {
-                item = dmContentService.createDummyDmContentItemForDeletedNode(site, path);
+                item = createDummyDmContentItemForDeletedNode(site, path);
                 CStudioActivityService cStudioActivityService = getService(CStudioActivityService.class);
-                CStudioActivityFeedDAO activity = cStudioActivityService.getDeletedActivity(site, path);
+                ActivityFeed activity = cStudioActivityService.getDeletedActivity(site, path);
                 if (activity != null) {
                     JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
                     if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
                         String contentType = (String)summaryObject.get(CStudioConstants.CONTENT_TYPE);
-                        item.setContentType(contentType);
+                        item.contentType = contentType;
                     }
                     if(summaryObject.containsKey(CStudioConstants.INTERNAL_NAME)) {
                         String internalName = (String)summaryObject.get(CStudioConstants.INTERNAL_NAME);
-                        item.setInternalName(internalName);
+                        item.internalName = internalName;
                     }
                     if(summaryObject.containsKey(CStudioConstants.BROWSER_URI)) {
                         String browserUri = (String)summaryObject.get(CStudioConstants.BROWSER_URI);
-                        item.setBrowserUri(browserUri);
+                        item.browserUri = browserUri;
                     }
                 }
             }
             return item;
-        } catch (ContentNotFoundException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Ignoring : " + path + ". content could be deleted in " + site + ".", e);
-            }
-            item = dmContentService.createDummyDmContentItemForDeletedNode(site, path);
-            CStudioActivityService cStudioActivityService = getService(CStudioActivityService.class);
-            CStudioActivityFeedDAO activity = cStudioActivityService.getDeletedActivity(site, path);
-            if (activity != null) {
-                JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
-                if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
-                    String contentType = (String)summaryObject.get(CStudioConstants.CONTENT_TYPE);
-                    item.setContentType(contentType);
-                }
-                if(summaryObject.containsKey(CStudioConstants.INTERNAL_NAME)) {
-                    String internalName = (String)summaryObject.get(CStudioConstants.INTERNAL_NAME);
-                    item.setInternalName(internalName);
-                }
-                if(summaryObject.containsKey(CStudioConstants.BROWSER_URI)) {
-                    String browserUri = (String)summaryObject.get(CStudioConstants.BROWSER_URI);
-                    item.setBrowserUri(browserUri);
-                }
-            }
-            return item;
-        } catch (ServiceException e) {
-            logger.error("Error in retrieving : " + path + " in " + site + ".", e);
+
+    }
+
+    private ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
+        String absolutePath = expandRelativeSitePath(site, relativePath);
+        DmPathTO path = new DmPathTO(absolutePath);
+        ContentItemTO item = new ContentItemTO();
+        ServicesConfig servicesConfig = getService(ServicesConfig.class);
+        String timeZone = servicesConfig.getDefaultTimezone(site);
+        item.timezone = timeZone;
+        String name = path.getName();
+        //String relativePath = path.getRelativePath();
+        String fullPath = path.toString();
+        String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
+        item.path = folderPath;
+        /**
+         * Internal name should be just folder name
+         */
+        String internalName = folderPath;
+        int index = folderPath.lastIndexOf('/');
+        if (index != -1)
+        internalName = folderPath.substring(index + 1);
+
+        item.internalName = internalName;
+        //item.title = internalName;
+        item.isDisabled = false;
+        item.isNavigation = false;
+        item.name = name;
+        item.uri = relativePath;
+
+        //item.defaultWebApp = path.getDmSitePath();
+        //set content type based on the relative Path
+        String contentType = getContentType(site, relativePath);
+        item.contentType = contentType;
+        if (contentType.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+            item.component = true;
+        } else if (contentType.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+            item.document = true;
         }
-        return null;
+        // set if the content is new
+        item.isDeleted = true;
+        item.isContainer = false;
+        //item.isNewFile = false;
+        item.isNew = false;
+        item.isInProgress = false;
+        item.timezone = servicesConfig.getDefaultTimezone(site);
+        item.isPreviewable = false;
+        item.browserUri = getBrowserUri(item);
 
-    }*/
+        return item;
+    }
 
+    protected String expandRelativeSitePath(String site, String relativePath) {
+        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
+    }
 
+    protected String getBrowserUri(ContentItemTO item) {
+        String replacePattern = "";
+        //if (item.isLevelDescriptor) {
+        //    replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+        //} else if (item.isComponent()) {
+        if (item.isComponent) {
+            replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
+        } else if (item.isAsset) {
+            replacePattern = DmConstants.ROOT_PATTERN_ASSETS;
+        } else if (item.isDocument) {
+            replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
+        } else {
+            replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+        }
+        boolean isPage = !(item.isComponent || item.isAsset || item.isDocument);
+        return getBrowserUri(item.uri, replacePattern, isPage);
+    }
+
+    protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
+        String browserUri = uri.replaceFirst(replacePattern, "");
+        browserUri = browserUri.replaceFirst("/" + DmConstants.INDEX_FILE, "");
+        if (browserUri.length() == 0) {
+            browserUri = "/";
+        }
+        // TODO: come up with a better way of doing this.
+        if (isPage) {
+            browserUri = browserUri.replaceFirst("\\.xml", ".html");
+        }
+        return browserUri;
+    }
     /**
      * create WcmDeploymentTask
      *
@@ -142,29 +211,54 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
      * @param item
      * @return deployment task
      */
-    /*
-    protected DmDeploymentTaskTO createDeploymentTask(String deployedLabel, DmContentItemTO item) {
+    protected DmDeploymentTaskTO createDeploymentTask(String deployedLabel, ContentItemTO item) {
         // otherwise just add as the last task
         DmDeploymentTaskTO task = new DmDeploymentTaskTO();
         task.setInternalName(deployedLabel);
-        List<DmContentItemTO> taskItems = task.getChildren();
+        List<ContentItemTO> taskItems = task.getChildren();
         if (taskItems == null) {
-            taskItems = new FastList<DmContentItemTO>();
+            taskItems = new FastList<ContentItemTO>();
             task.setChildren(taskItems);
         }
         taskItems.add(item);
         task.setNumOfChildren(taskItems.size());
         return task;
-    }*/
+    }
+
+    protected String getContentType(String site, String uri) {
+        ServicesConfig servicesConfig = getService(ServicesConfig.class);
+        if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
+            return DmConstants.CONTENT_TYPE_COMPONENT;
+        } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
+            return DmConstants.CONTENT_TYPE_DOCUMENT;
+        } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
+            return DmConstants.CONTENT_TYPE_ASSET;
+
+        } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
+            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+        }
+        return DmConstants.CONTENT_TYPE_PAGE;
+    }
+
+    protected boolean matchesPatterns(String uri, List<String> patterns) {
+        if (patterns != null) {
+            for (String pattern : patterns) {
+                if (uri.matches(pattern)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     
 	@Override
-	public List<DeploymentSyncHistory> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
+	public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
 		 // get the filtered list of attempts in a specific date range
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
         List<DeploymentSyncHistory> deployReports = _deploymentService.getDeploymentHistory(site,fromDate,toDate,filterType,numberOfItems); //findDeploymentReports(site, fromDate, toDate);
         List<DmDeploymentTaskTO> tasks = new FastList<DmDeploymentTaskTO>();
-        /*
+
         if (deployReports != null) {
             int count = 0;
             SimpleDateFormat deployedFormat = new SimpleDateFormat(CStudioConstants.DATE_FORMAT_DEPLOYED);
@@ -172,11 +266,11 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
             deployedFormat.setTimeZone(TimeZone.getTimeZone(servicesConfig.getDefaultTimezone(site)));
             String timezone = servicesConfig.getDefaultTimezone(site);
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
-                DeploymentSyncHistoryItem entry = deployReports.get(index);
-                    DmContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
+                DeploymentSyncHistory entry = deployReports.get(index);
+                    ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
                     if (deployedItem != null) {
-                        deployedItem.setEventDate(entry.getSyncDate());
-                        deployedItem.setEndpoint(entry.getTarget());
+                        deployedItem.eventDate = entry.getSyncDate();
+                        deployedItem.endpoint = entry.getTarget();
                         String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
@@ -194,8 +288,8 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
                      count++;
                     }
             }
-        }*/
-        return deployReports;
+        }
+        return tasks;
 	}
     
 }

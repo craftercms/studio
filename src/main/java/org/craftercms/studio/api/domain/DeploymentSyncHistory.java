@@ -23,36 +23,36 @@ public class DeploymentSyncHistory implements Serializable {
 
     private static final long serialVersionUID = 1546577631929363169L;
 
-    public String getId() { return _id; }
-    public void setId(String id) { this._id = id; }
+    protected String id;
+    protected Date syncDate;
+    protected String site;
+    protected String environment;
+    protected String path;
+    protected String target;
+    protected String username;
+    protected String contentTypeClass;
 
-    public Date getSyncDate() { return _syncDate; }
-    public void setSyncDate(Date syncDate) { this._syncDate = syncDate; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getSite() { return _site; }
-    public void setSite(String site) { this._site = site; }
+    public Date getSyncDate() { return syncDate; }
+    public void setSyncDate(Date syncDate) { this.syncDate = syncDate; }
 
-    public String getEnvironment() { return _environment; }
-    public void setEnvironment(String environment) { this._environment = environment; }
+    public String getSite() { return site; }
+    public void setSite(String site) { this.site = site; }
 
-    public String getPath() { return _path; }
-    public void setPath(String path) { this._path = path; }
+    public String getEnvironment() { return environment; }
+    public void setEnvironment(String environment) { this.environment = environment; }
 
-    public String getTarget() { return _target; }
-    public void setTarget(String target) { this._target = target; }
+    public String getPath() { return path; }
+    public void setPath(String path) { this.path = path; }
 
-    public String getUser() { return _user; }
-    public void setUser(String user) { this._user = user; }
+    public String getTarget() { return target; }
+    public void setTarget(String target) { this.target = target; }
 
-    public String getContentTypeClass() { return _contentTypeClass; }
-    public void setContentTypeClass(String contentTypeClass) { this._contentTypeClass = contentTypeClass; }
+    public String getUser() { return username; }
+    public void setUser(String username) { this.username = username; }
 
-    protected String _id;
-    protected Date _syncDate;
-    protected String _site;
-    protected String _environment;
-    protected String _path;
-    protected String _target;
-    protected String _user;
-    protected String _contentTypeClass;
+    public String getContentTypeClass() { return contentTypeClass; }
+    public void setContentTypeClass(String contentTypeClass) { this.contentTypeClass = contentTypeClass; }
 }

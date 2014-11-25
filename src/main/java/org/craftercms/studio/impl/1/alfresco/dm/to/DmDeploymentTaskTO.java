@@ -18,6 +18,7 @@
 package org.craftercms.cstudio.alfresco.dm.to;
 
 import java.util.List;
+import org.craftercms.cstudio.api.to.ContentItemTO;
 
 public class DmDeploymentTaskTO {
 
@@ -28,7 +29,7 @@ public class DmDeploymentTaskTO {
     protected int _numOfChildren;
 
     /** navigation child content items **/
-    protected List<DmContentItemTO> _children = null;
+    protected List<ContentItemTO> _children = null;
 
     protected String endpoint;
 
@@ -49,11 +50,11 @@ public class DmDeploymentTaskTO {
         _numOfChildren = numOfChildren;
     }
 
-    public List<DmContentItemTO> getChildren() {
+    public List<ContentItemTO> getChildren() {
         return _children;
     }
 
-    public void setChildren(List<DmContentItemTO> children) {
+    public void setChildren(List<ContentItemTO> children) {
         this._children = children;
     }
 }

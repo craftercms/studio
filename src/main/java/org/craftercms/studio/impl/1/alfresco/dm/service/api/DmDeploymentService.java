@@ -38,7 +38,7 @@ public interface DmDeploymentService {
      * @return list of deployment items
      */
 
-	public List<DeploymentSyncHistory> getDeploymentHistory(
+	public List<DmDeploymentTaskTO> getDeploymentHistory(
 			String site, int days, int number, String sort, boolean ascending,
 			String filterType);
 }

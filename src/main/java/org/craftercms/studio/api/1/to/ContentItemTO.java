@@ -92,6 +92,11 @@ public class ContentItemTO  {
     public boolean isDocument;
     public boolean isAsset;
 
+	// Added by Dejan needs of deployment history
+	public Date eventDate;
+	public String endpoint;
+	public String timezone;
+
 
     public ContentItemTO[] children;
 

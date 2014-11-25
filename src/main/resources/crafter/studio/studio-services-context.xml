@@ -77,6 +77,17 @@
             <property name="translationProvider" ref="demoTranslationProvider" />
         </bean>
 
+    <bean id="cstudioServicesConfig" class="org.craftercms.cstudio.alfresco.service.impl.ServicesConfigImpl"
+          parent="cstudioRegistrableService">
+        <property name="configPath"><value>${serviceConfig.configPath}</value></property>
+        <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="cstudioCustomActivityService" class="org.craftercms.cstudio.alfresco.service.impl.CStudioActivityServiceImpl"
+          parent="cstudioRegistrableService">
+    </bean>
+
 
     <!-- ////////////////////// -->
     <!-- Email  -->
