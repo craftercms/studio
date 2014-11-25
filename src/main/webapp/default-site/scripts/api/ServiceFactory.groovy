@@ -2,7 +2,7 @@ package scripts.api
 
 import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices;
-import scripts.api.impl.clipboard.ClipboardServices;
+import scripts.api.impl.clipboard.SpringClipboardServices;
 import scripts.api.impl.deployment.SpringDeploymentServices;
 
 /**
@@ -40,7 +40,7 @@ class ServiceFactory {
      * @return ClipboardServices
      */
     static getClipboardServices(context) {
-        return new ClipboardServices(context)
+        return new SpringClipboardServices(context)
     }
 
 	/**

@@ -131,11 +131,11 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     };
 
     /**
-     * move content from PathA to pathB
-     * @param path path to content
+     * copy contents from PathA to pathB
+     * @param fromPaths paths to content
      * @param toPath target path
      */
-    public boolean copyContent(String fromPath, String toPath) {
+    public boolean copyContent(String [] fromPaths, String toPath) {
         return false;
         //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
     }

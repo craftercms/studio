@@ -7,7 +7,7 @@ def session = request.session
 def requestBody = request.reader.text
 
 def context = ClipboardServices.createContext(applicationContext, request)
-ClipboardServices.cut(site, session, requestBody, deep)
+ClipboardServices.cut(site, session, requestBody, context)
 
 result.success = true
 

@@ -60,6 +60,7 @@ public interface ContentRepository {
      * write content
      * @param path path to content
      * @param content stream of content to write
+     * @return true if successful
      */
     boolean writeContent(String path, InputStream content);
 
@@ -73,26 +74,31 @@ public interface ContentRepository {
      * move content from PathA to pathB
      * @param fromPath source content
      * @param toPath target path
+     * @return true if successful
      */
     boolean moveContent(String fromPath, String toPath);
 
     /**
-     * move content from PathA to pathB
-     * @param path path to content
+     * move contents from PathA to pathB
+     *
+     * @param fromPaths paths to content
      * @param toPath target path
+     * @return true if successful
      */
-    boolean copyContent(String fromPath, String toPath);
+    boolean copyContent(String [] fromPaths, String toPath);
 
     /**
      * get immediate children for path
      * @param path path to content
+     * @return a list of children
      */
     RepositoryItem[] getContentChildren(String path);
 
     /** 
      * get the version history for an item
      * @param site - the project ID
-     * @param path - the path of the item 
+     * @param path - the path of the item
+     * @return a list of versions
      */
     VersionTO[] getContentVersionHistory(String path);
 
@@ -100,6 +106,7 @@ public interface ContentRepository {
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
+     * @return true if successful
      */
     boolean revertContent(String path, String version, boolean major, String comment);
 

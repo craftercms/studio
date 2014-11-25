@@ -1,15 +1,12 @@
 package scripts.api
 
-import groovy.json.JsonSlurper
 import scripts.api.ServiceFactory
-
 import groovy.util.logging.Log
 
 /**
  * Clipboard sevices are scoped to the specific user / session
  * (The only stateful services)
  */
-@Log
 class ClipboardServices {
 
     /**
@@ -27,13 +24,12 @@ class ClipboardServices {
      * @param site - the project ID
      * @param session - current request session
      * @param destination - the target location to paste
-     * @param context - service context
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
      * @return response status
      */
-    public static paste(site, session, destination, context) {
-        def clipboardItem = ClipboardServices.getItem(site, session)
+    static paste(site, session, destination, context) {
         def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
-        return clipboardServicesImpl.paste(site, destination, clipboardItem);
+        return clipboardServicesImpl.paste(site, session, destination, context);
 	}
 
     /**
@@ -42,10 +38,11 @@ class ClipboardServices {
      * @param site - the project ID
      * @param session - current request session
      * @param requestJson - items in json format
-     * @param deep - cut recursively?
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
      */
-    static cut(site, session, requestJson, deep) {
-        ClipboardServices.clip(site, session, requestJson, true, deep)
+    static cut(site, session, requestJson, context) {
+        def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
+        clipboardServicesImpl.cut(site, session, requestJson)
     }
 
     /**
@@ -54,36 +51,11 @@ class ClipboardServices {
      * @param site - the project ID
      * @param session - current request session
      * @param requestJson - items in json format
-     * @param deep - copy recursively?
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
      */
-    static copy(site, session, requestJson, deep) {
-        ClipboardServices.clip(site, session, requestJson, false, deep)
-    }
-
-    /**
-     * store the item given into session
-     *
-     * @param site - the project ID
-     * @param session - request session
-     * @param requestJson - items in JSON
-     * @param cut - cut?
-     * @param deep - cut or copy recursively?
-     */
-    private static clip(site, session, requestJson, cut, deep) {
-        log.info "[Clipboard][Copy] started clipping for " + site + " deep: " + deep + " cut: " + cut
-        def slurper = new JsonSlurper()
-        def parsedReq = slurper.parseText(requestJson)
-
-        def clipboardItem = [:]
-        clipboardItem.cut = cut
-        clipboardItem.deep = deep
-        clipboardItem.item = parsedReq.item
-        session.setAttribute(ClipboardServices.getKey(site), clipboardItem);
-
-        log.info "[Clipboard] copied -------------------- "
-        log.info "" + parsedReq.item;
-
-        log.info "[Clipboard] done started clipping for " + site + " deep: " + deep + " cut: " + cut
+    static copy(site, session, requestJson, context) {
+        def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
+        clipboardServicesImpl.copy(site, session, requestJson)
     }
 
     /**
@@ -91,20 +63,12 @@ class ClipboardServices {
      *
      * @param site - the project ID
      * @param session - request session
-     * @return items cliped
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     * @return items clipped
      */
-    static getItem(site, session) {
-        def clipboardItem = session.getAttribute(getKey(site));
-        return clipboardItem;
+    static getItems(site, session, context) {
+        def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
+        return clipboardServicesImpl.getItems(site, session);
     }
 
-    /**
-     * create a key
-     *
-     * @param site - the project ID
-     * @return a unique for the site
-     */
-    private static getKey(site) {
-        return "clipboard_collection:" + site;
-    }
 }

@@ -5,7 +5,7 @@ def site = params.site
 def session = request.session
 
 def context = ClipboardServices.createContext(applicationContext, request)
-def clipboardItem = ClipboardServices.getItem(site, session)
+def clipboardItem = ClipboardServices.getItems(site, session, context)
 
 result.site = site
 if (clipboardItem != null) {
