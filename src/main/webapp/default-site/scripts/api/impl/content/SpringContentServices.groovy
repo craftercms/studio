@@ -22,7 +22,8 @@ class SpringContentServices {
 	 * @param content - the content to write
 	 */
 	def writeContent(site, path, content){
-
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.writeContent(site, path, content)
 	}
 
 	/**

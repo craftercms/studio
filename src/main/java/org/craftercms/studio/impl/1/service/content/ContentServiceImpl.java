@@ -45,42 +45,22 @@ public class ContentServiceImpl implements ContentService {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
-    /**
-     * @return true if site has content object at path
-     */
+    @Override
     public boolean contentExists(String site, String path) {
         return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
     }
 
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
+    @Override
     public InputStream getContent(String path) {
        return this._contentRepository.getContent(path);
     }
 
-   /**
-     * get document from wcm content
-     *
-     * @param path
-     * @pram site
-     * @return document
-     * @throws ServiceException
-     */
+    @Override
     public InputStream getContent(String site, String path) {
        return this._contentRepository.getContent(expandRelativeSitePath(site, path));
     }
 
-    /**
-     * get document from wcm content
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
+    @Override
     public String getContentAsString(String path)  {
         String content = null;
 
@@ -94,13 +74,7 @@ public class ContentServiceImpl implements ContentService {
         return content;
     }
 
-    /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     * @throws ServiceException
-     */
+    @Override
     public Document getContentAsDocument(String path)
     throws DocumentException {
         Document retDocument = null;
@@ -127,30 +101,17 @@ public class ContentServiceImpl implements ContentService {
     }
 
 
-    /**
-     * write content
-     * @param path path to content
-     * @param content stream of content to write
-     */
-    public void writeContent(String path, InputStream content) {
-
+    @Override
+    public boolean writeContent(String path, InputStream content) {
+       return _contentRepository.writeContent(path, content);
     }
 
-    /**
-     * write content
-     * @param path path to content
-     * @param site 
-     * @param content stream of content to write
-     */
-    public void writeContent(String site, String path, InputStream content){
-        writeContent(expandRelativeSitePath(site, path), content);
+    @Override
+    public boolean writeContent(String site, String path, InputStream content){
+        return writeContent(expandRelativeSitePath(site, path), content);
     }
 
-    /**
-     * get a content item for a given site and path
-     * @param site - the site
-     * @param path = the path of content to get
-     */
+    @Override
     public ContentItemTO getContentItem(String site, String path) {
         ContentItemTO item = null;
 
@@ -269,11 +230,7 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    /**
-     * get the tree of content items (metadata) beginning at a root
-     * @param site - the project ID
-     * @param path - the path to root at
-     */
+    @Override
     public ContentItemTO getContentItemTree(String site, String path, int depth) {
         boolean isPages = (path.contains("/site/website"));
         ContentItemTO root = null;
@@ -290,21 +247,12 @@ public class ContentServiceImpl implements ContentService {
         return root;
     }
 
-    /** 
-     * get the version history for an item
-     * @param site - the project ID
-     * @param path - the path of the item 
-     */
+    @Override
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
         return _contentRepository.getContentVersionHistory(expandRelativeSitePath(site, path));
     }
 
-    /** 
-     * revert a version (create a new version based on an old version)
-     * @param site - the project ID
-     * @param path - the path of the item to "revert"
-     * @param version - old version ID to base to version on
-     */
+    @Override
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean success = false;
 
@@ -319,10 +267,14 @@ public class ContentServiceImpl implements ContentService {
 
     /**
      * get the tree of content items (metadata) beginning at a root
-     * @param site - the project ID
-     * @param path - the path to root at
+     *
+     * @param site
+     * @param path
+     * @param depth
+     * @param isPages
+     * @return return an array of child nodes
      */
-    public ContentItemTO[] getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
+    protected ContentItemTO[] getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
 
         ContentItemTO[] children = new ContentItemTO[0];
 
@@ -353,18 +305,27 @@ public class ContentServiceImpl implements ContentService {
 
     /**
      * take a path like /sites/website/index.xml and root it properly with a fully expanded repo path
+     *
+     * @param site
+     * @param relativePath
+     * @return
      */
     protected String expandRelativeSitePath(String site, String relativePath) {
         return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
     /**
-     * take a path like /wem-projects/SITE/SITE/work-area/sites/website/index.xml and 
+     * take a path like /wem-projects/SITE/SITE/work-area/sites/website/index.xml and
      * and return the releative path to the project
+     *
+     * @param site
+     * @param fullPath
+     * @return
      */
     protected String getRelativeSitePath(String site, String fullPath) {
         return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
     }
+
 
     private ContentRepository _contentRepository;
     public ContentRepository getContentRepository() { return _contentRepository; }
