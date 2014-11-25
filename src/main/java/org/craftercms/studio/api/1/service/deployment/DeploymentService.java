@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.api.service.deployment;
 
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+
 import java.util.Date;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public interface DeploymentService {
     // document
     void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;
 
-    List<DeploymentSyncHistoryItem> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
+    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
 
     List<CopyToEnvironmentItem> getScheduledItems(String site);
 

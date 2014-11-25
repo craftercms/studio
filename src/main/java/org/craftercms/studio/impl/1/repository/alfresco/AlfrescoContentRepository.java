@@ -104,6 +104,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     public boolean writeContent(String path, InputStream content) {
         return false;
+            // POST
+            //"/api/upload?Alfresco-CSRFToken=null"
+            // body is inputstream
     }
 
     /**
@@ -112,6 +115,29 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      */
     public boolean deleteContent(String path) {
         return false;
+        // DELETE
+        //"/slingshot/doclib/action/file/node/workspace/SpacesStore/ca4362f4-1c84-4666-aa8c-54893dd238c5"
+    }
+
+    /**
+     * move content from PathA to pathB
+     * @param fromPath source content
+     * @param toPath target path
+     */
+    public boolean moveContent(String fromPath, String toPath) {
+        return false;
+        //POST
+         //"/api/path/{store_type}/{store_id}/{nodepath}/children?sourceFolderId={sourceFolderId}&versioningState={versioningState?}""
+    };
+
+    /**
+     * move content from PathA to pathB
+     * @param path path to content
+     * @param toPath target path
+     */
+    public boolean copyContent(String fromPath, String toPath) {
+        return false;
+        //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
     }
 
     /**

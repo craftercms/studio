@@ -23,12 +23,12 @@ import org.craftercms.cstudio.api.repository.ContentRepository;
 import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.cstudio.api.service.deployment.DeploymentException;
 import org.craftercms.cstudio.api.service.deployment.DeploymentService;
-import org.craftercms.cstudio.api.service.deployment.DeploymentSyncHistoryItem;
 import org.craftercms.cstudio.api.service.fsm.TransitionEvent;
 import org.craftercms.cstudio.impl.service.deployment.dal.DeploymentDAL;
 import org.craftercms.cstudio.impl.service.deployment.dal.DeploymentDALException;
 import org.craftercms.cstudio.impl.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.cstudio.impl.service.deployment.job.PublishContentToDeploymentTarget;
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
 import org.craftercms.studio.api.persistence.DeploymentSyncHistoryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,6 +39,9 @@ import java.util.*;
 public class DeploymentServiceImpl implements DeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
+
+    private static final int HISTORY_ALL_LIMIT = 9999999;
+    private final static String CONTENT_TYPE_ALL= "all";
 
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
 
@@ -121,8 +124,20 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DeploymentSyncHistoryItem> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
-        return _deploymentDAL.getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems);
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("from_date", fromDate);
+        params.put("to_date", toDate);
+        if (numberOfItems <= 0) {
+            params.put("limit", HISTORY_ALL_LIMIT);
+        } else {
+            params.put("limit", numberOfItems);
+        }
+        if (!filterType.equalsIgnoreCase(CONTENT_TYPE_ALL)) {
+            params.put("filter", filterType);
+        }
+        return _deploymentSyncHistoryMapper.getDeploymentHistory(params);
     }
 
     @Override
