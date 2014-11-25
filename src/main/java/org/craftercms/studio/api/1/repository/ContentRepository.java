@@ -41,7 +41,7 @@ public interface ContentRepository {
 
     /**
      * Determine if content exists in the repository at a given path
-     * @param site name
+     *
      * @param path
      * @return true if site has content object at path
      */
@@ -52,7 +52,6 @@ public interface ContentRepository {
      *
      * @param path
      * @return document
-     * @throws ServiceException
      */
     InputStream getContent(String path);
 
@@ -63,6 +62,15 @@ public interface ContentRepository {
      * @return true if successful
      */
     boolean writeContent(String path, InputStream content);
+
+    /**
+     * create a folder
+     *
+     * @param path path to create a folder in
+     * @param name a folder name to create
+     * @return true if successful
+     */
+    boolean createFolder(String path, String name);
 
     /**
      * delete content

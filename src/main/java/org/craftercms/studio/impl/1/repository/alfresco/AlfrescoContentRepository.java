@@ -17,7 +17,9 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository.alfresco;
 
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -101,7 +103,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     public boolean writeContent(String path, InputStream content) {
         logger.debug("writing content to " + path);
         String uploadURI = "/api/upload";
-        String mimeType = "text/xml";
+        String contentType = "cm:content";
         int splitIndex = path.lastIndexOf("/");
         String name = path.substring(splitIndex + 1);
         // find the existing node by path
@@ -109,27 +111,33 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         // find the target folder node by its path
         String folderPath = path.substring(0, splitIndex);
         String folderRef = getNodeRefForPath(folderPath);
-        // TODO: here we are assuming the folder already exists
-        // might need to fix this by creating all folders beforehand
+        if (folderRef == null) {
+            // if not, create the folder first
+            int folderSplitIndex = folderPath.lastIndexOf("/");
+            String parentFolderPath = folderPath.substring(0, folderSplitIndex);
+            String folderName = folderPath.substring(folderSplitIndex + 1);
+            folderRef = this.createFolderInternal(parentFolderPath, folderName);
+        }
+        // TODO: might still need to check if the folderRef still exists
 
         // add parameters
         Map<String, String> params = new HashMap<String, String>();
         params.put("filename", name);
-        if (nodeRef == null) {
-            params.put("destination", folderRef);
-        } else {
+        // if it's a new content, check if the folder exists
+        params.put("destination", folderRef);
+        if (nodeRef != null) {
             params.put("updateNodeRef", nodeRef);
         }
-        params.put("uploaddirectory", folderRef);
+        //params.put("uploaddirectory", folderRef);
         // TODO: add description for version update - do we need this?
-        params.put("contenttype", mimeType);
+        params.put("contenttype", contentType);
         params.put("majorversion", "false");
         params.put("overwrite", "true");
         // read back nodeRef
         logger.debug("request params\n" + params);
 
         try {
-            String response = this.alfrescoMultipartPostRequest(uploadURI, params, content, mimeType, "UTF-8");
+            String response = this.alfrescoMultipartPostRequest(uploadURI, params, content, "application/xml", "UTF-8");
             logger.debug("done writing content to " + path);
             logger.debug("response back from the server: " + response);
             return true;
@@ -139,9 +147,12 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         } finally {
             IOUtils.closeQuietly(content);
         }
-            // POST
-            //"/api/upload?Alfresco-CSRFToken=null"
-            // body is inputstream
+    }
+
+    @Override
+    public boolean createFolder(String path, String name) {
+        String folderRef = this.createFolderInternal(path, name);
+        return folderRef != null;
     }
 
     @Override
@@ -346,6 +357,47 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return nodeRef;
     }
+
+
+
+
+    /**
+     * create a folder at the given path
+     *
+     * @param path
+     *          a path to create a folder in
+     * @param name
+     *          a folder name to create
+     * @return a node reference string of the new folder
+     */
+    protected String createFolderInternal(String path, String name) {
+        logger.debug("creating a folder at " + path + " with name: " + name);
+        String newFolderRef = null;
+        String createFolderURI = "/api/type/cm%3afolder/formprocessor";
+        Map<String, String> params = new HashMap<String, String>();
+        String folderRef = getNodeRefForPath(path);
+        if (StringUtils.isEmpty(folderRef)) {
+            logger.error("Failed to create " + name + " folder since " + path + " does not exist.");
+        } else {
+            JSONObject requestObj = new JSONObject();
+            requestObj.put("alf_destination", folderRef);
+            requestObj.put("prop_cm_name", name);
+            requestObj.put("prop_cm_title", name);
+            InputStream is = IOUtils.toInputStream(requestObj.toString());
+            try {
+                String responseBody = this.alfrescoPostRequest(createFolderURI, params, is, "application/json");
+                JsonConfig cfg = new JsonConfig();
+                JSONObject respObj = JSONObject.fromObject(responseBody, cfg);
+                newFolderRef = (String) respObj.get("persistedObject");
+            } catch (Exception e) {
+                logger.error("Error while creating " + name + " at " + path, e);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        }
+        return newFolderRef;
+    }
+
 
     /**
      * fire GET request to Alfresco with propert security

@@ -71,6 +71,7 @@ public interface ContentService  {
 
     /**
      * write content
+     *
      * @param path path to content
      * @param content stream of content to write
      * @return return true if successful
@@ -79,14 +80,25 @@ public interface ContentService  {
 
     /**
      * write content
-     * @param site
+     *
+     * @param site - the project ID
      * @param path path to content
      * @param content stream of content to write
      * @return return true if successful
      */
 	boolean writeContent(String site, String path, InputStream content);
 
-	/**
+    /**
+     * create a folder
+     *
+     * @param site - the project ID
+     * @param path path to create a folder in
+     * @param name a folder name to create
+     * @return return the reference to the folder created
+     */
+    boolean createFolder(String site, String path, String name);
+
+    /**
 	 * get the tree of content items (metadata) beginning at a root
 	 * @param site - the project ID
 	 * @param path - the path to root at
