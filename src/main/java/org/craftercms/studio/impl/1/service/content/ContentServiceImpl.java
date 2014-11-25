@@ -112,6 +112,11 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public boolean createFolder(String site, String path, String name) {
+        return _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
+    }
+
+    @Override
     public ContentItemTO getContentItem(String site, String path) {
         ContentItemTO item = null;
 

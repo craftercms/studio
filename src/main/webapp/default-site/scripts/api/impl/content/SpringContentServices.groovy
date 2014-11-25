@@ -26,7 +26,18 @@ class SpringContentServices {
         return springBackedService.writeContent(site, path, content)
 	}
 
-	/**
+    /**
+     * create folder
+     * @param site - the project ID
+     * @param path - the path to create the folder in
+     * @param name - the folder name to create
+     */
+    def createFolder(site, path, name){
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.createFolder(site, path, name)
+    }
+
+    /**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
