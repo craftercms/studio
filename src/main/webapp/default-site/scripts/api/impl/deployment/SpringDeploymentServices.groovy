@@ -1,7 +1,5 @@
 package scripts.api.impl.deployment
 
-import org.craftercms.cstudio.api.service.deployment.DeploymentService;
-
 class SpringDeploymentServices {
 
     def context = null
