@@ -80,6 +80,7 @@ public interface ContentRepository {
 
     /**
      * move content from PathA to pathB
+     *
      * @param fromPath source content
      * @param toPath target path
      * @return true if successful

@@ -54,6 +54,19 @@ class ContentServices {
     }
 
     /**
+     * move content from PathA to pathB
+     *
+     * @param site - the project ID
+     * @param fromPath paths to content
+     * @param toPath target path
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static moveContent(site, fromPath, toPath, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.moveContent(site, fromPath, toPath)
+    }
+
+    /**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content

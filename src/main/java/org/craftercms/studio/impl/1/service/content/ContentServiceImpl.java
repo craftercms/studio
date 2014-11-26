@@ -128,6 +128,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
+                expandRelativeSitePath(site, toPath));
+    }
+
+    @Override
     public ContentItemTO getContentItem(String site, String path) {
         ContentItemTO item = null;
 
