@@ -176,17 +176,42 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     }
 
     @Override
+    public boolean copyContent(String fromPath, String toPath) {
+        logger.debug("copy content from " + fromPath + " to " + toPath);
+        boolean result = false;
+        // find all nodeRefs required
+        String targetRef = getNodeRefForPath(toPath);
+        String sourceRef = getNodeRefForPath(fromPath);
+        String sourceParentRef = getNodeRefForPath(fromPath.substring(0, fromPath.lastIndexOf("/")));
+        String copyURL = "/slingshot/doclib/action/copy-to/node/";
+        copyURL = copyURL + targetRef.replace("://", "/");
+        // no parameter
+        Map<String, String> params = new HashMap<String, String>();
+        // create request body
+        JSONObject requestObj = new JSONObject();
+        String [] nodeRefs = new String[1];
+        nodeRefs[0] = sourceRef;
+        requestObj.put("nodeRefs", nodeRefs);
+        requestObj.put("parentId", sourceParentRef);
+        InputStream is = IOUtils.toInputStream(requestObj.toString());
+        try {
+            this.alfrescoPostRequest(copyURL, params, is, "application/json");
+            return true;
+        } catch (Exception e) {
+            logger.error("Error while copying content from " + fromPath + " to " + toPath, e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+        return result;
+    }
+
+
+    @Override
     public boolean moveContent(String fromPath, String toPath) {
         return false;
         //POST
          //"/api/path/{store_type}/{store_id}/{nodepath}/children?sourceFolderId={sourceFolderId}&versioningState={versioningState?}""
     };
-
-    @Override
-    public boolean copyContent(String fromPath, String toPath, boolean deep) {
-        return false;
-        //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
-    }
 
     /**
      * get immediate children for path

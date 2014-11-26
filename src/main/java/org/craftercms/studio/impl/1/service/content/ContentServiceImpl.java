@@ -121,6 +121,11 @@ public class ContentServiceImpl implements ContentService {
         return _contentRepository.deleteContent(expandRelativeSitePath(site, path));
     }
 
+    @Override
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        return _contentRepository.copyContent(expandRelativeSitePath(site, fromPath),
+                expandRelativeSitePath(site, toPath));
+    }
 
     @Override
     public ContentItemTO getContentItem(String site, String path) {
