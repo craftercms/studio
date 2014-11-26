@@ -17,12 +17,14 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow;
 
+
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+
 import java.util.Map;
 import java.util.HashMap;
-
-import org.craftercms.cstudio.api.log.*;
-
-import org.craftercms.cstudio.api.service.workflow.*;
 
 /**
  * internal workflow manager for Workflow.  Simple manager that maintains a 

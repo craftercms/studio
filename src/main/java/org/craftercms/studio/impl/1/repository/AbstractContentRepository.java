@@ -17,10 +17,10 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository;
 
-import org.craftercms.cstudio.api.repository.*;
-import java.io.InputStream;
 
-import org.craftercms.cstudio.api.log.*;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 
 /**
  * Abstract repository interface provides common repository operations across implementations

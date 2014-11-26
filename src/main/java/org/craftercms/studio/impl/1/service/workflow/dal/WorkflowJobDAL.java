@@ -21,7 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 
-import org.craftercms.cstudio.api.service.workflow.*;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 
 public interface WorkflowJobDAL {
 

@@ -23,15 +23,17 @@ import java.util.ArrayList;
 
 import javolution.util.FastList;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.service.translation.TranslationService;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.dom4j.Document;
 import org.dom4j.Node;
 
 import org.craftercms.cstudio.alfresco.dm.service.api.DmDependencyService;
-import org.craftercms.cstudio.api.log.*;
-
-import org.craftercms.cstudio.api.service.site.*;
-import org.craftercms.cstudio.api.service.workflow.*;
-import org.craftercms.cstudio.api.service.translation.*;
 import org.craftercms.cstudio.impl.service.workflow.*;
 
 /**

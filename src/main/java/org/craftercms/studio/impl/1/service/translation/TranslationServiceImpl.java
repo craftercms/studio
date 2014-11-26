@@ -24,10 +24,10 @@ import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
-import org.craftercms.cstudio.api.log.*;
-
-import org.craftercms.cstudio.api.service.translation.*;
 import org.craftercms.cstudio.impl.service.translation.dal.*;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.translation.TranslationService;
 
 /**
  * Provide support for facilitating translations with an external translation provider

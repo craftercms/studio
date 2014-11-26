@@ -17,10 +17,12 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.deployment.dal;
 
-import org.craftercms.cstudio.api.service.deployment.DeploymentException;
+
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 
 public class DeploymentDALException extends DeploymentException {
-    private static final long serialVersionUID = -4244000619335132455L;
+
+    private static final long serialVersionUID = -4662862862819359673L;
 
     public DeploymentDALException() {
         super();

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
 import org.dom4j.Node;
@@ -35,7 +37,6 @@ import org.apache.commons.io.IOUtils;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import org.craftercms.cstudio.api.log.*;
 
 /**
  * Demo translation provider

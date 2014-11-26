@@ -17,23 +17,22 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.content;
 
-import java.net.*;
 import java.io.*;
 import java.io.InputStream;
+
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.io.SAXReader;
-import java.lang.reflect.Method;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-
-import org.craftercms.cstudio.api.log.*;
-import org.craftercms.cstudio.api.service.content.*;
-import org.craftercms.cstudio.api.to.ContentItemTO;
-import org.craftercms.cstudio.api.repository.RepositoryItem;
-import org.craftercms.cstudio.api.repository.ContentRepository;
-import org.craftercms.cstudio.api.to.VersionTO;
 
 /**
  * Content Services that other services may use

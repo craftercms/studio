@@ -17,8 +17,10 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.log.l4j;
 
-import org.craftercms.cstudio.api.log.*;
+
 import org.craftercms.cstudio.impl.log.*;
+import org.craftercms.studio.api.v1.log.AbstractLogger;
+import org.craftercms.studio.api.v1.log.Logger;
 
 /**
  * Logger object, log4j implementation

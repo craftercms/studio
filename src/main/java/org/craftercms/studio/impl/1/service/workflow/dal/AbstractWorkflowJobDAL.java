@@ -17,14 +17,12 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow.dal;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.Date;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
-import org.craftercms.cstudio.api.service.workflow.*;
+import java.util.*;
+
 
 /**
  * abstract workflow job DAL takes care of common operations that are the same across all persistance 

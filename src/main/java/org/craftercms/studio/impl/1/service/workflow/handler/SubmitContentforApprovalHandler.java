@@ -21,8 +21,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.craftercms.cstudio.api.service.workflow.*;
 import org.craftercms.cstudio.impl.service.workflow.*;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 /**
  * submit items in workflow for approval, transition to end 

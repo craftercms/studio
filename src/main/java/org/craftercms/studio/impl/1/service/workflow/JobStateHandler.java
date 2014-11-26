@@ -17,7 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow;
 
-import org.craftercms.cstudio.api.service.workflow.*;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 /**
  * For a given job state take an action and return the next state

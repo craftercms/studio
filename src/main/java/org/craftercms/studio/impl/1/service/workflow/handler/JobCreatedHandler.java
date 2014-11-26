@@ -17,8 +17,9 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow.handler;
 
-import org.craftercms.cstudio.api.service.workflow.*;
 import org.craftercms.cstudio.impl.service.workflow.*;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 /**
  * The Job Created Handler does nothing because the service is responsible to transition

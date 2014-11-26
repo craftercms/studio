@@ -16,69 +16,20 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository.alfresco;
-/*
-import javolution.util.FastMap;
 
-import org.alfresco.model.ContentModel;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.service.cmr.model.FileInfo;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
-import org.alfresco.service.namespace.QName;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.craftercms.cstudio.alfresco.constant.CStudioContentModel;
-import org.craftercms.cstudio.alfresco.deployment.DeploymentEndpointConfigTO;
-import org.craftercms.cstudio.alfresco.deployment.DeploymentEngineConstants;
-import org.craftercms.cstudio.alfresco.deployment.DeploymentEventItem;
-import org.craftercms.cstudio.alfresco.dm.constant.DmConstants;
-import org.craftercms.cstudio.alfresco.dm.filter.DmFilterWrapper;
-import org.craftercms.cstudio.alfresco.dm.service.api.DmContentService;
-import org.craftercms.cstudio.alfresco.dm.service.api.DmDependencyService;
-import org.craftercms.cstudio.alfresco.dm.util.DmUtils;
-import org.craftercms.cstudio.alfresco.event.EventService;
-import org.craftercms.cstudio.alfresco.service.ServicesManager;
-import org.craftercms.cstudio.alfresco.service.api.*;
-import org.craftercms.cstudio.alfresco.service.exception.ServiceException;
-import org.craftercms.cstudio.alfresco.to.PublishingChannelConfigTO;
-import org.craftercms.cstudio.alfresco.to.PublishingChannelGroupConfigTO;
-*/
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 
 import javax.transaction.*;
 import java.io.InputStream;
-import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.net.*;
-import java.net.URI;
-import javax.servlet.http.*;
-import javax.servlet.http.Cookie;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
-
-import net.sf.json.*;
-
-import org.apache.commons.io.IOUtils;
-
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.cstudio.api.service.deployment.DeploymentException;
-import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
-import org.craftercms.cstudio.api.service.fsm.TransitionEvent;
-import org.craftercms.cstudio.api.repository.RepositoryItem;
 import org.craftercms.cstudio.impl.repository.AbstractContentRepository;
-import org.craftercms.cstudio.api.to.VersionTO;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 
-import org.craftercms.commons.http.RequestContext;
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure

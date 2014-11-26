@@ -17,14 +17,14 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow.job;
 
-import org.craftercms.cstudio.api.job.Job;
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.service.authentication.AuthenticationService;
-import org.craftercms.cstudio.api.service.transaction.TransactionService;
-import org.craftercms.cstudio.api.service.workflow.WorkflowJob;
-import org.craftercms.cstudio.api.service.workflow.WorkflowService;
 import org.craftercms.cstudio.impl.service.workflow.WorkflowManager;
+import org.craftercms.studio.api.v1.job.Job;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
+import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 import javax.transaction.UserTransaction;
 import java.lang.reflect.Method;

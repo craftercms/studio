@@ -17,10 +17,13 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.log.l4j;
 
-import java.util.Map;
+import org.craftercms.studio.api.v1.log.LogProvider;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Enumeration;
-import org.craftercms.cstudio.api.log.*;
+import java.util.Map;
 
 
 /**
@@ -33,7 +36,7 @@ import org.craftercms.cstudio.api.log.*;
 public class L4jLogProvider implements LogProvider {
 
 	public void init() {
-		org.craftercms.cstudio.api.log.LoggerFactory.setProvider(new L4jLogProvider());
+		LoggerFactory.setProvider(new L4jLogProvider());
 	}
 
 	/** 

@@ -17,16 +17,16 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.translation.workflow.handler;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.craftercms.cstudio.alfresco.service.api.NotificationService;
-import org.craftercms.cstudio.api.service.workflow.*;
-import org.craftercms.cstudio.api.service.translation.*;
 import org.craftercms.cstudio.impl.service.workflow.*;
+import org.craftercms.studio.api.v1.service.translation.ProviderException;
+import org.craftercms.studio.api.v1.service.translation.TranslationService;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 /**
  * send item out for translation

@@ -17,13 +17,10 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.translation.dal;
 
-import java.io.InputStream;
-import java.util.Set;
+
 import java.util.List;
 import java.util.ArrayList;
 
-import org.craftercms.cstudio.api.repository.*;
-import org.craftercms.cstudio.api.service.translation.*;
 
 /**
  * abstract translation content DAL provides implementations of methods common across all stores

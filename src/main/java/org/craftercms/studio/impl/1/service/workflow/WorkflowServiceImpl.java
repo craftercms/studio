@@ -21,19 +21,13 @@ import java.util.Map;
 
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Date;
-
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.service.workflow.*;
 import org.craftercms.cstudio.impl.service.workflow.dal.*;
-
-//import org.craftercms.cstudio.alfresco.dm.service.api.DmWorkflowService;
-//import org.craftercms.cstudio.alfresco.dm.to.DmError;
-//import org.craftercms.cstudio.alfresco.dm.to.DmDependencyTO;
-//import org.craftercms.cstudio.alfresco.dm.workflow.RequestContext;
 import org.craftercms.cstudio.alfresco.service.api.NotificationService;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 
 /**
  * workflow service implementation
@@ -42,7 +36,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 	private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
 
-	public 	WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
+	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
 		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths,  processName, properties);
 		job.setCurrentStatus(WorkflowService.STATE_STARTED);
 		job = _workflowJobDAL.updateJob(job);

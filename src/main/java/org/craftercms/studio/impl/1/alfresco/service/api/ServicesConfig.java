@@ -17,13 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.service.api;
 
-//import org.alfresco.service.namespace.QName;
-//import org.craftercms.cstudio.alfresco.dm.to.DmFolderConfigTO;
-//import org.craftercms.cstudio.alfresco.to.*;
 
 import java.util.List;
-//import java.util.Map;
-//import java.util.Set;
 
 /**
  * This class provides the repository configuration information

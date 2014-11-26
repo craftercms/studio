@@ -20,14 +20,14 @@ package org.craftercms.cstudio.impl.service.deployment.dal;
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.ibatis.common.resources.Resources;
 import com.ibatis.sqlmap.client.SqlMapClient;
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.repository.ContentRepository;
-import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.cstudio.api.service.deployment.DeploymentSyncHistoryItem;
-import org.craftercms.cstudio.api.service.deployment.PublishingSyncItem;
-import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
-import org.craftercms.cstudio.api.util.ListUtils;
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
+import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.util.ListUtils;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -344,14 +344,14 @@ public class DeploymentDALImpl implements DeploymentDAL {
     }
 
     @Override
-    public void insertDeploymentHistory(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) throws DeploymentDALException {
-        List<DeploymentSyncHistoryItem> items = createItems(target, publishedItems, publishingDate);
+    public void insertDeploymentHistory(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) throws org.craftercms.cstudio.impl.service.deployment.dal.DeploymentDALException {
+        List<DeploymentSyncHistory> items = createItems(target, publishedItems, publishingDate);
         try {
-            List<List<DeploymentSyncHistoryItem>> batches = ListUtils.partition(items, _sqlBatchMaxSize);
+            List<List<DeploymentSyncHistory>> batches = ListUtils.partition(items, _sqlBatchMaxSize);
             _sqlMapClient.startTransaction();
-            for (List<DeploymentSyncHistoryItem> batch : batches) {
+            for (List<DeploymentSyncHistory> batch : batches) {
                 _sqlMapClient.startBatch();
-                for (DeploymentSyncHistoryItem item : batch) {
+                for (DeploymentSyncHistory item : batch) {
                     _sqlMapClient.insert(STATEMENT_INSERT_DEPLOYMENT_HISTORY, item);
                 }_sqlMapClient.executeBatch();
             }
@@ -368,11 +368,11 @@ public class DeploymentDALImpl implements DeploymentDAL {
         }
     }
 
-    private List<DeploymentSyncHistoryItem> createItems(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) {
-        List<DeploymentSyncHistoryItem> items = new ArrayList<DeploymentSyncHistoryItem>(publishedItems.size());
+    private List<DeploymentSyncHistory> createItems(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) {
+        List<DeploymentSyncHistory> items = new ArrayList<DeploymentSyncHistory>(publishedItems.size());
 
         for (PublishingSyncItem item : publishedItems) {
-            DeploymentSyncHistoryItem historyItem = new DeploymentSyncHistoryItem();
+            DeploymentSyncHistory historyItem = new DeploymentSyncHistory();
             historyItem.setSite(item.getSite());
             historyItem.setPath(item.getPath());
             historyItem.setEnvironment(item.getEnvironment());
@@ -387,7 +387,7 @@ public class DeploymentDALImpl implements DeploymentDAL {
     }
 
     @Override
-    public List<DeploymentSyncHistoryItem> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
         try {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
@@ -398,20 +398,20 @@ public class DeploymentDALImpl implements DeploymentDAL {
             } else {
                 params.put("limit", numberOfItems);
             }
-            List<DeploymentSyncHistoryItem> deploymentHistory = null;
+            List<DeploymentSyncHistory> deploymentHistory = null;
             if (!filterType.equalsIgnoreCase(CONTENT_TYPE_ALL)) {
                 params.put("filter", filterType);
             }
-            deploymentHistory = (List<DeploymentSyncHistoryItem>) _sqlMapClient.queryForList(STATEMENT_GET_DEPLOYMENT_HISTORY, params);
+            deploymentHistory = (List<DeploymentSyncHistory>) _sqlMapClient.queryForList(STATEMENT_GET_DEPLOYMENT_HISTORY, params);
             if (deploymentHistory != null) {
                 return deploymentHistory;
             } else {
                 logger.info("Deployment queue is empty.");
-                return new ArrayList<DeploymentSyncHistoryItem>();
+                return new ArrayList<DeploymentSyncHistory>();
             }
         } catch (SQLException e) {
             logger.error("Error while getting deployment History\nSQL State: \"{0}\"\nError Code: \"{1}\"", e, e.getSQLState(), e.getErrorCode());
-            return new ArrayList<DeploymentSyncHistoryItem>();
+            return new ArrayList<DeploymentSyncHistory>();
         }
     }
 

@@ -17,8 +17,9 @@
  ******************************************************************************/
 package org.craftercms.cstudio.alfresco.dm.to;
 
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+
 import java.util.List;
-import org.craftercms.cstudio.api.to.ContentItemTO;
 
 public class DmDeploymentTaskTO {
 

@@ -17,8 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.site;
 
+import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.dom4j.Document;
-import org.craftercms.cstudio.api.service.site.SiteConfigNotFoundException;
 
 /**
  * data access layer for site configuration
@@ -33,7 +33,6 @@ public interface SiteServiceDAL {
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
 	 */
-	Document getSiteConfiguration(String site)
-	throws SiteConfigNotFoundException;
+	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
 
 }

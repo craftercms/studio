@@ -17,10 +17,10 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.site.dal;
 
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.dom4j.Document;
 
-import org.craftercms.cstudio.api.service.content.ContentService;
-import org.craftercms.cstudio.api.service.site.SiteConfigNotFoundException;
 import org.craftercms.cstudio.impl.service.site.AbstractSiteServiceDAL;
 
 /**

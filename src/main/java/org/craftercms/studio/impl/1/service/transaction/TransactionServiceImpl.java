@@ -17,10 +17,11 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.transaction;
 
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+
 import javax.transaction.UserTransaction;
 
-import org.craftercms.cstudio.api.repository.*;
-import org.craftercms.cstudio.api.service.transaction.*;
 
 /**
  * Provide different types of transactions to the site 

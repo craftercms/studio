@@ -17,19 +17,20 @@
  ******************************************************************************/
 package org.craftercms.cstudio.service.impl;
 
-import org.craftercms.cstudio.service.api.*;
-import org.craftercms.cstudio.to.*;
+
 import com.google.gdata.client.analytics.AnalyticsService;
 import com.google.gdata.client.analytics.*;
 import com.google.gdata.data.analytics.*;
 import com.google.gdata.util.*;
+import org.craftercms.studio.api.v1.service.AnalyticsQuery;
+import org.craftercms.studio.api.v1.to.AnalyticsReportTO;
 
 import java.io.*;
 import java.net.*;
 import java.text.*;
 import java.util.*;
 
-public class GoogleAnalyticsServiceImpl implements org.craftercms.cstudio.service.api.AnalyticsService {
+public class GoogleAnalyticsServiceImpl implements org.craftercms.studio.api.v1.service.AnalyticsService {
   public static final String ACCOUNTS_URL = "https://www.google.com/analytics/feeds/accounts/default";
   public static final String DATA_URL = "https://www.google.com/analytics/feeds/data";
 

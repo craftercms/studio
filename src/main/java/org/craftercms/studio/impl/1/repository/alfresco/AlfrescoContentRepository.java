@@ -17,18 +17,11 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository.alfresco;
 
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 
-import javax.transaction.*;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.lang.String;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
@@ -37,7 +30,6 @@ import javax.servlet.http.*;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 
@@ -45,13 +37,13 @@ import net.sf.json.*;
 
 import org.apache.commons.io.IOUtils;
 
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.repository.RepositoryItem;
 import org.craftercms.cstudio.impl.repository.AbstractContentRepository;
-import org.craftercms.cstudio.api.to.VersionTO;
 
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.to.VersionTO;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in

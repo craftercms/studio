@@ -17,7 +17,8 @@
  ******************************************************************************/
 package org.craftercms.cstudio.service.impl;
 
-import org.craftercms.cstudio.service.api.*;
+
+import org.craftercms.studio.api.v1.service.AnalyticsQuery;
 
 import java.util.*;
 

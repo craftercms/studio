@@ -17,13 +17,10 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.workflow.dal;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 
-import org.craftercms.cstudio.api.service.workflow.*;
+import java.util.*;
 
 /**
  * The in memory workflow job DAL is a simple map based implementation

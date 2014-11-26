@@ -17,10 +17,11 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.deployment.dal;
 
-import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.cstudio.api.service.deployment.DeploymentSyncHistoryItem;
-import org.craftercms.cstudio.api.service.deployment.PublishingSyncItem;
-import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
+
+import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
+import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
 
 import java.util.Date;
 import java.util.List;
@@ -42,7 +43,7 @@ public interface DeploymentDAL {
 
     void insertDeploymentHistory(PublishingTargetItem target, List<PublishingSyncItem> filteredItems, Date publishingDate) throws DeploymentDALException;
 
-    List<DeploymentSyncHistoryItem> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
+    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
 
     List<CopyToEnvironmentItem> getScheduledItems(String site);
 

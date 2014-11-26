@@ -20,13 +20,13 @@ package org.craftercms.cstudio.alfresco.service.impl;
 
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.cstudio.api.service.content.ContentService;
 import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
 import org.craftercms.cstudio.alfresco.service.AbstractRegistrableService;
 import org.craftercms.cstudio.alfresco.service.api.ServicesConfig;
 import org.craftercms.cstudio.alfresco.to.RepositoryConfigTO;
 import org.craftercms.cstudio.alfresco.to.SiteConfigTO;
 import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;

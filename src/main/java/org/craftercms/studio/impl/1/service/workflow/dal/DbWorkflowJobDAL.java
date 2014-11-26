@@ -28,14 +28,15 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.craftercms.cstudio.alfresco.to.TableIndexCheckTO;
-import org.craftercms.cstudio.api.service.workflow.WorkflowItem;
-import org.craftercms.cstudio.api.service.workflow.WorkflowJob;
-import org.craftercms.cstudio.api.service.workflow.WorkflowJobProperty;
-import org.craftercms.cstudio.api.log.*;
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.ibatis.common.resources.Resources;
 import com.ibatis.sqlmap.client.SqlMapClient;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowJobProperty;
 
 public class DbWorkflowJobDAL extends AbstractWorkflowJobDAL {
 

@@ -17,18 +17,14 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.deployment.job;
 
-import org.craftercms.cstudio.api.job.Job;
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.service.authentication.AuthenticationService;
-import org.craftercms.cstudio.api.service.deployment.ContentNotFoundForPublishingException;
-import org.craftercms.cstudio.api.service.deployment.PublishingSyncItem;
-import org.craftercms.cstudio.api.service.deployment.PublishingTargetItem;
-import org.craftercms.cstudio.api.service.deployment.UploadFailedException;
-import org.craftercms.cstudio.api.service.transaction.TransactionService;
-//import org.craftercms.cstudio.impl.service.deployment.PublishingManager;
+import org.craftercms.studio.api.v1.job.Job;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
+import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
+import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.service.transaction.TransactionService;
 
-import javax.transaction.UserTransaction;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;

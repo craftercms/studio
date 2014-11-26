@@ -17,9 +17,6 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.site;
 
-import org.dom4j.Document;
-import org.craftercms.cstudio.impl.service.site.SiteServiceDAL;
-import org.craftercms.cstudio.api.service.site.SiteConfigNotFoundException;
 
 /**
  * abstract site service DAL

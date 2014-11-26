@@ -17,8 +17,9 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.authentication;
 
-import org.craftercms.cstudio.api.repository.*;
-import org.craftercms.cstudio.api.service.authentication.*;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
+
 import java.lang.reflect.Method;
 
 /**
@@ -26,7 +27,7 @@ import java.lang.reflect.Method;
  * uses repository as authentication
  * @author russdanner
  */
-public class AuthenticationServiceImpl implements AuthenticationService  {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
 	/**
 	 * perform operation as a specific user

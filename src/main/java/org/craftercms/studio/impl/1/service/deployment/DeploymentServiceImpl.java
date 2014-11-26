@@ -17,19 +17,19 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.deployment;
 
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.repository.ContentRepository;
-import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.cstudio.api.service.deployment.DeploymentException;
-import org.craftercms.cstudio.api.service.deployment.DeploymentService;
-import org.craftercms.cstudio.api.service.fsm.TransitionEvent;
 import org.craftercms.cstudio.impl.service.deployment.dal.DeploymentDAL;
 import org.craftercms.cstudio.impl.service.deployment.dal.DeploymentDALException;
 import org.craftercms.cstudio.impl.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.cstudio.impl.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.api.domain.DeploymentSyncHistory;
 import org.craftercms.studio.api.persistence.DeploymentSyncHistoryMapper;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;

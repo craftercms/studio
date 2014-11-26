@@ -17,23 +17,19 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.deployment.job;
 
-import org.craftercms.cstudio.api.job.Job;
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.repository.ContentRepository;
-import org.craftercms.cstudio.api.service.authentication.AuthenticationService;
-import org.craftercms.cstudio.api.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.cstudio.api.service.deployment.DeploymentException;
-import org.craftercms.cstudio.api.service.transaction.TransactionService;
-import org.craftercms.cstudio.api.util.ListUtils;
-//import org.craftercms.cstudio.impl.service.deployment.PublishingManager;
 
-import javax.transaction.UserTransaction;
+
+import org.craftercms.studio.api.v1.job.Job;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DeployContentToEnvironmentStore implements Job {

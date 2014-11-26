@@ -17,9 +17,9 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.service.site;
 
+import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.dom4j.Document;
-import org.craftercms.cstudio.api.service.site.SiteService;
-import org.craftercms.cstudio.api.service.site.SiteConfigNotFoundException;
 
 /**
  * Note: consider renaming

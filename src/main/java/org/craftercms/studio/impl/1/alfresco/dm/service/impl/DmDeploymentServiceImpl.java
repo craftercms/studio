@@ -18,36 +18,27 @@ package org.craftercms.cstudio.alfresco.dm.service.impl;
 
 import javolution.util.FastList;
 import net.sf.json.JSONObject;
-//import org.craftercms.cstudio.alfresco.activityfeed.CStudioActivityFeedDAO;
 import org.craftercms.cstudio.alfresco.constant.CStudioConstants;
 import org.craftercms.cstudio.alfresco.dm.constant.DmConstants;
-//import org.craftercms.cstudio.alfresco.dm.filter.DmFilterWrapper;
-//import org.craftercms.cstudio.alfresco.dm.service.api.DmContentService;
 import org.craftercms.cstudio.alfresco.dm.service.api.DmDeploymentService;
-//import org.craftercms.cstudio.alfresco.dm.to.DmContentItemTO;
 import org.craftercms.cstudio.alfresco.dm.to.DmDeploymentTaskTO;
 import org.craftercms.cstudio.alfresco.dm.to.DmPathTO;
 import org.craftercms.cstudio.alfresco.service.AbstractRegistrableService;
 import org.craftercms.cstudio.alfresco.service.api.CStudioActivityService;
-//import org.craftercms.cstudio.alfresco.service.api.PersistenceManagerService;
 import org.craftercms.cstudio.alfresco.service.api.ServicesConfig;
-//import org.craftercms.cstudio.alfresco.service.exception.ContentNotFoundException;
-//import org.craftercms.cstudio.alfresco.service.exception.ServiceException;
 import org.craftercms.cstudio.alfresco.util.ContentFormatUtils;
-import org.craftercms.cstudio.api.service.content.ContentService;
-import org.craftercms.cstudio.api.service.deployment.DeploymentService;
-import org.craftercms.cstudio.api.to.ContentItemTO;
 import org.craftercms.studio.api.domain.ActivityFeed;
 import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import java.text.SimpleDateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-//import java.util.TimeZone;
 
 public class DmDeploymentServiceImpl extends AbstractRegistrableService implements DmDeploymentService {
 

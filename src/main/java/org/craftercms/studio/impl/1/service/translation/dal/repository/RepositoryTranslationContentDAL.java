@@ -18,13 +18,9 @@
 package org.craftercms.cstudio.impl.service.translation.dal.repository;
 
 import java.io.InputStream;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
 
-import org.craftercms.cstudio.api.service.content.ContentService;
-import org.craftercms.cstudio.api.service.translation.*;
 import org.craftercms.cstudio.impl.service.translation.dal.*;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 
 /**
  * get source content/save transalted content from and to a content repository implementation
