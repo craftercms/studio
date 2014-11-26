@@ -58,7 +58,8 @@ class ContentServices {
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static deleteContent(site, path, context) {
-
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.deleteContent(site, path)
 	}
 
 	/**

@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.cstudio.impl.repository.alfresco;
 
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -37,9 +37,6 @@ import javax.servlet.http.*;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
 
 import net.sf.json.*;
 
@@ -157,9 +154,25 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean deleteContent(String path) {
-        return false;
-        // DELETE
-        //"/slingshot/doclib/action/file/node/workspace/SpacesStore/ca4362f4-1c84-4666-aa8c-54893dd238c5"
+        logger.debug("deleting content at " + path);
+        boolean result = false;
+        String deleteURI = "/slingshot/doclib/action/file/node/";
+        String nodeRef = getNodeRefForPath(path);
+
+        if (nodeRef == null) {
+            // if no nodeRef, it's already deleted so just return true
+            logger.debug("No content found at " + path);
+            result = true;
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            try {
+                deleteURI = deleteURI + nodeRef.replace("://", "/");
+                result = this.alfrescoDeleteRequest(deleteURI, params);
+            } catch (Exception e) {
+                logger.error("Error while deleting " + path, e);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -400,7 +413,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
 
     /**
-     * fire GET request to Alfresco with propert security
+     * fire GET request to Alfresco with proper security
      */
     protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         InputStream retResponse = null;
@@ -410,6 +423,23 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         retResponse = serviceURI.toURL().openStream();
      
         return retResponse;
+    }
+
+    /**
+     * fire DELETE request to Alfresco with proper security
+     */
+    protected boolean alfrescoDeleteRequest(String uri, Map<String, String> params) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, params);
+        DeleteMethod deleteMethod = new DeleteMethod(serviceURL);
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        int status = httpClient.executeMethod(deleteMethod);
+        if (status == 200 || status == 204) {
+            return true;
+        } else {
+            // TODO: we might need to return response stream
+            logger.error("Delete failed with " + status);
+            return false;
+        }
     }
 
     /**

@@ -99,6 +99,15 @@ public interface ContentService  {
     boolean createFolder(String site, String path, String name);
 
     /**
+     * delete content at the path
+     *
+     * @param site - the project ID
+     * @param path path to content
+     * @return return true if successful
+     */
+    boolean deleteContent(String site, String path);
+
+    /**
 	 * get the tree of content items (metadata) beginning at a root
 	 * @param site - the project ID
 	 * @param path - the path to root at
