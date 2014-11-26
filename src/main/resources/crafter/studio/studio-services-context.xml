@@ -34,6 +34,7 @@
          parent="cstudioRegistrableService">
           <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
           <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <bean id="cstudioTransactionServiceSimple" class="org.craftercms.cstudio.impl.service.transaction.TransactionServiceImpl">
