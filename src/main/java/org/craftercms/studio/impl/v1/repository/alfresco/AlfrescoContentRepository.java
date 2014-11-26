@@ -15,20 +15,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.cstudio.impl.repository.alfresco;
+package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 
-import javax.transaction.*;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.lang.String;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
@@ -42,13 +36,12 @@ import net.sf.json.*;
 
 import org.apache.commons.io.IOUtils;
 
-import org.craftercms.cstudio.api.log.Logger;
-import org.craftercms.cstudio.api.log.LoggerFactory;
-import org.craftercms.cstudio.api.repository.RepositoryItem;
-import org.craftercms.cstudio.impl.repository.AbstractContentRepository;
-import org.craftercms.cstudio.api.to.VersionTO;
-
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in

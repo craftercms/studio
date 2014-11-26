@@ -284,7 +284,7 @@
         <property name="baseServiceUrl" value="http://localhost:8080/alfresco/service"/>
     </bean>
 
-  <bean id="crafter.analyticsService" class="org.craftercms.cstudio.service.impl.GoogleAnalyticsServiceImpl">
+  <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
   </bean>
     
     <!--import resource="classpath*:crafter/engine/extension/services-context.xml" /-->
