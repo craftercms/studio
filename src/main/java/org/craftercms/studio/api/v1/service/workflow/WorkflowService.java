@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 
-import org.craftercms.cstudio.alfresco.service.api.NotificationService;
+import org.craftercms.studio.impl.v1.alfresco.service.api.NotificationService;
 
 public interface WorkflowService {
 
