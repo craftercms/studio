@@ -108,6 +108,30 @@ public interface ContentService  {
     boolean deleteContent(String site, String path);
 
     /**
+     * copy content fromPath to toPath
+     *
+     * @param site - the project ID
+     * @param fromPath
+     *          the source path
+     * @param toPath
+     *          the target path to copy content to
+     * @return true if successful
+     */
+    public boolean copyContent(String site, String fromPath, String toPath);
+
+    /**
+     * move content fromPath to toPath
+     *
+     * @param site - the project ID
+     * @param fromPath
+     *          the source path
+     * @param toPath
+     *          the target path to copy content to
+     * @return true if successful
+     */
+    public boolean moveContent(String site, String fromPath, String toPath);
+
+    /**
 	 * get the tree of content items (metadata) beginning at a root
 	 * @param site - the project ID
 	 * @param path - the path to root at

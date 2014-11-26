@@ -80,6 +80,7 @@ public interface ContentRepository {
 
     /**
      * move content from PathA to pathB
+     *
      * @param fromPath source content
      * @param toPath target path
      * @return true if successful
@@ -91,10 +92,9 @@ public interface ContentRepository {
      *
      * @param fromPath paths to content
      * @param toPath target path
-     * @param deep copy recursively?
      * @return true if successful
      */
-    boolean copyContent(String fromPath, String toPath, boolean deep);
+    boolean copyContent(String fromPath, String toPath);
 
     /**
      * get immediate children for path

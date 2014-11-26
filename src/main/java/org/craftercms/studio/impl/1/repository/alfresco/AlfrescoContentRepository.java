@@ -176,17 +176,16 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
-        return false;
-        //POST
-         //"/api/path/{store_type}/{store_id}/{nodepath}/children?sourceFolderId={sourceFolderId}&versioningState={versioningState?}""
-    };
+    public boolean copyContent(String fromPath, String toPath) {
+        return this.copyContentInternal(fromPath, toPath, false);
+    }
+
 
     @Override
-    public boolean copyContent(String fromPath, String toPath, boolean deep) {
-        return false;
-        //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
-    }
+    public boolean moveContent(String fromPath, String toPath) {
+        return this.copyContentInternal(fromPath, toPath, true);
+    };
+
 
     /**
      * get immediate children for path
@@ -409,6 +408,57 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             }
         }
         return newFolderRef;
+    }
+
+    /**
+     * copy content from pathA to pathB
+     * @param fromPath
+     *             the source path
+     * @param toPath
+     *              the target path
+     * @param isCut
+     *              true for move
+     * @return  true if successful
+     */
+    protected boolean copyContentInternal(String fromPath, String toPath, boolean isCut) {
+        logger.debug( (isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
+        boolean result = false;
+        // find all nodeRefs required
+        String targetRef = getNodeRefForPath(toPath);
+        String sourceRef = getNodeRefForPath(fromPath);
+        // TODO: need to take care of duplicate at the target location
+        if (targetRef != null && sourceRef != null) {
+            String sourceParentRef = getNodeRefForPath(fromPath.substring(0, fromPath.lastIndexOf("/")));
+            String copyURL = "/slingshot/doclib/action/copy-to/node/";
+            String moveURL = "/slingshot/doclib/action/move-to/node/";
+            String actionURL = (isCut) ? moveURL : copyURL;
+            actionURL = actionURL + targetRef.replace("://", "/");
+            // no parameter
+            Map<String, String> params = new HashMap<String, String>();
+            // create request body
+            JSONObject requestObj = new JSONObject();
+            String [] nodeRefs = new String[1];
+            nodeRefs[0] = sourceRef;
+            requestObj.put("nodeRefs", nodeRefs);
+            requestObj.put("parentId", sourceParentRef);
+            InputStream is = IOUtils.toInputStream(requestObj.toString());
+            try {
+                this.alfrescoPostRequest(actionURL, params, is, "application/json");
+                return true;
+            } catch (Exception e) {
+                logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromPath + " to " + toPath, e);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        } else {
+            if (sourceRef != null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since " + fromPath + " does not exist.");
+            }
+            if (targetRef != null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since " + toPath + " does not exist.");
+            }
+        }
+        return result;
     }
 
 
