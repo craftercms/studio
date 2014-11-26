@@ -1,0 +1,1 @@
+ALTER TABLE [dbo].[cstudio_deploymentsynchistory] ALTER column [username] [nvarchar](255);

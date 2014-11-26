@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-get-searchable-content-types</shortname>
+  <description>get all searchable wcm content types of a site</description>
+  <url>/cstudio/wcm/contenttype/get-all-searchable-content-types?site={site}&amp;user={user?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

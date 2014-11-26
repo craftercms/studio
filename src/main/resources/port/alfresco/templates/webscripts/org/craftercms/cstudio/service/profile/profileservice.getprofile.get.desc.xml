@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>get-profile</shortname>
+  <description>Get user profile and his roles</description>
+  <url>/cstudio/profile/get-profile?user={user}&amp;site={site}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

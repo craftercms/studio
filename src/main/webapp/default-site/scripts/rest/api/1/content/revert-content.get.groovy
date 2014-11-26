@@ -7,6 +7,6 @@ def version = params.version
 
 def context = ContentServices.createContext(applicationContext, request)
 
-result = ContentServices.revertContentItem(site, path, version, context) 
+result = ContentServices.revertContentItem(site, path, version, false, "Reverted to "+version, context) 
 
 return result 

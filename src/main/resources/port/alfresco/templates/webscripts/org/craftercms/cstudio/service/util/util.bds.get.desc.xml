@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>submitBuildData</shortname>
+  <description>submitBuildData</description>
+  <url>/cstudio/util/importWCMBuildData?site={site}&amp;path={path}&amp;isSubmit={isSubmit}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>none</transaction>
+</webscript>

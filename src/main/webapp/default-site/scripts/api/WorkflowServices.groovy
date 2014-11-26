@@ -5,23 +5,7 @@ package scripts.api
  */
 Class WorkflowServices {
 
-	/** 
-	 * get the deployment history for a site
-	 * @param site - the project ID
-	 * @param filter - filters to apply to history
-	 */
-	def getDeploymentHistory(site, filter) {
 
-	}
-
-	/** 
-	 * get the scheduled items for a site
-	 * @param site - the project ID
-	 * @param filter - filters to apply to listing
-	 */	
-	def getScheduledItems(site, filter) {
-
-	}
 
 	/** 
 	 * get the items that are in flight, waiting for approval for a site

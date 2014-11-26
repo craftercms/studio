@@ -21,14 +21,15 @@
     <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css">
 
     <script src="/studio/static-assets/libs/modernizr/modernizr.js"></script>
+    <script src="/studio/static-assets/scripts/cloud-home.js"></script>
 
 </head>
 <body>
 
-<form id="signInModal" action="/studio/api/1/services/login" class="reveal-modal small" data-reveal>
+<form id="signInModal" action="/studio/api/1/services/api/1/user/login" class="reveal-modal small" data-reveal>
     <div class="row">
         <div class="large-12 columns text-center">
-            <img src="/static-assets/images/crafter_studio_360.png" style="width: 60%"/>
+            <img src="/studio/static-assets/images/crafter_studio_360.png" style="width: 60%"/>
         </div>
     </div>
     <div class="row">
@@ -56,7 +57,7 @@
     </div>
 </form>
 
-<form id="forgotPasswordModal" action="/studio/api/1/services/reset-password" class="reveal-modal small" data-reveal>
+<form id="forgotPasswordModal" action="/studio/api/1/services/api/1/user/reset-password" class="reveal-modal small" data-reveal>
     <div class="row">
         <div class="large-12 columns">
             <h2>Recover Password</h2>
@@ -80,10 +81,6 @@
     <a class="close-reveal-modal">&#215;</a>
 </form>
 
-<script src="/studio/static-assets/libs/jquery/jquery.js"></script>
-<script src="/studio/static-assets/libs/jquery.browser/dist/jquery.browser.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.reveal.js"></script>
 
 <script>
 
@@ -137,9 +134,9 @@
                             $form.find('.feedback')
                                     .html('<div class="alert-box ' + data.type + '">' + data.message + ((isRecover && data.type === 'success') ? ' <a href=\"javascript:\" data-reveal data-reveal-id=\"signInModal\">Back to login &raquo;</a>' : '') + '</div>')
                                     .removeClass('hide');
-
-                            if (TYPE_SUCCESS === data.type && !isRecover) {
-                                window.location.href = '/user-dashboard#/sites/all';
+ 
+                            if ("success" === data.type && !isRecover) {
+                                window.location.href = '/studio/user-dashboard#/sites/all';
                             }
 
                         }

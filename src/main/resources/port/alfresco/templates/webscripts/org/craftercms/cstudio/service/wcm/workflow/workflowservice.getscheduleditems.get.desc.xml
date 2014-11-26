@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>wcm-go-scheduled-items</shortname>
+  <description>Get scheduled items that are approved and awaiting for deployment</description>
+  <url>/cstudio/wcm/workflow/get-scheduled-items?site={site}&amp;sub={sub?}&amp;sort={sort?}&amp;ascending={ascending?}&amp;filterType={filterType?}</url>
+  <format default="json">argument</format>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

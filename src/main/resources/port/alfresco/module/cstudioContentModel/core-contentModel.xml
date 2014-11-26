@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Definition of new cstudio Core Content Model -->
+<model name="cstudio-core:coremodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+    
+    <!-- Optional meta-data about the model -->
+    <description>cstudio Core Content Model</description>
+    <author>cstudio</author>
+    <version>1.5.0</version>
+    
+    <!-- Imports are required to allow references to definitions in other models -->
+    <imports>
+        <!-- Import Alfresco Dictionary Definitions -->
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+        <!-- Import Alfresco Content Domain Model Definitions -->
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+    </imports>
+    
+    <!-- Introduction of new namespaces defined by this model -->
+    <namespaces>
+        <namespace uri="http://cstudio/assets/core/1.0" prefix="cstudio-core"/>
+    </namespaces>
+    
+    <types>
+		<type name="cstudio-core:taxonomyItem">
+            <title>Taxonomy Items</title>
+            <parent>cm:folder</parent>
+            <mandatory-aspects>
+                <aspect>cstudio-core:identifiable</aspect>
+            </mandatory-aspects>
+        </type>
+    
+    </types>
+    
+    <aspects>
+        
+        <aspect name="cstudio-core:article">
+            <title>Article</title>
+            <properties>
+                <property name="cstudio-core:sequence">
+                    <title>Sequence Namespace</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:articleId">
+                    <title>Article Id</title>
+                    <type>d:long</type>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        
+        <aspect name="cstudio-core:identifiable">
+            <title>Identifiable</title>
+            <properties>
+                <property name="cstudio-core:namespace">
+                    <title>ID Namespace</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:id">
+                    <title>Id</title>
+                    <type>d:long</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:new">
+                    <title>Is New</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:updated">
+                    <title>Is Updated</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:deleted">
+                    <title>Is Deleted</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:isCurrent">
+                    <title>Is Current</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                    <default>true</default>
+                </property>
+                <property name="cstudio-core:label">
+                    <title>Label</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:order">
+                    <title>Order</title>
+                    <type>d:long</type>
+                    <multiple>false</multiple>
+                </property>                                
+            </properties>
+        </aspect>
+        
+        <aspect name="cstudio-core:wcmIdentifiable">
+            <title>WCM Identifiable</title>
+            <properties>
+                <property name="cstudio-core:wcmId">
+                    <title>WCM Id</title>
+                    <type>d:long</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:wcmGroupId">
+                    <title>WCM Group Id</title>
+                    <type>d:long</type>
+                    <multiple>false</multiple>
+                </property>                            
+            </properties>
+        </aspect>
+        
+        
+        <aspect name="cstudio-core:hasIcon">
+        	<title>Has Assets</title>
+        	<properties>
+                <property name="cstudio-core:iconPath">
+                    <title>Icon path</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+        	</properties>
+        </aspect>
+                
+        
+		<aspect name="cstudio-core:dependency">
+			<title>Content Dependency</title>
+			<properties>
+				<property name="cstudio-core:parents">
+					<title>parent content item URIs</title>
+					<type>d:text</type>
+					<multiple>true</multiple>
+				</property>
+				<property name="cstudio-core:components">
+					<title>dependent components URIs</title>
+					<type>d:text</type>
+					<multiple>true</multiple>
+				</property>
+				<property name="cstudio-core:documents">
+					<title>dependent documents URIs</title>
+					<type>d:text</type>
+					<multiple>true</multiple>
+				</property>
+				<property name="cstudio-core:children">
+					<title>dependent children URIs</title>
+					<type>d:text</type>
+					<multiple>true</multiple>
+				</property>
+				<property name="cstudio-core:assets">
+					<title>dependent assets URIs</title>
+					<type>d:text</type>
+					<multiple>true</multiple>
+				</property>
+			</properties>
+		</aspect>
+
+        <aspect name="cstudio-core:commonMetadata">
+        	<title>Common Metadata</title>
+        	<properties>
+                <property name="cstudio-core:name">
+                    <title>Name</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:language">
+                    <title>Language</title>
+                    <type>d:long</type>
+                    <multiple>true</multiple>
+                </property>
+                <property name="cstudio-core:author">
+                    <title>Author</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:contentType">
+                    <title>Content Type</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:description">
+                    <title>Description</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:headline">
+                    <title>Headline</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:internalName">
+                    <title>Internal Name</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:publicPrivate">
+                    <title>Public or Private</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                    <default>Public</default>
+                </property>
+                <property name="cstudio-core:status">
+                    <title>Status</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:summary">
+                    <title>Summary</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:title">
+                    <title>Title</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:disabled">
+                    <title>Disabled</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                    <default>false</default>
+                </property>
+                <property name="cstudio-core:templateVersion">
+                    <title>Model Template Version</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+                
+        <aspect name="cstudio-core:pageMetadata">
+        	<title>Page Metadata</title>
+            <parent>cstudio-core:commonMetadata</parent>
+        	<properties>
+                <property name="cstudio-core:metaDescription">
+                    <title>Meta Description</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:metaKeywords">
+                    <title>Meta Keywords</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:metaTitle">
+                    <title>Meta title</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:pageUrl">
+                    <title>Page URL</title>
+                    <type>d:text</type>
+                    <multiple>false</multiple>
+                </property>
+                <property name="cstudio-core:floating">
+                    <title>Floating Page</title>
+                    <type>d:boolean</type>
+                    <multiple>false</multiple>
+                    <default>false</default>
+                </property>
+                <property name="cstudio-core:orders">
+                    <title>Page orders</title>
+                    <type>d:text</type>
+                    <multiple>true</multiple>
+                </property>
+                <property name="cstudio-core:orderDefault">
+                    <title>Page orders</title>
+                    <type>d:float</type>
+                    <multiple>false</multiple>
+                </property>
+        	</properties>
+        </aspect>
+        
+        <aspect name="cstudio-core:componentMetadata">
+        	<title>Component Metadata</title>
+            <parent>cstudio-core:commonMetadata</parent>
+        	<properties/>
+        </aspect>
+        
+
+		<aspect name="cstudio-core:renamed">
+			<title>renamed</title>
+			<properties>
+				<property name="cstudio-core:oldUrl">
+					<title>Old URL</title>
+					<type>d:text</type>
+					<multiple>false</multiple>
+				</property>
+				<property name="cstudio-core:renameDeleteUrl">
+					<title>rename delete URL</title>
+					<type>d:boolean</type>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+		
+		<aspect name="cstudio-core:imageMetadata">
+			<title>renamed</title>
+			<properties>
+				<property name="cstudio-core:width">
+					<title>Image Width</title>
+					<type>d:int</type>
+					<multiple>false</multiple>
+				</property>
+				<property name="cstudio-core:height">
+					<title>Image Height</title>
+					<type>d:int</type>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+
+        <aspect name="cstudio-core:folderMetadata">
+            <title>Folder Metadata</title>
+            <properties>
+                <property name="cstudio-core:lastNavigationOrder">
+                    <title>Last Navigation Order</title>
+                    <type>d:int</type>
+                    <multiple>false</multiple>
+                    <default>0</default>
+                </property>
+            </properties>
+        </aspect>
+
+        <aspect name="cstudio-core:previewable">
+            <title>Previewable</title>
+        </aspect>
+
+        <aspect name="cstudio-core:previewableDraft">
+            <title>Previewable Draft</title>
+        </aspect>
+
+        <aspect name="cstudio-core:configSpaceExport">
+            <title>Configuration Space Export</title>
+        </aspect>
+
+        <!--<aspect name="cstudio-core:deployed">-->
+            <!--<title>Deployed</title>-->
+            <!--<properties>-->
+                <!--<property name="cstudio-core:deploymentPath">-->
+                    <!--<title>Deployed Path</title>-->
+                    <!--<type>d:text</type>-->
+                    <!--<multiple>false</multiple>-->
+                <!--</property>-->
+            <!--</properties>-->
+        <!--</aspect>-->
+
+     </aspects>
+
+</model>

@@ -17,6 +17,7 @@ try {
   }
 
   model.ticket = ticket;
+  model.cookieDomain = "127.0.0.1"
 
   
 }

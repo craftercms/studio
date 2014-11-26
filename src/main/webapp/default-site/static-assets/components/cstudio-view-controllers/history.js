@@ -116,7 +116,7 @@
                                             });
                                     };
 
-                                    revertActionEl.item = versions[0].contentItem;
+                                    revertActionEl.item = selection; //versions[0].contentItem;
                                     revertActionEl.version = version.versionNumber;
 
                                     Event.addListener(revertActionEl, "click", revertFn);

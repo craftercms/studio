@@ -37,7 +37,7 @@ var App = Ember.Application.create({
      }) (window.location.hostname.indexOf('craftersoftware.com') === -1);*/
 
     function api ( service ) {
-        return ('/api/1/services/%@.json').fmt(service);
+        return ('/studio/api/1/services/api/1/user/%@.json').fmt(service);
     };
 
     function get ( service ) {

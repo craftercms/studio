@@ -1,0 +1,8 @@
+<webscript>
+    <shortname>get-available-publishing-channels</shortname>
+    <description>Get Available Publishing Channels</description>
+    <url>/cstudio/publish/get-available-publishing-channels?site={site}&amp;path={path}</url>
+    <format default="json">argument</format>
+    <authentication>user</authentication>
+    <transaction>required</transaction>
+</webscript>

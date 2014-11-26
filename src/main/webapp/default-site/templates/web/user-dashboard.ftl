@@ -5,12 +5,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable = no">
 
-    <title>Cloud.CrafterCMS.com</title>
+    <title>Crafter Studio</title>
 
     <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css">
     <link rel="stylesheet" href="/studio/static-assets/styles/user-dashboard.css">
     <script src="/studio/static-assets//libs/modernizr/modernizr.js"></script>
 
+    <script>
+        CStudioAuthoring = {
+            cookieDomain: "${cookieDomain}"
+        }
+    </script>
 </head>
 <body>
 

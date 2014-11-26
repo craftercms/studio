@@ -1,0 +1,7 @@
+<webscript>
+  <shortname>Writes Configuration</shortname>
+  <description>Writes Configuration</description>
+  <url>/cstudio/wcm/config/write?path={path}</url>
+  <authentication>user</authentication>
+  <transaction>required</transaction>
+</webscript>

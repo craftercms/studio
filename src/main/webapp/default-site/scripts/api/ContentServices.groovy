@@ -19,15 +19,28 @@ class ContentServices {
 	/**
 	 * Write content
 	 * @param site - the project ID
-	 * @param path - the path to wrtie the content
+	 * @param path - the path to write the content
 	 * @param content - the content to write
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static writeContent(site, path, content, context){
-
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.writeContent(site, path, content)
 	}
 
-	/**
+    /**
+     * create a folder
+     * @param site - the project ID
+     * @param path - the path to create the folder in
+     * @param name - the folder name to create
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static createFolder(site, path, name, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.createFolder(site, path, name)
+    }
+
+    /**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
@@ -76,9 +89,9 @@ class ContentServices {
 	 * @param rootPath - the path to root at
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentItemTree(site, path, context){
+	static getContentItemTree(site, path, depth, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemTree(site, path) 
+		return contentServicesImpl.getContentItemTree(site, path, depth) 
 	}
 
 	/**
@@ -173,9 +186,9 @@ class ContentServices {
 	 * @param version - old version ID to base to version on
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static revertContentItem(site, path, version, context){
+	static revertContentItem(site, path, version, major, comment, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.revertContentItem(site, path, version) 		
+		return contentServicesImpl.revertContentItem(site, path, version, major, comment) 		
 	}
 
 	/** 
