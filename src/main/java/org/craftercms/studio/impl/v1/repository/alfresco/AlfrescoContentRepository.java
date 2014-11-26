@@ -15,13 +15,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.craftercms.studio.impl.v1.repository.alfresco;
+package org.craftercms.cstudio.impl.repository.alfresco;
 
+import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.lang3.StringUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 
+import javax.transaction.*;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.String;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
@@ -30,19 +37,18 @@ import javax.servlet.http.*;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
 
 import net.sf.json.*;
 
 import org.apache.commons.io.IOUtils;
 
+import org.craftercms.cstudio.api.log.Logger;
+import org.craftercms.cstudio.api.log.LoggerFactory;
+import org.craftercms.cstudio.api.repository.RepositoryItem;
+import org.craftercms.cstudio.impl.repository.AbstractContentRepository;
+import org.craftercms.cstudio.api.to.VersionTO;
+
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
@@ -148,23 +154,38 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean deleteContent(String path) {
-        return false;
-        // DELETE
-        //"/slingshot/doclib/action/file/node/workspace/SpacesStore/ca4362f4-1c84-4666-aa8c-54893dd238c5"
+        logger.debug("deleting content at " + path);
+        boolean result = false;
+        String deleteURI = "/slingshot/doclib/action/file/node/";
+        String nodeRef = getNodeRefForPath(path);
+
+        if (nodeRef == null) {
+            // if no nodeRef, it's already deleted so just return true
+            logger.debug("No content found at " + path);
+            result = true;
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            try {
+                deleteURI = deleteURI + nodeRef.replace("://", "/");
+                result = this.alfrescoDeleteRequest(deleteURI, params);
+            } catch (Exception e) {
+                logger.error("Error while deleting " + path, e);
+            }
+        }
+        return result;
     }
+
+    @Override
+    public boolean copyContent(String fromPath, String toPath) {
+        return this.copyContentInternal(fromPath, toPath, false);
+    }
+
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
-        return false;
-        //POST
-         //"/api/path/{store_type}/{store_id}/{nodepath}/children?sourceFolderId={sourceFolderId}&versioningState={versioningState?}""
+        return this.copyContentInternal(fromPath, toPath, true);
     };
 
-    @Override
-    public boolean copyContent(String fromPath, String toPath, boolean deep) {
-        return false;
-        //POST /alfresco/service/slingshot/doclib/action/copy-to/node/{store_type}/{store_id}
-    }
 
     /**
      * get immediate children for path
@@ -389,9 +410,60 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         return newFolderRef;
     }
 
+    /**
+     * copy content from pathA to pathB
+     * @param fromPath
+     *             the source path
+     * @param toPath
+     *              the target path
+     * @param isCut
+     *              true for move
+     * @return  true if successful
+     */
+    protected boolean copyContentInternal(String fromPath, String toPath, boolean isCut) {
+        logger.debug( (isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
+        boolean result = false;
+        // find all nodeRefs required
+        String targetRef = getNodeRefForPath(toPath);
+        String sourceRef = getNodeRefForPath(fromPath);
+        // TODO: need to take care of duplicate at the target location
+        if (targetRef != null && sourceRef != null) {
+            String sourceParentRef = getNodeRefForPath(fromPath.substring(0, fromPath.lastIndexOf("/")));
+            String copyURL = "/slingshot/doclib/action/copy-to/node/";
+            String moveURL = "/slingshot/doclib/action/move-to/node/";
+            String actionURL = (isCut) ? moveURL : copyURL;
+            actionURL = actionURL + targetRef.replace("://", "/");
+            // no parameter
+            Map<String, String> params = new HashMap<String, String>();
+            // create request body
+            JSONObject requestObj = new JSONObject();
+            String [] nodeRefs = new String[1];
+            nodeRefs[0] = sourceRef;
+            requestObj.put("nodeRefs", nodeRefs);
+            requestObj.put("parentId", sourceParentRef);
+            InputStream is = IOUtils.toInputStream(requestObj.toString());
+            try {
+                this.alfrescoPostRequest(actionURL, params, is, "application/json");
+                return true;
+            } catch (Exception e) {
+                logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromPath + " to " + toPath, e);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        } else {
+            if (sourceRef != null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since " + fromPath + " does not exist.");
+            }
+            if (targetRef != null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since " + toPath + " does not exist.");
+            }
+        }
+        return result;
+    }
+
 
     /**
-     * fire GET request to Alfresco with propert security
+     * fire GET request to Alfresco with proper security
      */
     protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         InputStream retResponse = null;
@@ -401,6 +473,23 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         retResponse = serviceURI.toURL().openStream();
      
         return retResponse;
+    }
+
+    /**
+     * fire DELETE request to Alfresco with proper security
+     */
+    protected boolean alfrescoDeleteRequest(String uri, Map<String, String> params) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, params);
+        DeleteMethod deleteMethod = new DeleteMethod(serviceURL);
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        int status = httpClient.executeMethod(deleteMethod);
+        if (status == 200 || status == 204) {
+            return true;
+        } else {
+            // TODO: we might need to return response stream
+            logger.error("Delete failed with " + status);
+            return false;
+        }
     }
 
     /**

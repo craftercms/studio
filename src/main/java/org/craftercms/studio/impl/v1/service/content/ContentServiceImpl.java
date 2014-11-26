@@ -116,6 +116,23 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public boolean deleteContent(String site, String path) {
+        return _contentRepository.deleteContent(expandRelativeSitePath(site, path));
+    }
+
+    @Override
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        return _contentRepository.copyContent(expandRelativeSitePath(site, fromPath),
+                expandRelativeSitePath(site, toPath));
+    }
+
+    @Override
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
+                expandRelativeSitePath(site, toPath));
+    }
+
+    @Override
     public ContentItemTO getContentItem(String site, String path) {
         ContentItemTO item = null;
 
