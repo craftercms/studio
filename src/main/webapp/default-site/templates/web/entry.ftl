@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable = no">
 
     <!--[if lt IE 9]>
-    <script src="/static-assets/js/html5shiv.js"></script>
+    <script src="/studio/static-assets/js/html5shiv.js"></script>
     <![endif]-->
 
     <!-- Fav and touch icons -->
