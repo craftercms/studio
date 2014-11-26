@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2013 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -31,18 +31,18 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CStudioActivityServiceImpl.class);
 	protected static final int MAX_LEN_USER_ID = 255; // needs to match schema:
-														// feed_user_id,
-														// post_user_id
+	// feed_user_id,
+	// post_user_id
 	protected static final int MAX_LEN_SITE_ID = 255; // needs to match schema:
-														// site_network
+	// site_network
 	protected static final int MAX_LEN_ACTIVITY_TYPE = 255; // needs to match
-															// schema:
-															// activity_type
+	// schema:
+	// activity_type
 	protected static final int MAX_LEN_ACTIVITY_DATA = 4000; // needs to match
-																// schema:
-																// activity_data
+	// schema:
+	// activity_data
 	protected static final int MAX_LEN_APP_TOOL_ID = 36; // needs to match
-															// schema: app_tool
+	// schema: app_tool
 
 	@Autowired
 	protected ActivityFeedMapper activityFeedMapper;
@@ -54,10 +54,10 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 
 
 
-    @Override
-    public void register() {
-        getServicesManager().registerService(CStudioActivityService.class, this);
-    }
+	@Override
+	public void register() {
+		getServicesManager().registerService(CStudioActivityService.class, this);
+	}
 
 	/*
     public void postActivity(String activityType, String siteNetwork, String appTool, String activityData,
@@ -207,15 +207,15 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 
 	}*/
 
-    @Override
-    public ActivityFeed getDeletedActivity(String site, String path) {
+	@Override
+	public ActivityFeed getDeletedActivity(String site, String path) {
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
 		String activityType = ContentUtils.generateActivityValue(CStudioActivityService.ActivityType.DELETED);
 		params.put("activityType", activityType);
-        return activityFeedMapper.getDeletedActivity(params);
-    }
+		return activityFeedMapper.getDeletedActivity(params);
+	}
 
 	public void setActivityFeedMapper(ActivityFeedMapper activityFeedMapper) {
 		this.activityFeedMapper = activityFeedMapper;
