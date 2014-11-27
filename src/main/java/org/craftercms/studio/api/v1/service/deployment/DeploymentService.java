@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 
 import java.util.Date;
 import java.util.List;

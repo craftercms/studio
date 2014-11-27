@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.ActivityFeedMapper">
+  <resultMap id="ActivityFeedMap" type="org.craftercms.studio.api.v1.dal.ActivityFeed">
+    <id property="id" column="id"/>
+    <result property="modifiedDate" column="modifiedDate"/>
+    <result property="creationDate" column="creationDate" />
+    <result property="summary" column="summary" />
+    <result property="summaryFormat" column="summary_format" />
+    <result property="contentId" column="content_id" />
+    <result property="siteNetwork" column="site_network" />
+    <result property="activityType" column="activity_type"/>
+    <result property="contentType" column="content_type" />
+    <result property="userId" column="post_user_id" />
+  </resultMap>
+
+  <cache />
+
+  <select id="getDeletedActivity" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+    select *
+    from cstudio_activity
+    where site_network = #{siteNetwork}
+    and content_id = #{contentId}
+    and activity_type = #{activityType}
+    order by modified_date DESC
+  </select>
+
+</mapper>

@@ -14,9 +14,9 @@
       </bean>
 
 
-       <bean id="cstudioServicesManager" class="org.craftercms.studio.impl.v1.alfresco.service.ServicesManager" />
+       <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
 
-       <bean id="cstudioRegistrableService" class="org.craftercms.studio.impl.v1.alfresco.service.AbstractRegistrableService"
+       <bean id="cstudioRegistrableService" class="org.craftercms.studio.api.v1.service.AbstractRegistrableService"
              abstract="true" init-method="register">
               <property name="servicesManager" ref="cstudioServicesManager" />
        </bean>
@@ -30,7 +30,7 @@
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 
-    <bean id="cstudioDmDeploymentService" class="org.craftercms.studio.impl.v1.alfresco.dm.service.impl.DmDeploymentServiceImpl"
+    <bean id="cstudioDmDeploymentService" class="org.craftercms.studio.impl.v1.service.dependency.DmDeploymentServiceImpl"
          parent="cstudioRegistrableService">
           <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
           <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
@@ -66,7 +66,7 @@
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
-     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.alfresco.service.impl.NotificationServiceImpl"
+     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
             parent="cstudioRegistrableService">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="configPath"><value>${notificationService.configPath}</value></property>
@@ -78,14 +78,14 @@
             <property name="translationProvider" ref="demoTranslationProvider" />
         </bean>
 
-    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.alfresco.service.impl.ServicesConfigImpl"
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl"
           parent="cstudioRegistrableService">
         <property name="configPath"><value>${serviceConfig.configPath}</value></property>
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="cstudioCustomActivityService" class="org.craftercms.studio.impl.v1.alfresco.service.impl.CStudioActivityServiceImpl"
+    <bean id="cstudioCustomActivityService" class="org.craftercms.studio.impl.v1.service.activity.CStudioActivityServiceImpl"
           parent="cstudioRegistrableService">
     </bean>
 
@@ -93,10 +93,10 @@
     <!-- ////////////////////// -->
     <!-- Email  -->
     <!-- ////////////////////// -->
-    <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.impl.v1.alfresco.to.EmailMessageQueueTo">
+    <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.api.v1.to.EmailMessageQueueTo">
     </bean>
     
-    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.alfresco.job.EmailMessageSender" init-method="initThread">
+    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSenderImpl" />
         <property name="defaultFromAddress"><value>${mail.from.default}</value></property>

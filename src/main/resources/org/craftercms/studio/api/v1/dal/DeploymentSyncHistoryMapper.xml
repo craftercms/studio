@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.DeploymentSyncHistoryMapper">
+
+  <resultMap id="DeploymentSyncHistoryMap" type="org.craftercms.studio.api.v1.dal.DeploymentSyncHistory" />
+
+  <cache />
+
+  <select id="getDeploymentHistory" resultMap="DeploymentSyncHistoryMap" parameterType="java.util.HashMap" >
+    SELECT dsh1.*
+    FROM cstudio_deploymentsynchistory as dsh1 INNER JOIN (
+    SELECT dsh2.site, dsh2.path, dsh2.target, MAX(dsh2.syncdate) as syncdate
+    FROM cstudio_deploymentsynchistory as dsh2
+    WHERE dsh2.site = #{site}
+    AND dsh2.syncdate BETWEEN #{from_date} AND #{to_date}
+    GROUP BY dsh2.site, dsh2.path, dsh2.target, DATE(dsh2.syncdate)) as dsh3
+    ON dsh1.path = dsh3.path and dsh1.target = dsh3.target and dsh1.syncdate = dsh3.syncdate
+    WHERE dsh1.site = #{site}
+    <if test="filter != null" >
+      AND dsh1.contenttypeclass=#{filter}
+    </if>
+    ORDER BY dsh1.syncdate desc LIMIT #{limit}
+  </select>
+
+</mapper>

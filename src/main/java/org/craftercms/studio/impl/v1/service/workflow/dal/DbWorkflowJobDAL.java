@@ -35,8 +35,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJobProperty;
-import org.craftercms.studio.impl.v1.alfresco.to.TableIndexCheckTO;
-import org.craftercms.studio.impl.v1.service.workflow.dal.AbstractWorkflowJobDAL;
+import org.craftercms.studio.api.v1.to.TableIndexCheckTO;
 
 public class DbWorkflowJobDAL extends AbstractWorkflowJobDAL {
 

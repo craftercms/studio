@@ -17,8 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import org.craftercms.studio.api.domain.DeploymentSyncHistory;
-import org.craftercms.studio.api.persistence.DeploymentSyncHistoryMapper;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistoryMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
