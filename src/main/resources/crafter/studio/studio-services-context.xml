@@ -9,14 +9,14 @@
       <!-- ////////////////////////////////////// -->
       <!--         logging                        -->
       <!-- ////////////////////////////////////// -->
-      <bean id="cstudioLogProvider" class="org.craftercms.cstudio.impl.log.l4j.L4jLogProvider"
+      <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider"
             init-method="init">
       </bean>
 
 
-       <bean id="cstudioServicesManager" class="org.craftercms.cstudio.alfresco.service.ServicesManager" />
+       <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
 
-       <bean id="cstudioRegistrableService" class="org.craftercms.cstudio.alfresco.service.AbstractRegistrableService"
+       <bean id="cstudioRegistrableService" class="org.craftercms.studio.api.v1.service.AbstractRegistrableService"
              abstract="true" init-method="register">
               <property name="servicesManager" ref="cstudioServicesManager" />
        </bean>
@@ -24,67 +24,68 @@
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioContentService" class="org.craftercms.cstudio.impl.service.content.ContentServiceImpl">
+    <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
           <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 
-    <bean id="cstudioDmDeploymentService" class="org.craftercms.cstudio.alfresco.dm.service.impl.DmDeploymentServiceImpl"
+    <bean id="cstudioDmDeploymentService" class="org.craftercms.studio.impl.v1.service.dependency.DmDeploymentServiceImpl"
          parent="cstudioRegistrableService">
           <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
           <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
-    <bean id="cstudioTransactionServiceSimple" class="org.craftercms.cstudio.impl.service.transaction.TransactionServiceImpl">
+    <bean id="cstudioTransactionServiceSimple" class="org.craftercms.studio.impl.v1.service.transaction.TransactionServiceImpl">
         <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
-    <bean id="cstudioAuthenticationServiceSimple" class="org.craftercms.cstudio.impl.service.authentication.AuthenticationServiceImpl">
+    <bean id="cstudioAuthenticationServiceSimple" class="org.craftercms.studio.impl.v1.service.authentication.AuthenticationServiceImpl">
         <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
-    <bean id="cstudioSiteServiceSimple" class="org.craftercms.cstudio.impl.service.site.SiteServiceImpl">
+    <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
         <property name="siteServiceDAL">
           <bean id="cstudioRepositorySiteServiceDAL" 
-                class="org.craftercms.cstudio.impl.service.site.dal.RepositorySiteServiceDAL">
+                class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">
               <property name="contentService" ref="cstudioContentService" />
           </bean>
         </property>
     </bean>
 
-    <bean id="cstudioWorkflowService" class="org.craftercms.cstudio.impl.service.workflow.WorkflowServiceImpl">
+    <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
         <!-- remove this asap -->
         <!--property name="dmWorkflowService" ref="cstudioDmWorkflowService" /-->
     </bean>
 
-     <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.cstudio.impl.service.deployment.DeploymentServiceImpl" >
+     <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
             <property name="contentRepository" ref="cstudioContentRepository" />
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
-     <bean id="cstudioNotificationService" class="org.craftercms.cstudio.alfresco.service.impl.NotificationServiceImpl"
+     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
             parent="cstudioRegistrableService">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="configPath"><value>${notificationService.configPath}</value></property>
         <property name="configFileName"><value>${notificationService.configFileName}</value></property>
      </bean>
 
-       <bean id="cstudioTranslationService" class="org.craftercms.cstudio.impl.service.translation.TranslationServiceImpl">
+       <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
             <property name="translationContentDAL" ref="cstudioTranslationContentDAL" />
             <property name="translationProvider" ref="demoTranslationProvider" />
         </bean>
 
-    <bean id="cstudioServicesConfig" class="org.craftercms.cstudio.alfresco.service.impl.ServicesConfigImpl"
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl"
           parent="cstudioRegistrableService">
         <property name="configPath"><value>${serviceConfig.configPath}</value></property>
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="cstudioCustomActivityService" class="org.craftercms.cstudio.alfresco.service.impl.CStudioActivityServiceImpl"
+    <bean id="cstudioCustomActivityService" class="org.craftercms.studio.impl.v1.service.activity.CStudioActivityServiceImpl"
           parent="cstudioRegistrableService">
     </bean>
 
@@ -92,10 +93,10 @@
     <!-- ////////////////////// -->
     <!-- Email  -->
     <!-- ////////////////////// -->
-    <bean id="cstudioEmailMessageQueue" class="org.craftercms.cstudio.alfresco.to.EmailMessageQueueTo">    
+    <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.api.v1.to.EmailMessageQueueTo">
     </bean>
     
-    <bean id="cstudioEmailMessageSender" class="org.craftercms.cstudio.alfresco.job.EmailMessageSender" init-method="initThread">
+    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSenderImpl" />
         <property name="defaultFromAddress"><value>${mail.from.default}</value></property>
@@ -119,10 +120,10 @@
     <!-- ////////////////////////////////////// -->
 
     <!-- translation vendor interface -->
-    <bean id="smartlingTranslationProvider" class="org.craftercms.cstudio.impl.service.translation.provider.smartling.SmartlingTranslationProvider">
+    <bean id="smartlingTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.smartling.SmartlingTranslationProvider">
     </bean>
 
-    <bean id="demoTranslationProvider" class="org.craftercms.cstudio.impl.service.translation.provider.demo.DemoTranslationProvider">
+    <bean id="demoTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.demo.DemoTranslationProvider">
         <property name="translateElements">
             <list>
                 <value>title</value>
@@ -132,63 +133,63 @@
         </property>
     </bean>
 
-    <bean id="cstudioTranslationContentDAL" class="org.craftercms.cstudio.impl.service.translation.dal.repository.RepositoryTranslationContentDAL">
+    <bean id="cstudioTranslationContentDAL" class="org.craftercms.studio.impl.v1.service.translation.dal.repository.RepositoryTranslationContentDAL">
         <property name="contentService" ref="cstudioContentService" />
     </bean>
 
-    <bean id="cstudioWorkflowManager" class="org.craftercms.cstudio.impl.service.workflow.WorkflowManager">
+    <bean id="cstudioWorkflowManager" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowManager">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="jobStateHandlers" >
             <map>
                 <entry key="submit-for-translate">
                     <map>
                         <entry key="created">
-                            <bean class="org.craftercms.cstudio.impl.service.workflow.handler.JobCreatedHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
                             </bean>
                         </entry>
                         <entry key="started">
                             <!-- determine what items for be translated for each child site and submit workflows then end -->
-                            <bean class="org.craftercms.cstudio.impl.service.translation.workflow.handler.KickoffTranslationWorkflowForWaterfallItemsHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.KickoffTranslationWorkflowForWaterfallItemsHandler">
                                 <property name="siteService" ref="cstudioSiteServiceSimple" />
                                 <property name="translationService" ref="cstudioTranslationService" />
                                 <!--property name="dependencyService" ref="cstudioDmDependencyService" /-->
                             </bean>
                         </entry>
                         <entry key="ended">
-                            <bean class="org.craftercms.cstudio.impl.service.workflow.handler.JobEndedHandler"/>
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
                         </entry>
                     </map>
                 </entry>
                 <entry key="translate">
                     <map>
                         <entry key="created">
-                            <bean class="org.craftercms.cstudio.impl.service.workflow.handler.JobCreatedHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
                             </bean>
                         </entry>
                         <entry key="started">
                             <!-- send item out for translation and start waiting for it to complete -->
-                            <bean class="org.craftercms.cstudio.impl.service.translation.workflow.handler.SendItemOutForTranslationHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.SendItemOutForTranslationHandler">
                                 <property name="translationService" ref="cstudioTranslationService" />
                             </bean>
                         </entry>
                         <entry key="WAITING-FOR-TRANSLATION">
                             <!-- check translation status on item until it's complete -->
-                            <bean class="org.craftercms.cstudio.impl.service.translation.workflow.handler.UpdateItemTranslationStatusHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateItemTranslationStatusHandler">
                                 <property name="translationService" ref="cstudioTranslationService" />
                             </bean>
                         </entry>
                         <entry key="TRANSLATION-COMPLETE">
                             <!-- retrieve item from translation provider, add to project and submit for review -->
-                            <bean class="org.craftercms.cstudio.impl.service.translation.workflow.handler.UpdateProjectWithTranslationHandler">
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateProjectWithTranslationHandler">
                                 <property name="translationService" ref="cstudioTranslationService" />
                             </bean>
                         </entry>
                         <entry key="SITE-UPDATED-WITH-TRANSLATED-CONTENT">
                             <!-- retrieve item from translation provider, add to project and submit for review -->
-                            <bean class="org.craftercms.cstudio.impl.service.workflow.handler.SubmitContentforApprovalHandler"/>
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.SubmitContentforApprovalHandler"/>
                         </entry>
                         <entry key="ended">
-                            <bean class="org.craftercms.cstudio.impl.service.workflow.handler.JobEndedHandler"/>
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
                         </entry>
                     </map>
                 </entry>
@@ -197,7 +198,7 @@
     </bean>
 
     <!-- Jobs -->
-    <bean id="cstudioProcessInFlightJobs" class="org.craftercms.cstudio.impl.service.workflow.job.ProcessInFlightJobs">
+    <bean id="cstudioProcessInFlightJobs" class="org.craftercms.studio.impl.v1.service.workflow.job.ProcessInFlightJobs">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="workflowManager" ref="cstudioWorkflowManager"/>
         <property name="transactionService" ref="cstudioTransactionServiceSimple" />
@@ -220,7 +221,7 @@
     <!--         workflow                       -->
     <!-- ////////////////////////////////////// -->
     <!-- DALs -->
-    <bean id="cstudioWorkflowJobDAL" class="org.craftercms.cstudio.impl.service.workflow.dal.InMemoryWorkflowJobDAL"/>
+    <bean id="cstudioWorkflowJobDAL" class="org.craftercms.studio.impl.v1.service.workflow.dal.InMemoryWorkflowJobDAL"/>
     <!--bean id="cstudioWorkflowJobDAL" class="org.craftercms.cstudio.impl.service.workflow.dal.DbWorkflowJobDAL"
           init-method="initTable">
         <property name="sqlMap" ref="cstudioWorkflowSqlMap"/>
@@ -231,7 +232,7 @@
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
-    <bean id="cstudioContentRepository" class="org.craftercms.cstudio.impl.repository.alfresco.AlfrescoContentRepositoryDirty">
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepositoryDirty">
         <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
     </bean>
 </beans>
