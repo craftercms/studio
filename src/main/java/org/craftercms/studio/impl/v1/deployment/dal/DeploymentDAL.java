@@ -18,7 +18,7 @@
 package org.craftercms.studio.impl.v1.deployment.dal;
 
 
-import org.craftercms.studio.api.domain.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
 import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;

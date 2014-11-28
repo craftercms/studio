@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.impl.v1.alfresco.service.api.NotificationService;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
 
 /**

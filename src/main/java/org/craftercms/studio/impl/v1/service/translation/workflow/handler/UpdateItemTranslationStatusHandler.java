@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v1.service.translation.ProviderException;
 import org.craftercms.studio.api.v1.service.translation.TranslationService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.impl.v1.alfresco.service.api.NotificationService;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.workflow.JobStateHandler;
 
 /**
