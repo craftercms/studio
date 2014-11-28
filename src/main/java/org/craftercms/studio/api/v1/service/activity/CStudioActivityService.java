@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v1.service.activity;
 
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 
+import java.util.List;
+
 public interface CStudioActivityService {
 
     public static final String ACTIVITY_TYPE_KEY_PREFIX = "org.craftercms.cstudio.";
@@ -55,7 +57,7 @@ public interface CStudioActivityService {
      * @param siteId - optional, if set then will filter by given siteId else return all sites
      * @return list of JSON feed entries
      */
-    //public List<String> getUserFeedEntries(String userId, String format, String siteId,int startPos, int feedSize,String contentType, boolean hideLiveItems);
+    public List<String> getUserFeedEntries(String userId, String format, String siteId,int startPos, int feedSize,String contentType, boolean hideLiveItems);
 
     /**
      * get the last user worked on the given content 

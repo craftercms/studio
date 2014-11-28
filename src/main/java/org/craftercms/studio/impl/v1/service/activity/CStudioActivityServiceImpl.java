@@ -17,11 +17,16 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.activity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.CStudioActivityService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +51,9 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 
 	@Autowired
 	protected ActivityFeedMapper activityFeedMapper;
-	//protected boolean userNamesAreCaseSensitive = false;
+	protected boolean userNamesAreCaseSensitive = false;
 
-	//public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive) {
-	//	this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
-	//}
+
 
 
 
@@ -146,32 +149,46 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 	 * @see
 	 * org.alfresco.service.cmr.activities.ActivityService#getUserFeedEntries
 	 * (java.lang.String, java.lang.String, java.lang.String)
-	 *//*
+	 */
 	public List<String> getUserFeedEntries(String feedUserId, String format, String siteId, int startPos, int feedSize,
 			String contentType, boolean hideLiveItems) {
-		// NOTE: siteId is optional
-		ParameterCheck.mandatoryString("feedUserId", feedUserId);
-		ParameterCheck.mandatoryString("format", format);
 		List<String> activityFeedEntries = new ArrayList<String>();
 
 		if (!userNamesAreCaseSensitive) {
 			feedUserId = feedUserId.toLowerCase();
 		}
 
-		try {
-			List<CStudioActivityFeedDAO> activityFeeds = null;
-			activityFeeds = feedDaoService.selectUserFeedEntries(feedUserId, format, siteId, startPos, feedSize,
-					contentType, hideLiveItems);
-			for (CStudioActivityFeedDAO activityFeed : activityFeeds) {
-				activityFeedEntries.add(activityFeed.getJSONString());
-			}
-		} catch (SQLException se) {
-			LOGGER.error("Error in getting feeds", se);
-		} catch (JSONException se) {
-			LOGGER.error("Error in getting feeds", se);
+		List<ActivityFeed> activityFeeds = null;
+		activityFeeds = selectUserFeedEntries(feedUserId, format, siteId, startPos, feedSize,
+				contentType, hideLiveItems);
+		for (ActivityFeed activityFeed : activityFeeds) {
+			activityFeedEntries.add(activityFeed.getJSONString());
 		}
+
 		return activityFeedEntries;
-	}*/
+	}
+
+	private List<ActivityFeed> selectUserFeedEntries(String feedUserId, String format, String siteId,int startPos, int feedSize,String contentType, boolean hideLiveItems) {
+		HashMap<String,Object> params = new HashMap<String,Object>();
+		params.put("userId",feedUserId);
+		params.put("summaryFormat",format);
+		params.put("siteNetwork",siteId);
+		params.put("startPos", startPos);
+		params.put("feedSize", feedSize);
+		if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
+			params.put("contentType",contentType.toLowerCase());
+		}
+		if (hideLiveItems) {
+			List<String> statesValues = new ArrayList<String>();
+			for (ObjectStateService.State state : ObjectStateService.State.LIVE_STATES) {
+				statesValues.add(state.name());
+			}
+			params.put("states", statesValues);
+			return activityFeedMapper.selectUserFeedEntriesHideLive(params);
+		} else {
+			return activityFeedMapper.selectUserFeedEntries(params);
+		}
+	}
 
 	/*
 	@Override
@@ -219,5 +236,9 @@ public class CStudioActivityServiceImpl extends AbstractRegistrableService imple
 
 	public void setActivityFeedMapper(ActivityFeedMapper activityFeedMapper) {
 		this.activityFeedMapper = activityFeedMapper;
+	}
+
+	public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive) {
+		this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
 	}
 }
