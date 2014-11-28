@@ -1,5 +1,9 @@
 package org.craftercms.studio.api.v1.dal;
 
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import org.codehaus.jackson.map.util.ISO8601DateFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -46,4 +50,20 @@ public class ActivityFeed implements Serializable {
 
     public String getSiteNetwork() { return siteNetwork; }
     public void setSiteNetwork(String siteNetwork) { this.siteNetwork = siteNetwork; }
+
+    public String getJSONString() throws JSONException {
+        JSONObject jo = new JSONObject();
+
+        jo.put("id", id);
+        jo.put("postUserId", userId);
+        jo.put("postDate", (new ISO8601DateFormat()).format(modifiedDate));
+        if (userId != null) { jo.put("feedUserId", userId); } // eg. site feed
+        jo.put("siteNetwork", siteNetwork);
+        jo.put("activityType", type);
+        jo.put("activitySummary", summary);
+        jo.put("activitySummaryFormat", summaryFormat);
+        jo.put("contentId", contentId);
+
+        return jo.toString();
+    }
 }

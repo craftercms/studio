@@ -87,6 +87,12 @@
 
     <bean id="cstudioCustomActivityService" class="org.craftercms.studio.impl.v1.service.activity.CStudioActivityServiceImpl"
           parent="cstudioRegistrableService">
+        <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
+    </bean>
+
+    <bean id="cstudioDmActivityService" class="org.craftercms.studio.impl.v1.service.activity.DmActivityServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
 
