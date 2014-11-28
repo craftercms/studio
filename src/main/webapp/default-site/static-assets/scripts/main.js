@@ -2,6 +2,7 @@
     'use strict';
 
     var app = angular.module('userDashboard', [
+        'ngCookies',
         'ui.router',
         'ui.bootstrap'
     ]);
@@ -146,14 +147,14 @@
                         return str.join("&");
                     }
                 }).then(function (data) {
-                        if (data.data.type === 'success') {
+                    if (data.data.type === 'success') {
 
-                            user = data.data.user;
-                            $rootScope.$broadcast(Constants.AUTH_SUCCESS, user);
+                        user = data.data.user;
+                        $rootScope.$broadcast(Constants.AUTH_SUCCESS, user);
 
-                        }
-                        return data.data;
-                    });
+                    }
+                    return data.data;
+                });
             };
 
             this.logout = function () {
@@ -185,8 +186,10 @@
     ]);
 
     app.service('sitesService', [
-        '$http', 'Constants',
-        function ($http, Constants) {
+        '$http', 'Constants', '$cookies',
+        function ($http, Constants, $cookies) {
+
+            var cookieName = 'crafterSite';
 
             this.getSites = function() {
                 return $http.get(json('get-sites-2'));
@@ -196,6 +199,10 @@
                 return $http.get(json('get-site'), {
                     params: { siteId: id }
                 });
+            };
+
+            this.setCookie = function (site) {
+                $cookies[cookieName] = site.siteId;
             };
 
             function json(action) {
@@ -238,23 +245,25 @@
             $scope.changePassword = changePassword;
 
             $scope.$on(Constants.AUTH_SUCCESS, function ($event, user) {
-
                 $scope.user = user;
                 $scope.data.email = $scope.user.email;
-                $scope.text = typeof user;
-
-                console.log($scope.user);
-
             });
 
         }
     ]);
 
     app.controller('SitesCtrl', [
-        '$scope', '$state', 'sitesService',
-        function ($scope, $state, sitesService) {
+        '$scope', '$state', '$timeout', '$window', 'sitesService',
+        function ($scope, $state, $timeout, $window, sitesService) {
 
             $scope.sites = null;
+
+            $scope.editSite = function (site) {
+                sitesService.setCookie(site);
+                $timeout(function () {
+                    $window.location.href = site.cstudioURL;
+                }, 100);
+            };
 
             function getSites () {
                 sitesService.getSites()
@@ -272,8 +281,8 @@
     ]);
 
     app.controller('SiteCtrl', [
-        '$scope', '$state',
-        function ($scope, $state) {
+        '$scope', '$state', 'sitesService', '$window', '$timeout',
+        function ($scope, $state, sitesService, $window, $timeout) {
 
             function select($event) {
                 $event.target.select();
@@ -305,8 +314,16 @@
 
             }
 
+            function editSite(site) {
+                sitesService.setCookie(site);
+                $timeout(function () {
+                    $window.location.href = site.cstudioURL;
+                }, 100);
+            }
+
             $scope.site = null;
 
+            $scope.editSite = editSite;
             $scope.percent = percent;
             $scope.select = select;
 

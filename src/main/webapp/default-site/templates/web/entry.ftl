@@ -7,9 +7,13 @@
     <title>Crafter Studio</title>
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-<#-- TODO: Check if user is in session and spit it out here as shown by the example below.
-<script type="application/json" id="user">{"name":"Roy","surname":"Art","email":"rart@rivetlogic.com"}</script>
--->
+    <#-- TODO: Check if user is in session and spit it out here as shown by the example below.
+    <script type="application/json" id="user">{"name":"Roy","surname":"Art","email":"rart@rivetlogic.com"}</script>
+    -->
+
+    <script>
+        var CStudioAuthoring = { cookieDomain: "${cookieDomain}" };
+    </script>
 
     <link rel="stylesheet" href="studio/static-assets/styles/main.css">
 
@@ -17,6 +21,7 @@
 
 </head>
 <body>
+
 <!--[if lt IE 10]>
 <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
 <![endif]-->
@@ -94,10 +99,10 @@
                     <tr ng-repeat="site in sites">
                         <td>{{site.name}}</td>
                         <td>
-                            <a href="{{site.cstudioURL}}">Edit site &raquo;</a>
+                            <a ng-click="editSite(site)">Edit site &raquo;</a>
                         </td>
                         <td>
-                            <a href="{{site.url}}">Go to live site &raquo;</a>
+                            <a href="{{site.url}}" target="_blank">Go to live site &raquo;</a>
                         </td>
                     </tr>
                     </tbody>
@@ -209,7 +214,7 @@
                 </progressbar>
 
                 <h3>
-                    <a href="{{site.cstudioURL}}">
+                    <a ng-click="editSite(site)">
                         Authoring &raquo;
                     </a>
                 </h3>
