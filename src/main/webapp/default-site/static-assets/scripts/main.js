@@ -6,25 +6,6 @@
         'ui.bootstrap'
     ]);
 
-    app.run([
-        '$rootScope', '$state', '$stateParams', 'authService',
-        function ($rootScope, $state, $stateParams, authService) {
-
-            $rootScope.$state = $state;
-            $rootScope.$stateParams = $stateParams;
-
-            $rootScope.$on('$stateChangeStart', function (event, toState) {
-
-                if (toState.name.indexOf('login') === -1 && !authService.isAuthenticated()) {
-                    event.preventDefault();
-                    $state.go('login');
-                }
-
-            });
-
-        }
-    ]);
-
     app.config([
         '$stateProvider', '$urlRouterProvider',
         function ($stateProvider, $urlRouterProvider) {
@@ -108,6 +89,25 @@
                         }
                     ]
                 });
+
+        }
+    ]);
+
+    app.run([
+        '$rootScope', '$state', '$stateParams', 'authService',
+        function ($rootScope, $state, $stateParams, authService) {
+
+            $rootScope.$state = $state;
+            $rootScope.$stateParams = $stateParams;
+
+            $rootScope.$on('$stateChangeStart', function (event, toState) {
+
+                if (toState.name.indexOf('login') === -1 && !authService.isAuthenticated()) {
+                    event.preventDefault();
+                    $state.go('login');
+                }
+
+            });
 
         }
     ]);
