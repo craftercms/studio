@@ -11,29 +11,31 @@ def url = alfrescoUrl + "/service/api/login?u=" + username + "&pw=" + password;
 def srvresponse = "";
 def invalidpw = false;
 
- try {
-   srvresponse = (url).toURL().getText();
-   srvresponse = srvresponse.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-   srvresponse = srvresponse.replace("\n", "");
-   srvresponse = srvresponse.replace("<ticket>", "");
-   srvresponse = srvresponse.replace("</ticket>", "");
+try {
+    srvresponse = (url).toURL().getText();
+    srvresponse = srvresponse.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
+    srvresponse = srvresponse.replace("\n", "");
+    srvresponse = srvresponse.replace("<ticket>", "");
+    srvresponse = srvresponse.replace("</ticket>", "");
 
-   Cookies.createCookie('ccticket', srvresponse, cookieDomain, "/", response)
-   Cookies.createCookie('ccu', username, cookieDomain, "/", response)
-   Cookies.createCookie('alf_ticket', srvresponse, cookieDomain, "/", response)
-   Cookies.createCookie('username', username, cookieDomain, "/", response)
-   Cookies.createCookie('alfUsername3', username, cookieDomain, "/", response)
+    Cookies.createCookie('ccticket', srvresponse, cookieDomain, "/", response)
+    Cookies.createCookie('ccu', username, cookieDomain, "/", response)
+    Cookies.createCookie('alf_ticket', srvresponse, cookieDomain, "/", response)
+    Cookies.createCookie('username', username, cookieDomain, "/", response)
+    Cookies.createCookie('alfUsername3', username, cookieDomain, "/", response)
 
-   result.type = "success";
-   result.message = "Login successful";
+    def user = ["name":"Roy","surname":"Art","email":"rart@rivetlogic.com"];
 
-}
- catch(err) {
+    result.type = "success";
+    result.message = "Login successful";
+    result.user = user;
+
+} catch(err) {
     invalidpw = true;
     result.exception = err;
     result.response = srvresponse;
-  result.type = "error";
+    result.type = "error";
     result.message = "Invalid user name or password";
- }
+}
 
 return result;
