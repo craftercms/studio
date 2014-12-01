@@ -20,16 +20,14 @@ import javolution.util.FastList;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.service.deployment.DmDeploymentService;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
-import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
-import org.craftercms.studio.api.v1.service.activity.CStudioActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.slf4j.Logger;
@@ -89,9 +87,9 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
             //String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
             item = contentService.getContentItem(site, path);
             if (item == null) {
-                item = createDummyDmContentItemForDeletedNode(site, path);
-                CStudioActivityService cStudioActivityService = getService(CStudioActivityService.class);
-                ActivityFeed activity = cStudioActivityService.getDeletedActivity(site, path);
+                item = contentService.createDummyDmContentItemForDeletedNode(site, path);
+                ActivityService activityService = getService(ActivityService.class);
+                ActivityFeed activity = activityService.getDeletedActivity(site, path);
                 if (activity != null) {
                     JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
                     if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
@@ -112,89 +110,6 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
 
     }
 
-    private ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
-        String absolutePath = expandRelativeSitePath(site, relativePath);
-        DmPathTO path = new DmPathTO(absolutePath);
-        ContentItemTO item = new ContentItemTO();
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String timeZone = servicesConfig.getDefaultTimezone(site);
-        item.timezone = timeZone;
-        String name = path.getName();
-        //String relativePath = path.getRelativePath();
-        String fullPath = path.toString();
-        String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
-        item.path = folderPath;
-        /**
-         * Internal name should be just folder name
-         */
-        String internalName = folderPath;
-        int index = folderPath.lastIndexOf('/');
-        if (index != -1)
-        internalName = folderPath.substring(index + 1);
-
-        item.internalName = internalName;
-        //item.title = internalName;
-        item.isDisabled = false;
-        item.isNavigation = false;
-        item.name = name;
-        item.uri = relativePath;
-
-        //item.defaultWebApp = path.getDmSitePath();
-        //set content type based on the relative Path
-        String contentType = getContentType(site, relativePath);
-        item.contentType = contentType;
-        if (contentType.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
-            item.component = true;
-        } else if (contentType.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
-            item.document = true;
-        }
-        // set if the content is new
-        item.isDeleted = true;
-        item.isContainer = false;
-        //item.isNewFile = false;
-        item.isNew = false;
-        item.isInProgress = false;
-        item.timezone = servicesConfig.getDefaultTimezone(site);
-        item.isPreviewable = false;
-        item.browserUri = getBrowserUri(item);
-
-        return item;
-    }
-
-    protected String expandRelativeSitePath(String site, String relativePath) {
-        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
-    }
-
-    protected String getBrowserUri(ContentItemTO item) {
-        String replacePattern = "";
-        //if (item.isLevelDescriptor) {
-        //    replacePattern = DmConstants.ROOT_PATTERN_PAGES;
-        //} else if (item.isComponent()) {
-        if (item.isComponent) {
-            replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
-        } else if (item.isAsset) {
-            replacePattern = DmConstants.ROOT_PATTERN_ASSETS;
-        } else if (item.isDocument) {
-            replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
-        } else {
-            replacePattern = DmConstants.ROOT_PATTERN_PAGES;
-        }
-        boolean isPage = !(item.isComponent || item.isAsset || item.isDocument);
-        return getBrowserUri(item.uri, replacePattern, isPage);
-    }
-
-    protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
-        String browserUri = uri.replaceFirst(replacePattern, "");
-        browserUri = browserUri.replaceFirst("/" + DmConstants.INDEX_FILE, "");
-        if (browserUri.length() == 0) {
-            browserUri = "/";
-        }
-        // TODO: come up with a better way of doing this.
-        if (isPage) {
-            browserUri = browserUri.replaceFirst("\\.xml", ".html");
-        }
-        return browserUri;
-    }
     /**
      * create WcmDeploymentTask
      *
@@ -214,32 +129,6 @@ public class DmDeploymentServiceImpl extends AbstractRegistrableService implemen
         taskItems.add(item);
         task.setNumOfChildren(taskItems.size());
         return task;
-    }
-
-    protected String getContentType(String site, String uri) {
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
-            return DmConstants.CONTENT_TYPE_COMPONENT;
-        } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_DOCUMENT;
-        } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_ASSET;
-
-        } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
-        }
-        return DmConstants.CONTENT_TYPE_PAGE;
-    }
-
-    protected boolean matchesPatterns(String uri, List<String> patterns) {
-        if (patterns != null) {
-            for (String pattern : patterns) {
-                if (uri.matches(pattern)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
     
 	@Override
