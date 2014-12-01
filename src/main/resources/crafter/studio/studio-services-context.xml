@@ -31,12 +31,6 @@
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 
-    <bean id="cstudioDmDeploymentService" class="org.craftercms.studio.impl.v1.service.dependency.DmDeploymentServiceImpl"
-         parent="cstudioRegistrableService">
-          <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
-          <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
-        <property name="contentService" ref="cstudioContentService" />
-    </bean>
 
     <bean id="cstudioTransactionServiceSimple" class="org.craftercms.studio.impl.v1.service.transaction.TransactionServiceImpl">
         <property name="contentRepository" ref="cstudioContentRepository" />
@@ -62,8 +56,11 @@
         <!--property name="dmWorkflowService" ref="cstudioDmWorkflowService" /-->
     </bean>
 
-     <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
+     <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
             <property name="contentRepository" ref="cstudioContentRepository" />
+         <property name="contentService" ref="cstudioContentService"/>
+         <property name="activityService" ref="cstudioActivityService" />
+         <property name="servicesConfig" ref="cstudioServicesConfig"/>
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
