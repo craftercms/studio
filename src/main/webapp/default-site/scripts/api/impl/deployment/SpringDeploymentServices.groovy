@@ -14,7 +14,7 @@ class SpringDeploymentServices {
     }
 
     /** 
-     * Return deployment history for a give nsite
+     * Return deployment history for a given site
      * @param site - the project ID
      * @param daysFromToday - number of days back to get
      * @param numberOfItems - number of items to get 
@@ -25,7 +25,7 @@ class SpringDeploymentServices {
      */
     def getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType) {
         
-        def springBackedService = this.context.applicationContext.get("cstudioDmDeploymentService")
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
 }

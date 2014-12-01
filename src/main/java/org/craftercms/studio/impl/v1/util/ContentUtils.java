@@ -17,15 +17,19 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
-import org.craftercms.studio.api.v1.service.activity.CStudioActivityService;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.util.ISO8601DateFormat;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.util.Date;
 
 
 public class ContentUtils {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ContentUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContentUtils.class);
 
     /**
      * release resources
@@ -310,9 +314,21 @@ public class ContentUtils {
 	 * @param activity
 	 * @return
 	 */
-	public static String generateActivityValue(CStudioActivityService.ActivityType activity) {
-		return CStudioActivityService.ACTIVITY_TYPE_KEY_PREFIX + activity.toString().toLowerCase();
+	public static String generateActivityValue(ActivityService.ActivityType activity) {
+		return ActivityService.ACTIVITY_TYPE_KEY_PREFIX + activity.toString().toLowerCase();
 	}
-	
 
+	public static Date getEditedDate(String str) {
+		if (!StringUtils.isEmpty(str)) {
+			try {
+				return (new ISO8601DateFormat()).parse(str);
+			} catch (ParseException e) {
+				logger.error("No activity post date provided.");
+				return null;
+			}
+		} else {
+			logger.error("No activity post date provided.");
+			return null;
+		}
+	}
 }

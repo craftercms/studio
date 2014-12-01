@@ -18,6 +18,12 @@
 package org.craftercms.studio.api.v1.service.activity;
 
 
+import org.craftercms.studio.api.v1.dal.ActivityFeed;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+
+import java.util.List;
+
 /**
  * Provides services for tracking user activities
  * 
@@ -60,4 +66,30 @@ public interface ActivityService {
 	//public void renameContentId(String oldUrl, String newUrl, String site);
 	
 	//public void updateContentSummary(String site, String url, String summary);
+
+	/**
+	 * get a list of activities by the given user
+	 * @param site
+	 * @param user
+	 * @param num
+	 * 			a number of records to return
+	 * @param sort
+	 * @param ascending
+	 * @param excludeLive
+	 * 			exclude live items?
+	 * @return a list of activities
+	 * @throws org.craftercms.studio.api.v1.exception.ServiceException
+	 */
+	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException;
+
+	/**
+	 * Retrieve user feed
+	 *
+	 * @param userId - required
+	 * @param format - required
+	 * @param siteId - optional, if set then will filter by given siteId else return all sites
+	 * @return list of JSON feed entries
+	 */
+
+	public ActivityFeed getDeletedActivity(String site, String path);
 }
