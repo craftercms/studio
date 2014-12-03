@@ -138,7 +138,7 @@ public interface ServicesConfig {
      *
      * @return level descriptor item URI patterns
      */
-    //public List<String> getLevelDescriptorPatterns(String site);
+    public List<String> getLevelDescriptorPatterns(String site);
 
 	/**
 	 * get the category root path specified for each category (e.g. /site/websites for Pages)
@@ -197,7 +197,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return a list of paths to display in widgets
 	 */
-	//public List<String> getDisplayInWidgetPathPatterns(String site);
+	public List<String> getDisplayInWidgetPathPatterns(String site);
 
 	/**
 	 * get the default timezone value

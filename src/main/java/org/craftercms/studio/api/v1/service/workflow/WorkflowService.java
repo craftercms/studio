@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 
 public interface WorkflowService {
@@ -105,4 +106,6 @@ public interface WorkflowService {
 	 * Get notification service.
 	 */
 	NotificationService getNotificationService();
+
+	String getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
 }

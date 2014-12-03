@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
@@ -34,7 +34,7 @@ public interface DeploymentService {
     // document
     void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;
 
-    List<CopyToEnvironmentItem> getScheduledItems(String site);
+    List<CopyToEnvironment> getScheduledItems(String site);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
 

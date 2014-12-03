@@ -618,10 +618,10 @@ public class DmContentItemTO implements Serializable {
 		_children.add(itemToAdd);
 		_numOfChildren++;
 	}
-	
+	/*
 	public void addChild(final DmContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive) {
 		addChild(itemToAdd, comparator, recursive, false);
-	}
+	}*/
 	
 	/**
 	 * add an item to the list of child items
@@ -631,7 +631,7 @@ public class DmContentItemTO implements Serializable {
 	 *            child item sort comparator
 	 * @param recursive
 	 *            recursively add the item to the parent-child hierarchy?
-	 */
+	 *//*
 	public void addChild(final DmContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive,
 			boolean renamed) {
 		if (_uri != null && _uri.equals(itemToAdd.getUri())) {
@@ -731,8 +731,8 @@ public class DmContentItemTO implements Serializable {
 		}
 		// increase the number of children by 1
 		_numOfChildren++;
-	}
-	
+	}*/
+	/*
 	public void addChild(final DmContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive,
 			ChildFilter childFilter) {
 		if (_uri != null && _uri.equals(itemToAdd.getUri())) {
@@ -839,7 +839,7 @@ public class DmContentItemTO implements Serializable {
 		// increase the number of children by 1
 		_numOfChildren++;
 
-	}
+	}*/
 	
 	public interface ChildFilter {
 
