@@ -17,14 +17,21 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.util.ISO8601DateFormat;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
 
+import java.io.*;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 
 
 public class ContentUtils {
@@ -62,18 +69,17 @@ public class ContentUtils {
      *
      * @param in
      */
-	/*
     public static void release(InputStream in) {
         try {
             if (in != null) {
                 in.close();
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to relase a resource.", e);
+            logger.error("Failed to release a resource.", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
-    }*/
+    }
 
     /**
      * release resource
@@ -97,18 +103,18 @@ public class ContentUtils {
      * release a reader
      *
      * @param reader
-     *//*
+     */
     public static void release(Reader reader) {
         try {
             if (reader != null) {
                 reader.close();
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to relase a reader.", e);
+            logger.error("Failed to release a reader.", e);
         } finally {
             IOUtils.closeQuietly(reader);
         }
-    }*/
+    }
 
 	/**
 	 * check if two serializable values are the same
@@ -163,7 +169,7 @@ public class ContentUtils {
 	 * 
 	 * @param is
 	 * @return string
-	 *//*
+	 */
 	public static Document convertStreamToXml(InputStream is) throws DocumentException {
         InputStreamReader isReader = null;
 		try {
@@ -171,19 +177,16 @@ public class ContentUtils {
 			SAXReader saxReader = new SAXReader();
 			return saxReader.read(isReader);
 		} catch (DocumentException e) {
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Error while coverting stream to XML", e);
-                throw e;
-			}
+				logger.error("Error while coverting stream to XML", e);
 			return null;
 		} catch (UnsupportedEncodingException e) {
-            LOGGER.error("Error while coverting stream to XML", e);
+            logger.error("Error while coverting stream to XML", e);
             return null;
         } finally {
             ContentUtils.release(is);
             ContentUtils.release(isReader);
         }
-	}*/
+	}
 	
 	/*
 	 * Escape JSON characters
@@ -330,5 +333,16 @@ public class ContentUtils {
 			logger.error("No activity post date provided.");
 			return null;
 		}
+	}
+
+	public static boolean matchesPatterns(String uri, List<String> patterns) {
+		if (patterns != null) {
+			for (String pattern : patterns) {
+				if (uri.matches(pattern)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

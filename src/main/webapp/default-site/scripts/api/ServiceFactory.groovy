@@ -5,6 +5,7 @@ import scripts.api.impl.content.SpringContentServices;
 import scripts.api.impl.clipboard.SpringClipboardServices;
 import scripts.api.impl.deployment.SpringDeploymentServices;
 import scripts.api.impl.activity.SpringActivityServices;
+import scripts.api.impl.workflow.SpringWorkflowServices;
 
 /**
  * workflow services
@@ -62,5 +63,15 @@ class ServiceFactory {
 	 */
 	static getActivityServices(context) {
 		return new SpringActivityServices(context)
+	}
+
+	/**
+	 * return the implementation for workflow services
+	 *
+	 * @param context site context
+	 * @return WorkflowServices
+	 */
+	static getWorkflowServices(context) {
+		return new SpringWorkflowServices(context)
 	}
 }

@@ -17,17 +17,34 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.util.Map;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-import java.util.Set;
-import java.util.List;
-import java.util.Date;
+import net.sf.json.JSONObject;
+import org.apache.commons.collections.FastArrayList;
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.api.v1.to.DmPathTO;
+import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
+import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 /**
  * workflow service implementation
@@ -115,6 +132,209 @@ public class WorkflowServiceImpl implements WorkflowService {
 		*/
 	}
 
+	@Override
+	public String getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException {
+		if (StringUtils.isEmpty(sort)) {
+			sort = DmContentItemComparator.SORT_EVENT_DATE;
+		}
+		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
+		DmContentItemComparator subComparator = new DmContentItemComparator(subSort, subAscending, true, true);
+		List<ContentItemTO> items = null;
+		items = getScheduledItems(site, comparator, subComparator, filterType);
+		JSONObject jsonObject = new JSONObject();
+		int total = 0;
+		if (items != null) {
+			for (ContentItemTO item : items) {
+				total += item.numOfChildren;
+			}
+		}
+		jsonObject.put(CStudioConstants.PROPERTY_TOTAL, total);
+		jsonObject.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
+		jsonObject.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
+		jsonObject.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
+		return jsonObject.toString();
+	}
+
+	protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator, DmContentItemComparator subComparator, String filterType) {
+		List<ContentItemTO> results = new FastArrayList();
+		List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
+		List<CopyToEnvironment> deploying = deploymentService.getScheduledItems(site);
+		SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_FORMAT_SCHEDULED);
+		List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
+		for (CopyToEnvironment deploymentItem : deploying) {
+			String fullPath = expandRelativeSitePath(site, deploymentItem.getPath());
+			addScheduledItem(site, deploymentItem.getScheduledDate(), format, fullPath, results, comparator, subComparator, displayPatterns, filterType);
+		}
+		return results;
+	}
+
+	/**
+	 * add a scheduled item created from the given node to the scheduled items
+	 * list if the item is not a component or a static asset
+	 *
+	 * @param site
+	 * @param launchDate
+	 * @param node
+	 * @param scheduledItems
+	 * @param comparator
+	 * @param displayPatterns
+	 */
+	protected void addScheduledItem(String site, Date launchDate, SimpleDateFormat format, String fullPath,
+									List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
+									DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) {
+		try {
+			DmPathTO path = new DmPathTO(fullPath);
+			addToScheduledDateList(site, launchDate, format, fullPath,
+					scheduledItems, comparator, subComparator, displayPatterns, filterType);
+			String relativePath = getRelativeSitePath(site, fullPath);
+			if(!(relativePath.endsWith("/" + DmConstants.INDEX_FILE) || relativePath.endsWith(DmConstants.XML_PATTERN))) {
+				relativePath = relativePath + "/" + DmConstants.INDEX_FILE;
+			}
+			addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,relativePath);
+		} catch (ServiceException e) {
+			logger.error("failed to read " + fullPath + ". " + e.getMessage());
+		}
+	}
+
+	/**
+	 * add the given node to the scheduled items list
+	 *
+	 * @param site
+	 * @param launchDate
+	 * @param format
+	 * @param node
+	 * @param scheduledItems
+	 * @param comparator
+	 * @param subComparator
+	 * @param taskId
+	 * @param displayPatterns
+	 * @throws ServiceException
+	 */
+	protected void addToScheduledDateList(String site, Date launchDate, SimpleDateFormat format, String fullPath,
+										  List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
+										  DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) throws ServiceException {
+		String timeZone = servicesConfig.getDefaultTimezone(site);
+		String dateLabel = ContentFormatUtils.formatDate(format, launchDate, timeZone);
+		DmPathTO path = new DmPathTO(fullPath);
+		// add only if the current node is a file (directories are
+		// deployed with index.xml)
+		// display only if the path matches one of display patterns
+		if (ContentUtils.matchesPatterns(path.getRelativePath(), displayPatterns)) {
+			ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath());
+			if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
+				itemToAdd.submitted = false;
+				itemToAdd.scheduledDate = launchDate;
+				itemToAdd.inProgress = false;
+				boolean found = false;
+				for (int index = 0; index < scheduledItems.size(); index++) {
+					ContentItemTO currDateItem = scheduledItems.get(index);
+					// if the same date label found, add the content item to
+					// it non-recursively
+					if (currDateItem.name.equals(dateLabel)) {
+						currDateItem.addChild(itemToAdd, subComparator, false);
+						found = true;
+						break;
+						// if the date is after the current date, add a new
+						// date item before it
+						// and add the content item to the new date item
+					} else if (itemToAdd.scheduledDate.compareTo(currDateItem.scheduledDate) < 0) {
+						ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
+						scheduledItems.add(index, dateItem);
+						found = true;
+						break;
+					}
+				}
+				// if not found, add to the end of list
+				if (!found) {
+					ContentItemTO dateItem = createDateItem(dateLabel, itemToAdd, comparator, timeZone);
+					scheduledItems.add(dateItem);
+				}
+			}
+		}
+	}
+
+	protected void addDependendenciesToSchdeuleList(String site,
+													Date launchDate,
+													SimpleDateFormat format,
+													List<ContentItemTO>scheduledItems,
+													DmContentItemComparator comparator,
+													DmContentItemComparator subComparator,
+													List<String> displayPatterns,
+													String filterType,
+													String relativePath) {
+
+		DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, null, relativePath, false, true);
+
+		if (dmDependencyTo != null) {
+
+			List<DmDependencyTO> pages = dmDependencyTo.getPages();
+			_addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, pages);
+
+			List<DmDependencyTO> components = dmDependencyTo.getComponents();
+			_addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, components);
+
+			List<DmDependencyTO> documents = dmDependencyTo.getDocuments();
+			_addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, documents);
+		}
+
+	}
+
+	protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator, String timeZone) {
+		ContentItemTO dateItem = new ContentItemTO();
+		dateItem.name = name;
+		dateItem.internalName = name;
+		dateItem.eventDate = itemToAdd.scheduledDate;
+		dateItem.scheduledDate = itemToAdd.scheduledDate;
+		dateItem.timezone = timeZone;
+		dateItem.addChild(itemToAdd, comparator, false);
+		return dateItem;
+	}
+
+	protected void _addDependendenciesToSchdeuleList(String site,
+													 Date launchDate,
+													 SimpleDateFormat format,
+													 List<ContentItemTO>scheduledItems,
+													 DmContentItemComparator comparator,
+													 DmContentItemComparator subComparator,
+													 List<String> displayPatterns,
+													 String filterType,
+													 List<DmDependencyTO>dependencies) {
+		if(dependencies != null) {
+			for(DmDependencyTO dependencyTo:dependencies) {
+				if (true/*contentService.isNew(site, dependencyTo.getUri())*/) {
+					String uri = dependencyTo.getUri();
+					String fullPath = expandRelativeSitePath(site, uri);
+					if(isNodeInScheduledStatus(fullPath)) {
+						addScheduledItem(site,launchDate,format,fullPath,scheduledItems,comparator,subComparator,displayPatterns,filterType);
+						if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
+							addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,uri);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	protected boolean isNodeInScheduledStatus(String fullPath) {
+		/*try {
+			Serializable propValue = getService(PersistenceManagerService.class).getProperty(fullPath, CStudioContentModel.PROP_STATUS);
+			if (propValue != null) {
+				String status = (String)propValue;
+				return DmConstants.DM_STATUS_SCHEDULED.equals(status);
+			}
+		} catch (Exception e) {
+		}*/
+		return false;
+	}
+
+	protected String expandRelativeSitePath(String site, String relativePath) {
+		return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
+	}
+
+	protected String getRelativeSitePath(String site, String fullPath) {
+		return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
+	}
+
 	public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 //	public void setDmWorkflowService(DmWorkflowService service) { _dmSimpleWfService = service; }
@@ -123,7 +343,31 @@ public class WorkflowServiceImpl implements WorkflowService {
 	public NotificationService getNotificationService() { return _notificationService; }
 	public void setNotificationService(NotificationService service) { _notificationService = service; }
 
-	private WorkflowJobDAL _workflowJobDAL; 
+	public ServicesConfig getServicesConfig() { return servicesConfig; }
+	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
+	public void setDmDependencyService(DmDependencyService dmDependencyService) {
+		this.dmDependencyService = dmDependencyService;
+	}
+
+	public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
+		this.dmFilterWrapper = dmFilterWrapper;
+	}
+
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
+
+	public void setDeploymentService(DeploymentService deploymentService) {
+		this.deploymentService = deploymentService;
+	}
+
+	private WorkflowJobDAL _workflowJobDAL;
 //	private DmWorkflowService _dmSimpleWfService;
 	private NotificationService _notificationService;
+	protected ServicesConfig servicesConfig;
+	protected DeploymentService deploymentService;
+	protected ContentService contentService;
+	protected DmFilterWrapper dmFilterWrapper;
+	protected DmDependencyService dmDependencyService;
 }

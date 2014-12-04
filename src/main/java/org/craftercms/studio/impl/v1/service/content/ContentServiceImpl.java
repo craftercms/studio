@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -347,13 +348,12 @@ public class ContentServiceImpl implements ContentService {
      * @param isPages
      * @return return an array of child nodes
      */
-    protected ContentItemTO[] getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
+    protected List<ContentItemTO> getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
 
-        ContentItemTO[] children = new ContentItemTO[0];
+        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
         RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
 
-        children = new ContentItemTO[childRepoItems.length];
         for(int i=0; i<childRepoItems.length; i++) {
             RepositoryItem repoItem = childRepoItems[i];
             String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
@@ -370,7 +370,7 @@ public class ContentServiceImpl implements ContentService {
                 if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
             }
 
-            children[i] = contentItem;
+            children.add(contentItem);
         }
 
         return children;

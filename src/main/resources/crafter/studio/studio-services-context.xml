@@ -52,6 +52,11 @@
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <!-- remove this asap -->
         <!--property name="dmWorkflowService" ref="cstudioDmWorkflowService" /-->
     </bean>
@@ -89,6 +94,10 @@
         <property name="contentService" ref="cstudioContentService" />
     </bean>
 
+    <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
 
     <!-- ////////////////////// -->
     <!-- Email  -->
@@ -234,5 +243,47 @@
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
     <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepositoryDirty">
         <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
+    </bean>
+
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Object type filters                   -->
+    <!-- ////////////////////////////////////// -->
+    <!-- this should be refactored and moved in to repo based config -->
+    <!-- DM filters -->
+    <bean id="cstudioDmFilterWrapper" class="org.craftercms.studio.api.v1.util.filter.DmFilterWrapperImpl">
+        <property name="filterMap">
+            <map>
+                <entry key="pages">
+                    <ref bean="cstudioPagesFilter"/>
+                </entry>
+                <entry key="components">
+                    <ref bean="cstudioComponentsFilter"/>
+                </entry>
+                <entry key="documents">
+                    <ref bean="cstudioDocumentsFilter"/>
+                </entry>
+                <entry key="all">
+                    <ref bean="cstudioAllFilter"/>
+                </entry>
+            </map>
+        </property>
+        <property name="defaultFilter" ref="cstudioAllFilter"/>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="cstudioPagesFilter" class="org.craftercms.studio.api.v1.util.filter.PageFilter">
+        <property name="includePattern"><value>${cstudioPagesFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioComponentsFilter" class="org.craftercms.studio.api.v1.util.filter.ComponentFilter">
+        <property name="includePattern"><value>${cstudioComponentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioDocumentsFilter" class="org.craftercms.studio.api.v1.util.filter.DocumentFilter">
+        <property name="includePattern"><value>${cstudioDocumentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioAllFilter" class="org.craftercms.studio.api.v1.util.filter.AllFilter">
     </bean>
 </beans>

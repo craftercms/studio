@@ -20,9 +20,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import javolution.util.FastList;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.dal.ActivityFeed;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistoryMapper;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -135,8 +133,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<CopyToEnvironmentItem> getScheduledItems(String site) {
-        return _deploymentDAL.getScheduledItems(site);
+    public List<CopyToEnvironment> getScheduledItems(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
+        params.put("now", new Date());
+        return copyToEnvironmentMapper.getScheduledItems(params);
     }
 
     @Override
@@ -285,4 +287,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Autowired
     protected DeploymentSyncHistoryMapper _deploymentSyncHistoryMapper;
+    @Autowired
+    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 }

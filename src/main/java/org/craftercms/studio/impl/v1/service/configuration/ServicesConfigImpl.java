@@ -325,17 +325,16 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorPatterns(java.lang.String)
       */
-	/*
     public List<String> getLevelDescriptorPatterns(String site) {
         if (isConfigUpdated(site)) {
             loadConfiguration(site);
         }
-        SiteConfigTO config = _siteMapping.get(site);
+        SiteConfigTO config = siteMapping.get(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getLevelDescriptorPatterns();
         }
         return null;
-    }*/
+    }
 
 
 	/*
@@ -420,17 +419,16 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDisplayInWidgetPathPatterns(java.lang.String)
 	 */
-	/*
 	public List<String> getDisplayInWidgetPathPatterns(String site) {
 		if (isConfigUpdated(site)) {
 			loadConfiguration(site);
 		}
-		SiteConfigTO config = _siteMapping.get(site);
+		SiteConfigTO config = siteMapping.get(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDisplayPatterns();
 		}
 		return null;
-	}*/
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -608,8 +606,8 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         loadPatterns(siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
         //List<String> excludePaths = getStringList(node.selectNodes("exclude-paths/exclude-path"));
         //repoConfigTO.setExcludePaths(excludePaths);
-        //List<String> displayPatterns = getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
-        //repoConfigTO.setDisplayPatterns(displayPatterns);
+        List<String> displayPatterns = getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
+        repoConfigTO.setDisplayPatterns(displayPatterns);
         //loadTemplateConfig(repoConfigTO, node.selectSingleNode("common-prototype-config"));
         siteConfig.setRepositoryConfig(repoConfigTO);
     }
@@ -638,7 +636,6 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @param nodes
 	 * @return a list of string values
 	 */
-	/*
 	protected List<String> getStringList(List<Node> nodes) {
 		List<String> items = null;
 		if (nodes != null && nodes.size() > 0) {
@@ -650,7 +647,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 			items = new FastList<String>(0);
 		}
 		return items;
-	}*/
+	}
 
 	/**
 	 * load models from the given nodes
@@ -714,8 +711,8 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
                             repo.setDocumentPatterns(patterns);
                         } else if (patternKey.equals(PATTERN_RENDERING_TEMPLATE)) {
                             repo.setRenderingTemplatePatterns(patterns);
-//                        } else if (patternKey.equals(PATTERN_LEVEL_DESCRIPTOR)) {
-//                            repo.setLevelDescriptorPatterns(patterns);
+                        } else if (patternKey.equals(PATTERN_LEVEL_DESCRIPTOR)) {
+                            repo.setLevelDescriptorPatterns(patterns);
 //                        } else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
 //                            repo.setPreviewableMimetypesPaterns(patterns);
                         } else {

@@ -55,7 +55,7 @@ public interface DmDependencyService {
      * @param item
      * @param populateUpdatedDependecinesOnly
      */
-    public void populateDependencyContentItems(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly);
+    //public void populateDependencyContentItems(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly);
 
     /**
      * get dependent items as WCM content items from the content at the given path
@@ -83,7 +83,7 @@ public interface DmDependencyService {
      * 			create the dependency tree of child pages to be the same as the repository hierarchy if true
      * @return a list of items that contains dependent items
      */
-    public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren) throws ServiceException;
+    //public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren) throws ServiceException;
 
     /**
      * get dependencies of all submitted items and present as a tree structure
@@ -96,9 +96,9 @@ public interface DmDependencyService {
      * 			create the dependency tree of child pages to be the same as the repository hierarchy if true
      * @return a list of items that contains dependent items
      */
-    public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren,boolean deleteDependencies) throws ServiceException;
+    //public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren,boolean deleteDependencies) throws ServiceException;
 
-    public void populatePageDependencies(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly) ;
+    //public void populatePageDependencies(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly) ;
 
     /**
      * get direct dependent file names of the content at the given path
@@ -107,7 +107,7 @@ public interface DmDependencyService {
      * @param path
      * @return a list of dependencies
      */
-    public List<DependencyEntity> getDirectDependencies(String site, String path);
+    //public List<DependencyEntity> getDirectDependencies(String site, String path);
 
     /**
      * extract direct dependencies from the given document
@@ -117,7 +117,7 @@ public interface DmDependencyService {
      * @param document
      * @throws ServiceException
      */
-    public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
+    //public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
 
     /**
      *
@@ -125,18 +125,18 @@ public interface DmDependencyService {
      * @param path
      * @param dependencies map of type and targets. DB srcid|target id|type
      */
-    public void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
+    //public void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
 
-    public void updateDependencies(String site,String path,String state);
+    //public void updateDependencies(String site,String path,String state);
 
-	public Set<DmDependencyTO> getDeleteDependencies(String site,
-			String sourceContentPath, String dependencyPath) throws ServiceException;
+	//public Set<DmDependencyTO> getDeleteDependencies(String site,
+	//		String sourceContentPath, String dependencyPath) throws ServiceException;
 
-	public List<String> extractDependenciesFromDocument(String site,
-			Document doc) throws ServiceException ;
+	//public List<String> extractDependenciesFromDocument(String site,
+	//		Document doc) throws ServiceException ;
 
-	public List<String> getRemovedDependenices(DmDependencyDiffService.DiffRequest diffRequest,
-			boolean b) throws ServiceException;
+	//public List<String> getRemovedDependenices(DmDependencyDiffService.DiffRequest diffRequest,
+	//		boolean b) throws ServiceException;
 
     /**
      * Replace dependencies in the document based on the values in the Map original,target
@@ -149,7 +149,7 @@ public interface DmDependencyService {
      * @return
      * @throws ServiceException
      */
-    public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
+    //public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
 
     /**
      * Return dependencies that are protected based on the copy pattern provided in the configuration
@@ -157,15 +157,15 @@ public interface DmDependencyService {
      * <Dependency matching copy pattern, target location>
      * @param dependencyPath
      */
-    public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
+    //public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
-    public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    //public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
-    public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    //public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
-    public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    //public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
     public List<String> getDependencyPaths(String site, String path);
 
-	Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
+	//Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
 }
