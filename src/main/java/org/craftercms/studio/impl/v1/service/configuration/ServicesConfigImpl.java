@@ -24,8 +24,10 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
 import org.craftercms.studio.api.v1.to.SiteConfigTO;
+import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -199,34 +201,32 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		return null;
 	}*/
 
-	/*
     @Override
     public List<DmFolderConfigTO> getFolders(String site) {
         if (isConfigUpdated(site)) {
             loadConfiguration(site);
         }
-        SiteConfigTO config = _siteMapping.get(site);
+        SiteConfigTO config = siteMapping.get(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getFolders();
         }
         return null;
-    }*/
+    }
 
     /*
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.wcm.service.api.WcmServicesConfig#getRootPrefix(java.lang.String)
       */
-	/*
 	public String getRootPrefix(String site) {
 		if (isConfigUpdated(site)) {
 			loadConfiguration(site);
 		}
-		SiteConfigTO config = _siteMapping.get(site);
+		SiteConfigTO config = siteMapping.get(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRootPrefix();
 		}
 		return null;
-	}*/
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -602,7 +602,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
             }
         }*/
         //repoConfigTO.setCheckForRenamed(org.craftercms.cstudio.alfresco.util.ContentFormatUtils.getBooleanValue(node.valueOf("check-for-renamed")));
-        //loadFolderConfiguration(siteConfig, repoConfigTO, node.selectNodes("folders/folder"));
+        loadFolderConfiguration(siteConfig, repoConfigTO, node.selectNodes("folders/folder"));
         loadPatterns(siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
         //List<String> excludePaths = getStringList(node.selectNodes("exclude-paths/exclude-path"));
         //repoConfigTO.setExcludePaths(excludePaths);
@@ -734,7 +734,6 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
      * @param site
      * @param folderNodes
      */
-	/*
     protected void loadFolderConfiguration(SiteConfigTO site, RepositoryConfigTO repo, List<Node> folderNodes) {
         if (folderNodes != null) {
             List<DmFolderConfigTO> folders = new FastList<DmFolderConfigTO>(folderNodes.size());
@@ -750,7 +749,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         } else {
             LOGGER.warn(site.getName() + " does not have any folder configuration.");
         }
-    }*/
+    }
 
 	/*
     @Override

@@ -383,7 +383,8 @@ public class ContentServiceImpl implements ContentService {
      * @param relativePath
      * @return
      */
-    protected String expandRelativeSitePath(String site, String relativePath) {
+    @Override
+    public String expandRelativeSitePath(String site, String relativePath) {
         return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
@@ -395,7 +396,8 @@ public class ContentServiceImpl implements ContentService {
      * @param fullPath
      * @return
      */
-    protected String getRelativeSitePath(String site, String fullPath) {
+    @Override
+    public String getRelativeSitePath(String site, String fullPath) {
         return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
     }
 

@@ -57,6 +57,7 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <!-- remove this asap -->
         <!--property name="dmWorkflowService" ref="cstudioDmWorkflowService" /-->
     </bean>
@@ -98,6 +99,13 @@
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
+
+    <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
+          parent="cstudioRegistrableService">
+    </bean>
+
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
+          parent="cstudioRegistrableService" />
 
     <!-- ////////////////////// -->
     <!-- Email  -->

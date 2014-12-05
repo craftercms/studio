@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
@@ -247,7 +248,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		}
 		if (hideLiveItems) {
 			List<String> statesValues = new ArrayList<String>();
-			for (ObjectStateService.State state : ObjectStateService.State.LIVE_STATES) {
+			for (State state : State.LIVE_STATES) {
 				statesValues.add(state.name());
 			}
 			params.put("states", statesValues);

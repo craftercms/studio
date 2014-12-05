@@ -1,0 +1,55 @@
+/*
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2014 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.craftercms.studio.api.v1.service.objectstate;
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * @author Dejan Brkic
+ */
+public enum TransitionEvent {
+
+    DELETE,
+    EDIT,
+    SAVE,
+    CANCEL_EDIT,
+    SAVE_FOR_PREVIEW,
+    REVERT,
+    UNLOCK,
+    CUT,
+    PASTE,
+    DUPLICATE,
+    SUBMIT_WITH_WORKFLOW_SCHEDULED,
+    SUBMIT_WITH_WORKFLOW_UNSCHEDULED,
+    SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
+    SUBMIT_WITHOUT_WORKFLOW_UNSCHEDULED,
+    APPROVE,
+    REJECT,
+    DEPLOYMENT,
+    DEPLOYMENT_FAILED;
+
+    public static List<TransitionEvent> cacheInvalidateEvents = Arrays.asList(
+            DELETE, SAVE, SAVE_FOR_PREVIEW, REVERT, PASTE, DUPLICATE, DEPLOYMENT
+    );
+
+    public static boolean isCacheInvalidateNeeded(TransitionEvent event) {
+        return cacheInvalidateEvents.contains(event);
+    }
+}
