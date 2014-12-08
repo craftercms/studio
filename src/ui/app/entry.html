@@ -5,9 +5,9 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
     <title>Crafter Studio</title>
-    <#-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-    <#-- TODO: Check if user is in session and spit it out here as shown by the example below.
+    <!-- TODO: Check if user is in session and spit it out here as shown by the example below.
     <script type="application/json" id="user">{"name":"Roy","surname":"Art","email":"rart@rivetlogic.com"}</script>
     -->
 
@@ -15,11 +15,18 @@
         var CStudioAuthoring = { cookieDomain: "${cookieDomain}" };
     </script>
 
-    
+    <!-- build:css styles/vendor.css -->
+    <!-- bower:css -->
+    <!-- endbower -->
+    <!-- endbuild -->
 
-    <link rel="stylesheet" href="/studio/static-assets/styles/main.css">
+    <!-- build:css ../../static-assets/styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
 
-    <script src="/studio/static-assets/js/modernizr.js"></script>
+    <!-- build:js ../../static-assets/js/modernizr.js -->
+    <script src="libs/modernizr/modernizr.js"></script>
+    <!-- endbuild -->
 
 </head>
 <body class="{{$state.current.cssClass}}">
@@ -42,7 +49,7 @@
                         <span class="icon-bar"></span>
                     </button>
                     <a class="navbar-brand" ui-sref="home.sites">
-                        <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio"/>
+                        <img src="images/crafter_studio_360.png" alt="Crafter Studio"/>
                     </a>
                 </div>
 
@@ -83,7 +90,7 @@
                             <span class="icon-bar"></span>
                         </button>
                         <a class="navbar-brand" ui-sref="home.sites">
-                            <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio"/>
+                            <img src="images/crafter_studio_360.png" alt="Crafter Studio"/>
                         </a>
                     </div>
 
@@ -176,7 +183,7 @@
 
             <div class="row">
                 <div class="col-lg-12 columns text-center">
-                    <img src="/studio/static-assets/images/crafter_studio_360.png"
+                    <img src="images/crafter_studio_360.png"
                          style="width: 60%; margin: 0 auto 20px; display: block;"/>
                 </div>
             </div>
@@ -376,9 +383,19 @@
     </div>
 </script>
 
-<script src="/studio/static-assets/js/angular.js"></script>
+<!-- build:js ../../static-assets/js/angular.js -->
+<!-- bower:js -->
+<script src="libs/angular/angular.js"></script>
+<script src="libs/angular-ui-router/release/angular-ui-router.js"></script>
+<script src="libs/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+<script src="libs/angular-cookies/angular-cookies.js"></script>
+<script src="libs/angular-ui-utils/ui-utils.js"></script>
+<!-- endbower -->
+<!-- endbuild -->
 
-<script src="/studio/static-assets/js/studio.js"></script>
+<!-- build:js ../../static-assets/js/studio.js -->
+<script src="js/studio.js"></script>
+<!-- endbuild -->
 
 </body>
 </html>
