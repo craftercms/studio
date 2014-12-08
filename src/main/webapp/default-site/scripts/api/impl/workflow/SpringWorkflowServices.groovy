@@ -32,13 +32,23 @@ class SpringWorkflowServices {
      * @param context - service context
      */
     def SpringWorkflowServices(context) {
-        this.context = context
+        this.context = context;
     }
 
     def getScheduledItems(site, sort, ascending, subSort, subAscending, filterType) {
 
-        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService")
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
+    }
+
+    def getInProgressItems(site, sort, ascending, inProgressOnly) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        springBackedService.getInProgressItems(site, sort, ascending, inProgressOnly);
+    }
+
+    def getGoLiveItems(site, sort, ascending) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        springBackedService.getGoLiveItems(site, sort, ascending);
     }
 }
 

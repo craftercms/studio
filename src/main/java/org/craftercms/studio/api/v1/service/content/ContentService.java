@@ -163,4 +163,8 @@ public interface ContentService {
 
 
     ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
+
+    String expandRelativeSitePath(String site, String relativePath);
+
+    String getRelativeSitePath(String site, String fullPath);
 }

@@ -30,7 +30,7 @@ public class RepositoryConfigTO implements Serializable {
     /** level descriptor name **/
     protected String levelDescriptorName;
     /** top level folders **/
-    //protected List<DmFolderConfigTO> _folders = null;
+    protected List<DmFolderConfigTO> folders = null;
     /** a list of paths to exclude when traversing file/folder hierarchy **/
     //protected List<String> _excludePaths = null;
 
@@ -80,18 +80,18 @@ public class RepositoryConfigTO implements Serializable {
 
     /**
      * @return the folders
-     *//*
+     */
     public List<DmFolderConfigTO> getFolders() {
-        return _folders;
-    }*/
+        return folders;
+    }
 
     /**
      * @param folders
      *            the folders to set
-     *//*
+     */
     public void setFolders(List<DmFolderConfigTO> folders) {
-        this._folders = folders;
-    }*/
+        this.folders = folders;
+    }
 
     /**
      * @param pagePatterns the pagePatterns to set

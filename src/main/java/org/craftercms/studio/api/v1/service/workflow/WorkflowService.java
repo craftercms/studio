@@ -108,4 +108,8 @@ public interface WorkflowService {
 	NotificationService getNotificationService();
 
 	String getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
+
+	String getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
+
+	String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
 }
