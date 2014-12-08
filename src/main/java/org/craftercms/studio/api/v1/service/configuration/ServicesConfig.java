@@ -18,6 +18,8 @@
 package org.craftercms.studio.api.v1.service.configuration;
 
 
+import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+
 import java.util.List;
 
 /**
@@ -70,7 +72,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return root prefix
 	 */
-	//public String getRootPrefix(final String site);
+	public String getRootPrefix(final String site);
 	
 	/**
 	 * get the name of the web project for the given site
@@ -88,7 +90,7 @@ public interface ServicesConfig {
      * @param site
      * @return a list of folder configuration
      */
-    //public List<DmFolderConfigTO> getFolders(final String site);
+    public List<DmFolderConfigTO> getFolders(final String site);
 
 	/**
 	 * get DM content type configuration by the given site and name
@@ -138,7 +140,7 @@ public interface ServicesConfig {
      *
      * @return level descriptor item URI patterns
      */
-    //public List<String> getLevelDescriptorPatterns(String site);
+    public List<String> getLevelDescriptorPatterns(String site);
 
 	/**
 	 * get the category root path specified for each category (e.g. /site/websites for Pages)
@@ -197,7 +199,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return a list of paths to display in widgets
 	 */
-	//public List<String> getDisplayInWidgetPathPatterns(String site);
+	public List<String> getDisplayInWidgetPathPatterns(String site);
 
 	/**
 	 * get the default timezone value

@@ -1,0 +1,99 @@
+/*
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2014 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.craftercms.studio.api.v1.service.objectstate;
+
+
+import org.craftercms.studio.api.v1.dal.ObjectState;
+
+import java.util.Arrays;
+import java.util.List;
+
+public interface ObjectStateService {
+
+/*
+    public void beginSystemProcessing(String fullPath);
+
+    public void beginSystemProcessing(NodeRef nodeRef);
+
+    public void endSystemProcessing(String fullPath);
+
+    public void endSystemProcessing(NodeRef nodeRef);
+
+    public State getObjectState(String fullPath);
+
+    public State getObjectState(NodeRef nodeRef);
+
+    public State getRealObjectState(NodeRef nodeRef);
+
+    public void transition(String fullPath, TransitionEvent event);
+
+    public void transition(NodeRef nodeRef, TransitionEvent event);
+
+    public void insertNewObjectEntry(String fullPath);
+
+    public void insertNewObjectEntry(NodeRef nodeRef);
+*/
+    public List<ObjectState> getSubmittedItems(String site);
+/*
+    public void setSystemProcessing(String fullPath, boolean isSystemProcessing);
+
+    public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);
+
+    public void setSystemProcessingBulk(List<String> objectIds, boolean isSystemProcessing);
+
+    public void updateObjectPath(String fullPath, String newPath);
+
+    public void updateObjectPath(NodeRef nodeRef, String newPath);
+
+    public boolean isUpdatedOrNew(String path);
+
+    public boolean isUpdatedOrNew(NodeRef nodeRef);
+
+    public State[][] getTransitionMapping();
+
+    public boolean isNew(String fullPath);
+
+    public boolean isNew(NodeRef nodeRef);
+
+    public boolean isFolderLive(String fullPath);
+*/
+    public List<ObjectState> getChangeSet(String site);
+
+    public void deleteObjectState(String objectId);
+/*
+    public void deleteObjectStateForPath(String site, String path);
+
+    public void deleteObjectStateForPaths(String site, List<String> paths);
+
+    public void transitionBulk(List<String> objectIds, TransitionEvent event, State defaultTargetState);
+ */
+    /**
+     * get the object for a given set of states
+     */
+    /*
+    List<ObjectStateTO> getObjectStateByStates(String site, List<State> states);
+
+    public boolean isScheduled(String path);
+
+    public boolean isScheduled(NodeRef nodeRef);
+
+    public boolean isInWorkflow(String path);
+
+    public boolean isInWorkflow(NodeRef nodeRef);
+    */
+}

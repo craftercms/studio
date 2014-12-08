@@ -17,21 +17,30 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistoryMapper;
+import javolution.util.FastList;
+import net.sf.json.JSONObject;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.impl.v1.deployment.dal.DeploymentDAL;
 import org.craftercms.studio.impl.v1.deployment.dal.DeploymentDALException;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
+import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -124,7 +133,60 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+    public List<CopyToEnvironment> getScheduledItems(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
+        params.put("now", new Date());
+        return copyToEnvironmentMapper.getScheduledItems(params);
+    }
+
+    @Override
+    public void cancelWorkflow(String site, String path) throws DeploymentException {
+        _deploymentDAL.cancelWorkflow(site, path);
+    }
+
+    @Override
+    public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
+        // get the filtered list of attempts in a specific date range
+        Date toDate = new Date();
+        Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
+        List<DeploymentSyncHistory> deployReports = getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
+        List<DmDeploymentTaskTO> tasks = new FastList<DmDeploymentTaskTO>();
+
+        if (deployReports != null) {
+            int count = 0;
+            SimpleDateFormat deployedFormat = new SimpleDateFormat(CStudioConstants.DATE_FORMAT_DEPLOYED);
+            deployedFormat.setTimeZone(TimeZone.getTimeZone(servicesConfig.getDefaultTimezone(site)));
+            String timezone = servicesConfig.getDefaultTimezone(site);
+            for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
+                DeploymentSyncHistory entry = deployReports.get(index);
+                ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
+                if (deployedItem != null) {
+                    deployedItem.eventDate = entry.getSyncDate();
+                    deployedItem.endpoint = entry.getTarget();
+                    String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
+                    if (tasks.size() > 0) {
+                        DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
+                        String lastDeployedLabel = lastTask.getInternalName();
+                        if (lastDeployedLabel.equals(deployedLabel)) {
+                            // add to the last task if it is deployed on the same day
+                            lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
+                            lastTask.getChildren().add(deployedItem);
+                        } else {
+                            tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                        }
+                    } else {
+                        tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                    }
+                    count++;
+                }
+            }
+        }
+        return tasks;
+    }
+
+    protected List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("from_date", fromDate);
@@ -140,14 +202,61 @@ public class DeploymentServiceImpl implements DeploymentService {
         return _deploymentSyncHistoryMapper.getDeploymentHistory(params);
     }
 
-    @Override
-    public List<CopyToEnvironmentItem> getScheduledItems(String site) {
-        return _deploymentDAL.getScheduledItems(site);
+    /**
+     * create WcmDeploymentTask
+     *
+     * @param deployedLabel
+     * @param item
+     * @return deployment task
+     */
+    protected DmDeploymentTaskTO createDeploymentTask(String deployedLabel, ContentItemTO item) {
+        // otherwise just add as the last task
+        DmDeploymentTaskTO task = new DmDeploymentTaskTO();
+        task.setInternalName(deployedLabel);
+        List<ContentItemTO> taskItems = task.getChildren();
+        if (taskItems == null) {
+            taskItems = new FastList<ContentItemTO>();
+            task.setChildren(taskItems);
+        }
+        taskItems.add(item);
+        task.setNumOfChildren(taskItems.size());
+        return task;
     }
 
-    @Override
-    public void cancelWorkflow(String site, String path) throws DeploymentException {
-        _deploymentDAL.cancelWorkflow(site, path);
+    /**
+     * get a deployed item by the given path. If the item is new, it will be added to the itemsMap
+     *
+     * @param site
+     * @param path
+     * @return deployed item
+     */
+    protected ContentItemTO getDeployedItem(String site, String path) {
+
+        ContentItemTO item;
+        //ServicesConfig servicesConfig = getService(ServicesConfig.class);
+        //String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
+        item = contentService.getContentItem(site, path);
+        if (item == null) {
+            item = contentService.createDummyDmContentItemForDeletedNode(site, path);
+            ActivityFeed activity = activityService.getDeletedActivity(site, path);
+            if (activity != null) {
+                JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
+                if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
+                    String contentType = (String)summaryObject.get(CStudioConstants.CONTENT_TYPE);
+                    item.contentType = contentType;
+                }
+                if(summaryObject.containsKey(CStudioConstants.INTERNAL_NAME)) {
+                    String internalName = (String)summaryObject.get(CStudioConstants.INTERNAL_NAME);
+                    item.internalName = internalName;
+                }
+                if(summaryObject.containsKey(CStudioConstants.BROWSER_URI)) {
+                    String browserUri = (String)summaryObject.get(CStudioConstants.BROWSER_URI);
+                    item.browserUri = browserUri;
+                }
+            }
+        }
+        return item;
+
     }
 
     public void setDeploymentDAL(DeploymentDAL deploymentDAL) {
@@ -158,9 +267,26 @@ public class DeploymentServiceImpl implements DeploymentService {
         this._contentRepository = contentRepository;
     }
 
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
+
     protected DeploymentDAL _deploymentDAL;
     protected ContentRepository _contentRepository;
+    protected ServicesConfig servicesConfig;
+    protected ContentService contentService;
+    protected ActivityService activityService;
 
     @Autowired
     protected DeploymentSyncHistoryMapper _deploymentSyncHistoryMapper;
+    @Autowired
+    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 }

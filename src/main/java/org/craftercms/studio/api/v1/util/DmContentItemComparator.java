@@ -17,10 +17,10 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.util;
 
-import org.craftercms.studio.api.v1.to.DmContentItemTO;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentComparatorBase;
 
-public class DmContentItemComparator extends ContentComparatorBase<DmContentItemTO> {
+public class DmContentItemComparator extends ContentComparatorBase<ContentItemTO> {
 	
 	public static final String SORT_EVENT_DATE = "eventDate";
 	public static final String SORT_INTERNAL_NAME = "internalName";
@@ -62,7 +62,7 @@ public class DmContentItemComparator extends ContentComparatorBase<DmContentItem
         this._secondLevelAscending = secLevAscending;
     }
 	
-	public boolean areEqual(DmContentItemTO item1, DmContentItemTO item2) {
+	public boolean areEqual(ContentItemTO item1, ContentItemTO item2) {
 		if (item1 == null && item2 == null) {
 			return true;
 		} else if (item1 == null || item2 == null) {
@@ -72,7 +72,7 @@ public class DmContentItemComparator extends ContentComparatorBase<DmContentItem
 		}
 	}
 	
-	public int hashCodeOf(DmContentItemTO item) {
+	public int hashCodeOf(ContentItemTO item) {
 		if (item != null) {
 			return item.hashCode();
 		} else {
@@ -80,20 +80,20 @@ public class DmContentItemComparator extends ContentComparatorBase<DmContentItem
 		}
 	}
 	
-	public int compare(final DmContentItemTO item1, final DmContentItemTO item2) {
+	public int compare(final ContentItemTO item1, final ContentItemTO item2) {
 		// check for level descriptors
 		if (_listLevelDescriptorsFirst) {
-			if (item1.isLevelDescriptor() && !item2.isLevelDescriptor()) {
+			if (item1.isLevelDescriptor && !item2.isLevelDescriptor) {
 				return (_ascending) ? -1 : 1;
-			} else if (!item1.isLevelDescriptor() && item2.isLevelDescriptor()) {
+			} else if (!item1.isLevelDescriptor && item2.isLevelDescriptor) {
 				return (_ascending) ? 1 : -1;
 			}
 		}
 		// check for floating pages
 		if (_listFloatingPagesLast) {
-			if (item1.isFloating() && !item2.isFloating()) {
+			if (item1.isFloating && !item2.isFloating) {
 				return (_ascending) ? 1 : -1;
-			} else if (!item1.isFloating() && item2.isFloating()) {
+			} else if (!item1.isFloating && item2.isFloating) {
 				return (_ascending) ? -1 : 1;
 			}
 		}
@@ -101,43 +101,43 @@ public class DmContentItemComparator extends ContentComparatorBase<DmContentItem
 		// or both of them are the same type
 		// compare them by their metadata
 		if (SORT_EVENT_DATE.equals(_sort)) {
-			int rt = compareDates(item1.getEventDateAsDate(), item2.getEventDateAsDate(), _ascending);
+			int rt = compareDates(item1.eventDate, item2.eventDate, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
             }
             return rt;
 
 		} else if (SORT_INTERNAL_NAME.equals(_sort)) {
-			String item1InternalName = (item1.getInternalName() != null) ? item1.getInternalName().toLowerCase() : null;
-			String item2InternalName = (item2.getInternalName() != null) ? item2.getInternalName().toLowerCase() : null;
+			String item1InternalName = (item1.internalName != null) ? item1.internalName.toLowerCase() : null;
+			String item2InternalName = (item2.internalName != null) ? item2.internalName.toLowerCase() : null;
 			int rt = compareStrings(item1InternalName, item2InternalName, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
             }
             return rt;
 		} else if (SORT_BROWSER_URI.equals(_sort)) {
-			String item1Uri = (item1.getUri() != null) ? item1.getUri().toLowerCase() : null;
-			String item2Uri = (item2.getUri() != null) ? item2.getUri().toLowerCase() : null;
+			String item1Uri = (item1.uri != null) ? item1.uri.toLowerCase() : null;
+			String item2Uri = (item2.uri != null) ? item2.uri.toLowerCase() : null;
 			int rt = compareStrings(item1Uri, item2Uri, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
             }
             return rt;
 		} else if (SORT_PATH.equals(_sort)) {
-			String item1Path = (item1.getPath() != null) ? item1.getPath().toLowerCase() : null;
-			String item2Path = (item2.getPath() != null) ? item2.getPath().toLowerCase() : null;
+			String item1Path = (item1.path != null) ? item1.path.toLowerCase() : null;
+			String item2Path = (item2.path != null) ? item2.path.toLowerCase() : null;
 			int rt = compareStrings(item1Path, item2Path, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
             }
             return rt;
 		} else if (SORT_USER_LAST_NAME.equals(_sort)) {
-			String item1LastName = (item1.getUserLastName() != null) ? item1.getUserLastName().toLowerCase() : null;
-			String item2LastName = (item2.getUserLastName() != null) ? item2.getUserLastName().toLowerCase() : null;
+			String item1LastName = (item1.userLastName != null) ? item1.userLastName.toLowerCase() : null;
+			String item2LastName = (item2.userLastName != null) ? item2.userLastName.toLowerCase() : null;
 			int result = compareStrings(item1LastName, item2LastName, _ascending);
 			if (result == 0) {
-				String item1FirstName = (item1.getUserFirstName() != null) ? item1.getUserFirstName().toLowerCase() : null;
-				String item2FirstName = (item2.getUserFirstName() != null) ? item2.getUserFirstName().toLowerCase() : null;
+				String item1FirstName = (item1.userFirstName != null) ? item1.userFirstName.toLowerCase() : null;
+				String item2FirstName = (item2.userFirstName != null) ? item2.userFirstName.toLowerCase() : null;
 				return compareStrings(item1FirstName, item2FirstName, _ascending);
 			} else {
 				return result;
@@ -146,31 +146,31 @@ public class DmContentItemComparator extends ContentComparatorBase<DmContentItem
 		return 0;
 	}
 	
-	public int secondLevelCompare(final DmContentItemTO item1, final DmContentItemTO item2) {
+	public int secondLevelCompare(final ContentItemTO item1, final ContentItemTO item2) {
         // if no checking for floating page & level descriptors
         // or both of them are the same type
         // compare them by their metadata
         if (SORT_EVENT_DATE.equals(_secondLevelSortBy)) {
-            return compareDates(item1.getEventDateAsDate(), item2.getEventDateAsDate(), _secondLevelAscending);
+            return compareDates(item1.eventDate, item2.eventDate, _secondLevelAscending);
         } else if (SORT_INTERNAL_NAME.equals(_secondLevelSortBy)) {
-            String item1InternalName = (item1.getInternalName() != null) ? item1.getInternalName().toLowerCase() : null;
-            String item2InternalName = (item2.getInternalName() != null) ? item2.getInternalName().toLowerCase() : null;
+            String item1InternalName = (item1.internalName != null) ? item1.internalName.toLowerCase() : null;
+            String item2InternalName = (item2.internalName != null) ? item2.internalName.toLowerCase() : null;
             return compareStrings(item1InternalName, item2InternalName, _secondLevelAscending);
         } else if (SORT_BROWSER_URI.equals(_secondLevelSortBy)) {
-            String item1Uri = (item1.getUri() != null) ? item1.getUri().toLowerCase() : null;
-            String item2Uri = (item2.getUri() != null) ? item2.getUri().toLowerCase() : null;
+            String item1Uri = (item1.uri != null) ? item1.uri.toLowerCase() : null;
+            String item2Uri = (item2.uri != null) ? item2.uri.toLowerCase() : null;
             return compareStrings(item1Uri, item2Uri, _secondLevelAscending);
         } else if (SORT_PATH.equals(_secondLevelSortBy)) {
-            String item1Path = (item1.getPath() != null) ? item1.getPath().toLowerCase() : null;
-            String item2Path = (item2.getPath() != null) ? item2.getPath().toLowerCase() : null;
+            String item1Path = (item1.path != null) ? item1.path.toLowerCase() : null;
+            String item2Path = (item2.path != null) ? item2.path.toLowerCase() : null;
             return compareStrings(item1Path, item2Path, _secondLevelAscending);
         } else if (SORT_USER_LAST_NAME.equals(_secondLevelSortBy)) {
-            String item1LastName = (item1.getUserLastName() != null) ? item1.getUserLastName().toLowerCase() : null;
-            String item2LastName = (item2.getUserLastName() != null) ? item2.getUserLastName().toLowerCase() : null;
+            String item1LastName = (item1.userLastName != null) ? item1.userLastName.toLowerCase() : null;
+            String item2LastName = (item2.userLastName != null) ? item2.userLastName.toLowerCase() : null;
             int result = compareStrings(item1LastName, item2LastName, _secondLevelAscending);
             if (result == 0) {
-                String item1FirstName = (item1.getUserFirstName() != null) ? item1.getUserFirstName().toLowerCase() : null;
-                String item2FirstName = (item2.getUserFirstName() != null) ? item2.getUserFirstName().toLowerCase() : null;
+                String item1FirstName = (item1.userFirstName != null) ? item1.userFirstName.toLowerCase() : null;
+                String item2FirstName = (item2.userFirstName != null) ? item2.userFirstName.toLowerCase() : null;
                 return compareStrings(item1FirstName, item2FirstName, _secondLevelAscending);
             } else {
                 return result;

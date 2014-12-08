@@ -26,16 +26,11 @@
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
           <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 
-    <bean id="cstudioDmDeploymentService" class="org.craftercms.studio.impl.v1.service.dependency.DmDeploymentServiceImpl"
-         parent="cstudioRegistrableService">
-          <!-- really? why does this bean rely on the other bean, maybe consolidate these? -->
-          <property name="deploymentService" ref="cstudioDeploymentServiceSimple" />
-        <property name="contentService" ref="cstudioContentService" />
-    </bean>
 
     <bean id="cstudioTransactionServiceSimple" class="org.craftercms.studio.impl.v1.service.transaction.TransactionServiceImpl">
         <property name="contentRepository" ref="cstudioContentRepository" />
@@ -57,12 +52,21 @@
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <!-- remove this asap -->
         <!--property name="dmWorkflowService" ref="cstudioDmWorkflowService" /-->
     </bean>
 
-     <bean id="cstudioDeploymentServiceSimple" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
+     <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
             <property name="contentRepository" ref="cstudioContentRepository" />
+         <property name="contentService" ref="cstudioContentService"/>
+         <property name="activityService" ref="cstudioActivityService" />
+         <property name="servicesConfig" ref="cstudioServicesConfig"/>
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
@@ -85,10 +89,23 @@
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="cstudioCustomActivityService" class="org.craftercms.studio.impl.v1.service.activity.CStudioActivityServiceImpl"
+    <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
+        <property name="contentService" ref="cstudioContentService" />
+    </bean>
+
+    <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
           parent="cstudioRegistrableService">
     </bean>
 
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
+          parent="cstudioRegistrableService" />
 
     <!-- ////////////////////// -->
     <!-- Email  -->
@@ -234,5 +251,47 @@
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
     <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepositoryDirty">
         <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
+    </bean>
+
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Object type filters                   -->
+    <!-- ////////////////////////////////////// -->
+    <!-- this should be refactored and moved in to repo based config -->
+    <!-- DM filters -->
+    <bean id="cstudioDmFilterWrapper" class="org.craftercms.studio.api.v1.util.filter.DmFilterWrapperImpl">
+        <property name="filterMap">
+            <map>
+                <entry key="pages">
+                    <ref bean="cstudioPagesFilter"/>
+                </entry>
+                <entry key="components">
+                    <ref bean="cstudioComponentsFilter"/>
+                </entry>
+                <entry key="documents">
+                    <ref bean="cstudioDocumentsFilter"/>
+                </entry>
+                <entry key="all">
+                    <ref bean="cstudioAllFilter"/>
+                </entry>
+            </map>
+        </property>
+        <property name="defaultFilter" ref="cstudioAllFilter"/>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="cstudioPagesFilter" class="org.craftercms.studio.api.v1.util.filter.PageFilter">
+        <property name="includePattern"><value>${cstudioPagesFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioComponentsFilter" class="org.craftercms.studio.api.v1.util.filter.ComponentFilter">
+        <property name="includePattern"><value>${cstudioComponentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioDocumentsFilter" class="org.craftercms.studio.api.v1.util.filter.DocumentFilter">
+        <property name="includePattern"><value>${cstudioDocumentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioAllFilter" class="org.craftercms.studio.api.v1.util.filter.AllFilter">
     </bean>
 </beans>

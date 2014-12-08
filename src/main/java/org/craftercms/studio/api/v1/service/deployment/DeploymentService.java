@@ -17,7 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
 import java.util.List;
@@ -33,11 +34,26 @@ public interface DeploymentService {
     // document
     void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;
 
-    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
-
-    List<CopyToEnvironmentItem> getScheduledItems(String site);
+    List<CopyToEnvironment> getScheduledItems(String site);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
 
     void deleteDeploymentDataForSite(String site);
+
+    /**
+     * get deployment history given a specified date range
+     *
+     * @param daysFromToday
+     * @param numberOfItems
+     * @param site
+     * @param sort
+     *            the sort key to sort items within each deployed date
+     * @param ascending
+     *
+     * @return list of deployment items
+     */
+
+    public List<DmDeploymentTaskTO> getDeploymentHistory(
+            String site, int days, int number, String sort, boolean ascending,
+            String filterType);
 }

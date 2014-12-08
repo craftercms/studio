@@ -30,7 +30,7 @@ public class RepositoryConfigTO implements Serializable {
     /** level descriptor name **/
     protected String levelDescriptorName;
     /** top level folders **/
-    //protected List<DmFolderConfigTO> _folders = null;
+    protected List<DmFolderConfigTO> folders = null;
     /** a list of paths to exclude when traversing file/folder hierarchy **/
     //protected List<String> _excludePaths = null;
 
@@ -45,10 +45,10 @@ public class RepositoryConfigTO implements Serializable {
     /** rendering template path patterns **/
     protected List<String> renderingTemplatePatterns = null;
     /** level descriptors path patterns **/
-    //protected List<String> _levelDescriptorPatterns = null;
+    protected List<String> levelDescriptorPatterns = null;
 
     /** content to display in widgets **/
-    //protected List<String> _displayPatterns = null;
+    protected List<String> displayPatterns = null;
 
     /** periodically index repository? **/
     //protected boolean _indexRepository = false;
@@ -80,18 +80,18 @@ public class RepositoryConfigTO implements Serializable {
 
     /**
      * @return the folders
-     *//*
+     */
     public List<DmFolderConfigTO> getFolders() {
-        return _folders;
-    }*/
+        return folders;
+    }
 
     /**
      * @param folders
      *            the folders to set
-     *//*
+     */
     public void setFolders(List<DmFolderConfigTO> folders) {
-        this._folders = folders;
-    }*/
+        this.folders = folders;
+    }
 
     /**
      * @param pagePatterns the pagePatterns to set
@@ -238,17 +238,17 @@ public class RepositoryConfigTO implements Serializable {
 
     /**
      * @param displayPatterns the displayPatterns to set
-     *//*
+     */
     public void setDisplayPatterns(List<String> displayPatterns) {
-        this._displayPatterns = displayPatterns;
-    }*/
+        this.displayPatterns = displayPatterns;
+    }
 
     /**
      * @return the displayPatterns
-     *//*
+     */
     public List<String> getDisplayPatterns() {
-        return _displayPatterns;
-    }*/
+        return displayPatterns;
+    }
 
     /**
      * @return the templateConfig
@@ -285,13 +285,11 @@ public class RepositoryConfigTO implements Serializable {
         this.renderingTemplatePatterns = paterns;
     }
 
-    /*
     public List<String> getLevelDescriptorPatterns() {
-        return this._levelDescriptorPatterns;
-    }*/
+        return this.levelDescriptorPatterns;
+    }
 
-    /*
     public void setLevelDescriptorPatterns(List<String> patterns) {
-        this._levelDescriptorPatterns = patterns;
-    }*/
+        this.levelDescriptorPatterns = patterns;
+    }
 }

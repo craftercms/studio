@@ -19,13 +19,18 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -286,6 +291,54 @@ public class ContentServiceImpl implements ContentService {
         return success;
     }
 
+    public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
+        String absolutePath = expandRelativeSitePath(site, relativePath);
+        DmPathTO path = new DmPathTO(absolutePath);
+        ContentItemTO item = new ContentItemTO();
+        String timeZone = servicesConfig.getDefaultTimezone(site);
+        item.timezone = timeZone;
+        String name = path.getName();
+        //String relativePath = path.getRelativePath();
+        String fullPath = path.toString();
+        String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
+        item.path = folderPath;
+        /**
+         * Internal name should be just folder name
+         */
+        String internalName = folderPath;
+        int index = folderPath.lastIndexOf('/');
+        if (index != -1)
+            internalName = folderPath.substring(index + 1);
+
+        item.internalName = internalName;
+        //item.title = internalName;
+        item.isDisabled = false;
+        item.isNavigation = false;
+        item.name = name;
+        item.uri = relativePath;
+
+        //item.defaultWebApp = path.getDmSitePath();
+        //set content type based on the relative Path
+        String contentType = getContentType(site, relativePath);
+        item.contentType = contentType;
+        if (contentType.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+            item.component = true;
+        } else if (contentType.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+            item.document = true;
+        }
+        // set if the content is new
+        item.isDeleted = true;
+        item.isContainer = false;
+        //item.isNewFile = false;
+        item.isNew = false;
+        item.isInProgress = false;
+        item.timezone = servicesConfig.getDefaultTimezone(site);
+        item.isPreviewable = false;
+        item.browserUri = getBrowserUri(item);
+
+        return item;
+    }
+
     /**
      * get the tree of content items (metadata) beginning at a root
      *
@@ -295,13 +348,12 @@ public class ContentServiceImpl implements ContentService {
      * @param isPages
      * @return return an array of child nodes
      */
-    protected ContentItemTO[] getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
+    protected List<ContentItemTO> getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
 
-        ContentItemTO[] children = new ContentItemTO[0];
+        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
         RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
 
-        children = new ContentItemTO[childRepoItems.length];
         for(int i=0; i<childRepoItems.length; i++) {
             RepositoryItem repoItem = childRepoItems[i];
             String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
@@ -318,7 +370,7 @@ public class ContentServiceImpl implements ContentService {
                 if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
             }
 
-            children[i] = contentItem;
+            children.add(contentItem);
         }
 
         return children;
@@ -331,7 +383,8 @@ public class ContentServiceImpl implements ContentService {
      * @param relativePath
      * @return
      */
-    protected String expandRelativeSitePath(String site, String relativePath) {
+    @Override
+    public String expandRelativeSitePath(String site, String relativePath) {
         return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
@@ -343,12 +396,73 @@ public class ContentServiceImpl implements ContentService {
      * @param fullPath
      * @return
      */
-    protected String getRelativeSitePath(String site, String fullPath) {
+    @Override
+    public String getRelativeSitePath(String site, String fullPath) {
         return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
     }
 
+    protected String getBrowserUri(ContentItemTO item) {
+        String replacePattern = "";
+        //if (item.isLevelDescriptor) {
+        //    replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+        //} else if (item.isComponent()) {
+        if (item.isComponent) {
+            replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
+        } else if (item.isAsset) {
+            replacePattern = DmConstants.ROOT_PATTERN_ASSETS;
+        } else if (item.isDocument) {
+            replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
+        } else {
+            replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+        }
+        boolean isPage = !(item.isComponent || item.isAsset || item.isDocument);
+        return getBrowserUri(item.uri, replacePattern, isPage);
+    }
+
+    protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
+        String browserUri = uri.replaceFirst(replacePattern, "");
+        browserUri = browserUri.replaceFirst("/" + DmConstants.INDEX_FILE, "");
+        if (browserUri.length() == 0) {
+            browserUri = "/";
+        }
+        // TODO: come up with a better way of doing this.
+        if (isPage) {
+            browserUri = browserUri.replaceFirst("\\.xml", ".html");
+        }
+        return browserUri;
+    }
+
+    protected String getContentType(String site, String uri) {
+        if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
+            return DmConstants.CONTENT_TYPE_COMPONENT;
+        } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
+            return DmConstants.CONTENT_TYPE_DOCUMENT;
+        } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
+            return DmConstants.CONTENT_TYPE_ASSET;
+
+        } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
+            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+        }
+        return DmConstants.CONTENT_TYPE_PAGE;
+    }
+
+    protected boolean matchesPatterns(String uri, List<String> patterns) {
+        if (patterns != null) {
+            for (String pattern : patterns) {
+                if (uri.matches(pattern)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     private ContentRepository _contentRepository;
+    protected ServicesConfig servicesConfig;
+
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
+
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 }
