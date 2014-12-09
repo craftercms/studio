@@ -24,38 +24,42 @@ import java.util.List;
 public class DmDeploymentTaskTO {
 
     /** the name of task specified by the creator **/
-    protected String _internalName;
+    protected String internalName;
 
     /** the number of deployment items in the task **/
-    protected int _numOfChildren;
+    protected int numOfChildren;
 
     /** navigation child content items **/
-    protected List<ContentItemTO> _children = null;
+    protected List<ContentItemTO> children = null;
 
     protected String endpoint;
 
 
     public String getInternalName() {
-        return _internalName;
+        return internalName;
     }
 
     public void setInternalName(String internalName) {
-        _internalName = internalName;
+        this.internalName = internalName;
     }
 
     public int getNumOfChildren() {
-        return _numOfChildren;
+        return numOfChildren;
     }
 
     public void setNumOfChildren(int numOfChildren) {
-        _numOfChildren = numOfChildren;
+        this.numOfChildren = numOfChildren;
     }
 
     public List<ContentItemTO> getChildren() {
-        return _children;
+        return children;
     }
 
     public void setChildren(List<ContentItemTO> children) {
-        this._children = children;
+        this.children = children;
     }
+
+    public String getEndpoint() { return endpoint; }
+
+    public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 }

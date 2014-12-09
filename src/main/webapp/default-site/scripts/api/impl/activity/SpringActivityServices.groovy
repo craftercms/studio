@@ -36,7 +36,7 @@ class SpringActivityServices {
 
     def getActivities(site, user, num, sort, ascending, excludeLive, filterType) {
 
-        def springBackedService = this.context.applicationContext.get("cstudioActivityService")
-        return springBackedService.getActivities(site, user, num, sort, ascending, excludeLive, filterType)
+        def springBackedService = this.context.applicationContext.get("cstudioActivityService");
+        return springBackedService.getActivities(site, user, num, sort, ascending, excludeLive, filterType);
     }
 }

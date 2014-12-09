@@ -21,7 +21,7 @@
  * @author Dejan Brkic
  */
 
-import scripts.api.WorkflowServices;
+import scripts.api.DeploymentServices;
 
 // extract parameters
 def result = [:];
@@ -47,6 +47,14 @@ if (site == undefined || site == "")
     }
 */
 
-def context = WorkflowServices.createContext(applicationContext, request)
-result.content = WorkflowServices.getScheduledItems(context, site, sort, ascending, "internalName", true, filterType);
+def context = DeploymentServices.createContext(applicationContext, request)
+def items = DeploymentServices.getScheduledItems(context, site, sort, ascending, "internalName", true, filterType);
+def total = 0;
+for (task in items) {
+    total += task.numOfChildren;
+}
+result.total = total;
+result.sortedBy = sort;
+result.ascending = ascending;
+result.documents = items;
 return result;

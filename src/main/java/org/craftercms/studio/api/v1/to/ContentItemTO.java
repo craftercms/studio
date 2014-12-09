@@ -108,7 +108,7 @@ public class ContentItemTO implements Serializable {
 	public Date lastEditDate;
 
 
-    public List<ContentItemTO> children;
+    public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
 	public ContentItemTO() {}
 

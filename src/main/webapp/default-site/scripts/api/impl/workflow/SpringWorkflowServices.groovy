@@ -35,12 +35,6 @@ class SpringWorkflowServices {
         this.context = context;
     }
 
-    def getScheduledItems(site, sort, ascending, subSort, subAscending, filterType) {
-
-        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
-        return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
-    }
-
     def getInProgressItems(site, sort, ascending, inProgressOnly) {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         springBackedService.getInProgressItems(site, sort, ascending, inProgressOnly);

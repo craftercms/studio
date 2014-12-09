@@ -67,6 +67,8 @@
          <property name="contentService" ref="cstudioContentService"/>
          <property name="activityService" ref="cstudioActivityService" />
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
+         <property name="dmDependencyService" ref="cstudioDmDependencyService" />
+         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
