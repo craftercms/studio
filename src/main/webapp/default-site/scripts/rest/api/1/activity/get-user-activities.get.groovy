@@ -62,6 +62,10 @@ def context = ActivityServices.createContext(applicationContext, request)
 if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
     result.content = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType);
 } else {
-    result.content = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType);
+    def activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType);
+    result.total = activities.size();
+    result.sortedBy = "eventDate";
+    result.ascending = "false";
+    result.documents = activities;
 }
 return result

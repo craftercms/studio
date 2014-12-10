@@ -92,11 +92,6 @@ class WorkflowServices {
 
 	}
 
-	static getScheduledItems(context, site, sort, ascending, subSort, subAscending, filterType) {
-		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
-		workflowServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
-	}
-
 	static getInProgressItems(context, site, sort, ascending, inProgressOnly) {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
 		workflowServicesImpl.getInProgressItems(site, sort, ascending, inProgressOnly);

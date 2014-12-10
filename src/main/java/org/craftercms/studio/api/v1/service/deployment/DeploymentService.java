@@ -18,6 +18,8 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
@@ -56,4 +58,6 @@ public interface DeploymentService {
     public List<DmDeploymentTaskTO> getDeploymentHistory(
             String site, int days, int number, String sort, boolean ascending,
             String filterType);
+
+    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
 }

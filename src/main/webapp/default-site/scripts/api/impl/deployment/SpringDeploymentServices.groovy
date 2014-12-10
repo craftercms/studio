@@ -28,4 +28,10 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
+
+    def getScheduledItems(site, sort, ascending, subSort, subAscending, filterType) {
+
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
+    }
 }

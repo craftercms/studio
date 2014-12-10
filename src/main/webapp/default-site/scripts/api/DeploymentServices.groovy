@@ -31,13 +31,10 @@ class DeploymentServices {
         return deploymentServicesImpl.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
 
-    /** 
-     * get the scheduled items for a site
-     * @param site - the project ID
-     * @param filter - filters to apply to listing
-     */ 
-    static getScheduledItems(site, filter) {
 
+    static getScheduledItems(context, site, sort, ascending, subSort, subAscending, filterType) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
     }
 
 }
