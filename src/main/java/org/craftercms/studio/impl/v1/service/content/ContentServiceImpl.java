@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.io.SAXReader;
@@ -161,7 +162,7 @@ public class ContentServiceImpl implements ContentService {
                     item.path = path.substring(0, path.lastIndexOf("/"));
                     item.name = path.substring(path.lastIndexOf("/")+1);
                     item.page = (item.contentType.indexOf("/page") != -1);
-                    item.isContainer = false;
+                    item.isContainer = path.endsWith("/index.xml");
                     item.previewable = item.page;
                     item.component = (item.contentType.indexOf("/component") != -1);
                     item.document = false;
@@ -183,7 +184,9 @@ public class ContentServiceImpl implements ContentService {
                     item.userFirstName = "";
                     item.userLastName = "";
                     item.nodeRef = "";
-                    item.metaDescription = ""; 
+                    item.metaDescription = "";
+
+                    loadContentTypeProperties(site, item, item.contentType);
                }
                 else {
                      logger.error("no xml document could be loaded for path '{0}'", path);    
@@ -256,6 +259,16 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
+    protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
+        ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
+        if (config != null) {
+            item.setForm(config.getForm());
+            item.setFormPagePath(config.getFormPath());
+            item.setPreviewable(config.isPreviewable());
+        }
+        // TODO CodeRev:but what if the config is null?
+    }
+
     @Override
     public ContentItemTO getContentItemTree(String site, String path, int depth) {
         boolean isPages = (path.contains("/site/website"));
@@ -269,6 +282,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         root.children = getContentItemTreeInternal(site, path, depth, isPages);
+        root.numOfChildren = root.children.size();
 
         return root;
     }
@@ -362,12 +376,18 @@ public class ContentServiceImpl implements ContentService {
             
             if(repoItem.isFolder && isPages) {
                 contentItem = getContentItem(site,  relativePath+"/index.xml");
-                if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+                if(depth > 0) {
+                    contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+                    contentItem.numOfChildren = children.size();
+                }
             }
             
             if(contentItem == null) {
                 contentItem = getContentItem(site, relativePath);
-                if(depth > 0) contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+                if(depth > 0) {
+                    contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+                    contentItem.numOfChildren = children.size();
+                }
             }
 
             children.add(contentItem);

@@ -20,10 +20,12 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
 import org.craftercms.studio.api.v1.to.SiteConfigTO;
@@ -99,7 +101,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	/**
 	 * content types configuration
 	 */
-	//protected ContentTypesConfig _contentTypesConfig;
+	protected ContentTypesConfig contentTypesConfig;
 
 	/**
 	 * Content service
@@ -232,10 +234,9 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getContentType(java.lang.String, java.lang.String)
 	 */
-	/*
 	public ContentTypeConfigTO getContentTypeConfig(String site, String name) {
-		return _contentTypesConfig.getContentTypeConfig(site, name);
-	}*/
+		return contentTypesConfig.getContentTypeConfig(site, name);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -790,13 +791,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		this._configFileName = configFileName;
 	}
 */
-	/**
-	 * @param contentTypesConfig the contentTypesConfig to set
-	 */
-	/*
-	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
-		this._contentTypesConfig = contentTypesConfig;
-	}*/
+
 
 	/*
     public List<String> getPreviewableMimetypesPaterns(String site) {
@@ -827,5 +822,13 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 
 	public void setConfigFileName(String configFileName) {
 		this.configFileName = configFileName;
+	}
+
+	public ContentTypesConfig getContentTypesConfig() {
+		return contentTypesConfig;
+	}
+
+	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
+		this.contentTypesConfig = contentTypesConfig;
 	}
 }
