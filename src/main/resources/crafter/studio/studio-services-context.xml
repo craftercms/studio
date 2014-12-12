@@ -89,6 +89,7 @@
         <property name="configPath"><value>${serviceConfig.configPath}</value></property>
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
@@ -108,6 +109,26 @@
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
           parent="cstudioRegistrableService" />
+
+    <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="configPath"><value>${permissionService.configPath}</value></property>
+        <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
+        <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
+    </bean>
+
+    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl"
+          parent="cstudioRegistrableService">
+        <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
+        <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
 
     <!-- ////////////////////// -->
     <!-- Email  -->

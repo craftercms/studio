@@ -36,10 +36,14 @@ import net.sf.json.*;
 
 import org.apache.commons.io.IOUtils;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 
@@ -51,7 +55,7 @@ import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
  */
 // this class is abstract because I wont implement the dirty interface
 // this class contains all that we do in alfresco and nothing more
-public abstract class AlfrescoContentRepository extends AbstractContentRepository {
+public abstract class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
@@ -595,4 +599,42 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return ticket;
     }
+
+    @Override
+    public Set<String> getUserGroups(String username) {
+        InputStream retStream = null;
+        Set<String> toRet = new HashSet<String>();
+        try {
+            // construct and execute url to download result
+            String downloadURI = "/api/people/{username}?groups=true";
+            Map<String, String> lookupContentParams = new HashMap<String, String>();
+            lookupContentParams.put("username", username);
+
+            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+
+            JsonFactory jsonFactory = new JsonFactory();
+            JsonParser parser = jsonFactory.createJsonParser(retStream);
+
+            // loop until token equal to "}"
+            while (parser.nextToken() != JsonToken.END_OBJECT) {
+                String fieldname = parser.getCurrentName();
+                if ("groups".equals(fieldname)) {
+                    // current token is "[", move next
+                    parser.nextToken();
+                    // groups is array, loop until token equal to "]"
+                    while (parser.nextToken() != JsonToken.END_ARRAY) {
+                        fieldname = parser.getCurrentName();
+                        if ("displayName".equals(fieldname)) {
+                            toRet.add(parser.getText());
+                        }
+                    }
+                }
+            }
+        }
+        catch(Exception err) {
+            logger.error("err getting content: ", err);
+        }
+        return toRet;
+    }
+
 }

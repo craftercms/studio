@@ -52,9 +52,9 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 */
 	protected void checkForUpdate(final String key) {
 //PORT
-		// if (isConfigUpdated(key)) {
-		// 	loadConfiguration(key);
-		// }
+		if (isConfigUpdated(key)) {
+		 	loadConfiguration(key);
+		}
 	} 
 
 	/**

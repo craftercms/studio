@@ -96,7 +96,7 @@ public class ContentItemTO implements Serializable {
     public boolean isDocument;
     public boolean isAsset;
 
-	// Added by Dejan needs of deployment history
+	// Added by Dejan needs of services porting and UI
 	public Date eventDate;
 	public String endpoint;
 	public String timezone;
@@ -106,6 +106,8 @@ public class ContentItemTO implements Serializable {
 	public boolean isLevelDescriptor = false;
 	public String categoryRoot;
 	public Date lastEditDate;
+	public String form;
+	public String formPagePath;
 
 
     public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
@@ -306,6 +308,12 @@ public class ContentItemTO implements Serializable {
 
 	public Date getLastEditDate() { return lastEditDate; }
 	public void setLastEditDate(Date lastEditDate) { this.lastEditDate = lastEditDate; }
+
+	public String getForm() { return form; }
+	public void setForm(String form) { this.form = form; }
+
+	public String getFormPagePath() { return formPagePath; }
+	public void setFormPagePath(String formPagePath) { this.formPagePath = formPagePath; }
 
 	// /** the name of item specified by the creator **/
 	// private String _internalName;

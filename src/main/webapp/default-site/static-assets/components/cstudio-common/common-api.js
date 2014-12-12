@@ -2003,12 +2003,15 @@ YConnect.failureEvent.subscribe(function() {
                 unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
 
             // DEPLOYMENT SERVICES
-                // READ OPS
-                getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
+            // READ OPS
+            getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
             getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
 
             // Activity Services
             getUserActivitiesServiceUrl: "/api/1/services/api/1/activity/get-user-activities.json",
+
+            // Security Services
+            getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
 
             // not ported yet
             writeContentServicecUrl: "/cstudio/wcm/content/write-content",
@@ -2048,7 +2051,6 @@ YConnect.failureEvent.subscribe(function() {
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             lookupAuthoringRoleServiceUrl : "/proxy/alfresco/cstudio/permission/get-user-roles",
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
-			getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
 			setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
 			getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",

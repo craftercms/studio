@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.configuration;
 
 
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 
 import java.util.List;
@@ -98,7 +99,7 @@ public interface ServicesConfig {
 	 * @param name
 	 * @return content type
 	 */
-	//public ContentTypeConfigTO getContentTypeConfig(String site, String name);
+	public ContentTypeConfigTO getContentTypeConfig(String site, String name);
 	
 	/**
 	 * get component item URI patterns
