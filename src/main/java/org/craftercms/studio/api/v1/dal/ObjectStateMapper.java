@@ -29,4 +29,16 @@ public interface ObjectStateMapper {
     List<ObjectState> getObjectStateByStates(Map params);
 
     void deleteObjectState(String objectId);
+
+    ObjectState getObjectStateBySiteAndPath(Map params);
+
+    void setSystemProcessingBySiteAndPath(Map params);
+
+    void insertEntry(ObjectState objectState);
+
+    void setObjectState(ObjectState objectState);
+
+    List<ObjectState> getObjectStateForSiteAndPaths(Map params);
+
+    void setObjectStateForSiteAndPaths(Map params);
 }

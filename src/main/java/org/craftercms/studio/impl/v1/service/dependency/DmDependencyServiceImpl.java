@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -42,10 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,13 +70,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         this._cacheManager = cacheManager;
     }
 
-    protected List<String> _ignoreDependenciesRules = new FastList<String>();
-    public List<String> getIgnoreDependenciesRules() {
-        return _ignoreDependenciesRules;
-    }
-    public void setIgnoreDependenciesRules(List<String> ignoreDependenciesRules) {
-        this._ignoreDependenciesRules = ignoreDependenciesRules;
-    }*/
+    */
 
     @Override
     public void register() {
@@ -157,14 +149,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return items;
     }
 */
-    @Override
-    public DmDependencyTO getDependencies(String site, String sub, String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
-        String sandbox = null;
-        return getDependencies(site, sub, sandbox, path, populateUpdatedDependecinesOnly, recursive);
-    }
+
 
     @Override
-    public DmDependencyTO getDependencies(String site, String sub, String sandbox, String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
+    public DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
         List<String> paths = new FastList<String>(1);
         paths.add(path);
         Set<String> processedDependencies = new FastSet<String>();
@@ -691,11 +679,11 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             return null;
         }
     }*/
-/*
+
     @Override
     public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
-            globalDeps = new FastMap<String, Set<String>>();
+            globalDeps = new HashMap<String, Set<String>>();
         }
         Map<String, List<String>> dependencies = extractDirectDependency(site, path, document, globalDeps);
         int size = 0;
@@ -704,7 +692,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
         setDependencies(site, path, dependencies);
     }
-*/
+
     /**
      * get a map of prefixed QName and a list of dependency files for the given document
      * (e.g. cstudio-core:children={/site/website/...},cstudio-core:components={...},...)
@@ -713,19 +701,19 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param path
      * @param document
      * @return a map of direct dependency
-     *//*
+     */
     protected Map<String, List<String>> extractDirectDependency(String site, String path, Document document, Map<String, Set<String>> globalDeps) {
         // here we only care about direct dependencies (assets, components, documents - no child pages)
         // need all items regardless they are updated or not
         // add the current path to all dependency items as a parent
         // update the corresponding components, documents, assets to have this path as a mandatory parent
         if (globalDeps == null) {
-            globalDeps = new FastMap<String, Set<String>>();
+            globalDeps = new HashMap<>();
         }
         Set<String> globalPages = globalDeps.get(DEPENDENCY_NAME_PAGE);
         Set<String> globalComponents = globalDeps.get(DEPENDENCY_NAME_COMPONENT);
         if ((globalPages != null && globalPages.contains(path)) || (globalComponents != null && globalComponents.contains(path))) {
-            return new FastMap<String, List<String>>();
+            return new HashMap<>();
         }
         try {
 
@@ -737,12 +725,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 skipDependencies = ContentFormatUtils.getBooleanValue(isSkipDependenciesValue);
             }
             if (skipDependencies) {
-                return new FastMap<String, List<String>>();
+                return new HashMap<>();
             }
 
             ServicesConfig servicesConfig = getService(ServicesConfig.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            String siteRoot = servicesConfig.getRepositoryRootPath(site);
             StringBuffer buffer = new StringBuffer(XmlUtils.convertDocumentToString(document));
             List<String> assets = getDependentFileNames(site, buffer, false, servicesConfig.getAssetPatterns(site));
             List<String> components = getDependentFileNames(site, buffer, false, servicesConfig.getComponentPatterns(site));
@@ -750,7 +736,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             List<String> pages = getDependentFileNames(site, buffer, false, servicesConfig.getPagePatterns(site));
             List<String> templates = getDependentFileNames(site, buffer, false, servicesConfig.getRenderingTemplatePatterns(site));
             //List<String> levelDescriptors = getDependentLevelDescriptors(site, path, false, servicesConfig.getLevelDescriptorName(site));
-            Map<String, List<String>> dependency = new FastMap<String, List<String>>();
+            Map<String, List<String>> dependency = new HashMap<>();
             dependency.put(DEPENDENCY_NAME_ASSET, assets);
             dependency.put(DEPENDENCY_NAME_COMPONENT, components);
             dependency.put(DEPENDENCY_NAME_DOCUMENT, documents);
@@ -793,75 +779,59 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     continue;
                 }
                 if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                    String fullPath = siteRoot + assetPath;
-                    NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                    if (nodeRef != null) {
-                        StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
-                        try {
-                            extractDependenciesStyle(site, assetPath, sb, globalDeps);
-                        } catch (ServiceException e) {
-                            logger.error("Failed to get style dependencies", e);
-                        }
+                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+                    try {
+                        extractDependenciesStyle(site, assetPath, sb, globalDeps);
+                    } catch (ServiceException e) {
+                        logger.error("Failed to get style dependencies", e);
                     }
+
                 } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                    String fullPath = siteRoot + assetPath;
-                    NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                    if (nodeRef != null) {
-                        StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
-                        try {
-                            extractDependenciesJavascript(site, assetPath, sb, globalDeps);
-                        } catch (ServiceException e) {
-                            logger.error("Failed to get javascript dependencies", e);
-                        }
+                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+                    try {
+                        extractDependenciesJavascript(site, assetPath, sb, globalDeps);
+                    } catch (ServiceException e) {
+                        logger.error("Failed to get javascript dependencies", e);
                     }
                 }
             }
             for (String templatePath : templates) {
                 Set<String> parsedTemplates = globalDeps.get(DEPENDENCY_NAME_RENDERING_TEMPLATE);
                 if (parsedTemplates == null) {
-                    parsedTemplates = new FastSet<String>();
+                    parsedTemplates = new HashSet<>();
                 }
                 if (parsedTemplates.contains(templatePath)) {
                     continue;
                 }
-                String fullPath = siteRoot + templatePath;
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                if (nodeRef != null) {
-                    StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
-                    try {
-                        extractDependenciesTemplate(site, templatePath, sb, globalDeps);
-                    } catch (ServiceException e) {
-                        logger.error("Failed to get template dependencies", e);
-                    }
+                String fullPath = contentService.expandRelativeSitePath(site, templatePath);
+                StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+                try {
+                    extractDependenciesTemplate(site, templatePath, sb, globalDeps);
+                } catch (ServiceException e) {
+                    logger.error("Failed to get template dependencies", e);
                 }
             }
             return dependency;
-        } catch (AccessDeniedException e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Failed to get direct dependency", e);
-            }
+
         } catch (IOException e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Failed to get direct dependency", e);
-            }
+            logger.error("Failed to get direct dependency", e);
         }
         return null;
-    }*/
-/*
+    }
+
     @Override
     public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
-            globalDeps = new FastMap<String, Set<String>>();
+            globalDeps = new HashMap<>();
         }
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String siteRoot = servicesConfig.getRepositoryRootPath(site);
         List<String> assets = getDependentFileNames(site, templateContent, false, servicesConfig.getAssetPatterns(site));
         List<String> templates = getDependentFileNames(site, templateContent, false, servicesConfig.getRenderingTemplatePatterns(site));
         while (templates.contains(path)) {
             templates.remove(path);
         }
-        Map<String, List<String>> dependency = new FastMap<String, List<String>>();
+        Map<String, List<String>> dependency = new HashMap<>();
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
         dependency.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, templates);
         setDependencies(site, path, dependency);
@@ -880,17 +850,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 continue;
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                String fullPath = siteRoot + assetPath;
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                if (nodeRef != null) {
-                    StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
+                if (contentService.contentExists(site, assetPath)) {
+                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                String fullPath = siteRoot + assetPath;
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                if (nodeRef != null) {
-                    StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
+                if (contentService.contentExists(site, assetPath)) {
+                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }
@@ -901,29 +869,25 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 continue;
             }
-            String fullPath = siteRoot + templatePath;
-            NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-            if (nodeRef != null) {
-                StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
+            if (contentService.contentExists(site, templatePath)) {
+                String templateFullPath = contentService.expandRelativeSitePath(site, templatePath);
+                StringBuffer sb = new StringBuffer(contentService.getContentAsString(templateFullPath));
                 extractDependenciesTemplate(site, templatePath, sb, globalDeps);
             }
 
         }
-    }*/
-/*
+    }
+
     @Override
     public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
-            globalDeps = new FastMap<String, Set<String>>();
+            globalDeps = new HashMap<>();
         }
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String siteRoot = servicesConfig.getRepositoryRootPath(site);
         List<String> assets = getDependentFileNames(site, styleContent, false, servicesConfig.getAssetPatterns(site));
         while (assets.contains(path)) {
             assets.remove(path);
         }
-        Map<String, List<String>> dependency = new FastMap<String, List<String>>();
+        Map<String, List<String>> dependency = new HashMap<>();
 
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
         setDependencies(site, path, dependency);
@@ -939,30 +903,26 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 continue;
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                String fullPath = siteRoot + assetPath;
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                if (nodeRef != null) {
-                    StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
+                if (contentService.contentExists(site, assetPath)) {
+                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             }
         }
 
     }
-*//*
+
     @Override
     public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
-            globalDeps = new FastMap<String, Set<String>>();
+            globalDeps = new HashMap<>();
         }
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String siteRoot = servicesConfig.getRepositoryRootPath(site);
         List<String> assets = getDependentFileNames(site, javascriptContent, false, servicesConfig.getAssetPatterns(site));
         while (assets.contains(path)) {
             assets.remove(path);
         }
-        Map<String, List<String>> dependency = new FastMap<String, List<String>>();
+        Map<String, List<String>> dependency = new HashMap<>();
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
         setDependencies(site, path, dependency);
         Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
@@ -976,15 +936,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 continue;
             }
             if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                String fullPath = siteRoot + assetPath;
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                if (nodeRef != null) {
-                    StringBuffer sb = new StringBuffer(persistenceManagerService.getContentAsString(nodeRef));
+                if (contentService.contentExists(site, assetPath)) {
+                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }
         }
-    }*/
+    }
 /*
     protected List<String> getDependentLevelDescriptors(String site, String path, boolean b, String levelDescriptorName) {
         List<String> levelDescriptors = new FastList<String>();
@@ -1021,38 +980,49 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
         return levelDescriptors;
     }*/
-/*
+
 	@Override
     public void setDependencies(final String site, final String path, final Map<String, List<String>> dependencies) throws ServiceException {
         try {
-            DmTransactionService dmTransactionService = getService(DmTransactionService.class);
-	        RetryingTransactionHelper helper = dmTransactionService.getRetryingTransactionHelper();
-            final Map<String, List<String>> filteredDependencies =  new FastMap<String, List<String>>();
+            final Map<String, List<String>> filteredDependencies =  new HashMap<>();
             for (String type : dependencies.keySet()) {
                 filteredDependencies.put(type, applyIgnoreDependenciesRules(site, dependencies.get(type)));
             }
-	        helper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback() {
-	            @Override
-	            public Object execute() throws Throwable {
-	                    _dependencyDaoService.setDependencies(site, path, filteredDependencies);
-	                    return null;
-	            }
-	        }, false, true);
+            Map<String, Object> params = new HashMap<>();
+            params.put("site", site);
+            params.put("path", path);
+            dependencyMapper.deleteAllSourceDependencies(params);
+            if (dependencies != null) {
+                for (String type : dependencies.keySet()) {
+                    List<String> files = dependencies.get(type);
+                    if (files != null && files.size() > 0) {
+                        List<DependencyEntity> deps = new ArrayList<>();
+                        for (String file : files) {
+                            DependencyEntity dependencyObj = new DependencyEntity();
+                            dependencyObj.setSite(site);
+                            dependencyObj.setSourcePath(path);
+                            dependencyObj.setTargetPath(file);
+                            dependencyObj.setType(type);
+                            deps.add(dependencyObj);
+                        }
+                        params = new HashMap<>();
+                        params.put("dependencies", deps);
+                        dependencyMapper.insertList(params);
+                    }
+                }
+            }
         } catch (Exception e) {
             throw new ServiceException("Failed to set dependencies for " + path + " in " + site, e);
         }
-    }*/
-/*
+    }
+
+
     private List<String> applyIgnoreDependenciesRules(String site, List<String> dependencies) {
         List<String> filteredDependencies = new FastList<String>();
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String siteRoot = servicesConfig.getRepositoryRootPath(site);
         for (String dependency : dependencies) {
-            String dependencyFullPath = siteRoot + dependency;
             boolean ignore = false;
-            if (!persistenceManagerService.exists(dependencyFullPath)) {
-                for (String rule : _ignoreDependenciesRules) {
+            if (!contentService.contentExists(site, dependency)) {
+                for (String rule : ignoreDependenciesRules) {
                     if (dependency.matches(rule)) {
                         ignore = true;
                         break;
@@ -1065,42 +1035,32 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
         return filteredDependencies;
      }
-*/
 
-/*
+
+
     @Override
     public void updateDependencies(String site, String path, String state) {
-        String storeName = DmUtils.createStoreName(site);
-        //Alfresco Internal class can't proxy it so use The service
-        WorkflowService workflowService = getService(WorkflowService.class);
-        List<WorkflowTask> tasks = null; //PORT WCMWorkflowUtil.getAssociatedTasksForSandbox(workflowService, storeName);
-        _updateDependencies(site,path,tasks,state);
-    }
-*//*
-    protected void _updateDependencies(String site,String relativePath,List<WorkflowTask> workFlowTasks,String state) {
-
-        DmDependencyTO dmDependencyTo = getDependencies(site, null, relativePath, false, true);
+        DmDependencyTO dmDependencyTo = getDependencies(site, path, false, true);
         if (dmDependencyTo != null) {
             List<DmDependencyTO> pages = dmDependencyTo.getPages();
-            updateDependency(site, workFlowTasks, state, pages);
+            updateDependency(site, state, pages);
             List<DmDependencyTO> components = dmDependencyTo.getComponents();
-            updateDependency(site, workFlowTasks, state, components);
+            updateDependency(site, state, components);
             List<DmDependencyTO> documents = dmDependencyTo.getDocuments();
-            updateDependency(site, workFlowTasks, state, documents);
+            updateDependency(site, state, documents);
             List<DmDependencyTO> templates = dmDependencyTo.getRenderingTemplates();
-            updateDependency(site, workFlowTasks, state, templates);
+            updateDependency(site, state, templates);
         }
         /*
         List<DmDependencyTO> levelDescriptors = dmDependencyTo.getLevelDescriptors();
         updateDependency(site,workFlowTasks,state,levelDescriptors);
-        *//*
-    }*/
-/*
-    protected void updateDependency(String site,List<WorkflowTask> workflowTasks,String state,List<DmDependencyTO> dependencies) {
+        */
+    }
 
+    protected void updateDependency(String site,String state,List<DmDependencyTO> dependencies) {
+        // TODO: Is this actually doing anything ?
+/*
         if(dependencies != null) {
-            DmContentService dmContentService = getService(DmContentService.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
             for(DmDependencyTO dependencyTo:dependencies) {
                 if (dmContentService.isNew(site, dependencyTo.getUri())) {
                     String uri = dependencyTo.getUri();
@@ -1108,7 +1068,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     NodeRef node = persistenceManagerService.getNodeRef(fullPath);
                     /* Disable DRAFT repo Dejan 29.03.2012 */
                     /*
-                    if (node == null) {
+                    if (node == null) {z
                         node = getNodeFromDraft(fullPath);
                     }
                     */
@@ -1132,8 +1092,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }
-        }
-    }*/
+        }*/
+    }
  /*
     protected NodeRef getNodeFromDraft(String fullPath) {
         String draftPath = fullPath;
@@ -1378,7 +1338,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
+    public List<String> getIgnoreDependenciesRules() { return ignoreDependenciesRules; }
+    public void setIgnoreDependenciesRules(List<String> ignoreDependenciesRules) { this.ignoreDependenciesRules = ignoreDependenciesRules; }
+
     protected ContentService contentService;
+    protected ServicesConfig servicesConfig;
+    protected List<String> ignoreDependenciesRules = new FastList<String>();
 
     @Autowired
     protected DependencyMapper dependencyMapper;

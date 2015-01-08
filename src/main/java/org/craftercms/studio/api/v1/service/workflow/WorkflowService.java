@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 public interface WorkflowService {
 
@@ -110,4 +112,26 @@ public interface WorkflowService {
 	String getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
 
 	String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
+
+	/**
+	 * cancel the workflow pending on the given item.
+	 *
+	 * @param site
+	 * @param sub
+	 * @param path
+	 * @param cancelWorkflow
+	 * 			cancel the pending workflow instance this content belongs to?
+	 * @throws ServiceException
+	 */
+	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
+
+	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
+
+	/**
+	 * update workflow sandboxes if the content at the given path is in workflow
+	 *
+	 * @param site
+	 * @param path
+	 */
+	public void updateWorkflowSandboxes(String site, String path);
 }

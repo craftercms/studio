@@ -10,4 +10,10 @@ public interface ActivityFeedMapper {
     List<ActivityFeed> selectUserFeedEntries(Map params);
 
     List<ActivityFeed> selectUserFeedEntriesHideLive(Map params);
+
+    int getCountUserContentFeedEntries(Map params);
+
+    long insertActivityFeed(ActivityFeed feed);
+
+    void updateActivityFeed(ActivityFeed feed);
 }

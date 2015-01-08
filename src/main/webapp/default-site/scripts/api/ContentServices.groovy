@@ -232,4 +232,14 @@ class ContentServices {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage)
 	}
+
+	static writeContentAndRename(context, site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder)
+	}
+
+	static writeContent(context, site, path, fileName, contentType, input, createFolders, edit, unlock) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock)
+	}
 }	

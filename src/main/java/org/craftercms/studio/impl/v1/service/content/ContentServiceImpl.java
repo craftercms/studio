@@ -20,19 +20,24 @@ package org.craftercms.studio.impl.v1.service.content;
 import java.io.*;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.DmPathTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -477,12 +482,119 @@ public class ContentServiceImpl implements ContentService {
         return false;
     }
 
+    @Override
+    public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+                             String createFolders, String edit, String unlock) throws ServiceException {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(DmConstants.KEY_SITE, site);
+        params.put(DmConstants.KEY_PATH, path);
+        params.put(DmConstants.KEY_FILE_NAME, fileName);
+        params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+        params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
+        params.put(DmConstants.KEY_EDIT, edit);
+        params.put(DmConstants.KEY_UNLOCK, unlock);
+        String id = site + ":" + path + ":" + fileName + ":" + contentType;
+        String fullPath = expandRelativeSitePath(site, path);
+        ContentItemTO item = getContentItem(site, path);
+        String lockKey = id;
+        if (item != null) {
+            lockKey = item.getNodeRef();
+        }
+        generalLockService.lock(lockKey);
+        try {
+            boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
+            if (item != null) {
+                ObjectState objectState = objectStateService.getObjectState(site, path);
+                if (objectState.getSystemProcessing() != 0){
+                    logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
+                    throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                }
+
+                objectStateService.setSystemProcessing(site, path, true);
+            }
+            processContent(id, input, true, params, DmConstants.CONTENT_CHAIN_FORM);
+            objectStateService.setSystemProcessing(site, path, false);
+            String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
+            String savedPath = params.get(DmConstants.KEY_PATH);
+            fullPath = expandRelativeSitePath(site, savedPath);
+            if (!savedPath.endsWith(savedFileName)) {
+                fullPath = fullPath + "/" + savedFileName;
+            }
+            fullPath = fullPath.replace("//", "/");
+            String relativePath = getRelativeSitePath(site, fullPath);
+            ContentItemTO itemTo = getContentItem(site, relativePath);
+            if (itemTo != null) {
+                if (savaAndClose) {
+                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+                } else {
+                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
+                }
+            } else {
+                objectStateService.insertNewEntry(site, itemTo);
+            }
+            objectStateService.setSystemProcessing(site, relativePath, false);
+        }  catch (RuntimeException e) {
+            logger.error("error writing content",e);
+            throw e;
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    private void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+        // get sandbox if not provided
+        long start = System.currentTimeMillis();
+        try {
+
+            String[] strings = id.split(":");
+            final String path = strings[1];
+            final String site = strings[0];
+            ResultTO to = doSave(id, input, isXml, params, contentChainForm, path, site);
+
+        } finally {
+            long end = System.currentTimeMillis();
+            logger.debug("Write complete for [" + id + "] in time [" + (end - start) + "]");
+        }
+    }
+
+    protected ResultTO doSave(String id, InputStream input, boolean isXml, Map<String, String> params, String chainName, final String path, final String site) throws ServiceException {
+        String fullPath = expandRelativeSitePath(site, path);
+        if (fullPath.endsWith("/")) fullPath = fullPath.substring(0, fullPath.length() - 1);
+        ResultTO to = contentProcessor.processContent(id, input, isXml, params, chainName);
+        //GoLiveQueue queue = (GoLiveQueue) _cache.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY, site);
+        //if (queue != null) {
+        //    queue.remove(path);
+        //}
+        return to;
+    }
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
+    protected GeneralLockService generalLockService;
+    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected DmDependencyService dependencyService;
+    protected ProcessContentExecutor contentProcessor;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
+    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+
+    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
+    public DmDependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
+
+    public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
+    public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
 }

@@ -38,12 +38,12 @@ public class ObjectState implements Serializable {
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
 
-    public boolean isSystemProcessing() { return systemProcessing; }
-    public void setSystemProcessing(boolean systemProcessing) { this.systemProcessing = systemProcessing; }
+    public int getSystemProcessing() { return systemProcessing; }
+    public void setSystemProcessing(int systemProcessing) { this.systemProcessing = systemProcessing; }
 
     protected String objectId;
     protected String site;
     protected String path;
     protected String state;
-    protected boolean systemProcessing;
+    protected int systemProcessing;
 }

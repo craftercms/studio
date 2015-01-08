@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.objectstate;
 
 
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,15 +34,17 @@ public interface ObjectStateService {
     public void endSystemProcessing(String fullPath);
 
     public void endSystemProcessing(NodeRef nodeRef);
-
-    public State getObjectState(String fullPath);
-
+*/
+    public ObjectState getObjectState(String site, String path);
+/*
     public State getObjectState(NodeRef nodeRef);
 
     public State getRealObjectState(NodeRef nodeRef);
+*/
+    void transition(String site, ContentItemTO item, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
 
-    public void transition(String fullPath, TransitionEvent event);
-
+    void insertNewEntry(String site, ContentItemTO item);
+/*
     public void transition(NodeRef nodeRef, TransitionEvent event);
 
     public void insertNewObjectEntry(String fullPath);
@@ -49,9 +52,9 @@ public interface ObjectStateService {
     public void insertNewObjectEntry(NodeRef nodeRef);
 */
     public List<ObjectState> getSubmittedItems(String site);
-/*
-    public void setSystemProcessing(String fullPath, boolean isSystemProcessing);
 
+    public void setSystemProcessing(String site, String path, boolean isSystemProcessing);
+/*
     public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);
 
     public void setSystemProcessingBulk(List<String> objectIds, boolean isSystemProcessing);
@@ -59,15 +62,15 @@ public interface ObjectStateService {
     public void updateObjectPath(String fullPath, String newPath);
 
     public void updateObjectPath(NodeRef nodeRef, String newPath);
-
-    public boolean isUpdatedOrNew(String path);
-
+*/
+    public boolean isUpdatedOrNew(String site, String path);
+/*
     public boolean isUpdatedOrNew(NodeRef nodeRef);
 
     public State[][] getTransitionMapping();
-
-    public boolean isNew(String fullPath);
-
+*/
+    public boolean isNew(String site, String path);
+/*
     public boolean isNew(NodeRef nodeRef);
 
     public boolean isFolderLive(String fullPath);
@@ -79,9 +82,9 @@ public interface ObjectStateService {
     public void deleteObjectStateForPath(String site, String path);
 
     public void deleteObjectStateForPaths(String site, List<String> paths);
+*/
+    public void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
 
-    public void transitionBulk(List<String> objectIds, TransitionEvent event, State defaultTargetState);
- */
     /**
      * get the object for a given set of states
      */
@@ -91,9 +94,9 @@ public interface ObjectStateService {
     public boolean isScheduled(String path);
 
     public boolean isScheduled(NodeRef nodeRef);
-
-    public boolean isInWorkflow(String path);
-
+*/
+    public boolean isInWorkflow(String site,String path);
+/*
     public boolean isInWorkflow(NodeRef nodeRef);
     */
 }

@@ -21,7 +21,6 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
-import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import javax.transaction.UserTransaction;
@@ -163,10 +162,10 @@ public interface ContentRepository {
      */
     void writeContent(String site, String variant, String store, String path, InputStream content);
 
-    void stateTransition(String site, List<String> paths, TransitionEvent event);
+    void stateTransition(String site, List<String> paths, org.craftercms.studio.api.v1.service.fsm.TransitionEvent event);
 
     // are these repository interfaces?  I don't think they have much to do with the repository
-    void stateTransition(String site, String path, TransitionEvent event);
+    void stateTransition(String site, String path, org.craftercms.studio.api.v1.service.fsm.TransitionEvent event);
 
     void setSystemProcessing(String site, List<String> paths, boolean isSystemProcessing);
 

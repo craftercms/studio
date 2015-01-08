@@ -68,9 +68,7 @@ public interface DmDependencyService {
      * 			get dependency recursively?
      * @return a request item that contains a list of dependent file names
      */
-    public DmDependencyTO getDependencies(String site, String sub, String path, boolean populateUpdatedDependecinesOnly, boolean recursive);
-
-    public DmDependencyTO getDependencies(String site, String sub, String sandbox, String path, boolean populateUpdatedDependecinesOnly, boolean recursive);
+    public DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive);
 
     /**
      * get dependencies of all submitted items and present as a tree structure
@@ -117,7 +115,7 @@ public interface DmDependencyService {
      * @param document
      * @throws ServiceException
      */
-    //public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
+    public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
 
     /**
      *
@@ -125,9 +123,9 @@ public interface DmDependencyService {
      * @param path
      * @param dependencies map of type and targets. DB srcid|target id|type
      */
-    //public void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
+    public void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
 
-    //public void updateDependencies(String site,String path,String state);
+    void updateDependencies(String site,String path,String state);
 
 	//public Set<DmDependencyTO> getDeleteDependencies(String site,
 	//		String sourceContentPath, String dependencyPath) throws ServiceException;
@@ -159,11 +157,11 @@ public interface DmDependencyService {
      */
     //public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
-    //public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
-    //public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
-    //public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 
     public List<String> getDependencyPaths(String site, String path);
 

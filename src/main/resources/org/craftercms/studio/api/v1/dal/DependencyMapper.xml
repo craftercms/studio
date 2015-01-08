@@ -32,4 +32,17 @@
     WHERE source_path = #{sourcePath} AND site = #{site}
   </select>
 
+  <delete id="deleteAllSourceDependencies" parameterType="java.util.Map">
+    DELETE
+    FROM cstudio_DEPENDENCY
+    WHERE source_path = #{path} AND site = #{site}
+  </delete>
+
+  <insert id="insertList" parameterType="java.util.Map">
+    INSERT INTO cstudio_DEPENDENCY (site, source_path, target_path, type) VALUES
+    <foreach collection="dependencies" item="element" index="index" separator=",">
+      ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
+    </foreach>
+  </insert>
+
 </mapper>

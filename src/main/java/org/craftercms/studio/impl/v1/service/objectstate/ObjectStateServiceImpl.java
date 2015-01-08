@@ -26,6 +26,8 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ import java.util.Map;
 
 public class ObjectStateServiceImpl extends AbstractRegistrableService implements ObjectStateService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectStateServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ObjectStateServiceImpl.class);
 
     protected State[][] transitionTable = null;
 
@@ -75,39 +77,23 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
         return getObjectState(nodeRef);
     }
-
+*/
     @Override
-    public State getObjectState(NodeRef nodeRef) {
-    	if (nodeRef != null) {
-            GeneralLockService nodeLockService = getService(GeneralLockService.class);
-            ObjectStateTO state;
-            nodeLockService.lock(nodeRef.getId());
-            try {
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-                if (state == null) {
-                    PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                    DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                    objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                    state = objectStateDAOService.getObjectState(nodeRef.getId());
-                }
-            } finally {
-                nodeLockService.unlock(nodeRef.getId());
-            }
-
-            if (state != null) {
-                if (state.isSystemProcessing()) {
-                    return State.SYSTEM_PROCESSING;
-                } else {
-                    return state.getState();
-                }
-            } else {
-                return State.NOOP;
-            }
-        } else {
-            return State.NOOP;
+    public ObjectState getObjectState(String site, String path) {
+        String lockId = site + ":" + path;
+        ObjectState state = null;
+        generalLockService.lock(lockId);
+        try {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("path", path);
+            state = objectStateMapper.getObjectStateBySiteAndPath(params);
+        } finally {
+            generalLockService.unlock(lockId);
         }
+        return state;
     }
-
+/*
     @Override
 	// TODO: CodeRev: get REAL state? looks like duplicate code minus processing
     public State getRealObjectState(NodeRef nodeRef) {
@@ -127,19 +113,22 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
         return state.getState();
     }
-
+*/
     @Override
-    public void setSystemProcessing(String fullPath, boolean isSystemProcessing) {
-    	PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-
-    	NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        if (nodeRef != null) {
-    	    setSystemProcessing(nodeRef, isSystemProcessing);
-        } else {
-            LOGGER.error(String.format("Error setting system processing flag. Content at path %s does not exist", fullPath));
+    public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
+        String lockId = site + ":" + path;
+        generalLockService.lock(lockId);
+        try {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            params.put("path", path);
+            params.put("systemProcessing", isSystemProcessing);
+            objectStateMapper.setSystemProcessingBySiteAndPath(params);
+        } finally {
+            generalLockService.unlock(lockId);
         }
     }
-
+/*
     @Override
     public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing) {
         if (nodeRef != null) {
@@ -186,34 +175,19 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             }
         }
     }
-
+*/
     @Override
-    public void transition(String fullPath, TransitionEvent event) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        if (nodeRef != null) {
-            transition(nodeRef, event);
-        } else {
-            LOGGER.error(String.format("Transition can not be performed for event %s. Content at path %s does not exist.", event, fullPath));
-        }
-        // TODO: CodeRev:  no indication of failure to caller
-    }
-
-    @Override
-    public void transition(NodeRef nodeRef, TransitionEvent event) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Transition started for " + event.name() + " on object " + nodeRef.getId());
-        }
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        nodeLockService.lock(nodeRef.getId());
+    public void transition(String site, ContentItemTO item, TransitionEvent event) {
+        String lockId = site + ":" + item.getPath();
+        generalLockService.lock(lockId);
         try {
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            ObjectStateTO currentState = objectStateDAOService.getObjectState(nodeRef.getId());
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("path", item.getPath());
+            ObjectState currentState = objectStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Preforming transition event " + event.name() + " on object " + nodeRef.getId() + " without current state");
-                }
+                logger.debug("Preforming transition event " + event.name() + " on object " + lockId + " without current state");
                 switch (event) {
                     case SAVE:
                         nextState = State.NEW_UNPUBLISHED_UNLOCKED;
@@ -223,34 +197,43 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                         break;
                 }
             } else {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Preforming transition event " + event.name() + " on object " + nodeRef.getId() + " with " + currentState.getState().name() + " state");
-                }
-                nextState = transitionTable[currentState.getState().ordinal()][event.ordinal()];
+                logger.debug("Preforming transition event " + event + " on object " + lockId + " with " + currentState.getState() + " state");
+                State currentStateValue = State.valueOf(currentState.getState());
+                nextState = transitionTable[currentStateValue.ordinal()][event.ordinal()];
             }
             if (currentState == null) {
-                insertNewObjectEntry(nodeRef);
-                persistenceManagerService.setObjectState(nodeRef, nextState);
-            } else if (nextState != currentState.getState() && nextState != State.NOOP) {
-                persistenceManagerService.setObjectState(nodeRef, nextState);
+                ObjectState newEntry = new ObjectState();
+                newEntry.setObjectId(item.getNodeRef());
+                newEntry.setSite(site);
+                newEntry.setPath(item.getPath());
+                newEntry.setSystemProcessing(0);
+                newEntry.setState(nextState.name());
+                objectStateMapper.insertEntry(newEntry);
+            } else if (nextState.toString() != currentState.getState() && nextState != State.NOOP) {
+                currentState.setState(nextState.name());
+                objectStateMapper.setObjectState(currentState);
             } else if (nextState == State.NOOP) {
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Transition not defined for event " + event.name() + " and current state " + currentState.getState().name() + " [object id: " + nodeRef.getId() + "]");
-                }
+                logger.warn("Transition not defined for event " + event.name() + " and current state " + currentState.getState() + " [object id: " + currentState.getObjectId() + "]");
             }
         } catch (Exception e) {
-        	// TODO: CodeRev: So item gets stuck in state and caller never know it.......
-            if (LOGGER.isErrorEnabled()) {
-                LOGGER.error("Transition not defined for event", e);
-            }
+            logger.error("Transition not defined for event", e);
         } finally {
-            nodeLockService.unlock(nodeRef.getId());
+            generalLockService.unlock(lockId);
         }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Transition finished for " + event.name() + " on object " + nodeRef.getId());
-        }
+        logger.debug("Transition finished for " + event.name() + " on object " + lockId);
     }
 
+    @Override
+    public void insertNewEntry(String site, ContentItemTO item) {
+        ObjectState newEntry = new ObjectState();
+        newEntry.setObjectId(item.getNodeRef());
+        newEntry.setSite(site);
+        newEntry.setPath(item.getPath());
+        newEntry.setSystemProcessing(0);
+        newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
+        objectStateMapper.insertEntry(newEntry);
+    }
+/*
     protected void insertNewObjectEntryWithState(NodeRef nodeRef, State state) {
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
         DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
@@ -307,65 +290,27 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             lockService.unlock(nodeRef.getId());
         }
     }
-
+*/
     @Override
-    public boolean isUpdatedOrNew(String path) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return isUpdatedOrNew(persistenceManagerService.getNodeRef(path));
-    }
-
-    @Override
-    public boolean isUpdatedOrNew(NodeRef nodeRef) {
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        ObjectStateTO state;
-        nodeLockService.lock(nodeRef.getId());
-        try {
-            state = objectStateDAOService.getObjectState(nodeRef.getId());
-            if (state == null) {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                    objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-            }
-        } finally {
-            nodeLockService.unlock(nodeRef.getId());
-        }
+    public boolean isUpdatedOrNew(String site, String path) {
+        ObjectState state = getObjectState(site, path);
         if (state != null) {
-            return ObjectStateService.State.isUpdateOrNew(state.getState());
+            return State.isUpdateOrNew(State.valueOf(state.getState()));
         } else {
             return false;
         }
     }
 
     @Override
-    public boolean isNew(String path) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return isNew(persistenceManagerService.getNodeRef(path));
-    }
-
-    @Override
-    public boolean isNew(NodeRef nodeRef) {
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        ObjectStateTO state;
-        nodeLockService.lock(nodeRef.getId());
-        try {
-            state = objectStateDAOService.getObjectState(nodeRef.getId());
-            if (state == null) {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                    objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-            }
-        } finally {
-            nodeLockService.unlock(nodeRef.getId());
-        }
+    public boolean isNew(String site, String path) {
+        ObjectState state = getObjectState(site, path);
         if (state != null) {
-            return ObjectStateService.State.isNew(state.getState());
+            return State.isNew(State.valueOf(state.getState()));
         } else {
             return false;
         }
     }
-
+/*
     @Override
     public boolean isScheduled(String path) {
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
@@ -395,37 +340,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             return false;
         }
     }
-
+*/
     @Override
-    public boolean isInWorkflow(String path) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return isInWorkflow(persistenceManagerService.getNodeRef(path));
-    }
-
-    @Override
-    public boolean isInWorkflow(NodeRef nodeRef) {
-        if (nodeRef == null) return false;
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        ObjectStateTO state;
-        nodeLockService.lock(nodeRef.getId());
-        try {
-            state = objectStateDAOService.getObjectState(nodeRef.getId());
-            if (state == null) {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                    objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-            }
-        } finally {
-            nodeLockService.unlock(nodeRef.getId());
-        }
+    public boolean isInWorkflow(String site, String path) {
+        ObjectState state = getObjectState(site, path);
         if (state != null) {
-            return ObjectStateService.State.isInWorkflow(state.getState());
+            return State.isInWorkflow(State.valueOf(state.getState()));
         } else {
             return false;
         }
     }
-
+/*
     @Override
     public State[][] getTransitionMapping() {
         return this.transitionTable;
@@ -474,36 +399,44 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
         objectStateDAOService.deleteObjectStatesForPaths(site, paths);
     }
-
+*/
     @Override
-    public void transitionBulk(List<String> objectIds, TransitionEvent event, State defaultTargetState) {
-        if (objectIds != null && !objectIds.isEmpty()) {
-            List<ObjectStateTO> objectStates = objectStateDAOService.getObjectStates(objectIds);
-            Map<State, List<String>> bulkSubsets = new FastMap<State, List<String>>();
-            for (ObjectStateTO state : objectStates) {
+    public void transitionBulk(String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
+        if (paths != null && !paths.isEmpty()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("site", site);
+            params.put("paths", paths);
+            List<ObjectState> objectStates = objectStateMapper.getObjectStateForSiteAndPaths(params);
+            Map<State, List<String>> bulkSubsets = new HashMap<>();
+            for (ObjectState state : objectStates) {
                 if (!bulkSubsets.containsKey(state.getState())) {
-                    bulkSubsets.put(state.getState(), new FastList<String>());
+                    bulkSubsets.put(State.valueOf(state.getState()), new ArrayList<String>());
                 }
                 bulkSubsets.get(state.getState()).add(state.getObjectId());
             }
             State nextState = null;
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
             for (Map.Entry<State, List<String>> entry : bulkSubsets.entrySet()) {
                 if (entry.getKey() == null) {
-                    objectStateDAOService.setObjectStateBulk(entry.getValue(), defaultTargetState);
+                    params = new HashMap<>();
+                    params.put("site", site);
+                    params.put("paths", paths);
+                    params.put("state", defaultTargetState.name());
+                    objectStateMapper.setObjectStateForSiteAndPaths(params);
                 } else {
                     nextState = transitionTable[entry.getKey().ordinal()][event.ordinal()];
                     if (nextState != entry.getKey() && nextState != State.NOOP) {
-                        objectStateDAOService.setObjectStateBulk(entry.getValue(), nextState);
+                        params = new HashMap<>();
+                        params.put("site", site);
+                        params.put("paths", paths);
+                        params.put("state", nextState.name());
+                        objectStateMapper.setObjectStateForSiteAndPaths(params);
                     } else if (nextState == State.NOOP) {
-                        if (LOGGER.isWarnEnabled()) {
-                            LOGGER.warn("Transition not defined for event " + event.name() + " and current state " + entry.getKey().name() + " [setting object state for multiple objects]");
-                        }
+                        logger.warn("Transition not defined for event " + event.name() + " and current state " + entry.getKey().name() + " [setting object state for multiple objects]");
                     }
                 }
             }
         }
-    }*/
+    }
     
     /**
      * get the object for a given set of states
@@ -544,4 +477,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Autowired
     protected ObjectStateMapper objectStateMapper;
+
+    protected GeneralLockService generalLockService;
+
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 }

@@ -335,11 +335,11 @@ public class AlfrescoContentRepositoryDirty extends AlfrescoContentRepository {
     }
 
     // @Override
-    public String getCurrentUser() {
+    //public String getCurrentUser() {
     //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
     //     return persistenceManagerService.getCurrentUserName();
-            return "";
-    }
+    //        return "";
+    //}
 
     // @Override
     public String getAdministratorUser() {
