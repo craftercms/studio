@@ -637,4 +637,38 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         return toRet;
     }
 
+    @Override
+    public String getCurrentUser() {
+        String username = getUsernameFromCookie();
+        return username;
+    }
+
+    /**
+     * Get the alfresco ticket from the URL or the cookie or from an authorinization
+     */
+    protected String getUsernameFromCookie() {
+        String username = "UNSET";
+        RequestContext context = RequestContext.getCurrent();
+        HttpServletRequest request = context.getRequest();
+
+        if(request != null) {
+            Cookie[] cookies = request.getCookies();
+            for(int i=0; i<cookies.length; i++) {
+                Cookie cookie = cookies[i];
+                if(cookie.getName().equals("username")) {
+                    username = cookie.getValue();
+                    break;
+                }
+                else if(cookie.getName().equals("ccu")) {
+                    username = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        else {
+            // maybe inside a chron trigger on other not request context
+        }
+
+        return username;
+    }
 }

@@ -389,7 +389,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     String filterType,
                                                     String relativePath) {
 
-        DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, null, relativePath, false, true);
+        DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, relativePath, false, true);
 
         if (dmDependencyTo != null) {
 

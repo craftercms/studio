@@ -45,7 +45,55 @@
 
     <delete id="deleteObjectState" parameterType="String">
         DELETE FROM cstudio_objectstate
-        WHERE object_id = #{objectId};
+        WHERE object_id = #{objectId}
     </delete>
+
+    <select id="getObjectStateBySiteAndPath" parameterType="java.util.Map" resultMap="ObjectStateMap">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE site = #{site} AND path = #{path}
+    </select>
+
+    <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map">
+        UPDATE cstudio_objectstate
+        SET system_processing = #{systemProcessing}
+        WHERE site = #{site} AND path = #{path}
+    </update>
+
+    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" >
+        INSERT INTO
+        cstudio_objectstate
+        (object_id, site, path, state, system_processing)
+        VALUES
+        (#{objectId}, #{site}, #{path}, #{state}, 0)
+    </insert>
+
+    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState">
+        UPDATE cstudio_objectstate
+        SET state = #{state}
+        WHERE object_id = #{objectId};
+    </update>
+
+    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE site = #{site}
+        AND path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
+
+    <update id="setObjectStateForSiteAndPaths" parameterType="java.util.Map">
+        UPDATE cstudio_objectstate
+        SET state = #{state}
+        WHERE site = #{site}
+        AND path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
 
 </mapper>

@@ -202,4 +202,9 @@ class SpringContentServices {
 	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
 		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage, this.context);
 	}
+
+	def writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+		return springBackedService.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
+	}
 }

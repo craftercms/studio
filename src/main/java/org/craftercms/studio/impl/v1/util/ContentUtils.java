@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.util.ISO8601DateFormat;
@@ -29,6 +30,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
 
 import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -85,18 +88,18 @@ public class ContentUtils {
      * release resource
      *
      * @param out
-     *//*
+     */
     public static void release(OutputStream out) {
         try {
             if (out != null) {
                 out.close();
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to relase a resource.", e);
+            logger.error("Failed to relase a resource.", e);
         } finally {
             IOUtils.closeQuietly(out);
         }
-    }*/
+    }
 
 
     /**
@@ -344,5 +347,40 @@ public class ContentUtils {
 			}
 		}
 		return false;
+	}
+
+	public static String getMd5ForFile(InputStream input) {
+		//PushbackInputStream helper = null;
+		String result = null;
+		MessageDigest md = null;
+		try {
+			//helper = new PushbackInputStream(input);
+			//InputStreamReader reader = new InputStreamReader(input);
+			md = MessageDigest.getInstance("MD5");
+
+			md.reset();
+			byte[] bytes = new byte[1024];
+			int numBytes;
+			//input.mark(input.available());
+			input.mark(Integer.MAX_VALUE);
+			while ((numBytes = input.read(bytes)) != -1) {
+				md.update(bytes, 0, numBytes);
+			}
+			byte[] digest = md.digest();
+			result = new String(Hex.encodeHex(digest));
+			input.reset();
+		} catch (NoSuchAlgorithmException e) {
+			logger.error("Error while creating MD5 digest", e);
+		} catch (IOException e) {
+			logger.error("Error while reading input stream", e);
+		} finally {
+
+		}
+		return result;
+	}
+
+	public static String getParentUrl(String url) {
+		int lastIndex = url.lastIndexOf("/");
+		return url.substring(0, lastIndex);
 	}
 }

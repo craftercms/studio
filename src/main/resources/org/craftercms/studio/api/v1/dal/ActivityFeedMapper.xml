@@ -58,4 +58,37 @@
       and os.state not in ('EXISTING_UNEDITED_LOCKED', 'EXISTING_UNEDITED_UNLOCKED', 'NEW_DELETED')
       order by act.modified_date desc limit #{startPos},#{feedSize}
   </select>
+
+
+    <select id="getCountUserContentFeedEntries" parameterType="java.util.HashMap" resultType="int">
+
+      select count(*)
+      from cstudio_activity
+      where post_user_id = #{userId}
+      and site_network = #{siteNetwork}
+      and content_id = #{contentId}
+
+    </select>
+
+    <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+        insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
+        modified_date, site_network,content_id,content_type)
+        values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
+        #{siteNetwork},#{contentId},#{contentType})
+
+        <!-- optionally return auto-generated primary key - only required for debug (can be commented out) -->
+        <selectKey resultType="long" keyProperty="id" >
+            select LAST_INSERT_ID() AS value
+        </selectKey>
+    </insert>
+
+    <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+      update cstudio_activity set activity_type=#{type},
+   	   summary=#{summary},
+   	   modified_date=#{modifiedDate},
+   	   content_type=#{contentType}
+   	   where content_id = #{contentId} and post_user_id=#{userId} and site_network=#{siteNetwork}
+
+    </update>
+
 </mapper>

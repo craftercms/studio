@@ -17,25 +17,32 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
+import java.io.Serializable;
 import java.util.*;
 
 import javolution.util.FastList;
 import javolution.util.FastTable;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -347,6 +354,185 @@ public class WorkflowServiceImpl implements WorkflowService {
 		return false;
 	}
 
+	@Override
+	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) {
+		Set<String> processedPaths = new HashSet<>();
+		return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
+	}
+
+	protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) {
+		// remove submitted aspects from all dependent items
+		if (!processedPaths.contains(path)) {
+			processedPaths.add(path);
+			ContentItemTO item = contentService.getContentItem(site, path);
+			if (item != null) {
+				//removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
+				// cancel workflow if anything is pending
+				if (cancelWorkflow) {
+					_cancelWorkflow(site, path, item);
+				}
+
+				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
+				if (depItem != null) {
+					DependencyRules dependencyRules = new DependencyRules(site);
+					dependencyRules.setObjectStateService(objectStateService);
+					dependencyRules.setContentService(contentService);
+					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
+					List<String> transitionNodes = new ArrayList<String>();
+					for (DmDependencyTO dependencyTO : submittedDeps) {
+						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
+						ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
+						if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
+							transitionNodes.add(dependencyTO.getUri());
+						}
+					}
+
+					if (!transitionNodes.isEmpty()) {
+						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	protected void _cancelWorkflow(String site, String path, ContentItemTO item) {
+		if (item != null) {
+			List<ContentItemTO> allItemsToCancel = getWorkflowAffectedPaths(site, path);
+			List<String> paths = new ArrayList<String>();
+			for (ContentItemTO affectedItem : allItemsToCancel) {
+				try {
+					deploymentService.cancelWorkflow(site, affectedItem.getUri());
+					paths.add(affectedItem.getUri());
+				} catch (DeploymentException e) {
+					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem.getUri() + "], site " + site, e);
+				}
+			}
+			objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
+
+			if (objectStateService.isNew(site, path) && path.endsWith(DmConstants.INDEX_FILE)) {
+				// TODO: process children for new parent
+				/*
+				NodeRef parentNodeRef = persistenceManagerService.getPrimaryParent(node).getParentRef();
+				FileInfo parentInfo = persistenceManagerService.getFileInfo(parentNodeRef);
+				List<FileInfo> files = persistenceManagerService.listFiles(parentNodeRef);
+				for (FileInfo file : files) {
+					if (!file.getNodeRef().equals(node)) {
+						ObjectStateService.State state = persistenceManagerService.getObjectState(file.getNodeRef());
+						if (ObjectStateService.State.isScheduled(state) || ObjectStateService.State.isSubmitted(state)) {
+							_cancelWorkflow(site, file.getNodeRef());
+							persistenceManagerService.transition(file.getNodeRef(), ObjectStateService.TransitionEvent.SAVE);
+						}
+					}
+				}
+				List<FileInfo> folders = persistenceManagerService.listFolders(parentNodeRef);
+				for (FileInfo folder : folders) {
+					NodeRef indexNode = persistenceManagerService.getNodeRef(folder.getNodeRef(), DmConstants.INDEX_FILE);
+					if (indexNode != null) {
+						ObjectStateService.State state = persistenceManagerService.getObjectState(indexNode);
+						if (ObjectStateService.State.isScheduled(state) || ObjectStateService.State.isSubmitted(state)) {
+							_cancelWorkflow(site, indexNode);
+							persistenceManagerService.transition(indexNode, ObjectStateService.TransitionEvent.SAVE);
+						}
+					}
+				}*/
+			}
+		}
+
+	}
+
+	@Override
+	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+		List<String> affectedPaths = new ArrayList<String>();
+		List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+		if (objectStateService.isInWorkflow(site, path)) {
+			affectedPaths.add(path);
+			boolean isNew = objectStateService.isNew(site, path);
+			// TODO: check if item is renamed
+			boolean isRenamed = false; //persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
+			if (isNew || isRenamed) {
+				getMandatoryChildren(site, path, affectedPaths);
+			}
+
+			List<String> dependencyPaths = getDependencyCandidates(site, affectedPaths);
+			affectedPaths.addAll(dependencyPaths);
+			List<String> candidates = new ArrayList<String>();
+			for (String p : affectedPaths) {
+				if (!candidates.contains(p)) {
+					candidates.add(p);
+				}
+			}
+			List<String> filteredPaths = new ArrayList<String>();
+			for (String cp : candidates) {
+				if (objectStateService.isInWorkflow(site, cp)) {
+					filteredPaths.add(cp);
+				}
+			}
+			affectedItems = getWorkflowAffectedItems(site, filteredPaths);
+		}
+
+		return affectedItems;
+	}
+
+	private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
+		// TODO: check folders and list children
+		/*
+		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+		String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
+		List<FileInfo> children = persistenceManagerService.list(parentPath);
+		for (FileInfo child : children) {
+			NodeRef childRef = child.getNodeRef();
+			String childPath = persistenceManagerService.getNodePath(childRef);
+			DmPathTO dmPathTO = new DmPathTO(childPath);
+			if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
+				affectedPaths.add(dmPathTO.getRelativePath());
+				getMandatoryChildren(childPath, affectedPaths);
+			}
+		}*/
+	}
+
+	private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
+		List<String> dependenciesPaths = new ArrayList<String>();
+		for (String path : affectedPaths) {
+			getAllDependenciesRecursive(site, path, dependenciesPaths);
+		}
+		return dependenciesPaths;
+	}
+
+	protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
+		List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
+		for (String depPath : depPaths) {
+			if (!dependecyPaths.contains(depPath)) {
+				dependecyPaths.add(depPath);
+				getAllDependenciesRecursive(site, depPath, dependecyPaths);
+			}
+		}
+	}
+
+	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
+		List<ContentItemTO> items = new ArrayList<>();
+
+		for (String path : paths) {
+			ContentItemTO item = contentService.getContentItem(site, path);
+			items.add(item);
+		}
+		return items;
+	}
+
+	@Override
+	public void updateWorkflowSandboxes(String site, String path) {
+		// TODO: copy to live repo node
+		/*
+		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+		NodeRef node = persistenceManagerService.getNodeRef(fullPath);
+		if (node != null) {
+			NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
+			if (liveRepoNode != null) {
+				persistenceManagerService.copy(node, liveRepoNode);
+			}
+		}*/
+	}
+
 	public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 //	public void setDmWorkflowService(DmWorkflowService service) { _dmSimpleWfService = service; }
@@ -378,6 +564,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 		this.objectStateService = objectStateService;
 	}
 
+	public DmPublishService getDmPublishService() {
+		return dmPublishService;
+	}
+
+	public void setDmPublishService(DmPublishService dmPublishService) {
+		this.dmPublishService = dmPublishService;
+	}
+
 	private WorkflowJobDAL _workflowJobDAL;
 //	private DmWorkflowService _dmSimpleWfService;
 	private NotificationService _notificationService;
@@ -387,4 +581,5 @@ public class WorkflowServiceImpl implements WorkflowService {
 	protected DmFilterWrapper dmFilterWrapper;
 	protected DmDependencyService dmDependencyService;
 	protected ObjectStateService objectStateService;
+	protected DmPublishService dmPublishService;
 }

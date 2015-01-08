@@ -1990,17 +1990,18 @@ YConnect.failureEvent.subscribe(function() {
 			// service uris
 
             // content services
-                // READ OPS
-                getContentUri: "/api/1/services/api/1/content/get-content.json",
-                contentExistsUrl: "/api/1/services/api/1/content/content-exists.json",
-                lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
-                getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
-                lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
-                searchServiceUrl: "/api/1/services/api/1/content/search.json",      
+            // READ OPS
+            getContentUri: "/api/1/services/api/1/content/get-content.json",
+            contentExistsUrl: "/api/1/services/api/1/content/content-exists.json",
+            lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+            getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
+            lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+            searchServiceUrl: "/api/1/services/api/1/content/search.json",
+            writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
 
-                // WRITE OPS
-                getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
-                unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
+            // WRITE OPS
+            getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
+            unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
 
             // DEPLOYMENT SERVICES
             // READ OPS
@@ -2014,7 +2015,7 @@ YConnect.failureEvent.subscribe(function() {
             getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
 
             // not ported yet
-            writeContentServicecUrl: "/cstudio/wcm/content/write-content",
+
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
             deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
             lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",

@@ -27,4 +27,8 @@ import java.util.Map;
 public interface DependencyMapper {
 
     List<DependencyEntity> getDependencies(Map params);
+
+    void deleteAllSourceDependencies(Map params);
+
+    void insertList(Map params);
 }

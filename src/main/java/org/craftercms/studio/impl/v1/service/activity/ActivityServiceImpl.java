@@ -24,6 +24,7 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -41,6 +42,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ActivityServiceImpl extends AbstractRegistrableService implements ActivityService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActivityServiceImpl.class);
+
+	protected static final int MAX_LEN_USER_ID = 255; // needs to match schema:
+	// feed_user_id,
+	// post_user_id
+	protected static final int MAX_LEN_SITE_ID = 255; // needs to match schema:
+	// site_network
+	protected static final int MAX_LEN_ACTIVITY_TYPE = 255; // needs to match
+	// schema:
+	// activity_type
+	protected static final int MAX_LEN_ACTIVITY_DATA = 4000; // needs to match
+	// schema:
+	// activity_data
+	protected static final int MAX_LEN_APP_TOOL_ID = 36; // needs to match
+	// schema: app_tool
 	
 	/** activity post properties **/
 	protected static final String ACTIVITY_PROP_ACTIVITY_SUMMARY = "activitySummary";
@@ -71,7 +86,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     /*
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.api.AcitivityService#postActivity(java.lang.String, java.lang.String, java.lang.String, org.craftercms.cstudio.alfresco.service.api.AcitivityService.ActivityType)
-      *//*
+      */
 	public void postActivity(String site, String user, String contentId, ActivityType activity, Map<String,String> extraInfo) {
 		
 		JSONObject activityPost = new JSONObject();
@@ -79,14 +94,129 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		activityPost.put(ACTIVITY_PROP_ID, contentId);
         if(extraInfo != null)
             activityPost.putAll(extraInfo);
-		AuthenticationUtil.setFullyAuthenticatedUser(user);
+		//AuthenticationUtil.setFullyAuthenticatedUser(user);
 		String contentType = null;
 		if(extraInfo!=null)
 			contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
-        CStudioActivityService activityService = getService(CStudioActivityService.class);
-		activityService.postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType);
+		postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType);
 
-	}*/
+	}
+
+	private void postActivity(String activityType, String siteNetwork, String appTool, String activityData,
+							 String contentId, String contentType) {
+		String currentUser = authenticationService.getCurrentUser();
+		try {
+			// optional - default to empty string
+			if (siteNetwork == null) {
+				siteNetwork = "";
+			} else if (siteNetwork.length() > MAX_LEN_SITE_ID) {
+				throw new ServiceException("Invalid site network - exceeds " + MAX_LEN_SITE_ID + " chars: "
+						+ siteNetwork);
+			}
+
+			// optional - default to empty string
+			if (appTool == null) {
+				appTool = "";
+			} else if (appTool.length() > MAX_LEN_APP_TOOL_ID) {
+				throw new ServiceException("Invalid app tool - exceeds " + MAX_LEN_APP_TOOL_ID + " chars: " + appTool);
+			}
+
+			// required
+			if (StringUtils.isEmpty(activityType)) {
+				throw new ServiceException("Invalid activity type - activity type is empty");
+			} else if (activityType.length() > MAX_LEN_ACTIVITY_TYPE) {
+				throw new ServiceException("Invalid activity type - exceeds " + MAX_LEN_ACTIVITY_TYPE + " chars: "
+						+ activityType);
+			}
+
+			// optional - default to empty string
+			if (activityData == null) {
+				activityData = "";
+			} else if (activityType.length() > MAX_LEN_ACTIVITY_DATA) {
+				throw new ServiceException("Invalid activity data - exceeds " + MAX_LEN_ACTIVITY_DATA + " chars: "
+						+ activityData);
+			}
+
+			// required
+			if (StringUtils.isEmpty(currentUser)) {
+				throw new ServiceException("Invalid user - user is empty");
+			} else if (currentUser.length() > MAX_LEN_USER_ID) {
+				throw new ServiceException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
+			} else if ((!currentUser.equals(authenticationService.getAdministratorUser())) && (!userNamesAreCaseSensitive)) {
+				// user names are not case-sensitive
+				currentUser = currentUser.toLowerCase();
+			}
+			if (contentType == null) {
+				contentType = DmConstants.CONTENT_TYPE_PAGE;
+			}
+		} catch (ServiceException e) {
+			// log error and throw exception
+			logger.error("Error in getting feeds", e);
+		}
+
+		try {
+			Date postDate = new Date();
+			ActivityFeed activityPost = new ActivityFeed();
+			activityPost.setUserId(currentUser);
+			activityPost.setSiteNetwork(siteNetwork);
+			activityPost.setSummary(activityData);
+			activityPost.setType(activityType);
+			activityPost.setCreationDate(postDate);
+			activityPost.setModifiedDate(postDate);
+			activityPost.setSummaryFormat("json");
+			activityPost.setContentId(contentId);
+			activityPost.setContentType(contentType);
+			activityFeedMapper.updateActivityFeed(activityPost);
+			try {
+				long postId = postFeedEntry(activityPost);
+				activityPost.setId(postId);
+				logger.debug("Posted: " + activityPost);
+
+			} catch (Exception e) {
+				throw new ServiceException("Failed to post activity: " + e, e);
+			}
+		}
+
+		catch (ServiceException e) {
+			// log error, subsume exception (for post activity)
+			logger.error("Error in posting feed", e);
+		}
+
+	}
+
+	private long postFeedEntry(ActivityFeed activityFeed) {
+		int count=getCountUserContentFeedEntries(activityFeed.getUserId(),activityFeed.getSiteNetwork(),activityFeed.getContentId());
+		if(count==0)
+		{
+			activityFeed.setCreationDate(new Date());
+			return insertFeedEntry(activityFeed);
+		}
+		else
+		{
+			updateFeedEntry(activityFeed);
+			return -1;
+		}
+	}
+
+	private int getCountUserContentFeedEntries(String feedUserId, String siteId,String contentId) {
+		HashMap<String,String> params = new HashMap<String,String>();
+		params.put("userId",feedUserId);
+		params.put("contentId",contentId);
+		params.put("siteNetwork",siteId);
+
+		// where feed user is me and post user is not me
+		return activityFeedMapper.getCountUserContentFeedEntries(params);
+	}
+
+	private long insertFeedEntry(ActivityFeed activityFeed) {
+		Long id = activityFeedMapper.insertActivityFeed(activityFeed);
+		return (id != null ? id : -1);
+	}
+
+	private void updateFeedEntry(ActivityFeed activityFeed) {
+		activityFeedMapper.updateActivityFeed(activityFeed);
+
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -272,6 +402,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	protected ActivityFeedMapper activityFeedMapper;
 	protected boolean userNamesAreCaseSensitive = false;
 	protected ContentService contentService;
+	protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
 
 	public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive) {
 		this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
@@ -280,4 +411,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
+
+	public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() { return authenticationService; }
+	public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) { this.authenticationService = authenticationService; }
 }

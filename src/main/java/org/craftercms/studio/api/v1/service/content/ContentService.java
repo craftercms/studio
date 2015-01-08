@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.content;
 
 import java.io.InputStream;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
@@ -167,4 +168,22 @@ public interface ContentService {
     String expandRelativeSitePath(String site, String relativePath);
 
     String getRelativeSitePath(String site, String fullPath);
+
+    /**
+     * write content
+     *
+     * @param site
+     * @param path
+     * @param fileName
+     * @param contentType
+     * @param input
+     * @param createFolders
+     * 			create missing folders in path?
+     * @param edit
+     * @param unlock
+     * 			unlock the content upon edit?
+     * @throws ServiceException
+     */
+    void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+                      String createFolders, String edit, String unlock) throws ServiceException;
 }

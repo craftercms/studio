@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides services for tracking user activities
@@ -50,7 +51,7 @@ public interface ActivityService {
 	 * 			identifies the content that this activity is related to
 	 * @param activity
 	 */
-	//public void postActivity(String site, String user, String key, ActivityType activity, Map<String, String> extraInfo);
+	public void postActivity(String site, String user, String key, ActivityType activity, Map<String, String> extraInfo);
 	
 	/**
 	 * get the last user worked on the given content 
