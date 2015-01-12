@@ -2038,7 +2038,7 @@ YConnect.failureEvent.subscribe(function() {
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
+            //getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
 			changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
 			cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
