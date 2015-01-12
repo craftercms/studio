@@ -122,7 +122,7 @@
           parent="cstudioRegistrableService">
         <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
         <property name="contentService" ref="cstudioContentService" />
-        <property name="securtityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
@@ -162,7 +162,7 @@
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
           parent="cstudioRegistrableService">
-         <property name="securtityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="cstudioSecurityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
     </bean>
 
@@ -176,7 +176,7 @@
     <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
           parent="cstudioRegistrableService">
         <property name="scriptLocation"><value>${ExtractMetadataProcessor.scriptLocation}</value></property>
-         <property name="securtityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
@@ -211,7 +211,7 @@
           <prop key="mail.smtp.auth">true</prop>
           <prop key="mail.smtp.starttls.enable">true</prop>
         </props>
-      </property>
+      </property>  
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -301,7 +301,7 @@
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="workflowManager" ref="cstudioWorkflowManager"/>
         <property name="transactionService" ref="cstudioTransactionServiceSimple" />
-         <property name="securtityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- scheduled actions -->
@@ -329,7 +329,7 @@
 
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
         <property name="objectStateService" ref="cstudioObjectStateService"/>
-         <property name="securtityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
@@ -404,7 +404,7 @@
                 <entry key="importContent"><ref bean="cstudioImportContentProcessorPipeline"/></entry>
             </map>
         </property>
-         <property name="securtityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
