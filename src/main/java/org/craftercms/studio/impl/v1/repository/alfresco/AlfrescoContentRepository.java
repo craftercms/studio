@@ -332,6 +332,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         String nodeRef = null;
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
         String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
 

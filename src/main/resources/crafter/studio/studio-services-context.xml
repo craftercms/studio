@@ -146,6 +146,7 @@
         <property name="configPath"><value>${permissionService.configPath}</value></property>
         <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
+        <property name="securityProvider" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">

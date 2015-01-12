@@ -211,8 +211,13 @@ public class ContentServiceImpl implements ContentService {
                     item.hideInAuthoring = false;
 
                     item.uri = path;
-                    item.path = path.substring(0, path.lastIndexOf("/")-1);
-                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    if (path.contains("/") && path.length() > 1) {
+                        item.path = path.substring(0, path.lastIndexOf("/") - 1);
+                        item.name = path.substring(path.lastIndexOf("/") + 1);
+                    } else {
+                        item.path = "";
+                        item.name = path;
+                    }
                     item.page = false;
                     item.isContainer = (item.name.contains(".") == false);
                     item.previewable = false;

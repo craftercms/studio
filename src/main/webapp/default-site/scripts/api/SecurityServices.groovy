@@ -66,7 +66,7 @@ class SecurityServices {
 		return securityServicesImpl.authenticate(username, password)
 	}
 
-	def getUserPermissions(context, site, path, user, groups) {
+	static getUserPermissions(context, site, path, user, groups) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getUserPermissions(site, path, user, groups)
 	}
