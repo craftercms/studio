@@ -17,22 +17,21 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
-
-
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DeployContentToEnvironmentStore implements Job {
+public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private static final Logger logger = LoggerFactory.getLogger(DeployContentToEnvironmentStore.class);
 
@@ -55,14 +54,12 @@ public class DeployContentToEnvironmentStore implements Job {
         running = isRunning;
     }
 
-    public void execute() {
+    public void executeAsSignedInUser() {
         if (_masterPublishingNode && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
-                    Method processJobMethod = this.getClass().getMethod("processJobs", new Class[0]);
-                    String adminUser = _authenticationService.getAdministratorUser();
-                    _authenticationService.runAs(adminUser, this, processJobMethod);
+                    processJobs();
                 }
                 catch(Throwable err) {
                     logger.error("unable to execute job", err);
@@ -177,11 +174,6 @@ public class DeployContentToEnvironmentStore implements Job {
         return paths;
     }
 
-    /** getter auth service */
-    public AuthenticationService getAuthenticationService() { return _authenticationService; }
-    /** setter for auth service */
-    public void setAuthenticationService(AuthenticationService service) { _authenticationService = service; }
-
     /** getter transaction service */
     public TransactionService getTransactionService() { return _transactionService; }
     /** setter for transaction service */
@@ -203,7 +195,7 @@ public class DeployContentToEnvironmentStore implements Job {
     public void setMandatoryDependenciesCheckEnabled(boolean mandatoryDependenciesCheckEnabled) { this._mandatoryDependenciesCheckEnabled = mandatoryDependenciesCheckEnabled; }
 
     protected TransactionService _transactionService;
-    protected AuthenticationService _authenticationService;
+
     //protected PublishingManager _publishingManager;
     protected ContentRepository _contentRepository;
     protected int _processingChunkSize;

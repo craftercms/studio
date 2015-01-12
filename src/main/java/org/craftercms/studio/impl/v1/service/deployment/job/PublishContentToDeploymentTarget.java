@@ -20,10 +20,10 @@ package org.craftercms.studio.impl.v1.service.deployment.job;
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
 import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
 import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PublishContentToDeploymentTarget implements Job {
+public class PublishContentToDeploymentTarget extends RepositoryJob {
 
     private static final Logger logger = LoggerFactory.getLogger(PublishContentToDeploymentTarget.class);
 
@@ -62,14 +62,12 @@ public class PublishContentToDeploymentTarget implements Job {
         running = isRunning;
     }
 
-    public void execute() {
+    public void executeAsSignedInUser() {
         if (_masterPublishingNode && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
-                    Method processJobMethod = this.getClass().getMethod("processJobs", new Class[0]);
-                    String adminUser = _authenticationService.getAdministratorUser();
-                    _authenticationService.runAs(adminUser, this, processJobMethod);
+                    processJobs();
                 } catch(Exception err) {
                     logger.error("unable to execute job", err);
                 } finally {
@@ -256,10 +254,6 @@ public class PublishContentToDeploymentTarget implements Job {
         return filteredItems;
     }
 
-    /** getter auth service */
-    public AuthenticationService getAuthenticationService() { return _authenticationService; }
-    /** setter for auth service */
-    public void setAuthenticationService(AuthenticationService service) { _authenticationService = service; }
 
     /** getter transaction service */
     public TransactionService getTransactionService() { return _transactionService; }
@@ -276,7 +270,6 @@ public class PublishContentToDeploymentTarget implements Job {
     public void setMasterPublishingNode(boolean masterPublishingNode) { this._masterPublishingNode = masterPublishingNode; }
 
     protected TransactionService _transactionService;
-    protected AuthenticationService _authenticationService;
     //protected PublishingManager _publishingManager;
     protected Integer _maxTolerableRetries;
     protected boolean _masterPublishingNode;

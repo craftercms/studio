@@ -56,8 +56,18 @@ class SecurityServices {
 
 	}
 
+	/** 
+	 * authenticate a user. returns ticket
+	 * @param username
+	 * @param password
+	 */
+	def authenticate(username, password) {
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.authenticate(username, password)
+	}
+
 	def getUserPermissions(context, site, path, user, groups) {
-		def securityServicesImpl = ServiceFactory.getSecurityServices(context);
-		return securityServicesImpl.getUserPermissions(site, path, user, groups);
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.getUserPermissions(site, path, user, groups)
 	}
 }

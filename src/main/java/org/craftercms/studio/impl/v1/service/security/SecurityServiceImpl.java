@@ -48,6 +48,17 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
     @Override
+    public String authenticate(String username, String password) {
+        return "NOT IMPLEMENTED";
+    }
+
+
+    @Override
+    public String getCurrentUser() {
+        return "NOT IMPLEMENTED";
+    }
+
+    @Override
     public Set<String> getUserPermissions(String site, String path, String user, List<String> groups) {
         // determine whether to refresh the config
         checkForUpdate(site);

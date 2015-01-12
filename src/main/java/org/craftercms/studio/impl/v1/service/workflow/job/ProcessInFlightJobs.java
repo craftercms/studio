@@ -20,11 +20,11 @@ package org.craftercms.studio.impl.v1.service.workflow.job;
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.authentication.AuthenticationService;
 import org.craftercms.studio.api.v1.service.transaction.TransactionService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.impl.v1.service.workflow.WorkflowManager;
+import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import javax.transaction.UserTransaction;
 import java.lang.reflect.Method;
@@ -34,7 +34,7 @@ import java.util.List;
  * Job looks at active jobs and attempts to run handler for the current state of each workflow 
  * @author russdanner
  */
-public class ProcessInFlightJobs implements Job {
+public class ProcessInFlightJobs extends RepositoryJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessInFlightJobs.class);
 
@@ -44,11 +44,9 @@ public class ProcessInFlightJobs implements Job {
     protected final String MSG_ERROR_PROCESSING_WORKFLOW_JOB = "err_processing_workflow_job";
     protected final String MSG_ERROR_NO_TRANSACTION_PROCESSING_WORKFLOW_JOB = "err_no_transaction_while_processing_workflow_job";
 
-    public void execute() {
+    public void executeAsSignedInUser() {
 		try {
-			Method processJobMethod = this.getClass().getMethod("processJobs", new Class[0]);
-            String adminUser = _authenticationService.getAdministratorUser();
-			_authenticationService.runAs(adminUser, this, processJobMethod);
+			processJobs();
 		}
 		catch(Exception err) {
 			logger.error(MSG_UNABLE_TO_EXECUTE_JOB, err, "admin");
@@ -90,11 +88,6 @@ public class ProcessInFlightJobs implements Job {
 	/** setter for Workflow workflow manager */
 	public void setWorkflowManager(WorkflowManager mgr) { _workflowManager = mgr; }
 
-	/** getter auth service */
-	public AuthenticationService getAuthenticationService() { return _authenticationService; }
-	/** setter for auth service */
-	public void setAuthenticationService(AuthenticationService service) { _authenticationService = service; }
-
 	/** getter transaction service */
 	public TransactionService getTransactionService() { return _transactionService; }
 	/** setter for transaction service */
@@ -103,5 +96,4 @@ public class ProcessInFlightJobs implements Job {
 	protected TransactionService _transactionService;
 	protected WorkflowManager _workflowManager;
 	protected WorkflowService _workflowService;
-	protected AuthenticationService _authenticationService;
 }

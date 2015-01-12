@@ -26,6 +26,18 @@ import java.util.Set;
  */
 public interface SecurityService {
 
+	/** 
+	 * authenticate a user. returns ticket
+	 * @param username
+	 * @param password
+	 */
+	String authenticate(String username, String password);
+
+	/**
+	 * Returns the username of the current user OR NULL if no user is authenticated
+	 */
+	String getCurrentUser();
+
     Set<String> getUserRoles(String site, String user);
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);

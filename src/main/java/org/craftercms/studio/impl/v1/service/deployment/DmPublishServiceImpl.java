@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 
@@ -37,8 +38,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     //protected DmFilterWrapper dmFilterWrapper;
     protected DeploymentService deploymentService;
-    protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
-    
+    protected SecurityService securityService;
+
     //public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
 //		this.dmFilterWrapper = dmFilterWrapper;
 //	}
@@ -47,13 +48,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         this.deploymentService = deploymentService;
     }
 
-    public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() {
-        return authenticationService;
-    }
+    public SecurityService getSecurityUservice() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
-    public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
-    }
 
     @Override
     public void register() {
@@ -71,7 +68,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         if (launchDate == null) {
             launchDate = new Date();
         }
-        final String approver = authenticationService.getCurrentUser();
+        final String approver = securityService.getCurrentUser();
         final Date ld = launchDate;
 
 

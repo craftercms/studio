@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmMetadataService;
 import org.craftercms.studio.impl.v1.util.ValueConverter;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -53,7 +54,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
 
     @Override
     public void extractMetadata(String site, String user, String path, String contentType, Document content) throws ServiceException {
-        user = (StringUtils.isEmpty(user)) ? authenticationService.getCurrentUser() : user;
+        user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
         String fullPath = contentService.expandRelativeSitePath(site, path);
         if (content == null) {
             try {
@@ -174,9 +175,9 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
         this.scriptObjects = scriptObjects;
     }
 
-    protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
-    public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() {return authenticationService; }
-    public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) { this.authenticationService = authenticationService; }
+    protected SecurityService securityService;
+    public SecurityService getSecurityService() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
     protected ContentService contentService;
     public ContentService getContentService() { return contentService; }

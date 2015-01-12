@@ -38,6 +38,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 public class ActivityServiceImpl extends AbstractRegistrableService implements ActivityService {
 
@@ -104,7 +105,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 	private void postActivity(String activityType, String siteNetwork, String appTool, String activityData,
 							 String contentId, String contentType) {
-		String currentUser = authenticationService.getCurrentUser();
+		String currentUser = securityService.getCurrentUser();
 		try {
 			// optional - default to empty string
 			if (siteNetwork == null) {
@@ -142,10 +143,12 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				throw new ServiceException("Invalid user - user is empty");
 			} else if (currentUser.length() > MAX_LEN_USER_ID) {
 				throw new ServiceException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
-			} else if ((!currentUser.equals(authenticationService.getAdministratorUser())) && (!userNamesAreCaseSensitive)) {
+			} else { //if ((!currentUser.equals(securityService.getAdministratorUser())) && (!userNamesAreCaseSensitive)) {
 				// user names are not case-sensitive
 				currentUser = currentUser.toLowerCase();
 			}
+
+
 			if (contentType == null) {
 				contentType = DmConstants.CONTENT_TYPE_PAGE;
 			}
@@ -402,7 +405,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	protected ActivityFeedMapper activityFeedMapper;
 	protected boolean userNamesAreCaseSensitive = false;
 	protected ContentService contentService;
-	protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
 
 	public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive) {
 		this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
@@ -412,6 +414,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		this.contentService = contentService;
 	}
 
-	public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() { return authenticationService; }
-	public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) { this.authenticationService = authenticationService; }
+    protected SecurityService securityService;
+    public SecurityService getSecurityService() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 }

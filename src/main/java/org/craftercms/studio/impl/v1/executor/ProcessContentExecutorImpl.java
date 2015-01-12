@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.content.pipeline.PipelineContentImpl;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
         try{
             if (chain != null) {
                 if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
-                    String user = authenticationService.getCurrentUser();
+                    String user = securityService.getCurrentUser();
                     params.put(DmConstants.KEY_USER, user);
                 }
 
@@ -97,11 +98,10 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
     }
 
     protected Map<String, ContentProcessorPipeline> processorChains;
-    protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
+    protected SecurityService securityService;
+    public SecurityService getSecurityService() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
     public Map<String, ContentProcessorPipeline> getProcessorChains() { return processorChains; }
     public void setProcessorChains(Map<String, ContentProcessorPipeline> processorChains) { this.processorChains = processorChains; }
-
-    public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() { return authenticationService; }
-    public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) { this.authenticationService = authenticationService; }
 }

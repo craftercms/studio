@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
 
@@ -68,7 +69,7 @@ public class WorkflowProcessor {
     }
 
     protected void execute(String site, WorkflowBatch workflowBatch) {
-        String currentUser = authenticationService.getCurrentUser();
+        String currentUser = securityService.getCurrentUser();
         logger.debug("[WORKFLOW] executing Go Live Processor for " + site);
 
         try {
@@ -116,14 +117,14 @@ public class WorkflowProcessor {
         this.inflightItems.remove(path);
     }
 
-    protected org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService;
     protected WorkflowService workflowService;
     protected ContentService contentService;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected DmPublishService dmPublishService;
+    protected SecurityService securityService;
 
-    public org.craftercms.studio.api.v1.service.authentication.AuthenticationService getAuthenticationService() {return authenticationService; }
-    public void setAuthenticationService(org.craftercms.studio.api.v1.service.authentication.AuthenticationService authenticationService) { this.authenticationService = authenticationService; }
+    public SecurityService getSecurityService() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
