@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.site;
 
+import net.sf.json.JSON;
+import net.sf.json.JSONObject;
 import org.dom4j.Document;
 
 /**
@@ -36,4 +38,14 @@ public interface SiteService {
 	 */
 	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
 
+	/**
+	 * get configuraiton content as XML string at the given path
+	 *
+	 * @param site
+	 * @param path
+	 * @param applyEnv
+	 * 			find from the environment overrides location?
+	 * @return configuration as XML string
+	 */
+	public JSON getConfiguration(String site, String path, boolean applyEnv);
 }

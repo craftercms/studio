@@ -76,7 +76,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
             boolean isAllowed = isUserAllowed(roles, config);
             if (!isAllowed) {
-                logger.debug("The user is not allowed to access " + config.getName() + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                 // If no default role is set
                 permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                 return permissions;
@@ -308,8 +308,14 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     protected String getSiteFromKey(String key) {
-        return key.substring(0, key.indexOf(File.pathSeparator));
+        if (key.contains(File.pathSeparator)) {
+            return key.substring(0, key.indexOf(File.pathSeparator));
+        } else {
+            return key;
+        }
     }
+
+
 
     protected String getFilenameFromKey(String key) {
         return key.substring(key.indexOf(File.pathSeparator) + 1);
@@ -325,6 +331,20 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         if (!StringUtils.isEmpty(key)) {
             permissionsConfigMap.remove(key);
         }
+    }
+
+    /*
+	 * Checks for updates to both the role & permission mappings files
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.craftercms.crafter.alfresco.service.impl.ConfigurableServiceBase#
+	 * checkForUpdate(java.lang.String)
+	 */
+    @Override
+    protected void checkForUpdate(String site) {
+        super.checkForUpdate(getPermissionsKey(site, roleMappingsFileName));
+        super.checkForUpdate(getPermissionsKey(site, permissionsFileName));
     }
 
     @Override

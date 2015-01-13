@@ -80,19 +80,17 @@ public class SiteConfigTO implements Serializable {
     /**
      * @return the WEM project
      */
-	/*
     public String getWemProject() {
-        return _wemProject;
-    }*/
+        return wemProject;
+    }
 
     /**
      * @param wemProject
      *            the WEM project to set
      */
-	/*
     public void setWemProject(String wemProject) {
-        this._wemProject = wemProject;
-    }*/
+        this.wemProject = wemProject;
+    }
 
     /**
      * @return the name

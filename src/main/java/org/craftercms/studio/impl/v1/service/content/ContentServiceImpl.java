@@ -61,6 +61,11 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public boolean contentExists(String fullPath) {
+        return this._contentRepository.contentExists(fullPath);
+    }
+
+    @Override
     public InputStream getContent(String path) {
        return this._contentRepository.getContent(path);
     }
@@ -145,34 +150,53 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItem(String site, String path) {
+        ContentItemTO item = getContentItem(expandRelativeSitePath(site, path));
+        if (item != null) {
+            item.uri = path;
+            item.path = path.substring(0, path.lastIndexOf("/"));
+            item.name = path.substring(path.lastIndexOf("/") + 1);
+            item.page = (item.contentType.indexOf("/page") != -1);
+            item.isContainer = path.endsWith("/index.xml");
+            item.previewable = item.page;
+            item.component = (item.contentType.indexOf("/component") != -1);
+            item.document = false;
+            item.asset = (item.component == false && item.page == false);
+            item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
+
+            loadContentTypeProperties(site, item, item.contentType);
+        }
+        return item;
+    }
+    @Override
+    public ContentItemTO getContentItem(String fullPath) {
         ContentItemTO item = null;
 
         try {
             // this may be faster to get evenything from on of the other services?
             // the idea heare is that repo does not know enough to get an item,
             // this requires either a different servivice/subsystem or a combination of them
-            if(path.endsWith(".xml")) {
-                Document contentDoc = this.getContentAsDocument(expandRelativeSitePath(site, path));
-                if(contentDoc != null) {  
+            if(fullPath.endsWith(".xml")) {
+                Document contentDoc = this.getContentAsDocument(fullPath);
+                if(contentDoc != null) {
                     item = new ContentItemTO();
 
                     Element rootElement = contentDoc.getRootElement();
                     item.internalName = rootElement.valueOf("internal-name");
-                    item.contentType = rootElement.valueOf("content-type"); 
-                    item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") ); 
-                    item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") ); 
-                    item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") ); 
+                    item.contentType = rootElement.valueOf("content-type");
+                    item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
+                    item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
+                    item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
 
-                    item.uri = path;
-                    item.path = path.substring(0, path.lastIndexOf("/"));
-                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.uri = fullPath;
+                    item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
+                    item.name = fullPath.substring(fullPath.lastIndexOf("/")+1);
                     item.page = (item.contentType.indexOf("/page") != -1);
-                    item.isContainer = path.endsWith("/index.xml");
+                    item.isContainer = fullPath.endsWith("/index.xml");
                     item.previewable = item.page;
                     item.component = (item.contentType.indexOf("/component") != -1);
                     item.document = false;
                     item.asset = (item.component == false && item.page == false);
-                    item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
+                    item.browserUri = (item.page) ? fullPath.replace("/site/website", "").replace("/index.xml", "") : null;
 
                     // populate with workflow states and other metadata
 
@@ -191,28 +215,33 @@ public class ContentServiceImpl implements ContentService {
                     item.nodeRef = "";
                     item.metaDescription = "";
 
-                    loadContentTypeProperties(site, item, item.contentType);
+
                }
                 else {
-                     logger.error("no xml document could be loaded for path '{0}'", path);    
+                     logger.error("no xml document could be loaded for path '{0}'", fullPath);
                 }
             }
             else {
-                if (this.contentExists(site, path)) {
+                if (this.contentExists(fullPath)) {
                     item = new ContentItemTO();
-                    item.uri = path;
-                    item.path = path.substring(0, path.lastIndexOf("/"));
-                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.uri = fullPath;
+                    item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
+                    item.name = fullPath.substring(fullPath.lastIndexOf("/")+1);
                     item.asset = true;
                     item.internalName = item.name;
                     item.contentType = "asset";
                     item.disabled = false;
-                    item.floating = false; 
+                    item.floating = false;
                     item.hideInAuthoring = false;
 
-                    item.uri = path;
-                    item.path = path.substring(0, path.lastIndexOf("/")-1);
-                    item.name = path.substring(path.lastIndexOf("/")+1);
+                    item.uri = fullPath;
+                    if (fullPath.contains("/") && fullPath.length() > 1) {
+                        item.path = fullPath.substring(0, fullPath.lastIndexOf("/") - 1);
+                        item.name = fullPath.substring(fullPath.lastIndexOf("/") + 1);
+                    } else {
+                        item.path = "";
+                        item.name = fullPath;
+                    }
                     item.page = false;
                     item.isContainer = (item.name.contains(".") == false);
                     item.previewable = false;
@@ -229,16 +258,16 @@ public class ContentServiceImpl implements ContentService {
                     item.submittedForDeletion = false;
                     item.inProgress = true;
                     item.live = false;
-                }                 
+                }
             }
-             
+
             if(item != null) {
                 item.lockOwner = "";
                 item.user = "";
                 item.userFirstName = "";
                 item.userLastName = "";
                 item.nodeRef = "";
-                item.metaDescription = ""; 
+                item.metaDescription = "";
 
                 // duplicate properties
                 item.isDisabled = item.disabled;
@@ -258,7 +287,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         catch(Exception err) {
-            logger.error("error constructing item for object at path '{0}'", err, path);            
+            logger.error("error constructing item for object at path '{0}'", err, fullPath);
         }
 
         return item;
@@ -287,6 +316,16 @@ public class ContentServiceImpl implements ContentService {
         }
 
         root.children = getContentItemTreeInternal(site, path, depth, isPages);
+        root.numOfChildren = root.children.size();
+
+        return root;
+    }
+
+    @Override
+    public ContentItemTO getContentItemTree(String fullPath, int depth) {
+        ContentItemTO root = getContentItem(fullPath);
+
+        root.children = getContentItemTreeInternal(fullPath, depth, false);
         root.numOfChildren = root.children.size();
 
         return root;
@@ -391,6 +430,49 @@ public class ContentServiceImpl implements ContentService {
                 contentItem = getContentItem(site, relativePath);
                 if(depth > 0) {
                     contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
+                    contentItem.numOfChildren = children.size();
+                }
+            }
+
+            children.add(contentItem);
+        }
+
+        return children;
+    }
+
+    /**
+     * get the tree of content items (metadata) beginning at a root
+     *
+     * @param site
+     * @param path
+     * @param depth
+     * @param isPages
+     * @return return an array of child nodes
+     */
+    protected List<ContentItemTO> getContentItemTreeInternal(String fullPath, int depth, boolean isPages) {
+
+        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
+
+        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullPath);
+
+        for(int i=0; i<childRepoItems.length; i++) {
+            RepositoryItem repoItem = childRepoItems[i];
+            //String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
+
+            ContentItemTO contentItem = null;
+
+            if(repoItem.isFolder && isPages) {
+                contentItem = getContentItem(repoItem.path + "/" + repoItem.name + "/index.xml");
+                if(depth > 0) {
+                    contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth-1, isPages);
+                    contentItem.numOfChildren = children.size();
+                }
+            }
+
+            if(contentItem == null) {
+                contentItem = getContentItem(fullPath);
+                if(depth > 0) {
+                    contentItem.children = getContentItemTreeInternal(fullPath, depth-1, isPages);
                     contentItem.numOfChildren = children.size();
                 }
             }

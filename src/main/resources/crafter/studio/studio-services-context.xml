@@ -74,6 +74,14 @@
               <property name="contentService" ref="cstudioContentService" />
           </bean>
         </property>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
+        <property name="environment"><value>${environmentConfig.environment}</value></property>
+        <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
+        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
+        <property name="configRoot"><value>${siteService.configPath}</value></property>
+        <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -118,6 +126,22 @@
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
     </bean>
 
+    <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl"
+          parent="cstudioRegistrableService">
+        <property name="configPath"><value>${environmentConfig.configPath}</value></property>
+        <property name="configFileName"><value>${environmentConfig.configFileName}</value></property>
+        <property name="environment"><value>${environmentConfig.environment}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl"
+          parent="cstudioRegistrableService">
+        <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
+        <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
           parent="cstudioRegistrableService">
         <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
@@ -146,6 +170,7 @@
         <property name="configPath"><value>${permissionService.configPath}</value></property>
         <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
+        <property name="securityProvider" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">
