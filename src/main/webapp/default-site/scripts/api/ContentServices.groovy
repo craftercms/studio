@@ -19,15 +19,54 @@ class ContentServices {
 	/**
 	 * Write content
 	 * @param site - the project ID
-	 * @param path - the path to wrtie the content
+	 * @param path - the path to write the content
 	 * @param content - the content to write
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static writeContent(site, path, content, context){
-
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.writeContent(site, path, content)
 	}
 
-	/**
+    /**
+     * create a folder
+     * @param site - the project ID
+     * @param path - the path to create the folder in
+     * @param name - the folder name to create
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static createFolder(site, path, name, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.createFolder(site, path, name)
+    }
+
+    /**
+     * copy content from PathA to pathB
+     *
+     * @param site - the project ID
+     * @param fromPath paths to content
+     * @param toPath target path
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static copyContent(site, fromPath, toPath, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.copyContent(site, fromPath, toPath)
+    }
+
+    /**
+     * move content from PathA to pathB
+     *
+     * @param site - the project ID
+     * @param fromPath paths to content
+     * @param toPath target path
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static moveContent(site, fromPath, toPath, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.moveContent(site, fromPath, toPath)
+    }
+
+    /**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
@@ -45,7 +84,8 @@ class ContentServices {
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static deleteContent(site, path, context) {
-
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.deleteContent(site, path)
 	}
 
 	/**
@@ -191,5 +231,15 @@ class ContentServices {
 	static search(site, keywords, searchParams, sort, page, resultsPerPage, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage)
+	}
+
+	static writeContentAndRename(context, site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder)
+	}
+
+	static writeContent(context, site, path, fileName, contentType, input, createFolders, edit, unlock) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock)
 	}
 }	

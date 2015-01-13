@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2014 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper">
+
+  <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment" />
+
+  <cache />
+
+  <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.HashMap" >
+    SELECT *
+    FROM cstudio_copytoenvironment
+    WHERE site = #{site}
+    AND state = #{state}
+    AND scheduleddate &gt; #{now}
+    ORDER BY scheduleddate ASC
+  </select>
+
+</mapper>

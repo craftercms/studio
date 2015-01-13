@@ -22,10 +22,46 @@ class SpringContentServices {
 	 * @param content - the content to write
 	 */
 	def writeContent(site, path, content){
-
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.writeContent(site, path, content)
 	}
 
-	/**
+    /**
+     * create folder
+     * @param site - the project ID
+     * @param path - the path to create the folder in
+     * @param name - the folder name to create
+     */
+    def createFolder(site, path, name){
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.createFolder(site, path, name)
+    }
+
+    /**
+     * copy content from PathA to pathB
+     *
+     * @param site - the project ID
+     * @param fromPath paths to content
+     * @param toPath target path
+     */
+    def copyContent(site, fromPath, toPath){
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.copyContent(site, fromPath, toPath)
+    }
+
+    /**
+     * move content from PathA to pathB
+     *
+     * @param site - the project ID
+     * @param fromPath paths to content
+     * @param toPath target path
+     */
+    def moveContent(site, fromPath, toPath){
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.moveContent(site, fromPath, toPath)
+    }
+
+    /**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
@@ -37,11 +73,13 @@ class SpringContentServices {
 
 	/**
 	 * delete a content item
+     *
 	 * @param site - the projectId
 	 * @param path - the path to delete
 	 */
 	def deleteContent(site, path) {
-
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.deleteContent(site, path)
 	}
 
 	/**
@@ -163,5 +201,10 @@ class SpringContentServices {
 	 */
 	def search(site, keywords, searchParams, sort, page, resultsPerPage) {
 		return SolrSearch.search(site, keywords, searchParams, sort, page, resultsPerPage, this.context);
+	}
+
+	def writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+		return springBackedService.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
 	}
 }

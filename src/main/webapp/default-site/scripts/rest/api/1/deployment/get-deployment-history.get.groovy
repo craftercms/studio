@@ -8,6 +8,12 @@ def filterType = params.filterType
 
 def context = DeploymentServices.createContext(applicationContext, request)
 
-result.content = DeploymentServices.getDeploymentHistory(site, days, num, "eventDate", false, filterType, context)
+def deploymentHistory = DeploymentServices.getDeploymentHistory(site, days, num, "eventDate", false, filterType, context)
+def total = 0;
+for (task in deploymentHistory) {
+    total += task.numOfChildren;
+}
+result.total = total;
+result.documents = deploymentHistory;
 
 return result

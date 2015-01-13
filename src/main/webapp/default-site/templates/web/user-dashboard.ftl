@@ -276,10 +276,6 @@
         </table>
     </div>
 
-    {{#view App.UpgradeButtonView}}
-        Upgrade
-    {{/view}}
-
     <div class="reveal-modal" data-reveal data-iframe-revert>
         <iframe data-src="http://ur.goes.here"></iframe>
         <a class="close-reveal-modal">&times;</a>

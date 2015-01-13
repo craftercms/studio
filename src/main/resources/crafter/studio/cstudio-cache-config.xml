@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ehcache name="studioCache">
+
+    <!-- defaults -->
+    <diskStore
+        path="java.io.tmpdir"
+    />
+
+    <defaultCache
+        maxElementsInMemory="5000"
+        eternal="true"
+        timeToIdleSeconds="0"
+        timeToLiveSeconds="0"
+        overflowToDisk="false"
+        >
+    </defaultCache>
+
+    <cache
+        name="cstudioCache"
+        maxElementsInMemory="5000"
+        eternal="true"
+        timeToIdleSeconds="0"
+        timeToLiveSeconds="0"
+        overflowToDisk="false"        
+     />
+
+
+</ehcache>

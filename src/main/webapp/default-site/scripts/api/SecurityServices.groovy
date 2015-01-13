@@ -1,7 +1,23 @@
-/** 
+package scripts.api
+
+import scripts.api.ServiceFactory
+
+import groovy.util.logging.Log
+
+/**
  * security services
  */
-Class SecurityServices {
+@Log
+class SecurityServices {
+
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
+	 */
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
 
 	/**
 	 * get a user's basic information
@@ -38,5 +54,20 @@ Class SecurityServices {
 	 */
 	def validateToken(site, token) {
 
+	}
+
+	/** 
+	 * authenticate a user. returns ticket
+	 * @param username
+	 * @param password
+	 */
+	def authenticate(username, password) {
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.authenticate(username, password)
+	}
+
+	static getUserPermissions(context, site, path, user, groups) {
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.getUserPermissions(site, path, user, groups)
 	}
 }

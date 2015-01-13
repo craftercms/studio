@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.ActivityFeedMapper">
+  <resultMap id="ActivityFeedMap" type="org.craftercms.studio.api.v1.dal.ActivityFeed">
+    <id property="id" column="id"/>
+    <result property="modifiedDate" column="modified_date"/>
+    <result property="creationDate" column="creation_date" />
+    <result property="summary" column="summary" />
+    <result property="summaryFormat" column="summary_format" />
+    <result property="contentId" column="content_id" />
+    <result property="siteNetwork" column="site_network" />
+    <result property="type" column="activity_type"/>
+    <result property="contentType" column="content_type" />
+    <result property="userId" column="post_user_id" />
+  </resultMap>
+
+  <cache />
+
+  <select id="getDeletedActivity" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+    select *
+    from cstudio_activity
+    where site_network = #{siteNetwork}
+    and content_id = #{contentId}
+    and activity_type = #{activityType}
+    order by modified_date DESC
+  </select>
+
+
+  <select id="selectUserFeedEntries" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+      select *
+      from cstudio_activity
+      where post_user_id = #{userId}
+      and site_network = #{siteNetwork}
+      and summary_format = #{summaryFormat}
+    <if test="contentType != null and contentType != 'all' ">
+      and content_type = #{contentType}
+    </if>
+      order by modified_date desc limit #{startPos},#{feedSize}
+  </select>
+
+  <select id="selectUserFeedEntriesHideLive" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+      select act.*
+      from cstudio_activity act
+      inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+      where act.post_user_id = #{userId}
+      and act.site_network = #{siteNetwork}
+      and act.summary_format = #{summaryFormat}
+    <if test="contentType != null and contentType != 'all' ">
+    and act.content_type = #{contentType}
+    </if>
+    and os.state NOT IN
+    <foreach item="state" index="index" collection="states"
+             open="(" separator="," close=")">
+      #{state}
+    </foreach>
+      and os.state not in ('EXISTING_UNEDITED_LOCKED', 'EXISTING_UNEDITED_UNLOCKED', 'NEW_DELETED')
+      order by act.modified_date desc limit #{startPos},#{feedSize}
+  </select>
+
+
+    <select id="getCountUserContentFeedEntries" parameterType="java.util.HashMap" resultType="int">
+
+      select count(*)
+      from cstudio_activity
+      where post_user_id = #{userId}
+      and site_network = #{siteNetwork}
+      and content_id = #{contentId}
+
+    </select>
+
+    <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+        insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
+        modified_date, site_network,content_id,content_type)
+        values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
+        #{siteNetwork},#{contentId},#{contentType})
+
+        <!-- optionally return auto-generated primary key - only required for debug (can be commented out) -->
+        <selectKey resultType="long" keyProperty="id" >
+            select LAST_INSERT_ID() AS value
+        </selectKey>
+    </insert>
+
+    <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+      update cstudio_activity set activity_type=#{type},
+   	   summary=#{summary},
+   	   modified_date=#{modifiedDate},
+   	   content_type=#{contentType}
+   	   where content_id = #{contentId} and post_user_id=#{userId} and site_network=#{siteNetwork}
+
+    </update>
+
+</mapper>

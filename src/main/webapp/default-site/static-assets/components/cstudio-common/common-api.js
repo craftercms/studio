@@ -1990,24 +1990,35 @@ YConnect.failureEvent.subscribe(function() {
 			// service uris
 
             // content services
-                // READ OPS
-                getContentUri: "/api/1/services/api/1/content/get-content.json",
-                contentExistsUrl: "/api/1/services/api/1/content/content-exists.json",
-                lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
-                getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
-                lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
-                searchServiceUrl: "/api/1/services/api/1/content/search.json",      
+            // READ OPS
+            getContentUri: "/api/1/services/api/1/content/get-content.json",
+            contentExistsUrl: "/api/1/services/api/1/content/content-exists.json",
+            lookupContentItemServiceUri: "/api/1/services/api/1/content/get-item.json",
+            getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
+            lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
+            searchServiceUrl: "/api/1/services/api/1/content/search.json",
+            writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
 
-                // WRITE OPS
-                getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
-                unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
+            // WRITE OPS
+            getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
+            unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
 
             // DEPLOYMENT SERVICES
-                // READ OPS
-                getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
+            // READ OPS
+            getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
+            getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
+
+            // Activity Services
+            getUserActivitiesServiceUrl: "/api/1/services/api/1/activity/get-user-activities.json",
+
+            // Security Services
+            getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
+
+            // Configuration Services
+            getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
 
             // not ported yet
-            writeContentServicecUrl: "/cstudio/wcm/content/write-content",
+
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
             deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
             lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
@@ -2026,17 +2037,13 @@ YConnect.failureEvent.subscribe(function() {
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-			getUserActivitiesServiceUrl: "/proxy/alfresco/cstudio/wcm/activity/get-user-activities",
-			getScheduledItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-scheduled-items",
 			getGoLiveQueueItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-go-live-items",
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
 			changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
 			cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
-			getConfigurationUrl: "/proxy/alfresco/cstudio/site/get-configuration",
             updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
 			allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
@@ -2046,7 +2053,6 @@ YConnect.failureEvent.subscribe(function() {
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             lookupAuthoringRoleServiceUrl : "/proxy/alfresco/cstudio/permission/get-user-roles",
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
-			getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
 			setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
 			getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",

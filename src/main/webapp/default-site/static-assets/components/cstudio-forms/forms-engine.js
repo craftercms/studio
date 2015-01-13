@@ -966,7 +966,7 @@ var CStudioForms = CStudioForms || function() {
 
                 var xml = CStudioForms.Util.serializeModelToXml(form);
 
-                var serviceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content" +
+                var serviceUrl = "/api/1/services/api/1/content/write-content.json" +
                     "?site=" + CStudioAuthoringContext.site +
                     "&phase=onSave" +
                     "&path=" + entityId +
