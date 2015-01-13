@@ -191,17 +191,16 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getWebProject(java.lang.String)
 	 */
-	/*
 	public String getWemProject(String site) {
 		if (isConfigUpdated(site)) {
 			loadConfiguration(site);
 		}
-		SiteConfigTO config = _siteMapping.get(site);
+		SiteConfigTO config = siteMapping.get(site);
 		if (config != null && config.getWemProject() != null) {
 			return config.getWemProject();
 		}
 		return null;
-	}*/
+	}
 
     @Override
     public List<DmFolderConfigTO> getFolders(String site) {
@@ -498,11 +497,11 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         return null;
     }*/
 
-	/*
+
     @Override
 	public boolean isUpdated(String site) {
 		return isConfigUpdated(site);
-	}*/
+	}
 
 	/**
 	 * is configuration file updated?
@@ -541,7 +540,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 			SiteConfigTO siteConfig = new SiteConfigTO();
 			siteConfig.setName(name);
             //siteConfig.setSiteName(configNode.valueOf("name"));
-            //siteConfig.setWemProject(configNode.valueOf("wem-project"));
+            siteConfig.setWemProject(configNode.valueOf("wem-project"));
 			//siteConfig.setDefaultContentType(configNode.valueOf("default-content-type"));
 			//String assetUrl = configNode.valueOf("assets-url");
 			siteConfig.setTimezone(configNode.valueOf("default-timezone"));
@@ -805,12 +804,12 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         return null;
     }*/
 
-	/*
+
     @Override
     public boolean siteExists(String site) {
-        if (_siteMapping == null) return false;
-        return _siteMapping.get(site) != null;
-    }*/
+        if (siteMapping == null) return false;
+        return siteMapping.get(site) != null;
+    }
 
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;

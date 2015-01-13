@@ -176,6 +176,11 @@
             <version>5.5.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>xom</groupId>
+            <artifactId>xom</artifactId>
+            <version>1.2.5</version>
+        </dependency>
     </dependencies>
 
     <build>

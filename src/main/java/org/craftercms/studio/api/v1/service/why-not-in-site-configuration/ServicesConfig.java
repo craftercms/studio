@@ -81,7 +81,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return web project name
 	 */
-	//public String getWemProject(final String site);
+	public String getWemProject(final String site);
 
     /**
      * get a list of folder configuration. The top folders are used to as the
@@ -215,7 +215,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return
 	 */
-	//public boolean isUpdated(String site);
+	public boolean isUpdated(String site);
 	
 	/**
 	 * 
@@ -239,7 +239,7 @@ public interface ServicesConfig {
 
     //public String getLiveRepositoryPath(String site);
     
-    //public boolean siteExists(String site);
+    public boolean siteExists(String site);
 
     //Set<String> getAllAvailableSites();
 }

@@ -38,6 +38,11 @@ public interface ContentService {
     public boolean contentExists(String site, String path);
 
     /**
+     * @return true if site has content object at path
+     */
+    public boolean contentExists(String fullPath);
+
+    /**
      * get document from wcm content
      *
      * @param path
@@ -138,12 +143,26 @@ public interface ContentService {
     public ContentItemTO getContentItemTree(String site, String path, int depth);
 
     /**
+     * get the tree of content items (metadata) beginning at a root
+     *
+     * @param fullPath - the full path to root at
+     */
+    public ContentItemTO getContentItemTree(String fullPath, int depth);
+
+    /**
      * get the content item (metadata) at a specific path
      *
      * @param site - the project ID
      * @param path - the path of the content item
      */
     public ContentItemTO getContentItem(String site, String path);
+
+    /**
+     * get the content item (metadata) at a specific path
+     *
+     * @param fullPath - the path of the content item
+     */
+    public ContentItemTO getContentItem(String fullPath);
 
     /**
      * get the version history for an item

@@ -2014,6 +2014,9 @@ YConnect.failureEvent.subscribe(function() {
             // Security Services
             getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
 
+            // Configuration Services
+            getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
+
             // not ported yet
 
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -2038,11 +2041,9 @@ YConnect.failureEvent.subscribe(function() {
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            //getPermissionsServiceUrl: "/proxy/alfresco/cstudio/permission/get-user-permissions",
 			renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
 			changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
 			cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
-			getConfigurationUrl: "/proxy/alfresco/cstudio/site/get-configuration",
             updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
 			allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
