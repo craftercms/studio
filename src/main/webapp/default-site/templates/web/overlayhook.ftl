@@ -12,7 +12,7 @@
             formServerUri: "${envConfig.formServerUrl}",
             previewAppBaseUri: "${envConfig.previewServerUrl}",
             contextMenuOffsetPage: true,
-            brandedLogoUri: "/proxy/authoring/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
+            brandedLogoUri: "/proxy/authoring/api/1/service/api/1/content/get-content-at-path.json?path=/cstudio/config/app-logo.png",
             homeUri: "/site-dashboard?site=${envConfig.site}",
             navContext: "default",
             cookieDomain: "${envConfig.cookieDomain}",

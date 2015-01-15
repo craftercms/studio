@@ -14,7 +14,7 @@
 		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
 		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}",
 		contextMenuOffsetPage: false,
-		brandedLogoUri: "/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
+		brandedLogoUri: "/api/1/service/api/1/content/get-content-at-path.json?path=/cstudio/config/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
 		navContext: "default",
 		cookieDomain: "${envConfig.cookieDomain!'UNSET'}",

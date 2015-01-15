@@ -126,7 +126,7 @@ CStudioAuthoring.Module.requireModule(
 						var descriptionEl = document.getElementById("config-description");
 						descriptionEl.innerHTML = itemSelectEl[selectedIndex].getAttribute("description");
 						// load configuration into editor
-						var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+						var url = '/studio/api/1/service/api/1/content/get-content-at-path.json?path=/cstudio/config/sites/' +
 							          CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
 						var getConfigCb = {
 							success: function(response) {
@@ -146,7 +146,7 @@ CStudioAuthoring.Module.requireModule(
 						var samplePath = itemSelectEl[selectedIndex].getAttribute("sample");
 						var viewSampleButtonEl = document.getElementById("view-sample-button");
 						if (samplePath != 'undefined' && samplePath != '') {
-							var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+							var url = '/studio/api/1/service/api/1/content/get-content-at-path.json?path=/cstudio/config/sites/' +
 								    CStudioAuthoringContext.site + itemSelectEl[selectedIndex].getAttribute("sample");
 							var getSampleCb = {
 								success: function(response) {
