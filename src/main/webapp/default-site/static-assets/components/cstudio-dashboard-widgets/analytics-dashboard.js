@@ -89,7 +89,7 @@ CStudioAuthoringWidgets.AnalyticsDashboard =
 
           CStudioAuthoring.Module.requireModule(
             "dashboard-analytics",
-            "/proxy/alfresco/cstudio/services/content/content-at-path" +
+            "/api/1/service/api/1/content/get-content-at-path.json" +
               "?path=/cstudio" + library,
             moduleConfig, moduleCb);
 

@@ -19,8 +19,12 @@ package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.lang.String;
 import java.util.*;
@@ -74,7 +78,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                 lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
                 lookupContentParams.put("name", name);
 
-                retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+                retStream = this.alfrescoGetHttpRequest(downloadURI, lookupContentParams);
             }
             else {
                 throw new Exception("nodeRef not found for path: [" + path + "]");
@@ -471,7 +475,30 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
 
         retResponse = serviceURI.toURL().openStream();
-     
+
+        return retResponse;
+    }
+
+    /**
+     * fire GET request to Alfresco with proper security
+     */
+    protected InputStream alfrescoGetHttpRequest(String uri, Map<String, String> params) throws Exception {
+        InputStream retResponse = null;
+
+        URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));
+
+        //retResponse = serviceURI.toURL().openStream();
+
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        GetMethod getMethod = new GetMethod(serviceURI.toURL().toString());
+        int status = httpClient.executeMethod(getMethod);
+        if (status == 200) {
+            retResponse = new ByteArrayInputStream(getMethod.getResponseBody());
+        } else {
+            // TODO: we might need to return response stream
+            logger.error("Get request failed with " + status);
+            return null;
+        }
         return retResponse;
     }
 

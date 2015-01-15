@@ -21,6 +21,8 @@ import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.dom4j.Document;
 
+import java.util.Map;
+
 /**
  * Note: consider renaming
  * A site in Crafter Studio is currently the name for a WEM project being managed.  
@@ -47,5 +49,5 @@ public interface SiteService {
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	public JSON getConfiguration(String site, String path, boolean applyEnv);
+	public Map<String, String> getConfiguration(String site, String path, boolean applyEnv);
 }

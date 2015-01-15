@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import net.sf.json.xml.XMLSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -32,15 +31,11 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
+import org.dom4j.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Note: consider renaming
@@ -140,7 +135,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	}
 
 	@Override
-	public JSON getConfiguration(String site, String path, boolean applyEnv) {
+	public Map<String, String> getConfiguration(String site, String path, boolean applyEnv) {
 		//
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
@@ -158,16 +153,56 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		String configContent = contentService.getContentAsString(configPath);
 
 		JSON response = null;
-
+		Map<String, String> toRet = null;
 		if (configContent != null) {
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
-			XMLSerializer xmlSerializer = new XMLSerializer();
-			response = xmlSerializer.read(configContent);
+			toRet = convertNodesFromXml(configContent);
+			//XMLSerializer xmlSerializer = new XMLSerializer();
+			//response = xmlSerializer.read(configContent);
 		} else {
 			response = new JSONObject();
 		}
-		return response;
+		return toRet;
+	}
+
+	private Map<String, String> convertNodesFromXml(String xml) {
+		try {
+			InputStream is = new ByteArrayInputStream(xml.getBytes());
+
+			Document document = DocumentHelper.parseText(xml);
+			return createMap(document.getRootElement());
+
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private  Map<String, String> createMap(Element element) {
+		Map<String, String> map = new HashMap<String, String>();
+		for ( int i = 0, size = element.nodeCount(); i < size; i++ ) {
+			Node currentNode = element.node(i);
+			if ( currentNode instanceof Element ) {
+				Element currentElement = (Element)currentNode;
+				if (currentElement.attributeCount() > 0) {
+					for (int j = 0; j < currentElement.attributes().size(); j++) {
+						Attribute item = currentElement.attribute(i);
+						map.put(item.getName(), item.getValue());
+					}
+				}
+				Iterator elIter = element.elementIterator();
+				if (elIter.hasNext()) {
+					Element firstChild = (Element)elIter.next();
+					if (firstChild.isTextOnly()) {
+						map.put(element.getName(), element.getStringValue());
+					} else {
+						map.putAll(createMap(currentElement));
+					}
+				}
+			}
+		}
+		return map;
 	}
 
 	/**
