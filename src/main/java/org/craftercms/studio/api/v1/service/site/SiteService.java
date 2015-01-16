@@ -49,5 +49,5 @@ public interface SiteService {
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	public Map<String, String> getConfiguration(String site, String path, boolean applyEnv);
+	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 }
