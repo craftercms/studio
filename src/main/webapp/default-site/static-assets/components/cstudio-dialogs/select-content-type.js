@@ -182,7 +182,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
 					contentTypePreviewImg.src = 
 						CStudioAuthoringContext.baseUri+
-						'/api/1/service/api/1/content/get-content-at-path.json?path=/cstudio/config/sites/' +
+						'/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
 						CStudioAuthoringContext.site + 
 						"/content-types" + 
 						contentTypesSelect.value + 

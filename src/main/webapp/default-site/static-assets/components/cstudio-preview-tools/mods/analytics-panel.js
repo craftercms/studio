@@ -117,7 +117,7 @@ CStudioAuthoring.AnalyticsPanel = CStudioAuthoring.AnalyticsPanel || {
 
                 CStudioAuthoring.Module.requireModule(
                     "dashboard-analytics",
-                    "/api/1/service/api/1/content/get-content-at-path.json" +
+                    "/api/1/services/api/1/content/get-content-at-path.bin" +
                     "?path=/cstudio" + library,
                     moduleConfig, moduleCb);
             }

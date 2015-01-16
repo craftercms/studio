@@ -81,9 +81,9 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
      */
     buildModules: function(navConfig) {
 		
-		if(navConfig.modules.length) {
-			for(var i=0; i<navConfig.modules.length; i++) {
-				var module = navConfig.modules[i];
+		if(navConfig.modules.module.length) {
+			for(var i=0; i<navConfig.modules.module.length; i++) {
+				var module = navConfig.modules.module[i];
 				 
 				var cb = {
 					moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
