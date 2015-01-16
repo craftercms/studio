@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.FileUtils;
@@ -636,11 +637,22 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         Set<String> toRet = new HashSet<String>();
         try {
             // construct and execute url to download result
+            // TODO: use alfresco/service/api/sites/craftercms250/memberships/admin instead
             String downloadURI = "/api/people/{username}?groups=true";
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
             retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+
+            ///JSONObject jsonObject =
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+
+            List<Map<String, String>> groups = (List<Map<String, String>>)result.get("groups");
+            for (Map<String, String> group : groups) {
+                toRet.add(group.get("displayName"));
+            }
+/*
 
             JsonFactory jsonFactory = new JsonFactory();
             JsonParser parser = jsonFactory.createJsonParser(retStream);
@@ -659,7 +671,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                         }
                     }
                 }
-            }
+            }*/
         }
         catch(Exception err) {
             logger.error("err getting content: ", err);

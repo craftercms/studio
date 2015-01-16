@@ -135,7 +135,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	}
 
 	@Override
-	public Map<String, String> getConfiguration(String site, String path, boolean applyEnv) {
+	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
 		//
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
@@ -153,7 +153,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		String configContent = contentService.getContentAsString(configPath);
 
 		JSON response = null;
-		Map<String, String> toRet = null;
+		Map<String, Object> toRet = null;
 		if (configContent != null) {
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
@@ -166,7 +166,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		return toRet;
 	}
 
-	private Map<String, String> convertNodesFromXml(String xml) {
+	private Map<String, Object> convertNodesFromXml(String xml) {
 		try {
 			InputStream is = new ByteArrayInputStream(xml.getBytes());
 
@@ -179,27 +179,49 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		return null;
 	}
 
-	private  Map<String, String> createMap(Element element) {
-		Map<String, String> map = new HashMap<String, String>();
+	private  Map<String, Object> createMap(Element element) {
+		Map<String, Object> map = new HashMap<String, Object>();
 		for ( int i = 0, size = element.nodeCount(); i < size; i++ ) {
 			Node currentNode = element.node(i);
 			if ( currentNode instanceof Element ) {
 				Element currentElement = (Element)currentNode;
+				/*
 				if (currentElement.attributeCount() > 0) {
 					for (int j = 0; j < currentElement.attributes().size(); j++) {
-						Attribute item = currentElement.attribute(i);
+						Attribute item = currentElement.attribute(j);
 						map.put(item.getName(), item.getValue());
 					}
+				}*/
+				String key = currentElement.getName();
+				Object toAdd = null;
+				if (currentElement.isTextOnly()) {
+					 toAdd = currentElement.getStringValue();
+				} else {
+					toAdd = createMap(currentElement);
 				}
-				Iterator elIter = element.elementIterator();
+				if (map.containsKey(key)) {
+					Object value = map.get(key);
+					List listOfValues = new ArrayList<Object>();
+					if (value instanceof List) {
+						listOfValues = (List<Object>)value;
+					} else {
+						listOfValues.add(value);
+					}
+					listOfValues.add(toAdd);
+					map.put(key, listOfValues);
+				} else {
+					map.put(key, toAdd);
+				}
+				/*
+				Iterator elIter = currentElement.elementIterator();
 				if (elIter.hasNext()) {
 					Element firstChild = (Element)elIter.next();
 					if (firstChild.isTextOnly()) {
-						map.put(element.getName(), element.getStringValue());
+						map.put(currentElement.getName(), currentElement.getStringValue());
 					} else {
 						map.putAll(createMap(currentElement));
 					}
-				}
+				}*/
 			}
 		}
 		return map;
