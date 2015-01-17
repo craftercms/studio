@@ -193,7 +193,7 @@ CStudioSearch.determineFilterRendererFromUrl = function() {
 
         var moduleConfig = { };
 
-		var modulePath = "/api/1/service/api/1/content/get-content-at-path.json" +
+		var modulePath = "/api/1/services/api/1/content/get-content-at-path.bin" +
             "?path=/cstudio/config/sites/" + CStudioAuthoringContext.site + "/search/filters/" + paramContext + ".js";
             
 		CStudioAuthoring.Module.requireModule(
