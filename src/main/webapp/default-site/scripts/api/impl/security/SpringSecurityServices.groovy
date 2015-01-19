@@ -35,4 +35,9 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.getUserPermissions(site, path, user, groups);
     }
+
+    def getUserRoles(site, user) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUserRoles(site, user);
+    }
 }

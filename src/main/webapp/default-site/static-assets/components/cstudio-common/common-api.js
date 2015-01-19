@@ -2013,6 +2013,7 @@ YConnect.failureEvent.subscribe(function() {
 
             // Security Services
             getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
+            lookupAuthoringRoleServiceUrl : "/api/1/services/api/1/security/get-user-roles.json",
 
             // Configuration Services
             getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
@@ -2051,7 +2052,6 @@ YConnect.failureEvent.subscribe(function() {
 			getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
 			getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
-            lookupAuthoringRoleServiceUrl : "/proxy/alfresco/cstudio/permission/get-user-roles",
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
 			previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
 			setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
@@ -3126,11 +3126,11 @@ YConnect.failureEvent.subscribe(function() {
 								this.context.contextNavConfig = config;
 								this.context.contextNavInitialized = true;
 								
-								if(!config.contexts.length) {
+								if(!config.contexts.context.length) {
 									this.callback.success(config.contexts.context);
 								}
 								else {
-									this.callback.success(config.contexts[0]);
+									this.callback.success(config.contexts.context[0]);
 								}								
 							},
 						
