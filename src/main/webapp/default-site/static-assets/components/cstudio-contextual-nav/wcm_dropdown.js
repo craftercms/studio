@@ -332,9 +332,9 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
 	                    for (j = 0, b = menuItems.length; j < b; j++) {
 	                        modules = menuItems[j].modulehooks;
 	
-		                    if(!modules.length) {
+		                    if(!modules.modulehook.length) {
 								modules = new Array();
-								modules[0] = menuItems[j].modulehooks.moduleHook;
+								modules[0] = menuItems[j].modulehooks.modulehook;
 							}
 	
                             CStudioAuthoring.Service.lookupAuthoringRole(CStudioAuthoringContext.site, CStudioAuthoringContext.user, {
