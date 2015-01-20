@@ -16,28 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package scripts.api.impl.site;
 
-class SpringSiteServices {
+import scripts.api.SecurityServices;
 
-    def context = null
+def result = [:];
+def user = params.user;
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringSiteServices(context) {
-        this.context = context
-    }
+def context = SiteServices.createContext(applicationContext, request);
+result = SiteServices.getUserSites(context, user);
 
-    def getConfiguration(site, path, applyEnvironment) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.getConfiguration(site, path, applyEnvironment);
-    }
-
-    def getUserSites(user) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.getUserSites(user);
-    }
-}
+return result;

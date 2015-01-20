@@ -17,10 +17,15 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.lang.String;
 import java.util.*;
@@ -74,7 +79,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                 lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
                 lookupContentParams.put("name", name);
 
-                retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+                retStream = this.alfrescoGetHttpRequest(downloadURI, lookupContentParams);
             }
             else {
                 throw new Exception("nodeRef not found for path: [" + path + "]");
@@ -471,7 +476,30 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
 
         retResponse = serviceURI.toURL().openStream();
-     
+
+        return retResponse;
+    }
+
+    /**
+     * fire GET request to Alfresco with proper security
+     */
+    protected InputStream alfrescoGetHttpRequest(String uri, Map<String, String> params) throws Exception {
+        InputStream retResponse = null;
+
+        URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));
+
+        //retResponse = serviceURI.toURL().openStream();
+
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        GetMethod getMethod = new GetMethod(serviceURI.toURL().toString());
+        int status = httpClient.executeMethod(getMethod);
+        if (status == 200) {
+            retResponse = new ByteArrayInputStream(getMethod.getResponseBody());
+        } else {
+            // TODO: we might need to return response stream
+            logger.error("Get request failed with " + status);
+            return null;
+        }
         return retResponse;
     }
 
@@ -609,11 +637,22 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         Set<String> toRet = new HashSet<String>();
         try {
             // construct and execute url to download result
+            // TODO: use alfresco/service/api/sites/craftercms250/memberships/admin instead
             String downloadURI = "/api/people/{username}?groups=true";
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
             retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+
+            ///JSONObject jsonObject =
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+
+            List<Map<String, String>> groups = (List<Map<String, String>>)result.get("groups");
+            for (Map<String, String> group : groups) {
+                toRet.add(group.get("displayName"));
+            }
+/*
 
             JsonFactory jsonFactory = new JsonFactory();
             JsonParser parser = jsonFactory.createJsonParser(retStream);
@@ -632,7 +671,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                         }
                     }
                 }
-            }
+            }*/
         }
         catch(Exception err) {
             logger.error("err getting content: ", err);

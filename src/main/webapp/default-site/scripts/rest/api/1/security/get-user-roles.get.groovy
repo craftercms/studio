@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,43 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import scripts.api.SecurityServices;
-/**
- * Created by dejanbrkic on 12/10/14.
- */
 
-def result = [:];
 // extract parameters
+def result = [:]
 def user = params.user;
-def groups = params.groups;
-def path = params.path;
 def site = params.site;
-
-/* check parameters
-if (site == undefined || site == "")
+/* params check
+if (site == null || site == "")
 {
     status.code = 400;
     status.message = "Site must be provided.";
     status.redirect = true;
 } else {
-    if (path == undefined || path == "")
+    if (user == undefined || user == "")
     {
         status.code = 400;
-        status.message = "Path must be provided.";
+        status.message = "User must be provided.";
         status.redirect = true;
-    } else {
-*/
-if (groups != null) {
-    /* set the authorityDisplayName as the group ID */
-    def groupList = new java.util.ArrayList();
-    for (i in groups) {
-        //log("Getting permissions for group: " + groups[i]);
-        groupList.add(groups[i]);
-    }
-    groups = groupList;
-}
+    }  else {
+    */
 def context = SecurityServices.createContext(applicationContext, request)
-result.permissions = SecurityServices.getUserPermissions(context, site, path, user, groups);
+result.roles = SecurityServices.getUserRoles(context, site, user);
+return result
 
 
-
-return result;

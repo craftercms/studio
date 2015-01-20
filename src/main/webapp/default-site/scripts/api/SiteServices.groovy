@@ -40,4 +40,9 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getConfiguration(site, path, applyEnvironment)
     }
+
+    static getUserSites(context, user) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context);
+        return siteServicesImpl.getUserSites(user);
+    }
 }

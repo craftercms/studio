@@ -294,7 +294,7 @@ sup {
 
 #logo {
 	background:
-		url(../../../proxy/alfresco-noauth/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png)
+		url(../../../api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png)
 		no-repeat left;
 	float: left;
 	margin: 0 0 0 010px;

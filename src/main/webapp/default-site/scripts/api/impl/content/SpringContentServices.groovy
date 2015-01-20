@@ -207,4 +207,9 @@ class SpringContentServices {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
 		return springBackedService.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
 	}
+
+	def getContentAtPath(path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+		return springBackedService.getContent(path)
+	}
 }

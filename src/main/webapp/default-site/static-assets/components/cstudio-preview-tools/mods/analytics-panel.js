@@ -117,7 +117,7 @@ CStudioAuthoring.AnalyticsPanel = CStudioAuthoring.AnalyticsPanel || {
 
                 CStudioAuthoring.Module.requireModule(
                     "dashboard-analytics",
-                    "/proxy/alfresco/cstudio/services/content/content-at-path" +
+                    "/api/1/services/api/1/content/get-content-at-path.bin" +
                     "?path=/cstudio" + library,
                     moduleConfig, moduleCb);
             }

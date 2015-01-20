@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -16,28 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package scripts.api.impl.site;
 
-class SpringSiteServices {
+import scripts.api.ContentServices;
 
-    def context = null
+def result = [:];
+def path = params.path;
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-    def SpringSiteServices(context) {
-        this.context = context
-    }
+def context = ContentServices.createContext(applicationContext, request);
 
-    def getConfiguration(site, path, applyEnvironment) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.getConfiguration(site, path, applyEnvironment);
-    }
+result.contentStream = ContentServices.getContentAtPath(context, path);
+result.contentPath = path;
 
-    def getUserSites(user) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.getUserSites(user);
-    }
-}
+return result;

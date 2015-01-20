@@ -69,7 +69,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							}
 
 							personaEl.personaDescription = config[i].description;
-							personaImgEl.src = CStudioAuthoringContext.baseUri + '/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
+							personaImgEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
 							
 							personalListEl.appendChild(personaEl);
 						}
