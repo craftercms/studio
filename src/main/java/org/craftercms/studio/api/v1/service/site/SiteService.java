@@ -19,8 +19,10 @@ package org.craftercms.studio.api.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.dom4j.Document;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,4 +52,7 @@ public interface SiteService {
 	 * @return configuration as XML string
 	 */
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
+
+	List<SiteFeed> getUserSites(String user);
+
 }

@@ -36,7 +36,7 @@
     <div id="page_x002e_title_x002e_site_x007e_rosie_x007e_dashboard_x0023_default">
       <!-- dashboard title -->
 		<div id="pageTitle">
-			<div class="dashHeader"><h1><span><script>CMgs.display(langBundle, "dashboardTitle","${envConfig.siteTitle}")</script></span></h1></div>
+			<div class="dashHeader"><h1><span><script>CMgs.display(langBundle, "dashboardTitle","${envConfig.siteTitle!}")</script></span></h1></div>
 			<!--
 			 <ul id="pageNav">
 				<li>  |  </li>

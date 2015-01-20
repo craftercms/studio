@@ -277,7 +277,7 @@ WcmDashboardWidgetCommon.init = function(instance) {
         	var hasPerm = false;
 
         	for(var k=0; k < perms.permissions.length; k++) {
-				if(permission == perms.permissions[k].permission) {
+				if(permission == perms.permissions[k]) {
 					hasPerm = true;	
 					break;
 				}
