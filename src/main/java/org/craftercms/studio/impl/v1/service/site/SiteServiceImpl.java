@@ -21,6 +21,8 @@ import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
@@ -32,6 +34,7 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -357,6 +360,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		siteConfig.setDeploymentEndpointConfigs(deploymentConfig.getEndpointMapping());
 	}
 
+	@Override
+	public List<SiteFeed> getUserSites(String user) {
+		return siteFeedMapper.getSites();
+	}
+
 	/** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -395,6 +403,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
+
+	@Autowired
+	protected SiteFeedMapper siteFeedMapper;
 
 	/**
 	 * a map of site key and site information
