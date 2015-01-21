@@ -68,9 +68,9 @@ if (site == undefined || site == "")
 }*/
 def context = WorkflowServices.createContext(applicationContext, request)
 if (inProgressOnly || includeInProgress) {
-    result.content = WorkflowServices.getInProgressItems(context, site, sort, ascending, inProgressOnly);
+    result = WorkflowServices.getInProgressItems(context, site, sort, ascending, inProgressOnly);
 } else {
-    result.content = WorkflowServices.getGoLiveItems(context, site, sort, ascending);
+    result = WorkflowServices.getGoLiveItems(context, site, sort, ascending);
 }
 
 return result;

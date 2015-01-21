@@ -2018,6 +2018,9 @@ YConnect.failureEvent.subscribe(function() {
             // Configuration Services
             getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
 
+            // Workflow Services
+            getGoLiveQueueItemsServiceUrl: "/api/1/services/api/1/workflow/get-go-live-items.json",
+
             // not ported yet
 
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -2038,7 +2041,6 @@ YConnect.failureEvent.subscribe(function() {
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-			getGoLiveQueueItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-go-live-items",
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
@@ -2810,7 +2812,7 @@ YConnect.failureEvent.subscribe(function() {
 			 */
 			isWrite:function(permissions) {
 				for (var i = 0; i < permissions.length; i++) {
-					if(permissions[i].permission == "write") {
+					if(permissions[i] == "write") {
 						return true;
 					}
 				}
@@ -3421,7 +3423,7 @@ YConnect.failureEvent.subscribe(function() {
 			// is this really a service and not a util, can we rename it to something descriptive?
 			isCreateFolder: function(permissions) {
 				for (var i = 0; i < permissions.length; i++) {
-					if(permissions[i].permission == "create folder") {
+					if(permissions[i] == "create folder") {
 						return true;
 					}
 				}
@@ -3431,7 +3433,7 @@ YConnect.failureEvent.subscribe(function() {
 			// is this really a service and not a util, can we rename it to something descriptive?
 			isUserAllowed: function(permissions) {
 				for (var i = 0; i < permissions.length; i++) {
-					if(permissions[i].permission == "not allowed") {
+					if(permissions[i] == "not allowed") {
 						return false;
 					}
 				}
@@ -3441,7 +3443,7 @@ YConnect.failureEvent.subscribe(function() {
 			// is this really a service and not a util, can we rename it to something descriptive?
 			isDeleteAllowed: function(permissions) {
 				for (var i = 0; i < permissions.length; i++) {
-					if(permissions[i].permission == "delete") {
+					if(permissions[i] == "delete") {
 						return true;
 					}
 				}
@@ -3451,7 +3453,7 @@ YConnect.failureEvent.subscribe(function() {
 			// is this really a service and not a util, can we rename it to something descriptive?
 			isPublishAllowed: function(permissions) {
 				for (var i = 0; i < permissions.length; i++) {
-					if(permissions[i].permission == "publish") {
+					if(permissions[i] == "publish") {
 						return true;
 					}
 				}
