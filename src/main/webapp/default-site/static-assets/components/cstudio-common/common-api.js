@@ -2018,6 +2018,9 @@ YConnect.failureEvent.subscribe(function() {
             // Configuration Services
             getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
 
+            // Workflow Services
+            getGoLiveQueueItemsServiceUrl: "/api/1/services/api/1/workflow/get-go-live-items.json",
+
             // not ported yet
 
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -2038,7 +2041,6 @@ YConnect.failureEvent.subscribe(function() {
 			allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
 			lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
 			lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-			getGoLiveQueueItemsServiceUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-go-live-items",
 			getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
 			getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
 			getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",

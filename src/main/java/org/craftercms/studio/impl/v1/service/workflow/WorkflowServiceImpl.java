@@ -17,13 +17,11 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.io.Serializable;
 import java.util.*;
 
 import javolution.util.FastList;
 import javolution.util.FastTable;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectState;
@@ -42,12 +40,10 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
-import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 
@@ -139,21 +135,29 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
 	@Override
-	public String getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
+	public Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
 		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
 		List<ContentItemTO> items = getGoLiveItems(site, comparator);
+		/*
 		JSONObject jsonObject = new JSONObject();
+		*/
 		int total = 0;
 		if (items != null) {
 			for (ContentItemTO item : items) {
 				total += item.getNumOfChildren();
 			}
-		}
+		}/*
 		jsonObject.put(CStudioConstants.PROPERTY_TOTAL, total);
 		jsonObject.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
 		jsonObject.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
 		jsonObject.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
-		return jsonObject.toString();
+		*/
+		Map<String, Object> result = new HashMap<>();
+		result.put(CStudioConstants.PROPERTY_TOTAL, total);
+		result.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
+		result.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
+		result.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
+		return result;
 	}
 
 	protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator) throws ServiceException {
