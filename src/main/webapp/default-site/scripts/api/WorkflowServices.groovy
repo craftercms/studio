@@ -101,4 +101,9 @@ class WorkflowServices {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
 		workflowServicesImpl.getGoLiveItems(site, sort, ascending);
 	}
+
+	static getWorkflowAffectedPaths(context, site, path) {
+		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
+		workflowServicesImpl.getWorkflowAffectedPaths(site, path);
+	}
 }

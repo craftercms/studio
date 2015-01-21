@@ -25,10 +25,10 @@
        </bean>
 
        <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-              <property name="driverClassName" value="org.gjt.mm.mysql.Driver"/>
-              <property name="url" value="jdbc:mysql://localhost:3306/crafter?useUnicode=yes&amp;characterEncoding=UTF-8"/>
-              <property name="username" value="crafter"/>
-              <property name="password" value="crafter"/>
+              <property name="driverClassName" value="${studio.db.driver}"/>
+              <property name="url" value="${studio.db.url}"/>
+              <property name="username" value="${studio.db.username}"/>
+              <property name="password" value="${studio.db.password}"/>
        </bean>
 
 
