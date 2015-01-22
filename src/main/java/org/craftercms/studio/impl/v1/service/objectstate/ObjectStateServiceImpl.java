@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.objectstate;
 
 
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.ObjectStateMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -30,10 +31,7 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ObjectStateServiceImpl extends AbstractRegistrableService implements ObjectStateService {
 
@@ -226,9 +224,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     public void insertNewEntry(String site, ContentItemTO item) {
         ObjectState newEntry = new ObjectState();
-        newEntry.setObjectId(item.getNodeRef());
+        if (StringUtils.isEmpty(item.getNodeRef())) {
+            newEntry.setObjectId(UUID.randomUUID().toString());
+        } else {
+            newEntry.setObjectId(item.getNodeRef());
+        }
         newEntry.setSite(site);
-        newEntry.setPath(item.getPath());
+        newEntry.setPath(item.getUri());
         newEntry.setSystemProcessing(0);
         newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
         objectStateMapper.insertEntry(newEntry);

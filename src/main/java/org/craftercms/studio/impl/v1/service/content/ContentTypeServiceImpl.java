@@ -82,6 +82,11 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         }
     }
 
+    @Override
+    public ContentTypeConfigTO getContentType(String site, String type) {
+        return servicesConfig.getContentTypeConfig(site, type);
+    }
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 

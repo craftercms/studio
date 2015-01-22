@@ -2,6 +2,7 @@ package scripts.api
 
 import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices;
+import scripts.api.impl.content.SpringContentTypeServices;
 import scripts.api.impl.clipboard.SpringClipboardServices;
 import scripts.api.impl.deployment.SpringDeploymentServices;
 import scripts.api.impl.activity.SpringActivityServices;
@@ -35,6 +36,13 @@ class ServiceFactory {
 	 */
 	static getContentServices(context) {
 		return new SpringContentServices(context)
+	}
+
+	/**
+	 * return the implementation for content type services
+	 */
+	static getContentTypeServices(context) {
+		return new SpringContentTypeServices(context)
 	}
 
     /**

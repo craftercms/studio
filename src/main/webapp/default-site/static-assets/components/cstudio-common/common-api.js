@@ -1998,6 +1998,7 @@ var YEvent = YAHOO.util.Event;
             lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
             writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
+            lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
 
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
@@ -2040,7 +2041,6 @@ var YEvent = YAHOO.util.Event;
             allContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-content-types",
             allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",
             allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
-            lookupContentTypeServiceUri: "/proxy/alfresco/cstudio/wcm/contenttype/get-content-type",
             lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
             getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
             getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",

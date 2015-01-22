@@ -46,4 +46,12 @@ public interface ContentTypeService {
      */
     boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item);
 
+    /**
+     * get a content type by the given site and type name
+     *
+     * @param site
+     * @param type
+     * @return content type
+     */
+    public ContentTypeConfigTO getContentType(String site, String type);
 }
