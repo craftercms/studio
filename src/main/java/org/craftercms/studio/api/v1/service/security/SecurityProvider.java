@@ -26,4 +26,6 @@ import java.util.Set;
 public interface SecurityProvider {
 
     Set<String> getUserGroups(String user);
+
+    String getCurrentUser();
 }

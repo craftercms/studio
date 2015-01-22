@@ -55,7 +55,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
     @Override
     public String getCurrentUser() {
-        return "NOT IMPLEMENTED";
+        return securityProvider.getCurrentUser();
     }
 
     @Override
