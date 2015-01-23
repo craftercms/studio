@@ -53,7 +53,7 @@ class ClipboardServices {
      * @param requestJson - items in json format
      * @oaran context - container for passing request, token and other values that may be needed by the implementation
      */
-    static copy(site, session, requestJson, context) {
+    static copy(context, site, session, requestJson) {
         def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
         clipboardServicesImpl.copy(site, session, requestJson)
     }

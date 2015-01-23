@@ -6,7 +6,7 @@ def session = request.session
 def requestBody = request.reader.text
 
 def context = ClipboardServices.createContext(applicationContext, request)
-ClipboardServices.copy(site, session, requestBody)
+ClipboardServices.copy(context, site, session, requestBody)
 
 result.success = true
 
