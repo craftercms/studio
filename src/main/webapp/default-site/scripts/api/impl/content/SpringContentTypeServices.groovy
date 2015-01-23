@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.security;
-
-import java.util.Set;
-
 /**
  * @author Dejan Brkic
  */
-public interface SecurityProvider {
+package scripts.api.impl.content;
 
-    Set<String> getUserGroups(String user);
+/**
+ * content type services
+ */
+class SpringContentTypeServices {
 
-    String getCurrentUser();
+    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
+
+    def context = null
+
+    def SpringContentTypeServices(context) {
+        this.context = context
+    }
+
+    def getContentType(site, type) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
+        return springBackedService.getContentType(site, type)
+    }
 }

@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +17,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.security;
-
-import java.util.Set;
-
 /**
  * @author Dejan Brkic
  */
-public interface SecurityProvider {
 
-    Set<String> getUserGroups(String user);
+import scripts.api.ContentServices;
 
-    String getCurrentUser();
+def result = [:]
+def site = params.site;
+def type = params.type;
+/*
+if (site == undefined || site == '')
+{
+    status.code = 400;
+    status.message = "Site must be provided.";
+    status.redirect = true;
 }
+else
+{
+    if (type == undefined || type == '')
+    {
+        status.code = 400;
+        status.message = "type must be provided.";
+        status.redirect = true;
+    }
+    else
+    {
+        model.result = dmContentTypeService.getContentType(site, type);
+    }
+
+}
+*/
+def context = ContentServices.createContext(applicationContext, request);
+
+result = ContentServices.getContentType(context, site, type);
+
+return result

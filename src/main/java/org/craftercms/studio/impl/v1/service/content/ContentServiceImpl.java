@@ -587,6 +587,10 @@ public class ContentServiceImpl implements ContentService {
             boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
             if (item != null) {
                 ObjectState objectState = objectStateService.getObjectState(site, path);
+                if (objectState == null) {
+                    objectStateService.insertNewEntry(site, item);
+                    objectState = objectStateService.getObjectState(site, path);
+                }
                 if (objectState.getSystemProcessing() != 0){
                     logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
                     throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
