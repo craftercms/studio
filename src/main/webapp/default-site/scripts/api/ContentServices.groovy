@@ -258,4 +258,9 @@ class ContentServices {
 		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
 		return contentTypeServicesImpl.getContentType(site, type)
 	}
+
+	static getPages(context, site, path, depth, order, checkChildren = true) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.getContentItemTree(site, path, depth);//.getPages(site, path, depth, order, checkChildren)
+	}
 }	

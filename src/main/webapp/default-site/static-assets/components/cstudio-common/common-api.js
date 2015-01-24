@@ -1232,7 +1232,7 @@ var YEvent = YAHOO.util.Event;
                     folderPath = uri.substring(0, uri.lastIndexOf("index.xml"));
                 }
                 var cut = false,  // args.cut was the original value, but this parameter is always returning undefined
-                    serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + site + "&path=" + folderPath + "&depth=-1&order=default",
+                    serviceUri = CSA.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default",
                     getCopyTreeItemRequest = CStudioAuthoring.Service.createServiceUri(serviceUri);
 
                 submitDialogCb = {
@@ -1999,6 +1999,7 @@ var YEvent = YAHOO.util.Event;
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
             writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
+            getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
 
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
@@ -2022,6 +2023,9 @@ var YEvent = YAHOO.util.Event;
             // Workflow Services
             getGoLiveQueueItemsServiceUrl: "/api/1/services/api/1/workflow/get-go-live-items.json",
             getWorkflowAffectedPathsServiceUrl: "/api/1/services/api/1/workflow/get-workflow-affected-paths.json",
+
+            // Clipboard
+            copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
 
             // not ported yet
 

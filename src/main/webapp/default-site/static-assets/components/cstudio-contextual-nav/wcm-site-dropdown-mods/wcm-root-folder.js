@@ -1549,13 +1549,13 @@ treeNode.getHtml = function() {
                 Self.cutItem = oCurrentTextNode;
 
 				if(uri.lastIndexOf("index.xml")==-1){
-					var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + CStudioAuthoringContext.site + "&path=" + uri + "&depth=-1&order=default";
+					var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + uri + "&depth=-1&order=default";
 					
 				}
 				else {
 	                var folderPath = uri.substring(0, uri.lastIndexOf("index.xml"));                
 
-    	            var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + CStudioAuthoringContext.site + "&path=" + folderPath + "&depth=-1&order=default";
+    	            var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + folderPath + "&depth=-1&order=default";
 				}
 				
                 var getTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
@@ -1710,7 +1710,7 @@ treeNode.getHtml = function() {
                 	var site = CStudioAuthoringContext.site;
                 	
                 	var context = copyContext;
-                	context.request = CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/copy?site=" + site;
+                	context.request = CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.copyServiceUrl + "?site=" + site;
                 	
                 	var uri = oCurrentTextNode.data.uri; 
                 	
@@ -1749,7 +1749,7 @@ treeNode.getHtml = function() {
         				},
         				args : context
         			};
-        			var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
+        			var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
         			var getCopyTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
         			YConnect.asyncRequest('GET', getCopyTreeItemReuest, openCopyDialog);
                 } else {
@@ -1762,7 +1762,7 @@ treeNode.getHtml = function() {
             },
 			cutTree:function(sType, args, tree){
 				args.cut=true;
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
+                var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
 				var getCopyTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
 				YConnect.asyncRequest('GET', getCopyTreeItemReuest, openCopyDialog);
                 CStudioAuthoring.Operations.openCopyDialog(sType,args,tree);
