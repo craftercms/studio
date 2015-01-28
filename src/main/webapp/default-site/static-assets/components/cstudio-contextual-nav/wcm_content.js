@@ -123,11 +123,9 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             opts[i].renderer = this["render" + opt.renderId];
                         }
                         navWcmContent = _this;
-                        YEvent.onAvailable("acn-active-content", function(parentControl) {
-                            parentControl.containerEl = YDom.get("acn-active-content");
+                        YEvent.onAvailable("activeContentActions", function(parentControl) {
+                            parentControl.containerEl = YDom.get("activeContentActions");
                             navWcmContent.drawNav();
-
-
                             CStudioAuthoring.Events.moduleActiveContentReady.fire();
                         }, this);
                     },
@@ -368,8 +366,10 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                      * render many items
                      */
                     renderSelect: function(icon, state, isBulk, isAdmin, isRelevant, isInFlight, isWrite, perms, isOneItemLocked) {
+
                         this.containerEl.innerHTML = "";
-                        var navLabelEl = document.createElement("div"),
+                        var navLabelElContainer = document.createElement("li"),
+                            navLabelEl = document.createElement("span"),
                             statSplit = state.split("|"),
                             hasOperations;
 
@@ -388,26 +388,24 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         }
 
                         hasOperations = YDom.getElementsByClassName("acn-link", null, this.containerEl).length;
-                        YDom.addClass(navLabelEl, [icon, 'context-nav-title-element'].join(" "));
+                        YDom.addClass(navLabelEl, [icon, 'context-nav-title-element', 'navbar-text'].join(" "));
 
                         if(!isBulk || statSplit.length <= 1) {
                             var newIndicator = (state.indexOf("*") != -1) ? "*" : "";
-
-                            navLabelEl.innerHTML = " " + CMgs.format(contextNavLangBundle, state) + newIndicator;
-                        } else {
-                            if (statSplit.length >= 2) {
-                                navLabelEl.innerHTML = " "+CMgs.format(contextNavLangBundle, "mixedStates");;
+                            navLabelEl.innerHTML = CMgs.format(contextNavLangBundle, state) + newIndicator;
+                        } else if (statSplit.length >= 2) {
+                            navLabelEl.innerHTML = CMgs.format(contextNavLangBundle, "mixedStates");
                             }
-                        }
 
                         if (!isInFlight && hasOperations) {
                             navLabelEl.innerHTML += " :";
                         }
 
+                        navLabelElContainer.appendChild(navLabelEl);
                         if (this.containerEl.children.length) {
-                            YDom.insertBefore(navLabelEl, this.containerEl.firstChild);
+                            YDom.insertBefore(navLabelElContainer, this.containerEl.firstChild);
                         } else {
-                            this.containerEl.appendChild(navLabelEl);
+                            this.containerEl.appendChild(navLabelElContainer);
                         }
                     },
                     /**
@@ -750,7 +748,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             if(!isRelevant || (isBulk && !item.allowBulk))
                                 return;
 
-                            var linkContainerEl = document.createElement("div"),
+                            var linkContainerEl = document.createElement("li"),
                                 linkEl = document.createElement("a");
 
                             YDom.addClass(linkContainerEl, "acn-link");

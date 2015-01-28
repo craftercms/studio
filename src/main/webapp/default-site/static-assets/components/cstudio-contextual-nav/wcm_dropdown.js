@@ -13,7 +13,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
 	 */
 	initialize: function(config) {
 		if(!CStudioAuthoring.ContextualNav.WcmSiteDropdown) {
-			initialized = true;
+			this.initialized = true;
 			this.renderDropdown();
 			CStudioAuthoring.ContextualNav.WcmSiteDropdown.init();
 		}

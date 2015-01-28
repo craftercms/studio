@@ -826,21 +826,16 @@ treeNode.getHtml = function() {
 			
 				if(node.data.isContainer == true && node.data.pathSegment != 'index.xml') {
 					// this is a false state coming from the back-end
-				}
-				else {
-					if (node.data.isLevelDescriptor == false) {
-						CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
-					}
-		
+				} else if (node.data.isLevelDescriptor == false) {
+                    CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
 				}
 			}
-		} 
-		else if (node.nodeType == "SEARCH") {
+		}  else if (node.nodeType == "SEARCH") {
 			// wired on render
 		}
-			
-			
+
 		return false;
+
 	},
             /**
              * create a transfer object for a node
