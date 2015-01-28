@@ -1,0 +1,21 @@
+.studio-preview {
+
+  top: 50px;
+
+  &, iframe {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    position: absolute;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  iframe {
+    top: 0;
+    height: 100%;
+  }
+
+}

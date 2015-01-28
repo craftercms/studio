@@ -17,12 +17,12 @@ var YEvent = YAHOO.util.Event;
 
 /* Removing this check because,
  * 401 error is returning some other cases apart from Authentication failed case.
- YConnect.failureEvent.subscribe(function() {
- if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
- alert ("Authentication failed, redirecting to login page.");
- window.location.reload(true);
- }
- });
+YConnect.failureEvent.subscribe(function() {
+    if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
+        alert ("Authentication failed, redirecting to login page.");
+        window.location.reload(true);
+    }
+});
  */
 
 (function(undefined){
@@ -210,7 +210,7 @@ var YEvent = YAHOO.util.Event;
             loadContextNavCss: function() {
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
-                CStudioAuthoring.Utils.addCss('/static-assets/temp.css');
+                 CStudioAuthoring.Utils.addCss('/static-assets/styles/temp.css');
             },
 
             /**
@@ -463,7 +463,7 @@ var YEvent = YAHOO.util.Event;
                         dialogue.element.style.zIndex = "102000";
                         dialogue.mask.style.zIndex = "101000";
                     }
-                }
+                };
                 var params = ["component-dialogue"];
                 oRequest.controller && params.push(oRequest.controller);
                 params.push(fn);
@@ -538,6 +538,35 @@ var YEvent = YAHOO.util.Event;
                         });
                     }
                 }, true);
+            },
+
+            approveCommon: function (site, items) {
+
+                CStudioAuthoring.Operations._showDialogueView({
+                    fn: CStudioAuthoring.Service.getApproveView,
+                    controller: 'viewcontroller-approve',
+                    callback: function(dialogue) {
+
+                        this.loadItems();
+
+                    }
+                }, true, '800px');
+
+                /*
+                CStudioAuthoring.Module.requireModule(
+                    'dialog-approve',
+                    '/static-assets/components/cstudio-dialogs/go-live.js', {
+                        contentItems: items,
+                        site: site
+                    }, {
+                        moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
+                            // in preview, this function undefined raises error -- unlike dashboard
+                            dialogClass.showDialog &&
+                            dialogClass.showDialog(
+                                moduleConfig.site, moduleConfig.contentItems);
+                        }
+                    });
+                 */
             },
 
             /**
@@ -1733,27 +1762,6 @@ var YEvent = YAHOO.util.Event;
             },
 
             /**
-             * Now Go Live and Schedule show the same dialog
-             * and follow the same process. This function substitutes
-             * approveContent and approveScheduleContent
-             */
-            approveCommon: function (site, items) {
-                CStudioAuthoring.Module.requireModule(
-                    'dialog-approve',
-                    '/static-assets/components/cstudio-dialogs/go-live.js', {
-                        contentItems: items,
-                        site: site
-                    }, {
-                        moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                            // in preview, this function undefined raises error -- unlike dashboard
-                            dialogClass.showDialog &&
-                            dialogClass.showDialog(
-                                moduleConfig.site, moduleConfig.contentItems);
-                        } });
-            },
-
-
-            /**
              * reject content
              */
             rejectContent: function(site, contentItems) {
@@ -1939,6 +1947,20 @@ var YEvent = YAHOO.util.Event;
                     defaultPostHeader: true
                 });
             },
+            getApproveView: function(callback) {
+
+                var srv = CStudioAuthoring.Service,
+                    url = srv._formatURL(
+                        '{base}/static-assets/components/cstudio-dialogs-templates/approve.html?site={site}');
+
+                srv._getView({
+                    url: url,
+                    method: 'GET',
+                    callback: callback,
+                    defaultPostHeader: true
+                });
+
+            },
             getScheduleForDeleteView: function(callback) {
                 var srv = CStudioAuthoring.Service,
                     url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}");
@@ -1966,6 +1988,16 @@ var YEvent = YAHOO.util.Event;
                     url: url,
                     callback: callback,
                     method: "GET"
+                });
+            },
+            getScheduleView: function (callback) {
+                var srv = CStudioAuthoring.Service,
+                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/schedule.html?site={site}");
+                srv._getView({
+                    url: url,
+                    callback: callback,
+                    method: "GET",
+                    defaultPostHeader: true
                 });
             },
 

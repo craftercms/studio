@@ -142,6 +142,13 @@
 
     Loader.addModule({
         type: "js",
+        name:"template-approve",
+        path: "cstudio-templates/approve.js",
+        requires: emptyArray
+    });
+
+    Loader.addModule({
+        type: "js",
         name:"viewcontroller-base",
         path: "cstudio-view-controllers/base.js",
         requires: emptyArray
@@ -195,6 +202,17 @@
             "viewcontroller-base",
             "component-templateagent",
             "template-history"
+        ]
+    });
+
+    Loader.addModule({
+        type: "js",
+        name:"viewcontroller-approve",
+        path: "cstudio-view-controllers/approve.js",
+        requires: [
+            "viewcontroller-base",
+            "component-templateagent",
+            "template-approve",
         ]
     });
 

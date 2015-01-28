@@ -1,0 +1,87 @@
+<div class="studio-view">
+
+    <h3 class="view-title">Approve for Publish</h3>
+    <div class="view-caption">
+        The following checked items will go live.
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+
+            <div class="form-group">
+                <table class="item-listing">
+                    <thead>
+                    <tr>
+                        <th class="text-center"><input type="checkbox" class="select-all-check"/></th>
+                        <th class="name">Page</th>
+                        <th class="text-right schedule">Original Schedule</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td colspan="3"><i>Loading&hellip;</i></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-group">
+                <label>Submission Comment</label>
+                <textarea class="form-control submission-comment"></textarea>
+            </div>
+
+        </div>
+        <div class="col-sm-4">
+
+            <h4>Selected Item Scheduling</h4>
+
+            <div class="radio">
+                <label>
+                    <input type="radio" name="schedulingMode" value="now" checked />
+                    Items should go live now.
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="schedulingMode" value="custom" />
+                    Items go live on a specific date &amp; time
+                </label>
+            </div>
+
+            <div class="row unpad">
+                <div class="col-sm-6">
+                    <input class="date-picker form-control" name="scheduleDate" type="date" />
+                </div>
+                <div class="col-sm-6">
+                    <input class="time-picker form-control" name="scheduleTime" type="time" />
+                </div>
+            </div>
+
+            <section>
+                <h3>Publish Content</h3>
+                <div class="form-group">
+                    <label>Publishing Options</label>
+                    <select class="form-control publish-option"></select>
+                </div>
+                <div class="form-group">
+                    <strong>Broadcast content update</strong>
+                </div>
+                <div class="form-group">
+                    <label>Publishing Options</label>
+                    <textarea class="form-control publish-option-comment"></textarea>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <div class="action-wrapper">
+        <button class="btn btn-primary submit-button">
+            Submit
+        </button>
+        <button class="btn close-button">
+            Close
+        </button>
+    </div>
+
+</div>
