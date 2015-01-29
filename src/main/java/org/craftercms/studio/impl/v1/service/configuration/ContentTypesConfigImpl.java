@@ -25,10 +25,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.ContentTypePathTO;
-import org.craftercms.studio.api.v1.to.SiteContentTypePathsTO;
-import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -130,7 +127,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
             //(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             //loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
-            //loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
+            loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
             //contentTypeConfig.setNoThumbnail(ContentFormatUtils.getBooleanValue(root.valueOf("noThumbnail")));
             //SearchConfigTO searchConfig = loadSearchConfig(root.selectSingleNode("search"));
             //contentTypeConfig.setSearchConfig(searchConfig);
@@ -316,6 +313,32 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
             }
             paths.setLastUpdated(new Date());
         }
+    }
+
+    /**
+     *
+     * @param config
+     * @param copyDependencyNodes
+     * @return
+     */
+    protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
+        List<CopyDependencyConfigTO> copyConfig = new ArrayList<CopyDependencyConfigTO>();
+        if (copyDependencyNodes != null) {
+            for (Node copyDependency : copyDependencyNodes) {
+                Node patternNode = copyDependency.selectSingleNode("pattern");
+                Node targetNode = copyDependency.selectSingleNode("target");
+                if(patternNode!=null && targetNode!=null){
+                    String pattern = patternNode.getText();
+                    String target = targetNode.getText();
+                    if(StringUtils.isNotEmpty(pattern) && StringUtils.isNotEmpty(target)){
+                        CopyDependencyConfigTO copyDependencyConfigTO  = new CopyDependencyConfigTO(pattern,target);
+                        copyConfig.add(copyDependencyConfigTO);
+                    }
+                }
+            }
+        }
+        config.setCopyDepedencyPattern(copyConfig);
+
     }
 
     @Override

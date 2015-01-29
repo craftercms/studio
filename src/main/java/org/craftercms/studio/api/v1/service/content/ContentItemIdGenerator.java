@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,32 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v1.service.content;
 
-package org.craftercms.studio.api.v1.dal;
 
-import java.util.List;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+
 import java.util.Map;
 
-/**
- * @author Dejan Brkic
- */
-public interface ObjectStateMapper {
+public interface ContentItemIdGenerator {
 
-    List<ObjectState> getObjectStateByStates(Map params);
-
-    void deleteObjectState(String objectId);
-
-    ObjectState getObjectStateBySiteAndPath(Map params);
-
-    void setSystemProcessingBySiteAndPath(Map params);
-
-    void insertEntry(ObjectState objectState);
-
-    void setObjectState(ObjectState objectState);
-
-    List<ObjectState> getObjectStateForSiteAndPaths(Map params);
-
-    void setObjectStateForSiteAndPaths(Map params);
-
-    void updateObjectPath(Map params);
+    /**
+     * Return unique ids required by content
+     *
+     * @return pair of id and value
+     *
+     */
+    public Map<String,String> getIds() throws ServiceException;
 }

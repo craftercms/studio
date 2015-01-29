@@ -64,7 +64,7 @@ public interface ActivityService {
 	 */
 	//public String getLastActor(String site, String key, ActivityType activity);
 
-	//public void renameContentId(String oldUrl, String newUrl, String site);
+	public void renameContentId(String site, String oldUrl, String newUrl);
 	
 	//public void updateContentSummary(String site, String url, String summary);
 

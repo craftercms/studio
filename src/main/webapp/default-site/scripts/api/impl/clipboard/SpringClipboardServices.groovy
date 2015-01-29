@@ -51,11 +51,7 @@ class SpringClipboardServices {
      */
     def paste(site, destination, clipboardItem) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        if (clipboardItem.cut == true) {
-            return springBackedService.moveContent(clipboardItem.item, destination);
-        } else {
-            return springBackedService.copyContent(clipboardItem.item, destination);
-        }
+        return springBackedService.paste(site, clipboardItem.item, destination, clipboardItem.cut);
 
         /*
         def alfrescoUrl =  getAlfrescoUrl()
@@ -98,7 +94,7 @@ class SpringClipboardServices {
      * @return response status
      */
     def paste(site, session, destination, context) {
-        def clipboardItem = getItem(site, session)
+        def clipboardItem = getItems(site, session)
         return paste(site, destination, clipboardItem);
     }
 

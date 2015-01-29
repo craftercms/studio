@@ -75,27 +75,14 @@ public class PostActivityProcessor extends BaseContentProcessor {
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
             Map<String,String> extraInfo = new HashMap<String,String>();
-            ContentItemTO item = contentService.getContentItem(site, uri);
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentType(site, item.getUri()));
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentType(site, uri));
             activityService.postActivity(site, user, uri, activityType,extraInfo);
             // disabled due to a performance issue (CRAFTER-655)
             //updateDependenciesActivity(site, user, uri, activityType, extraInfo);
         }
     }
 
-    private String getContentType(String site, String uri) {
-        if (ContentUtils.matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
-            return DmConstants.CONTENT_TYPE_COMPONENT;
-        } else if (ContentUtils.matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_DOCUMENT;
-        } else if (ContentUtils.matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_ASSET;
 
-        } else if (ContentUtils.matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
-        }
-        return DmConstants.CONTENT_TYPE_PAGE;
-    }
     
     protected void updateDependenciesActivity(String site, String user, String relativePath, ActivityService.ActivityType activityType, Map<String, String> extraInfo) {
         DmDependencyTO dependencyTO = dmDependencyService.getDependencies(site, relativePath, false, true);
@@ -107,7 +94,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             if(ContentUtils.matchesPatterns(dep.getUri(), displayPatterns)){
                 ContentItemTO item = contentService.getContentItem(site, dep.getUri());
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentType(site, dep.getUri()));
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentType(site, dep.getUri()));
                 if (dep.getUri().startsWith(DmConstants.ROOT_PATTERN_SYSTEM_COMPONENTS)) {
                     activityService.postActivity(site, user, dep.getUri(), ActivityService.ActivityType.CREATED, extraInfo);
                 } else {

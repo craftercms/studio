@@ -244,13 +244,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	public void setFeedGenerator(FeedGenerator feedGenerator) {
 		this._feedGenerator = feedGenerator;
 	}*/
-/*
+
 	@Override
 	public void renameContentId(String oldUrl, String newUrl, String site) {
-        CStudioActivityService activityService = getService(CStudioActivityService.class);
-		activityService.renameContent(oldUrl, newUrl,site);
+		Map<String, Object> params = new HashMap<>();
+		params.put("site", site);
+		params.put("newPath", newUrl);
+		params.put("oldPath", oldUrl);
+		activityFeedMapper.renameContent(params);
 	}
-*//*
+/*
 	@Override
 	public void updateContentSummary(String site,String url,String summary) {
         CStudioActivityService activityService = getService(CStudioActivityService.class);

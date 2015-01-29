@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.util.ISO8601DateFormat;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -382,5 +383,36 @@ public class ContentUtils {
 	public static String getParentUrl(String url) {
 		int lastIndex = url.lastIndexOf("/");
 		return url.substring(0, lastIndex);
+	}
+
+	/**
+	 * Returns the page name part (eg.index.xml) of a given URL
+	 *
+	 * @param url
+	 * @return
+	 */
+	public static String getPageName(String url) {
+		int lastIndex = url.lastIndexOf("/");
+		return url.substring(lastIndex + 1);
+	}
+
+	/**
+	 * content the given document to stream
+	 *
+	 * @param document
+	 * @param encoding
+	 * @return XML as stream
+	 */
+	public static InputStream convertDocumentToStream(Document document, String encoding) {
+		try {
+			return new ByteArrayInputStream(
+					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
+			return null;
+		} catch (IOException e) {
+			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
+			return null;
+		}
 	}
 }

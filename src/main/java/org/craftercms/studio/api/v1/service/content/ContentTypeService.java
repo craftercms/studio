@@ -54,4 +54,6 @@ public interface ContentTypeService {
      * @return content type
      */
     public ContentTypeConfigTO getContentType(String site, String type);
+
+    ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException;
 }

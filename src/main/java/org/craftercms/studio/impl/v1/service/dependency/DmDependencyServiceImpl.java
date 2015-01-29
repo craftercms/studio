@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import javolution.util.FastList;
 import javolution.util.FastSet;
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
@@ -31,7 +33,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.PersistenceManagerService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -41,6 +46,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -1230,7 +1236,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      *
      * @param site
      * @param dependencies
-     *//*
+     */
     @Override
     public InputStream replaceDependencies(String site, Document document, Map<String, String> dependencies) throws ServiceException {
         try {
@@ -1247,27 +1253,23 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             throw new ServiceException("Unable to replace dependencies " + e);
         }
         return ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
-    }*/
+    }
 
     /**
      *
      * Return a map of <Dependency matching copy pattern, target location>
-     *//*
+     */
     @Override
     public Map<String, String> getCopyDependencies(String site, String sourceContentPath, String dependencyPath) throws ServiceException {
         Map<String,String> copyDependency = new HashMap<String,String>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            String fullPath = servicesConfig.getRepositoryRootPath(site) + sourceContentPath;
-            DmContentItemTO dependencyItem = persistenceManagerService.getContentItem(fullPath);
+            String fullPath = contentService.expandRelativeSitePath(site, sourceContentPath);
+            ContentItemTO dependencyItem = contentService.getContentItem(sourceContentPath);
             String contentType = dependencyItem.getContentType();
             List<CopyDependencyConfigTO> copyDependencyPatterns  = servicesConfig.getCopyDependencyPatterns(site, contentType);
             if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Copy Pattern provided for contentType"+contentType);
-                }
-                DmDependencyTO dmDependencyTo = getDependencies(site, null, dependencyPath, false, true);
+                logger.debug("Copy Pattern provided for contentType"+contentType);
+                DmDependencyTO dmDependencyTo = getDependencies(site, dependencyPath, false, true);
                 if (dmDependencyTo != null) {
                     //TODO are pages also required?
                     List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies(); //documents,assets,components
@@ -1277,9 +1279,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
                             if (StringUtils.isNotEmpty(copyConfig.getPattern()) &&
                                     StringUtils.isNotEmpty(copyConfig.getTarget()) && assocFilePath.matches(copyConfig.getPattern())) {
-                                fullPath = servicesConfig.getRepositoryRootPath(site) + assocFilePath;
-                                NodeRef assocNode = persistenceManagerService.getNodeRef(fullPath);
-                                if (assocNode != null) {
+                                ContentItemTO assocItem = contentService.getContentItem(site, assocFilePath);
+                                if (assocItem != null) {
                                     copyDependency.put(dependency.getUri(), copyConfig.getTarget());
                                 }
                             }
@@ -1287,13 +1288,11 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }else{
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Copy Pattern is not provided for contentType"+contentType);
-                }
+                logger.debug("Copy Pattern is not provided for contentType"+contentType);
             }
         }
         return copyDependency;
-    }*/
+    }
 
 
 

@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,32 +15,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.craftercms.studio.api.v1.dal;
-
-import java.util.List;
-import java.util.Map;
+package org.craftercms.studio.api.v1.to;
 
 /**
- * @author Dejan Brkic
+ * holds the configuration for copy dependency
+ * 
+ * @author Shankar Krishnan
+ *
  */
-public interface ObjectStateMapper {
+public class CopyDependencyConfigTO {
 
-    List<ObjectState> getObjectStateByStates(Map params);
+	protected String pattern;
+	
+	protected String target;
 
-    void deleteObjectState(String objectId);
+	
+	public CopyDependencyConfigTO(String pattern, String target) {
+		super();
+		this.pattern = pattern;
+		this.target = target;
+	}
 
-    ObjectState getObjectStateBySiteAndPath(Map params);
+	public String getPattern() {
+		return pattern;
+	}
 
-    void setSystemProcessingBySiteAndPath(Map params);
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
 
-    void insertEntry(ObjectState objectState);
+	public String getTarget() {
+		return target;
+	}
 
-    void setObjectState(ObjectState objectState);
-
-    List<ObjectState> getObjectStateForSiteAndPaths(Map params);
-
-    void setObjectStateForSiteAndPaths(Map params);
-
-    void updateObjectPath(Map params);
+	public void setTarget(String target) {
+		this.target = target;
+	}
+	
 }
