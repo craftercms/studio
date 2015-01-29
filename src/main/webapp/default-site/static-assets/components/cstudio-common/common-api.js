@@ -965,30 +965,35 @@ YConnect.failureEvent.subscribe(function() {
                 var url = "";
                 var filename = (contentTO.pathSegment) ? contentTO.pathSegment : contentTO.name;
 
-                if(CStudioAuthoring.Utils.endsWith(filename, ".xml")) {
-                    url = CStudioAuthoringContext.previewAppBaseUri +
-                    contentTO.browserUri;
+                if (CStudioAuthoring.Utils.endsWith(filename, ".xml")) {
+
+                    url = CStudioAuthoringContext.previewAppBaseUri + contentTO.browserUri;
                     if (contentTO.document && contentTO.assets && contentTO.assets.length == 1) {
-                        url = CStudioAuthoringContext.previewAppBaseUri +
-                        contentTO.assets[0].uri;
+                        url = CStudioAuthoringContext.previewAppBaseUri + contentTO.assets[0].uri;
                     }
-                }
-                else {
-                    url = CStudioAuthoringContext.authoringAppBaseUri
+
+                } else {
+
+                    url = (
+                    CStudioAuthoringContext.authoringAppBaseUri
                     + "asset-preview?site=" + CStudioAuthoringContext.site
-                    + "&nodeRef=" + contentTO.nodeRef;
+                    + "&nodeRef=" + contentTO.nodeRef);
+
                 }
 
+                if (incontextEdit) {
+                    window.location.reload();
+                } else {
 
-                if(incontextEdit) {
-                    window.parent.location = window.parent.location;
+                    // soundTone = "false";
+                    // CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window", new Date() + "|" + url + "|" + soundTone + "|" + targetWindowId);
+
+                    var Topics = crafter.studio.preview.Topics;
+                    // amplify.publish(Topics.GUEST_CHECKOUT);
+                    amplify.publish(Topics.GUEST_CHECKIN, url || '/'); // TODO home page URL is blank, why?
+
                 }
-                else {
-                    soundTone = "false";
-                    CStudioAuthoring.Utils.Cookies.createCookie(
-                        "cstudio-main-window",
-                        new Date() + "|" + url + "|"+soundTone + "|" + targetWindowId);
-                }
+
             },
 
 
@@ -6083,9 +6088,9 @@ YConnect.failureEvent.subscribe(function() {
 
                 if (typeof(CStudioAuthoringContext) == "undefined") {
                     YAHOO.lang.later(1000, this, CStudioAuthoring.WindowManagerProxy.init);
-                }
-                else{
-                    if(!window.name || window.name == "") {
+                } else {
+
+                    if (!window.name || window.name == "") {
                         window.name = CStudioAuthoring.Utils.generateUUID();
                     }
 
@@ -6094,9 +6099,9 @@ YConnect.failureEvent.subscribe(function() {
                     // Check if user is to be notified.
                     this.notify = CStudioAuthoring.Utils.Cookies.readCookie("cstudio-preview-notify");
                     if(this.notify != null) {
-                        CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-preview-notify");
 
-                        if(document.location.href.indexOf(CStudioAuthoringContext.authoringAppBaseUri) == -1) {
+                        CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-preview-notify");
+                        if (document.location.href.indexOf(CStudioAuthoringContext.authoringAppBaseUri) == -1) {
                             // in some cases where common-api.js is not included in preview
                             // this message shows up on the dashboard because the cookie does not get erased.  
                             // The basic assumption here is preview is not rooted below authoring url
@@ -6104,17 +6109,20 @@ YConnect.failureEvent.subscribe(function() {
                                 alert("Preview Loaded");
                             });
                         }
+
                     }
 
                     YAHOO.lang.later(1000, this, function() {
-                        var cookie = CStudioAuthoring.Utils.Cookies.readCookie("cstudio-main-window");
 
+                        var cookie = CStudioAuthoring.Utils.Cookies.readCookie("cstudio-main-window");
                         if (cookie != null) {
 
-                            var key = cookie.split("|")[0];
-                            var loc = cookie.split("|")[1];
-                            var tone = cookie.split("|")[2];
-                            var signalToWindowId = cookie.split("|")[3];
+                            var pieces = cookie.split('|');
+
+                            var key = pieces[0];
+                            var loc = pieces[1];
+                            var tone = pieces[2];
+                            var signalToWindowId = pieces[3];
 
                             if (signalToWindowId == window.name && (this.lastKey == null || this.lastKey != key)) {
                                 CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window-location",loc);
@@ -6124,7 +6132,7 @@ YConnect.failureEvent.subscribe(function() {
                             this.lastKey = key;
                         }
 
-                    }, new Array(),1000);
+                    }, [],1000);
                 }
             }
         },

@@ -24,7 +24,7 @@
 <body>
 
 <div class="studio-preview">
-    <iframe id="engineWindow" src="/"></iframe>
+    <iframe id="engineWindow"></iframe>
 </div>
 
 </body>

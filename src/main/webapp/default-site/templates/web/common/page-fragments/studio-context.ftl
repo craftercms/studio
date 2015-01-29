@@ -12,7 +12,7 @@
 		baseUri: "/studio",
 		authoringAppBaseUri: "${envConfig.authoringServerUrl!'UNSET'}",
 		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
-		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}",
+		previewAppBaseUri: "${envConfig.previewServerUrl!''}", <#-- TODO RETURNING UNSET. Changed to '' to be able to use preview. -->
 		contextMenuOffsetPage: false,
 		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",

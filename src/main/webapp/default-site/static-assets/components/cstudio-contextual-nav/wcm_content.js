@@ -24,6 +24,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                 YEvent = YAHOO.util.Event,
                 navWcmContent,
                 _this; // Reference to CStudioAuthoring.ContextualNav.WcmActiveContent
+
             contextPath = location.protocol + "//" + location.hostname + ":" + location.port;
 
             var CMgs = CStudioAuthoring.Messages;
@@ -810,6 +811,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                     }
                 }
             });
+
         }
     }
 }) ();
