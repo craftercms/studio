@@ -309,7 +309,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         if (parentItem != null) {
             // convert file to folder if target path is a file
-            String folderPath = fileToFolder(site, parentItem.getPath());
+            String folderPath = fileToFolder(site, parentItem.getUri());
             // create new content, apply group sandbox aspect, and apply new
             // aspect
             // input stream is closed by AvmService
@@ -325,7 +325,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 nodeProperties.put(ContentModel.PROP_AUTO_VERSION, false);
                 */
                 //fileNode = persistenceManagerService.createNewFile(parentNode, fileName, input, nodeProperties);
-                contentService.writeContent(site, parentItem.getPath() + "/" + fileName, input);
+                contentService.writeContent(site, parentItem.getUri() + "/" + fileName, input);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -540,11 +540,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     @Override
     public String fileToFolder(String site, String path) {
         // Check if it is already a folder
-        /*
-        if (fileInfo.isFolder()) {
-            return persistenceManagerService.getNodePath(fileNode);
-        }*/
+
+
         ContentItemTO itemTO = contentService.getContentItem(site, path);
+        if (itemTO.isFolder()) {
+            return contentService.expandRelativeSitePath(site, path);
+        }
         int index = path.lastIndexOf("/");
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();

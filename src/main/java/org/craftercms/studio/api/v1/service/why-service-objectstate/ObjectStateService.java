@@ -44,13 +44,16 @@ public interface ObjectStateService {
     void transition(String site, ContentItemTO item, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
 
     void insertNewEntry(String site, ContentItemTO item);
-/*
-    public void transition(NodeRef nodeRef, TransitionEvent event);
 
-    public void insertNewObjectEntry(String fullPath);
+    void insertNewEntry(String site, String path);
 
-    public void insertNewObjectEntry(NodeRef nodeRef);
-*/
+    /*
+        public void transition(NodeRef nodeRef, TransitionEvent event);
+
+        public void insertNewObjectEntry(String fullPath);
+
+        public void insertNewObjectEntry(NodeRef nodeRef);
+    */
     public List<ObjectState> getSubmittedItems(String site);
 
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing);
@@ -58,11 +61,10 @@ public interface ObjectStateService {
     public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);
 
     public void setSystemProcessingBulk(List<String> objectIds, boolean isSystemProcessing);
+    */
 
-    public void updateObjectPath(String fullPath, String newPath);
+    public void updateObjectPath(String site, String oldPath, String newPath);
 
-    public void updateObjectPath(NodeRef nodeRef, String newPath);
-*/
     public boolean isUpdatedOrNew(String site, String path);
 /*
     public boolean isUpdatedOrNew(NodeRef nodeRef);

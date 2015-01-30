@@ -147,7 +147,7 @@ public interface DmDependencyService {
      * @return
      * @throws ServiceException
      */
-    //public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
+    public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
 
     /**
      * Return dependencies that are protected based on the copy pattern provided in the configuration
@@ -155,7 +155,7 @@ public interface DmDependencyService {
      * <Dependency matching copy pattern, target location>
      * @param dependencyPath
      */
-    //public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
+    public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
     public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 

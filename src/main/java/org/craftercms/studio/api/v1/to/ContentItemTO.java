@@ -108,6 +108,7 @@ public class ContentItemTO implements Serializable {
 	public Date lastEditDate;
 	public String form;
 	public String formPagePath;
+	public boolean folder;
 
 
     public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
@@ -314,6 +315,9 @@ public class ContentItemTO implements Serializable {
 
 	public String getFormPagePath() { return formPagePath; }
 	public void setFormPagePath(String formPagePath) { this.formPagePath = formPagePath; }
+
+	public boolean isFolder() { return folder; }
+	public void setFolder(boolean folder) { this.folder = folder; }
 
 	// /** the name of item specified by the creator **/
 	// private String _internalName;

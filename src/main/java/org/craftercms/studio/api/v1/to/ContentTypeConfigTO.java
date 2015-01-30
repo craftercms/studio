@@ -97,7 +97,7 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	//protected List<DeleteDependencyConfigTO> _deleteDependencies = null;
 	
 	/** list of copy association patterns **/
-	//protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
+	protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
 
 	/** is this content type previewable? **/
 	protected boolean isPreviewable = false;
@@ -325,16 +325,16 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 		return useRoundedFolder;
 	}
 	
-	/*
+
 	public List<CopyDependencyConfigTO> getCopyDepedencyPattern() {
 		return copyDepedencyPattern;
-	}*/
-/*
+	}
+
 	public void setCopyDepedencyPattern(
 			List<CopyDependencyConfigTO> copyDepedencyPattern) {
 		this.copyDepedencyPattern = copyDepedencyPattern;
 	}
-*/
+
 	/**
 	 * @return the pathIncludes
 	 */

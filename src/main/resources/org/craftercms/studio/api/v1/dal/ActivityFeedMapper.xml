@@ -91,4 +91,11 @@
 
     </update>
 
+    <update id="renameContent" parameterType="java.util.Map">
+        update cstudio_activity
+        set content_id = #{newPath}
+        where site_network = #{site}
+        and content_id = #{oldPath}
+    </update>
+
 </mapper>

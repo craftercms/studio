@@ -235,6 +235,18 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
         objectStateMapper.insertEntry(newEntry);
     }
+
+    @Override
+    public void insertNewEntry(String site, String path) {
+        ObjectState newEntry = new ObjectState();
+        newEntry.setObjectId(UUID.randomUUID().toString());
+
+        newEntry.setSite(site);
+        newEntry.setPath(path);
+        newEntry.setSystemProcessing(0);
+        newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
+        objectStateMapper.insertEntry(newEntry);
+    }
 /*
     protected void insertNewObjectEntryWithState(NodeRef nodeRef, State state) {
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
@@ -271,13 +283,16 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         List<ObjectState> objects = objectStateMapper.getObjectStateByStates(params);
         return objects;
     }
-/*
-    @Override
-    public void updateObjectPath(String fullPath, String newPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        updateObjectPath(persistenceManagerService.getNodeRef(fullPath), newPath);
-    }
 
+    @Override
+    public void updateObjectPath(String site, String oldPath, String newPath) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("oldPath", oldPath);
+        params.put("newPath", newPath);
+        objectStateMapper.updateObjectPath(params);
+    }
+/*
     @Override
     public void updateObjectPath(NodeRef nodeRef, String newPath) {
         GeneralLockService lockService = getService(GeneralLockService.class);
