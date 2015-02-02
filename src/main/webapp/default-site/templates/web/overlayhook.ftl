@@ -6,7 +6,7 @@ requirejs.config({
 });
 
 require([
-    'guest'
+    'preview','amplify','communicator','guest'
 ], function () {
 
     // console.log('require-loaded.js');
@@ -15,20 +15,20 @@ require([
     var YEvent = YAHOO.util.Event;
 
     CStudioAuthoringContext = {
-        user: "${envConfig.user}",
-        role: "${envConfig.role}",
-        site: "${envConfig.site}",
+        user: "${envConfig.user!'UNSET1'}",
+        role: "${envConfig.role!'UNSET2'}",
+        site: "${envConfig.site!'UNSET3'}",
         collabSandbox: "",
         baseUri: "/studio",
-        authoringAppBaseUri: "${envConfig.authoringServerUrl}",
-        formServerUri: "${envConfig.formServerUrl}",
-        previewAppBaseUri: "${envConfig.previewServerUrl}",
+        authoringAppBaseUri: "${envConfig.authoringServerUrl!'UNSET4'}",
+        formServerUri: "${envConfig.formServerUrl!'UNSET5'}",
+        previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET6'}",
         contextMenuOffsetPage: true,
         brandedLogoUri: "/proxy/authoring/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
-        homeUri: "/site-dashboard?site=${envConfig.site}",
+        homeUri: "/site-dashboard?site=${envConfig.site!'UNSET7'}",
         navContext: "default",
-        cookieDomain: "${envConfig.cookieDomain}",
-        openSiteDropdown: ${envConfig.openSiteDropdown},
+        cookieDomain: "${envConfig.cookieDomain!'UNSET8'}",
+        openSiteDropdown: ${envConfig.openSiteDropdown!'UNSET9'},
         isPreview: true,
         previewCurrentPath: "/site/website${RequestParameters['page']}/index.xml"
     };
@@ -61,16 +61,14 @@ require([
             currentPage += "index.xml";
         }
 
-        var callback = {
+        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, currentPage, {
             success: function(content) {
                 CStudioAuthoring.SelectedContent.selectContent(content.item);
                 // TODO this logic needs to move in to a specialization of root folder for pages
-                //CStudioAuthoring.ContextualNav.WcmSiteDropdown.showPage(currentPage);
+                // CStudioAuthoring.ContextualNav.WcmSiteDropdown.showPage(currentPage);
             },
             failure: function() {}
-        };
-
-        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, currentPage, callback);
+        });
 
     });
     */

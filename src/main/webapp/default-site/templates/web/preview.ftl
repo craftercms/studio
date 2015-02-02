@@ -4,11 +4,11 @@
 
     <title>Crafter Studio</title>
 
-<#include "/templates/web/common/page-fragments/head.ftl" />
+    <#include "/templates/web/common/page-fragments/head.ftl" />
     <script src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
-<#include "/templates/web/common/page-fragments/studio-context.ftl" />
-<#include "/templates/web/common/page-fragments/context-nav.ftl" />
+    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
+    <#include "/templates/web/common/page-fragments/context-nav.ftl" />
 
     <script>
         CMgs = CStudioAuthoring.Messages;
