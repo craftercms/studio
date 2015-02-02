@@ -133,7 +133,6 @@ YConnect.failureEvent.subscribe(function() {
         }
     }
 
-
     var CSA = CStudioAuthoring;
 
     function CStudioConstant (value) {
@@ -150,21 +149,21 @@ YConnect.failureEvent.subscribe(function() {
         return "CStudioAuthoring.Constant";
     }
 
-    CStudioAuthoring.register({
+    CSA.register({
         Constant: CStudioConstant,
         /**
          * authoring events
          */
         Events: {
-            contextNavLoaded: new YAHOO.util.CustomEvent("contextNavLoadedEvent", CStudioAuthoring),
-            contextNavReady: new YAHOO.util.CustomEvent("contextNavReadyEvent", CStudioAuthoring),
-            moduleActiveContentReady: new YAHOO.util.CustomEvent("modActiveContentEvent", CStudioAuthoring),
+            contextNavLoaded: new YAHOO.util.CustomEvent("contextNavLoadedEvent", CSA),
+            contextNavReady: new YAHOO.util.CustomEvent("contextNavReadyEvent", CSA),
+            moduleActiveContentReady: new YAHOO.util.CustomEvent("modActiveContentEvent", CSA),
 
-            widgetScriptLoaded: new YAHOO.util.CustomEvent("widgetScript", CStudioAuthoring),
-            moduleScriptLoaded: new YAHOO.util.CustomEvent("moduleScript", CStudioAuthoring),
+            widgetScriptLoaded: new YAHOO.util.CustomEvent("widgetScript", CSA),
+            moduleScriptLoaded: new YAHOO.util.CustomEvent("moduleScript", CSA),
 
-            contentSelected: new YAHOO.util.CustomEvent("contentSelected", CStudioAuthoring),
-            contentUnSelected: new YAHOO.util.CustomEvent("contentunSelected", CStudioAuthoring)
+            contentSelected: new YAHOO.util.CustomEvent("contentSelected", CSA),
+            contentUnSelected: new YAHOO.util.CustomEvent("contentunSelected", CSA)
         },
         /**
          * general place for constants
@@ -210,7 +209,7 @@ YConnect.failureEvent.subscribe(function() {
             loadContextNavCss: function() {
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
-                 CStudioAuthoring.Utils.addCss('/static-assets/styles/temp.css');
+                 CSA.Utils.addCss('/static-assets/styles/temp.css');
             },
 
             /**
@@ -219,10 +218,10 @@ YConnect.failureEvent.subscribe(function() {
              */
             loadRequiredResources: function() {
                 for (var i = 0; i < this.css.length; i++) {
-                    CStudioAuthoring.Utils.addCss(this.css[i]);
+                    CSA.Utils.addCss(this.css[i]);
                 }
                 for (var j = 0; j < this.js.length; j++) {
-                    CStudioAuthoring.Utils.addJavascript(this.js[j]);
+                    CSA.Utils.addJavascript(this.js[j]);
                 }
             }
         },
@@ -235,7 +234,7 @@ YConnect.failureEvent.subscribe(function() {
              * get content items in clipboard
              */
             getClipboardContent: function(callback) {
-                CStudioAuthoring.Service.getClipboardItems(
+                CSA.Service.getClipboardItems(
                     CStudioAuthoringContext.site,
                     callback);
             },
@@ -243,7 +242,7 @@ YConnect.failureEvent.subscribe(function() {
              * copy an content item on to the clipboard
              */
             copyContent: function(contentTO, callback) {
-                CStudioAuthoring.Service.copyContentToClipboard(
+                CSA.Service.copyContentToClipboard(
                     CStudioAuthoringContext.site,
                     contentTO.uri,
                     "content",
@@ -253,7 +252,7 @@ YConnect.failureEvent.subscribe(function() {
              * cut a content item on to the clipboard
              */
             cutContent: function(contentTO, callback) {
-                CStudioAuthoring.Service.cutContentToClipboard(
+                CSA.Service.cutContentToClipboard(
                     CStudioAuthoringContext.site,
                     contentTO.uri,
                     "content",
@@ -264,7 +263,7 @@ YConnect.failureEvent.subscribe(function() {
              */
             pasteContent: function(contentTO, callback) {
 
-                CStudioAuthoring.Service.pasteContentFromClipboard(
+                CSA.Service.pasteContentFromClipboard(
                     CStudioAuthoringContext.site,
                     contentTO.uri,
                     callback);
@@ -275,7 +274,7 @@ YConnect.failureEvent.subscribe(function() {
              */
             getPermissions: function(path, callback) {
 
-                CStudioAuthoring.Service.getUserPermissions(
+                CSA.Service.getUserPermissions(
                     CStudioAuthoringContext.site, path,
                     callback);
             }
@@ -298,10 +297,9 @@ YConnect.failureEvent.subscribe(function() {
              * content is selected, track it
              */
             selectContent: function(contentTO) {
-
                 if (this.at(contentTO) == -1) {
                     this.selectedContent.push(contentTO);
-                    CStudioAuthoring.Events.contentSelected.fire(contentTO);
+                    CSA.Events.contentSelected.fire(contentTO);
                 }
             },
 
@@ -314,7 +312,7 @@ YConnect.failureEvent.subscribe(function() {
 
                 if (position != -1) {
                     this.selectedContent.splice(position, 1);
-                    CStudioAuthoring.Events.contentUnSelected.fire(contentTO);
+                    CSA.Events.contentUnSelected.fire(contentTO);
                 }
             },
 
@@ -338,11 +336,11 @@ YConnect.failureEvent.subscribe(function() {
             at: function(contentTO) {
                 var retAt = -1;
 
-                var atContentToId = CStudioAuthoring.Utils.createContentTOId(contentTO);
+                var atContentToId = CSA.Utils.createContentTOId(contentTO);
 
                 for (var i = 0; i < this.selectedContent.length; i++) {
                     var curContentTO = this.selectedContent[i];
-                    var curContentToId = CStudioAuthoring.Utils.createContentTOId(curContentTO);
+                    var curContentToId = CSA.Utils.createContentTOId(curContentTO);
 
                     if (atContentToId == curContentToId) {
                         retAt = i;
@@ -381,7 +379,7 @@ YConnect.failureEvent.subscribe(function() {
                     waiting.push({ callback: callback, moduleConfig: moduleConfig });
                     this.waitingForModule[moduleName] = waiting;
 
-                    CStudioAuthoring.Utils.addJavascript(script);
+                    CSA.Utils.addJavascript(script);
                 }
                 else {
                     callback.moduleLoaded(moduleName, moduleClass, moduleConfig);
@@ -416,13 +414,13 @@ YConnect.failureEvent.subscribe(function() {
         Operations: {
             _showDialogueView: function(oRequest, setZIndex, dialogWidth){
                 var width = (dialogWidth) ? dialogWidth : "602px";
-                var Loader = CStudioAuthoring.Env.Loader,
+                var Loader = CSA.Env.Loader,
                     moduleid = oRequest.controller;
                 var fn = function() {
-                    var dialogueId = CStudioAuthoring.Utils.getScopedId(moduleid || "view"),
+                    var dialogueId = CSA.Utils.getScopedId(moduleid || "view"),
                         Controller, dialogue;
-                    Controller = CStudioAuthoring.Env.ModuleMap.get(moduleid);
-                    dialogue = new CStudioAuthoring.Component.Dialogue(dialogueId, {
+                    Controller = CSA.Env.ModuleMap.get(moduleid);
+                    dialogue = new CSA.Component.Dialogue(dialogueId, {
                         loadBody: {
                             loaderFn: oRequest.fn,
                             callback: function() {
@@ -472,14 +470,14 @@ YConnect.failureEvent.subscribe(function() {
 
             deleteContent: function(items) {
                 var controller, view;
-                if (CStudioAuthoring.Utils.isAdmin()) {
+                if (CSA.Utils.isAdmin()) {
                     controller = "viewcontroller-delete";
-                    view = CStudioAuthoring.Service.getDeleteView;
+                    view = CSA.Service.getDeleteView;
                 } else {
                     controller = "viewcontroller-schedulefordelete";
-                    view = CStudioAuthoring.Service.getScheduleForDeleteView;
+                    view = CSA.Service.getScheduleForDeleteView;
                 }
-                CStudioAuthoring.Operations._showDialogueView({
+                CSA.Operations._showDialogueView({
                     fn: view,
                     controller: controller,
                     callback: function(dialogue) {
@@ -503,15 +501,15 @@ YConnect.failureEvent.subscribe(function() {
                 }, true);
             },
             viewSchedulingPolicy: function(callback) {
-                CStudioAuthoring.Operations._showDialogueView({
-                    fn: CStudioAuthoring.Service.getSchedulingPolicyView,
+                CSA.Operations._showDialogueView({
+                    fn: CSA.Service.getSchedulingPolicyView,
                     callback: callback
                 });
             },
 
             viewContentHistory: function(contentObj, callback){
-                CStudioAuthoring.Operations._showDialogueView({
-                    fn: CStudioAuthoring.Service.getHistoryView,
+                CSA.Operations._showDialogueView({
+                    fn: CSA.Service.getHistoryView,
                     controller: "viewcontroller-history",
                     callback: function(dialogue) {
 
@@ -542,8 +540,8 @@ YConnect.failureEvent.subscribe(function() {
 
             approveCommon: function (site, items) {
 
-                CStudioAuthoring.Operations._showDialogueView({
-                    fn: CStudioAuthoring.Service.getApproveView,
+                CSA.Operations._showDialogueView({
+                    fn: CSA.Service.getApproveView,
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
 
@@ -6087,17 +6085,17 @@ YConnect.failureEvent.subscribe(function() {
             init: function() {
 
                 if (typeof(CStudioAuthoringContext) == "undefined") {
-                    YAHOO.lang.later(1000, this, CStudioAuthoring.WindowManagerProxy.init);
+                    YAHOO.lang.later(1000, this, CSA.WindowManagerProxy.init);
                 } else {
 
                     if (!window.name || window.name == "") {
                         window.name = CStudioAuthoring.Utils.generateUUID();
                     }
 
-                    CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-main-window");
+                    CSA.Utils.Cookies.eraseCookie("cstudio-main-window");
 
                     // Check if user is to be notified.
-                    this.notify = CStudioAuthoring.Utils.Cookies.readCookie("cstudio-preview-notify");
+                    this.notify = CSA.Utils.Cookies.readCookie("cstudio-preview-notify");
                     if(this.notify != null) {
 
                         CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-preview-notify");
@@ -6114,7 +6112,7 @@ YConnect.failureEvent.subscribe(function() {
 
                     YAHOO.lang.later(1000, this, function() {
 
-                        var cookie = CStudioAuthoring.Utils.Cookies.readCookie("cstudio-main-window");
+                        var cookie = CSA.Utils.Cookies.readCookie("cstudio-main-window");
                         if (cookie != null) {
 
                             var pieces = cookie.split('|');
@@ -6179,8 +6177,8 @@ YConnect.failureEvent.subscribe(function() {
             }
         }
     });
-    CStudioAuthoring.Clipboard.init();
-    CStudioAuthoring.SelectedContent.init();
+    CSA.Clipboard.init();
+    CSA.SelectedContent.init();
     /**
      * form command bar
      * @param containerId
@@ -6188,7 +6186,7 @@ YConnect.failureEvent.subscribe(function() {
      * @addSpacer
      *   add spacer between form and controls
      */
-    CStudioAuthoring.register({
+    CSA.register({
         CommandToolbar: function(containerId, addSpacer) {
             this.init(containerId, addSpacer);
         }
@@ -6197,7 +6195,7 @@ YConnect.failureEvent.subscribe(function() {
      * initialize the form command toolbar
      * @param {String} id ID of the container element for the toolbar
      */
-    CStudioAuthoring.CommandToolbar.prototype.init = (function(id, addSpacer) {
+    CSA.CommandToolbar.prototype.init = (function(id, addSpacer) {
         this.container = document.getElementById(id);
         this.controlBox = null;
         if (this.container != null) {
@@ -6232,7 +6230,7 @@ YConnect.failureEvent.subscribe(function() {
      * @param actionCallback
      *    function to be executed when button is pushed
      */
-    CStudioAuthoring.CommandToolbar.prototype.addControl = (function(controlId, label, actionCallback) {
+    CSA.CommandToolbar.prototype.addControl = (function(controlId, label, actionCallback) {
         if (this.controlBox != null) {
             //var buttonControl = document.createElement("button");
             var buttonControl = document.createElement("input");
@@ -6262,7 +6260,7 @@ YConnect.failureEvent.subscribe(function() {
      * @param controlId
      *    id of button
      */
-    CStudioAuthoring.CommandToolbar.prototype.disableControl = (function(controlId) {
+    CSA.CommandToolbar.prototype.disableControl = (function(controlId) {
         if (this.controlBox != null) {
             var buttonControl = document.getElementById(controlId);
 
@@ -6274,11 +6272,11 @@ YConnect.failureEvent.subscribe(function() {
     });
 
     if (!window.opener) {
-        CStudioAuthoring.WindowManagerProxy.init();
+        CSA.WindowManagerProxy.init();
     }
 
     /* Registering Request Timeout values for go live service request */
-    CStudioAuthoring.register({
+    CSA.register({
         "Request.Timeout": {
             GoLiveTimeout: 180000
         }
@@ -6374,8 +6372,7 @@ CStudioAuthoring.InContextEdit = {
 
         if(formField.indexOf(":") == -1) {
             contentItem = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
-        }
-        else {
+        } else {
             contentItem = formField.substring(0,formField.indexOf(':'));
             formField = formField.substring(formField.indexOf(':')+1);
             itemIsLoaded = false;
@@ -6387,27 +6384,7 @@ CStudioAuthoring.InContextEdit = {
             itemIsLoaded: itemIsLoaded
         };
 
-
-        editControlEl.onclick = function() {
-            if(this.content.itemIsLoaded == true) {
-                CStudioAuthoring.Operations.performSimpleIceEdit(CStudioAuthoring.SelectedContent.getSelectedContent()[0], this.content.field);
-            }
-            else {
-                var lookupContentCb = {
-                    success: function(contentTO) {
-                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item, this.field);
-                    },
-                    failure: function() {
-                    },
-
-                    field: this.content.field
-
-                };
-
-                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.content.item, lookupContentCb, false);
-
-            }
-        };
+        editControlEl.onclick = CStudioAuthoring.InContextEdit.editControlClicked;
 
         controlBoxEl.appendChild(editControlEl);
         var contentBoxEl = document.createElement("div");
@@ -6441,6 +6418,25 @@ CStudioAuthoring.InContextEdit = {
             0,
             iceToolsModuleCb
         );
+    },
+
+    editControlClicked: function() {
+        if(this.content.itemIsLoaded == true) {
+            CStudioAuthoring.Operations.performSimpleIceEdit(CStudioAuthoring.SelectedContent.getSelectedContent()[0], this.content.field);
+        } else {
+
+            var lookupContentCb = {
+                success: function(contentTO) {
+                    CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item, this.field);
+                },
+                failure: function() {},
+                field: this.content.field
+
+            };
+
+            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.content.item, lookupContentCb, false);
+
+        }
     },
 
     initializeComponentEditRegion: function(regionElId, regionLabel) {
@@ -6558,9 +6554,9 @@ CStudioAuthoring.InContextEdit = {
     autoInitializeEditRegions: function() {
         var iceEls = YAHOO.util.Dom.getElementsByClassName("cstudio-ice", null, document.body);
 
-        if(iceEls) {
-            for(var i=0; i<iceEls.length; i++) {
-                CStudioAuthoring.InContextEdit.initializeEditRegion(iceEls[i].id,iceEls[i].id);
+        if (iceEls) {
+            for(var i = 0; i < iceEls.length; ++i) {
+                CStudioAuthoring.InContextEdit.initializeEditRegion(iceEls[i].id, iceEls[i].id);
             }
         }
 
@@ -6717,7 +6713,6 @@ CStudioAuthoring.InContextEdit = {
     }, w);
 
 }) (window);
-
 
 (function startAuthLoop() {
 

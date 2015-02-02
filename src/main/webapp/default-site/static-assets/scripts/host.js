@@ -14,10 +14,25 @@
         console.log('Guest checked out');
     });
 
+    communicator.subscribe(Events.ICE_ZONE_ON, function (message, scope) {
+        console.log('Ice zone %@ turned on'.fmt(message.iceId), message);
+        CStudioAuthoring.InContextEdit.editControlClicked.call({
+            content: {
+                itemIsLoaded: true,
+                field: message.iceId,
+                item: CStudioAuthoring.SelectedContent.getSelectedContent()[0]
+            }
+        });
+    });
+
     // Listen to the guest site load
     communicator.subscribe(Events.GUEST_SITE_LOAD, function (message, scope) {
 
-        console.log('Guest loaded');
+        console.log('Guest loaded', message);
+
+        if (message.url) {
+            setHashPage(message.url);
+        }
 
         // Once the guest window notifies that the page as successfully loaded,
         // add the guest window as a target of messages sent by this window
@@ -38,12 +53,23 @@
 
     function goToHashPage() {
 
+        var win = getEngineWindow();
         var hash = parseHash(window.location.hash);
+
         if (hash.site) {
             CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
         }
 
-        getEngineWindow().src = hash.page;
+        if (win.src !== hash.page) {
+            win.src = hash.page;
+        }
+
+        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, '/site/website/index.xml', {
+            success: function(content) {
+                CStudioAuthoring.SelectedContent.selectContent(content.item);
+            },
+            failure: function() {}
+        });
 
     }
 
@@ -72,11 +98,13 @@
     }, false);
 
     window.addEventListener('load', function () {
+
         if (window.location.hash.indexOf('page') === -1) {
             setHashPage('/');
         } else {
-            goToHashPage()
+            goToHashPage();
         }
+
     }, false);
 
 }) (window);
