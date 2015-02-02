@@ -1,0 +1,15 @@
+.crafter-studio-ice-overlay,
+.crafter-studio-ice-indicator {
+  cursor: pointer !important; }
+
+.crafter-studio-ice-overlay {
+  position: absolute !important;
+  border: 2px solid #ed1c24 !important;
+  box-shadow: rgba(237, 28, 36, 0.4) 0 10px 5px !important; }
+
+.crafter-studio-ice-indicator {
+  position: absolute !important;
+  border-radius: 0 0 5px 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  background: rgba(255, 255, 255, 0.5) url("/studio/static-assets/themes/cstudioTheme/images/edit.png") no-repeat 3px 3px !important; }
