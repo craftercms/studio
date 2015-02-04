@@ -71,4 +71,9 @@ class ClipboardServices {
         return clipboardServicesImpl.getItems(site, session);
     }
 
+    static duplicate(context, site, path) {
+        def clipboardServicesImpl = ServiceFactory.getClipboardServices(context);
+        return clipboardServicesImpl.duplicate(site, path);
+    }
+
 }

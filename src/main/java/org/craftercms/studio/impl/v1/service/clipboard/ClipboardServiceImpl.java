@@ -88,6 +88,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
      * Duplicate the content (i.e create a copy of a content at the same location by providing auto-generated uri)
      *
      */
+    @Override
 	public String duplicate(String site, String path, String source) throws ServiceException {
 		return _duplicate(site, path, false, source);
     }
@@ -118,7 +119,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 //DmPathTO destDmPath = new DmPathTO(destPath);
                 String copiedPath = copy(site, user, null,path, newPath, fileName, content,toDraft, DmContentLifeCycleService.ContentLifeCycleOperation.DUPLICATE);
                 ContentItemTO itemTo = contentService.getContentItem(site, newPath + "/" + fileName);
-                objectStateService.insertNewEntry(site, itemTo);
+                objectStateService.insertNewEntry(site, newPath + "/" + fileName);
                 return newPath + "/" + fileName;
             } else {
                 throw new ContentNotFoundException(path + " does not exist.");

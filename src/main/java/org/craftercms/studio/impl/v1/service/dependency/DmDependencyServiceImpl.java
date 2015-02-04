@@ -1264,7 +1264,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         Map<String,String> copyDependency = new HashMap<String,String>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             String fullPath = contentService.expandRelativeSitePath(site, sourceContentPath);
-            ContentItemTO dependencyItem = contentService.getContentItem(sourceContentPath);
+            ContentItemTO dependencyItem = contentService.getContentItem(site, sourceContentPath);
             String contentType = dependencyItem.getContentType();
             List<CopyDependencyConfigTO> copyDependencyPatterns  = servicesConfig.getCopyDependencyPatterns(site, contentType);
             if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
@@ -1273,7 +1273,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (dmDependencyTo != null) {
                     //TODO are pages also required?
                     List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies(); //documents,assets,components
-                    PersistenceManagerService persistenceManagerService1 = getService(PersistenceManagerService.class);
                     for (DmDependencyTO dependency : dependencyTOItems) {
                         String assocFilePath = dependency.getUri();
                         for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
