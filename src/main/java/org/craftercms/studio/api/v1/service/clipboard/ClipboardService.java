@@ -40,6 +40,6 @@ public interface ClipboardService {
     public List<String> paste(String site, List<Map<String, String>> pasteItems, String destination, boolean cut) throws ServiceException;
 /*
     public String duplicateToDraft(String site, String sub, String path) throws ServiceException;
-
-	public String duplicate(String site, String sub, String path, String source) throws ServiceException;*/
+*/
+	public String duplicate(String site, String path, String source) throws ServiceException;
 }

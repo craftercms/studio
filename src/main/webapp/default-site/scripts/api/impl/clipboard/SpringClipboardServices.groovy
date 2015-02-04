@@ -161,4 +161,9 @@ class SpringClipboardServices {
         return "clipboard_collection:" + site;
     }
 
+    def duplicate(site, path) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+        return springBackedService.duplicate(site, path, path);
+    }
+
 }

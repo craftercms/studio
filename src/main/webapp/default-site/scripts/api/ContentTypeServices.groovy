@@ -2,7 +2,16 @@ package scripts.api
 /**
  * content type services
  */
-Class ContentTypeServices {
+class ContentTypeServices {
+
+    /**
+     * create the context object
+     * @param applicationContext - studio application's contect (spring container etc)
+     * @param request - web request if in web request context
+     */
+    static createContext(applicationContext, request) {
+        return ServiceFactory.createContext(applicationContext, request)
+    }
 
 	/**
 	 * change content type
@@ -40,4 +49,9 @@ Class ContentTypeServices {
 	def getContentType(site, type) {
 
 	}
+
+    def static getContentTypeByPath(context, site, path) {
+        def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
+        return contentTypeServiceImpl.getContentTypeByPath(site, path)
+    }
 }

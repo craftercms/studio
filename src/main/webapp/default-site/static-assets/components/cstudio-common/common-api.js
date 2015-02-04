@@ -1543,7 +1543,7 @@ YConnect.failureEvent.subscribe(function() {
             },
 
             duplicateContent: function(site, path, argsCallback) {
-                var serviceUri = "/service/cstudio/services/clipboard/duplicate?site=" + site + "&path=" + path;
+                var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
                 var ajaxRequest=CStudioAuthoring.Service.createServiceUri(serviceUri);
 
                 var serviceCallback = {
