@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.configuration;
 
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 
 import java.util.List;
@@ -168,7 +169,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return delete dependencys patterns
 	 */
-	//public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site, String contentType);
+	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site, String contentType);
 	
 	/**
 	 * get the copy dependencies pattern for a content type

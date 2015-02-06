@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,22 +15,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.craftercms.studio.api.v1.dal;
-
-import java.util.List;
-import java.util.Map;
+package scripts.api.impl.dependency;
 
 /**
- * @author Dejan Brkic
+ * content type services
  */
-public interface DependencyMapper {
+class SpringDependencyServices {
 
-    List<DependencyEntity> getDependencies(Map params);
+    static DEPENDENCY_SERVICES_BEAN = "cstudioDmDependencyService"
 
-    void deleteAllSourceDependencies(Map params);
+    def context = null
 
-    void insertList(Map params);
+    def SpringDependencyServices(context) {
+        this.context = context
+    }
 
-    List<DependencyEntity> getDependenciesByType(Map params);
+    def getDependencies(site, requestBody, deleteDependencies) {
+        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+        return springBackendService.getDependencies(site, requestBody, deleteDependencies);
+    }
 }

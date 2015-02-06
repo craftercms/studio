@@ -249,17 +249,17 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		return null;
 	}
 	
-	/*
+
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site,String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
-		ContentTypeConfigTO contentTypeConfig = _contentTypesConfig.getContentTypeConfig(site, contentType);
+		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
 		if (contentTypeConfig != null) {
 			return contentTypeConfig.getDeleteDependencyPattern();
 		}
         return Collections.emptyList();
-	}*/
+	}
 
 
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site,String contentType) {

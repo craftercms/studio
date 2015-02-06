@@ -50,12 +50,13 @@ public interface DmDependencyService {
 
     /**
      * populate dependencies as content items into the given content item
-     *
-     * @param site
-     * @param item
+     *  @param item
      * @param populateUpdatedDependecinesOnly
+     * @param site
      */
     //public void populateDependencyContentItems(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly);
+
+    Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException;
 
     /**
      * get dependent items as WCM content items from the content at the given path
