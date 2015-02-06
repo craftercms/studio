@@ -153,6 +153,7 @@
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
     </bean>
 

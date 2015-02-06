@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,22 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.DependencyServices;
 
-package org.craftercms.studio.api.v1.dal;
-
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author Dejan Brkic
- */
-public interface DependencyMapper {
-
-    List<DependencyEntity> getDependencies(Map params);
-
-    void deleteAllSourceDependencies(Map params);
-
-    void insertList(Map params);
-
-    List<DependencyEntity> getDependenciesByType(Map params);
+def result = [:];
+def site = params.site;
+def deletedep = params.deletedep;
+def requestbody = request.reader.text;
+/*
+if (site == undefined || site == '')
+{
+    status.code = 400;
+    status.message = "Site must be provided.";
+    status.redirect = true;
 }
+else
+{*/
+def context = DependencyServices.createContext(applicationContext, request)
+    if (deletedep != null && deletedep == "true") {
+        result = DependencyServices.getDependencies(context, site, requestbody,true);
+    } else {
+        result = DependencyServices.getDependencies(context, site, requestbody,false);
+    }
+return result;

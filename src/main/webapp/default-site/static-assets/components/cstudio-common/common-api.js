@@ -17,12 +17,12 @@ var YEvent = YAHOO.util.Event;
 
 /* Removing this check because,
  * 401 error is returning some other cases apart from Authentication failed case.
-YConnect.failureEvent.subscribe(function() {
-    if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
-        alert ("Authentication failed, redirecting to login page.");
-        window.location.reload(true);
-    }
-});
+ YConnect.failureEvent.subscribe(function() {
+ if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
+ alert ("Authentication failed, redirecting to login page.");
+ window.location.reload(true);
+ }
+ });
  */
 
 (function(undefined){
@@ -209,7 +209,7 @@ YConnect.failureEvent.subscribe(function() {
             loadContextNavCss: function() {
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
-                 CSA.Utils.addCss('/static-assets/styles/temp.css');
+                CSA.Utils.addCss('/static-assets/styles/temp.css');
             },
 
             /**
@@ -551,19 +551,19 @@ YConnect.failureEvent.subscribe(function() {
                 }, true, '800px');
 
                 /*
-                CStudioAuthoring.Module.requireModule(
-                    'dialog-approve',
-                    '/static-assets/components/cstudio-dialogs/go-live.js', {
-                        contentItems: items,
-                        site: site
-                    }, {
-                        moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                            // in preview, this function undefined raises error -- unlike dashboard
-                            dialogClass.showDialog &&
-                            dialogClass.showDialog(
-                                moduleConfig.site, moduleConfig.contentItems);
-                        }
-                    });
+                 CStudioAuthoring.Module.requireModule(
+                 'dialog-approve',
+                 '/static-assets/components/cstudio-dialogs/go-live.js', {
+                 contentItems: items,
+                 site: site
+                 }, {
+                 moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
+                 // in preview, this function undefined raises error -- unlike dashboard
+                 dialogClass.showDialog &&
+                 dialogClass.showDialog(
+                 moduleConfig.site, moduleConfig.contentItems);
+                 }
+                 });
                  */
             },
 
@@ -2062,6 +2062,9 @@ YConnect.failureEvent.subscribe(function() {
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
 
+            // Dependencies
+            lookupContentDependenciesServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json?deletedep=true&",
+
             // not ported yet
 
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -2070,7 +2073,6 @@ YConnect.failureEvent.subscribe(function() {
             getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
             getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
             reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
-            lookupContentDependenciesServiceUri: "/proxy/alfresco/cstudio/wcm/dependency/get-dependencies?deletedep=true&",
 
             wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
             copyContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/copy-item.json",
@@ -3623,7 +3625,8 @@ YConnect.failureEvent.subscribe(function() {
              */
             lookupContentDependencies: function(site, contentItems, callback) {
                 var serviceUri = this.lookupContentDependenciesServiceUri + "site=" + site;
-                var dependencyXml = CStudioAuthoring.Utils.createContentItemsXml(contentItems);
+                //var dependencyXml = CStudioAuthoring.Utils.createContentItemsXml(contentItems);
+                var dependencyJson = CStudioAuthoring.Utils.createContentItemsJson(contentItems);
                 var serviceCallback = {
                     success: function(oResponse) {
                         var respJson = oResponse.responseText;
@@ -3637,8 +3640,8 @@ YConnect.failureEvent.subscribe(function() {
                     failure: callback.failure
                 };
                 YConnect.setDefaultPostHeader(false);
-                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
-                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, dependencyXml);
+                YConnect.initHeader("Content-Type", "application/json; charset=utf-8");
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, dependencyJson);
             },
 
 
@@ -5244,6 +5247,24 @@ YConnect.failureEvent.subscribe(function() {
 
                 return xmlString;
             },
+
+            /**
+             * given a list of content items, return an json
+             */
+            createContentItemsJson: function(contentItems) {
+
+                var itemsJson = "[ ";
+
+                for (var i = 0; i < contentItems.length; i++) {
+                    var itemJson;
+                    if (i > 0) itemsJson = itemsJson + ",";
+                    itemJson = "{ uri : \"" + contentItems[i].uri + "\" }";
+                    itemsJson = itemsJson + " " + itemJson;
+                }
+                itemsJson = itemsJson + " ]";
+                return itemsJson;
+            },
+
 
             /**
              * when caching content TOs we want a URI we can count on.  Not all content is

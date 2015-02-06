@@ -94,7 +94,7 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	protected Date lastUpdated;
 	
 	/** list of delete association patterns that this content type is dependent on for deleting indexes in webproject**/
-	//protected List<DeleteDependencyConfigTO> _deleteDependencies = null;
+	protected List<DeleteDependencyConfigTO> deleteDependencies = null;
 	
 	/** list of copy association patterns **/
 	protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
@@ -243,17 +243,17 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	
 	/**
 	 * @param deleteAssociations the deleteAssociations to set
-	 *//*
+	 */
 	public void setDeleteDependencies(List<DeleteDependencyConfigTO> deleteDependencies) {
-		this._deleteDependencies = deleteDependencies;
-	}*/
+		this.deleteDependencies = deleteDependencies;
+	}
 
 	/**
 	 * @return the deleteAssociations
-	 *//*
+	 */
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPattern() {
-		return _deleteDependencies;
-	}*/
+		return deleteDependencies;
+	}
 	
 	/**
 	 * @param searchConfig the searchConfig to set

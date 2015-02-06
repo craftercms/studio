@@ -17,9 +17,9 @@
  */
 package org.craftercms.studio.impl.v1.service.dependency;
 
-
-import javolution.util.FastList;
-import javolution.util.FastSet;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -33,11 +33,12 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.PersistenceManagerService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.XmlUtils;
@@ -56,6 +57,9 @@ import java.util.regex.Pattern;
 public class DmDependencyServiceImpl extends AbstractRegistrableService implements DmDependencyService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmDependencyServiceImpl.class);
+
+    protected static final String JSON_KEY_ITEMS = "items";
+    protected static final String JSON_KEY_SUBMISSION_COMMENT = "submissionComment";
 
     /**
      * DependencyDaoService
@@ -120,48 +124,74 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param dependencies
      * @param populateUpdatedDependecinesOnly
      * @return
-     *//*
-    protected List<DmContentItemTO> getDependentItems(String site, String parentUri, List<org.craftercms.cstudio.alfresco.dm.dependency.DependencyEntity> dependencies, boolean populateUpdatedDependecinesOnly) {
-        List<DmContentItemTO> items = null;
+     */
+    protected List<ContentItemTO> getDependentItems(String site, String parentUri, List<DependencyEntity> dependencies, boolean populateUpdatedDependecinesOnly) {
+        List<ContentItemTO> items = null;
         if (dependencies != null) {
-            items = new FastList<DmContentItemTO>(dependencies.size());
+            items = new ArrayList<>(dependencies.size());
             for (DependencyEntity dependency : dependencies) {
                 String path = dependency.getTargetPath();
-                try {
-                    DmContentItemTO dependencyItem = null;
-                    try {
-                        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-                        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                        String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
-                        dependencyItem = persistenceManagerService.getContentItem(fullPath);
+                ContentItemTO dependencyItem = null;
+                dependencyItem = contentService.getContentItem(site, path);
 
-                    } catch (ContentNotFoundException e) {
-                        logger.warn("Content not found Error while getting a dependent item: " + path + " of " + parentUri + " in site: " + site);
-                        dependencyItem=null;
-                    }
-                    if (dependencyItem != null) {
-                        dependencyItem.setReference(true);
-                        dependencyItem.setMandatoryParent(parentUri);
-                        items.add(dependencyItem);
-                    }
-                } catch (ServiceException e) {
-                    logger.error("Error while getting a dependent item: " + path + " of " + parentUri + " in site: " + site, e);
+                if (dependencyItem != null) {
+                    dependencyItem.setReference(true);
+                    dependencyItem.setMandatoryParent(parentUri);
+                    items.add(dependencyItem);
                 }
-                /*}*//*
             }
         } else {
-            items = new FastList<DmContentItemTO>(0);
+            items = new ArrayList<>(0);
         }
         return items;
     }
-*/
 
 
     @Override
+    public Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException {
+
+        if(deleteDependencies == null)
+            deleteDependencies=false;
+        try {
+
+            List<ContentItemTO> items = null;
+            JSONArray jsonArray = (JSONArray)JSONSerializer.toJSON(request);
+            if (jsonArray != null && jsonArray.size() > 0) {
+                List<String> submittedItems = new ArrayList<>(jsonArray.size());
+                ListIterator<JSONObject> iterator = jsonArray.listIterator();
+                while (iterator.hasNext()) {
+                    JSONObject jsonObject = iterator.next();
+                    String uri = jsonObject.getString("uri");
+                    submittedItems.add(uri);
+                }
+                DmContentItemComparator comparator = new DmContentItemComparator(DmContentItemComparator.SORT_BROWSER_URI, true, true, true);
+                items = getDependencies(site, submittedItems, comparator, false, deleteDependencies);
+            }
+            StringBuilder sb = new StringBuilder();
+            for (ContentItemTO item : items) {
+                String comment = item.getSubmissionComment();
+                if (StringUtils.isNotEmpty(comment)) {
+                    sb.append(comment).append("\n");
+                }
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put(JSON_KEY_ITEMS, items);
+            result.put(JSON_KEY_SUBMISSION_COMMENT, sb.toString());
+            return result;
+        } catch (RuntimeException e){
+            logger.error("Error getting dependecies",e);
+            throw e;
+        } catch (ServiceException e) {
+            logger.error("Error getting dependecies",e);
+            throw e;
+        }
+    }
+
+    @Override
     public DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
-        List<String> paths = new FastList<String>(1);
+        List<String> paths = new ArrayList<>(1);
         paths.add(path);
-        Set<String> processedDependencies = new FastSet<String>();
+        Set<String> processedDependencies = new HashSet<>();
         List<DmDependencyTO> items = getDependencyItems(site, paths, processedDependencies ,populateUpdatedDependecinesOnly, recursive, false);
         if (items.size() > 0) {
             return items.get(0);
@@ -180,7 +210,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @return dependency items
      */
     protected List<DmDependencyTO> getDependencyItems(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependecinesOnly, boolean recursive, boolean isDraftContent) {
-        List<DmDependencyTO> items = new FastList<DmDependencyTO>(paths.size());
+        List<DmDependencyTO> items = new ArrayList<>(paths.size());
         ServicesConfig servicesConfig = getService(ServicesConfig.class);
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
@@ -339,7 +369,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @return
      */
     protected List<String> getDependentFileNames(String site, StringBuffer buffer, boolean populateUpdatedDependecinesOnly, List<String> patterns) {
-        List<String> files = new FastList<String>();
+        List<String> files = new ArrayList<>();
         if (patterns != null) {
             for (String patternStr : patterns) {
                 Pattern pattern = Pattern.compile(patternStr);
@@ -360,42 +390,36 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     /*
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.dm.service.api.DmDependencyService#getDependencies(java.lang.String, java.util.List, org.craftercms.cstudio.alfresco.dm.util.DmContentItemComparator, boolean)
-      *//*
-    @Override
-    public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator,
+      */
+    protected List<ContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator,
                                                   boolean multiLevelChildren) throws ServiceException {
 
         return getDependencies(site, submittedItems, comparator,multiLevelChildren,false);
 
-    }*/
-/*
-    @Override
-    public List<DmContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren, boolean delDep) throws ServiceException {
+    }
+
+    protected List<ContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren, boolean delDep) throws ServiceException {
         if (submittedItems != null) {
             // get all change set excluding deleted items
-            List<DmContentItemTO> items = new FastList<DmContentItemTO>(submittedItems.size());
-            Set<String> includedItems = new FastSet<String>();
-            Set<String> includedDependencies = new FastSet<String>();
+            List<ContentItemTO> items = new ArrayList<>(submittedItems.size());
+            Set<String> includedItems = new HashSet<>();
+            Set<String> includedDependencies = new HashSet<>();
             //Set<String> includedLvlDescs = new FastSet<String>();
             for (String submittedItem : submittedItems) {
                 boolean deleteDependencies = delDep;
                 if (!StringUtils.isEmpty(submittedItem) && !includedItems.contains(submittedItem)) {
                     try {
-                        DmContentItemTO item = null;
-                        DmContentService dmContentService = getService(DmContentService.class);
-                        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-                        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                        String fullPath = servicesConfig.getRepositoryRootPath(site) + submittedItem;
-                        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-                        item = persistenceManagerService.getContentItem(fullPath, !delDep);
+                        ContentItemTO item = null;
+                        String fullPath = contentService.expandRelativeSitePath(site, submittedItem);
+                        item = contentService.getContentItem(site, submittedItem);
                         if(item.isSubmittedForDeletion()) {
                             deleteDependencies = true;
                         }
-                        if (deleteDependencies || persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED)) {
+                        if (deleteDependencies /*|| persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED)*/ /* TODO: rename*/) {
                             if (item.isContainer()) {
                                 String folderPath = submittedItem.replace(DmConstants.INDEX_FILE, "");
                                 // The purpose is to set children for this node.
-                                item = dmContentService.getItems(item, site, null, folderPath, -1, false, "default", true, !delDep);
+                                //item = dmContentService.getItems(item, site, null, folderPath, -1, false, "default", true, !delDep);
                             }
                         }
 
@@ -404,12 +428,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         if (!delDep) {
                             List<String> levelDescs = getDependentLevelDescriptors(site, submittedItem, false, servicesConfig.getLevelDescriptorName(site));
                             for (String levelDesc : levelDescs) {
-                                String lvlDescFullPath = servicesConfig.getRepositoryRootPath(site) + levelDesc;
-                                ObjectStateService.State lvlDescState = persistenceManagerService.getObjectState(lvlDescFullPath);
-                                if (ObjectStateService.State.isNew(lvlDescState)) {
+                                //String lvlDescFullPath = servicesConfig.getRepositoryRootPath(site) + levelDesc;
+                                //ObjectState lvlDescState = objectStateService.getObjectState(site, levelDesc);
+                                if (objectStateService.isNew(site, levelDesc)) {
                                     if (!submittedItems.contains(levelDesc) && !includedItems.contains(levelDesc)) {
                                         includedItems.add(levelDesc);
-                                        DmContentItemTO lvlItem = persistenceManagerService.getContentItem(lvlDescFullPath);
+                                        ContentItemTO lvlItem = contentService.getContentItem(site, levelDesc);
                                         retrieveDependencyItems(lvlItem, includedDependencies, deleteDependencies, site);
                                         addDependencyItem(site, items, includedItems, includedDependencies, lvlItem, comparator, deleteDependencies);
                                     }
@@ -421,17 +445,17 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }
-            List<DmContentItemTO> displayItems = new FastList<DmContentItemTO>();
+            List<ContentItemTO> displayItems = new ArrayList<>();
             // if we need to return child dependencies at single level
             // populate all children of each item to the second level
             // couldn't avoid doing this due to the mandatory parent setup
             List<String> allReferences = new ArrayList<String>();
             if (!multiLevelChildren) {
-                for (DmContentItemTO item : items) {
+                for (ContentItemTO item : items) {
                     if (!includedDependencies.contains(item.getUri())) {
-                        List<DmContentItemTO> targetChildren = item.getChildren();
-                        List<DmContentItemTO> pages = item.getPages();
-                        item.setChildren(new ArrayList<DmContentItemTO>());
+                        List<ContentItemTO> targetChildren = item.getChildren();
+                        List<ContentItemTO> pages = item.getPages();
+                        item.setChildren(new ArrayList<ContentItemTO>());
                         item.setNumOfChildren(0);
                         flattenDependencies(item, targetChildren, comparator,item,allReferences);
                         flattenDependencies(item, pages, comparator,null,allReferences);
@@ -444,7 +468,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         } else {
             throw new ServiceException("No items provided.");
         }
-    }*/
+    }
 
     /**
      * add all dependency files from the given content item
@@ -452,56 +476,43 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param parentItem
      * @param includedDependencies
      * @param site
-     *//*
-    protected void retrieveDependencyItems(DmContentItemTO parentItem, Set<String> includedDependencies, boolean deleteDependency, String site) {
+     */
+    protected void retrieveDependencyItems(ContentItemTO parentItem, Set<String> includedDependencies, boolean deleteDependency, String site) {
         String contentType=parentItem.getContentType();
         if (contentType == null) {
             return;
         }
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
         List<DeleteDependencyConfigTO> deleteDependencyPatterns = servicesConfig.getDeleteDependencyPatterns(site, contentType);
-        List<String> deletePattern = new FastList<String>();
+        List<String> deletePattern = new ArrayList<>();
         for(DeleteDependencyConfigTO dependencyConfigTO:deleteDependencyPatterns){
             deletePattern.add(dependencyConfigTO.getPattern());
         }
-        List<DmContentItemTO> componentItems = parentItem.getComponents();  //we need to do it recursively
+        List<ContentItemTO> componentItems = parentItem.getComponents();  //we need to do it recursively
         if (componentItems != null) {
-            for (DmContentItemTO component : componentItems) {
-                if(!deleteDependency || matches(component.getUri(),deletePattern))
+            for (ContentItemTO component : componentItems) {
+                if(!deleteDependency || ContentUtils.matchesPatterns(component.getUri(), deletePattern))
                     includedDependencies.add(component.getUri());
             }
         }
 
-        List<DmContentItemTO> documentItems = parentItem.getDocuments();
+        List<ContentItemTO> documentItems = parentItem.getDocuments();
         if (documentItems != null) {
-            for (DmContentItemTO document : documentItems) {
-                if(!deleteDependency || (deleteDependency && matches(document.getUri(),deletePattern)))
+            for (ContentItemTO document : documentItems) {
+                if(!deleteDependency || (deleteDependency && ContentUtils.matchesPatterns(document.getUri(), deletePattern)))
                     includedDependencies.add(document.getUri());
             }
         }
 
-        List<DmContentItemTO> levelDescriptorItems = parentItem.getLevelDescriptors();
+        List<ContentItemTO> levelDescriptorItems = parentItem.getLevelDescriptors();
         if (levelDescriptorItems != null) {
-            for (DmContentItemTO levelDescriptor : levelDescriptorItems) {
-                if (!deleteDependency || (deleteDependency && matches(levelDescriptor.getUri(), deletePattern)))
+            for (ContentItemTO levelDescriptor : levelDescriptorItems) {
+                if (!deleteDependency || (deleteDependency && ContentUtils.matchesPatterns(levelDescriptor.getUri(), deletePattern)))
                     includedDependencies.add(levelDescriptor.getUri());
             }
         }
 
         //$Review$ get deleted item dependencies
-    }*//*
-    protected boolean matches(String uri, List<String> patterns) {
-        boolean matches=false;
-        if(patterns != null)
-        {
-            for (String deleteDependency : patterns)
-            {
-                if(uri.matches(deleteDependency))
-                    return true;
-            }
-        }
-        return matches;
-    }*/
+    }
 
     /**
      * add a dependency item to the list of items
@@ -512,16 +523,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param item
      * @param comparator
      * @throws ServiceException
-     *//*
-    protected void addDependencyItem(String site, List<DmContentItemTO> items, Set<String> includedItems, Set<String> includedDependencies,
-                                     DmContentItemTO item, DmContentItemComparator comparator,boolean deleteDependencies) throws ServiceException {
+     */
+    protected void addDependencyItem(String site, List<ContentItemTO> items, Set<String> includedItems, Set<String> includedDependencies,
+                                     ContentItemTO item, DmContentItemComparator comparator,boolean deleteDependencies) throws ServiceException {
         // if this item is a new file, check if the parent is new
-        DmContentService dmContentService = getService(DmContentService.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String itemFullPath = servicesConfig.getRepositoryRootPath(site) + item.getUri();
-        NodeRef itemNode = persistenceManagerService.getNodeRef(itemFullPath);
-        if (!deleteDependencies && (item.isNewFile() || persistenceManagerService.hasAspect(itemNode, CStudioContentModel.ASPECT_RENAMED))) {
+        String itemFullPath = contentService.expandRelativeSitePath(site, item.getUri());
+        if (!deleteDependencies && (item.isNewFile() /* TODO: check renamed || persistenceManagerService.hasAspect(itemNode, CStudioContentModel.ASPECT_RENAMED)*/)) {
             String parentUri = "";
             if (item.getName().equals(DmConstants.INDEX_FILE)) {
                 // if the current page is the index page, then the parent page is one level above
@@ -541,12 +548,11 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             if (!includedItems.contains(parentUri) && parentUri.startsWith(DmConstants.ROOT_PATTERN_PAGES)) {
                 try {
                     // add only if the parent item is new and not submitted to workflow
-                    String fullPath = dmContentService.getContentFullPath(site, parentUri);
-                    NodeRef parentNode = persistenceManagerService.getNodeRef(fullPath);
-                    if (parentNode != null ) {
-                        DmContentItemTO parentItem = persistenceManagerService.getContentItem(fullPath);
+                    String fullPath = contentService.expandRelativeSitePath(site, parentUri);
+                    ContentItemTO parentItem = contentService.getContentItem(site, parentUri);
+                    if (parentItem != null ) {
                         retrieveDependencyItems(parentItem, includedDependencies,deleteDependencies, site);
-                        if (parentItem.isNewFile() || persistenceManagerService.hasAspect(parentNode, CStudioContentModel.ASPECT_RENAMED)) {
+                        if (parentItem.isNewFile() /* TODO: check renamed|| persistenceManagerService.hasAspect(parentNode, CStudioContentModel.ASPECT_RENAMED)*/) {
                             // add the parent item first recursively
                             addDependencyItem(site, items, includedItems, includedDependencies, parentItem, comparator,deleteDependencies);
                         }
@@ -561,14 +567,13 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         // add a new item as a child if the new item is a sub folder
         // or a file under one of the top level items
         for (int index = 0; index < items.size(); index++) {
-            DmContentItemTO topLevelItem = items.get(index);
+            ContentItemTO topLevelItem = items.get(index);
             String categoryUri = topLevelItem.getUri();
             categoryUri = categoryUri.replaceFirst(DmConstants.INDEX_FILE, "");
-            String topLevelItemFullPath = servicesConfig.getRepositoryRootPath(site) + topLevelItem.getUri();
-            NodeRef topLvlItemNodeRef = persistenceManagerService.getNodeRef(topLevelItemFullPath);
+            String topLevelItemFullPath = contentService.expandRelativeSitePath(site, topLevelItem.getUri());
             if (item.getUri().startsWith(categoryUri)) {
                 populatePageDependencies(site, item, true);
-                boolean topLevelItemRenamed = persistenceManagerService.hasAspect(topLvlItemNodeRef, CStudioContentModel.ASPECT_RENAMED);
+                boolean topLevelItemRenamed = false; // TODO: check renamed persistenceManagerService.hasAspect(topLvlItemNodeRef, CStudioContentModel.ASPECT_RENAMED);
                 topLevelItem.addChild(item, comparator, true,topLevelItemRenamed);
                 position = index;
                 found = true;
@@ -598,12 +603,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             items.add(item);
         }
         includedItems.add(item.getUri());
-    }*/
-/*
-    protected void flattenDependencies(DmContentItemTO topLevelItem,
-                                       List<DmContentItemTO> children, DmContentItemComparator comparator, DmContentItemTO parent,List<String>referencePages) {
+    }
+
+    protected void flattenDependencies(ContentItemTO topLevelItem,
+                                       List<ContentItemTO> children, DmContentItemComparator comparator, ContentItemTO parent,List<String>referencePages) {
         if (children != null) {
-            for (DmContentItemTO child : children) {
+            for (ContentItemTO child : children) {
                 // add lower level dependencies to the same top level item recursively
                 if(!isChildAlreadyExists(topLevelItem,child)) {
                     topLevelItem.addChild(child,false,false);
@@ -623,57 +628,54 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
         }
     }
-*/
+
     /**
      * populate all children of each item to the first level dependency
      *
      * @param topLevelItem
      * @param item
      */
-/*
-    protected boolean isChildAlreadyExists(DmContentItemTO topLevelItem, DmContentItemTO item) {
-        List<DmContentItemTO> children = topLevelItem.getChildren();
-        for(DmContentItemTO child:children) {
+    protected boolean isChildAlreadyExists(ContentItemTO topLevelItem, ContentItemTO item) {
+        List<ContentItemTO> children = topLevelItem.getChildren();
+        for(ContentItemTO child:children) {
             if(child.getUri().equals(item.getUri())) {
                 return true;
             }
         }
         return false;
     }
-*//*
-    protected void removeDuplicateReferences(List<String>references,List<DmContentItemTO>displayItems) {
-        Iterator<DmContentItemTO> itr = displayItems.iterator();
-        while(itr.hasNext()) {
-            DmContentItemTO item = itr.next();
+
+    protected void removeDuplicateReferences(List<String>references, List<ContentItemTO>displayItems) {
+        Iterator<ContentItemTO> itr = displayItems.iterator();
+        while (itr.hasNext()) {
+            ContentItemTO item = itr.next();
             String uri = item.getUri();
             if(references.contains(uri)) {
                 itr.remove();
             }
         }
-    }*/
-/*
-    @Override
-    public void populatePageDependencies(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly) {
-        try {
-            List<DependencyEntity> pages = _dependencyDaoService.getDependenciesByType(site, item.getUri(), DEPENDENCY_NAME_PAGE);
-            List<DmContentItemTO> pageItems = getDependentItems(site, item.getUri(), pages, populateUpdatedDependecinesOnly);
-            List<DmContentItemTO>newPages=new ArrayList<DmContentItemTO>();
-            if (populateUpdatedDependecinesOnly) {
-                for (DmContentItemTO pageItem : pageItems) {
-                    if (pageItem.isNew()) {
-                        newPages.add(pageItem);
-                    }
-                }
-                item.setPages(newPages);
-            } else{
-                item.setPages(pageItems);
-            }
+    }
 
-        } catch (SQLException e) {
-            logger.error("Error while getting dependent file names for " + item.getUri() + " in " + site, e);
+    protected void populatePageDependencies(String site, ContentItemTO item, boolean populateUpdatedDependecinesOnly) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("sourcePath", item.getUri());
+        params.put("type", DEPENDENCY_NAME_PAGE);
+        List<DependencyEntity> pages = dependencyMapper.getDependenciesByType(params);
+        List<ContentItemTO> pageItems = getDependentItems(site, item.getUri(), pages, populateUpdatedDependecinesOnly);
+        List<ContentItemTO> newPages = new ArrayList<ContentItemTO>();
+        if (populateUpdatedDependecinesOnly) {
+            for (ContentItemTO pageItem : pageItems) {
+                if (pageItem.isNew()) {
+                    newPages.add(pageItem);
+                }
+            }
+            item.setPages(newPages);
+        } else{
+            item.setPages(pageItems);
         }
     }
-*//*
+/*
     @Override
     public List<DependencyEntity> getDirectDependencies(String site, String path) {
         try {
@@ -755,7 +757,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 Matcher matcher = pattern.matcher(path);
                 if (matcher.matches()) {
                     if (globalPages == null) {
-                        globalPages = new FastSet<String>();
+                        globalPages = new HashSet<>();
                     }
                     globalPages.add(path);
                     globalDeps.put(DEPENDENCY_NAME_PAGE, globalPages);
@@ -768,7 +770,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 Matcher matcher = pattern.matcher(path);
                 if (matcher.matches()) {
                     if (globalComponents == null) {
-                        globalComponents = new FastSet<String>();
+                        globalComponents = new HashSet<>();
                     }
                     globalComponents.add(path);
                     globalDeps.put(DEPENDENCY_NAME_COMPONENT, globalComponents);
@@ -779,7 +781,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             for (String assetPath : assets) {
                 Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
                 if (parsedAssets == null) {
-                    parsedAssets = new FastSet<String>();
+                    parsedAssets = new HashSet<>();
                 }
                 if (parsedAssets.contains(assetPath)) {
                     continue;
@@ -843,14 +845,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         setDependencies(site, path, dependency);
         Set<String> parsedTemplates = globalDeps.get(DEPENDENCY_NAME_RENDERING_TEMPLATE);
         if (parsedTemplates == null) {
-            parsedTemplates = new FastSet<String>();
+            parsedTemplates = new HashSet<>();
         }
         parsedTemplates.add(path);
         globalDeps.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, parsedTemplates);
         for (String assetPath : assets) {
             Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
             if (parsedAssets == null) {
-                parsedAssets = new FastSet<String>();
+                parsedAssets = new HashSet<>();
             }
             if (parsedAssets.contains(assetPath)) {
                 continue;
@@ -899,7 +901,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         setDependencies(site, path, dependency);
         Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
         if (parsedAssets == null) {
-            parsedAssets = new FastSet<String>();
+            parsedAssets = new HashSet<>();
         }
         parsedAssets.add(path);
         globalDeps.put(DEPENDENCY_NAME_ASSET, parsedAssets);
@@ -933,7 +935,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         setDependencies(site, path, dependency);
         Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
         if (parsedAssets == null) {
-            parsedAssets = new FastSet<String>();
+            parsedAssets = new HashSet<>();
         }
         parsedAssets.add(path);
         globalDeps.put(DEPENDENCY_NAME_ASSET, parsedAssets);
@@ -950,9 +952,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
         }
     }
-/*
+
     protected List<String> getDependentLevelDescriptors(String site, String path, boolean b, String levelDescriptorName) {
-        List<String> levelDescriptors = new FastList<String>();
+        List<String> levelDescriptors = new ArrayList<>();/*
+        TODO: implement search for level descriptors
         if (StringUtils.isNotBlank(path)) {
         	PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
             ServicesConfig servicesConfig = getService(ServicesConfig.class);
@@ -983,9 +986,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }
-        }
+        }*/
         return levelDescriptors;
-    }*/
+    }
 
 	@Override
     public void setDependencies(final String site, final String path, final Map<String, List<String>> dependencies) throws ServiceException {
@@ -1024,7 +1027,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
 
     private List<String> applyIgnoreDependenciesRules(String site, List<String> dependencies) {
-        List<String> filteredDependencies = new FastList<String>();
+        List<String> filteredDependencies = new ArrayList<>();
         for (String dependency : dependencies) {
             boolean ignore = false;
             if (!contentService.contentExists(site, dependency)) {
@@ -1322,7 +1325,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     @Override
     public List<String> getDependencyPaths(String site, String path) {
-        List<String> toRet = new FastList<String>();
+        List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("sourcePath", path);
@@ -1339,12 +1342,16 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
+    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
     public List<String> getIgnoreDependenciesRules() { return ignoreDependenciesRules; }
     public void setIgnoreDependenciesRules(List<String> ignoreDependenciesRules) { this.ignoreDependenciesRules = ignoreDependenciesRules; }
 
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
-    protected List<String> ignoreDependenciesRules = new FastList<String>();
+    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected List<String> ignoreDependenciesRules = new ArrayList<>();
 
     @Autowired
     protected DependencyMapper dependencyMapper;

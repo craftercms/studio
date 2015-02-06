@@ -109,7 +109,14 @@ public class ContentItemTO implements Serializable {
 	public String form;
 	public String formPagePath;
 	public boolean folder;
-
+    protected String submissionComment;
+    protected List<ContentItemTO> components;
+    protected List<ContentItemTO> documents;
+    protected List<ContentItemTO> levelDescriptors;
+    protected List<ContentItemTO> pages;
+    protected boolean isNewFile = false;
+    protected boolean isReference = false;
+    protected String parentPath = null;
 
     public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
@@ -319,7 +326,31 @@ public class ContentItemTO implements Serializable {
 	public boolean isFolder() { return folder; }
 	public void setFolder(boolean folder) { this.folder = folder; }
 
-	// /** the name of item specified by the creator **/
+    public String getSubmissionComment() { return submissionComment; }
+    public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
+
+    public List<ContentItemTO> getComponents() { return components; }
+    public void setComponents(List<ContentItemTO> components) { this.components = components; }
+
+    public List<ContentItemTO> getDocuments() { return documents; }
+    public void setDocuments(List<ContentItemTO> documents) { this.documents = documents; }
+
+    public List<ContentItemTO> getLevelDescriptors() { return levelDescriptors; }
+    public void setLevelDescriptors(List<ContentItemTO> levelDescriptors) { this.levelDescriptors = levelDescriptors; }
+
+    public boolean isNewFile() { return isNewFile; }
+    public void setNewFile(boolean isNewFile) { this.isNewFile = isNewFile; }
+
+    public List<ContentItemTO> getPages() { return pages; }
+    public void setPages(List<ContentItemTO> pages) { this.pages = pages; }
+
+    public boolean isReference() { return isReference; }
+    public void setReference(boolean isReference) { this.isReference = isReference; }
+
+    public String getParentPath() { return parentPath; }
+    public void setParentPath(String parentPath) { this.parentPath = parentPath; }
+
+    // /** the name of item specified by the creator **/
 	// private String _internalName;
 	
 	// /** wcm content type for associating this content with a form **/
