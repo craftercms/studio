@@ -50,12 +50,13 @@ public interface DmDependencyService {
 
     /**
      * populate dependencies as content items into the given content item
-     *
-     * @param site
-     * @param item
+     *  @param item
      * @param populateUpdatedDependecinesOnly
+     * @param site
      */
     //public void populateDependencyContentItems(String site, DmContentItemTO item, boolean populateUpdatedDependecinesOnly);
+
+    Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException;
 
     /**
      * get dependent items as WCM content items from the content at the given path
@@ -147,7 +148,7 @@ public interface DmDependencyService {
      * @return
      * @throws ServiceException
      */
-    //public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
+    public InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;
 
     /**
      * Return dependencies that are protected based on the copy pattern provided in the configuration
@@ -155,7 +156,7 @@ public interface DmDependencyService {
      * <Dependency matching copy pattern, target location>
      * @param dependencyPath
      */
-    //public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
+    public Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
     public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
 

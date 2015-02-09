@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -16,32 +15,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/**
- * @author Dejan Brkic
- */
-package scripts.api.impl.content;
+package scripts.api.impl.dependency;
 
 /**
  * content type services
  */
-class SpringContentTypeServices {
+class SpringDependencyServices {
 
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
+    static DEPENDENCY_SERVICES_BEAN = "cstudioDmDependencyService"
 
     def context = null
 
-    def SpringContentTypeServices(context) {
+    def SpringDependencyServices(context) {
         this.context = context
     }
 
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
-    }
-
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
+    def getDependencies(site, requestBody, deleteDependencies) {
+        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+        return springBackendService.getDependencies(site, requestBody, deleteDependencies);
     }
 }

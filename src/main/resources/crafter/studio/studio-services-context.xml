@@ -153,6 +153,7 @@
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
     </bean>
 
@@ -213,6 +214,36 @@
             </map>
         </property>
     </bean>
+
+    <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
+            parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="writeProcessor" ref="cstudioFormDmContentProcessor"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+    </bean>
+
+    <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
+            parent="cstudioRegistrableService">
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Content ID Generator                   -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="cstudioContentIdGenerator" class="org.craftercms.studio.impl.v1.service.content.ContentItemIdGeneratorImpl"
+          parent="cstudioRegistrableService"/>
 
     <!-- ////////////////////// -->
     <!-- Email  -->

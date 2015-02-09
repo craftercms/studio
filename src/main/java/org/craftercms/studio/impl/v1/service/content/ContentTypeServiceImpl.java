@@ -83,6 +83,21 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
+    public ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException {
+        ContentItemTO item = contentService.getContentItem(site, relativePath);
+        if (item != null) {
+            String type = item.getContentType();
+            if (!StringUtils.isEmpty(type)) {
+                return servicesConfig.getContentTypeConfig(site, type);
+            } else {
+                throw new ServiceException("No content type specified for " + relativePath + " in site: " + site);
+            }
+        } else {
+            throw new ContentNotFoundException(relativePath + " is not found in site: " + site );
+        }
+    }
+
+    @Override
     public ContentTypeConfigTO getContentType(String site, String type) {
         return servicesConfig.getContentTypeConfig(site, type);
     }

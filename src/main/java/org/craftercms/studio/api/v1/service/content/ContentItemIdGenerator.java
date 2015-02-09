@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -16,32 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v1.service.content;
 
-/**
- * @author Dejan Brkic
- */
-package scripts.api.impl.content;
 
-/**
- * content type services
- */
-class SpringContentTypeServices {
+import org.craftercms.studio.api.v1.exception.ServiceException;
 
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
+import java.util.Map;
 
-    def context = null
+public interface ContentItemIdGenerator {
 
-    def SpringContentTypeServices(context) {
-        this.context = context
-    }
-
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
-    }
-
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
-    }
+    /**
+     * Return unique ids required by content
+     *
+     * @return pair of id and value
+     *
+     */
+    public Map<String,String> getIds() throws ServiceException;
 }

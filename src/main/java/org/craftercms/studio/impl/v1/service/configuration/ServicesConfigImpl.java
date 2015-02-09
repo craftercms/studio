@@ -25,10 +25,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
-import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
-import org.craftercms.studio.api.v1.to.SiteConfigTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -252,29 +249,29 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		return null;
 	}
 	
-	/*
+
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site,String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
-		ContentTypeConfigTO contentTypeConfig = _contentTypesConfig.getContentTypeConfig(site, contentType);
+		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
 		if (contentTypeConfig != null) {
 			return contentTypeConfig.getDeleteDependencyPattern();
 		}
         return Collections.emptyList();
-	}*/
+	}
 
-	/*
+
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site,String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
-		ContentTypeConfigTO contentTypeConfig = _contentTypesConfig.getContentTypeConfig(site, contentType);
+		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
 		if (contentTypeConfig != null) {
 			return contentTypeConfig.getCopyDepedencyPattern();
 		}
         return Collections.emptyList();
-	}*/
+	}
 
 	/*
 	 * (non-Javadoc)

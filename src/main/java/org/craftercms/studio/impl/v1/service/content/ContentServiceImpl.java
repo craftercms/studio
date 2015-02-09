@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -38,6 +40,8 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -54,6 +58,12 @@ public class ContentServiceImpl implements ContentService {
     protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
+
+    /**
+     * file and foler name patterns for copied files and folders *
+     */
+    public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-([0-9]+)\\.(.+)");
+    public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -214,6 +224,7 @@ public class ContentServiceImpl implements ContentService {
                     item.userLastName = "";
                     item.nodeRef = "";
                     item.metaDescription = "";
+                    item.folder = (item.name.contains(".")==false);
 
 
                }
@@ -258,6 +269,7 @@ public class ContentServiceImpl implements ContentService {
                     item.submittedForDeletion = false;
                     item.inProgress = true;
                     item.live = false;
+                    item.folder = (item.name.contains(".")==false);
                 }
             }
 
@@ -284,6 +296,7 @@ public class ContentServiceImpl implements ContentService {
                 item.isComponent = item.component;
                 item.isDocument = item.document;
                 item.isAsset = item.asset;
+                item.folder = (item.name.contains(".")==false);
             }
         }
         catch(Exception err) {
@@ -539,7 +552,8 @@ public class ContentServiceImpl implements ContentService {
         return browserUri;
     }
 
-    protected String getContentType(String site, String uri) {
+    @Override
+    public String getContentType(String site, String uri) {
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return DmConstants.CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
@@ -627,7 +641,8 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    private void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+    @Override
+    public void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
         // get sandbox if not provided
         long start = System.currentTimeMillis();
         try {
@@ -652,6 +667,57 @@ public class ContentServiceImpl implements ContentService {
         //    queue.remove(path);
         //}
         return to;
+    }
+
+    @Override
+    public String getNextAvailableName(String site, String path) {
+        String fullPath = expandRelativeSitePath(site, path);
+        String[] levels = path.split("/");
+        int length = levels.length;
+        if (length > 0) {
+            ContentItemTO item = getContentItem(site, path);
+            if (item != null) {
+                String name = item.getName();
+                //String parentPath = fullPath.replace("/" + name, "");
+                String parentPath = ContentUtils.getParentUrl(path);
+                ContentItemTO parentItem = getContentItemTree(site, parentPath, 1);
+                if (parentItem != null) {
+                    int lastIndex = name.lastIndexOf(".");
+                    String ext = (/*item.isFolder()*/ false) ? "" : name.substring(lastIndex);
+                    String originalName = (/*item.isFolder()*/ false) ? name : name.substring(0, lastIndex);
+                    List<ContentItemTO> children = parentItem.getChildren();
+                    // pattern matching doesn't work here
+                    // String childNamePattern = originalName + "%" + ext;
+                    int lastNumber = 0;
+                    String namePattern = originalName + "\\-[0-9]+" + ext;
+                    if (children != null && children.size() > 0) {
+                        // since it is already sorted, we only care about the last matching item
+                        for (ContentItemTO child : children) {
+                            //if ((item.isFolder() == child.isFolder())) {
+                                String childName = child.getName();
+                                if (childName.matches(namePattern)) {
+                                    Pattern pattern = (/*item.isFolder()*/false) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
+                                    Matcher matcher = pattern.matcher(childName);
+                                    if (matcher.matches()) {
+                                        int helper = ContentFormatUtils.getIntValue(matcher.group(2));
+                                        lastNumber = (helper > lastNumber) ? helper : lastNumber;
+                                    }
+                                }
+                            //}
+                        }
+                    }
+                    String nextName = originalName + "-" + ++lastNumber + ext;
+                    return nextName;
+                } else {
+                    // if parent doesn't exist, it is new item so the current name is available one
+                }
+            }
+        } else {
+            // cannot generate a name
+            return "";
+        }
+        // if not found the current name is available
+        return levels[length - 1];
     }
 
     private ContentRepository _contentRepository;

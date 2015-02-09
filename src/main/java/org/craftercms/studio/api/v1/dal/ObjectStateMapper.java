@@ -41,4 +41,6 @@ public interface ObjectStateMapper {
     List<ObjectState> getObjectStateForSiteAndPaths(Map params);
 
     void setObjectStateForSiteAndPaths(Map params);
+
+    void updateObjectPath(Map params);
 }

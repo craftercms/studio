@@ -45,4 +45,10 @@
     </foreach>
   </insert>
 
+    <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap" >
+        SELECT site, source_path, target_path, type
+        FROM cstudio_DEPENDENCY
+        WHERE source_path = #{sourcePath} AND site = #{site} AND type = #{type}
+    </select>
+
 </mapper>

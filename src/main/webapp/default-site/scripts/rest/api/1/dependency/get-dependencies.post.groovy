@@ -16,32 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.DependencyServices;
 
-/**
- * @author Dejan Brkic
- */
-package scripts.api.impl.content;
-
-/**
- * content type services
- */
-class SpringContentTypeServices {
-
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
-
-    def context = null
-
-    def SpringContentTypeServices(context) {
-        this.context = context
-    }
-
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
-    }
-
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
-    }
+def result = [:];
+def site = params.site;
+def deletedep = params.deletedep;
+def requestbody = request.reader.text;
+/*
+if (site == undefined || site == '')
+{
+    status.code = 400;
+    status.message = "Site must be provided.";
+    status.redirect = true;
 }
+else
+{*/
+def context = DependencyServices.createContext(applicationContext, request)
+    if (deletedep != null && deletedep == "true") {
+        result = DependencyServices.getDependencies(context, site, requestbody,true);
+    } else {
+        result = DependencyServices.getDependencies(context, site, requestbody,false);
+    }
+return result;

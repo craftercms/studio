@@ -16,32 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+package scripts.api
 /**
- * @author Dejan Brkic
+ * Dependency services
  */
-package scripts.api.impl.content;
+class DependencyServices {
 
-/**
- * content type services
- */
-class SpringContentTypeServices {
-
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
-
-    def context = null
-
-    def SpringContentTypeServices(context) {
-        this.context = context
+    /**
+     * create the context object
+     * @param applicationContext - studio application's contect (spring container etc)
+     * @param request - web request if in web request context
+     */
+    static createContext(applicationContext, request) {
+        return ServiceFactory.createContext(applicationContext, request)
     }
 
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
+    def static getDependencies(context, site, requestBody, deleteDependencies) {
+        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+        return dependencyServiceImpl.getDependencies(site, requestBody, deleteDependencies);
     }
 
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
-    }
 }

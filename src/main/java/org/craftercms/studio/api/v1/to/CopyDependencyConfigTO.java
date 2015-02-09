@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -16,32 +15,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v1.to;
 
 /**
- * @author Dejan Brkic
+ * holds the configuration for copy dependency
+ * 
+ * @author Shankar Krishnan
+ *
  */
-package scripts.api.impl.content;
+public class CopyDependencyConfigTO {
 
-/**
- * content type services
- */
-class SpringContentTypeServices {
+	protected String pattern;
+	
+	protected String target;
 
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
+	
+	public CopyDependencyConfigTO(String pattern, String target) {
+		super();
+		this.pattern = pattern;
+		this.target = target;
+	}
 
-    def context = null
+	public String getPattern() {
+		return pattern;
+	}
 
-    def SpringContentTypeServices(context) {
-        this.context = context
-    }
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
 
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
-    }
+	public String getTarget() {
+		return target;
+	}
 
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
-    }
+	public void setTarget(String target) {
+		this.target = target;
+	}
+	
 }

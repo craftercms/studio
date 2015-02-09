@@ -96,4 +96,11 @@
         </foreach>
     </update>
 
+    <update id="updateObjectPath" parameterType="java.util.Map">
+        UPDATE cstudio_objectstate
+        SET path = #{newPath}
+        WHERE site = #{site}
+        AND path = #{oldPath}
+    </update>
+
 </mapper>

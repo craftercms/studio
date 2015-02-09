@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -16,32 +15,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v1.to;
 
-/**
- * @author Dejan Brkic
- */
-package scripts.api.impl.content;
+import java.util.List;
 
-/**
- * content type services
- */
-class SpringContentTypeServices {
+public class DmPasteItemTO {
 
-    static CONTENT_TYPE_SERVICES_BEAN = "cstudioContentTypeService"
-
-    def context = null
-
-    def SpringContentTypeServices(context) {
-        this.context = context
+    /** uri of this item **/
+    protected String _uri;
+    public String getUri() {
+        return _uri;
+    }
+    public void setUri(String uri) {
+        this._uri = uri;
     }
 
-    def getContentType(site, type) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentType(site, type)
+    /** is deep copy? **/
+    protected boolean _deep;
+    public boolean isDeep() {
+        return _deep;
+    }
+    public void setDeep(boolean deep) {
+        this._deep = deep;
     }
 
-    def getContentTypeByPath(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, path)
+    /** a list of children **/
+    protected List<DmPasteItemTO> _children;
+    public List<DmPasteItemTO> getChildren() {
+        return _children;
+    }
+    public void setChildren(List<DmPasteItemTO> children) {
+        this._children = children;
     }
 }
