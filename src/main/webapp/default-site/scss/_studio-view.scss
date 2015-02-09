@@ -19,8 +19,48 @@ $font-size-base: 12px;
   text-align: right !important;
 }
 
+.mb10 {
+  margin-bottom: 10px;
+}
+
+.site-dashboard {
+  padding-top: 51px;
+  .panel {
+    .panel-heading {
+      @include clearfix;
+      .panel-title {
+        float: left;
+        line-height: 27px;
+        &, * {
+          font-size: 14px;
+        }
+      }
+      .widget-controls {
+        margin: 0;
+        float: right;
+        @extend .list-inline;
+        [maxlength] {
+          width: 50px;
+          text-align: center;
+        }
+      }
+    }
+    [id*="-body"] table {
+      margin: 0;
+    }
+    .dashlet-item-check {
+      margin-right: 5px;
+    }
+  }
+}
+
+.site-dashboard-footer {
+  padding: 20px 0;
+}
+
 .studio-view,
-.studio-dialog {
+.studio-dialog,
+.site-dashboard {
 
   @import "bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
@@ -78,6 +118,11 @@ $font-size-base: 12px;
     }
 
   }
+
+}
+
+.studio-view,
+.studio-dialog {
 
   .view-title {
     margin: 0 0 5px;

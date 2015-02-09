@@ -1,21 +1,26 @@
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000034}}
 body.state-loading * {
   cursor: wait; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000038}}
 .water-marked {
   color: #777; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\0000312}}
 .dashlet-ident {
   margin-left: 15px; }
 
-.dashlet-ident input.dashlet-item-check {
+/*.dashlet-ident input.dashlet-item-check {
   float: none;
   margin: 0 5px 0 0;
   vertical-align: text-top;
-  padding: 0 2px; }
-
+  padding: 0 2px;
+}*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\0000323}}
 .dashlet-cell-wrp {
   padding-right: 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\0000327}}
 .dashlet-recent {
   margin-left: 0px !important; }
 
@@ -114,12 +119,14 @@ sup {
 }*/
 /* end of base styles */
 /* Layout */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003125}}
 #alflogin {
   margin: 0 auto;
   min-width: 1024px;
   padding: 0em;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003132}}
 #headerWrapper {
   background: url(../images/bg/bar_shadow.png) repeat-x bottom;
   height: 33px;
@@ -128,6 +135,7 @@ sup {
   width: 100%;
   z-index: 99999; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003141}}
 #header {
   background: #cccccc url(../images/bg/bar_bg.gif) repeat-x left;
   height: 30px;
@@ -135,9 +143,11 @@ sup {
   min-width: 1000px;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003149}}
 #container {
   padding: 53px 30px 30px 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003153}}
 #footer {
   border-width: 1px 0 0 0;
   border-style: dotted;
@@ -149,6 +159,7 @@ sup {
   text-align: center;
   width: 96%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003165}}
 #footer a, #footer a:hover, #footer a:visited {
   color: #0176B1;
   cursor: pointer;
@@ -156,116 +167,150 @@ sup {
 
 /* end of Layout */
 /* Utils */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003172}}
 .clear {
   clear: both; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003176}}
 .floatRight {
   float: right; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003180}}
 .floatLeft {
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003184}}
 .strike {
   text-decoration: line-through; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003188}}
 .strike-dashboard-item {
   text-decoration: line-through !important;
   color: #168DDE; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003193}}
 .width95 {
   width: 95px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003197}}
 .width67 {
   width: 67px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003201}}
 .width150 {
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003205}}
 .width155 {
   width: 155px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003209}}
 .width98px {
   width: 98px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003213}}
 .width173 {
   width: 173px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003217}}
 .width225 {
   width: 225px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003221}}
 .width245 {
   width: 245px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003225}}
 .width273 {
   width: 273px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003229}}
 .width300 {
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003233}}
 .width330 {
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003237}}
 .width100 {
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003241}}
 .width80 {
   width: 80px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003245}}
 .width200 {
   width: 200px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003249}}
 .width36 {
   width: 36%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003253}}
 .width30 {
   width: 30%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003257}}
 .width40 {
   width: 40px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003261}}
 .width10 {
   width: 10%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003265}}
 .width11 {
   width: 11%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003269}}
 .width2 {
   width: 2%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003273}}
 .width1 {
   width: 1%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003277}}
 .width0 {
   display: none; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003281}}
 .hide {
   display: none; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003285}}
 .show {
   display: block; }
 
 /* end of Utils */
 /* header elements */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003290}}
 #header a {
   color: #0176B1; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003294}}
 #logo {
   background: url(../../../api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png) no-repeat left;
   float: left;
   margin: 0 0 0 010px;
   padding: 0px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003303}}
 #logo a {
   display: block;
   text-indent: -9999px;
   width: 94px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003309}}
 #dropdownWrapper {
   background: url(../images/bg/bar_vertical_divider.gif) repeat-y left;
   height: 30px;
   float: left;
   margin: 0px 0px 0px 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003316}}
 #dropdown {
   background: url(../images/bg/bar_vertical_divider.gif) repeat-y right;
   float: left;
@@ -273,9 +318,11 @@ sup {
   margin: 0px 0px 0px 10px;
   padding: 0 10px 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003324}}
 #dropdownInner {
   padding: 5px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003328}}
 #readinessDropdown {
   background: url(../images/bg/bar_vertical_divider.gif) repeat-y right;
   float: left;
@@ -283,37 +330,45 @@ sup {
   margin: 0px 0px 0px 0px;
   padding: 0px 0px 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003336}}
 #nav {
   float: left;
   margin: 5px 0 0 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003341}}
 #readinessNav {
   float: left;
   margin: 5px 0 0 10px;
   width: 700px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003347}}
 #readinessDropdownMenu {
   padding: 4px 0 0 0px;
   max-height: 350px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003352}}
 .navTitle {
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003356}}
 #nav ul {
   float: left;
   margin: 0 0 0 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003361}}
 #nav li {
   color: #fff;
   float: left;
   margin: 0 0px 0 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003367}}
 #navRight {
   float: right;
   margin: 0px 15px 0 0;
   text-align: right;
   width: auto; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003374}}
 #globalSearch {
   float: left;
   margin: 5px 10px 0 0;
@@ -323,6 +378,7 @@ margin: 5px 0px 0 0;
   text-align: right;
   width: 162px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003383}}
 #globalSearch input {
   border: 1px solid #0176B1;
   font-size: 1em;
@@ -332,12 +388,15 @@ margin: 5px 0px 0 0;
   width: 148px; }
 
 /* Search textbox in header will have color gray. As user starts typing in text, the color should change to black. */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003393}}
 .searchTextGray {
   color: #ccc; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003397}}
 .searchTextBlack {
   color: #444444; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003401}}
 #navLogout {
   background: url(../images/bg/bar_vertical_divider.gif) repeat-y left;
   float: right;
@@ -348,11 +407,13 @@ margin: 5px 0px 0 0;
 
 /* end of header elements */
 /* container elements - grid 13 */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003411}}
 #pageTitle {
   margin: 0px 0 0 0;
   padding: 0;
   padding-bottom: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003417}}
 .dashHeader {
   color: #444444;
   float: left;
@@ -360,13 +421,16 @@ margin: 5px 0px 0 0;
   margin: 0px;
   padding: 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003425}}
 .dashHeader span {
   font-size: 22px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003429}}
 #pageTitle ul {
   float: left;
   margin: 2px 0 0 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003434}}
 #pageTitle li {
   color: #ccc;
   float: left;
@@ -376,23 +440,28 @@ margin: 5px 0px 0 0;
 /* end of container elements */
 /* dashboard page */
 /*Tree table styles*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003443}}
 #treetable {
   padding: 20px 0 0 0;
   *
 padding: 10px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003448}}
 div.ttTableGroup {
   clear: both;
   margin: 20px 0;
   overflow: hidden; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003454}}
 .ttTable {
   background-color: #F0F0F0;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003459}}
 .ttThead {
   height: 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003463}}
 .ttHdr {
   background: #ececec;
   background: -moz-linear-gradient(top, #ececec 0%, #cccccc 100%);
@@ -406,22 +475,27 @@ div.ttTableGroup {
   margin: 0 0;
   padding-right: 15px;
   padding-left: 15px; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_clearfix\.scss}line{font-family:\0000314}}
   .ttHdr:before, .ttHdr:after {
     content: " ";
     display: table; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_clearfix\.scss}line{font-family:\0000319}}
   .ttHdr:after {
     clear: both; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003485}}
 .formBottomSpace {
   height: 60px;
   margin: 0 0;
   padding-right: 15px;
   padding-left: 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003492}}
 #ttNav ul {
   float: left;
   margin: 2px 0 0 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003497}}
 #ttNav li {
   color: #FFF;
   float: left;
@@ -429,6 +503,7 @@ div.ttTableGroup {
   padding: 0px 0px 0px 5px;
   background: url(../images/bg/widget_vertical_divider.png) no-repeat scroll left center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003506}}
 #ttNav li:last-child {
   color: #FFF;
   float: left;
@@ -436,17 +511,21 @@ div.ttTableGroup {
   padding: 0px;
   background: none; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003514}}
 #ttNav li a:hover {
   color: #0176B1;
   text-decoration: none;
   courser: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003520}}
 .ttHdr div {
   padding-top: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003524}}
 .ttTbody {
   padding-left: 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003528}}
 .ttTable th {
   border-bottom: 1px solid #CCCCCC;
   font-weight: normal;
@@ -456,6 +535,7 @@ div.ttTableGroup {
   white-space: nowrap;
   height: 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003538}}
 .ttTable td {
   line-height: 16px;
   padding: 1px 0 1px 15px;
@@ -463,22 +543,28 @@ div.ttTableGroup {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003546}}
 .ttTable tr.over td {
   background-color: #e2e2e2; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003550}}
 .ttTable tr.over th, .ttTable tr.over td.ttBlankRow, .ttTable tr.over td.ttBlankRow3 {
   background-color: #f0f0f0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003555}}
 .ttTable th.minimize, .ttTable td.minimize {
   width: 1%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003559}}
 .ttTable th.maximize, .ttTable td.maximize {
   width: 99%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003563}}
 .searchTable {
   background-color: #F0F0F0;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003568}}
 .searchTable th {
   border-bottom: 1px solid #CCCCCC;
   font-weight: normal;
@@ -487,6 +573,7 @@ div.ttTableGroup {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003577}}
 .searchTable td {
   line-height: 15px;
   padding-left: 15px;
@@ -495,16 +582,20 @@ div.ttTableGroup {
   white-space: wrap;
   word-wrapord-wrap: break-word; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003586}}
 .tt {
   height: 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003590}}
 .ttTable td.alignRight, th.alignRight {
   text-align: right; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003594}}
 .ttTable td.alignCenter, th.alignCenter {
   text-align: center;
   padding-right: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003599}}
 .ttThLast {
   line-height: 15px;
   padding-left: 15px;
@@ -512,19 +603,23 @@ div.ttTableGroup {
   text-align: left;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003607}}
 .ttThColLast {
   padding-right: 15px !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003611}}
 .ttBlankRow {
   height: 5px !important;
   line-height: 1px !important;
   font-size: 1px !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003617}}
 .ttBlankRow3 {
   height: 1px !important;
   line-height: 1px !important;
   font-size: 1px !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003623}}
 .ttOpen, .ttClose {
   display: inline-block;
   height: 13px;
@@ -533,67 +628,81 @@ div.ttTableGroup {
   margin: 0 2px 0 0;
   width: 12px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003632}}
 .ttOpen {
   background: url(../images/icons/icon_strip.gif) 0px -1px no-repeat; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003636}}
 .ttClose {
   background: url(../images/icons/icon_strip.gif) -20px -1px no-repeat; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003640}}
 .ttCloseInner {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -22px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003646}}
 .ttFloating {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -301px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003652}}
 .ttFloatingSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -341px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003658}}
 .ttFloatingScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -361px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003664}}
 .ttFloatingSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -381px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003670}}
 .ttFloatingInProgress {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -321px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003676}}
 .ttFloatingDeleted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -680px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003682}}
 .ttFloatingDeletedSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -680px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003688}}
 .ttFloatingDeletedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -760px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003694}}
 .ttFloatingDeletedSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -760px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003700}}
 .ttFloatingApprovedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -361px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003706}}
 .ttSortDn {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -43px;
@@ -601,6 +710,7 @@ div.ttTableGroup {
   height: 10px;
   width: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003714}}
 .ttSortDesc {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -43px;
@@ -608,6 +718,7 @@ div.ttTableGroup {
   height: 10px;
   width: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003722}}
 .ttSortAsc {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -63px;
@@ -615,6 +726,7 @@ div.ttTableGroup {
   height: 10px;
   width: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003730}}
 .ttSortBlack {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -83px;
@@ -622,114 +734,138 @@ div.ttTableGroup {
   height: 10px;
   width: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003738}}
 .dropArrow {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 70px -43px;
   padding-right: 12px;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003745}}
 .ttSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -241px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003751}}
 .ttScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -261px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003757}}
 .ttSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -281px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003763}}
 .ttDeleted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -661px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003769}}
 .ttDeletedSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -661px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003775}}
 .ttDeletedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -740px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003781}}
 .ttDeletedSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -740px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003787}}
 .ttInProgress {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -221px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003793}}
 .ttApprovedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -261px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003799}}
 .navPage {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -201px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003805}}
 .rejectedPage {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -221px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003811}}
 .ttWidgetHdr {
   float: left;
   font-size: 1.3em;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003817}}
 .ttColor {
   color: #000; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003821}}
 .ttHdrSep {
   color: #FFFFFF; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003825}}
 .ttFirstCol2 {
   padding-left: 0px;
   vertical-align: bottom; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003830}}
 .ttFirstCol12 {
   padding-left: 12px;
   vertical-align: bottom; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003835}}
 .ttFirstCol15 {
   padding-left: 15px;
   vertical-align: bottom;
   /*float:left;
   margin-top:2px;*/ }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003842}}
 .ttFirstCol15 input {
   padding: 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003846}}
 .ttFirstCol128 {
   padding-left: 28px;
   vertical-align: bottom; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003851}}
 .rowHighLight {
   background-color: #e2e2e2; }
 
 /*End tree table styles*/
 /*Begin icon guide styles*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003856}}
 .iconGuideBody {
   background-color: #F0F0F0;
   width: 254px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003861}}
 .iconGuideRow {
   padding-right: 15px;
   padding-left: 15px;
   padding-top: 2px;
   clear: both; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003868}}
 .navigationPage {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -200px;
@@ -738,6 +874,7 @@ div.ttTableGroup {
   padding-right: 30px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003877}}
 .inProgress {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -140px;
@@ -745,6 +882,7 @@ div.ttTableGroup {
   float: right;
   padding-left: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003885}}
 .floatingPage {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -298px;
@@ -753,11 +891,13 @@ div.ttTableGroup {
   padding-right: 30px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003894}}
 .madeLiveFloatingPage {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -298px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003900}}
 .submitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -158px;
@@ -765,6 +905,7 @@ div.ttTableGroup {
   float: right;
   padding-left: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003908}}
 .component {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -498px;
@@ -772,56 +913,67 @@ div.ttTableGroup {
   padding-left: 20px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003916}}
 .madeLiveComponent {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -498px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003922}}
 .componentSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -541px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003928}}
 .componentScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -561px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003934}}
 .componentSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -581px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003940}}
 .componentInProgress {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -521px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003946}}
 .componentDeleted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -721px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003952}}
 .componentDeletedSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -721px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003958}}
 .componentDeletedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -800px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003964}}
 .componentDeletedSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -800px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003970}}
 .componentApprovedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -561px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003976}}
 .scheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -180px;
@@ -829,6 +981,7 @@ div.ttTableGroup {
   float: right;
   padding-left: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003984}}
 .document {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -398px;
@@ -836,46 +989,55 @@ div.ttTableGroup {
   padding-left: 20px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003992}}
 .madeLiveDocument {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -398px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003998}}
 .documentSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -441px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031004}}
 .documentScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -461px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031010}}
 .documentSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -481px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031016}}
 .documentInProgress {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -421px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031022}}
 .documentDeleted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -701px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031028}}
 .documentDeletedSubmitted {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -701px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031034}}
 .documentDeletedScheduled, .documentDeletedSubmittedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -781px;
   display: inline-block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031040}}
 .documentApprovedScheduled {
   background: url(../images/icons/icon_strip_vertical.gif) no-repeat;
   background-position: 0px -461px;
@@ -884,6 +1046,7 @@ div.ttTableGroup {
 /*End Icon guide styles*/
 /* end of dashboard page  */
 /* login wrapper */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031048}}
 .loginWrapper {
   background: url(../images/bg/gradient_workflow.gif) repeat-x;
   background-color: #D6D6D6;
@@ -891,6 +1054,7 @@ div.ttTableGroup {
   min-height: 100%;
   overflow: hidden; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031056}}
 div#footerLogin {
   bottom: 15px;
   border-style: none;
@@ -902,16 +1066,19 @@ div#footerLogin {
   text-align: center;
   width: 96%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031068}}
 .loginWrapper div#footerLogin div.floatRight {
   float: right;
   padding: 0 10px 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031073}}
 #loginHeader {
   background: url(../images/logo_trans.gif) no-repeat center;
   height: 30px;
   text-indent: -9999px;
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031080}}
 #loginWarning {
   clear: both;
   color: red;
@@ -921,6 +1088,7 @@ div#footerLogin {
   text-align: center;
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031090}}
 #loginInfo {
   clear: both;
   color: red;
@@ -929,17 +1097,20 @@ div#footerLogin {
   padding: 0px 0 0px 0;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031099}}
 #loginInfo a, #loginInfo a:hover {
   cursor: pointer;
   color: red !important;
   text-decoration: underline !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031105}}
 .loginFields {
   clear: both;
   height: 60px;
   padding: 0px 0 0 0;
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031112}}
 .loginInput {
   border: 1px solid #0176B1;
   color: #ccc;
@@ -949,17 +1120,21 @@ div#footerLogin {
   padding: 1px 0 0 2px;
   width: 148px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031122}}
 .loginInputDisable {
   background-color: #fff;
   color: #444; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031127}}
 .loginButton input.loginInputDisable {
   color: #ccc; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031131}}
 .loginButton {
   margin-top: 6px;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031136}}
 .loginButton input {
   -x-system-font: none;
   color: #333333;
@@ -980,6 +1155,7 @@ div#footerLogin {
   -moz-border-radius-topright: 3px;
   border: 1px solid #002185; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031157}}
 #verticalWrapper {
   background-color: transparent;
   display: block;
@@ -992,6 +1168,7 @@ div#footerLogin {
   visibility: visible;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031170}}
 #verticalContainer {
   background-color: transparent;
   height: 140px;
@@ -1002,6 +1179,7 @@ div#footerLogin {
   visibility: visible;
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031181}}
 #loginInfoContainer {
   background-color: transparent;
   height: 50px;
@@ -1013,6 +1191,7 @@ div#footerLogin {
 
 /* end of login wrapper */
 /* VersionLayout */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031193}}
 #versionWrapper {
   background: url(../images/bg/version_bg.gif) repeat-x;
   border: 5px #333 solid;
@@ -1021,23 +1200,29 @@ div#footerLogin {
   padding: 0em;
   width: 600px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031202}}
 #versionContainer {
   margin: 16px 25px 25px 25px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031206}}
 .versionHeadertext {
   color: #444;
   font-size: 24px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031211}}
 .versionSubtext {
   font-size: 12px;
   margin-top: 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031216}}
 .versionSub {
   margin: 22px 5px 5px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031220}}
 .versionHead {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031224}}
 .versionicon {
   background: transparent url(../images/icons/icon_strip.gif) -320px 0px no-repeat;
   display: inline-block;
@@ -1049,12 +1234,15 @@ div#footerLogin {
   vertical-align: middle;
   width: 18px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031237}}
 .subtext {
   margin: 0px 0px 0px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031241}}
 #versionHeadtab {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031245}}
 .versionHeader {
   color: #FFF;
   height: 20px;
@@ -1063,9 +1251,11 @@ div#footerLogin {
   padding: 3px 0 0 8px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031254}}
 .versionSubhead {
   background-color: #FFF; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031258}}
 #scroll {
   background-color: #FFF;
   border: 1px solid #7f9db9;
@@ -1079,6 +1269,7 @@ div#footerLogin {
   width: 548px;
   _width: 548px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031272}}
 .versionSubheader td {
   line-height: 17px;
   padding-left: 8px;
@@ -1086,11 +1277,13 @@ div#footerLogin {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031280}}
 .versionblankrow {
   background-color: #FFF;
   height: 8px;
   line-height: 8px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031286}}
 .dottedLines {
   border-width: 0 0 1px 0;
   border-style: dotted;
@@ -1098,12 +1291,14 @@ div#footerLogin {
   clear: both;
   height: 1px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031294}}
 .submitButton {
   margin-top: 17px;
   _margin-top: 14px;
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031301}}
 .submitButton input {
   color: #333;
   font: 12px Arial;
@@ -1112,6 +1307,7 @@ div#footerLogin {
   width: 74px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031310}}
 #versionverticalWrapper {
   display: block;
   height: 1px;
@@ -1120,6 +1316,7 @@ div#footerLogin {
   top: 50%;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031319}}
 #versionverticalContainer {
   height: 438px;
   left: 50%;
@@ -1129,6 +1326,7 @@ div#footerLogin {
   width: 600px; }
 
 /* end of VersionLayout */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031329}}
 .cstudio-context-menu {
   background: #FFF;
   border: 1px #444 thin;
@@ -1136,12 +1334,14 @@ div#footerLogin {
   padding: 0;
   width: 68px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031337}}
 .cstudio-context-menu ul {
   border-color: #CCCCCC;
   border-style: solid;
   border-width: 0;
   padding: 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031344}}
 .cstudio-context-menu .yuimenuitemlabel {
   font-size: 12px;
   line-height: 22px;
@@ -1151,6 +1351,7 @@ div#footerLogin {
   white-space: nowrap; }
 
 /* Tooltip */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031354}}
 #acn-context-tooltipWrapper, #acn-context-tooltipWrapper-search, #acn-context-tooltipWrapper-widgets {
   background: #f0f0f0;
   border: 1px #444 solid;
@@ -1158,6 +1359,7 @@ div#footerLogin {
   padding: 0;
   width: 290px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031363}}
 #acn-context-tooltipWrapper .bd, #acn-context-tooltipWrapper-search .bd, #acn-context-tooltipWrapper-widgets .bd {
   background-color: #f0f0f0;
   border: 1px #444 solid;
@@ -1166,19 +1368,23 @@ div#footerLogin {
   width: 290px;
   height: auto !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031373}}
 .acn-tooltip {
   margin: 5px auto;
   width: 280px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031378}}
 .acn-tooltip .tooltip-title {
   width: 85px !important;
   text-align: right !important;
   font-weight: bold !important;
   padding-right: 5px !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031385}}
 .break-word {
   word-wrap: break-word; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031389}}
 .acn-tooltip td {
   font-size: 12px;
   line-height: 16px;
@@ -1186,21 +1392,27 @@ div#footerLogin {
   text-align: left;
   vertical-align: top; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031397}}
 .acn-width80 {
   width: 80px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031401}}
 .acn-width130 {
   width: 130px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031405}}
 .acn-width180 {
   width: 180px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031409}}
 .acn-width200 {
   width: 200px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031413}}
 .acn-width100 {
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031417}}
 .tooltipicon {
   background: transparent url("../images/icons/icon_strip.gif") -380px 0 no-repeat;
   display: inline-block;
@@ -1211,6 +1423,7 @@ div#footerLogin {
   vertical-align: middle;
   width: 18px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031429}}
 #tooltipWrapper {
   background: #f0f0f0;
   border: 1px #444 solid;
@@ -1218,6 +1431,7 @@ div#footerLogin {
   padding: 0;
   width: 290px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031437}}
 #tooltipWrapper .bd {
   background-color: #f0f0f0;
   border: 1px #444 solid;
@@ -1225,10 +1439,12 @@ div#footerLogin {
   padding: 0;
   width: 290px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031445}}
 .tooltip {
   margin: 5px auto 5px auto;
   width: 280px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031450}}
 .tooltip td {
   font-size: 12px;
   line-height: 20px;
@@ -1267,14 +1483,17 @@ div#footerLogin {
 
 / * end of Context Menu */
 /* Search Container */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031489}}
 #searchContainer {
   background: #e5e5e5;
   margin: 33px 0px 0px 0px;
   _margin: 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031495}}
 #searchcontent {
   padding: 26px 30px 0px 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031499}}
 .textfield {
   background: #fff;
   border: 1px solid #636363;
@@ -1284,6 +1503,7 @@ div#footerLogin {
   margin: 0px;
   width: 188px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031509}}
 #search input {
   background: #fff;
   border: 1px solid #636363;
@@ -1294,6 +1514,7 @@ div#footerLogin {
   padding: 1px 0 0 2px;
   width: 323px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031520}}
 #search td {
   font-size: 12px;
   line-height: 25px;
@@ -1302,21 +1523,26 @@ div#footerLogin {
   white-space: nowrap; }
 
 /* end of Search Container */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031529}}
 .textarea {
   height: 6em;
   width: 20em; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031534}}
 .widget-tab-panel {
   padding-top: 1em; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031538}}
 .widget-tabs {
   width: 50em; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031542}}
 .xbl-fr-inplace-input .fr-inplace-buttons {
   display: -moz-inline-box;
   zoom: 1;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031549}}
 .xformttHdr {
   background: url(../images/bg/bar_bg.gif) repeat-x;
   background-color: #F0F0F0;
@@ -1327,6 +1553,7 @@ div#footerLogin {
   padding-left: 15px; }
 
 /* changed the width to insert into page sections */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031560}}
 .xforms-upload-info {
   background: white;
   display: block;
@@ -1334,37 +1561,46 @@ div#footerLogin {
   width: 300px;
   margin: 1px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031568}}
 .upload-table .xforms-alert {
   display: none; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031572}}
 .upload-table td {
   vertical-align: initial; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031576}}
 .xforms-mediatype-image img {
   max-width: 100px;
   max-height: 100px;
   vertical-align: middle;
   margin: 0 0.5em 0.5em; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031583}}
 .xforms-output-appearance-xxforms-download {
   display: block; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031587}}
 .cstudio-xforms-row {
   width: 95%;
   margin: 10px 5px 0px 50px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031592}}
 .cstudio-rte-editor-control {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031596}}
 .cstudio-xform-generic-control {
   margin-left: 280px;
   width: 330px; }
 
 /* added another class for rich text editor to align it better in page sections for downloads*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031602}}
 .downloadparahtmleditor {
   width: 50%;
   margin: 10px 0px 0px 500px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031607}}
 .cstudio-xform-generic-button {
   margin: 2px 0 0 5px;
   border: 1px solid #002185;
@@ -1373,10 +1609,12 @@ div#footerLogin {
   -webkit-border-radius: 3px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031616}}
 .cstudio-imagepicker-button-div {
   margin: 0px 30px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031621}}
 .cstudio-imagepicker-button {
   border: 1px solid #002185;
   color: #000000;
@@ -1384,6 +1622,7 @@ div#footerLogin {
   -webkit-border-radius: 3px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031629}}
 .cstudio-counter {
   position: absolute;
   text-align: left;
@@ -1391,9 +1630,11 @@ div#footerLogin {
   padding-left: 25px;
   padding-top: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031637}}
 .cstudio-xform-select-control .yui-editor-container {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031641}}
 .cstudio-textarea-counter {
   position: absolute;
   text-align: left;
@@ -1403,10 +1644,12 @@ div#footerLogin {
   /*padding-top:32px;
   /top: 368px;*/ }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031651}}
 .xformbody {
   background-color: #F0F0F0;
   padding: 0px 30px 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031656}}
 #xformfooterWrapper {
   height: 30px;
   position: fixed;
@@ -1414,6 +1657,7 @@ div#footerLogin {
   width: 100%;
   z-index: 99999; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031664}}
 #xformfooterheader {
   background: url(../images/bg/bar_bg.gif) repeat-x;
   background-color: #F0F0F0;
@@ -1423,12 +1667,15 @@ div#footerLogin {
   min-width: 1000px;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031674}}
 #xformhd {
   margin: 0 0px 0 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031678}}
 #cstudio-xform-body {
   padding: 20px 1px 0px 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031682}}
 .cstudio-xform-section {
   background-color: #F2F2F2;
   /*width: 98.4%;*/
@@ -1438,66 +1685,80 @@ div#footerLogin {
   padding-top: 10px;
   padding-bottom: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031692}}
 #imgsubmit {
   margin: 10px 5px 0px 50px;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031697}}
 #docsubmit {
   margin: 10px 5px 0px 50px;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031702}}
 #submission-controls {
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031706}}
 #article-attachments {
   width: 95%;
   margin: 10px 5px 0px 50px;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031712}}
 .xforms-upload {
   width: 200em; }
 
 /*added a common class that can be used for divs in page sections instead of having individual class for each div.*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031717}}
 .cstudio-xform-sections-div {
   background-color: #F2F2F2;
   width: 100%;
   padding: 12px;
   margin: 0 0px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031724}}
 .cstudio-xform-input-control {
   width: 80%;
   margin: 15px 0px 0 200px;
   height: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031730}}
 .cstudio-xform-select-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031736}}
 .cstudio-group-label-display {
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031740}}
 .cstudio-group-label-link-display {
   padding-left: 20px;
   padding-top: 10px;
   background-color: #E2E2E2; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031746}}
 .cstudio-xform-product-select1 {
   width: 300px;
   margin-bottom: 0px;
   margin-right: 3px;
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031753}}
 .cstudio-xform-relatedLink-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031759}}
 .cstudio-xforms-constraint-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031765}}
 .cstudio-xform-relatedLink-control .xforms-alert-active {
   background: url(../images/cstudio-alert-active.png) no-repeat;
   display: inline-block;
@@ -1507,6 +1768,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031775}}
 .cstudio-xform-constraint-control .xforms-alert-active {
   background: url(../images/cstudio-xforms-constraint-error.gif) no-repeat;
   display: inline-block;
@@ -1516,6 +1778,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031785}}
 .cstudio-xforms-repeat-trigger {
   border: 1px solid #002185;
   color: #000000;
@@ -1523,34 +1786,41 @@ div#footerLogin {
   -webkit-border-radius: 3px;
   vertical-align: top; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031793}}
 .cstudio-xform-rte-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031799}}
 .cstudio-xform-expiry-control {
   width: 80%;
   margin: 20px 0px 0 200px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031804}}
 .cstudio-xform-label {
   font-weight: bold;
   text-align: right;
   width: 275px;
   position: absolute; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031811}}
 .cstudio-xform-note-label {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031815}}
 .cstudio-xform-select-control .xforms-help-image {
   src: url(..images/calendar.gif);
   margin-left: 2px;
   alt: 'ffsfs'; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031821}}
 .cstudio-xform-rte-control .xforms-help-image {
   src: url(..images/calendar.gif);
   margin-left: 2px;
   alt: 'ffsfs'; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031827}}
 .cstudio-xform-fieldnote-control .xforms-fieldnote-image {
   src: url(../images/help.png);
   margin-left: 1px;
@@ -1558,6 +1828,7 @@ div#footerLogin {
   width: 29px;
   height: 13px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031835}}
 .xforms-fieldnote-image {
   src: url(../images/help.png);
   margin-left: 1px;
@@ -1565,6 +1836,7 @@ div#footerLogin {
   width: 29px;
   height: 13px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031843}}
 .cstudio-xform-group-fieldnote-control .xforms-group-fieldnote-image {
   /*src:url(../images/group-help.png);*/
   background: url(../images/group-help.png) no-repeat;
@@ -1574,6 +1846,7 @@ div#footerLogin {
   width: 29px;
   height: 13px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031853}}
 .xforms-group-fieldnote-image {
   /*src:url(../images/group-help.png);*/
   background: url(../images/group-help.png) no-repeat;
@@ -1584,6 +1857,7 @@ div#footerLogin {
   height: 13px; }
 
 /*Node selector styles*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031863}}
 .cstudio-nodeselector-whitebox {
   float: left;
   border: 1px grey solid;
@@ -1591,99 +1865,117 @@ div#footerLogin {
   width: 300px;
   height: 90px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031871}}
 .cstudio-nodeselector-controlbox {
   float: right;
   border: 2px green solid;
   width: 100px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031877}}
 .cstudio-nodeselector-containerDiv {
   width: 420px;
   height: 100px;
   margin: 0px 20px;
   border: 2px yellow solid; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031884}}
 .cstudio-nodeselector-actionDropdown {
   border: 1px grey solid;
   height: 100px;
   width: 120px;
   background-color: #fff; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031891}}
 .cstudio-nodeselector-actionItem {
   color: #0176B1;
   margin-left: 5px; }
 
 /* end of node selector styles */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031897}}
 .cstudio-xform-input input {
   width: 300px;
   margin-left: 300px;
   margin-right: 5px;
   height: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031904}}
 .cstudio-xform-required-input input {
   width: 300px;
   margin-left: 300px;
   margin-right: 5px;
   height: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031911}}
 #wcm-popup-button {
   text-align: center;
   margin: 0 50px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031917}}
 .cstudio-xform-expirylabel {
   font-weight: bold;
   margin-left: 0 90px;
   text-align: right; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031923}}
 .cstudio-xform-expiryconfirmlabel {
   margin: 0 300px; }
 
 /*Styles for Checkboxes */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031928}}
 .cstudio-xform-select {
   width: 300px;
   margin-bottom: 2px;
   margin-right: 5px;
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031935}}
 .cstudio-xform-select label {
   margin-left: 5px;
   margin-right: 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031940}}
 .cstudio-xform-select1 {
   width: 300px;
   margin-bottom: 0px;
   margin-right: 5px;
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031947}}
 .cstudio-xform-required-select1 {
   width: 300px;
   margin-bottom: 0px;
   margin-right: 5px;
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031954}}
 .cstudio-xforms-radioselect1 {
   width: 300px;
   margin-bottom: 2px;
   margin-right: 3px;
   margin-left: 298px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031961}}
 .cstudio-xforms-radioselect1-with-dependency {
   width: 300px;
   margin-bottom: 2px;
   margin-right: 3px;
   margin-left: 298px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031968}}
 .cstudio-xforms-checkboxselect1 {
   width: 300px;
   margin-bottom: 0px;
   margin-right: 5px;
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031975}}
 .cstudio-xform-exipryradioselect1 {
   width: 300px;
   margin-bottom: 2px;
   margin-left: 26px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031981}}
 .cstudio-xform-textarea {
   font-family: sans-serif;
   margin-right: 5px;
@@ -1691,6 +1983,7 @@ div#footerLogin {
   border: 1px solid #CCCCFF;
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031989}}
 .cstudio-xform-required-textarea {
   font-family: sans-serif;
   margin-right: 5px;
@@ -1698,6 +1991,7 @@ div#footerLogin {
   border: 1px solid #CCCCFF;
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031997}}
 .cstudio-xform-autosize-textarea {
   font-family: sans-serif;
   margin-right: 5px;
@@ -1705,26 +1999,33 @@ div#footerLogin {
   border: 1px solid #CCCCFF;
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032005}}
 .cstudio-xform-autosize-textarea .xforms-textarea-appearance-xxforms-autosize {
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032010}}
 .cstudio-xform-select-control .xforms-textarea-appearance-xxforms-autosize {
   width: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032015}}
 #cstudio-autoresize-textarea {
   width: 300px;
   margin-left: 200px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032020}}
 .cstudio-xforms-trigger {
   margin-left: 610px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032024}}
 #expiryinfo-label {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032028}}
 .cstudio-xform-section .xforms-repeat-selected-item-1 {
   /*background-color: #F2F2F2;	*/
   background-color: #E2E2E2; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032033}}
 .cstudio-xforms-repeat-spacer {
   background: url(../images/spacer.gif) no-repeat;
   background-color: #F2F2F2;
@@ -1733,6 +2034,7 @@ div#footerLogin {
   height: 18px;
   width: 98.8%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032042}}
 .cstudio-xforms-addproduct-trigger {
   margin: 1px 0 0 5px;
   border: 1px solid #002185;
@@ -1741,6 +2043,7 @@ div#footerLogin {
   -webkit-border-radius: 3px;
   vertical-align: top; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032051}}
 .cstudio-xform-select-control .xforms-alert-active {
   background: url(../images/cstudio-alert-active.png) no-repeat;
   display: inline-block;
@@ -1750,6 +2053,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032061}}
 .cstudio-xform-group-select-control .xforms-alert-active {
   background: url(../images/cstudio-alert-group-active.png) no-repeat;
   display: inline-block;
@@ -1759,6 +2063,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032071}}
 .cstudio-xform-input .xforms-alert-active {
   background: url(../images/cstudio-alert-active.png) no-repeat;
   display: inline-block;
@@ -1768,6 +2073,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032081}}
 .cstudio-xform-required-input .xforms-alert-active {
   background: url(../images/cstudio-alert-active.png) no-repeat;
   display: inline-block;
@@ -1777,6 +2083,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032091}}
 .cstudio-xform-select-control .xforms-alert-inactive {
   background: url(../images/cstudio-alert-inactive.png) no-repeat;
   display: inline-block;
@@ -1786,9 +2093,11 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032101}}
 .cstudio-xform-select-control span.xforms-alert-active, .cstudio-xform-select-control span.xforms-alert-inactive {
   text-indent: -9999px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032106}}
 .cstudio-xform-group-select-control .xforms-alert-inactive {
   background: url(../images/cstudio-alert-group-inactive.png) no-repeat;
   display: inline-block;
@@ -1798,6 +2107,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032116}}
 .cstudio-xform-input .xforms-alert-inactive {
   background: url(../images/cstudio-alert-inactive.png) no-repeat;
   display: inline-block;
@@ -1807,6 +2117,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032126}}
 .cstudio-xform-required-input .xforms-alert-inactive {
   background: url(../images/cstudio-alert-inactive.png) no-repeat;
   display: inline-block;
@@ -1816,6 +2127,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032136}}
 .cstudio-xform-required-product-select-control .xforms-alert-inactive {
   background: url(../images/cstudio-alert-inactive.png) no-repeat;
   display: inline-block;
@@ -1825,6 +2137,7 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032146}}
 .cstudio-xform-required-product-select-control .xforms-alert-active {
   background: url(../images/cstudio-alert-active.png) no-repeat;
   display: inline-block;
@@ -1834,86 +2147,105 @@ div#footerLogin {
   width: 20px;
   margin-right: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032166}}
 .cstudio-xform-required-product-select-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032172}}
 .cstudio-xform-non-required-product-select-control {
   width: 100%;
   padding-top: 10px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032178}}
 #cstudio-alert-textarea {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032182}}
 .cstudio-xform-date input.xforms-type-date {
   margin-left: 300px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032187}}
 .cstudio-xform-expirydate input.xforms-type-dateTime {
   margin-left: 300px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032192}}
 .cstudio-xform-required-rdy-date-time input.xforms-type-dateTime {
   margin-left: 300px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032197}}
 .cstudio-xform-section .cstudio-xform-date input.xforms-type-dateTime {
   margin-left: 600px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032202}}
 .cstudio-xforms-boldlabel {
   font-weight: bold;
   margin-left: 80px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032207}}
 .cstudio-xforms-renewallabel2 {
   margin-bottom: 0px;
   margin-right: 5px;
   margin-left: 300px;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032214}}
 .cstudio-xforms-renewallabel1 {
   margin: 0 90px;
   position: absolute;
   text-align: right;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032221}}
 .cstudio-xform-date-right-label {
   margin: 0 90px;
   position: absolute;
   text-align: right;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032228}}
 .cstudio-xform-date-left-label {
   margin-bottom: 0px;
   margin-right: 5px;
   margin-left: 300px;
   font-weight: bold; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032235}}
 .cstudio-xform-expirydatelabel {
   margin-right: 4px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032239}}
 .cstudio-xform-renewaldatelabel {
   margin-right: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032243}}
 .cstudio-xforms-row .cstudio-xforms-alert {
   margin-left: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032247}}
 #cstudio-xforms-titleHeader {
   font-size: 1.8em;
   margin-left: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032252}}
 #cstudio-xforms-title {
   margin-left: 30px;
   height: 30px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032257}}
 .cstudio-xform-section-header-widget {
   float: left;
   font-size: 1.3em;
   padding-left: 0px;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032264}}
 .cstudio-xform-section-header {
   background: url(../images/bg/bar_bg.gif) repeat-x;
   background-color: #F0F0F0;
@@ -1925,63 +2257,77 @@ div#footerLogin {
   padding-left: 15px;
   margin-top: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032276}}
 .cstudio-xform-section-header div {
   padding-top: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032280}}
 .cstudio-xforms-description-text {
   margin-left: 30px;
   margin-right: 30px;
   font-size: 12px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032286}}
 .cstudio-xform-section-required-fields-label {
   padding-left: 5px;
   font-size: 12px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032291}}
 #cstudio-xforms-title ul {
   float: left;
   margin: 2px 0 0 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032296}}
 #cstudio-xforms-title li {
   color: #ccc;
   float: left;
   margin: 0 0px 0 5px;
   padding: 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032303}}
 .cstudio-xform-treetable {
   margin-left: 20px;
   margin-right: 20px;
   margin-top: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032309}}
 #cstudio-xform-treetable {
   margin-left: 20px;
   margin-right: 20px;
   margin-top: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032315}}
 #cstudio-xforms-page-margin {
   margin: auto 0px;
   width: auto;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032321}}
 .cstudio-xform-date-display {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032325}}
 .cstudio-xforms-repeat-output {
   margin-left: 300px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032329}}
 #cstudio-xforms-titleHeader {
   font-size: 1.8em;
   margin-left: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032334}}
 #cstudio-xform-treetable {
   margin-left: 20px;
   margin-right: 20px;
   margin-top: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032340}}
 #cstudio-xforms-page-margin {
   margin: auto 0px;
   width: auto;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032346}}
 .cstudio-xforms-dialog-ok-trigger {
   margin: 10px 0 0 5px;
   border: 1px solid #002185;
@@ -1990,6 +2336,7 @@ div#footerLogin {
   -webkit-border-radius: 3px;
   vertical-align: top; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032355}}
 .cstudio-xform-accordion-section-close {
   background: url(../images/icons/icon_strip.gif) no-repeat;
   background-position: -20px 0px;
@@ -2002,6 +2349,7 @@ position: none;
   top: 2px;
   width: 12px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032367}}
 .cstudio-xform-accordion-section-open {
   background: url(../images/icons/icon_strip.gif) no-repeat;
   background-position: 0px 0px;
@@ -2014,6 +2362,7 @@ position: none;
   top: 2px;
   width: 12px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032379}}
 .cstudio-xform-accordion-section-alert-active {
   background: url(../images/cstudio-accordion-section-alert-active.png) no-repeat;
   display: inline-block;
@@ -2026,6 +2375,7 @@ position: none;
   width: 18px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032392}}
 .cstudio-xform-accordion-section-alert-inactive {
   background: url(../images/cstudio-accordion-section-alert-inactive.png) no-repeat;
   display: inline-block;
@@ -2038,6 +2388,7 @@ position: none;
   width: 18px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032405}}
 .cstudio-xform-accordion-section-no-required-fields {
   display: inline-block;
   height: 16px;
@@ -2049,43 +2400,52 @@ position: none;
   width: 18px;
   margin-right: 3px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032416}}
 .cstudio-xforms-dialog-buttons-div {
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032437}}
 .cstudio-xform-section-header-label {
   padding-left: 10px; }
 
 /* end of xforms styles */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032442}}
 #reorderWrapper {
   width: 600px;
   height: 440px;
   border: 5px solid #333333;
   background: transparent url(../images/bg/submit_bg.jpg) repeat-x scroll 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032450}}
 #reorderContainer {
   margin: 15px 25px 25px 25px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032454}}
 .reorderListItem {
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032458}}
 .reorderHeadertext {
   float: left;
   color: #444;
   font-size: 24px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032464}}
 .reorderSubtext {
   float: left;
   font-size: 12px;
   margin: 2px 8px 8px 0;
   padding-top: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032471}}
 #sortable {
   list-style-type: none;
   margin: 0;
   padding: 9px;
   width: 97%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032478}}
 #sortable li {
   margin: 0 3px 3px 3px;
   padding-top: 0.2em;
@@ -2095,10 +2455,12 @@ position: none;
   font-size: 1.1em;
   height: 13px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032488}}
 #sortable li span {
   position: absolute;
   margin-left: -1.3em; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032493}}
 #submitxformscroll {
   background-color: #FFF;
   border: 1px solid #7f9db9;
@@ -2113,17 +2475,20 @@ position: none;
   width: 548px;
   _width: 548px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032508}}
 .reorderSubmitWrapperButton {
   margin-top: 17px;
   _margin-top: 14px;
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032515}}
 .ui-state-default {
   border: #d3d3d3 1px solid;
   color: #555555;
   background: url(images/ui-bg_glass_75_e6e6e6_1x400.png) #efefef repeat-x 50% 50%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032522}}
 .ui-icon {
   display: block;
   overflow: hidden;
@@ -2131,10 +2496,12 @@ position: none;
   width: 15px;
   background: url(../images/icons/ui-icons_888888_256x240.png) no-repeat; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032530}}
 .ui-icon-arrowthick-2-n-s {
   background-position: -128px -48px; }
 
 /* Drag and drop on article page edit form */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032535}}
 ul.draglist {
   position: relative;
   width: 200px;
@@ -2145,11 +2512,13 @@ ul.draglist {
   margin: 0;
   padding: 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032546}}
 ul.draglist li {
   margin: 1px;
   cursor: move;
   zoom: 1; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032552}}
 ul.draglist_alt {
   position: relative;
   width: 200px;
@@ -2163,18 +2532,22 @@ ul.draglist_alt {
   */
   padding-bottom: 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032566}}
 ul.draglist_alt li {
   margin: 1px;
   cursor: move; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032571}}
 li.list1 {
   background-color: #D1E6EC;
   border: 1px solid #7EA6B2; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032576}}
 li.list2 {
   background-color: #D8D4E2;
   border: 1px solid #6B4C86; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032581}}
 .ellipsis {
   white-space: nowrap;
   overflow: hidden;
@@ -2182,10 +2555,12 @@ li.list2 {
   -o-text-overflow: ellipsis;
   -moz-binding: url(../images/xml/ellipsis.xml#ellipsis); }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032589}}
 .ellipsisblock {
   width: 150px; }
 
 /* Submit To GO Live */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032594}}
 #submitWrapper {
   background: url(../images/bg/submit_bg.jpg) repeat-x;
   border: 5px #333 solid;
@@ -2194,23 +2569,29 @@ li.list2 {
   padding: 0em;
   width: 600px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032603}}
 #submitContainer {
   margin: 16px 25px 25px 25px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032607}}
 .submitHeadertext {
   color: #444;
   font-size: 24px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032612}}
 .submitSubtext {
   font-size: 12px;
   margin: 3px 0px 0px 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032617}}
 .submitSub {
   margin: 22px 5px 5px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032621}}
 .submitHead {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032625}}
 .submiticon {
   background: transparent url(../images/icons/icon_strip.gif) -320px 0px no-repeat;
   display: inline-block;
@@ -2224,12 +2605,15 @@ li.list2 {
   vertical-align: middle;
   width: 18px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032640}}
 .submitsubtext {
   margin: 0px 0px 0px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032644}}
 #submitHeadtab {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032648}}
 .submitHeader {
   color: #FFF;
   height: 20px;
@@ -2238,9 +2622,11 @@ li.list2 {
   padding: 3px 0 0 8px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032657}}
 .submitSubhead {
   background-color: #FFF; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032661}}
 #submitscroll {
   background-color: #FFF;
   border: 1px solid #7f9db9;
@@ -2255,6 +2641,7 @@ li.list2 {
   width: 548px;
   _width: 548px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032676}}
 .submitSubheader td {
   line-height: 17px;
   padding-left: 8px;
@@ -2262,17 +2649,20 @@ li.list2 {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032684}}
 .submitblankrow {
   background-color: #FFF;
   height: 8px;
   line-height: 8px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032690}}
 .submitlivesubmitButton {
   margin-top: 17px;
   _margin-top: 14px;
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032697}}
 .submitlivesubmitButton input {
   color: #333;
   font: 12px Arial;
@@ -2281,6 +2671,7 @@ li.list2 {
   width: 74px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032706}}
 #submitverticalWrapper {
   display: block;
   height: 1px;
@@ -2289,6 +2680,7 @@ li.list2 {
   top: 50%;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032715}}
 #submitverticalContainer {
   height: 438px;
   left: 50%;
@@ -2297,40 +2689,48 @@ li.list2 {
   top: -225px;
   width: 600px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032724}}
 .radiobutton {
   margin: 2px 2px 0px 0px;
   _margin: 0;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032730}}
 .radiobutton1 {
   margin: 1px 2px 0px 0px;
   _margin: 0;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032736}}
 .textradio {
   float: left;
   line-height: 20px;
   margin: 0px 0px 0px 0px;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032743}}
 .textradio1 {
   float: left;
   line-height: 23px;
   margin: 0px 0px 0px 0px;
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032750}}
 .marginheight {
   float: left;
   margin: 1px 0 0 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032755}}
 .submitmarginheight {
   float: left;
   margin: 1px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032760}}
 .submitrequest {
   float: left;
   line-height: 22px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032765}}
 .submitdate {
   border: 1px solid #7f9db9;
   float: left;
@@ -2338,6 +2738,7 @@ li.list2 {
   margin: 0 0 5px 5px;
   width: 100px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032773}}
 .submittime {
   background: #fff;
   border: 1px solid #7f9db9;
@@ -2346,6 +2747,7 @@ li.list2 {
   margin: 0 0 5px 5px;
   width: 74px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032782}}
 .submiticondate {
   background: transparent url(../images/icons/topdown.jpg) 0px 0px no-repeat;
   display: inline-block;
@@ -2359,24 +2761,29 @@ li.list2 {
   vertical-align: middle;
   width: 18px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032797}}
 .submitdtext {
   color: #ccc;
   margin: 1px 0 0 5px;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032803}}
 .submitrequest1 {
   clear: both;
   margin: 0px 0 10px 0;
   padding: 5px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032809}}
 .textcheck {
   text-align: left;
   line-height: 22px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032814}}
 .submitTable {
   background-color: #FFF;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032819}}
 .submitTable td {
   line-height: 16px;
   padding-left: 0px;
@@ -2384,42 +2791,52 @@ li.list2 {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032827}}
 .submitTable td.alignRight, th.alignRight {
   text-align: right; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032831}}
 .submitTable td.alignCenter, th.alignCenter {
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032835}}
 .submitTable td.alignLeft, th.alignLeft {
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032839}}
 .submitFirstCol12 {
   float: left;
   padding: 3px 0 0 2px;
   text-align: left;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032846}}
 .submitcancelButton {
   margin-left: 10px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032851}}
 .submitFirstCol118 {
   padding-left: 18px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032856}}
 .submitPadding {
   padding-top: 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032860}}
 .submittext {
   margin-top: 12px;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032865}}
 .subsubmitButton {
   margin-top: 13px;
   _margin-top: 10px;
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032872}}
 .subsubmitButton input {
   color: #333;
   font: 12px Arial;
@@ -2428,12 +2845,14 @@ li.list2 {
   vertical-align: middle;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032881}}
 .subcancelButton {
   margin-left: 10px;
   cursor: pointer; }
 
 /* end of Submit To GO Live */
 /* Copy Batch Popup */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032888}}
 #copyWrapper {
   background: url(../images/bg/copy_bg.gif) repeat-x;
   border: 5px #333 solid;
@@ -2442,26 +2861,33 @@ li.list2 {
   padding: 0em;
   width: 600px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032897}}
 #copyContainer {
   margin: 15px 25px 25px 25px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032901}}
 .copyHeadertext {
   color: #444;
   font-size: 24px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032906}}
 .copySubtext {
   font-size: 12px;
   margin: 3px 0px 0px 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032911}}
 .copySub {
   margin: 4px 0px 0px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032915}}
 .copySub1 {
   margin: 0px 0px 6px 0px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032919}}
 .copyHead {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032923}}
 .copyicon {
   background: transparent url(../images/icons/icon_strip.gif) -220px 0px no-repeat;
   display: inline-block;
@@ -2476,6 +2902,7 @@ li.list2 {
   vertical-align: middle;
   width: 16px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032939}}
 .copyicon1 {
   background: transparent url(../images/icons/icon_strip.gif) -380px 0px no-repeat;
   display: inline-block;
@@ -2490,6 +2917,7 @@ li.list2 {
   vertical-align: middle;
   width: 16px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032955}}
 .copyicon2 {
   background: transparent url(../images/icons/icon_strip.gif) -200px 0px no-repeat;
   display: inline-block;
@@ -2504,6 +2932,7 @@ li.list2 {
   vertical-align: middle;
   width: 16px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032971}}
 .copyicon3 {
   background: transparent url(../images/icons/icon_strip.gif) -300px 0px no-repeat;
   display: inline-block;
@@ -2516,6 +2945,7 @@ li.list2 {
   vertical-align: middle;
   width: 16px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000032985}}
 .copyicon4 {
   background: transparent url(../images/icons/icon_strip.gif) -340px 0px no-repeat;
   display: inline-block;
@@ -2529,9 +2959,11 @@ li.list2 {
   vertical-align: middle;
   width: 16px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033000}}
 #copyHeadtab {
   background-color: #7f9db9; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033004}}
 .copyHeader {
   color: #FFF;
   height: 20px;
@@ -2540,9 +2972,11 @@ li.list2 {
   padding: 3px 8px 0 24px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033013}}
 .copySubhead {
   background-color: #FFF; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033017}}
 #copyscroll {
   background-color: #FFF;
   border: 1px solid #7f9db9;
@@ -2557,12 +2991,14 @@ li.list2 {
   width: 548px;
   _width: 548px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033032}}
 .copysubmitButton {
   margin-top: 18px;
   _margin-top: 14px;
   text-align: center;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033039}}
 .copysubmitButton input {
   color: #333;
   font: 12px Arial;
@@ -2571,6 +3007,7 @@ li.list2 {
   width: 74px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033048}}
 #copyverticalWrapper {
   display: block;
   height: 1px;
@@ -2579,6 +3016,7 @@ li.list2 {
   top: 50%;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033057}}
 #copyverticalContainer {
   height: 438px;
   left: 50%;
@@ -2587,10 +3025,12 @@ li.list2 {
   top: -225px;
   width: 600px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033066}}
 .copyTable {
   background-color: #FFF;
   width: 100%; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033071}}
 .copyTable td {
   line-height: 12px;
   padding-left: 0px;
@@ -2598,38 +3038,47 @@ li.list2 {
   vertical-align: middle;
   white-space: nowrap; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033079}}
 .copyTable td.alignRight, th.alignRight {
   text-align: right; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033083}}
 .copyTable td.alignCenter, th.alignCenter {
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033087}}
 .copyTable td.alignLeft, th.alignLeft {
   text-align: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033091}}
 .copyFirstCol12 {
   float: left;
   padding: 3px 0 0 2px;
   text-align: left;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033098}}
 .copycancelButton {
   margin-left: 10px;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033103}}
 .copyFirstCol116 {
   padding-left: 16px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033108}}
 .copyFirstCol132 {
   padding-left: 32px;
   vertical-align: middle; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033113}}
 .copyPadding {
   padding-top: 2px; }
 
 /* end of Copy Batch Popup */
 /* Style for curtain on contextual nav */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033119}}
 .curtain-style {
   width: 100%;
   height: 33px;
@@ -2643,6 +3092,7 @@ li.list2 {
   z-index: 100000; }
 
 /* Recently Made live widget */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033133}}
 .recently-made-live input {
   border: 1px solid #0176B1;
   font-size: 1em;
@@ -2652,7 +3102,8 @@ li.list2 {
   padding: 1px 2px 0px;
   width: 23px; }
 
-.recently-made-live-right select, .widget-FilterBy select {
+/*.recently-made-live-right  select,
+.widget-FilterBy select {
   border: 1px solid #0176B1;
   font-size: 1em;
   height: 19px;
@@ -2660,18 +3111,21 @@ li.list2 {
   margin: 0;
   background: #ffffff;
   margin-left: 10px;
-  width: auto; }
+  width: auto;
+}
 
 .recently-made-live {
   float: left;
   margin: -5px 10px 0 0;
   text-align: right;
-  width: 150px; }
+  width: 150px;
+}
 
-.recently-made-live-right, .widget-FilterBy {
-  float: right; }
-
+.recently-made-live-right,.widget-FilterBy {
+  float: right;
+}*/
 /* Content Type select popup */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033167}}
 .contentTypePopupInner {
   background: url(../images/bg/gradient_workflow.gif) repeat-x;
   background-color: #D6D6D6;
@@ -2679,53 +3133,65 @@ li.list2 {
   height: 430px;
   width: 570px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033175}}
 .contentTypePopupContent {
   margin: 15px 25px 15px 25px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033179}}
 .contentTypePopupHeader {
   font-size: 1.8em;
   padding: 3px 0 3px 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033184}}
 .contentTypeOuter {
   margin: 30px 0 20px 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033188}}
 .contentType {
   padding: 0 10px 0 0px;
   height: 260px;
   width: 250px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033194}}
 .contentTypePopupBtn {
   margin: 15px 0 0 0;
   text-align: center; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033199}}
 .contentTypePopupBtn .ok {
   width: 72px; }
 
 /* yui calendar/datepicker global styles*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033204}}
 .yui-skin-cstudioTheme div.yui-calcontainer {
   background-color: #F2F2F2;
   border: 1px solid #d4d4d4;
   position: absolute;
   margin: 10px 0 0 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033211}}
 .yui-skin-cstudioTheme .yui-calendar th.calhead {
   background-color: #F2F2F2;
   height: 20px;
   width: 200px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033217}}
 .yui-skin-cstudioTheme .yui-calendar div.calheader {
   padding-top: 7px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033221}}
 .yui-skin-cstudioTheme .yui-calendar a.calnavleft {
   background: transparent url("../../../yui/assets/skins/default/sprite.png") no-repeat scroll 0 -450px;
   top: 7px;
   left: -10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033229}}
 .yui-skin-cstudioTheme .yui-calendar a.calnavright {
   background: transparent url("../../../yui/assets/skins/default/sprite.png") no-repeat scroll 0 -500px;
   top: 7px;
   right: -10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033237}}
 .yui-skin-cstudioTheme .yui-calcontainer .calclose {
   background: url("../../../yui/assets/skins/default/sprite.png") no-repeat 0 -300px !important;
   width: 25px;
@@ -2734,23 +3200,28 @@ li.list2 {
   right: .4em;
   cursor: pointer; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033246}}
 div#cal1Container {
   padding: 1px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033250}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell {
   background: #fff;
   border: 0px;
   #
 padding: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033256}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell {
   background-color: #e6e6e6 !important;
   color: #a6a6a6 !important;
   border: 1px solid #e6e6e6 !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033262}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell a {
   color: #0066CC; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033266}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell.oom {
   background-color: #f6f6f6 !important;
   color: #e9e8eb !important;
@@ -2758,35 +3229,42 @@ padding: 5px; }
   padding: 2px;
   border: 1px solid #e6e6e6 !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033274}}
 .yui-skin-cstudioTheme table.yui-calendar {
   border-collapse: separate;
   border-spacing: 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033279}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell.today {
   background-color: #fff !important;
   color: #a6a6a6 !important;
   border: 1px solid #fcf1ae !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033285}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell.today a {
   background-color: #fff !important;
   color: #0066CC !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033290}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell.calcellhover {
   background-color: #fff !important;
   color: #a6a6a6 !important;
   border: 1px solid #fcf1ae !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033296}}
 .yui-skin-cstudioTheme .yui-calendar td.calcell.calcellhover a {
   background-color: #fff !important;
   color: #a6a6a6 !important; }
 
 /* added for copy items.*/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033302}}
 .copy-content-container {
   background-color: white;
   margin: 10px 0px 10px 0px;
   height: 278px;
   overflow: scroll; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033309}}
 .copy-content-container h5 {
   background-color: #7F9DB9;
   color: #FFFFFF;
@@ -2795,40 +3273,50 @@ padding: 5px; }
   overflow: hidden;
   padding: 3px 20px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033318}}
 .copy-content-container h5 span {
   display: block;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033323}}
 .copy-content-container ul div {
   margin-left: 2px;
   padding-right: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033328}}
 .copy-content-container ul div div {
   margin-left: 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033332}}
 .copy-content-container ul li {
   margin: 5px 0px 5px 15px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033336}}
 .copy-content-container ul input {
   vertical-align: bottom; }
 
 /** used to display rte exceeded count **/
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033341}}
 .redBoldText {
   font-weight: bold;
   color: red; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033346}}
 a.non-previewable-link, a:hover.non-previewable-link, a.non-previewable-edit, a:hover.non-previewable-edit {
   cursor: default !important;
   color: #808080 !important;
   text-decoration: none; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033353}}
 a:hover.editLink {
   text-decoration: none;
   color: #0176B1; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033358}}
 .no-preview {
   color: #808080 !important; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033362}}
 .cs-input {
   background-color: white;
   border: 1px solid black;
@@ -2836,10 +3324,12 @@ a:hover.editLink {
   padding-top: 2px;
   padding-bottom: 2px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033370}}
 .cs-folder-tree {
   background-color: white;
   color: #0176B1; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033375}}
 .cstudio-form-control-node-selector {
   background-color: #FFFFFF;
   border: 1px solid #C5D6E2;
@@ -2851,10 +3341,12 @@ a:hover.editLink {
   padding: 0 3px 3px;
   position: relative; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033386}}
 .cstudio-xforms-nodeselector-controlbox {
   display: table;
   float: left; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033390}}
 input.drop-arrow-button {
   background: url("../images/link-menu-button-arrow.png") no-repeat scroll 90% 50% transparent;
   border: 1px solid;
@@ -2865,6 +3357,7 @@ input.drop-arrow-button {
   width: 60px;
   height: 22px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033400}}
 .cstudio-xforms-nodeselector-controlbox input.cstudio-xform-button {
   cursor: pointer;
   margin: 2px 0 0 5px;
@@ -2874,27 +3367,34 @@ input.drop-arrow-button {
   font-size: 12px;
   line-height: 18px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033410}}
 .cancel-workflow-view .view-title {
   font-size: 15px;
   margin-bottom: 5px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033415}}
 .cancel-workflow-view .action-wrapper button {
   margin-right: 10px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033419}}
 .cancel-workflow-view .action-wrapper button:last-child {
   margin-right: 0; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033423}}
 .cancel-workflow-view .column {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033429}}
 .cancel-workflow-view .col-1 {
   width: 150px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033433}}
 .cancel-workflow-view .col-2 {
   width: 360px; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033437}}
 .cancel-workflow-view button.continue[disabled],
 .cancel-workflow-view button.continue[disabled]:hover {
   cursor: not-allowed;
@@ -2902,6 +3402,7 @@ input.drop-arrow-button {
   border-color: #777;
   color: #999; }
 
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033445}}
 .cstudio-search-result .cstudio-search-select-container,
 .cstudio-search-result .cstudio-search-result-body {
   float: left; }
