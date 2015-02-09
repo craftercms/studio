@@ -6,16 +6,15 @@
     var communicator = new crafter.Communicator(origin);
 
     communicator.subscribe(Events.GUEST_CHECKIN, function (url) {
-        console.log('Guest checked in');
+        // console.log('Guest checked in');
         setHashPage(url);
     });
 
     communicator.subscribe(Events.GUEST_CHECKOUT, function () {
-        console.log('Guest checked out');
+        // console.log('Guest checked out');
     });
 
     communicator.subscribe(Events.ICE_ZONE_ON, function (message, scope) {
-        console.log('Ice zone %@ turned on'.fmt(message.iceId), message);
         CStudioAuthoring.InContextEdit.editControlClicked.call({
             content: {
                 itemIsLoaded: true,
@@ -27,8 +26,6 @@
 
     // Listen to the guest site load
     communicator.subscribe(Events.GUEST_SITE_LOAD, function (message, scope) {
-
-        console.log('Guest loaded', message);
 
         if (message.url) {
             setHashPage(message.url);
@@ -60,7 +57,9 @@
             CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
         }
 
-        if (win.src !== hash.page) {
+        // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
+        if (win.src.replace(origin, '') !== hash.page &&
+            win.contentWindow.location.href.replace(origin, '') !== hash.page) {
             win.src = hash.page;
         }
 

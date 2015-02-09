@@ -94,6 +94,8 @@
 
         addTargetWindow: addTargetWindow,
 
+        removeTargetWindow: removeTargetWindow,
+
         isAllowedOrigin: isAllowedOrigin,
 
         publish: publish,
@@ -126,7 +128,31 @@
     }
 
     /*public*/ function addTargetWindow(targetWindow) {
-        this.getTargetWindows().push(targetWindow);
+
+        var hasWindow = false,
+            targetWindows = this.getTargetWindows();
+
+        for (var i = 0; (!hasWindow) && (i < targetWindows.length); ++i)
+            hasWindow = (targetWindow === targetWindows[i]);
+
+        if (!hasWindow) targetWindows.push(targetWindow);
+
+        return !hasWindow;
+
+    }
+
+    /*public*/ function removeTargetWindow(targetWindow) {
+
+        var i, hasWindow = false,
+            targetWindows = this.getTargetWindows();
+
+        for (i = 0; (!hasWindow) && (i < targetWindows.length); ++i)
+            hasWindow = (targetWindow === targetWindows[i]);
+
+        if (!hasWindow) targetWindows.push(targetWindow);
+
+        return !hasWindow;
+
     }
 
     /*public*/ function publish(topic, message, scope) {

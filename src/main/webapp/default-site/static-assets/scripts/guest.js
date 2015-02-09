@@ -1,6 +1,9 @@
 require(['preview','amplify','communicator'], function () {
     'use strict';
 
+    // TODO
+    document.domain = "127.0.0.1";
+
     var origin = 'http://127.0.0.1:8080';
     var Events = crafter.studio.preview.Topics;
     var communicator = new crafter.Communicator({ window: window.parent, origin: origin }, origin);
@@ -11,10 +14,7 @@ require(['preview','amplify','communicator'], function () {
         communicator.publish(Events.GUEST_SITE_LOAD, {
             /*  TODO Does the host require anything to be provided by the guest?  */
             location: window.location.href,
-            url: (function (location) {
-                return location.href
-                    .replace(location.origin, '')
-            }) (window.location)
+            url: window.location.href.replace(window.location.origin, '')
         });
     // }, false);
 

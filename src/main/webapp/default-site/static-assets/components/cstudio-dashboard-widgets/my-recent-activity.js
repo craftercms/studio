@@ -46,8 +46,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 
 		var listItemEl = document.createElement("li");
 		var itemFilterEl = document.createElement("a");
-		
-	
+
 		/**
 		 * adding loading image to go-live0queue widget
 		 */
@@ -57,28 +56,28 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 		var imgEl = document.createElement("img");
 		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 		liLoadingEl.appendChild(imgEl);
-		
-		
+
 		itemFilterEl.innerHTML = "Hide Live Items";
 		itemFilterEl.href = "javascript:void(0);";
 		itemFilterEl.id = "widget-expand-state-" + widgetId;
-		YDom.addClass(itemFilterEl, "widget-expand-state");
-		var filterBydiv =  document.createElement("div");
-		YDom.addClass(filterBydiv, "widget-FilterBy");
+        listItemEl.appendChild(itemFilterEl);
+        YDom.addClass(itemFilterEl, "widget-expand-state btn btn-default btn-sm");
 
-		var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
-										pageId,
-										widgetId,
-										"widgetFilterBy");
+		var filterBydiv = document.createElement("li");
+        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
+        filterBydiv.appendChild(filterByEl);
+        // YDom.addClass(filterBydiv, "widget-FilterBy");
 
-		var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
-		
-		containerEl.appendChild(listItemEl);
-		containerEl.appendChild(liLoadingEl);
-		listItemEl.appendChild(itemFilterEl);
-		containerEl.appendChild(filterBydiv);
-		filterBydiv.appendChild(filterByEl);
-		
+        var widgetFilterBy = CStudioAuthoring.Service.getWindowState(
+            CStudioAuthoringContext.user,
+            pageId,
+            widgetId,
+            "widgetFilterBy");
+
+        containerEl.appendChild(liLoadingEl);
+        containerEl.appendChild(filterBydiv);
+        containerEl.appendChild(listItemEl);
+
 		itemFilterEl._self = this;
 		
 		filterByEl._self = this;
@@ -110,7 +109,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 									_self.widgetId,searchNumber,filterByEl.value);
 
 		};
-		
+
 		
 		itemFilterEl.onclick = function() {
 			var _self = this._self;
@@ -145,7 +144,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             Common.getSortableRow("internalName", widgetId,  CMgs.format(langBundle, "dashletMyRecentActivityColPageName"), "minimize"),
             Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColEdit"), "minimize"),
             Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColURL"), "maximize"),
-            '<th id="fullUri" class="width0"></th>',
+            '<th id="fullUri" class="hide"></th>',
             Common.getSimpleRow("scheduledDate", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColPublishDate"), ""),
             Common.getSortableRow("userLastName", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColLastEditedBy"), "alignRight minimize"),
             Common.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletMyRecentActivityColMyLastEdit"),"ttThColLast alignRight minimize")
