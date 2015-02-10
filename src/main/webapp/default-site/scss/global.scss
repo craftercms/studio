@@ -13,12 +13,12 @@ body.state-loading * {
   margin-left: 15px;
 }
 
-.dashlet-ident input.dashlet-item-check {
+/*.dashlet-ident input.dashlet-item-check {
   float: none;
   margin: 0 5px 0 0;
   vertical-align: text-top;
   padding: 0 2px;
-}
+}*/
 
 .dashlet-cell-wrp {
   padding-right: 15px;
@@ -3140,7 +3140,8 @@ li.list2 {
   width: 23px;
 }
 
-.recently-made-live-right  select,.widget-FilterBy select {
+/*.recently-made-live-right  select,
+.widget-FilterBy select {
   border: 1px solid #0176B1;
   font-size: 1em;
   height: 19px;
@@ -3160,7 +3161,7 @@ li.list2 {
 
 .recently-made-live-right,.widget-FilterBy {
   float: right;
-}
+}*/
 
 /* Content Type select popup */
 .contentTypePopupInner {
