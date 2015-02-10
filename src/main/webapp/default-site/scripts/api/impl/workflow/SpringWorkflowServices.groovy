@@ -49,5 +49,10 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         springBackedService.getWorkflowAffectedPaths(site, path);
     }
+
+    def goDelete(site, requestBody, user) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        springBackedService.goDelete(site, requestBody, user);
+    }
 }
 

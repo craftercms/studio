@@ -25,18 +25,18 @@ import java.util.List;
 
 public interface DmPublishService {
 
-    public void publish(String site, List<String> paths, Date launchDate, MultiChannelPublishingContext mcpContext);
-/*
+    void publish(String site, List<String> paths, Date launchDate, MultiChannelPublishingContext mcpContext);
+
     public void unpublish(String site, List<String> paths, String approver);
 
     public void unpublish(String site, List<String> paths, String approver, Date scheduleDate);
 
     public void cancelScheduledItem(String site, String path);
 
-    public List<PublishingChannelTO> getAvailablePublishingChannelGroups(String site, String path);
+    //public List<PublishingChannelTO> getAvailablePublishingChannelGroups(String site, String path);
 
-    public boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
-
+    boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
+/*
     void bulkGoLive(String site, String environment, String path);
 
     void bulkDelete(String site, String path);

@@ -64,6 +64,7 @@ CREATE TABLE `cstudio_copytoenvironment` (
   `state`            VARCHAR(50)  NOT NULL,
   `action`           VARCHAR(20)  NOT NULL,
   `contenttypeclass` VARCHAR(20)  NULL,
+  `submissioncomment` TEXT        NULL,
   PRIMARY KEY (`id`),
   INDEX `cstudio_cte_site_idx` (`site` ASC),
   INDEX `cstudio_cte_environment_idx` (`environment` ASC),

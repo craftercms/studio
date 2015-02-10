@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.to;
 
 
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentService;
 
 import java.util.HashSet;
@@ -41,14 +42,14 @@ public class GoLiveDeleteCandidates {
     //holds just the live dependenicies of page and the child pages
     protected Set<String> _liveDependencyItems = new HashSet<String>(); //live items that hass been removed
 
-    protected DmContentService _dmContentService;
+    protected ContentService contentService;
 
     protected String _site;
 
     //protected String _sub;
 
-    public GoLiveDeleteCandidates(String site, DmContentService dmContentService){
-        this._dmContentService = dmContentService;
+    public GoLiveDeleteCandidates(String site, ContentService contentService){
+        this.contentService = contentService;
         this._site = site;
         //this._sub = sub;
     }

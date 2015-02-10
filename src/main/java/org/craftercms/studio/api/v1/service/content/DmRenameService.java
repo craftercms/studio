@@ -20,6 +20,10 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
+import org.craftercms.studio.api.v1.to.DmDependencyTO;
+
+import java.util.List;
 
 /**
  * @author Dejan Brkic
@@ -28,6 +32,25 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
  *
  */
 public interface DmRenameService {
+
+    /*
+    protected NodeRef getIndexNode(final String site, String uri) {
+        return getNode(site, getIndexFilePath(uri));
+    }
+
+
+    /**
+     * GoLive on the renamed node
+     *//*
+    @Override
+    public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver) throws ServiceException {
+                goLive(site, sub, submittedItems, approver, null);
+    }
+
+    /**
+     * GoLive on the renamed node
+     */
+    void goLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException;
 
     /**
      * Does the rename operation of moving the node and its contents from the source to destination
@@ -49,14 +72,14 @@ public interface DmRenameService {
      * Given an item determines if has been renamed
      *
      */
-    //public boolean isItemRenamed(String site, DmDependencyTO item);
+    boolean isItemRenamed(String site, DmDependencyTO item);
 
     /**
      *
      * Given an item determines if has been renamed
      *
      */
-    //public boolean isItemRenamed(String site, String uri);
+    boolean isItemRenamed(String site, String uri);
 
     /**
      *
@@ -67,17 +90,11 @@ public interface DmRenameService {
     //public void goLive(final String site, final String sub, List<DmDependencyTO> submittedItem, String approver) throws ServiceException;
 
     /**
-     *
-     * Go live operation on the renamed node
-     * @param approver TODO
-     *
-     */
-    //public void goLive(final String site, final String sub, List<DmDependencyTO> submittedItem, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException;
-
-    /**
      * Operation to be during pre submission
      *
      */
+
+
     //public void updateWorkflow(String site, String workFlowDescription);
 
     /**
