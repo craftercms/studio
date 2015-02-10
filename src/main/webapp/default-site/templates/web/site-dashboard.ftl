@@ -5,8 +5,7 @@
 <head>
     <title>Crafter Studio</title>
 
-<#include "/templates/web/common/page-fragments/head.ftl" />
-
+    <#include "/templates/web/common/page-fragments/head.ftl" />
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
@@ -26,13 +25,9 @@
     <script type="text/javascript"
             src="/studio/static-assets/components/cstudio-dashboard-widgets/approved-scheduled-items.js"></script>
 
-<#include "/templates/web/common/page-fragments/studio-context.ftl" />
-<#include "/templates/web/common/page-fragments/context-nav.ftl" />
+    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
+    <#include "/templates/web/common/page-fragments/context-nav.ftl" />
 
-    <script>
-        CMgs = CStudioAuthoring.Messages;
-        langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
-    </script>
 </head>
 
 <body class="yui-skin-cstudioTheme">
@@ -117,6 +112,7 @@
             <div id="sort-type-MyRecentActivity" style="display:none"></div>
         </div>
 
+        <script>var langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);</script>
         <div id="iconGuide" class="panel panel-default">
             <div class="panel-heading">
                 <h2 class="panel-title">
@@ -129,72 +125,72 @@
                     <div class="${classes}">
                         <div class="iconPaper"></div>
                         <div class="iconName">
-                            <script>CMgs.display(langBundle, "dashletIconGuideNavigationPage")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideNavigationPage")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconPlainPaper"></div>
                         <div class="iconName">
-                            <script>CMgs.display(langBundle, "dashletIconGuideFloatingPage")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideFloatingPage")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconPuzzle"></div>
                         <div class="iconName">
-                            <script>CMgs.display(langBundle, "dashletIconGuideComponent")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideComponent")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconDoc"></div>
                         <div class="iconName">
-                            <script>CMgs.display(langBundle, "dashletIconGuideDocument")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideDocument")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconSpace">*</div>
                         <div class="iconName">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateNew")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateNew")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconText" style="margin: 0 0 0 20px; padding: 2px 0 1px;">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateDisabled")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateDisabled")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconPen"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateInProgress")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateInProgress")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconFlag"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateInWorkflow")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateInWorkflow")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconSchedule"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateScheduled")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateScheduled")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconDelete"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateDeleted")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateDeleted")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconInFlight"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateSystemProcessing")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateSystemProcessing")</script>
                         </div>
                     </div>
                     <div class="${classes}">
                         <div class="iconLocked"></div>
                         <div class="iconNameR">
-                            <script>CMgs.display(langBundle, "dashletIconGuideStateLocked")</script>
+                            <script>CStudioAuthoring.Messages.display(langBundle, "dashletIconGuideStateLocked")</script>
                         </div>
                     </div>
                 </div>
