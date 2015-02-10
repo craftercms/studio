@@ -380,6 +380,20 @@ public class ContentUtils {
 		return result;
 	}
 
+    public static String getMd5ForFile(String data) {
+        InputStream is = null;
+        String fileName = null;
+
+        try {
+            is = new ByteArrayInputStream(data.getBytes("UTF-8"));
+
+            fileName = getMd5ForFile(is);
+        } catch(UnsupportedEncodingException e) {
+            logger.error("Error while creating MD5 digest", e);
+        }
+        return fileName;
+    }
+
 	public static String getParentUrl(String url) {
 		int lastIndex = url.lastIndexOf("/");
 		return url.substring(0, lastIndex);

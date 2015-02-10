@@ -32,8 +32,8 @@
             var _this = this,
                 loadFn;
             loadFn = function() {
-                _this.getComponent("div.dependencies-listing").innerHTML =
-                        '<tr><td><i>Loading, please wait&hellip;</i></td></tr></table>';
+                _this.getComponent("table.dependencies-table").innerHTML =
+                        '<tr><td><i>Loading, please wait&hellip;</i></td></tr>';
                 CStudioAuthoring.Service.lookupContentDependencies(
                     CStudioAuthoringContext.site,
                     selection, {
@@ -50,8 +50,8 @@
                         }
                     },
                     failure: function(){
-                        _this.getComponent("div.dependencies-listing").innerHTML =
-                                '<tr><td>Unable to load dependencies. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr></table>';
+                        _this.getComponent("table.dependencies-table").innerHTML =
+                                '<tr><td>Unable to load dependencies. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr> ';
                         Event.addListener(_this.getComponent("a.retry-dependency-load"), "click", loadFn);
                     }
                 });

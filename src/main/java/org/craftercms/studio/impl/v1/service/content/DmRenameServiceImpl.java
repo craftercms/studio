@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.content;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -27,18 +28,22 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
+import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
+import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.impl.v1.content.pipeline.DmWorkflowProcessor;
+import org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor;
+import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperation;
+import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleOperation;
+import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.springframework.util.StringUtils;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DmRenameServiceImpl extends AbstractRegistrableService implements DmRenameService {
 
@@ -102,7 +107,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     /**
      * Is provided node renamed?
      *
-     *//*
+     */
     @Override
     public boolean isItemRenamed(String site, DmDependencyTO item) {
         if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
@@ -117,14 +122,15 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * Is provided node renamed?
      * we always look into index.xml for node properties
      *
-     *//*
+     */
     @Override
     public boolean isItemRenamed(String site, String uri){
+        /*
         NodeService nodeService = getService(NodeService.class);
         ServicesConfig servicesConfig = getService(ServicesConfig.class);
         String fullPath = servicesConfig.getRepositoryRootPath(site) + uri;
         PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
+        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);*/
         return false; //PORT nodeService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
     }
 
@@ -146,29 +152,27 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
     /**
      * GoLive on the renamed node
-     *//*
+     */
     @Override
-    public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
+    public void goLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
                 long start = System.currentTimeMillis();
 
         try {
             Date now = new Date();
-            DmWorkflowService dmWorkflowService = getService(DmWorkflowService.class);
-            Map<Date, List<DmDependencyTO>> groupedPackages = dmWorkflowService.groupByDate(submittedItems, now);
+            Map<Date, List<DmDependencyTO>> groupedPackages = workflowService.groupByDate(submittedItems, now);
 
             for (Date scheduledDate : groupedPackages.keySet()) {
-                submitWorkflow(site, sub, groupedPackages.get(scheduledDate),now, scheduledDate, approver, mcpContext);
+                submitWorkflow(site, groupedPackages.get(scheduledDate),now, scheduledDate, approver, mcpContext);
             }
 
         } catch (ContentNotFoundException e) {
             throw new ServiceException("Error during go live",e);
-        } catch (org.craftercms.cstudio.alfresco.service.exception.ServiceException e) {
+        } catch (ServiceException e) {
             throw new ServiceException("Error during go live",e);
         }
         long end = System.currentTimeMillis();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Total go live time on rename item = " + (end - start));
-        }
+        logger.debug("Total go live time on rename item = " + (end - start));
+
 
     }
 
@@ -179,67 +183,51 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * Reverts any child nodes which are not in the same version as staging since only URL changes has to be pushed to staging.
      * A copy of the new version is placed in a temp location and recovered once we push things to workflow
      *
-     *//*
-    protected void submitWorkflow(final String site, final String sub, final List<DmDependencyTO> submittedItems, Date now, Date scheduledDate,
-                                  final String approver, MultiChannelPublishingContext mcpContext) throws ServiceException, org.craftercms.cstudio.alfresco.service.exception.ServiceException{
+     */
+    protected void submitWorkflow(final String site, final List<DmDependencyTO> submittedItems, Date now, Date scheduledDate,
+                                  final String approver, MultiChannelPublishingContext mcpContext) throws ServiceException{
 
-                final String assignee = DmUtils.getAssignee(site, sub);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        final String pathPrefix = servicesConfig.getRepositoryRootPath(site);
-        final PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        final List<String> paths = new FastList<String>();
-        final List<String> dependenices = new FastList<String>();
+        final String assignee = "" ;//DmUtils.getAssignee(site, sub);
+        final List<String> paths = new ArrayList<>();
+        final List<String> dependenices = new ArrayList<>();
         Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
-        final boolean isScheduled = launchDate==null ? false:true;
+        final boolean isScheduled = launchDate == null ? false : true;
+        String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
 
         //label will keep track of all nodes that has been reverted to staging version and used during postStagingSubmission
         final StringBuilder label = new StringBuilder();
         label.append(isScheduled ? DmConstants.SCHEDULE_RENAME_WORKFLOW_PREFIX : DmConstants.RENAME_WORKFLOW_PREFIX);
         label.append(":");
         final Set<String> rescheduledUris = new HashSet<String>();
-        DmTransactionService dmTransactionService = getService(DmTransactionService.class);
-        RetryingTransactionHelper helper = dmTransactionService.getRetryingTransactionHelper();
-        helper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Object>(){
-            @Override
-            public Object execute() throws Throwable {
-                for (DmDependencyTO submittedItem : submittedItems) {
-                    String workflowLabel = getWorkflowPaths(site, sub, submittedItem, pathPrefix, paths, dependenices, isScheduled, rescheduledUris);
-                    label.append(workflowLabel);
-                    label.append(",");
-                }
-                return null;
-            }
-        },false,true);
+        for (DmDependencyTO submittedItem : submittedItems) {
+            String workflowLabel = getWorkflowPaths(site, submittedItem, pathPrefix, paths, dependenices, isScheduled, rescheduledUris);
+            label.append(workflowLabel);
+            label.append(",");
+        }
 
         Set<String>uris = new HashSet<String>();
-        Map<String, String> submittedBy = new FastMap<String, String>();
-        DmContentService dmContentService = getService(DmContentService.class);
-        DmPublishService dmPublishService = getService(DmPublishService.class);
-        SearchService searchService = getService(SearchService.class);
+        Map<String, String> submittedBy = new HashMap<>();
         for (String path : paths) {
             String uri = path.substring(pathPrefix.length());
             uris.add(uri);
-            DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
+            //DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
             dmPublishService.cancelScheduledItem(site, uri);
         }
         GoLiveContext context = new GoLiveContext(approver, site);
         SubmitLifeCycleOperation operation = null;
-        DmWorkflowService dmWorkflowService = getService(DmWorkflowService.class);
         if (launchDate == null){
-            operation = new PreGoLiveOperation(dmWorkflowService, uris, context, rescheduledUris);
+            operation = new PreGoLiveOperation(workflowService, uris, context, rescheduledUris);
         }else{
             //uri will not be have dependencies
             for (String dependency: dependenices) {
                 String uri = dependency.substring(pathPrefix.length());
                 uris.add(uri);
-                DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
+                //DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
             }
-            operation = new PreScheduleOperation(dmWorkflowService, uris,launchDate, context, rescheduledUris);
+            operation = new PreScheduleOperation(workflowService, uris,launchDate, context, rescheduledUris);
         }
-        _workflowProcessor.addToWorkflow(site, paths,launchDate,_submitDirectWorkflowName, label.toString(), operation, approver, mcpContext);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
-        }
+        workflowProcessor.addToWorkflow(site, paths,launchDate, label.toString(), operation, approver, mcpContext);
+        logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
     }
 
     /**
@@ -255,23 +243,23 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * Compute the paths to be moved and paths to be deleted from Staging
      *
      * @throws org.craftercms.cstudio.alfresco.service.exception.ContentNotFoundException
-     *//*
-    protected String getWorkflowPaths(final String site, final String sub, DmDependencyTO submittedItem,
+     */
+    protected String getWorkflowPaths(final String site, DmDependencyTO submittedItem,
                                       final String pathPrefix, final List<String> paths, List<String> dependenices, boolean isScheduled, Set<String> rescheduledUris) throws ContentNotFoundException, ServiceException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("GoLive on renamed node " + submittedItem.getUri());
-        }
-        List <String> childUris = new FastList<String>();
+
+        logger.debug("GoLive on renamed node " + submittedItem.getUri());
+
+        List <String> childUris = new ArrayList<>();
         String submittedUri = submittedItem.getUri();
         List<String> submittedChildUris = getSubmittedChildUri(submittedItem);
         // handles the file content submission
         if (submittedUri.endsWith(DmConstants.XML_PATTERN) && !submittedUri.endsWith(DmConstants.INDEX_FILE)) {
             childUris.add(submittedUri);
         } else {
-            getChildrenUri(site, getNode(site, DmUtils.getParentUrl(submittedItem.getUri())),childUris);
+            getChildrenUri(site, ContentUtils.getParentUrl(submittedItem.getUri()),childUris);
         }
         StringBuilder label = new StringBuilder();
-        label.append(DmUtils.getParentUrl(submittedUri));
+        label.append(ContentUtils.getParentUrl(submittedUri));
         for (String uri :childUris){
             //find all child items that are already live and revert the sandbox to staging version
             String oldStagingUri = getStoredStagingUri(site, uri);
@@ -283,7 +271,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                        //PORT  pathsToRemove.add(pathPrefix + oldStagingUri);
                     } else {
                         //submit the old url for delete in staging
-                        String folderToRemoveInStaging = DmUtils.getParentUrl(oldStagingUri);
+                        String folderToRemoveInStaging = ContentUtils.getParentUrl(oldStagingUri);
                        //PORT  pathsToRemove.add(pathPrefix+ folderToRemoveInStaging);
                     }
                 }
@@ -303,14 +291,14 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     protected List<String> getSubmittedChildUri(DmDependencyTO submittedItem) {
-        List<String> childUri = new FastList<String>();
+        List<String> childUri = new ArrayList<>();
         if(submittedItem.getChildren()!=null){
             for(DmDependencyTO child:submittedItem.getChildren()){
                 childUri.add(child.getUri());
             }
         }
         return childUri;
-    }*/
+    }
 
     protected List<String> getChildrenUri(String site, String path, List<String> paths){
         ContentItemTO itemTree = contentService.getContentItemTree(site, path, 1);
@@ -355,22 +343,25 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * @param site
      * @param uri
      * @return false if we push the renamed child without pushing the renamed parent.
-     *//*
+     */
     protected boolean isRenameDeleteTag(String site,String uri) {
+        return false;
+        /* TODO: implement this
         DmContentService dmContentService = getService(DmContentService.class);
         String fullPath = dmContentService.getContentFullPath(site, getIndexFilePath(uri));
         Serializable val = getService(PersistenceManagerService.class).getProperty(fullPath, CStudioContentModel.PROP_RENAMED_DELETE_URL);
         return val!=null && (Boolean)val;
+        */
     }
 
     /**
      * Get depedency for a given uri
      *
-     *//*
+     */
     protected List<String> getReferencePaths(final String site, String uri, DmDependencyTO submittedItem,String pathPrefix, Set<String> rescheduledUris) throws ServiceException{
         //TODO figure out a better way to do this
         DmDependencyTO to = null;
-        List<String> depedencyPaths = new FastList<String>();
+        List<String> depedencyPaths = new ArrayList<>();
         if(uri.equals(submittedItem.getUri())){
             to = submittedItem;
         }else{
@@ -383,19 +374,19 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 }
             }
         }
-        DmWorkflowService dmWorkflowService = getService(DmWorkflowService.class);
-        if(dmWorkflowService.isRescheduleRequest(to, site)){
+        if(workflowService.isRescheduleRequest(to, site)){
             rescheduledUris.add(to.getUri());
         }
 
-        _listener.postGolive(site, to);
-        DmContentService dmContentService = getService(DmContentService.class);
-        DependencyRules rule = new DependencyRules(site, getServicesManager());
+        dmWorkflowListener.postGolive(site, to);
+        DependencyRules rule = new DependencyRules(site);
+        rule.setContentService(contentService);
+        rule.setObjectStateService(objectStateService);
         Set<DmDependencyTO> dependencyTOSet;
         dependencyTOSet = rule.applySubmitRule(to);
         for (DmDependencyTO dependencyTO : dependencyTOSet) {
             depedencyPaths.add(pathPrefix+dependencyTO.getUri());
-            _listener.postGolive(site, dependencyTO);
+            dmWorkflowListener.postGolive(site, dependencyTO);
         }
 
         return depedencyPaths;
@@ -799,10 +790,22 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
 
+    public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
+    public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
+
+    public DmPublishService getDmPublishService() { return dmPublishService; }
+    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+
+    public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
+    public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
+
     protected SecurityService securityService;
     protected ContentService contentService;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected WorkflowService workflowService;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
+    protected DmWorkflowListener dmWorkflowListener;
+    protected DmPublishService dmPublishService;
+    protected WorkflowProcessor workflowProcessor;
 }

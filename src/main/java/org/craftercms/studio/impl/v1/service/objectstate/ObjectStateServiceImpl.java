@@ -327,37 +327,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             return false;
         }
     }
-/*
-    @Override
-    public boolean isScheduled(String path) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return isScheduled(persistenceManagerService.getNodeRef(path));
-    }
 
     @Override
-    public boolean isScheduled(NodeRef nodeRef) {
-        if (nodeRef == null) return false;
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        ObjectStateTO state;
-        nodeLockService.lock(nodeRef.getId());
-        try {
-            state = objectStateDAOService.getObjectState(nodeRef.getId());
-            if (state == null) {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                    objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-            }
-        } finally {
-            nodeLockService.unlock(nodeRef.getId());
-        }
+    public boolean isScheduled(String site, String path) {
+        ObjectState state = getObjectState(site, path);
         if (state != null) {
-            return ObjectStateService.State.isScheduled(state.getState());
+            return State.isScheduled(State.valueOf(state.getState()));
         } else {
             return false;
         }
     }
-*/
+
     @Override
     public boolean isInWorkflow(String site, String path) {
         ObjectState state = getObjectState(site, path);

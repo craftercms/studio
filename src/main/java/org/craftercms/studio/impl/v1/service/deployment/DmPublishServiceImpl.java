@@ -25,31 +25,27 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.DmPathTO;
+import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
 
     //protected DmFilterWrapper dmFilterWrapper;
-    protected DeploymentService deploymentService;
-    protected SecurityService securityService;
+
 
     //public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
 //		this.dmFilterWrapper = dmFilterWrapper;
 //	}
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
-    }
-
-    public SecurityService getSecurityUservice() {return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
 
     @Override
@@ -80,7 +76,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
 
     }
-/*
+
     @Override
     public void unpublish(String site, List<String> paths, String approver) {
         unpublish(site, paths, approver, null);
@@ -102,16 +98,16 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public void cancelScheduledItem(String site, String path) {
         try {
             deploymentService.cancelWorkflow(site, path);
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+            /* TODO: remove property
             String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
             NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
             persistenceManagerService.removeProperty(nodeRef, WCMWorkflowModel.PROP_LAUNCH_DATE);
+            */
         } catch (DeploymentException e) {
             logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
         }
     }
-
+/*
     @Override
     public List<PublishingChannelTO> getAvailablePublishingChannelGroups(String site, String path) {
         List<PublishingChannelTO> channelTOs = new FastList<PublishingChannelTO>();
@@ -139,10 +135,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     /**
      * Checks if there are any publishing channels configure
      * @return true if there is at least one publishing channel config
-     *//*
+     */
     @Override
-	public boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext){
-    	SiteService siteService = getService(SiteService.class);
+	public boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext) {
     	boolean toReturn = false;
         if (mcpContext != null) {
             Map<String, PublishingChannelGroupConfigTO> publishingChannelGroupConfigs = siteService.getPublishingChannelGroupConfigs(site);
@@ -159,7 +154,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
     	return toReturn;
     }
-
+/*
     @Override
     public void bulkGoLive(String site, String environment, String path) {
         if (logger.isDebugEnabled()) {
@@ -285,4 +280,19 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
     }
     */
+
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public SecurityService getSecurityService() {return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    public SiteService getSiteService() { return siteService; }
+    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+
+    protected DeploymentService deploymentService;
+    protected SecurityService securityService;
+    protected SiteService siteService;
 }
