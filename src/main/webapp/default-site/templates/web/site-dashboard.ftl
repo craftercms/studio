@@ -7,26 +7,27 @@
 
     <#include "/templates/web/common/page-fragments/head.ftl" />
 
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+    <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
+    <script src="${path}en/base.js"></script>
+    <script src="${path}kr/base.js"></script>
 
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/lib/wcm-dashboardwidget-common.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/go-live-queue.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/recently-made-live.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/my-recent-activity.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/my-notifications.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/icon-guide.js"></script>
-    <script type="text/javascript"
-            src="/studio/static-assets/components/cstudio-dashboard-widgets/approved-scheduled-items.js"></script>
+    <#assign path="/studio/static-assets/components/cstudio-dashboard-widgets/" />
+    <script src="${path}lib/wcm-dashboardwidget-common.js"></script>
+    <script src="${path}go-live-queue.js"></script>
+    <script src="${path}recently-made-live.js"></script>
+    <script src="${path}my-recent-activity.js"></script>
+    <script src="${path}my-notifications.js"></script>
+    <script src="${path}icon-guide.js"></script>
+    <script src="${path}approved-scheduled-items.js"></script>
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
+
+    <script>
+        var
+                CMgs = CStudioAuthoring.Messages,
+                langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
+    </script>
 
 </head>
 
@@ -46,7 +47,8 @@
                 </h2>
                 <ul class="widget-controls">
                     <li>
-                        <button id="expand-all-GoLiveQueue" class="btn btn-default btn-sm" onclick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');"></button>
+                        <button id="expand-all-GoLiveQueue" class="btn btn-default btn-sm"
+                                onclick="return WcmDashboardWidgetCommon.toggleAllItems('GoLiveQueue');"></button>
                     </li>
                 </ul>
             </div>
@@ -62,7 +64,8 @@
                 </h2>
                 <ul class="widget-controls">
                     <li>
-                        <button id="expand-all-approvedScheduledItems" class="btn btn-default btn-sm" onclick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');"></button>
+                        <button id="expand-all-approvedScheduledItems" class="btn btn-default btn-sm"
+                                onclick="return WcmDashboardWidgetCommon.toggleAllItems('approvedScheduledItems');"></button>
                     </li>
                 </ul>
             </div>
@@ -80,11 +83,13 @@
                     <li class="form-inline">
                         <div class="input-group">
                             <label for="widget-showitems-recentlyMadeLive" class="input-group-addon">Show</label>
-                            <input id="widget-showitems-recentlyMadeLive" type="text" maxlength="3" value="10" class="form-control input-sm"/>
+                            <input id="widget-showitems-recentlyMadeLive" type="text" maxlength="3" value="10"
+                                   class="form-control input-sm"/>
                         </div>
                     </li>
                     <li>
-                        <button id="expand-all-recentlyMadeLive" class="btn btn-default btn-sm" onclick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');"></button>
+                        <button id="expand-all-recentlyMadeLive" class="btn btn-default btn-sm"
+                                onclick="return WcmDashboardWidgetCommon.toggleAllItems('recentlyMadeLive');"></button>
                     </li>
                 </ul>
             </div>
@@ -102,7 +107,8 @@
                     <li class="form-inline">
                         <div class="input-group">
                             <label for="widget-showitems-MyRecentActivity" class="input-group-addon">Show</label>
-                            <input type="text" id="widget-showitems-MyRecentActivity" maxlength="3" value="10" class="form-control input-sm" />
+                            <input type="text" id="widget-showitems-MyRecentActivity" maxlength="3" value="10"
+                                   class="form-control input-sm"/>
                         </div>
                     </li>
                 </ul>
@@ -112,7 +118,6 @@
             <div id="sort-type-MyRecentActivity" style="display:none"></div>
         </div>
 
-        <script>var langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);</script>
         <div id="iconGuide" class="panel panel-default">
             <div class="panel-heading">
                 <h2 class="panel-title">
@@ -223,11 +228,11 @@
         new CStudioAuthoringWidgets.MyRecentActivityDashboard('MyRecentActivity', 'site/rosie/dashboard');
         new CStudioAuthoringWidgets.IconGuideDashboard('icon-guide', 'site/rosie/dashboard');
 
-    }) (CStudioAuthoring);
+    })(CStudioAuthoring);
 </script>
 
 <#include "/templates/web/common/page-fragments/footer.ftl" />
-<script type="text/javascript">//<![CDATA[
+<script>//<![CDATA[
 //Alfresco.util.YUILoaderHelper.loadComponents();
 //]]></script>
 <div id="alfresco-yuiloader"></div>
