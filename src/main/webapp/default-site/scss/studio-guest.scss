@@ -1,10 +1,5 @@
-$crimson: #ED1C24;
 
-$class-prefix: 'crafter-studio' !default;
-
-$ice-class-prefix: $class-prefix + '-ice' !default;
-$ice-attribute-name: 'data-studio-ice' !default;
-$ice-indicator-size: 20px !default;
+@import "variables";
 
 /* Structural & Behavioural Styles */
 
@@ -36,8 +31,8 @@ $ice-indicator-size: 20px !default;
 /* Look & feel / Theme Styles */
 
 .#{$ice-class-prefix}-overlay {
-  border-color: $crimson;
-  box-shadow: rgba($crimson, .4) 0 10px 5px;
+  border-color: $brand-success;
+  box-shadow: rgba($brand-success, .4) 0 10px 5px;
 }
 
 .#{$ice-class-prefix}-indicator {

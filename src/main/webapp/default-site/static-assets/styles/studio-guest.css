@@ -1,16 +1,16 @@
 /* Structural & Behavioural Styles */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000315}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000310}}
 .crafter-studio-ice-overlay,
 .crafter-studio-ice-indicator {
   cursor: pointer; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000320}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000315}}
 .crafter-studio-ice-overlay {
   position: absolute;
   border-style: solid;
   border-width: 2px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000326}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000321}}
 .crafter-studio-ice-indicator {
   position: absolute;
   border-radius: 0 0 5px 0;
@@ -21,11 +21,11 @@
   background-position: 3px 3px; }
 
 /* Look & feel / Theme Styles */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000338}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000333}}
 .crafter-studio-ice-overlay {
-  border-color: #ed1c24;
-  box-shadow: rgba(237, 28, 36, 0.4) 0 10px 5px; }
+  border-color: #5cb85c;
+  box-shadow: rgba(92, 184, 92, 0.4) 0 10px 5px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000343}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/studio-guest\.scss}line{font-family:\0000338}}
 .crafter-studio-ice-indicator {
   background-color: rgba(255, 255, 255, 0.5); }
