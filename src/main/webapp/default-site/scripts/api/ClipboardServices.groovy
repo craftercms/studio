@@ -27,7 +27,7 @@ class ClipboardServices {
      * @oaran context - container for passing request, token and other values that may be needed by the implementation
      * @return response status
      */
-    static paste(site, session, destination, context) {
+    static paste(context, site, session, destination) {
         def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
         return clipboardServicesImpl.paste(site, session, destination, context);
 	}
@@ -53,7 +53,7 @@ class ClipboardServices {
      * @param requestJson - items in json format
      * @oaran context - container for passing request, token and other values that may be needed by the implementation
      */
-    static copy(site, session, requestJson, context) {
+    static copy(context, site, session, requestJson) {
         def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
         clipboardServicesImpl.copy(site, session, requestJson)
     }
@@ -69,6 +69,11 @@ class ClipboardServices {
     static getItems(site, session, context) {
         def clipboardServicesImpl = ServiceFactory.getClipboardServices(context)
         return clipboardServicesImpl.getItems(site, session);
+    }
+
+    static duplicate(context, site, path) {
+        def clipboardServicesImpl = ServiceFactory.getClipboardServices(context);
+        return clipboardServicesImpl.duplicate(site, path);
     }
 
 }

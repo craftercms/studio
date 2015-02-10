@@ -25,10 +25,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.ContentTypePathTO;
-import org.craftercms.studio.api.v1.to.SiteContentTypePathsTO;
-import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -129,8 +126,8 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
             contentTypeConfig.setPathExcludes(pathExcludes);
             //(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
-            //loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
-            //loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
+            loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
+            loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
             //contentTypeConfig.setNoThumbnail(ContentFormatUtils.getBooleanValue(root.valueOf("noThumbnail")));
             //SearchConfigTO searchConfig = loadSearchConfig(root.selectSingleNode("search"));
             //contentTypeConfig.setSearchConfig(searchConfig);
@@ -140,6 +137,35 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
         } else {
             logger.error("No content type configuration document found at " + configFileFullPath);
             return null;
+        }
+    }
+
+    /**
+     * load delete dependencies mapping
+     *
+     * @param contentTypeConfig
+     * @param nodes
+     */
+    protected void loadDeleteDependencies(ContentTypeConfigTO contentTypeConfig, List<Node> nodes) {
+        List<DeleteDependencyConfigTO> deleteConfigs = new ArrayList<>();
+        if (nodes != null) {
+            for (Node node : nodes) {
+                Node patternNode = node.selectSingleNode("pattern");
+                Node removeFolderNode = node.selectSingleNode("remove-empty-folder");
+                if(patternNode!=null){
+                    String pattern = patternNode.getText();
+                    String removeEmptyFolder = removeFolderNode.getText();
+                    boolean isRemoveEmptyFolder=false;
+                    if(removeEmptyFolder!=null){
+                        isRemoveEmptyFolder = Boolean.valueOf(removeEmptyFolder);
+                    }
+                    if(StringUtils.isNotEmpty(pattern)){
+                        DeleteDependencyConfigTO deleteConfigTO = new DeleteDependencyConfigTO(pattern, isRemoveEmptyFolder);
+                        deleteConfigs.add(deleteConfigTO);
+                    }
+                }
+            }
+            contentTypeConfig.setDeleteDependencies(deleteConfigs);
         }
     }
 
@@ -316,6 +342,32 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
             }
             paths.setLastUpdated(new Date());
         }
+    }
+
+    /**
+     *
+     * @param config
+     * @param copyDependencyNodes
+     * @return
+     */
+    protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
+        List<CopyDependencyConfigTO> copyConfig = new ArrayList<CopyDependencyConfigTO>();
+        if (copyDependencyNodes != null) {
+            for (Node copyDependency : copyDependencyNodes) {
+                Node patternNode = copyDependency.selectSingleNode("pattern");
+                Node targetNode = copyDependency.selectSingleNode("target");
+                if(patternNode!=null && targetNode!=null){
+                    String pattern = patternNode.getText();
+                    String target = targetNode.getText();
+                    if(StringUtils.isNotEmpty(pattern) && StringUtils.isNotEmpty(target)){
+                        CopyDependencyConfigTO copyDependencyConfigTO  = new CopyDependencyConfigTO(pattern,target);
+                        copyConfig.add(copyDependencyConfigTO);
+                    }
+                }
+            }
+        }
+        config.setCopyDepedencyPattern(copyConfig);
+
     }
 
     @Override

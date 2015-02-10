@@ -2,12 +2,14 @@ package scripts.api
 
 import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices;
+import scripts.api.impl.content.SpringContentTypeServices;
 import scripts.api.impl.clipboard.SpringClipboardServices;
 import scripts.api.impl.deployment.SpringDeploymentServices;
 import scripts.api.impl.activity.SpringActivityServices;
 import scripts.api.impl.workflow.SpringWorkflowServices;
 import scripts.api.impl.security.SpringSecurityServices;
 import scripts.api.impl.site.SpringSiteServices;
+import scripts.api.impl.dependency.SpringDependencyServices;
 
 /**
  * workflow services
@@ -35,6 +37,13 @@ class ServiceFactory {
 	 */
 	static getContentServices(context) {
 		return new SpringContentServices(context)
+	}
+
+	/**
+	 * return the implementation for content type services
+	 */
+	static getContentTypeServices(context) {
+		return new SpringContentTypeServices(context)
 	}
 
     /**
@@ -96,4 +105,8 @@ class ServiceFactory {
 	static getSiteServices(context) {
 		return new SpringSiteServices(context)
 	}
+
+    static getDependencyServices(context) {
+        return new SpringDependencyServices(context);
+    }
 }

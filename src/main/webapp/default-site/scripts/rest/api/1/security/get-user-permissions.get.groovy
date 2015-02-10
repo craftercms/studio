@@ -51,7 +51,7 @@ if (groups != null) {
     groups = groupList;
 }
 def context = SecurityServices.createContext(applicationContext, request)
-def items = SecurityServices.getUserPermissions(context, site, path, user, groups);
+result.permissions = SecurityServices.getUserPermissions(context, site, path, user, groups);
 
 
 

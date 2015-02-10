@@ -94,10 +94,10 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	protected Date lastUpdated;
 	
 	/** list of delete association patterns that this content type is dependent on for deleting indexes in webproject**/
-	//protected List<DeleteDependencyConfigTO> _deleteDependencies = null;
+	protected List<DeleteDependencyConfigTO> deleteDependencies = null;
 	
 	/** list of copy association patterns **/
-	//protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
+	protected List<CopyDependencyConfigTO> copyDepedencyPattern=null;
 
 	/** is this content type previewable? **/
 	protected boolean isPreviewable = false;
@@ -243,17 +243,17 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	
 	/**
 	 * @param deleteAssociations the deleteAssociations to set
-	 *//*
+	 */
 	public void setDeleteDependencies(List<DeleteDependencyConfigTO> deleteDependencies) {
-		this._deleteDependencies = deleteDependencies;
-	}*/
+		this.deleteDependencies = deleteDependencies;
+	}
 
 	/**
 	 * @return the deleteAssociations
-	 *//*
+	 */
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPattern() {
-		return _deleteDependencies;
-	}*/
+		return deleteDependencies;
+	}
 	
 	/**
 	 * @param searchConfig the searchConfig to set
@@ -325,16 +325,16 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 		return useRoundedFolder;
 	}
 	
-	/*
+
 	public List<CopyDependencyConfigTO> getCopyDepedencyPattern() {
 		return copyDepedencyPattern;
-	}*/
-/*
+	}
+
 	public void setCopyDepedencyPattern(
 			List<CopyDependencyConfigTO> copyDepedencyPattern) {
 		this.copyDepedencyPattern = copyDepedencyPattern;
 	}
-*/
+
 	/**
 	 * @return the pathIncludes
 	 */

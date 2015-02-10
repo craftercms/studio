@@ -16,4 +16,6 @@ public interface ActivityFeedMapper {
     long insertActivityFeed(ActivityFeed feed);
 
     void updateActivityFeed(ActivityFeed feed);
+
+    void renameContent(Map<String, Object> params);
 }

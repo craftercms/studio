@@ -5,16 +5,16 @@
 	 * note: these are all fixed at the moment but will be dynamic
 	 */
 	CStudioAuthoringContext = {
-		user: "${envConfig.user!'UNSET'}",
-		role: "${envConfig.role!'UNSET'}", 
-		site: "${envConfig.site!'UNSET'}",
+		user: "${envConfig.user!'UNSET1'}",
+		role: "${envConfig.role!'UNSET2'}",
+		site: "${envConfig.site!'UNSET3'}",
 		collabSandbox: "",
 		baseUri: "/studio",
-		authoringAppBaseUri: "${envConfig.authoringServerUrl!'UNSET'}",
-		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
-		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}",
+		authoringAppBaseUri: "${envConfig.authoringServerUrl!'/studio'}",
+		formServerUri: "${envConfig.formServerUrl!'UNSET5'}",
+		previewAppBaseUri: "${envConfig.previewServerUrl!''}", <#-- TODO RETURNING UNSET. Changed to '' to be able to use preview. -->
 		contextMenuOffsetPage: false,
-		brandedLogoUri: "/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
+		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
 		navContext: "default",
 		cookieDomain: "${envConfig.cookieDomain!'UNSET'}",
@@ -27,4 +27,5 @@
    	if(CStudioAuthoringContext.role === "") {
    		document.location = CStudioAuthoringContext.baseUri;
    	}
+
 </script>

@@ -55,17 +55,18 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";		
 		liLoadingEl.appendChild(imgEl);
 		containerEl.appendChild(liLoadingEl);
-		var filterBydiv =  document.createElement("div");
-		YDom.addClass(filterBydiv, "widget-FilterBy");
+		var filterBydiv =  document.createElement("li");
+
 
 		var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
 										pageId,
 										widgetId,
 										"widgetFilterBy");
-		var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
+
+        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
 		containerEl.appendChild(filterBydiv);
-		filterBydiv.innerHTML = CMgs.format(langBundle, "dashletApprovedSchedShow")
-		filterByEl.style.marginLeft = "3px";
+		//filterBydiv.innerHTML = CMgs.format(langBundle, "dashletApprovedSchedShow");
+
 		filterBydiv.appendChild(filterByEl);
 		
 		filterByEl._self = this;

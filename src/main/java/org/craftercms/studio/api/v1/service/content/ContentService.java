@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.content;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -188,6 +189,8 @@ public interface ContentService {
 
     String getRelativeSitePath(String site, String fullPath);
 
+    String getContentType(String site, String uri);
+
     /**
      * write content
      *
@@ -205,4 +208,15 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock) throws ServiceException;
+
+    /**
+     * get the next available of the given content name at the given path (used for paste/duplicate)
+     *
+     * @param site
+     * @param path
+     * @return next available name that avoids a name conflict
+     */
+    String getNextAvailableName(String site, String path);
+
+    void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
 }

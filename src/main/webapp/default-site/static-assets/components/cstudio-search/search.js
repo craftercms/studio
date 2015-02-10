@@ -193,7 +193,7 @@ CStudioSearch.determineFilterRendererFromUrl = function() {
 
         var moduleConfig = { };
 
-		var modulePath = "/proxy/alfresco/cstudio/services/content/content-at-path" +
+		var modulePath = "/api/1/services/api/1/content/get-content-at-path.bin" +
             "?path=/cstudio/config/sites/" + CStudioAuthoringContext.site + "/search/filters/" + paramContext + ".js";
             
 		CStudioAuthoring.Module.requireModule(

@@ -37,4 +37,23 @@ public interface ContentTypeService {
      */
     ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceException;
 
+    /**
+     * check if the user is allowed to access the content type with the given user roles
+     *
+     * @param userRoles
+     * @param item
+     * @return
+     */
+    boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item);
+
+    /**
+     * get a content type by the given site and type name
+     *
+     * @param site
+     * @param type
+     * @return content type
+     */
+    public ContentTypeConfigTO getContentType(String site, String type);
+
+    ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException;
 }

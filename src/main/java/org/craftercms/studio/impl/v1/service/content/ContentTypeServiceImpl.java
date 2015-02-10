@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v1.service.content;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
@@ -28,6 +30,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +38,9 @@ import java.util.Set;
  * @author Dejan Brkic
  */
 public class ContentTypeServiceImpl implements ContentTypeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceImpl.class);
+
     @Override
     public ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceException {
         ContentItemTO itemTO = contentService.getContentItem(site, path);
@@ -48,6 +54,52 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             } else {
                 throw new ContentNotFoundException(path + " is not found in site: " + site);
             }
+    }
+
+    @Override
+    public boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item) {
+        if (item != null) {
+            String name = item.getName();
+            Set<String> allowedRoles = item.getAllowedRoles();
+            logger.debug("Checking allowed roles on " + name + ". user roles: "
+                        + userRoles + ", allowed roles: " + allowedRoles);
+
+            if (allowedRoles == null || allowedRoles.size() == 0) {
+                return true;
+            } else {
+                boolean notAllowed = Collections.disjoint(userRoles, allowedRoles);
+                if (notAllowed) {
+                    logger.debug(name + " is not allowed for the user.");
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        } else {
+            logger.debug("no content type config provided. returning true for user access to content type checking.");
+
+            return true;
+        }
+    }
+
+    @Override
+    public ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException {
+        ContentItemTO item = contentService.getContentItem(site, relativePath);
+        if (item != null) {
+            String type = item.getContentType();
+            if (!StringUtils.isEmpty(type)) {
+                return servicesConfig.getContentTypeConfig(site, type);
+            } else {
+                throw new ServiceException("No content type specified for " + relativePath + " in site: " + site);
+            }
+        } else {
+            throw new ContentNotFoundException(relativePath + " is not found in site: " + site );
+        }
+    }
+
+    @Override
+    public ContentTypeConfigTO getContentType(String site, String type) {
+        return servicesConfig.getContentTypeConfig(site, type);
     }
 
     public ContentService getContentService() { return contentService; }

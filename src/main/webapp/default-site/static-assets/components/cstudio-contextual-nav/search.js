@@ -9,14 +9,9 @@ CStudioAuthoring.ContextualNav.WcmSearchMod = CStudioAuthoring.ContextualNav.Wcm
 	 * initialize module
 	 */
 	initialize: function(config) {
-		var el = YDom.get("acn-search");
-		el.innerHTML = '<span class="acn-search-container">' +
-	                     '<input type="text" class="search-input" id="acn-searchtext" value="" maxlength="256" />' +
-	  				   '</span>';
-
-
 		this.definePlugin();
 		CStudioAuthoring.ContextualNav.WcmSearch.init();
+
 	},
 	
 	definePlugin: function() {

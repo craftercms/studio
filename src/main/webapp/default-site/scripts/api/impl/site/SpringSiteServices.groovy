@@ -35,4 +35,9 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getConfiguration(site, path, applyEnvironment);
     }
+
+    def getUserSites(user) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getUserSites(user);
+    }
 }

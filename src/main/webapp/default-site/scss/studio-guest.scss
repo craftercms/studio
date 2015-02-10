@@ -1,0 +1,45 @@
+$crimson: #ED1C24;
+
+$class-prefix: 'crafter-studio' !default;
+
+$ice-class-prefix: $class-prefix + '-ice' !default;
+$ice-attribute-name: 'data-studio-ice' !default;
+$ice-indicator-size: 20px !default;
+
+/* Structural & Behavioural Styles */
+
+[#{$ice-attribute-name}] {
+
+}
+
+.#{$ice-class-prefix}-overlay,
+.#{$ice-class-prefix}-indicator {
+  cursor: pointer;
+}
+
+.#{$ice-class-prefix}-overlay {
+  position: absolute;
+  border-style: solid;
+  border-width: 2px;
+}
+
+.#{$ice-class-prefix}-indicator {
+  position: absolute;
+  border-radius: 0 0 5px 0;
+  width: $ice-indicator-size;
+  height: $ice-indicator-size;
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit.png');
+  background-repeat: no-repeat;
+  background-position: 3px 3px;
+}
+
+/* Look & feel / Theme Styles */
+
+.#{$ice-class-prefix}-overlay {
+  border-color: $crimson;
+  box-shadow: rgba($crimson, .4) 0 10px 5px;
+}
+
+.#{$ice-class-prefix}-indicator {
+  background-color: rgba(#fff, .5);
+}

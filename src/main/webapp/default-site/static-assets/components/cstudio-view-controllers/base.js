@@ -4,7 +4,7 @@
  * @author: Roy Art
  * @date: 03.01.2011
  **/
-(function(undefined){
+(function(CStudioAuthoring, undefined){
 
     var Base,
         CustomEvent = YAHOO.util.CustomEvent,
@@ -95,8 +95,8 @@
         /**
          * Subclasses may define an array of methods to execute to initialise
          * in different ways the views. Startup functions are called after configuration is
-         * initialised, receiving no parameters. If contruction parameters are needed, use
-         * the "initialise" method which is called with all contruction parameters
+         * initialised, receiving no parameters. If constructor parameters are needed, use
+         * the "initialise" method which is called with all constructor parameters
          */
         _startup: function(){
             CStudioAuthoring.Utils.each(this.startup, function(i, fnName) {
@@ -200,8 +200,24 @@
             this.fire("end");
             return this;
         }
-    }
+    };
+
+    Base.extend = function (className, classBody) {
+
+        CStudioAuthoring.register(
+            ('ViewController.' + className),
+            new Function('CStudioAuthoring.ViewController.'+className+'.superclass.constructor.apply(this, arguments)'));
+
+        var Controller = CStudioAuthoring.ViewController[className];
+
+        YAHOO.extend(Controller, CStudioAuthoring.ViewController.Base, classBody || {});
+
+        CStudioAuthoring.Env.ModuleMap.map('viewcontroller-' + className.toLowerCase(), Controller);
+
+        return Controller;
+
+    };
 
     CStudioAuthoring.Env.ModuleMap.map("viewcontroller-base", Base);
 
-})();
+})(CStudioAuthoring);

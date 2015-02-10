@@ -56,7 +56,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
         itemFilterEl.innerHTML = CMgs.format(langBundle, "dashletGoLiveShowInProgress");  
         itemFilterEl.hfref = "javascript:void(0);";
         itemFilterEl.id = "widget-expand-state-" + widgetId;
-        YDom.addClass(itemFilterEl, "widget-expand-state");
+        YDom.addClass(itemFilterEl, "btn btn-default btn-sm");
 
         
         containerEl.appendChild(listItemEl);

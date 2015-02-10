@@ -44,5 +44,10 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         springBackedService.getGoLiveItems(site, sort, ascending);
     }
+
+    def getWorkflowAffectedPaths(site, path) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        springBackedService.getWorkflowAffectedPaths(site, path);
+    }
 }
 

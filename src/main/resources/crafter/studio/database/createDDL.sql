@@ -107,3 +107,14 @@ CREATE TABLE `cstudio_deploymentsynchistory` (
   INDEX `cs_depsynchist_user_idx` (`username` ASC),
   INDEX `cs_depsynchist_ctc_idx` (`contenttypeclass` ASC)
 );
+
+CREATE TABLE `cstudio_site` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `site_id` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(45) NULL,
+  `status` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
+  INDEX `site_id_idx` (`site_id` ASC));

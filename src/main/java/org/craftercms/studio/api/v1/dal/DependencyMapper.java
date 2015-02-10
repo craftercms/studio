@@ -31,4 +31,6 @@ public interface DependencyMapper {
     void deleteAllSourceDependencies(Map params);
 
     void insertList(Map params);
+
+    List<DependencyEntity> getDependenciesByType(Map params);
 }

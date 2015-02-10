@@ -66,7 +66,7 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
                 "heading": "Copy",
                 "description": "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
                 "actionButton": "Copy",
-                "request": CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/copy?site=" + site
+                "request": CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.copyServiceUrl + "?site=" + site
             };
         }
         return context;

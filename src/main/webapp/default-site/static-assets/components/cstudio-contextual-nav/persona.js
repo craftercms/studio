@@ -78,7 +78,7 @@ CStudioAuthoring.ContextualNav.PersonaNavMod = CStudioAuthoring.ContextualNav.Pe
 											imageEl.style.border= "1px solid black";
 											imageEl.title = persona.name;
 											
-											imageEl.src = CStudioAuthoringContext.baseUri + '/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+persona.thumb;
+											imageEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+persona.thumb;
 										},
 										
 										failure: function() {

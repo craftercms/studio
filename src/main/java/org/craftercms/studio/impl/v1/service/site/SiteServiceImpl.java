@@ -19,9 +19,10 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import net.sf.json.xml.XMLSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
@@ -32,15 +33,12 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
+import org.dom4j.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Note: consider renaming
@@ -140,7 +138,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	}
 
 	@Override
-	public JSON getConfiguration(String site, String path, boolean applyEnv) {
+	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
 		//
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
@@ -158,16 +156,78 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		String configContent = contentService.getContentAsString(configPath);
 
 		JSON response = null;
-
+		Map<String, Object> toRet = null;
 		if (configContent != null) {
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
-			XMLSerializer xmlSerializer = new XMLSerializer();
-			response = xmlSerializer.read(configContent);
+			toRet = convertNodesFromXml(configContent);
+			//XMLSerializer xmlSerializer = new XMLSerializer();
+			//response = xmlSerializer.read(configContent);
 		} else {
 			response = new JSONObject();
 		}
-		return response;
+		return toRet;
+	}
+
+	private Map<String, Object> convertNodesFromXml(String xml) {
+		try {
+			InputStream is = new ByteArrayInputStream(xml.getBytes());
+
+			Document document = DocumentHelper.parseText(xml);
+			return createMap(document.getRootElement());
+
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private  Map<String, Object> createMap(Element element) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		for ( int i = 0, size = element.nodeCount(); i < size; i++ ) {
+			Node currentNode = element.node(i);
+			if ( currentNode instanceof Element ) {
+				Element currentElement = (Element)currentNode;
+				/*
+				if (currentElement.attributeCount() > 0) {
+					for (int j = 0; j < currentElement.attributes().size(); j++) {
+						Attribute item = currentElement.attribute(j);
+						map.put(item.getName(), item.getValue());
+					}
+				}*/
+				String key = currentElement.getName();
+				Object toAdd = null;
+				if (currentElement.isTextOnly()) {
+					 toAdd = currentElement.getStringValue();
+				} else {
+					toAdd = createMap(currentElement);
+				}
+				if (map.containsKey(key)) {
+					Object value = map.get(key);
+					List listOfValues = new ArrayList<Object>();
+					if (value instanceof List) {
+						listOfValues = (List<Object>)value;
+					} else {
+						listOfValues.add(value);
+					}
+					listOfValues.add(toAdd);
+					map.put(key, listOfValues);
+				} else {
+					map.put(key, toAdd);
+				}
+				/*
+				Iterator elIter = currentElement.elementIterator();
+				if (elIter.hasNext()) {
+					Element firstChild = (Element)elIter.next();
+					if (firstChild.isTextOnly()) {
+						map.put(currentElement.getName(), currentElement.getStringValue());
+					} else {
+						map.putAll(createMap(currentElement));
+					}
+				}*/
+			}
+		}
+		return map;
 	}
 
 	/**
@@ -300,6 +360,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		siteConfig.setDeploymentEndpointConfigs(deploymentConfig.getEndpointMapping());
 	}
 
+	@Override
+	public List<SiteFeed> getUserSites(String user) {
+		return siteFeedMapper.getSites();
+	}
+
 	/** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -338,6 +403,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
+
+	@Autowired
+	protected SiteFeedMapper siteFeedMapper;
 
 	/**
 	 * a map of site key and site information

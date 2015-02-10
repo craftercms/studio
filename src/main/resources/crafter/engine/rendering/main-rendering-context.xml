@@ -55,4 +55,60 @@
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
 
+    <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
+        <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
+    </bean>
+
+    <bean id="crafter.mainViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="order" value="0" />
+        <property name="favorPathExtension" value="true" />
+        <!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
+        <property name="ignoreAcceptHeader" value="true" />
+        <property name="defaultContentType" value="text/html" />
+        <property name="mediaTypes">
+            <map>
+                <entry key="${crafter.engine.page.url.extension}" value="text/html" />
+                <entry key="xml" value="application/xml" />
+                <entry key="json" value="application/json" />
+                <entry key="bin" value="image/png" />
+            </map>
+        </property>
+        <property name="viewResolvers">
+            <list>
+                <bean class="org.craftercms.engine.view.CrafterPageViewResolver">
+                    <property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
+                    <property name="urlTransformerName" value="renderUrlToStoreUrl" />
+                    <property name="fullHttpsUrlTransformerName" value="toFullHttpsUrl" />
+                    <property name="urlTransformationService" ref="crafter.urlTransformationService" />
+                    <property name="localizeViews" value="${crafter.engine.page.view.localized}" />
+                    <property name="localizedUrlDelimiter" value="_" />
+                    <property name="urlParser" ref="crafter.contentBundleUrlParser" />
+                    <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+                    <property name="siteItemService" ref="crafter.siteItemService" />
+                    <property name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
+                    <property name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}" />
+                    <property name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}" />
+                    <property name="redirectContentType" value="${crafter.engine.page.redirect.contentType}" />
+                    <property name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}" />
+                    <property name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}" />
+                    <property name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}" />
+                    <property name="modePreview" value="${crafter.engine.preview}" />
+                    <property name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
+                    <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
+                    <property name="accessManager" ref="crafter.pageAccessManager"/>
+                    <property name="scriptFactory" ref="crafter.scriptFactory"/>
+                    <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
+                    
+                </bean>
+            </list>
+        </property>
+        <property name="defaultViews">
+            <list>
+                <ref bean="crafter.jsonView"/>
+                <ref bean="crafter.xmlView"/>
+                <ref bean="studio.binaryView"/>
+            </list>
+        </property>
+    </bean>
+
 </beans>

@@ -109,7 +109,7 @@ public interface WorkflowService {
 	 */
 	NotificationService getNotificationService();
 
-	String getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
+	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
 
 	String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
 
@@ -134,4 +134,5 @@ public interface WorkflowService {
 	 * @param path
 	 */
 	public void updateWorkflowSandboxes(String site, String path);
+
 }
