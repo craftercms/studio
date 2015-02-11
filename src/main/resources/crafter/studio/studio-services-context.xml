@@ -94,6 +94,13 @@
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -103,6 +110,7 @@
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="dmDependencyService" ref="cstudioDmDependencyService" />
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
+         <property name="siteService" ref="cstudioSiteServiceSimple" />
             <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
      </bean>
 
@@ -190,6 +198,7 @@
           parent="cstudioRegistrableService">
          <property name="securityService" ref="cstudioSecurityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
@@ -236,6 +245,9 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService" />
+        <property name="WorkflowProcessor" ref="cstudioWorkflowProcessor" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

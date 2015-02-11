@@ -474,8 +474,11 @@ var YEvent = YAHOO.util.Event;
                     controller = "viewcontroller-delete";
                     view = CSA.Service.getDeleteView;
                 } else {
-                    controller = "viewcontroller-schedulefordelete";
-                    view = CSA.Service.getScheduleForDeleteView;
+                    // scheduled delete not supported
+                    //controller = "viewcontroller-schedulefordelete";
+                    //view = CSA.Service.getScheduleForDeleteView;
+                    controller = "viewcontroller-delete";
+                    view = CSA.Service.getDeleteView;
                 }
                 CSA.Operations._showDialogueView({
                     fn: view,

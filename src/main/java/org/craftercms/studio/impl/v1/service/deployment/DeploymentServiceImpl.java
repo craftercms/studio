@@ -36,10 +36,8 @@ import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
-import org.craftercms.studio.api.v1.to.DmPathTO;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.impl.v1.deployment.dal.DeploymentDAL;
@@ -61,6 +59,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static final int HISTORY_ALL_LIMIT = 9999999;
     private final static String CONTENT_TYPE_ALL= "all";
+
+    private static int CTED_AUTOINCREMENT = 0;
 
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
 
@@ -106,10 +106,49 @@ public class DeploymentServiceImpl implements DeploymentService {
         } else {
             _contentRepository.setSystemProcessing(site, paths, true);
         }
-        Set<String> environments = _contentRepository.getAllPublishingEnvironments(site);
+        Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
-            _deploymentDAL.setupItemsToDelete(site, environment, paths, approver, scheduledDate);
+            List<CopyToEnvironment> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
+            for (CopyToEnvironment item : items) {
+                copyToEnvironmentMapper.insertItemForDeployment(item);
+            }
         }
+    }
+
+    protected Set<String> getAllPublishingEnvironments(String site) {
+         Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+         Set<String> environments = new HashSet<String>();
+         if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
+             for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
+                 if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
+                     environments.add(groupConfigTO.getName());
+                 }
+             }
+         }
+         return environments;
+    }
+
+    private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
+        List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
+        for (String path : paths) {
+            CopyToEnvironment item = new CopyToEnvironment();
+            item.setId(++CTED_AUTOINCREMENT);
+            item.setSite(site);
+            item.setEnvironment(environment);
+            item.setPath(path);
+            item.setScheduledDate(scheduledDate);
+            item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+            item.setAction(CopyToEnvironment.Action.DELETE);
+            if (_contentRepository.isRenamed(site, path)) {
+                String oldPath = _contentRepository.getOldPath(site, item.getPath());
+                item.setOldPath(oldPath);
+            }
+            String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+            item.setContentTypeClass(contentTypeClass);
+            item.setUser(approver);
+            newItems.add(item);
+        }
+        return newItems;
     }
 
     @Override
@@ -481,6 +520,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.dmFilterWrapper = dmFilterWrapper;
     }
 
+    public SiteService getSiteService() { return siteService; }
+    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+
     protected DeploymentDAL _deploymentDAL;
     protected ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
@@ -488,6 +530,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ActivityService activityService;
     protected DmDependencyService dmDependencyService;
     protected DmFilterWrapper dmFilterWrapper;
+    protected SiteService siteService;
 
     @Autowired
     protected DeploymentSyncHistoryMapper _deploymentSyncHistoryMapper;

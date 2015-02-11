@@ -248,7 +248,7 @@
                 method: "POST",
                 data: data,
                 resetFormState: true,
-                url: CStudioAuthoringContext.baseUri + "/proxy/alfresco/cstudio/wcm/workflow/go-delete?deletedep=true&site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
+                url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-delete.json?deletedep=true&site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
                 callback: {
                     success: function(oResponse) {
                         _this.showProcessingOverlay(false);
