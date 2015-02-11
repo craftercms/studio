@@ -1,5 +1,7 @@
-require(['preview','amplify','communicator'], function () {
+require(['jquery','preview','amplify','communicator'], function ($) {
     'use strict';
+
+    $.noConflict(true);
 
     // TODO
     document.domain = "127.0.0.1";
@@ -27,6 +29,10 @@ require(['preview','amplify','communicator'], function () {
     }
 
     var $overlay = $('<div class="crafter-studio-ice-overlay" style="display: none;"></div>'),
+        animationEndEvent = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
+        preAnimationRemoveClasses = 'fadeIn fadeOut',
+        fadeInClasses = 'fadeIn',
+        fadeOutClasses = 'fadeOut',
         count = 0;
 
     function initICETarget(elem) {
@@ -60,6 +66,29 @@ require(['preview','amplify','communicator'], function () {
         }
     }
 
+    function showOverlay (props) {
+        // $overlay.css(props).fadeIn('fast');
+        $overlay.css(props)
+            .show()
+            .removeClass(preAnimationRemoveClasses)
+            .addClass(fadeInClasses)
+            .one(animationEndEvent, function () {
+                $(this).removeClass(fadeInClasses);
+            });
+    }
+
+    function hideOverlay () {
+        // $overlay.fadeOut('fast');
+        $overlay
+            .removeClass(preAnimationRemoveClasses)
+            .addClass(fadeOutClasses)
+            .one(animationEndEvent, function () {
+                var $el = $(this);
+                if (!$el.hasClass(fadeInClasses)) $el.hide();
+                $el.removeClass(fadeOutClasses);
+            });
+    }
+
     $(document).on('mouseover', '[data-studio-ice]', function (e) {
 
     });
@@ -82,15 +111,16 @@ require(['preview','amplify','communicator'], function () {
             props    = {
                 top     : position.top,
                 left    : position.left,
-                width   : $e.width(),
+                width   : $e.width() - 4,
                 height  : $e.height()
             };
 
-        $overlay.css(props).fadeIn('fast');
+        showOverlay(props);
+
     });
 
     $(document).on('mouseout', '.crafter-studio-ice-indicator', function (e) {
-        $overlay.fadeOut('fast');
+        hideOverlay();
     });
 
     $(document).on('click', '.crafter-studio-ice-indicator', function (e) {
