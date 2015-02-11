@@ -1,4 +1,4 @@
-<div id="acnVersionWrapper" class="cstudio-view admin-delete-view">
+<div class="studio-view admin-delete-view">
 
     <style type="text/css">
         .admin-delete-view .item.sub-item {
@@ -66,31 +66,25 @@
         </div>
     </div>
 
-    <h3>Delete</h3>
-    <div class="view-caption">
+    <h3 class="view-title">Delete</h3>
+    <div class="form-group">
         <span>The following checked items will be deleted:</span>
         <a class="set-all-now" href="javascript:" style="float:right">Set everything to "Now"</a>
     </div>
 
-    <div class="view-square-wrp">
-        <div class="head">
-            <table class="dependencies-table-head">
-                <tr>
-                    <td><div class="item"><span style="padding-left:15px">Page</span></div></td>
-                    <td><div class="item-desc">&nbsp;</div></td>
-                    <td><div class="item-sch">Delete</div></td>
-                </tr>
-            </table>
-        </div>
-        <div class="body">
-            <div class="dependencies-listing">
-                <table class="dependencies-table">
-
-                </table>
-            </div>
-        </div>
+    <div class="form-group">
+        <table class="item-listing">
+            <thead>
+            <tr>
+                <th><div class="item"><span style="padding-left:15px">Page</span></div></th>
+                <th><div class="item-desc">&nbsp;</div></th>
+                <th><div class="item-sch">Delete</div></th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
-    <div class="view-block items-feedback" style="text-align:center;margin-top:-10px">
+    <div class="form-group items-feedback" style="text-align:center;">
         Dependencies must be checked before you can submit
     </div>
     <div class="schedule-overlay" style="display:none;border:1px #7f9db9 solid;background-color:#F2F2F2;">
@@ -104,16 +98,16 @@
                 <input id="datepicker" class="date-picker water-marked" value="Date..." default="Date..." />
                 <input id="timepicker" class="time-picker water-marked" value="Time..." default="Time..." />
                 <div class="timeButtonContainer" style="float:right">
-                <input id="timeIncrementButton" type="submit" value=""/>
-                <input id="timeDecrementButton" type="submit" value=""/>
+                    <input id="timeIncrementButton" type="submit" value=""/>
+                    <input id="timeDecrementButton" type="submit" value=""/>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="acnSubmitButtons">
-        <input type="submit" class="do-delete" value="Delete" />
-        <input type="submit" class="cancel" value="Cancel" />
+    <div>
+        <input type="submit" class="do-delete btn btn-primary" value="Delete" />
+        <input type="submit" class="cancel btn btn-default" value="Cancel" />
     </div>
 
 </div>
