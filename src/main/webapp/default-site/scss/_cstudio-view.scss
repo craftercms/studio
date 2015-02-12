@@ -132,11 +132,12 @@
   }
 
   .bd.cstudio-dialogue-body {
-    background: #f2f2f2;
-    padding: 15px !important;
-    border: none;
-    color: #333 !important;
     margin: 0;
+    border: none;
+    background: #f2f2f2;
+    color: #333 !important;
+    padding: 15px !important;
+    border-radius: $border-radius-base;
   }
 
   .hd,
@@ -145,7 +146,9 @@
   }
 
   .yui-module.yui-overlay.yui-panel {
-    border: 1px solid $text-muted;
+//    border: 1px solid $text-muted;
+    border: none;
+    border-radius: $border-radius-base;
   }
 
 }

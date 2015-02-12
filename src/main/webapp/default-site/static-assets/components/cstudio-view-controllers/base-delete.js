@@ -33,7 +33,7 @@
                 loadFn;
             loadFn = function() {
                 _this.getComponent("table.item-listing tbody").innerHTML =
-                        '<tr><td><i>Loading, please wait&hellip;</i></td></tr>';
+                        '<tr><td colspan="3"><i>Loading, please wait&hellip;</i></td></tr>';
                 CStudioAuthoring.Service.lookupContentDependencies(
                     CStudioAuthoringContext.site,
                     selection, {
