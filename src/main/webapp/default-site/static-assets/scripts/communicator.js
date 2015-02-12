@@ -1,4 +1,4 @@
-(function (crafter, amplify) {
+(function (studio, amplify) {
     'use strict';
 
     var SCOPE_LOCAL     = 'SCOPE_LOCAL',
@@ -211,8 +211,7 @@
     Communicator.SCOPE_EXTERNAL = SCOPE_EXTERNAL;
     Communicator.SCOPE_REMOTE = SCOPE_REMOTE;
 
-    crafter.Communicator = Communicator;
-
+    studio.define('Communicator', Communicator);
     return Communicator;
 
-})(crafter, amplify);
+})(crafter.studio, amplify);

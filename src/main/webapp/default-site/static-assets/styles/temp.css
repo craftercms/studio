@@ -3835,7 +3835,7 @@ address {
   padding: 20px 0; }
 
 @font-face {
-  /* line 58, _studio-view.scss */
+  /* line 58, ../../scss/_studio-view.scss */
   .studio-view,
   .studio-dialog,
   .site-dashboard {
@@ -10907,23 +10907,23 @@ address {
   .site-dashboard .alert-danger .alert-link {
     color: #843534; }
 @-webkit-keyframes progress-bar-stripes {
-  /* line 11, bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
+  /* line 11, ../../scss/bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
   .studio-view from,
   .studio-dialog from,
   .site-dashboard from {
     background-position: 40px 0; }
-  /* line 12, bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
+  /* line 12, ../../scss/bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
   .studio-view to,
   .studio-dialog to,
   .site-dashboard to {
     background-position: 0 0; } }
 @keyframes progress-bar-stripes {
-  /* line 17, bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
+  /* line 17, ../../scss/bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
   .studio-view from,
   .studio-dialog from,
   .site-dashboard from {
     background-position: 40px 0; }
-  /* line 18, bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
+  /* line 18, ../../scss/bootstrap-sass-official/assets/stylesheets/bootstrap/_progress-bars.scss */
   .studio-view to,
   .studio-dialog to,
   .site-dashboard to {
@@ -12983,7 +12983,7 @@ address {
 .site-dashboard .affix {
   position: fixed; }
 @-ms-viewport {
-  /* line 58, _studio-view.scss */
+  /* line 58, ../../scss/_studio-view.scss */
   .studio-view,
   .studio-dialog,
   .site-dashboard {
@@ -13322,6 +13322,7 @@ address {
 .studio-dialog table.item-listing {
   width: 100%;
   overflow: hidden;
+  border: 1px solid #7e9dbb;
   border-radius: 4px; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003142}}
   .studio-view table.item-listing th, .studio-view table.item-listing td,
@@ -13338,13 +13339,45 @@ address {
   .studio-dialog table.item-listing td {
     background-color: #fff; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003161}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003159}}
+table.scroll-body {
+  width: 100%;
+  border-collapse: collapse; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003164}}
+  table.scroll-body tr:after {
+    /* IE8 fix */
+    content: ".";
+    margin-left: -3px;
+    /* to hide the content above tr */
+    /* not necessary if you are ok with 1px gap */
+    visibility: hidden; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003171}}
+  table.scroll-body thead {
+    width: 100%;
+    display: table;
+    text-align: left; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003176}}
+    table.scroll-body thead tr {
+      width: 100%;
+      display: table-row; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003183}}
+  table.scroll-body tbody {
+    width: 100%;
+    height: 150px;
+    display: block;
+    overflow: auto; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003189}}
+    table.scroll-body tbody tr {
+      width: 100%;
+      display: table; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003200}}
 .studio-dialog > .yui-panel {
   border: none; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003162}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003201}}
 .studio-dialog .hd {
   display: none; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003164}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003203}}
 .studio-dialog .modal-body {
   background-color: #f2f2f2; }
 

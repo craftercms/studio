@@ -1,4 +1,4 @@
-require(['jquery','preview','amplify','communicator'], function ($) {
+require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], function ($, p, a, Communicator, ICEOverlay) {
     'use strict';
 
     $.noConflict(true);
@@ -8,17 +8,13 @@ require(['jquery','preview','amplify','communicator'], function ($) {
 
     var origin = 'http://127.0.0.1:8080';
     var Events = crafter.studio.preview.Topics;
-    var communicator = new crafter.Communicator({ window: window.parent, origin: origin }, origin);
+    var communicator = new Communicator({window: window.parent, origin: origin}, origin);
 
     // When the page has successfully loaded, notify the host window of it's readiness
-    // TODO possibly switchable to DOMContentLoaded. Do we need to wait for assets to load?
-    // window.addEventListener('load', function () {
-        communicator.publish(Events.GUEST_SITE_LOAD, {
-            /*  TODO Does the host require anything to be provided by the guest?  */
-            location: window.location.href,
-            url: window.location.href.replace(window.location.origin, '')
-        });
-    // }, false);
+    communicator.publish(Events.GUEST_SITE_LOAD, {
+        location: window.location.href,
+        url: window.location.href.replace(window.location.origin, '')
+    });
 
     function loadCss(url) {
         var link = document.createElement("link");
@@ -28,12 +24,10 @@ require(['jquery','preview','amplify','communicator'], function ($) {
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 
-    var $overlay = $('<div class="crafter-studio-ice-overlay" style="display: none;"></div>'),
-        animationEndEvent = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
-        preAnimationRemoveClasses = 'fadeIn fadeOut',
-        fadeInClasses = 'fadeIn',
-        fadeOutClasses = 'fadeOut',
-        count = 0;
+    var count = 0,
+        overlay = new ICEOverlay(),
+        $document = $(document),
+        $window = $(window);
 
     function initICETarget(elem) {
 
@@ -48,14 +42,6 @@ require(['jquery','preview','amplify','communicator'], function ($) {
             left: position.left
         }).appendTo('body');
 
-        $elem.on('mouseover', function (e) {
-
-        });
-
-        $overlay.on('mouseleave', function () {
-
-        });
-
     }
 
     function initICERegions() {
@@ -66,93 +52,71 @@ require(['jquery','preview','amplify','communicator'], function ($) {
         }
     }
 
-    function showOverlay (props) {
-        // $overlay.css(props).fadeIn('fast');
-        $overlay.css(props)
-            .show()
-            .removeClass(preAnimationRemoveClasses)
-            .addClass(fadeInClasses)
-            .one(animationEndEvent, function () {
-                $(this).removeClass(fadeInClasses);
-            });
-    }
-
-    function hideOverlay () {
-        // $overlay.fadeOut('fast');
-        $overlay
-            .removeClass(preAnimationRemoveClasses)
-            .addClass(fadeOutClasses)
-            .one(animationEndEvent, function () {
-                var $el = $(this);
-                if (!$el.hasClass(fadeInClasses)) $el.hide();
-                $el.removeClass(fadeOutClasses);
-            });
-    }
-
-    $(document).on('mouseover', '[data-studio-ice]', function (e) {
+    $document.on('mouseover', '[data-studio-ice]', function (e) {
 
     });
 
-    $(document).on('mouseleave', '[data-studio-ice]', function () {
+    $document.on('mouseleave', '[data-studio-ice]', function () {
 
     });
 
-    $(document).on('mouseout', '.crafter-studio-ice-overlay', function () {
+    $document.on('mouseout', '.crafter-studio-ice-overlay', function () {
 
     });
 
-    $(document).on('mouseover', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('mouseover', '.crafter-studio-ice-indicator', function (e) {
 
         var $i = $(this),
             $e = $('[data-studio-ice-target="%@"]'.fmt($i.data('studioIceTrigger'))),
             iceId = $e.data('studioIce');
 
         var position = $e.offset(),
-            props    = {
-                top     : position.top,
-                left    : position.left,
-                width   : $e.width() - 4,
-                height  : $e.height()
+            width = $e.width() - 4, // border-left-width + border-right-width = 4,
+            height = $e.height() - 4, // border-top-width + border-bottom-width = 4
+            props = {
+                top: position.top,
+                left: position.left,
+                width: width,
+                height: height
             };
 
-        showOverlay(props);
+        overlay.show(props);
 
     });
 
-    $(document).on('mouseout', '.crafter-studio-ice-indicator', function (e) {
-        hideOverlay();
+    $document.on('mouseout', '.crafter-studio-ice-indicator', function (e) {
+        overlay.hide();
     });
 
-    $(document).on('click', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('click', '.crafter-studio-ice-indicator', function (e) {
 
         var $i = $(this),
             $e = $('[data-studio-ice-target="%@"]'.fmt($i.data('studioIceTrigger'))),
             iceId = $e.data('studioIce');
 
         var position = $e.offset(),
-            props    = {
-                top     : position.top,
-                left    : position.left,
-                width   : $e.width(),
-                height  : $e.height()
+            props = {
+                top: position.top,
+                left: position.left,
+                width: $e.width(),
+                height: $e.height()
             };
 
-        // $overlay.css(props).show();
+        // overlay.show(props);
 
-        props.iceId      = iceId;
-        props.scrollTop  = $(window).scrollTop();
-        props.scrollLeft = $(window).scrollLeft();
+        props.iceId = iceId;
+        props.scrollTop = $window.scrollTop();
+        props.scrollLeft = $window.scrollLeft();
 
         communicator.publish(Events.ICE_ZONE_ON, props);
 
     });
 
-    $(window).resize(function () {
+    $window.resize(function () {
         initICERegions();
     });
 
     loadCss('/studio/static-assets/styles/studio-guest.css');
-    $overlay.appendTo('body');
     initICERegions();
 
 });
