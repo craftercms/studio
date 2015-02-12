@@ -157,35 +157,27 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
 			
 			for(var j=0; j<navConfig.modules.length; j++) {
 		    	var moduleContainerEl = document.createElement("div");
-
 		    	containerEl.appendChild(moduleContainerEl);
 		    	containersEls[j] = moduleContainerEl;
 			}
-			
-			for(var i=0; i<navConfig.modules.length; i++) {
-				var module = navConfig.modules[i];
-				 
-				var cb = {
-					moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
-						try {
-							this.context.buildModule(this.containerEl, moduleClass, moduleConfig);
 
-						    moduleClass.initialize(moduleConfig);
-						} catch (e) {
-						    // in preview, this function undefined raises error -- unlike dashboard.
-						    // I agree, not a good solution!
-						}
-					},
-					
-					context: this,
-					containerEl: containersEls[i]
-				};
-				
-                CStudioAuthoring.Module.requireModule(
-                    module.moduleName,
+            for (var i = 0; i < navConfig.modules[0].length; i++) {
+				var module = navConfig.modules[0][i];
+                CStudioAuthoring.Module.requireModule(module.moduleName,
                     '/static-assets/components/cstudio-preview-tools/mods/' + module.moduleName + ".js",
-                    { config: module },
-                    cb
+                    { config: module }, {
+                        context: this,
+                        containerEl: containersEls[i],
+                        moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
+                            try {
+                                this.context.buildModule(this.containerEl, moduleClass, moduleConfig);
+                                moduleClass.initialize(moduleConfig);
+                            } catch (e) {
+                                // in preview, this function undefined raises error -- unlike dashboard.
+                                // I agree, not a good solution!
+                            }
+                        }
+                    }
                 );
 			}
 		}

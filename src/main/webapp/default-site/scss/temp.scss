@@ -246,10 +246,18 @@ div#acn-active-content {
 }
 
 #acn-preview-tools-container {
-  padding: 4px 12px 5px 8px;
-  cusor: pointer;
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y scroll right center transparent;
   cursor: pointer;
+  padding: 13px 5px 19px;
+}
+
+#acn-persona-container {
+  padding: 12px 5px;
+}
+
+#acn-persona-image {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
 }
 
 #acn-preview-tools-image {

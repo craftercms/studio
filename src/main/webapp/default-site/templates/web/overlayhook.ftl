@@ -8,7 +8,6 @@ requirejs.config({
 require(['guest'], function () {
 
     /*
-    var YEvent = YAHOO.util.Event;
 
     CStudioAuthoringContext = {
         user: "${envConfig.user!'UNSET1'}",

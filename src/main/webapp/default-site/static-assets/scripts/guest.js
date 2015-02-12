@@ -52,7 +52,7 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
         }
     }
 
-    $document.on('mouseover', '[data-studio-ice]', function (e) {
+    /*$document.on('mouseover', '[data-studio-ice]', function (e) {
 
     });
 
@@ -62,7 +62,7 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
 
     $document.on('mouseout', '.crafter-studio-ice-overlay', function () {
 
-    });
+    });*/
 
     $document.on('mouseover', '.crafter-studio-ice-indicator', function (e) {
 
