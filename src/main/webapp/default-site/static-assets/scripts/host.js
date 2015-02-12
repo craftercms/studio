@@ -57,11 +57,13 @@
             CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
         }
 
-        // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
-        if (win.src.replace(origin, '') !== hash.page &&
-            win.contentWindow.location.href.replace(origin, '') !== hash.page) {
-            win.src = hash.page;
-        }
+        setTimeout(function () {
+            // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
+            if (win.src.replace(origin, '') !== hash.page &&
+                win.contentWindow.location.href.replace(origin, '') !== hash.page) {
+                win.src = hash.page;
+            }
+        });
 
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, '/site/website/index.xml', {
             success: function(content) {

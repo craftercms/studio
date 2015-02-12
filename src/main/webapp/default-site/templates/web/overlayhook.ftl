@@ -5,11 +5,7 @@ requirejs.config({
     }
 });
 
-require([
-    'preview','amplify','communicator','guest'
-], function () {
-
-    // console.log('require-loaded.js');
+require(['guest'], function () {
 
     /*
     var YEvent = YAHOO.util.Event;

@@ -3339,11 +3339,11 @@ textarea {
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_scaffolding\.scss}line{font-family:\0000348}}
 a {
-  color: #337ab7;
+  color: #7e9dbb;
   text-decoration: none; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_scaffolding\.scss}line{font-family:\0000352}}
   a:hover, a:focus {
-    color: #23527c;
+    color: #52779b;
     text-decoration: underline; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_scaffolding\.scss}line{font-family:\0000358}}
   a:focus {
@@ -3564,11 +3564,11 @@ mark,
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_text-emphasis\.scss}line{font-family:\000035}}
 .text-primary {
-  color: #337ab7; }
+  color: #7e9dbb; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_text-emphasis\.scss}line{font-family:\000038}}
 a.text-primary:hover {
-  color: #286090; }
+  color: #5d84a9; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_text-emphasis\.scss}line{font-family:\000035}}
 .text-success {
@@ -3608,11 +3608,11 @@ a.text-danger:hover {
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_background-variant\.scss}line{font-family:\000035}}
 .bg-primary {
-  background-color: #337ab7; }
+  background-color: #7e9dbb; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_background-variant\.scss}line{font-family:\000038}}
 a.bg-primary:hover {
-  background-color: #286090; }
+  background-color: #5d84a9; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_background-variant\.scss}line{font-family:\000035}}
 .bg-success {
@@ -3786,19 +3786,19 @@ address {
   font-style: normal;
   line-height: 1.42857; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000314}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000311}}
 .text-center {
   text-align: center !important; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000318}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000315}}
 .text-right {
   text-align: right !important; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000322}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000319}}
 .mb10 {
   margin-bottom: 10px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000326}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000323}}
 .site-dashboard {
   padding-top: 51px; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_clearfix\.scss}line{font-family:\0000314}}
@@ -3808,34 +3808,34 @@ address {
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_clearfix\.scss}line{font-family:\0000319}}
   .site-dashboard .panel .panel-heading:after {
     clear: both; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000331}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000328}}
   .site-dashboard .panel .panel-heading .panel-title {
     float: left;
     line-height: 27px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000334}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000331}}
     .site-dashboard .panel .panel-heading .panel-title, .site-dashboard .panel .panel-heading .panel-title * {
       font-size: 14px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000338}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000335}}
   .site-dashboard .panel .panel-heading .widget-controls {
     margin: 0;
     float: right; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000342}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000339}}
     .site-dashboard .panel .panel-heading .widget-controls [maxlength] {
       width: 50px;
       text-align: center; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000348}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000345}}
   .site-dashboard .panel [id*="-body"] table {
     margin: 0; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000351}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000348}}
   .site-dashboard .panel .dashlet-item-check {
     margin-right: 5px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000357}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\0000354}}
 .site-dashboard-footer {
   padding: 20px 0; }
 
 @font-face {
-  /* line 61, _studio-view.scss */
+  /* line 58, _studio-view.scss */
   .studio-view,
   .studio-dialog,
   .site-dashboard {
@@ -7838,8 +7838,8 @@ address {
 .studio-dialog .btn-primary,
 .site-dashboard .btn-primary {
   color: white;
-  background-color: #337ab7;
-  border-color: #2e6da4; }
+  background-color: #7e9dbb;
+  border-color: #6d90b2; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000311}}
   .studio-view .btn-primary:hover, .studio-view .btn-primary:focus, .studio-view .btn-primary.focus, .studio-view .btn-primary:active, .studio-view .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle,
   .studio-dialog .btn-primary:hover,
@@ -7855,8 +7855,8 @@ address {
   .site-dashboard .btn-primary.active, .open >
   .site-dashboard .btn-primary.dropdown-toggle {
     color: white;
-    background-color: #286090;
-    border-color: #204d74; }
+    background-color: #5d84a9;
+    border-color: #4e7294; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000321}}
   .studio-view .btn-primary:active, .studio-view .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle,
   .studio-dialog .btn-primary:active,
@@ -7904,13 +7904,13 @@ address {
   .site-dashboard .btn-primary.focus, fieldset[disabled]
   .site-dashboard .btn-primary:active, fieldset[disabled]
   .site-dashboard .btn-primary.active {
-    background-color: #337ab7;
-    border-color: #2e6da4; }
+    background-color: #7e9dbb;
+    border-color: #6d90b2; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000340}}
   .studio-view .btn-primary .badge,
   .studio-dialog .btn-primary .badge,
   .site-dashboard .btn-primary .badge {
-    color: #337ab7;
+    color: #7e9dbb;
     background-color: white; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_buttons\.scss}line{font-family:\0000367}}
 .studio-view .btn-success,
@@ -8154,8 +8154,8 @@ address {
 .studio-dialog .btn-danger,
 .site-dashboard .btn-danger {
   color: white;
-  background-color: #d9534f;
-  border-color: #d43f3a; }
+  background-color: #ed1c24;
+  border-color: #de1219; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000311}}
   .studio-view .btn-danger:hover, .studio-view .btn-danger:focus, .studio-view .btn-danger.focus, .studio-view .btn-danger:active, .studio-view .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle,
   .studio-dialog .btn-danger:hover,
@@ -8171,8 +8171,8 @@ address {
   .site-dashboard .btn-danger.active, .open >
   .site-dashboard .btn-danger.dropdown-toggle {
     color: white;
-    background-color: #c9302c;
-    border-color: #ac2925; }
+    background-color: #c61017;
+    border-color: #a50d13; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000321}}
   .studio-view .btn-danger:active, .studio-view .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle,
   .studio-dialog .btn-danger:active,
@@ -8220,19 +8220,19 @@ address {
   .site-dashboard .btn-danger.focus, fieldset[disabled]
   .site-dashboard .btn-danger:active, fieldset[disabled]
   .site-dashboard .btn-danger.active {
-    background-color: #d9534f;
-    border-color: #d43f3a; }
+    background-color: #ed1c24;
+    border-color: #de1219; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_buttons\.scss}line{font-family:\0000340}}
   .studio-view .btn-danger .badge,
   .studio-dialog .btn-danger .badge,
   .site-dashboard .btn-danger .badge {
-    color: #d9534f;
+    color: #ed1c24;
     background-color: white; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_buttons\.scss}line{font-family:\0000388}}
 .studio-view .btn-link,
 .studio-dialog .btn-link,
 .site-dashboard .btn-link {
-  color: #337ab7;
+  color: #7e9dbb;
   font-weight: normal;
   border-radius: 0; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_buttons\.scss}line{font-family:\0000393}}
@@ -8267,7 +8267,7 @@ address {
   .studio-dialog .btn-link:focus,
   .site-dashboard .btn-link:hover,
   .site-dashboard .btn-link:focus {
-    color: #23527c;
+    color: #52779b;
     text-decoration: underline;
     background-color: transparent; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_buttons\.scss}line{font-family:\00003115}}
@@ -8472,7 +8472,7 @@ address {
   color: white;
   text-decoration: none;
   outline: 0;
-  background-color: #337ab7; }
+  background-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_dropdowns\.scss}line{font-family:\00003101}}
 .studio-view .dropdown-menu > .disabled > a, .studio-view .dropdown-menu > .disabled > a:hover, .studio-view .dropdown-menu > .disabled > a:focus,
 .studio-dialog .dropdown-menu > .disabled > a,
@@ -9168,7 +9168,7 @@ address {
   .site-dashboard .nav .open > a:hover,
   .site-dashboard .nav .open > a:focus {
     background-color: #eeeeee;
-    border-color: #337ab7; }
+    border-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_navs\.scss}line{font-family:\0000359}}
   .studio-view .nav .nav-divider,
   .studio-dialog .nav .nav-divider,
@@ -9243,7 +9243,7 @@ address {
   .site-dashboard .nav-pills > li.active > a:hover,
   .site-dashboard .nav-pills > li.active > a:focus {
     color: white;
-    background-color: #337ab7; }
+    background-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_navs\.scss}line{font-family:\00003144}}
 .studio-view .nav-stacked > li,
 .studio-dialog .nav-stacked > li,
@@ -10273,7 +10273,7 @@ address {
       padding: 6px 12px;
       line-height: 1.42857;
       text-decoration: none;
-      color: #337ab7;
+      color: #7e9dbb;
       background-color: white;
       border: 1px solid #dddddd;
       margin-left: -1px; }
@@ -10308,7 +10308,7 @@ address {
   .site-dashboard .pagination > li > a:focus,
   .site-dashboard .pagination > li > span:hover,
   .site-dashboard .pagination > li > span:focus {
-    color: #23527c;
+    color: #52779b;
     background-color: #eeeeee;
     border-color: #dddddd; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_pagination\.scss}line{font-family:\0000351}}
@@ -10330,8 +10330,8 @@ address {
   .site-dashboard .pagination > .active > span:focus {
     z-index: 2;
     color: white;
-    background-color: #337ab7;
-    border-color: #337ab7;
+    background-color: #7e9dbb;
+    border-color: #7e9dbb;
     cursor: default; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_pagination\.scss}line{font-family:\0000363}}
   .studio-view .pagination > .disabled > span,
@@ -10539,14 +10539,14 @@ address {
 .studio-view .label-primary,
 .studio-dialog .label-primary,
 .site-dashboard .label-primary {
-  background-color: #337ab7; }
+  background-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_labels\.scss}line{font-family:\000037}}
   .studio-view .label-primary[href]:hover, .studio-view .label-primary[href]:focus,
   .studio-dialog .label-primary[href]:hover,
   .studio-dialog .label-primary[href]:focus,
   .site-dashboard .label-primary[href]:hover,
   .site-dashboard .label-primary[href]:focus {
-    background-color: #286090; }
+    background-color: #5d84a9; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_labels\.scss}line{font-family:\0000352}}
 .studio-view .label-success,
 .studio-dialog .label-success,
@@ -10587,14 +10587,14 @@ address {
 .studio-view .label-danger,
 .studio-dialog .label-danger,
 .site-dashboard .label-danger {
-  background-color: #d9534f; }
+  background-color: #ed1c24; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_labels\.scss}line{font-family:\000037}}
   .studio-view .label-danger[href]:hover, .studio-view .label-danger[href]:focus,
   .studio-dialog .label-danger[href]:hover,
   .studio-dialog .label-danger[href]:focus,
   .site-dashboard .label-danger[href]:hover,
   .site-dashboard .label-danger[href]:focus {
-    background-color: #c9302c; }
+    background-color: #c61017; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_badges\.scss}line{font-family:\000037}}
 .studio-view .badge,
 .studio-dialog .badge,
@@ -10646,7 +10646,7 @@ address {
   .studio-dialog .badge, .list-group-item.active >
   .site-dashboard .badge, .nav-pills > .active > a >
   .site-dashboard .badge {
-    color: #337ab7;
+    color: #7e9dbb;
     background-color: white; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_badges\.scss}line{font-family:\0000344}}
   .list-group-item > .studio-view .badge, .list-group-item >
@@ -10786,7 +10786,7 @@ address {
 .site-dashboard a.thumbnail:hover,
 .site-dashboard a.thumbnail:focus,
 .site-dashboard a.thumbnail.active {
-  border-color: #337ab7; }
+  border-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_alerts\.scss}line{font-family:\000039}}
 .studio-view .alert,
 .studio-dialog .alert,
@@ -10950,7 +10950,7 @@ address {
   line-height: 17px;
   color: white;
   text-align: center;
-  background-color: #337ab7;
+  background-color: #7e9dbb;
   -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   -webkit-transition: width 0.6s ease;
@@ -11017,7 +11017,7 @@ address {
 .studio-view .progress-bar-danger,
 .studio-dialog .progress-bar-danger,
 .site-dashboard .progress-bar-danger {
-  background-color: #d9534f; }
+  background-color: #ed1c24; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_progress-bar\.scss}line{font-family:\000037}}
   .progress-striped .studio-view .progress-bar-danger, .progress-striped
   .studio-dialog .progress-bar-danger, .progress-striped
@@ -11172,8 +11172,8 @@ address {
 .site-dashboard .list-group-item.active:focus {
   z-index: 2;
   color: white;
-  background-color: #337ab7;
-  border-color: #337ab7; }
+  background-color: #7e9dbb;
+  border-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_list-group\.scss}line{font-family:\0000390}}
   .studio-view .list-group-item.active .list-group-item-heading,
   .studio-view .list-group-item.active .list-group-item-heading > small,
@@ -11209,7 +11209,7 @@ address {
   .site-dashboard .list-group-item.active .list-group-item-text,
   .site-dashboard .list-group-item.active:hover .list-group-item-text,
   .site-dashboard .list-group-item.active:focus .list-group-item-text {
-    color: #c7ddef; }
+    color: white; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_list-group\.scss}line{font-family:\000034}}
 .studio-view .list-group-item-success,
 .studio-dialog .list-group-item-success,
@@ -11882,30 +11882,30 @@ address {
 .studio-view .panel-primary,
 .studio-dialog .panel-primary,
 .site-dashboard .panel-primary {
-  border-color: #337ab7; }
+  border-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_panels\.scss}line{font-family:\000036}}
   .studio-view .panel-primary > .panel-heading,
   .studio-dialog .panel-primary > .panel-heading,
   .site-dashboard .panel-primary > .panel-heading {
     color: white;
-    background-color: #337ab7;
-    border-color: #337ab7; }
+    background-color: #7e9dbb;
+    border-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_panels\.scss}line{font-family:\0000311}}
     .studio-view .panel-primary > .panel-heading + .panel-collapse > .panel-body,
     .studio-dialog .panel-primary > .panel-heading + .panel-collapse > .panel-body,
     .site-dashboard .panel-primary > .panel-heading + .panel-collapse > .panel-body {
-      border-top-color: #337ab7; }
+      border-top-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_panels\.scss}line{font-family:\0000314}}
     .studio-view .panel-primary > .panel-heading .badge,
     .studio-dialog .panel-primary > .panel-heading .badge,
     .site-dashboard .panel-primary > .panel-heading .badge {
-      color: #337ab7;
+      color: #7e9dbb;
       background-color: white; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/mixins\/_panels\.scss}line{font-family:\0000320}}
   .studio-view .panel-primary > .panel-footer + .panel-collapse > .panel-body,
   .studio-dialog .panel-primary > .panel-footer + .panel-collapse > .panel-body,
   .site-dashboard .panel-primary > .panel-footer + .panel-collapse > .panel-body {
-    border-bottom-color: #337ab7; }
+    border-bottom-color: #7e9dbb; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/bootstrap-sass-official\/assets\/stylesheets\/bootstrap\/_panels\.scss}line{font-family:\00003250}}
 .studio-view .panel-success,
 .studio-dialog .panel-success,
@@ -12983,7 +12983,7 @@ address {
 .site-dashboard .affix {
   position: fixed; }
 @-ms-viewport {
-  /* line 61, _studio-view.scss */
+  /* line 58, _studio-view.scss */
   .studio-view,
   .studio-dialog,
   .site-dashboard {
@@ -13297,52 +13297,54 @@ address {
   .studio-dialog .hidden-print,
   .site-dashboard .hidden-print {
     display: none !important; } }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003109}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003106}}
 .studio-view .row.unpad,
 .studio-dialog .row.unpad,
 .site-dashboard .row.unpad {
   margin-left: 0;
   margin-right: 0; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003114}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003111}}
   .studio-view .row.unpad > [class|="col"],
   .studio-dialog .row.unpad > [class|="col"],
   .site-dashboard .row.unpad > [class|="col"] {
     padding: 0; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003127}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003124}}
 .studio-view .view-title,
 .studio-dialog .view-title {
   margin: 0 0 5px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003131}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003128}}
 .studio-view .view-caption,
 .studio-dialog .view-caption {
   margin: 0 0 20px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003135}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003132}}
 .studio-view table.item-listing,
 .studio-dialog table.item-listing {
-  width: 100%; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003139}}
+  width: 100%;
+  overflow: hidden;
+  border-radius: 4px; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003142}}
   .studio-view table.item-listing th, .studio-view table.item-listing td,
   .studio-dialog table.item-listing th,
   .studio-dialog table.item-listing td {
     padding: 5px 10px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003143}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003146}}
   .studio-view table.item-listing th,
   .studio-dialog table.item-listing th {
     color: #fff;
     background-color: #7e9dbb; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003148}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003151}}
   .studio-view table.item-listing td,
   .studio-dialog table.item-listing td {
     background-color: #fff; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003158}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003161}}
 .studio-dialog > .yui-panel {
   border: none; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003159}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003162}}
 .studio-dialog .hd {
   display: none; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003161}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/_studio-view\.scss}line{font-family:\00003164}}
 .studio-dialog .modal-body {
   background-color: #f2f2f2; }
 

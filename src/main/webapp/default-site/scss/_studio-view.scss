@@ -1,8 +1,5 @@
 
-$font-size-base: 12px;
-
-// Core variables and mixins
-@import "bootstrap-sass-official/assets/stylesheets/bootstrap/variables";
+@import "variables";
 @import "bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
 
 // Reset and dependencies
@@ -135,6 +132,12 @@ $font-size-base: 12px;
   table.item-listing {
 
     width: 100%;
+    overflow: hidden;
+    border-radius: $border-radius-base;
+
+    tr {
+
+    }
 
     th, td {
       padding: 5px 10px;
@@ -142,7 +145,7 @@ $font-size-base: 12px;
 
     th {
       color: #fff;
-      background-color: #7e9dbb;
+      background-color: $brand-primary;
     }
 
     td {
