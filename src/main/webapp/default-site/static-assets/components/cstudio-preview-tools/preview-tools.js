@@ -3,25 +3,25 @@
  */
 CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
 
-	initialized: false,
-	panel: null,
-	firstRender: true,
-	PreviewToolsOffEvent: new YAHOO.util.CustomEvent("cstudio-preview-tools-off", CStudioAuthoring),
-	PreviewToolsOnEvent: new YAHOO.util.CustomEvent("cstudio-preview-tools-on", CStudioAuthoring),
-	
-	/**
-	 * initialize module
-	 */
-	initialize: function(config) {
+    initialized: false,
+    panel: null,
+    firstRender: true,
+    PreviewToolsOffEvent: new YAHOO.util.CustomEvent("cstudio-preview-tools-off", CStudioAuthoring),
+    PreviewToolsOnEvent: new YAHOO.util.CustomEvent("cstudio-preview-tools-on", CStudioAuthoring),
 
-	    var panelEl, that, ptoOn, ptoLeft, ptoTop;
+    /**
+     * initialize module
+     */
+    initialize: function(config) {
 
-		if(!this.initialized) {
+        var panelEl, that, ptoOn, ptoLeft, ptoTop;
+
+        if(!this.initialized) {
 
             that = this;
-			panelEl = document.createElement("div");
-			panelEl.id = "preview-tools-panel-container";
-			ptoOn = !!(sessionStorage.getItem('pto-on'));   // cast string value to a boolean
+            panelEl = document.createElement("div");
+            panelEl.id = "preview-tools-panel-container";
+            ptoOn = !!(sessionStorage.getItem('pto-on'));   // cast string value to a boolean
 
             if (!ptoOn) {
                 // There are no preferences set yet. Store default values.
@@ -35,88 +35,86 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
                 ptoTop = +(sessionStorage.getItem('pto-top'));      // cast string value to a number
             }
 
-			document.body.appendChild(panelEl);
+            document.body.appendChild(panelEl);
 
-			var panel =  
-				new YAHOO.widget.Panel("preview-tools-panel-container",  
-					{ width: "250px",
-					  close: false,
-					  constraintoviewport: true,
-					  draggable: true,
-					  zindex: 999999,
-					  modal: false,
-					  visible: false,
-					  x: ptoLeft,
-					  y: ptoTop,
-					  autofillheight: null
-					} 
-				);
+            var panel = new YAHOO.widget.Panel("preview-tools-panel-container", {
+                width: "250px",
+                close: false,
+                constraintoviewport: true,
+                draggable: true,
+                zindex: 999999,
+                modal: false,
+                visible: false,
+                x: ptoLeft,
+                y: ptoTop,
+                autofillheight: null
+            });
 
-			panel.moveEvent.subscribe(function(){
-			        that.updateLocationPrefs.call(that);
-			    });
+            panel.moveEvent.subscribe(function(){
+                that.updateLocationPrefs.call(that);
+            });
 
-			YAHOO.widget.Overlay.windowResizeEvent.subscribe( function(){
-			    CStudioAuthoring.PreviewTools.panelCheckBounds.call(CStudioAuthoring.PreviewTools);
-			});
+            YAHOO.widget.Overlay.windowResizeEvent.subscribe( function(){
+                CStudioAuthoring.PreviewTools.panelCheckBounds.call(CStudioAuthoring.PreviewTools);
+            });
 
-			panel.setHeader("Preview Tools");
-			panel.render();
+            panel.setHeader("Preview Tools");
+            panel.render();
 
-			CStudioAuthoring.Service.lookupConfigurtion(
-					CStudioAuthoringContext.site, 
-					"/preview-tools/panel.xml", 
-					{
-						success: function(config) {
-                            var panelEl = document.getElementById("preview-tools-panel-container_c");
-                            panelEl.style.position = "fixed";   // This will keep the overlay fixed even when the user scrolls down the page
+            CStudioAuthoring.Service.lookupConfigurtion(
+                CStudioAuthoringContext.site,
+                "/preview-tools/panel.xml",
+                {
+                    success: function(config) {
+                        var panelEl = document.getElementById("preview-tools-panel-container_c");
+                        panelEl.style.position = "fixed";   // This will keep the overlay fixed even when the user scrolls down the page
 
-                            this.context.buildModules(config);
+                        this.context.buildModules(config);
 
-                            if(ptoOn){
-                                this.context.turnToolsOn();
-                            } else {
-                                this.context.turnToolsOff();
-                            }
-						},
-					
-						failure: function() {
-						},
-					
-						context: this
-				});
+                        if(ptoOn){
+                            this.context.turnToolsOn();
+                        } else {
+                            this.context.turnToolsOff();
+                        }
+                    },
 
-			this.panel = panel;
-			this.initialized = true;
-		};
-	},
+                    failure: function() {
+                    },
 
-	turnToolsOn: function() {
+                    context: this
+                });
 
-		this.panelCheckBounds();
-		this.panel.show();
-		sessionStorage.setItem('pto-on', "on");
-	
-		this.PreviewToolsOnEvent.fire();
-	},
+            this.panel = panel;
+            this.initialized = true;
+        };
+    },
 
-	turnToolsOff: function() {
+    turnToolsOn: function() {
 
-		this.panel.hide();
-		sessionStorage.setItem('pto-on', "");  // empty string value so that when we cast it to boolean we get false
+        this.panelCheckBounds();
+        this.panel.show();
+        sessionStorage.setItem('pto-on', "on");
 
-		this.PreviewToolsOffEvent.fire();
-	},
+        this.PreviewToolsOnEvent.fire();
+    },
+
+    turnToolsOff: function() {
+
+        this.panel.hide();
+        sessionStorage.setItem('pto-on', "");  // empty string value so that when we cast it to boolean we get false
+
+        this.PreviewToolsOffEvent.fire();
+    },
 
     /*
      * Update the panel's location preferences based on the panel's current coordinates.
      */
-	updateLocationPrefs: function() {
-	    var panelXYvalues = this.panel.cfg.config.xy.value;
+    updateLocationPrefs: function() {
+        var panelXYvalues = this.panel.cfg.config.xy.value;
 
-	    sessionStorage.setItem('pto-left', panelXYvalues[0]);
+        sessionStorage.setItem('pto-left', panelXYvalues[0]);
         sessionStorage.setItem('pto-top', panelXYvalues[1]);
-	},
+    },
 
     /*
      * Keep the panel within the horizontal limits of the window.
@@ -144,25 +142,25 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
      * given a dropdown configuration, build the nav
      */
     buildModules: function(navConfig) {
-		
-    	var containerEl = document.getElementById("preview-tools-panel-container");
-    	containerEl.style.height = "auto";
-    	
-    	if(navConfig.modules.module) {
-    		navConfig.modules = [ navConfig.modules.module ];
-    	}
-    	
-		if(navConfig.modules.length) {
-			var containersEls = [];
-			
-			for(var j=0; j<navConfig.modules.length; j++) {
-		    	var moduleContainerEl = document.createElement("div");
-		    	containerEl.appendChild(moduleContainerEl);
-		    	containersEls[j] = moduleContainerEl;
-			}
+
+        var containerEl = document.getElementById("preview-tools-panel-container");
+        containerEl.style.height = "auto";
+
+        if(navConfig.modules.module) {
+            navConfig.modules = [ navConfig.modules.module ];
+        }
+
+        if(navConfig.modules.length) {
+            var containersEls = [];
+
+            for(var j=0; j<navConfig.modules.length; j++) {
+                var moduleContainerEl = document.createElement("div");
+                containerEl.appendChild(moduleContainerEl);
+                containersEls[j] = moduleContainerEl;
+            }
 
             for (var i = 0; i < navConfig.modules[0].length; i++) {
-				var module = navConfig.modules[0][i];
+                var module = navConfig.modules[0][i];
                 CStudioAuthoring.Module.requireModule(module.moduleName,
                     '/static-assets/components/cstudio-preview-tools/mods/' + module.moduleName + ".js",
                     { config: module }, {
@@ -179,61 +177,61 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
                         }
                     }
                 );
-			}
-		}
+            }
+        }
     },
-    
-    buildModule: function(containerEl, moduleClass, moduleConfig) {
-    	var moduleEl = document.createElement("div"),
-    	    headerEl = document.createElement("div"),
-    	    toggleEl = document.createElement("a"),
-    	    panelEl = document.createElement("div");
 
-    	var toggleFn = function(e) {
+    buildModule: function(containerEl, moduleClass, moduleConfig) {
+        var moduleEl = document.createElement("div"),
+            headerEl = document.createElement("div"),
+            toggleEl = document.createElement("a"),
+            panelEl = document.createElement("div");
+
+        var toggleFn = function(e) {
             YEvent.preventDefault(e);
 
             if(YDom.hasClass(moduleEl, 'contracted')) {
                 YDom.replaceClass(moduleEl, 'contracted', 'expanded');
 
-	            if(!panelEl._csExpanded) {
-					// only call this once
-					panelEl._csExpanded = true;
-	        		if(moduleClass.firstExpand) {
-	        			moduleClass.firstExpand(panelEl, moduleConfig.config);  
-	        		}	        		
-	            }
+                if(!panelEl._csExpanded) {
+                    // only call this once
+                    panelEl._csExpanded = true;
+                    if(moduleClass.firstExpand) {
+                        moduleClass.firstExpand(panelEl, moduleConfig.config);
+                    }
+                }
 
-        		if(moduleClass.expand) {
-	        		moduleClass.expand(panelEl, moduleConfig.config);   
-        		}
+                if(moduleClass.expand) {
+                    moduleClass.expand(panelEl, moduleConfig.config);
+                }
 
             } else {
                 YDom.replaceClass(moduleEl, 'expanded', 'contracted');
                 if(moduleClass.collapse) {
-	                moduleClass.collapse(panelEl, moduleConfig.config);
+                    moduleClass.collapse(panelEl, moduleConfig.config);
                 }
             }
         };
 
-		moduleClass.toggleFn = toggleFn;
-		
-    	// create the header for a module
-    	YDom.addClass(moduleEl, "contracted");
-    	YDom.addClass(headerEl, "acn-accordion-header");
-    	YDom.addClass(toggleEl, "acn-accordion-toggle");
-    	YDom.addClass(panelEl, "acn-accordion-panel");
+        moduleClass.toggleFn = toggleFn;
+
+        // create the header for a module
+        YDom.addClass(moduleEl, "contracted");
+        YDom.addClass(headerEl, "acn-accordion-header");
+        YDom.addClass(toggleEl, "acn-accordion-toggle");
+        YDom.addClass(panelEl, "acn-accordion-panel");
 
         toggleEl.href = "#";
-    	toggleEl.innerHTML = moduleConfig.config.title;
-    	headerEl.appendChild(toggleEl);
+        toggleEl.innerHTML = moduleConfig.config.title;
+        headerEl.appendChild(toggleEl);
 
-    	containerEl.appendChild(moduleEl);
-    	moduleEl.appendChild(headerEl);
-    	moduleEl.appendChild(panelEl);
-    	
-    	toggleEl.onclick = toggleFn;
-    	moduleClass.render(panelEl, moduleConfig.config);
+        containerEl.appendChild(moduleEl);
+        moduleEl.appendChild(headerEl);
+        moduleEl.appendChild(panelEl);
+
+        toggleEl.onclick = toggleFn;
+        moduleClass.render(panelEl, moduleConfig.config);
     }
-}
+};
 
 CStudioAuthoring.Module.moduleLoaded("preview-tools-controller", CStudioAuthoring.PreviewTools);
