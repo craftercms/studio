@@ -1,10 +1,6 @@
-$crimson: #ED1C24;
 
-$class-prefix: 'crafter-studio' !default;
-
-$ice-class-prefix: $class-prefix + '-ice' !default;
-$ice-attribute-name: 'data-studio-ice' !default;
-$ice-indicator-size: 20px !default;
+@import "variables";
+@import "animate";
 
 /* Structural & Behavioural Styles */
 
@@ -18,6 +14,7 @@ $ice-indicator-size: 20px !default;
 }
 
 .#{$ice-class-prefix}-overlay {
+  @extend .animated;
   position: absolute;
   border-style: solid;
   border-width: 2px;
@@ -36,10 +33,10 @@ $ice-indicator-size: 20px !default;
 /* Look & feel / Theme Styles */
 
 .#{$ice-class-prefix}-overlay {
-  border-color: $crimson;
-  box-shadow: rgba($crimson, .4) 0 10px 5px;
+  border-color: $brand-danger;
+  box-shadow: inset 0 0 10px 5px rgba($brand-danger, .4);
 }
 
 .#{$ice-class-prefix}-indicator {
-  background-color: rgba(#fff, .5);
+  background-color: rgba(#fff, .7);
 }

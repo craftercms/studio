@@ -17,12 +17,13 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 			this.initialized = true;
 				
 			var dropdownInnerEl = config.containerEl;
-			
 			var siteSelectorEl = document.createElement("select");
 			siteSelectorEl.id = "acn-site-dropdown";
-			siteSelectorEl.style.height = "20px";
-			
-			dropdownInnerEl.appendChild(siteSelectorEl);
+
+            YDom.addClass(dropdownInnerEl, 'studio-view');
+            YDom.addClass(siteSelectorEl, 'form-control');
+
+            dropdownInnerEl.appendChild(siteSelectorEl);
 
 			/* check first child of dropdown element,
 			 * site select drop down should alway at top.

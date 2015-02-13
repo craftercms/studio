@@ -126,7 +126,7 @@
                 //set height 20px lesser to accomadate space for dependency warning string.
                 oBodyDiv.style.height = "178px";
             }
-            this.getComponent("table.dependencies-table").innerHTML = html.join("");
+            this.getComponent("table.item-listing tbody").innerHTML = html.join("");
             items.length && this.initCheckRules();
             this.updateSubmitButton();
         },

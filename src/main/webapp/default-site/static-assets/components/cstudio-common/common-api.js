@@ -4332,7 +4332,9 @@ var YEvent = YAHOO.util.Event;
                     var newScript = document.createElement('script');
                     newScript.type = 'text/javascript';
                     newScript.src = script;
-                    headID.appendChild(newScript);
+                    if (script.indexOf('undefined.js') === -1) {
+                        headID.appendChild(newScript);
+                    }
                 }
             },
             /**

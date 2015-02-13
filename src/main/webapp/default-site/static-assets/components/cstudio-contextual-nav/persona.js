@@ -49,48 +49,44 @@ CStudioAuthoring.ContextualNav.PersonaNavMod = CStudioAuthoring.ContextualNav.Pe
 									CStudioAuthoring.Service.lookupConfigurtion(
 									CStudioAuthoringContext.site, 
 									"/targeting/personas/personas-config.xml", {
-										success: function(config) {
-											var persona;
+										success: function(response) {
+
+                                            var config;
+                                            var persona;
 											
-											if(!config.length) {
+											/*if(!config.length) {
 												config = [ config.persona ];
-											}
-											
-											for(var i=0; i<config.length; i++) {
-												if(config[i].name.toLowerCase() == currentProfile.username.toLowerCase()) {
-													persona = config[i];
-													break;		
-												}
-											}
-											
-											if(!persona) {
-												for(var i=0; i<config.length; i++) {
-													if(config[i].name.toLowerCase() == "anonymous") {
-														persona = config[i];
-														break;		
-													}
-												}	
-											} 
-											
-											imageEl.style.height = "26px";
-											imageEl.style.width = "26px";
-											imageEl.style.margin = "1px 5px 1px 5px";
-											imageEl.style.border= "1px solid black";
-											imageEl.title = persona.name;
-											
-											imageEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+persona.thumb;
+											}*/
+
+                                            config = response.persona;
+
+                                            for (var i = 0; i < config.length; i++) {
+                                                if (config[i].name.toLowerCase() == currentProfile.username.toLowerCase()) {
+                                                    persona = config[i];
+                                                    break;
+                                                }
+                                            }
+
+                                            if (!persona) {
+                                                for (var i = 0; i < config.length; i++) {
+                                                    if (config[i].name.toLowerCase() == "anonymous") {
+                                                        persona = config[i];
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            imageEl.title = persona.name;
+                                            imageEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/" + persona.thumb;
+
 										},
 										
 										failure: function() {
 										}
 									});
-							}
-							catch(err) {
-							}
+							} catch(err) { }
 						},
-	
-						failure: function(response) {
-						}
+						failure: function(response) {}
 					};
 	
 					YConnect.asyncRequest('GET', serviceUri, serviceCallback);
