@@ -34,4 +34,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
         return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
     }
+
+    def getAvailablePublishingChannelGroups(site, path) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.getAvailablePublishingChannelGroups(site, path);
+    }
 }

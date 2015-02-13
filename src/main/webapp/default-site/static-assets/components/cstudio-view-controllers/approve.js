@@ -22,7 +22,11 @@
 
         loadItems: loadItems,
 
+        loadPublishingChannels: loadPublishingChannels,
+
         renderItems: renderItems,
+
+        populatePublishingOptions: populatePublishingOptions,
 
         submitButtonActionClicked: submit,
 
@@ -76,10 +80,10 @@
     function submit() {
 
         var data = {
-            schedule: this.getComponent('[name="schedulingMode"]:checked').value,
+            scheduledDate: this.getComponent('[name="schedulingMode"]:checked').value,
             submissionComment: this.getComponent('.submission-comment').value,
             publishOptionComment: this.getComponent('.publish-option-comment').value,
-            publishOption: this.getComponent('.publish-option').value,
+            publishChannel: this.getComponent('.publish-option').value,
             items: []
         };
 
@@ -93,28 +97,116 @@
             data.scheduleTime = this.getComponent('[name="scheduleTime"]');
         }
 
-        // TODO submit ajax request to service
+        //this.showProcessingOverlay(true);
+        this.disableActions();
+        this.fire("submitStart");
+        //var data = this.getData(),
+        var _this = this;
+        CStudioAuthoring.Service.request({
+            method: "POST",
+            data: JSON.stringify(data),
+            resetFormState: true,
+            url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-live.json?site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
+            callback: {
+                success: function(oResponse) {
+                    //_this.showProcessingOverlay(false);
+                    _this.enableActions();
+                    var oResp = JSON.parse(oResponse.responseText);
+                    //_this.afterSubmit(oResp.message);
+                    _this.fire("submitEnd", oResp);
+                    _this.fire("submitComplete", oResp);
+                },
+                failure: function(oResponse) {
+                    //_this.showProcessingOverlay(false);
+                    var oResp = JSON.parse(oResponse.responseText);
+                    _this.fire("submitEnd", oResp);
+                    _this.enableActions();
+                }
+            }
+        });
 
     }
 
-    function loadItems() {
+    function loadItems(data) {
         var me = this;
-        // TODO async request to get items from server? ...Or from active content?
-        setTimeout(function () {
-            // Success callback.
-            var responseData = {
-                submissionComment: 'Blah',
-                items: [
-                    { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: 'Now' },
-                    { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: '2015-02-02 5:50pm' }
-                ]
-            };
+        CStudioAuthoring.Service.request({
+            method: "POST",
+            data: CStudioAuthoring.Utils.createContentItemsJson(data),
+            resetFormState: true,
+            url: CStudioAuthoringContext.baseUri + '/api/1/services/api/1/dependency/get-dependencies.json?site='+ CStudioAuthoringContext.site,
+            callback: {
+                success: function(oResponse) {
+                    var respJson = oResponse.responseText;
+                    try {
+                        var dependencies = eval("(" + respJson + ")");
+                        var submissionCommentElem = me.getComponent('.submission-comment');
+                        submissionCommentElem.value = dependencies.submissionComment + ' ' + submissionCommentElem.value;
+                        me.renderItems(dependencies.items);
 
-            var submissionCommentElem = me.getComponent('.submission-comment');
-            submissionCommentElem.value = responseData.submissionComment + ' ' + submissionCommentElem.value;
+                    } catch(err) {
+                        var error = err;
+                    }/*
+                     var responseData = {
+                     submissionComment: 'Blah',
+                     items: [
+                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: 'Now' },
+                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: '2015-02-02 5:50pm' }
+                     ]
+                     };
 
-            me.renderItems(responseData.items);
-        }, 500);
+                     var submissionCommentElem = me.getComponent('.submission-comment');
+                     submissionCommentElem.value = responseData.submissionComment + ' ' + submissionCommentElem.value;
+
+                     me.renderItems(responseData.items);*/
+                },
+                failure: function(oResponse) {
+
+                }
+            }
+        });
+    }
+
+    function loadPublishingChannels() {
+        var me = this;
+        CStudioAuthoring.Service.request({
+            method: "GET",
+            resetFormState: true,
+            url: CStudioAuthoringContext.baseUri + '/api/1/services/api/1/deployment/get-available-publishing-channels.json?site='+ CStudioAuthoringContext.site,
+            callback: {
+                success: function(oResponse) {
+                    var respJson = oResponse.responseText;
+                    var allChannels = eval("(" + respJson + ")");
+                    var channels = allChannels.availablePublishChannels;
+                    /*
+                     var respJson = oResponse.responseText;
+                     try {
+                     var dependencies = eval("(" + respJson + ")");
+                     var submissionCommentElem = me.getComponent('.submission-comment');
+                     submissionCommentElem.value = dependencies.submissionComment + ' ' + submissionCommentElem.value;
+                     me.renderItems(dependencies.items);
+
+                     } catch(err) {
+                     var error = err;
+                     }/*
+                     var responseData = {
+                     submissionComment: 'Blah',
+                     items: [
+                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: 'Now' },
+                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: '2015-02-02 5:50pm' }
+                     ]
+                     };
+
+                     var submissionCommentElem = me.getComponent('.submission-comment');
+                     submissionCommentElem.value = responseData.submissionComment + ' ' + submissionCommentElem.value;
+
+                     me.renderItems(responseData.items);*/
+                    populatePublishingOptions.call(me, channels);
+                },
+                failure: function(oResponse) {
+
+                }
+            }
+        });
     }
 
     function renderItems(items) {
@@ -127,6 +219,14 @@
 
         this.getComponent('tbody').innerHTML = html.join('');
 
+    }
+
+    function populatePublishingOptions(items) {
+        var select = this.getComponent('.publish-option');
+        for (var i = 0, option; i < items.length; ++i) {
+            option = new Option(items[i].name, items[i].name);
+            select.options[i] = option;
+        }
     }
 
 }) (CStudioAuthoring);

@@ -98,6 +98,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>crafter-commons-ebus</artifactId>
+            <version>2.5.0-RC3</version>
+        </dependency>
+
 
         <!-- GOOGLE ANALYTICS -->
         <dependency>

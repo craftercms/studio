@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import javolution.util.FastList;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
@@ -75,7 +74,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<String> updatedPaths = new ArrayList<String>();
         List<String> movedPaths = new ArrayList<String>();
 
-        Map<CopyToEnvironmentItem.Action, List<String>> groupedPaths = new HashMap<CopyToEnvironmentItem.Action, List<String>>();
+        Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
             if (_contentRepository.isNew(site, p)) {
@@ -87,15 +86,44 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
 
-        groupedPaths.put(CopyToEnvironmentItem.Action.NEW, newPaths);
-        groupedPaths.put(CopyToEnvironmentItem.Action.MOVE, movedPaths);
-        groupedPaths.put(CopyToEnvironmentItem.Action.UPDATE, updatedPaths);
+        groupedPaths.put(CopyToEnvironment.Action.NEW, newPaths);
+        groupedPaths.put(CopyToEnvironment.Action.MOVE, movedPaths);
+        groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
 
         // use dal to setup deploy to environment log
         if (!_contentRepository.environmentRepoExists(site, environment)) {
             _contentRepository.createEnvironmentRepo(site, environment);
         }
-        _deploymentDAL.setupItemsToDeploy(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
+        List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
+        for (CopyToEnvironment item : items) {
+            copyToEnvironmentMapper.insertItemForDeployment(item);
+        }
+    }
+
+    private List<CopyToEnvironment> createItems(String site, String environment, Map<String, List<String>> paths, Date scheduledDate, String approver, String submissionComment) {
+        List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
+        for (String action : paths.keySet()) {
+            for (String path : paths.get(action)) {
+                CopyToEnvironment item = new CopyToEnvironment();
+                item.setId(++CTED_AUTOINCREMENT);
+                item.setSite(site);
+                item.setEnvironment(environment);
+                item.setPath(path);
+                item.setScheduledDate(scheduledDate);
+                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+                item.setAction(action);
+                if (_contentRepository.isRenamed(site, path)) {
+                    String oldPath = _contentRepository.getOldPath(site, item.getPath());
+                    item.setOldPath(oldPath);
+                }
+                String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+                item.setContentTypeClass(contentTypeClass);
+                item.setUser(approver);
+                item.setSubmissionComment(submissionComment);
+                newItems.add(item);
+            }
+        }
+        return newItems;
     }
 
     @Override
@@ -192,7 +220,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void cancelWorkflow(String site, String path) throws DeploymentException {
-        _deploymentDAL.cancelWorkflow(site, path);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("now", new Date());
+        copyToEnvironmentMapper.cancelWorkflow(params);
     }
 
     @Override
@@ -201,7 +235,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
         List<DeploymentSyncHistory> deployReports = getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
-        List<DmDeploymentTaskTO> tasks = new FastList<DmDeploymentTaskTO>();
+        List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
             int count = 0;
@@ -248,7 +282,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!filterType.equalsIgnoreCase(CONTENT_TYPE_ALL)) {
             params.put("filter", filterType);
         }
-        return _deploymentSyncHistoryMapper.getDeploymentHistory(params);
+        return deploymentSyncHistoryMapper.getDeploymentHistory(params);
     }
 
     /**
@@ -264,7 +298,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         task.setInternalName(deployedLabel);
         List<ContentItemTO> taskItems = task.getChildren();
         if (taskItems == null) {
-            taskItems = new FastList<ContentItemTO>();
+            taskItems = new ArrayList<ContentItemTO>();
             task.setChildren(taskItems);
         }
         taskItems.add(item);
@@ -492,6 +526,46 @@ public class DeploymentServiceImpl implements DeploymentService {
         return false;
     }
 
+    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path) {
+        List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
+        List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
+        List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
+        for (PublishingChannelTO channelTO : channelsTO) {
+            if (channelTO.isPublish()) {
+                publishChannels.add(channelTO);
+            }
+            if (channelTO.isUpdateStatus()) {
+                updateStatusChannels.add(channelTO);
+            }
+        }
+        Map<String, List<PublishingChannelTO>> result = new HashMap<>();
+        result.put("availablePublishChannels", publishChannels);
+        result.put("availableUpdateStatusChannels", updateStatusChannels);
+        return result;
+    }
+
+    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site, String path) {
+        List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
+        List<String> channels = getPublishingChannels(site);
+        for (String ch : channels) {
+            PublishingChannelTO chTO = new PublishingChannelTO();
+            chTO.setName(ch);
+            chTO.setPublish(true);
+            chTO.setUpdateStatus(false);
+            channelTOs.add(chTO);
+        }
+        return channelTOs;
+    }
+
+    protected List<String> getPublishingChannels(String site) {
+        List<String> channels = new ArrayList<String>();
+        Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigTOs.values()) {
+            channels.add(configTO.getName());
+        }
+        return channels;
+    }
+
     public void setDeploymentDAL(DeploymentDAL deploymentDAL) {
         this._deploymentDAL = deploymentDAL;
     }
@@ -523,6 +597,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
+    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
     protected DeploymentDAL _deploymentDAL;
     protected ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
@@ -531,9 +608,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DmDependencyService dmDependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
+    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
 
     @Autowired
-    protected DeploymentSyncHistoryMapper _deploymentSyncHistoryMapper;
+    protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 }

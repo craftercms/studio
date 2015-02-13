@@ -60,4 +60,6 @@ public interface SiteService {
     DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
 
     Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
+
+    DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
 }

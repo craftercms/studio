@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.deployment;
+
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 import java.util.List;
-import java.util.Map;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+public interface Deployer {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    void deployFile(String site, String path);
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    void deployFiles(String site, List<String> paths);
 
-    void cancelWorkflow(Map params);
+    void deleteFile(String site, String path);
+
+    void deleteFiles(String site, List<String> paths);
+
 }
