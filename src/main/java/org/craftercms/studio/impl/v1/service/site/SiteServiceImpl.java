@@ -375,6 +375,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		return siteFeedMapper.getSites();
 	}
 
+    @Override
+    public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site) {
+        String endpoint = environmentConfig.getPreviewDeploymentEndpoint(site);
+        return getDeploymentEndpoint(site, endpoint);
+    }
+
 	/** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
