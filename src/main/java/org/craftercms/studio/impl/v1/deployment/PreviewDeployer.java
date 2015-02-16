@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.ebus.annotations.EListener;
 import org.craftercms.commons.ebus.annotations.EventHandler;
 import org.craftercms.commons.ebus.annotations.EventSelectorType;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
@@ -129,6 +130,22 @@ public class PreviewDeployer implements Deployer {
         String site = message.getSite();
         String path = message.getPath();
         deployFile(site, path);
+    }
+
+    @EventHandler(
+            event = EBusConstants.REPOSITORY_UPDATE_EVENT,
+            ebus = EBusConstants.REPOSITORY_REACTOR,
+            type = EventSelectorType.REGEX)
+    public void onUpdateContent(final Event<RepositoryEventMessage> event) {
+        try {
+            RepositoryEventMessage message = event.getData();
+            String site = message.getSite();
+            String path = message.getPath();
+            RequestContext.setCurrent(message.getRequestContext());
+            deployFile(site, path);
+        } finally {
+            RequestContext.setCurrent(null);
+        }
     }
 
     public String getDefaultServer() { return defaultServer; }
