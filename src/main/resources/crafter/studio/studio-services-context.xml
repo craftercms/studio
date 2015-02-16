@@ -414,6 +414,7 @@
     <!-- ////////////////////////////////////// -->
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
     <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepositoryDirty">
+        <property name="repositoryReactor" ref="repositoryReactor"/>
         <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
     </bean>
 
@@ -643,6 +644,8 @@
         <property name="defaultPort" value="${crafter.deployer.port}"/>
         <property name="defaultTarget" value="${crafter.deployer.target}"/>
         <property name="defaultPassword" value="${crafter.deployer.password}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
     </bean>
 
 </beans>

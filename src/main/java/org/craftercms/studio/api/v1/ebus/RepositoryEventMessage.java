@@ -18,6 +18,9 @@
 
 package org.craftercms.studio.api.v1.ebus;
 
+
+import org.craftercms.commons.http.RequestContext;
+
 /**
  * Repository event message.
  *
@@ -27,20 +30,14 @@ public class RepositoryEventMessage {
 
     private String site;
     private String path;
+    private RequestContext requestContext;
 
-    public String getSite() {
-        return site;
-    }
+    public String getSite() { return site; }
+    public void setSite(final String site) { this.site = site; }
 
-    public void setSite(final String site) {
-        this.site = site;
-    }
+    public String getPath() { return path; }
+    public void setPath(final String path) { this.path = path; }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(final String path) {
-        this.path = path;
-    }
+    public RequestContext getRequestContext() { return requestContext; }
+    public void setRequestContext(RequestContext requestContext) { this.requestContext = requestContext; }
 }
