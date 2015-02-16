@@ -474,8 +474,11 @@ var YEvent = YAHOO.util.Event;
                     controller = "viewcontroller-delete";
                     view = CSA.Service.getDeleteView;
                 } else {
-                    controller = "viewcontroller-schedulefordelete";
-                    view = CSA.Service.getScheduleForDeleteView;
+                    // scheduled delete not supported
+                    //controller = "viewcontroller-schedulefordelete";
+                    //view = CSA.Service.getScheduleForDeleteView;
+                    controller = "viewcontroller-delete";
+                    view = CSA.Service.getDeleteView;
                 }
                 CSA.Operations._showDialogueView({
                     fn: view,
@@ -545,7 +548,8 @@ var YEvent = YAHOO.util.Event;
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
 
-                        this.loadItems();
+                        this.loadItems(items);
+                        this.loadPublishingChannels();
 
                     }
                 }, true, '800px');
@@ -4328,7 +4332,9 @@ var YEvent = YAHOO.util.Event;
                     var newScript = document.createElement('script');
                     newScript.type = 'text/javascript';
                     newScript.src = script;
-                    headID.appendChild(newScript);
+                    if (script.indexOf('undefined.js') === -1) {
+                        headID.appendChild(newScript);
+                    }
                 }
             },
             /**

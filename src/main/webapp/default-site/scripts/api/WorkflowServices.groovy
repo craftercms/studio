@@ -106,4 +106,14 @@ class WorkflowServices {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
 		workflowServicesImpl.getWorkflowAffectedPaths(site, path);
 	}
+
+    static goDelete(context, site, requestBody, user) {
+        def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
+        return workflowServicesImpl.goDelete(site, requestBody, user);
+    }
+
+    static goLive(context, site, requestBody) {
+        def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
+        return workflowServicesImpl.goLive(site, requestBody);
+    }
 }

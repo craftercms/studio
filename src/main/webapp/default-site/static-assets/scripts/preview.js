@@ -1,8 +1,33 @@
 (function (window) {
     'use strict';
 
+    function dasherize(str) {
+        return str.replace(/::/g, '/')
+            .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+            .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+            .replace(/_/g, '-')
+            .toLowerCase();
+    }
+
     window.crafter = {
         studio: {
+            define: function (packageName, component) {
+                var root = crafter,
+                    packages = ('studio.' + packageName).split('.'),
+                    componentName = packages[packages.length-1];
+                for (var i = 0, l = (packages.length - 1); i < l; ++i) {
+                    var pkg = packages[i];
+                    if (!root[pkg]) root[pkg] = {};
+                    root = root[pkg];
+                }
+                root[componentName] = component;
+                if (typeof define === "function" && define.amd) {
+                    define(dasherize(componentName), [], function () {
+                        return component;
+                    });
+                }
+                return ('crafter.studio.' + packageName);
+            },
             preview: {
                 Topics: {
                     "ALL": "*",

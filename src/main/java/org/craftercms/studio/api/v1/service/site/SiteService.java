@@ -20,6 +20,8 @@ package org.craftercms.studio.api.v1.service.site;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -55,4 +57,9 @@ public interface SiteService {
 
 	List<SiteFeed> getUserSites(String user);
 
+    DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
+
+    Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
+
+    DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
 }

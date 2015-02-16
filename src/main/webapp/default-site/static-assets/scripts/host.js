@@ -3,11 +3,15 @@
 
     var Events = crafter.studio.preview.Topics;
     var origin = 'http://127.0.0.1:8080';
-    var communicator = new crafter.Communicator(origin);
+    var communicator = new crafter.studio.Communicator(origin);
+    // CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
 
     communicator.subscribe(Events.GUEST_CHECKIN, function (url) {
-        // console.log('Guest checked in');
-        setHashPage(url);
+        var site = CStudioAuthoring.Utils.Cookies.readCookie('crafterSite');
+        setHash({
+            page: url,
+            site: site
+        });
     });
 
     communicator.subscribe(Events.GUEST_CHECKOUT, function () {
@@ -28,7 +32,10 @@
     communicator.subscribe(Events.GUEST_SITE_LOAD, function (message, scope) {
 
         if (message.url) {
-            setHashPage(message.url);
+            setHash({
+                page:message.url,
+                site: CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
+            });
         }
 
         // Once the guest window notifies that the page as successfully loaded,
@@ -44,6 +51,14 @@
         window.location.hash = '#/?page=' + url;
     }
 
+    function setHash(params) {
+        var hash = [];
+        for (var key in params) {
+            hash.push(key + '=' + params[key]);
+        }
+        window.location.hash = '#/?' + hash.join('&');
+    }
+
     function getEngineWindow() {
         return document.getElementById('engineWindow');
     }
@@ -52,22 +67,27 @@
 
         var win = getEngineWindow();
         var hash = parseHash(window.location.hash);
+        var site = CStudioAuthoring.Utils.Cookies.readCookie('crafterSite');
+        var siteChanged = false;
 
         if (hash.site) {
             CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
+            siteChanged = (site !== hash.site);
         }
 
-        // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
-        if (win.src.replace(origin, '') !== hash.page &&
-            win.contentWindow.location.href.replace(origin, '') !== hash.page) {
-            win.src = hash.page;
-        }
+        setTimeout(function () {
+            // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
+            if (siteChanged || (
+                win.src.replace(origin, '') !== hash.page &&
+                win.contentWindow.location.href.replace(origin, '') !== hash.page)) {
+                win.src = hash.page;
+            }
+        });
 
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, '/site/website/index.xml', {
             success: function(content) {
                 CStudioAuthoring.SelectedContent.selectContent(content.item);
-            },
-            failure: function() {}
+            }
         });
 
     }
@@ -99,7 +119,10 @@
     window.addEventListener('load', function () {
 
         if (window.location.hash.indexOf('page') === -1) {
-            setHashPage('/');
+            setHash({
+                page: '/',
+                site: CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
+            });
         } else {
             goToHashPage();
         }

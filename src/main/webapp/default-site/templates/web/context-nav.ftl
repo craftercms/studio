@@ -24,15 +24,14 @@
                 <ul class="nav navbar-nav" id="activeContentActions"></ul>
 
                 <a class="navbar-text navbar-right" href="/studio/logout" style="margin-left: 0">Log Out</a>
+                <div id="acn-persona" class="navbar-right"></div>
                 <form class="navbar-form navbar-right" role="search">
                     <div class="form-group">
                         <input type="text" class="form-control" id="acn-searchtext" value="" maxlength="256" />
                     </div>
                 </form>
-                <ul class="nav navbar-nav navbar-right">
-                    <li></li>
-                    <li></li>
-                </ul>
+                <div id="acn-preview-tools" class="navbar-right"></div>
+                <div id="acn-ice-tools" class="navbar-right"></div>
 
             </div>
         </div>
@@ -57,9 +56,9 @@
                 <div id="contextual_nav_menu_items"></div>
             </div>
             <div id="acn-right">
-                <div id="acn-ice-tools" style="float: left"></div>
-                <div id="acn-preview-tools" style="float: left"></div>
-                <div id="acn-persona" style="float: left"></div>
+                <div id="_acn-ice-tools" style="float: left"></div>
+                <div id="_acn-preview-tools" style="float: left"></div>
+                <div id="_acn-persona" style="float: left"></div>
                 <div id="_acn-search"></div>
                 <div id="acn-logout">
                     <a id="acn-logout-link" href="#">Log Out</a>

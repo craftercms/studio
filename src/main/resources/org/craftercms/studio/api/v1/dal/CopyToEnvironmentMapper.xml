@@ -35,4 +35,17 @@
     ORDER BY scheduleddate ASC
   </select>
 
+    <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
+        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment)
+        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})
+    </insert>
+
+    <update id="cancelWorkflow" parameterType="java.util.HashMap">
+        UPDATE cstudio_copytoenvironment
+        SET state = #{canceledState}
+        WHERE site = #{site}
+        AND path = #{path}
+        AND state = #{state}
+        AND scheduleddate &gt; #{now}
+    </update>
 </mapper>

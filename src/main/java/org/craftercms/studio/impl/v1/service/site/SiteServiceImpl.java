@@ -360,10 +360,26 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		siteConfig.setDeploymentEndpointConfigs(deploymentConfig.getEndpointMapping());
 	}
 
+    @Override
+    public DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint) {
+        return deploymentEndpointConfig.getDeploymentConfig(site, endpoint);
+    }
+
+    @Override
+    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
+        return environmentConfig.getPublishingChannelGroupConfigs(site);
+    }
+
 	@Override
 	public List<SiteFeed> getUserSites(String user) {
 		return siteFeedMapper.getSites();
 	}
+
+    @Override
+    public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site) {
+        String endpoint = environmentConfig.getPreviewDeploymentEndpoint(site);
+        return getDeploymentEndpoint(site, endpoint);
+    }
 
 	/** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }

@@ -1,4 +1,5 @@
 
+@import "variables";
 @import url("/studio/static-assets/themes/cstudioTheme/css/icons.css");
 
 #acnVersionWrapper, div.schedulePolicyWrapper {
@@ -246,10 +247,18 @@ div#acn-active-content {
 }
 
 #acn-preview-tools-container {
-  padding: 4px 12px 5px 8px;
-  cusor: pointer;
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y scroll right center transparent;
   cursor: pointer;
+  padding: 13px 5px 19px;
+}
+
+#acn-persona-container {
+  padding: 12px 5px;
+}
+
+#acn-persona-image {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
 }
 
 #acn-preview-tools-image {
@@ -366,11 +375,7 @@ div#acn-active-content {
 }
 
 .acn-dropdown-wrapper .acn-dropdown-menu select {
-  border: 1px solid #0176B1;
-  color: #000;
-  font-size: 1em;
-  position: relative;
-  width: 100%;
+
 }
 
 .acn-dropdown-wrapper .acn-dropdown-menu-inner {
@@ -2660,112 +2665,77 @@ span.acn-canned-search {
 
 /* --- Preview Tools Overlay --- */
 #preview-tools-panel-container {
-  border: 1px solid black;
-  width: 200px;
-  height: 200px;
-  background: #F0F0F0;
-}
 
-/* -- default styles -- */
-#preview-tools-panel-container div, #preview-tools-panel-container span, #preview-tools-panel-container select, #preview-tools-panel-container option,
-#preview-tools-panel-container a {
-  direction: ltr;
-  font: normal normal normal 12px/normal arial, sans-serif;
-  font-size-adjust: none;
-  font-stretch: normal;
-  letter-spacing: normal;
-  line-height: normal;
-  text-align: left;
-  text-indent: 0;
-  text-justify: auto;
-  text-outline: none;
-  text-shadow: none;
-  text-transform: none;
-  white-space: normal;
-  word-spacing: normal;
-  word-break: normal;
-  word-wrap: normal;
-}
+  border: none;
+  border-radius: $border-radius-base;
 
-#preview-tools-panel-container div, #preview-tools-panel-container span, #preview-tools-panel-container select, #preview-tools-panel-container option {
-  color: #444;
-  cursor: auto;
-}
+  .acn-accordion-header {
+    margin: 0;
+    padding: 5px 10px;
+    background: #efefef;
+    border-bottom: 1px solid darken(#efefef, 15%);
+  }
 
-#preview-tools-panel-container #preview-tools-panel-container_h {
-  color: #0176B1;
-  background: #FFFFFF;
-  font-size: 14px;
-  line-height: 1.2em;
-  font-weight: bold;
-  padding-left: 14px;
-}
+  .acn-accordion-toggle {
+    background-color: transparent;
+    background-image: url("/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif");
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    color: #444444;
+    display: inline-block;
+    line-height: 20px;
+    padding-left: 16px;
+    text-decoration: none;
+  }
 
-#preview-tools-panel-container .acn-accordion-header {
-  background: url("/studio/static-assets/themes/cstudioTheme/images/bg/bar_bg.gif") repeat-x scroll 0 0 #F0F0F0;
-  border-bottom: 1px solid #A1A1A1;
-  height: 22px;
-  margin: 0;
-  padding: 3px 15px 0 15px;
-}
+  .acn-accordion-panel {
+    padding: 10px;
+  }
 
-#preview-tools-panel-container .acn-accordion-toggle {
-  background-color: transparent;
-  background-image: url("/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif");
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  color: #444444;
-  display: inline-block;
-  line-height: 20px;
-  padding-left: 16px;
-  text-decoration: none;
-}
+  .contracted .acn-accordion-toggle {
+    background-position: 0 1px;
+  }
 
-#preview-tools-panel-container .acn-accordion-panel {
-  background: #F0F0F0;
-  border-bottom: 1px solid #CCCCCC;
-  padding: 5px;
-}
+  .contracted .acn-accordion-panel {
+    display: none;
+  }
 
-#preview-tools-panel-container .contracted .acn-accordion-toggle {
-  background-position: 0 1px;
-}
+  .expanded .acn-accordion-toggle {
+    background-position: 0 -19px;
+  }
 
-#preview-tools-panel-container .contracted .acn-accordion-panel {
-  display: none;
-}
+  .expanded .acn-accordion-panel {
+    display: block;
+  }
 
-#preview-tools-panel-container .expanded .acn-accordion-toggle {
-  background-position: 0 -19px;
-}
+  .acn-ptools-ice-label {
+    margin-left: 5px;
+  }
 
-#preview-tools-panel-container .expanded .acn-accordion-panel {
-  display: block;
-}
+  .acn-panel-dropdown {
+    background: none repeat scroll 0 0 #FFFFFF;
+    border: 1px solid #0176B1;
+    margin: 5px 0 6px 10px;
+    border-radius: 0 0 0 0;
+    color: #000000;
+    font-size: 1em;
+    padding: 1px 0 1px 2px;
+    position: relative;
+    width: 93%;
+  }
 
-#preview-tools-panel-container .acn-ptools-button {
-  display: inline;
-  padding: 5px 10px;
-}
+  .acn-dropdown .ice-tools {
+    padding-top: 5px;
+  }
 
-#preview-tools-panel-container .acn-ptools-ice-label {
-  display: inline;
-}
+  .hd {
+    padding: 10px;
+    color: #333333;
+    font-weight: bold;
+    background-color: whitesmoke;
+    border-color: #dddddd;
+  }
 
-#preview-tools-panel-container .acn-panel-dropdown {
-  background: none repeat scroll 0 0 #FFFFFF;
-  border: 1px solid #0176B1;
-  margin: 5px 0 6px 10px;
-  border-radius: 0 0 0 0;
-  color: #000000;
-  font-size: 1em;
-  padding: 1px 0 1px 2px;
-  position: relative;
-  width: 93%;
-}
-
-#preview-tools-panel-container .acn-dropdown .ice-tools {
-  padding-top: 5px;
 }
 
 #cstudioPreviewAnalyticsOverlay {
@@ -2800,12 +2770,21 @@ span.acn-canned-search {
   display: none;
 }
 
-#preview-tools-panel-container_c.yui-panel-container span.yui-carousel-button {
-  display: none;
+#preview-tools-panel-container_c {
+  .underlay {
+    border-radius: $border-radius-base;
+  }
+  .yui-panel-container {
+    span.yui-carousel-button {
+      display: none;
+    }
+  }
 }
 
-#preview-tools-panel-container_c.yui-panel-container div#preview-tools-panel-container.yui-module div div.expanded div.acn-accordion-panel div div#container.yui-carousel-visible div.yui-carousel-nav ul {
-  display: none;
+#preview-tools-panel-container_c.yui-panel-container {
+  div#preview-tools-panel-container.yui-module div div.expanded div.acn-accordion-panel div div#container.yui-carousel-visible div.yui-carousel-nav ul {
+    display: none;
+  }
 }
 
 #preview-tools-panel-persona-selected {

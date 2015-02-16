@@ -47,7 +47,6 @@ public class WorkflowProcessor {
      * @param site
      * @param paths
      * @param launchDate
-     * @param workflowName
      * @param label
      * @param operation
      * @param approvedBy

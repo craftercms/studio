@@ -217,7 +217,7 @@
             var cookieName = 'crafterSite';
 
             this.getSites = function() {
-                return $http.get(json('get-sites-2'));
+                return $http.get(json('get-sites-3'));
             };
 
             this.getSite = function(id) {

@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addJavascript(CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/yui/carousel/carousel-min.js");
+CStudioAuthoring.Utils.addJavascript('/static-assets/yui/carousel/carousel-min.js');
 
 CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 

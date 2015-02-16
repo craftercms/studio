@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -219,4 +220,6 @@ public interface ContentService {
     String getNextAvailableName(String site, String path);
 
     void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
+
+    GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
 }

@@ -5,6 +5,7 @@
 
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/cstudio-dao-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-ebus-context.xml"/>
 
       <!-- ////////////////////////////////////// -->
       <!--         logging                        -->
@@ -94,6 +95,13 @@
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -103,7 +111,8 @@
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="dmDependencyService" ref="cstudioDmDependencyService" />
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
-            <!--property name="deploymentDAL" ref="cstudioDeploymentServiceDAL" /-->
+         <property name="siteService" ref="cstudioSiteServiceSimple" />
+         <property name="objectStateService" ref="cstudioObjectStateService" />
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
@@ -190,6 +199,7 @@
           parent="cstudioRegistrableService">
          <property name="securityService" ref="cstudioSecurityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
@@ -236,6 +246,9 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService" />
+        <property name="WorkflowProcessor" ref="cstudioWorkflowProcessor" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -401,6 +414,7 @@
     <!-- ////////////////////////////////////// -->
     <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
     <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepositoryDirty">
+        <property name="repositoryReactor" ref="repositoryReactor"/>
         <!-- this bean is the dirty version of the interface, once corrected the bean will be updated and this dirty class dropped -->
     </bean>
 
@@ -621,4 +635,17 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
     </bean>
+
+    <!-- ///////////////////////////// -->
+    <!--       Deployers               -->
+    <!-- ///////////////////////////// -->
+    <bean id="studioPreviewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployer">
+        <property name="defaultServer" value="${crafter.deployer.server}"/>
+        <property name="defaultPort" value="${crafter.deployer.port}"/>
+        <property name="defaultTarget" value="${crafter.deployer.target}"/>
+        <property name="defaultPassword" value="${crafter.deployer.password}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+    </bean>
+
 </beans>

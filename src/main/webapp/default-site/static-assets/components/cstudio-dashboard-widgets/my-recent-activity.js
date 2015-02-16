@@ -75,8 +75,8 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             "widgetFilterBy");
 
         containerEl.appendChild(liLoadingEl);
-        containerEl.appendChild(filterBydiv);
         containerEl.appendChild(listItemEl);
+        containerEl.appendChild(filterBydiv);
 
 		itemFilterEl._self = this;
 		

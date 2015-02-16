@@ -27,4 +27,8 @@ import java.util.Map;
 public interface CopyToEnvironmentMapper {
 
     List<CopyToEnvironment> getScheduledItems(Map params);
+
+    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+
+    void cancelWorkflow(Map params);
 }

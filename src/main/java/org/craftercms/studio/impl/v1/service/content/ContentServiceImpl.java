@@ -720,6 +720,36 @@ public class ContentServiceImpl implements ContentService {
         return levels[length - 1];
     }
 
+    @Override
+    public GoLiveDeleteCandidates getDeleteCandidates(String site, String relativePath) throws ServiceException {
+        List<String> items = new ArrayList<>();
+        ContentItemTO contentItem = getContentItem(site, relativePath);
+        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this);
+        if (contentItem != null) {
+            childDeleteItems(site, contentItem, deletedItems);
+            //update summary for all uri's delete
+        }
+        //AuthenticationUtil.setFullyAuthenticatedUser(user);
+        return deletedItems;
+    }
+
+    /**
+     * Iterate over all paths inside the folder
+     */
+    protected void childDeleteItems(String site, ContentItemTO contentItem, GoLiveDeleteCandidates items) throws ServiceException {
+
+        if (contentItem.isFolder()) {
+            contentItem = getContentItemTree(site, contentItem.getUri(), 1);
+            if (contentItem.getChildren() != null && contentItem.getNumOfChildren() > 0) {
+                for (ContentItemTO child : contentItem.getChildren()) {
+                    childDeleteItems(site, child, items);
+                }
+            }
+        }
+        //add the child path
+        items.getPaths().add(contentItem.getUri());
+    }
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;

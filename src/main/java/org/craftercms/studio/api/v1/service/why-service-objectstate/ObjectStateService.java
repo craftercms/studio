@@ -92,11 +92,9 @@ public interface ObjectStateService {
      */
     /*
     List<ObjectStateTO> getObjectStateByStates(String site, List<State> states);
-
-    public boolean isScheduled(String path);
-
-    public boolean isScheduled(NodeRef nodeRef);
 */
+    public boolean isScheduled(String site, String path);
+
     public boolean isInWorkflow(String site,String path);
 /*
     public boolean isInWorkflow(NodeRef nodeRef);

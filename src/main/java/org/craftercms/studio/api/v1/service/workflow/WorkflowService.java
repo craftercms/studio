@@ -24,8 +24,11 @@ import java.util.List;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
 
@@ -104,7 +107,9 @@ public interface WorkflowService {
 	 */
 	void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter);
 
-	/**
+    void preGoLive(Set<String> uris, GoLiveContext context, Set<String> rescheduledUris);
+
+    /**
 	 * Get notification service.
 	 */
 	NotificationService getNotificationService();
@@ -135,4 +140,34 @@ public interface WorkflowService {
 	 */
 	public void updateWorkflowSandboxes(String site, String path);
 
+    /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    ResultTO goDelete(String site, String request, String user);
+
+    Map<Date, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, Date now);
+
+    void preScheduleDelete(Set<String> uris, Date _date,
+                           GoLiveContext context, Set rescheduledUris) throws ServiceException;
+
+    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws ServiceException;
+
+    boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
+
+    void preSchedule(Set<String> uris, Date date, GoLiveContext context,Set<String> rescheduledUris);
+
+    /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    ResultTO goLive(final String site, final String request) throws ServiceException;
 }

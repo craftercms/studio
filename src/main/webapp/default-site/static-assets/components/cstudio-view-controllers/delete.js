@@ -37,7 +37,7 @@
         },
 
         initItemIndividualScheduling: function() {
-            var itemsbody = this.getComponent("div.dependencies-listing");
+            var itemsbody = this.getComponent("table.item-listing tbody");
             Event.addListener(itemsbody, "click", function(evt){
                 var e = evt.target;
                 if (Dom.hasClass(e, "when")) {
@@ -169,17 +169,10 @@
                 html.push("No items selected");
             }
             var depCheckWrn = this.getComponent(".items-feedback");
-            var oBodyDiv = this.getComponent("div.body");
             if (depCheckWrn && !depFlag) {
                 depCheckWrn.style.display = "none";
-                if (oBodyDiv) {
-                    oBodyDiv.style.height = "285px";
-                }
-            } else if (oBodyDiv) {
-                //set height 20px lesser to accomadate space for dependency warning string.
-                oBodyDiv.style.height = "265px";
             }
-            this.getComponent("div.dependencies-listing").innerHTML = '<table class="dependencies-table">' + html.join("") + '</table>';
+            this.getComponent("table.item-listing tbody").innerHTML = html.join("");
             this.updateSubmitButton();
             if (items.length) {
                 this.initCheckRules();
@@ -248,7 +241,7 @@
                 method: "POST",
                 data: data,
                 resetFormState: true,
-                url: CStudioAuthoringContext.baseUri + "/proxy/alfresco/cstudio/wcm/workflow/go-delete?deletedep=true&site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
+                url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-delete.json?deletedep=true&site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
                 callback: {
                     success: function(oResponse) {
                         _this.showProcessingOverlay(false);

@@ -32,6 +32,7 @@ import java.util.*;
 import java.net.*;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 import javax.servlet.http.*;
 import javax.servlet.http.Cookie;
 
@@ -45,12 +46,17 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
+import reactor.core.Reactor;
+import reactor.event.Event;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
@@ -137,6 +143,16 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         try {
             String response = this.alfrescoMultipartPostRequest(uploadURI, params, content, "application/xml", "UTF-8");
+            RepositoryEventMessage message = new RepositoryEventMessage();
+            Matcher m = DmConstants.DM_MULTI_REPO_PATH_PATTERN.matcher(path);
+            if (m.matches()) {
+                String site = m.group(3).length() != 0 ? m.group(3) : "";
+                String relativePath = m.group(5).length() != 0 ? m.group(5) : "/";
+                message.setSite(site);
+                message.setPath(relativePath);
+                message.setRequestContext(RequestContext.getCurrent());
+                repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            }
             logger.debug("done writing content to " + path);
             logger.debug("response back from the server: " + response);
             return true;
@@ -375,7 +391,56 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         return nodeRef;
     }
 
+    /**
+     * given a path, get an alfresco node ref
+     */
+    protected String getNodeRefForPath2(String path) {
+        String nodeRef = null;
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
+        String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
 
+        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        params.put("q", query);
+        params.put("lang","fts-alfresco");
+        params.put("store", "workspace://SpacesStore");
+        params.put("maxResults", "100");
+
+        Map<String, String> lookupNodeRefParams = new HashMap<String, String>();
+        lookupNodeRefParams.put("q", query);
+        lookupNodeRefParams.put("lang","fts-alfresco");
+        lookupNodeRefParams.put("store", "workspace://SpacesStore");
+        lookupNodeRefParams.put("maxResults", "100");
+        try{
+            InputStream responseStream = this.alfrescoGetHttpRequest(lookupNodeRefURI, lookupNodeRefParams);
+
+            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
+            JsonConfig cfg = new JsonConfig();
+            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
+            int resultCount = root.getInt("numResults");
+
+            if(resultCount == 1) {
+                JSONObject result = root.getJSONArray("results").getJSONObject(0);
+                nodeRef = result.getString("nodeRef");
+            }
+            else if(resultCount == 0) {
+                throw new Exception("no results for query (" + query + ")");
+            }
+            else {
+                throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
+            }
+
+        }
+        catch(Exception err) {
+            logger.error("err getting noderef for path (" + path + "): ", err);
+        }
+
+        return nodeRef;
+    }
 
 
     /**
@@ -713,4 +778,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return username;
     }
+
+    public Reactor getRepositoryReactor() { return repositoryReactor; }
+    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
+
+    protected Reactor repositoryReactor;
 }

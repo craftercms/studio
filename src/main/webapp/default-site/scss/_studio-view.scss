@@ -1,8 +1,5 @@
 
-$font-size-base: 12px;
-
-// Core variables and mixins
-@import "bootstrap-sass-official/assets/stylesheets/bootstrap/variables";
+@import "variables";
 @import "bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
 
 // Reset and dependencies
@@ -133,8 +130,14 @@ $font-size-base: 12px;
   }
 
   table.item-listing {
-
     width: 100%;
+    overflow: hidden;
+    border: 1px solid $brand-primary;
+    border-radius: $border-radius-base;
+
+    tr {
+
+    }
 
     th, td {
       padding: 5px 10px;
@@ -142,11 +145,50 @@ $font-size-base: 12px;
 
     th {
       color: #fff;
-      background-color: #7e9dbb;
+      background-color: $brand-primary;
     }
 
     td {
       background-color: #fff;
+    }
+
+  }
+
+}
+
+table.scroll-body {
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    &:after{   /* IE8 fix */
+      content: ".";
+      margin-left: -3px; /* to hide the content above tr */ /* not necessary if you are ok with 1px gap */
+      visibility: hidden;
+    }
+  }
+
+  thead {
+    width: 100%;
+    display: table;
+    text-align: left;
+
+    tr {
+      width: 100%;
+      display: table-row;
+    }
+
+  }
+
+  tbody {
+    width: 100%;
+    height: 150px;
+    display: block;
+    overflow: auto;
+
+    tr {
+      width: 100%;
+      display: table;
     }
 
   }
