@@ -1,12 +1,12 @@
 (function (window) {
     'use strict';
 
-    var Events = crafter.studio.preview.Topics;
+    var Topics = crafter.studio.preview.Topics;
     var origin = 'http://127.0.0.1:8080';
     var communicator = new crafter.studio.Communicator(origin);
     // CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
 
-    communicator.subscribe(Events.GUEST_CHECKIN, function (url) {
+    communicator.subscribe(Topics.GUEST_CHECKIN, function (url) {
         var site = CStudioAuthoring.Utils.Cookies.readCookie('crafterSite');
         setHash({
             page: url,
@@ -14,11 +14,11 @@
         });
     });
 
-    communicator.subscribe(Events.GUEST_CHECKOUT, function () {
+    communicator.subscribe(Topics.GUEST_CHECKOUT, function () {
         // console.log('Guest checked out');
     });
 
-    communicator.subscribe(Events.ICE_ZONE_ON, function (message, scope) {
+    communicator.subscribe(Topics.ICE_ZONE_ON, function (message, scope) {
         CStudioAuthoring.InContextEdit.editControlClicked.call({
             content: {
                 itemIsLoaded: true,
@@ -29,7 +29,7 @@
     });
 
     // Listen to the guest site load
-    communicator.subscribe(Events.GUEST_SITE_LOAD, function (message, scope) {
+    communicator.subscribe(Topics.GUEST_SITE_LOAD, function (message, scope) {
 
         if (message.url) {
             setHash({
@@ -45,6 +45,16 @@
             window: getEngineWindow().contentWindow
         });
 
+    });
+
+    amplify.subscribe((Topics.START_DRAG_AND_DROP + '_cstd'), function (config) {
+        communicator.publish(Topics.START_DRAG_AND_DROP, {
+            components: config
+        });
+    });
+
+    amplify.subscribe(crafter.studio.preview.Topics.STOP_DRAG_AND_DROP+'_cstd', function () {
+        communicator.publish(Topics.STOP_DRAG_AND_DROP);
     });
 
     function setHashPage(url) {

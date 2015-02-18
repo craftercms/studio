@@ -16,7 +16,7 @@
         langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
     </script>
 
-    <script src="/studio/static-assets/scripts/preview.js"></script>
+    <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/libs/amplify.js"></script>
     <script src="/studio/static-assets/scripts/communicator.js"></script>
     <script src="/studio/static-assets/scripts/host.js"></script>

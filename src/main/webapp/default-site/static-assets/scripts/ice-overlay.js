@@ -1,7 +1,8 @@
-(function (studio) {
+define('ice-overlay', ['crafter', 'jquery'], function (crafter, $) {
     'use strict';
 
-    var animationEndEvent = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
+    var studio = crafter.studio,
+        animationEndEvent = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
         preAnimationRemoveClasses = 'fadeIn fadeOut',
         fadeInClasses = 'fadeIn',
         fadeOutClasses = 'fadeOut';
@@ -43,7 +44,6 @@
             });
     }
 
-    studio.define('ICEOverlay', ICEOverlay);
     return ICEOverlay;
 
-})(crafter.studio);
+});
