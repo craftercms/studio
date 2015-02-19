@@ -547,7 +547,8 @@ var YEvent = YAHOO.util.Event;
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
 
-                        this.loadItems();
+                        this.loadItems(items);
+                        this.loadPublishingChannels();
 
                     }
                 }, true, '800px');

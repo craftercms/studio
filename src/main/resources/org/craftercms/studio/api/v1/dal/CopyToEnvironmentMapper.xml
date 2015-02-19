@@ -40,4 +40,12 @@
         values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})
     </insert>
 
+    <update id="cancelWorkflow" parameterType="java.util.HashMap">
+        UPDATE cstudio_copytoenvironment
+        SET state = #{canceledState}
+        WHERE site = #{site}
+        AND path = #{path}
+        AND state = #{state}
+        AND scheduleddate &gt; #{now}
+    </update>
 </mapper>

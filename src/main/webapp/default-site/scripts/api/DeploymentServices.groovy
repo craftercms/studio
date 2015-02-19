@@ -37,4 +37,9 @@ class DeploymentServices {
         deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
     }
 
+    static getAvailablePublishingChannelGroups(context, site, path) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
+    }
+
 }

@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.ebus;
 
-import java.util.List;
-import java.util.Map;
+public final class EBusConstants {
+  
+    /**
+     * Repository reactor bean name.
+     */
+    public static final String REPOSITORY_REACTOR = "@repositoryReactor";
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+    /**
+     * Repository create event name.
+     */
+    public static final String REPOSITORY_CREATE_EVENT = "repository.create";
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    /**
+     * Repository update event name.
+     */
+    public static final String REPOSITORY_UPDATE_EVENT = "repository.update";
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    /**
+     * Repository delete event name.
+     */
+    public static final String REPOSITORY_DELETE_EVENT = "repository.delete";
 
-    void cancelWorkflow(Map params);
+    private EBusConstants() {}
 }

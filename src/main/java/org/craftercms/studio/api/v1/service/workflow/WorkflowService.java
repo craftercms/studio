@@ -160,4 +160,14 @@ public interface WorkflowService {
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
 
     void preSchedule(Set<String> uris, Date date, GoLiveContext context,Set<String> rescheduledUris);
+
+    /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    ResultTO goLive(final String site, final String request) throws ServiceException;
 }

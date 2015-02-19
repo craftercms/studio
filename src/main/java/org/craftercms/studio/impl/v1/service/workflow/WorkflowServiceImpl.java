@@ -54,9 +54,7 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
-import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleDeleteOperation;
-import org.craftercms.studio.impl.v1.service.workflow.operation.PreSubmitDeleteOperation;
-import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
+import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
@@ -625,7 +623,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
 
-            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? getPublishChannel(requestObject.getJSONObject(JSON_KEY_PUBLISH_CHANNEL)) : null;
+            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
             JSONObject jsonObjectStatus = requestObject.getJSONObject(JSON_KEY_STATUS_SET);
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
@@ -651,8 +649,14 @@ public class WorkflowServiceImpl implements WorkflowService {
             SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
-                JSONObject item = items.getJSONObject(index);
-                DmDependencyTO submittedItem = getSubmittedItem(site, item, format, scheduledDate);
+                String stringItem = items.optString(index);
+                JSONObject item = items.optJSONObject(index);
+                DmDependencyTO submittedItem = null;
+                if (StringUtils.isNotEmpty(stringItem)) {
+                    submittedItem = dmDependencyService.getDependencies(site, stringItem, false, true);
+                } else {
+                    submittedItem = getSubmittedItem(site, item, format, scheduledDate);
+                }
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
@@ -1149,10 +1153,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         return ContentFormatUtils.parseDate(format, dateStr, servicesConfig.getDefaultTimezone(site));
     }
 
-    protected String getPublishChannel(JSONObject jsonPublishChannel) {
-        return jsonPublishChannel.containsKey("name") ? jsonPublishChannel.getString("name") : null;
-    }
-
     protected void removeChildFromSubmitPackForDelete(List<String> paths) {
         Iterator<String> itr = paths.iterator();
         while (itr.hasNext()) {
@@ -1380,6 +1380,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return call result
      * @throws ServiceException
      */
+    @Override
     public ResultTO goLive(final String site, final String request) throws ServiceException {
         String lockKey = DmConstants.PUBLISHING_LOCK_KEY.replace("{SITE}", site.toUpperCase());
         generalLockService.lock(lockKey);
@@ -1418,68 +1419,93 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext)
             throws ServiceException {
-        List<DmDependencyTO> goLiveItems =  new ArrayList<>();
-        // Don't make go live an item if it is new and to be deleted
-        for(DmDependencyTO submittedItem : submittedItems) {
-            String uri = submittedItem.getUri();
-            boolean isNew = objectStateService.isNew(site,uri);
-            if(!(submittedItem.isDeleted() && isNew)) {
-                goLiveItems.add(submittedItem);
-            }
-        }
-        String user = securityService.getCurrentUser();
+        long start = System.currentTimeMillis();
         // get web project information
-        String assignee = "";//getAssignee(site, sub);
+        //final String assignee = getAssignee(site, sub);
         final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
         final Date now = new Date();
+        if (submittedItems != null) {
+            // group submitted items into packages by their scheduled date
+            Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
 
-        // group submitted items into packages by their scheculed date
-        Map<Date, List<DmDependencyTO>> groupedPackages = new HashMap<>();
-        for (DmDependencyTO submittedItem : goLiveItems) {
-            List<String> taskIds = new ArrayList<>();      //find all pending workflows
-            //getWorkflowTask(site, null, submittedItem, taskIds);
-            // find out how many workflows pending per submitted items
-            submittedItem.setWorkflowTasks(taskIds);
-            Date scheduledDate = (submittedItem.isNow()) ? null : submittedItem.getScheduledDate();
-            if (scheduledDate == null || scheduledDate.before(now)) {
-                scheduledDate = now;
-            }
-            List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
-            if (goLivePackage == null)
-                goLivePackage = new ArrayList<>();
-            goLivePackage.add(submittedItem);
-            groupedPackages.put(scheduledDate, goLivePackage);
-        }
-        for (Date scheduledDate : groupedPackages.keySet()) {
-            List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
-            if (goLivePackage != null) {
-                // for submit direct, package them together and submit them
-                // together as direct submit
-                if (scheduledDate.equals(now)) {
-                    if (goLivePackage.size() == 1) {
-                        DmDependencyTO item = goLivePackage.get(0);
-                        List<String> tasks = item.getWorkflowTasks();
-                        if (tasks != null && tasks.size() > 1) {
-                            // if there is more than one workflow pending
-                            approveMultiplePackages(site, user, null,
-                                    goLivePackage);
-                        } else {
-                            approveSinglePackage(site, user, null,
-                                    goLivePackage.get(0));
-                        }
-                    } else {
-                        // more than one independent item
-                        approveMultiplePackages(site, user, null, goLivePackage);
+            for (Date scheduledDate : groupedPackages.keySet()) {
+                List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
+                if (goLivePackage != null) {
+                    Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+
+                    final boolean isNotScheduled = (launchDate == null);
+                    // for submit direct, package them together and submit them
+                    // together as direct submit
+                    final SubmitPackage submitpackage = new SubmitPackage(pathPrefix);
+                    /*
+                        dependencyPackage holds references of page.
+                     */
+                    final Set<String> rescheduledUris = new HashSet<String>();
+                    final SubmitPackage dependencyPackage = new SubmitPackage("");
+                    for (final DmDependencyTO dmDependencyTO : goLivePackage) {
+                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
                     }
-                } else {
-                    for (DmDependencyTO item : goLivePackage) {
-                        approveSinglePackage(site, user, scheduledDate, item);
+
+                    List<String> stringList = submitpackage.getPaths();
+                    String label = submitpackage.getLabel();
+                    SubmitLifeCycleOperation operation = null;
+                    GoLiveContext context = new GoLiveContext(approver, site);
+                    if (!isNotScheduled) {
+                        Set<String> uris = new HashSet<String>();
+                        uris.addAll(dependencyPackage.getUris());
+                        uris.addAll(submitpackage.getUris());
+                        label = getScheduleLabel(submitpackage, dependencyPackage);
+                        operation = new PreScheduleOperation(this, uris, launchDate, context, rescheduledUris);
+                    } else {
+                        operation = new PreGoLiveOperation(this, submitpackage.getUris(), context, rescheduledUris);
+                    }
+                    if (!stringList.isEmpty()) {
+                        // get the workflow initiator mapping
+                        Map<String, String> submittedBy = new HashMap<String, String>();
+                        for (String longPath : stringList) {
+                            String uri = longPath.substring(pathPrefix.length());
+                            //ContentUtils.addToSubmittedByMapping(getService(PersistenceManagerService.class), dmContentService, site, uri, submittedBy, approver);
+                            dmPublishService.cancelScheduledItem(site, uri);
+                        }
+                        workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
+                    }
+                    Set<DmDependencyTO> dependencyTOSet = submitpackage.getItems();
+                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
+                        dmWorkflowListener.postGolive(site, dmDependencyTO);
+                    }
+                    dependencyTOSet = dependencyPackage.getItems();
+                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
+                        dmWorkflowListener.postGolive(site, dmDependencyTO);
                     }
                 }
             }
         }
+        long end = System.currentTimeMillis();
+        logger.debug("Total go live time = " + (end - start));
+    }
 
-        invokeListeners(submittedItems, site, Operation.GO_LIVE);
+    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {
+        handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+        List<DmDependencyTO> children = dmDependencyTO.getChildren();
+        if (children != null) {
+            for (DmDependencyTO child : children) {
+                handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+                goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+            }
+        }
+    }
+
+    protected String getScheduleLabel(SubmitPackage submitPackage, SubmitPackage dependencyPack) {
+        StringBuilder builder = new StringBuilder("schedule_workflow:");
+        builder.append(submitPackage.getLabel()).
+                append(",").
+                append(dependencyPack.getLabel());
+        String label = builder.toString();
+        if (label.length() > 255) {
+            label = label.substring(0, 252) + "..";
+        }
+        return label;
+
     }
 
     /**

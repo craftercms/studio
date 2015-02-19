@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+import scripts.api.WorkflowServices;
 
-import java.util.List;
-import java.util.Map;
+// extract parameters
+def result = [:];
+def site = params.site;
+def body = request.reader.text;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
-
-    List<CopyToEnvironment> getScheduledItems(Map params);
-
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
-
-    void cancelWorkflow(Map params);
+/*
+if (site == undefined || site == "")
+{
+    status.code = 400;
+    status.message = "Site must be provided.";
+    status.redirect = true;
+} else {
+    model.result = dmWorkflowService.goLive(site, sub, body);
 }
+*/
+
+def context = WorkflowServices.createContext(applicationContext, request);
+result = WorkflowServices.goLive(context, site, body);
+return result;

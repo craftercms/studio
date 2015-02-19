@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.ebus;
 
-import java.util.List;
-import java.util.Map;
+
+import org.craftercms.commons.http.RequestContext;
 
 /**
+ * Repository event message.
+ *
  * @author Dejan Brkic
  */
-public interface CopyToEnvironmentMapper {
+public class RepositoryEventMessage {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    private String site;
+    private String path;
+    private RequestContext requestContext;
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    public String getSite() { return site; }
+    public void setSite(final String site) { this.site = site; }
 
-    void cancelWorkflow(Map params);
+    public String getPath() { return path; }
+    public void setPath(final String path) { this.path = path; }
+
+    public RequestContext getRequestContext() { return requestContext; }
+    public void setRequestContext(RequestContext requestContext) { this.requestContext = requestContext; }
 }
