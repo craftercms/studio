@@ -3,6 +3,8 @@
 
     var crafter = {};
 
+    crafter.noop = function () {};
+
     crafter.define = function (packageName, component) {
         var root = crafter,
             packages = packageName.split('.'),

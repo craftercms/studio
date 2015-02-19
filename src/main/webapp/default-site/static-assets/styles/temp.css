@@ -2703,8 +2703,11 @@ span.acn-canned-search {
     font-weight: bold;
     background-color: whitesmoke;
     border-color: #dddddd; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032740}}
+  #preview-tools-panel-container #component-panel-elem.expanded .acn-accordion-panel {
+    display: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032741}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032747}}
 #cstudioPreviewAnalyticsOverlay {
   padding: 0;
   border: 1px solid rgba(0, 0, 0, 0.5);
@@ -2715,46 +2718,46 @@ span.acn-canned-search {
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3);
   z-index: 99999; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032752}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032758}}
 #cstudio-emulate {
   z-index: 99999; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032756}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032762}}
 .yui-carousel-content {
   left: 30px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032760}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032766}}
 .yui-carousel {
   border: none;
   width: 100%; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032765}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032771}}
 .yui-carousel .yui-carousel-item-selected {
   border: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032769}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032775}}
 .yui-carousel-pager-item {
   display: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032774}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032780}}
 #preview-tools-panel-container_c .underlay {
   border-radius: 4px; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032778}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032784}}
 #preview-tools-panel-container_c .yui-panel-container span.yui-carousel-button {
   display: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032785}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032791}}
 #preview-tools-panel-container_c.yui-panel-container div#preview-tools-panel-container.yui-module div div.expanded div.acn-accordion-panel div div#container.yui-carousel-visible div.yui-carousel-nav ul {
   display: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032790}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032796}}
 #preview-tools-panel-persona-selected {
   width: 100px;
   height: 100px;
   margin-left: 70px;
   border: 1px solid black; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032797}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032803}}
 #preview-tools-panel-persona-selected-title {
   display: block !important;
   margin-top: 10px;
@@ -2764,14 +2767,14 @@ span.acn-canned-search {
   font-weight: bold !important; }
 
 /** translated site: translateded asset */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032807}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032813}}
 .no-overlay {
   color: #9FB6CD !important; }
 
 /**
  * Bulk Upload Styles
 **/
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032815}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032821}}
 .full-screen-overlay {
   z-index: 99999;
   background: rgba(50, 50, 50, 0.8);
@@ -2789,7 +2792,7 @@ span.acn-canned-search {
   -o-transition: background 300ms ease;
   transition: background 300ms ease; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032833}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032839}}
 .full-screen-overlay .message {
   top: 20px;
   background: #ccc;
@@ -2800,17 +2803,17 @@ span.acn-canned-search {
   height: 95px;
   overflow: auto; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032844}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032850}}
 .full-screen-overlay .message > * {
   font-size: 20px;
   line-height: 25px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032849}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032855}}
 .full-screen-overlay .message .pad {
   padding: 25px;
   padding-bottom: 0; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032854}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032860}}
 .full-screen-overlay .close {
   background-color: rgba(200, 200, 200, 0.5);
   border-radius: 10px 10px 10px 10px;
@@ -2820,15 +2823,15 @@ span.acn-canned-search {
   text-decoration: none;
   top: 20px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032864}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032870}}
 .full-screen-overlay .close:hover {
   background-color: #c8c8c8; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032868}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032874}}
 .file-display-container .pad {
   padding: 15px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032872}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032878}}
 .file-display-container {
   background: #fff;
   top: 140px;
@@ -2836,7 +2839,7 @@ span.acn-canned-search {
   overflow: auto;
   min-height: 200px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032880}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032886}}
 .file-display-container,
 .full-screen-overlay .message {
   position: absolute;
@@ -2845,32 +2848,32 @@ span.acn-canned-search {
   margin-left: -225px;
   border: 4px solid #000; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032889}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032895}}
 .dropbox-element.dropbox-dragover {
   background: rgba(10, 10, 10, 0.85); }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032893}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032899}}
 .dropbox-element.dropbox-dragover {
   -webkit-box-shadow: inset 0px 0px 50px #777;
   -moz-box-shadow: inset 0px 0px 50px #777;
   box-shadow: inset 0px 0px 50px #777; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032899}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032905}}
 .dropbox-element .title {
   display: block; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032903}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032909}}
 .dropbox-element .detalis {
   font-style: italic; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032907}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032913}}
 .dropbox-element .dropbox-file-display {
   color: #fff;
   background-color: #7F9DB9;
   margin-bottom: 10px;
   padding-right: 10px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032914}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032920}}
 .dropbox-element .dropbox-file-display img,
 .dropbox-element .dropbox-file-display .img {
   float: left;
@@ -2880,26 +2883,26 @@ span.acn-canned-search {
   overflow: hidden;
   background-color: #ccc; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032924}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032930}}
 .dropbox-element .dropbox-file-display .img .pad {
   font-size: 15px;
   padding: 40px 20px;
   padding-bottom: 0;
   text-align: center; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032931}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032937}}
 .file-display-area {
   background-color: #FFFFFF;
   height: 300px;
   overflow: auto; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032937}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032943}}
 .dropbox-file-display .progress {
   margin: 10px 0; }
 
 /**
  * Progress bar styles from Twitter's Bootstrap */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032943}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032949}}
 .progress {
   height: 20px;
   margin-bottom: 20px;
@@ -2919,7 +2922,7 @@ span.acn-canned-search {
   -moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032963}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/temp\.scss}line{font-family:\000032969}}
 .progress .bar {
   float: left;
   width: 0;

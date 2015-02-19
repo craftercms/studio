@@ -2736,6 +2736,12 @@ span.acn-canned-search {
     border-color: #dddddd;
   }
 
+  #component-panel-elem {
+    &.expanded .acn-accordion-panel {
+      display: none;
+    }
+  }
+
 }
 
 #cstudioPreviewAnalyticsOverlay {

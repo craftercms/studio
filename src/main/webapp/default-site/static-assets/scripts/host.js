@@ -1,4 +1,4 @@
-(function (window) {
+(function (window, amplify, CStudioAuthoring) {
     'use strict';
 
     var Topics = crafter.studio.preview.Topics;
@@ -47,14 +47,16 @@
 
     });
 
-    amplify.subscribe((Topics.START_DRAG_AND_DROP + '_cstd'), function (config) {
-        communicator.publish(Topics.START_DRAG_AND_DROP, {
-            components: config
-        });
+    communicator.subscribe(Topics.STOP_DRAG_AND_DROP, function () {
+        CStudioAuthoring.PreviewTools.panel.show();
+        YDom.replaceClass('component-panel-elem', 'expanded', 'contracted');
     });
 
-    amplify.subscribe(crafter.studio.preview.Topics.STOP_DRAG_AND_DROP+'_cstd', function () {
-        communicator.publish(Topics.STOP_DRAG_AND_DROP);
+    amplify.subscribe((Topics.START_DRAG_AND_DROP + '_cstd'), function (config) {
+        CStudioAuthoring.PreviewTools.panel.hide();
+        communicator.publish(Topics.START_DRAG_AND_DROP, {
+            components: config.components.category.component
+        });
     });
 
     function setHashPage(url) {
@@ -139,4 +141,4 @@
 
     }, false);
 
-}) (window);
+}) (window, amplify, CStudioAuthoring);

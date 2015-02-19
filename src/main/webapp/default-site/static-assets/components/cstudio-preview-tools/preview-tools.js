@@ -211,6 +211,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
 
         toggleEl.href = "#";
         toggleEl.innerHTML = moduleConfig.config.title;
+        moduleEl.id = moduleConfig.config.moduleName + '-elem';
         headerEl.appendChild(toggleEl);
 
         containerEl.appendChild(moduleEl);

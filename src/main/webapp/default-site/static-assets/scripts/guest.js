@@ -29,10 +29,12 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.START_DRAG_AND_DROP, function (message) {
         require(['dnd-controller'], function (DnDController) {
-            if (!dndController) {
-                dndController = new DnDController(message.components);
-            }
-            dndController.start();
+            (typeof dndController === 'undefined') && (dndController = new DnDController({
+                done: function () {
+                    communicator.publish(Topics.STOP_DRAG_AND_DROP);
+                }
+            }));
+            dndController.start(message.components);
         });
     });
 
@@ -48,7 +50,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
         $elem.attr('data-studio-ice-target', iceRef);
 
-        $(crafter.String('<i class="crafter-studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(iceRef)).css({
+        $(crafter.String('<i class="studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(iceRef)).css({
             top: position.top,
             left: position.left
         }).appendTo('body');
@@ -56,14 +58,14 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
     }
 
     function initICERegions() {
-        $('.crafter-studio-ice-indicator').remove();
+        $('.studio-ice-indicator').remove();
         var elems = document.querySelectorAll('[data-studio-ice]');
         for (var i = 0; i < elems.length; ++i) {
             initICETarget(elems[i]);
         }
     }
 
-    $document.on('mouseover', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('mouseover', '.studio-ice-indicator', function (e) {
 
         var $i = $(this),
             $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
@@ -83,11 +85,11 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     });
 
-    $document.on('mouseout', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('mouseout', '.studio-ice-indicator', function (e) {
         overlay.hide();
     });
 
-    $document.on('click', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('click', '.studio-ice-indicator', function (e) {
 
         var $i = $(this),
             $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),

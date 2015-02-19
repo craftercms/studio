@@ -285,93 +285,21 @@
             },
 
             expand: function (containerEl, config) {
-                var self = this;
-                sessionStorage.setItem('components-on', "on");
-                CStudioAuthoring.Service.lookupConfigurtion(
-                    CStudioAuthoringContext.site,
-                    "/preview-tools/components-config.xml",
-                    {
-                        success: function (config) {
-
-                            amplify.publish(crafter.studio.preview.Topics.START_DRAG_AND_DROP+'_cstd', {
-                                components: config
-                            });
-
-                            self.renderComponents(containerEl, config);
-
-                            /*self.dcOverlay = self.createOverlay("draggable-background", "controls-overlay", 5);
-
-                            var zoneEls = YDom.getElementsByClassName(dcContainerClass);
-
-                            for (var i = 0; i < zoneEls.length; i++) {
-                                var zoneEl = zoneEls[i];
-                                YDom.addClass(zoneEl, dcContainerClass + "-on");
-                                var zoneTarget = new YAHOO.util.DDTarget(zoneEl);
-                            }
-
-                            var draggableComponentEls = YDom.getElementsByClassName(dcComponentClass);
-
-                            draggableComponentEls.forEach(function (el) {
-
-                                YDom.addClass(el, dcComponentClass + "-on");
-                                var ddproxy = new DragAndDropDecorator(el, null, {resizeFrame: false});
-                                var wrapperEl = YDom.getAncestorByClassName(el, dcWrapperClass);
-
-                                if (wrapperEl && YDom.getElementsByClassName('delete-control', null, wrapperEl).length == 0) {
-                                    // Make the existing components serve as drag drop targets. If they aren't, then only the zones will
-                                    // be targets and some of the drag drop events on components will not be registered.
-                                    // var ddTarget = new YAHOO.util.DDTarget(el);
-
-                                    // This doesn't apply to elements inside the preview tools menu
-                                    var delControl = self.createDeleteControl('delete-control');
-                                    delControl.onclick = function () {
-                                        Utility.removeComponent(this, function () {
-                                            CStudioAuthoring.ComponentsPanel.getPageModel(CStudioAuthoring.ComponentsPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
-                                        });
-                                    };
-                                    YDom.insertBefore(delControl, el.firstChild);
-                                }
-                            }, self);
-
-                            zoneEls = self.moveElementsToFront("." + dcContainerClass, self.dcOverlay.getOverlayElement(), "cp-front-element");
-                            zoneEls.forEach(function (el) {
-                                // Save any inline background attribute (in case we want to restore it later)
-                                var pEl = document.getElementById("placeholder-" + el.id);
-                                el.style.background = this.getInheritedBackground(pEl);
-                            }, self);
-                            self.dcOverlay.show();*/
-                        },
-                        failure: CStudioAuthoring.Utils.noop
-                    });
+                sessionStorage.setItem('components-on', 'on');
+                CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
+                    failure: CStudioAuthoring.Utils.noop,
+                    success: function (config) {
+                        amplify.publish(crafter.studio.preview.Topics.START_DRAG_AND_DROP + '_cstd', {
+                            components: config
+                        });
+                    }
+                });
             },
 
             collapse: function (containerEl, config) {
-
                 amplify.publish(crafter.studio.preview.Topics.STOP_DRAG_AND_DROP+'_cstd', {
                     components: config
                 });
-
-                /*sessionStorage.setItem('components-on', "");
-
-                this.dcOverlay && this.dcOverlay.hide(function () {
-                    var context = CStudioAuthoring.ComponentsPanel;
-                    context.moveElementsBack(context.dcOverlay.getOverlayElement(), "cp-front-element");
-                });
-
-                var zoneEls = YDom.getElementsByClassName(dcContainerClass);
-                zoneEls.forEach(function (el) {
-                    YDom.removeClass(el, dcContainerClass + "-on");
-                });
-
-                var draggableComponentEls = YDom.getElementsByClassName(dcComponentClass);
-                draggableComponentEls.forEach(function (el) {
-                    YDom.removeClass(el, dcComponentClass + "-on");
-                    var delControl = YDom.getElementsByClassName('delete-control', null, el)[0];
-                    if (delControl) {
-                        el.removeChild(delControl);
-                    }
-                });*/
-
             },
 
             /*
