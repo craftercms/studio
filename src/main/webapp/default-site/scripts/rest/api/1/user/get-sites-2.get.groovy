@@ -39,7 +39,7 @@ try {
      crafterSite.url = "http://" + alfSite.shortName + ".com";
      
      /* send the user right to the website: */
-     crafterSite.cstudioURL = "http://127.0.0.1:8080";
+     crafterSite.cstudioURL = "http://127.0.0.1:8080/studio/preview/#/?page=/&site=" + alfSite.shortName;
      
      crafterSite.siteId = alfSite.shortName;
      crafterSite.storage = [:];

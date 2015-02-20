@@ -19,7 +19,7 @@
 package org.craftercms.studio.api.v1.ebus;
 
 public final class EBusConstants {
-
+  
     /**
      * Repository reactor bean name.
      */
