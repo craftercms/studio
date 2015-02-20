@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class provides the repository configuration information
@@ -243,5 +244,5 @@ public interface ServicesConfig {
     
     public boolean siteExists(String site);
 
-    //Set<String> getAllAvailableSites();
+    Set<String> getAllAvailableSites();
 }

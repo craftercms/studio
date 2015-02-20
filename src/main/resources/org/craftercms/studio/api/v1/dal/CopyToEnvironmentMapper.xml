@@ -22,7 +22,19 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper">
 
-  <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment" />
+  <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment" >
+      <id property="id" column="id"/>
+      <result property="site" column="site"/>
+      <result property="environment" column="environment"/>
+      <result property="path" column="path"/>
+      <result property="oldPath" column="oldpath"/>
+      <result property="user" column="username"/>
+      <result property="scheduledDate" column="scheduleddate"/>
+      <result property="state" column="state"/>
+      <result property="action" column="action"/>
+      <result property="contentTypeClass" column="contenttypeclass"/>
+      <result property="submissionComment" column="submissioncomment"/>
+  </resultMap>
 
   <cache />
 
@@ -47,5 +59,21 @@
         AND path = #{path}
         AND state = #{state}
         AND scheduleddate &gt; #{now}
+    </update>
+
+    <select id="getItemsReadyForDeployment" resultMap="CopyToEnvironmentMap">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND state = #{state}
+        AND environment = #{environment}
+        AND scheduleddate &lt;= #{now}
+        ORDER BY scheduleddate ASC
+    </select>
+
+    <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
+        UPDATE cstudio_copytoenvironment
+        SET state = #{state}
+        WHERE id = #{id}
     </update>
 </mapper>

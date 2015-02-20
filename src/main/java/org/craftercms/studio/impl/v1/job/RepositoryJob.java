@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.job;
 
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,20 +27,22 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 public abstract class RepositoryJob implements Job {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryJob.class);
+	private static final Logger logger = LoggerFactory.getLogger(RepositoryJob.class);
 
 	/**
 	 * authenticate and then delegate execution to protected method: executeAsSignedInUser()
 	 */
     public void execute() {
 
-    	SecurityService securityService = this.getSecurityService();
-    	String username = this.getUserName();
-    	String password = this.getPassword();
-
-    	sercurityService.authenticate(username, password);
-
-    	executeAsSignedInUser();
+    	String ticket = sercurityService.authenticate(username, password);
+        if (StringUtils.isNotEmpty(ticket)) {
+            CronJobContext cronJobContext = new CronJobContext(ticket);
+            CronJobContext.setCurrent(cronJobContext);
+            executeAsSignedInUser();
+            CronJobContext.clear();
+        } else {
+            logger.error("Not able to authenticate user for cron job.");
+        }
     }
 
     /**

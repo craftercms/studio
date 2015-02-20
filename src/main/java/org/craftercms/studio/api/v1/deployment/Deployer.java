@@ -26,10 +26,17 @@ public interface Deployer {
 
     void deployFile(String site, String path);
 
+    void deployFile(String site, String path, String environment);
+
     void deployFiles(String site, List<String> paths);
+
+    void deployFiles(String site, List<String> paths, String environment);
 
     void deleteFile(String site, String path);
 
+    void deleteFile(String site, String path, String environment);
+
     void deleteFiles(String site, List<String> paths);
 
+    void deleteFiles(String site, List<String> paths, String environment);
 }
