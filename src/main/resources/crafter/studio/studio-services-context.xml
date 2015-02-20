@@ -366,11 +366,35 @@
     </bean>
 
     <!-- Jobs -->
+    <bean id="cstudioRepositoryJob" abstract="true" class="org.craftercms.studio.impl.v1.job.RepositoryJob">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="password" value="${repositoryJob.password}" />
+        <property name="userName" value="${repositoryJob.username}" />
+    </bean>
     <bean id="cstudioProcessInFlightJobs" class="org.craftercms.studio.impl.v1.service.workflow.job.ProcessInFlightJobs">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="workflowManager" ref="cstudioWorkflowManager"/>
         <property name="transactionService" ref="cstudioTransactionServiceSimple" />
          <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore"
+          parent="cstudioRepositoryJob">
+        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
+        <property name="publishingManager" ref="cstudioPublishingManager" />
+        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="processingChunkSize" value="${deployContentToEnvironmentJob.processingChunkSize}" />
+        <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
+        <property name="mandatoryDependenciesCheckEnabled" value="${deployContentToEnvironmentJob.mandatoryDependenciesCheckEnabled}" />
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+    </bean>
+
+    <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
+            parent="cstudioRepositoryJob">
+        <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
+        <property name="maxTolerableRetries" value="${syncTargetsJob.maxTolerableRetries}" />
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="publishingManager" ref="cstudioPublishingManager" />
     </bean>
 
     <!-- scheduled actions -->
@@ -383,6 +407,39 @@
         </property>
         <property name="repeatInterval" value="5000" />  
         <property name="startDelay" value="1000" />  
+    </bean>
+
+    <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="cstudioDeployContentToEnvironmentJobs"/>
+                <property name="targetMethod" value="execute"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval" value="10000" />
+        <property name="startDelay" value="2000" />
+    </bean>
+
+    <bean id="cstudioPublishContentToDeploymentTargetJobSchedule" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="cstudioPublishContentToDeploymentTargetJob"/>
+                <property name="targetMethod" value="execute"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval" value="10000" />
+        <property name="startDelay" value="4000" />
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
+                <ref bean="cstudioPublishContentToDeploymentTargetJobSchedule" />
+            </list>
+        </property>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -646,6 +703,26 @@
         <property name="defaultPassword" value="${crafter.deployer.password}"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+    </bean>
+
+    <bean id="studioEnvironmentStoreDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentStoreDeployer">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         publishing manager             -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioPublishingManager" class="org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl">
+        <property name="indexFile" value="${publishingManager.indexFile}" />
+        <property name="importModeEnabled" value="${publishingManager.importModeEnabled}" />
+        <property name="environmentStoreDeployer" ref="studioEnvironmentStoreDeployer"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService" />
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
     </bean>
 
 </beans>

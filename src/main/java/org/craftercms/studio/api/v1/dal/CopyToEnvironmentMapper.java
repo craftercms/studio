@@ -31,4 +31,8 @@ public interface CopyToEnvironmentMapper {
     void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
 
     void cancelWorkflow(Map params);
+
+    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
+
+    void updateItemDeploymentState(CopyToEnvironment item);
 }

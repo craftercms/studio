@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
 import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
@@ -60,6 +61,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private final static String CONTENT_TYPE_ALL= "all";
 
     private static int CTED_AUTOINCREMENT = 0;
+    private static int PSD_AUTOINCREMENT = 0;
 
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
 
@@ -181,14 +183,14 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void deleteDeploymentDataForSite(final String site) {
-        try {
+        //try {
             signalWorkersToStop();
-            _deploymentDAL.deleteDeploymentDataForSite(site);
-        } catch (DeploymentDALException e) {
-            logger.error("Error while deleting deployment data for site {0}", e, site);
-        } finally {
+            //_deploymentDAL.deleteDeploymentDataForSite(site);
+        //} catch (DeploymentDALException e) {
+        //    logger.error("Error while deleting deployment data for site {0}", e, site);
+        //} finally {
             signalWorkersToContinue();
-        }
+        //}
     }
 
 
@@ -566,8 +568,77 @@ public class DeploymentServiceImpl implements DeploymentService {
         return channels;
     }
 
-    public void setDeploymentDAL(DeploymentDAL deploymentDAL) {
-        this._deploymentDAL = deploymentDAL;
+    @Override
+    public void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
+        List<PublishToTarget> items = createItems(site, environment, itemsToDeploy);
+        for (PublishToTarget item : items) {
+            publishToTargetMapper.insertItemForTargetSync(item);
+        }
+    }
+
+    private List<PublishToTarget> createItems(String site, String environment, List<CopyToEnvironment> itemsToDeploy) {
+        Calendar cal = Calendar.getInstance();
+        long currentTimestamp = cal.getTimeInMillis();
+        List<PublishToTarget> newItems = new ArrayList<PublishToTarget>(itemsToDeploy.size());
+        for (CopyToEnvironment itemToDeploy : itemsToDeploy) {
+            PublishToTarget item = new PublishToTarget();
+            item.setId(++PSD_AUTOINCREMENT);
+            item.setSite(site);
+            item.setEnvironment(itemToDeploy.getEnvironment());
+            item.setPath(itemToDeploy.getPath());
+            item.setUsername(itemToDeploy.getUser());
+            item.setVersion(currentTimestamp);
+            if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.NEW)) {
+                item.setAction(PublishToTarget.Action.NEW);
+            } else if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.MOVE)) {
+                item.setAction(PublishToTarget.Action.MOVE);
+                item.setOldPath(itemToDeploy.getOldPath());
+            } else if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.DELETE)) {
+                item.setAction(PublishToTarget.Action.DELETE);
+                item.setOldPath(itemToDeploy.getOldPath());
+            } else {
+                item.setAction(PublishToTarget.Action.UPDATE);
+            }
+            item.setContentTypeClass(itemToDeploy.getContentTypeClass());
+            newItems.add(item);
+        }
+        return newItems;
+    }
+
+    @Override
+    public List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("version", targetVersion);
+        params.put("environments", environments);
+        List<PublishToTarget> queue = publishToTargetMapper.getItemsReadyForTargetSync(params);
+        return queue;
+    }
+
+    @Override
+    public void insertDeploymentHistory(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate) {
+        List<DeploymentSyncHistory> items = createItems(target, publishedItems, publishingDate);
+        for (DeploymentSyncHistory item : items) {
+            deploymentSyncHistoryMapper.insertDeploymentSyncHistoryItem(item);
+        }
+    }
+
+    private List<DeploymentSyncHistory> createItems(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate) {
+        List<DeploymentSyncHistory> items = new ArrayList<DeploymentSyncHistory>(publishedItems.size());
+
+        for (PublishToTarget item : publishedItems) {
+            DeploymentSyncHistory historyItem = new DeploymentSyncHistory();
+            historyItem.setSite(item.getSite());
+            historyItem.setPath(item.getPath());
+            historyItem.setEnvironment(item.getEnvironment());
+            historyItem.setSyncDate(publishingDate);
+            historyItem.setTarget(target.getName());
+            historyItem.setUser(item.getUsername());
+            historyItem.setContentTypeClass(item.getContentTypeClass());
+            items.add(historyItem);
+        }
+
+        return items;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
@@ -600,7 +671,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    protected DeploymentDAL _deploymentDAL;
     protected ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -612,6 +682,10 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
+
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
+
+    @Autowired
+    protected PublishToTargetMapper publishToTargetMapper;
 }
