@@ -1,17 +1,14 @@
-require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], function ($, p, a, Communicator, ICEOverlay) {
+define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-controller'], function (crafter, $, Communicator, ICEOverlay, DnDController) {
     'use strict';
 
     $.noConflict(true);
 
-    // TODO
-    document.domain = "127.0.0.1";
-
     var origin = 'http://127.0.0.1:8080';
-    var Events = crafter.studio.preview.Topics;
+    var Topics = crafter.studio.preview.Topics;
     var communicator = new Communicator({window: window.parent, origin: origin}, origin);
 
     // When the page has successfully loaded, notify the host window of it's readiness
-    communicator.publish(Events.GUEST_SITE_LOAD, {
+    communicator.publish(Topics.GUEST_SITE_LOAD, {
         location: window.location.href,
         url: window.location.href.replace(window.location.origin, '')
     });
@@ -27,7 +24,17 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
     var count = 0,
         overlay = new ICEOverlay(),
         $document = $(document),
-        $window = $(window);
+        $window = $(window),
+        dndController;
+
+    communicator.on(Topics.START_DRAG_AND_DROP, function (message) {
+        require(['dnd-controller'], function (DnDController) {
+            (typeof dndController === 'undefined') && (dndController = new DnDController({
+                communicator: communicator
+            }));
+            dndController.start(message.components);
+        });
+    });
 
     function initICETarget(elem) {
 
@@ -37,7 +44,7 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
 
         $elem.attr('data-studio-ice-target', iceRef);
 
-        $('<i class="crafter-studio-ice-indicator" data-studio-ice-trigger="%@"></i>'.fmt(iceRef)).css({
+        $(crafter.String('<i class="studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(iceRef)).css({
             top: position.top,
             left: position.left
         }).appendTo('body');
@@ -45,29 +52,17 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
     }
 
     function initICERegions() {
-        $('.crafter-studio-ice-indicator').remove();
+        $('.studio-ice-indicator').remove();
         var elems = document.querySelectorAll('[data-studio-ice]');
         for (var i = 0; i < elems.length; ++i) {
             initICETarget(elems[i]);
         }
     }
 
-    /*$document.on('mouseover', '[data-studio-ice]', function (e) {
-
-    });
-
-    $document.on('mouseleave', '[data-studio-ice]', function () {
-
-    });
-
-    $document.on('mouseout', '.crafter-studio-ice-overlay', function () {
-
-    });*/
-
-    $document.on('mouseover', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('mouseover', '.studio-ice-indicator', function (e) {
 
         var $i = $(this),
-            $e = $('[data-studio-ice-target="%@"]'.fmt($i.data('studioIceTrigger'))),
+            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
             iceId = $e.data('studioIce');
 
         var position = $e.offset(),
@@ -84,14 +79,14 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
 
     });
 
-    $document.on('mouseout', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('mouseout', '.studio-ice-indicator', function (e) {
         overlay.hide();
     });
 
-    $document.on('click', '.crafter-studio-ice-indicator', function (e) {
+    $document.on('click', '.studio-ice-indicator', function (e) {
 
         var $i = $(this),
-            $e = $('[data-studio-ice-target="%@"]'.fmt($i.data('studioIceTrigger'))),
+            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
             iceId = $e.data('studioIce');
 
         var position = $e.offset(),
@@ -102,13 +97,11 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
                 height: $e.height()
             };
 
-        // overlay.show(props);
-
         props.iceId = iceId;
         props.scrollTop = $window.scrollTop();
         props.scrollLeft = $window.scrollLeft();
 
-        communicator.publish(Events.ICE_ZONE_ON, props);
+        communicator.publish(Topics.ICE_ZONE_ON, props);
 
     });
 
@@ -116,7 +109,8 @@ require(['jquery', 'preview', 'amplify', 'communicator', 'ice-overlay'], functio
         initICERegions();
     });
 
-    loadCss('/studio/static-assets/styles/studio-guest.css');
+    loadCss('/studio/static-assets/styles/guest.css');
+
     initICERegions();
 
 });

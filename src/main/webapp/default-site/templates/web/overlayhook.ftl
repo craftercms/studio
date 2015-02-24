@@ -1,15 +1,20 @@
+
+// TODO
+document.domain = "127.0.0.1";
+
 requirejs.config({
     baseUrl: '/studio/static-assets/scripts',
     paths: {
-        amplify: '/studio/static-assets/libs/amplify'
+        'libs': '/studio/static-assets/libs/',
+        'jquery': '/studio/static-assets/libs/jquery/dist/jquery',
+        'jquery-ui': '/studio/static-assets/libs/jquery-ui/jquery-ui',
+        'amplify': '/studio/static-assets/libs/amplify/lib/amplify.core'
     }
 });
 
 require(['guest'], function () {
 
-    /*
-
-    CStudioAuthoringContext = {
+    /*CStudioAuthoringContext = {
         user: "${envConfig.user!'UNSET1'}",
         role: "${envConfig.role!'UNSET2'}",
         site: "${envConfig.site!'UNSET3'}",
@@ -65,7 +70,6 @@ require(['guest'], function () {
             failure: function() {}
         });
 
-    });
-    */
+    });*/
 
 });

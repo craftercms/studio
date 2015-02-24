@@ -380,8 +380,7 @@ var YEvent = YAHOO.util.Event;
                     this.waitingForModule[moduleName] = waiting;
 
                     CSA.Utils.addJavascript(script);
-                }
-                else {
+                } else {
                     callback.moduleLoaded(moduleName, moduleClass, moduleConfig);
                 }
             },
@@ -4067,6 +4066,7 @@ var YEvent = YAHOO.util.Event;
             _counter: 0,
             addedCss: [],
             addedJs: [],
+            noop: function() {},
 
             /**
              * Verifies if the user has a specific permission
@@ -6589,10 +6589,9 @@ CStudioAuthoring.InContextEdit = {
 
         var componentIceEls = YAHOO.util.Dom.getElementsByClassName("cstudio-component-ice", null, document.body);
 
-        if(componentIceEls) {
-            for(var i=0; i<componentIceEls.length; i++) {
-                CStudioAuthoring.InContextEdit.initializeComponentEditRegion(componentIceEls[i].id,componentIceEls[i].id);
-            }
+        for(var i = 0; componentIceEls && i < componentIceEls.length; i++) {
+            CStudioAuthoring.InContextEdit.initializeComponentEditRegion(
+                componentIceEls[i].id, componentIceEls[i].id);
         }
 
     },

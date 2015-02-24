@@ -1,10 +1,31 @@
 (function (angular) {
     'use strict';
 
-    var app = angular.module('userDashboard', [
+    var app = angular.module('studio', [
         'ngCookies',
         'ui.router',
         'ui.bootstrap'
+    ]);
+
+    app.run([
+        '$rootScope', '$state', '$stateParams', 'authService', 'Constants',
+        function ($rootScope, $state, $stateParams, authService, Constants) {
+
+            $rootScope.$state = $state;
+            $rootScope.$stateParams = $stateParams;
+
+            $rootScope.imagesDirectory = Constants.PATH_IMG;
+
+            $rootScope.$on('$stateChangeStart', function (event, toState) {
+
+                if (toState.name.indexOf('login') === -1 && !authService.isAuthenticated()) {
+                    event.preventDefault();
+                    $state.go('login');
+                }
+
+            });
+
+        }
     ]);
 
     app.config([
@@ -12,23 +33,37 @@
         function ($stateProvider, $urlRouterProvider) {
 
             $urlRouterProvider
-                .otherwise('/');
+                .otherwise('/sites');
 
             $stateProvider
                 .state('home', {
                     url: '/',
+                    abstract: true,
                     templateUrl: 'templates/home',
-                    controller: 'SitesCtrl'
+                    controller: 'AppCtrl'
                 })
-                .state('home.site', {
-                    url: 'site/:siteId',
+                .state('home.sites', {
+                    url: 'sites',
+                    views: {
+                        content: {
+                            templateUrl: 'templates/sites',
+                            controller: 'SitesCtrl'
+                        }
+                    }
+                })
+                .state('home.sites.site', {
+                    url: '/:siteId',
                     templateUrl: 'templates/site',
                     controller: 'SiteCtrl'
                 })
-                .state('settings', {
-                    url: '/settings',
-                    templateUrl: 'templates/settings',
-                    controller: 'AppCtrl'
+                .state('home.settings', {
+                    url: 'settings',
+                    views: {
+                        content: {
+                            templateUrl: 'templates/settings',
+                            controller: 'AppCtrl'
+                        }
+                    }
                 })
                 .state('login', {
                     url: '/login',
@@ -46,7 +81,7 @@
 
                             $rootScope.loginModal.result.finally(function () {
                                 $rootScope.loginModal = null;
-                                $state.go('home');
+                                $state.go('home.sites');
                             });
 
                         }
@@ -89,33 +124,21 @@
                             }
                         }
                     ]
+                })
+                .state('preview', {
+                    url: '/preview?site&url',
+                    cssClass: 'studio-preview',
+                    templateUrl: 'templates/preview',
+                    controller: 'PreviewCtrl'
                 });
-
-        }
-    ]);
-
-    app.run([
-        '$rootScope', '$state', '$stateParams', 'authService',
-        function ($rootScope, $state, $stateParams, authService) {
-
-            $rootScope.$state = $state;
-            $rootScope.$stateParams = $stateParams;
-
-            $rootScope.$on('$stateChangeStart', function (event, toState) {
-
-                if (toState.name.indexOf('login') === -1 && !authService.isAuthenticated()) {
-                    event.preventDefault();
-                    $state.go('login');
-                }
-
-            });
 
         }
     ]);
 
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
-        SERVICE: '/studio/api/1/services/api/1/user/'
+        PATH_IMG: '/images/',
+        SERVICE: 'http://127.0.0.1:8080/studio/api/1/services/api/1/user/'
     });
 
     app.service('authService', [
@@ -130,7 +153,7 @@
                 user = JSON.parse(script.html());
             }
 
-            this.isAuthenticated = function() {
+            this.isAuthenticated = function () {
                 return !!user;
             };
 
@@ -140,11 +163,12 @@
                     method: 'POST',
                     url: api('login'),
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    transformRequest: function(obj) {
+                    transformRequest: function (obj) {
                         var str = [];
-                        for(var p in obj)
-                            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-                        return str.join("&");
+                        for (var p in obj) {
+                            str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+                        }
+                        return str.join('&');
                     }
                 }).then(function (data) {
                     if (data.data.type === 'success') {
@@ -186,9 +210,10 @@
     ]);
 
     app.service('sitesService', [
-        '$http', 'Constants', '$cookies',
-        function ($http, Constants, $cookies) {
+        '$http', 'Constants', '$cookies', '$timeout', '$window',
+        function ($http, Constants, $cookies, $timeout, $window) {
 
+            var me = this;
             var cookieName = 'crafterSite';
 
             this.getSites = function() {
@@ -203,6 +228,18 @@
 
             this.setCookie = function (site) {
                 $cookies[cookieName] = site.siteId;
+            };
+
+            this.editSite = function (site) {
+                me.setCookie(site);
+                $timeout(function () {
+
+                    // For future in-app iframe
+                    // $state.go('preview', { site: site.siteId, url: site.cstudioURL });
+
+                    $window.location.href = site.cstudioURL;
+
+                }, 0, false);
             };
 
             function json(action) {
@@ -253,17 +290,12 @@
     ]);
 
     app.controller('SitesCtrl', [
-        '$scope', '$state', '$timeout', '$window', 'sitesService',
-        function ($scope, $state, $timeout, $window, sitesService) {
+        '$scope', '$state', 'sitesService',
+        function ($scope, $state, sitesService) {
 
             $scope.sites = null;
 
-            $scope.editSite = function (site) {
-                sitesService.setCookie(site);
-                $timeout(function () {
-                    $window.location.href = site.cstudioURL;
-                }, 100);
-            };
+            $scope.editSite = sitesService.editSite;
 
             function getSites () {
                 sitesService.getSites()
@@ -281,16 +313,26 @@
     ]);
 
     app.controller('SiteCtrl', [
-        '$scope', '$state', 'sitesService', '$window', '$timeout',
-        function ($scope, $state, sitesService, $window, $timeout) {
+        '$scope', '$state', 'sitesService',
+        function ($scope, $state, sitesService) {
+
+            function percent(data) {
+                return Math.ceil((data.used * 100) / (data.total));
+            }
 
             function select($event) {
                 $event.target.select();
             }
 
-            function percent(data) {
-                return Math.ceil((data.used * 100) / (data.total));
-            }
+            // View models
+            $scope.site = null;
+
+            // View methods
+            $scope.editSite = sitesService.editSite;
+            $scope.percent = percent;
+            $scope.select = select;
+
+            $scope.$watch('sites', getSite);
 
             function getSite() {
 
@@ -314,23 +356,6 @@
 
             }
 
-            function editSite(site) {
-                sitesService.setCookie(site);
-                $timeout(function () {
-                    $window.location.href = site.cstudioURL;
-                }, 100);
-            }
-
-            $scope.site = null;
-
-            $scope.editSite = editSite;
-            $scope.percent = percent;
-            $scope.select = select;
-
-            $scope.$watch('sites', function () {
-                getSite();
-            });
-
         }
     ]);
 
@@ -349,7 +374,7 @@
                         }  else if (data.error) {
                             $scope.error = data.error;
                         } else {
-                            $state.go('home');
+                            $state.go('home.sites');
                         }
                     });
 
@@ -409,6 +434,58 @@
                         }
                     });
             };
+
+        }
+    ]);
+
+    app.controller('PreviewCtrl', [
+        '$scope', '$state', '$window', '$sce',
+        function ($scope, $state, $window, $sce) {
+
+            function getIFrame(getContentWindow) {
+                var el = $window.document.getElementById('studioIFrame');
+                return (getContentWindow) ? el.contentWindow : el;
+            }
+
+            function sendMessage() {
+
+                var message = data.message;
+                var popup = getIFrame(true);
+
+                popup.postMessage(message, url);
+
+            }
+
+            function receiveMessage(event) {
+
+                if (event.origin !== 'http://127.0.0.1:8080') {
+                    return;
+                }
+
+                //var frame = event.source;
+                //var message = event.data;
+
+                $scope.$apply(function () {
+                    $scope.status = event.data;
+                });
+
+            }
+
+            function reloadIFrame() {
+                getIFrame(true).location.reload();
+            }
+
+            var data = {};
+            var url = $state.params.url;
+
+            $scope.data = data;
+            $scope.url = $sce.trustAsResourceUrl(url);
+            $scope.status = '';
+
+            $scope.sendMessage = sendMessage;
+            $scope.reloadIFrame = reloadIFrame;
+
+            $window.addEventListener('message', receiveMessage, false);
 
         }
     ]);
