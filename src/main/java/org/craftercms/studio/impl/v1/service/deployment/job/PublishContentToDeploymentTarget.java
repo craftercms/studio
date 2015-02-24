@@ -17,12 +17,16 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
+import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.service.deployment.*;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.transaction.TransactionService;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.lang.reflect.Method;
@@ -63,7 +67,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
     }
 
     public void executeAsSignedInUser() {
-        if (_masterPublishingNode && !stopSignaled) {
+        if (masterPublishingNode && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
@@ -80,51 +84,52 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
 
     public void processJobs() {
 
-/*
+
         try {
-            UserTransaction tx = _transactionService.getTransaction();
+            // TODO: transaction ?
+            //UserTransaction tx = _transactionService.getTransaction();
             try {
-                tx.begin();
-                Set<String> siteNames = _publishingManager.getAllAvailableSites();
-                tx.commit();
+                //tx.begin();
+                Set<String> siteNames = siteService.getAllAvailableSites();
+                //tx.commit();
                 if (siteNames != null && siteNames.size() > 0){
                     for (String site : siteNames) {
                         logger.debug("Starting publishing for site \"{0}\"", site);
-                        tx = _transactionService.getTransaction();
-                        tx.begin();
-                        Set<PublishingTargetItem> targets = _publishingManager.getAllTargetsForSite(site);
-                        tx.commit();
+                        //tx = _transactionService.getTransaction();
+                        //tx.begin();
+                        Set<PublishingTargetItem> targets = getAllTargetsForSite(site);
+                        //tx.commit();
                         for (PublishingTargetItem target : targets) {
                             logger.debug("Starting publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
                             if (target.getEnvironments() == null || target.getEnvironments().isEmpty()) continue;
-                            if (_publishingManager.checkConnection(target)) {
-                                tx = _transactionService.getTransaction();
-                                tx.begin();
+                            if (publishingManager.checkConnection(target)) {
+                                //tx = _transactionService.getTransaction();
+                                //tx.begin();
 
                                 logger.debug("Getting target version (target: \"{0}\", site: \"{1}\"", target.getName(), site);
-                                long targetVersion = _publishingManager.getTargetVersion(target, site);
+                                long targetVersion = publishingManager.getTargetVersion(target, site);
 
                                 logger.debug("Target version: \"{0}\" (target: \"{1}\", site: \"{2}\"", targetVersion, target.getName(), site);
                                 if(targetVersion != -1) {
-                                    List<PublishingSyncItem> syncItems = _publishingManager.getItemsToSync(site, targetVersion, target.getEnvironments());
+                                    List<PublishToTarget> syncItems = publishingManager.getItemsToSync(site, targetVersion, target.getEnvironments());
                                     if (syncItems != null && syncItems.size() > 0) {
                                         logger.info("publishing \"{0}\" item(s) to \"{1}\" for site \"{2}\"", syncItems.size(), target.getName(), site);
 
                                         logger.debug("Filtering out items before sending to deployment agent");
-                                        List<PublishingSyncItem> filteredItems = filterItems(syncItems, target);
+                                        List<PublishToTarget> filteredItems = filterItems(syncItems, target);
 
 
                                         try {
                                             if (filteredItems != null && filteredItems.size() > 0) {
                                                 logger.debug("Sending \"{0}\" items to target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
-                                                _publishingManager.deployItemsToTarget(site, filteredItems, target);
+                                                publishingManager.deployItemsToTarget(site, filteredItems, target);
                                             }
 
                                             long newVersion = getDeployedVersion(syncItems);
                                             logger.debug("Setting new version for target (target: \"{0}\", site \"{1}\", version \"{2}\"", target.getName(), site, newVersion);
-                                            _publishingManager.setTargetVersion(target, newVersion, site);
+                                            publishingManager.setTargetVersion(target, newVersion, site);
                                             logger.debug("Inserting deployment history for \"{0}\" items on target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
-                                            _publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
+                                            publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
                                         } catch (UploadFailedException err) {
                                             Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
                                             if (counters == null) {
@@ -136,7 +141,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                             } else {
                                                 count++;
                                             }
-                                            if (count > _maxTolerableRetries) {
+                                            if (count > maxTolerableRetries) {
                                                 // TODO: Send notification - big red alert!
                                                 logger.error("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err, err.getSite(), err.getTarget(), err.getUrl());
                                             } else {
@@ -144,7 +149,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                             }
                                             counters.put(err.getTarget(), count);
                                             _publishingFailureCounters.put(err.getSite(), counters);
-                                            tx.rollback();
+                                            //tx.rollback();
                                             continue;
                                         }
 
@@ -161,7 +166,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                     // for example the features we need are not supported
                                     logger.error("cannot negotiate a version for deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
                                 }
-                                tx.commit();
+                                //tx.commit();
                             }
                             else {
                                 // TODO: update target status
@@ -183,7 +188,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                 } else {
                     count++;
                 }
-                if (count > _maxTolerableRetries) {
+                if (count > maxTolerableRetries) {
                     // TODO: Send notification - big red alert!
                     logger.error("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err, err.getSite(), err.getTarget(), err.getPath());
                 } else {
@@ -191,28 +196,69 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                 }
                 counters.put(err.getTarget(), count);
                 _publishingFailureCounters.put(err.getSite(), counters);
-                tx.rollback();
+                //tx.rollback();
             } catch(Exception err) {
                 logger.error("error while processing items to be published", err);
-                tx.rollback();
+                //tx.rollback();
             }
         }
         catch(Exception err) {
             logger.error("error while processing items to be published", err);
-        }*/
+        }
     }
 
-    protected long getDeployedVersion(List<PublishingSyncItem> syncItems) {
+    protected Set<PublishingTargetItem> getAllTargetsForSite(String site) {
+        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        Set<PublishingTargetItem> targets = new HashSet<PublishingTargetItem>();
+        Map<String, PublishingTargetItem> targetMap = new HashMap<String, PublishingTargetItem>();
+        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
+            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
+                List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
+                if (channelConfigTOs != null && channelConfigTOs.size() > 0) {
+                    for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
+                        DeploymentEndpointConfigTO endpoint = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
+                        if (endpoint != null) {
+                            PublishingTargetItem targetItem = targetMap.get(endpoint.getName());
+                            if (targetItem == null) {
+                                targetItem = new PublishingTargetItem();
+                                targetItem.setId(endpoint.getName());
+                                targetItem.setName(endpoint.getName());
+                                targetItem.setTarget(endpoint.getTarget());
+                                targetItem.setType(endpoint.getType());
+                                targetItem.setServerUrl(endpoint.getServerUrl());
+                                targetItem.setStatusUrl(endpoint.getStatusUrl());
+                                targetItem.setVersionUrl(endpoint.getVersionUrl());
+                                targetItem.setPassword(endpoint.getPassword());
+                                targetItem.setExcludePattern(endpoint.getExcludePattern());
+                                targetItem.setIncludePattern(endpoint.getIncludePattern());
+                                targetItem.setBucketSize(endpoint.getBucketSize());
+                                targetItem.setSiteId(endpoint.getSiteId());
+                                targetItem.setSendMetadata(endpoint.isSendMetadata());
+                                targets.add(targetItem);
+
+                                targetMap.put(endpoint.getName(), targetItem);
+                            }
+                            targetItem.addEnvironment(groupConfigTO.getName());
+
+                        }
+                    }
+                }
+            }
+        }
+        return targets;
+    }
+
+    protected long getDeployedVersion(List<PublishToTarget> syncItems) {
         Collections.sort(syncItems, new VersionComparator());
-        PublishingSyncItem item = syncItems.get(0);
-        return item.getTimestampVersion();
+        PublishToTarget item = syncItems.get(0);
+        return item.getVersion();
     }
 
-    class VersionComparator implements Comparator<PublishingSyncItem> {
+    class VersionComparator implements Comparator<PublishToTarget> {
 
         @Override
-        public int compare(PublishingSyncItem publishingSyncItem, PublishingSyncItem publishingSyncItem2) {
-            long result = publishingSyncItem.getTimestampVersion() - publishingSyncItem2.getTimestampVersion();
+        public int compare(PublishToTarget publishToTargetItem, PublishToTarget publishToTargetItem2) {
+            long result = publishToTargetItem.getVersion() - publishToTargetItem2.getVersion();
             if (result > 0) {
                 return -1;
             } else if (result < 0) {
@@ -222,11 +268,11 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         }
     }
 
-    protected List<PublishingSyncItem> filterItems(List<PublishingSyncItem> syncItems, PublishingTargetItem target) {
+    protected List<PublishToTarget> filterItems(List<PublishToTarget> syncItems, PublishingTargetItem target) {
         List<String> includePaths = target.getIncludePattern();
         List<String> excludePaths = target.getExcludePattern();
-        List<PublishingSyncItem> filteredItems = new ArrayList<PublishingSyncItem>();
-        for (PublishingSyncItem item : syncItems) {
+        List<PublishToTarget> filteredItems = new ArrayList<PublishToTarget>();
+        for (PublishToTarget item : syncItems) {
             boolean exclude = false;
             Pattern regexPattern;
             if (includePaths != null) {
@@ -254,23 +300,20 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         return filteredItems;
     }
 
+    public Integer getMaxTolerableRetries() { return maxTolerableRetries; }
+    public void setMaxTolerableRetries(Integer maxTolerableRetries) { this.maxTolerableRetries = maxTolerableRetries; }
 
-    /** getter transaction service */
-    public TransactionService getTransactionService() { return _transactionService; }
-    /** setter for transaction service */
-    public void setTransactionService(TransactionService service) { _transactionService = service; }
-/*
-    public PublishingManager getPublishingManager() { return this._publishingManager; }
-    public void setPublishingManager(PublishingManager publishingManager) { this._publishingManager = publishingManager; }
-*/
-    public Integer getMaxTolerableRetries() { return _maxTolerableRetries; }
-    public void setMaxTolerableRetries(Integer maxTolerableRetries) { this._maxTolerableRetries = maxTolerableRetries; }
+    public boolean isMasterPublishingNode() { return masterPublishingNode; }
+    public void setMasterPublishingNode(boolean masterPublishingNode) { this.masterPublishingNode = masterPublishingNode; }
 
-    public boolean isMasterPublishingNode() { return _masterPublishingNode; }
-    public void setMasterPublishingNode(boolean masterPublishingNode) { this._masterPublishingNode = masterPublishingNode; }
+    public SiteService getSiteService() { return siteService; }
+    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
-    protected TransactionService _transactionService;
-    //protected PublishingManager _publishingManager;
-    protected Integer _maxTolerableRetries;
-    protected boolean _masterPublishingNode;
+    public PublishingManager getPublishingManager() { return publishingManager; }
+    public void setPublishingManager(PublishingManager publishingManager) { this.publishingManager = publishingManager; }
+
+    protected Integer maxTolerableRetries;
+    protected boolean masterPublishingNode;
+    protected SiteService siteService;
+    protected PublishingManager publishingManager;
 }

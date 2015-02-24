@@ -26,6 +26,7 @@ import org.dom4j.Document;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Note: consider renaming
@@ -62,4 +63,8 @@ public interface SiteService {
     Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
 
     DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
+
+    Set<String> getAllAvailableSites();
+
+    String getLiveEnvironmentName(String site);
 }

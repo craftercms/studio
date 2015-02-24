@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.security;
+package org.craftercms.studio.api.v1.dal;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
-/**
- * @author Dejan Brkic
- */
-public interface SecurityProvider {
+public interface PublishToTargetMapper {
 
-    Set<String> getUserGroups(String user);
+    void insertItemForTargetSync(PublishToTarget publishToTargetItem);
 
-    String getCurrentUser();
-
-    String authenticate(String username, String password);
+    List<PublishToTarget> getItemsReadyForTargetSync(Map<String, Object> params);
 }

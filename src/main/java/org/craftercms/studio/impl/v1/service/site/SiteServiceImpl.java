@@ -381,7 +381,27 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         return getDeploymentEndpoint(site, endpoint);
     }
 
-	/** getter site service dal */
+    @Override
+    public Set<String> getAllAvailableSites() {
+        List<SiteFeed> sites = siteFeedMapper.getSites();
+        Set<String> toRet = new HashSet<>();
+        for (SiteFeed site : sites) {
+            toRet.add(site.getName());
+        }
+        return toRet;
+    }
+
+    @Override
+    public String getLiveEnvironmentName(String site) {
+        PublishingChannelGroupConfigTO pcgcTO = environmentConfig.getLiveEnvironmentPublishingGroup(site);
+        if (pcgcTO != null) {
+            return pcgcTO.getName();
+        } else {
+            return null;
+        }
+    }
+
+    /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
 	public void setSiteServiceDAL(SiteServiceDAL service) { _siteServiceDAL = service; }
