@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
 import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
@@ -616,14 +615,14 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void insertDeploymentHistory(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate) {
+    public void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate) {
         List<DeploymentSyncHistory> items = createItems(target, publishedItems, publishingDate);
         for (DeploymentSyncHistory item : items) {
             deploymentSyncHistoryMapper.insertDeploymentSyncHistoryItem(item);
         }
     }
 
-    private List<DeploymentSyncHistory> createItems(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate) {
+    private List<DeploymentSyncHistory> createItems(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate) {
         List<DeploymentSyncHistory> items = new ArrayList<DeploymentSyncHistory>(publishedItems.size());
 
         for (PublishToTarget item : publishedItems) {

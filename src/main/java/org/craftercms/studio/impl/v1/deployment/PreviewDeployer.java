@@ -59,11 +59,6 @@ public class PreviewDeployer implements Deployer {
     public static final String FILES_SEPARATOR = ",";
 
     @Override
-    public void deployFile(String site, String path, String environment) {
-        deployFile(site, path);
-    }
-
-    @Override
     public void deployFile(String site, String path) {
         DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
         URL requestUrl = null;
@@ -111,27 +106,12 @@ public class PreviewDeployer implements Deployer {
     }
 
     @Override
-    public void deployFiles(String site, List<String> paths, String environment) {
-        deployFiles(site, paths);
-    }
-
-    @Override
     public void deployFiles(String site, List<String> paths) {
 
     }
 
     @Override
-    public void deleteFile(String site, String path, String environment) {
-        deleteFile(site, path);
-    }
-
-    @Override
     public void deleteFile(String site, String path) {
-
-    }
-
-    @Override
-    public void deleteFiles(String site, List<String> paths, String environment) {
 
     }
 
@@ -166,6 +146,11 @@ public class PreviewDeployer implements Deployer {
         } finally {
             RequestContext.setCurrent(null);
         }
+    }
+
+    @Override
+    public void deployFiles(String site, List<String> paths, List<String> deletedFiles) {
+
     }
 
     public String getDefaultServer() { return defaultServer; }

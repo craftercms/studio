@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.util.ListUtils;
 
 import javax.sql.DataSource;
@@ -344,7 +344,7 @@ public class DeploymentDALImpl implements DeploymentDAL {
     }
 
     @Override
-    public void insertDeploymentHistory(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) throws DeploymentDALException {
+    public void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishingSyncItem> publishedItems, Date publishingDate) throws DeploymentDALException {
         List<DeploymentSyncHistory> items = createItems(target, publishedItems, publishingDate);
         try {
             List<List<DeploymentSyncHistory>> batches = ListUtils.partition(items, _sqlBatchMaxSize);
@@ -368,7 +368,7 @@ public class DeploymentDALImpl implements DeploymentDAL {
         }
     }
 
-    private List<DeploymentSyncHistory> createItems(PublishingTargetItem target, List<PublishingSyncItem> publishedItems, Date publishingDate) {
+    private List<DeploymentSyncHistory> createItems(DeploymentEndpointConfigTO target, List<PublishingSyncItem> publishedItems, Date publishingDate) {
         List<DeploymentSyncHistory> items = new ArrayList<DeploymentSyncHistory>(publishedItems.size());
 
         for (PublishingSyncItem item : publishedItems) {

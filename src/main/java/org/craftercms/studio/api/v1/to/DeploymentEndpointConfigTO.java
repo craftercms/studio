@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DeploymentEndpointConfigTO {
@@ -116,4 +117,11 @@ public class DeploymentEndpointConfigTO {
     public void setSiteId(String siteId) {
         this.siteId = siteId;
     }
+
+    protected List<String> environments = new ArrayList<String>();
+
+    public List<String> getEnvironments() { return environments; }
+    public void setEnvironments(List<String> environments) { this.environments = environments; }
+    public void addEnvironment(String environment) { this.environments.add(environment); }
+    public void removeEnvironment(String environment) { this.environments.remove(environment); }
 }

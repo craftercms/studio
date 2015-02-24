@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
@@ -66,5 +67,5 @@ public interface DeploymentService {
 
     List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
 
-    void insertDeploymentHistory(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate);
+    void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate);
 }
