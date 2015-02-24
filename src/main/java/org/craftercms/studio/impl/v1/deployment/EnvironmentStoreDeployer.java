@@ -35,15 +35,15 @@ public class EnvironmentStoreDeployer implements Deployer{
 
     @Override
     public void deployFile(String site, String path) {
-
-    }
-
-    @Override
-    public void deployFile(String site, String path, String environment) {
         InputStream content = contentService.getContent(site, path);
         writeFile(site, path, environment, content);
     }
+/*
+    @Override
+    public void deployFile(String site, String path, String environment) {
 
+    }
+*/
     private void writeFile(String site, String path, String environment, InputStream content) {
         File file = new File(getDestinationPath(site, path, environment));
         try {
@@ -61,29 +61,35 @@ public class EnvironmentStoreDeployer implements Deployer{
     public void deployFiles(String site, List<String> paths) {
 
     }
-
+/*
     @Override
     public void deployFiles(String site, List<String> paths, String environment) {
 
     }
-
+*/
     @Override
     public void deleteFile(String site, String path) {
 
     }
-
+/*
     @Override
     public void deleteFile(String site, String path, String environment) {
 
     }
-
+*/
     @Override
     public void deleteFiles(String site, List<String> paths) {
 
     }
-
+/*
     @Override
     public void deleteFiles(String site, List<String> paths, String environment) {
+
+    }
+*/
+
+    @Override
+    public void deployFiles(String site, List<String> paths, List<String> deletedFiles) {
 
     }
 
@@ -93,6 +99,10 @@ public class EnvironmentStoreDeployer implements Deployer{
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public String getEnvironment() { return environment; }
+    public void setEnvironment(String environment) { this.environment = environment; }
+
     protected String environmentsStoreRootPath;
     protected ContentService contentService;
+    protected String environment;
 }

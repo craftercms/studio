@@ -21,7 +21,8 @@ package org.craftercms.studio.impl.v1.deployment.dal;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.PublishingSyncItem;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public interface DeploymentDAL {
 
     void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironmentItem> itemsToDeploy) throws DeploymentDALException;
 
-    void insertDeploymentHistory(PublishingTargetItem target, List<PublishingSyncItem> filteredItems, Date publishingDate) throws DeploymentDALException;
+    void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishingSyncItem> filteredItems, Date publishingDate) throws DeploymentDALException;
 
     List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
 

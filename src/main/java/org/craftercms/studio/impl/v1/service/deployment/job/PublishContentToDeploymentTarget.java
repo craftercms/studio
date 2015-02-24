@@ -97,9 +97,9 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                         logger.debug("Starting publishing for site \"{0}\"", site);
                         //tx = _transactionService.getTransaction();
                         //tx.begin();
-                        Set<PublishingTargetItem> targets = getAllTargetsForSite(site);
+                        Set<DeploymentEndpointConfigTO> targets = getAllTargetsForSite(site);
                         //tx.commit();
-                        for (PublishingTargetItem target : targets) {
+                        for (DeploymentEndpointConfigTO target : targets) {
                             logger.debug("Starting publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
                             if (target.getEnvironments() == null || target.getEnvironments().isEmpty()) continue;
                             if (publishingManager.checkConnection(target)) {
@@ -207,10 +207,10 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         }
     }
 
-    protected Set<PublishingTargetItem> getAllTargetsForSite(String site) {
+    protected Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site) {
         Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-        Set<PublishingTargetItem> targets = new HashSet<PublishingTargetItem>();
-        Map<String, PublishingTargetItem> targetMap = new HashMap<String, PublishingTargetItem>();
+        Set<DeploymentEndpointConfigTO> targets = new HashSet<DeploymentEndpointConfigTO>();
+        Map<String, DeploymentEndpointConfigTO> targetMap = new HashMap<String, DeploymentEndpointConfigTO>();
         if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
             for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
                 List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
@@ -218,28 +218,13 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                     for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
                         DeploymentEndpointConfigTO endpoint = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
                         if (endpoint != null) {
-                            PublishingTargetItem targetItem = targetMap.get(endpoint.getName());
+                            DeploymentEndpointConfigTO targetItem = targetMap.get(endpoint.getName());
                             if (targetItem == null) {
-                                targetItem = new PublishingTargetItem();
-                                targetItem.setId(endpoint.getName());
-                                targetItem.setName(endpoint.getName());
-                                targetItem.setTarget(endpoint.getTarget());
-                                targetItem.setType(endpoint.getType());
-                                targetItem.setServerUrl(endpoint.getServerUrl());
-                                targetItem.setStatusUrl(endpoint.getStatusUrl());
-                                targetItem.setVersionUrl(endpoint.getVersionUrl());
-                                targetItem.setPassword(endpoint.getPassword());
-                                targetItem.setExcludePattern(endpoint.getExcludePattern());
-                                targetItem.setIncludePattern(endpoint.getIncludePattern());
-                                targetItem.setBucketSize(endpoint.getBucketSize());
-                                targetItem.setSiteId(endpoint.getSiteId());
-                                targetItem.setSendMetadata(endpoint.isSendMetadata());
-                                targets.add(targetItem);
-
-                                targetMap.put(endpoint.getName(), targetItem);
+                                targets.add(endpoint);
+                                targetMap.put(endpoint.getName(), endpoint);
+                                targetItem = endpoint;
                             }
                             targetItem.addEnvironment(groupConfigTO.getName());
-
                         }
                     }
                 }
@@ -268,7 +253,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         }
     }
 
-    protected List<PublishToTarget> filterItems(List<PublishToTarget> syncItems, PublishingTargetItem target) {
+    protected List<PublishToTarget> filterItems(List<PublishToTarget> syncItems, DeploymentEndpointConfigTO target) {
         List<String> includePaths = target.getIncludePattern();
         List<String> excludePaths = target.getExcludePattern();
         List<PublishToTarget> filteredItems = new ArrayList<PublishToTarget>();

@@ -26,8 +26,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
 import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
@@ -290,7 +290,7 @@ public class AlfrescoContentRepositoryDirty extends AlfrescoContentRepository {
     }
 
     // @Override
-    public Set<PublishingTargetItem> getAllTargetsForSite(String site) {
+    public Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site) {
     //     PersistenceManagerService persistenceManagerService = _servicesManager.getService(PersistenceManagerService.class);
     //     SiteService siteService = _servicesManager.getService(SiteService.class);
     //     Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);

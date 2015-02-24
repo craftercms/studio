@@ -20,7 +20,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.PublishingTargetItem;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import javax.transaction.UserTransaction;
@@ -177,7 +177,7 @@ public interface ContentRepository {
 
     Set<String> getAllAvailableSites();
 
-    Set<PublishingTargetItem> getAllTargetsForSite(String site);
+    Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site);
 
     String getCurrentUser();
 
