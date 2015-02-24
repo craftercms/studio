@@ -238,23 +238,19 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 			var componentEl = editor.dom.doc.getElementById(componentItem.id);
 			var _self = this;
 			
-			if(componentEl) {
+			if (componentEl) {
 				try {
 					componentEl.innerHTML = WAITING_IMG;
-					previewCb = {
-						success: function(content) {
-							componentEl.innerHTML = content;
-							YAHOO.util.Dom.addClass(componentEl, 'mceNonEditable');
-						},
-						
-						failure: function() {
-							componentEl.innerHTML = ERROR_IMG;
-						}
-					};
-					
-					CStudioAuthoring.Service.getComponentPreview(componentItem.contentId, previewCb);		
-				}
-				catch(err) {
+					CStudioAuthoring.Service.getComponentPreview(componentItem.contentId, {
+                        success: function(content) {
+                            componentEl.innerHTML = content;
+                            YAHOO.util.Dom.addClass(componentEl, 'mceNonEditable');
+                        },
+                        failure: function() {
+                            componentEl.innerHTML = ERROR_IMG;
+                        }
+                    });
+				} catch(err) {
 				}
 			}
 	    },

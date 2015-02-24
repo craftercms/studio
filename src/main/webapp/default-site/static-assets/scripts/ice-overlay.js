@@ -1,15 +1,14 @@
-(function (studio) {
+define('ice-overlay', ['crafter', 'jquery', 'animator'], function (crafter, $, Animator) {
     'use strict';
 
-    var animationEndEvent = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
-        preAnimationRemoveClasses = 'fadeIn fadeOut',
-        fadeInClasses = 'fadeIn',
-        fadeOutClasses = 'fadeOut';
+    var studio = crafter.studio;
 
     function ICEOverlay() {
 
-        var $overlay = $('<div class="crafter-studio-ice-overlay" style="display: none;"></div>');
+        var $overlay = $('<div class="studio-ice-overlay" style="display: none;"></div>');
         $overlay.appendTo('body');
+
+        this.animator = new Animator($overlay);
 
         this.getElement = function () {
             return $overlay;
@@ -23,27 +22,14 @@
     };
 
     function showOverlay(props) {
-        this.getElement().css(props)
-            .show()
-            .removeClass(preAnimationRemoveClasses)
-            .addClass(fadeInClasses)
-            .one(animationEndEvent, function () {
-                $(this).removeClass(fadeInClasses);
-            });
+        this.getElement().css(props);
+        this.animator.fadeIn();
     }
 
     function hideOverlay() {
-        this.getElement()
-            .removeClass(preAnimationRemoveClasses)
-            .addClass(fadeOutClasses)
-            .one(animationEndEvent, function () {
-                var $el = $(this);
-                if (!$el.hasClass(fadeInClasses)) $el.hide();
-                $el.removeClass(fadeOutClasses);
-            });
+        this.animator.fadeOut();
     }
 
-    studio.define('ICEOverlay', ICEOverlay);
     return ICEOverlay;
 
-})(crafter.studio);
+});
