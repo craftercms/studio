@@ -28,4 +28,6 @@ public interface SecurityProvider {
     Set<String> getUserGroups(String user);
 
     String getCurrentUser();
+
+    String authenticate(String username, String password);
 }

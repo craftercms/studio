@@ -40,4 +40,5 @@ CStudioAuthoring.IceTools = CStudioAuthoring.IceTools || {
 	}
 }
 
+CStudioAuthoring.Module.moduleLoaded("ice-tools", CStudioAuthoring.IceTools);
 CStudioAuthoring.Module.moduleLoaded("ice-tools-controller", CStudioAuthoring.IceTools);

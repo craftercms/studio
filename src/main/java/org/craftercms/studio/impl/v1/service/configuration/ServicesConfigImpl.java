@@ -748,12 +748,12 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         }
     }
 
-	/*
+
     @Override
     public Set<String> getAllAvailableSites() {
-        Set<String> siteNames = _siteMapping.keySet();
+        Set<String> siteNames = siteMapping.keySet();
         return siteNames;
-    }*/
+    }
 
 	/**
 	 * Return if we check for renaming for the given site.

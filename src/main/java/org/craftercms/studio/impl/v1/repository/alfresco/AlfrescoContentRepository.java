@@ -49,12 +49,16 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
+import org.dom4j.Document;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
@@ -668,29 +672,34 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     protected String getAlfTicket() {
         String ticket = "UNSET";
         RequestContext context = RequestContext.getCurrent();
-        HttpServletRequest request = context.getRequest();
+        if (context != null) {
+            HttpServletRequest request = context.getRequest();
 
-        if(request != null) {
-            ticket = request.getParameter("alf_ticket");
+            if (request != null) {
+                ticket = request.getParameter("alf_ticket");
 
-            if(ticket == null) {
-                // check the cookies
-                Cookie[] cookies = request.getCookies();
-                for(int i=0; i<cookies.length; i++) {
-                    Cookie cookie = cookies[i];
-                    if(cookie.getName().equals("alf_ticket")) {
-                        ticket = cookie.getValue();
-                        break;
-                    }
-                    else if(cookie.getName().equals("ccticket")) {
-                        ticket = cookie.getValue();
-                        break;
+                if (ticket == null) {
+                    // check the cookies
+                    Cookie[] cookies = request.getCookies();
+                    for (int i = 0; i < cookies.length; i++) {
+                        Cookie cookie = cookies[i];
+                        if (cookie.getName().equals("alf_ticket")) {
+                            ticket = cookie.getValue();
+                            break;
+                        } else if (cookie.getName().equals("ccticket")) {
+                            ticket = cookie.getValue();
+                            break;
+                        }
                     }
                 }
+            } else {
+                // maybe inside a chron trigger on other not request context
             }
-        }
-        else {
-            // maybe inside a chron trigger on other not request context
+        } else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+            if (cronJobContext != null) {
+                ticket = cronJobContext.getAuthenticationToken();
+            }
         }
 
         return ticket;
@@ -777,6 +786,30 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
 
         return username;
+    }
+
+    @Override
+    public String authenticate(String username, String password) {
+        InputStream retStream = null;
+        String toRet = null;
+        try {
+            // construct and execute url to download result
+            String downloadURI = "/api/login?u={u}&pw={pw}";
+            Map<String, String> lookupContentParams = new HashMap<String, String>();
+            lookupContentParams.put("u", username);
+            lookupContentParams.put("pw", password);
+
+            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+
+            SAXReader reader = new SAXReader();
+            Document response = reader.read(retStream);
+            Node ticketNode = response.selectSingleNode("//ticket");
+            toRet = ticketNode.getText();
+        }
+        catch(Exception err) {
+            logger.error("err getting content: ", err);
+        }
+        return toRet;
     }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }

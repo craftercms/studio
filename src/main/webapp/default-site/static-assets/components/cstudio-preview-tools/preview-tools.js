@@ -12,11 +12,11 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
     /**
      * initialize module
      */
-    initialize: function(config) {
+    initialize: function (config) {
 
         var panelEl, that, ptoOn, ptoLeft, ptoTop;
 
-        if(!this.initialized) {
+        if (!this.initialized) {
 
             that = this;
             panelEl = document.createElement("div");
@@ -42,7 +42,6 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
                 close: false,
                 constraintoviewport: true,
                 draggable: true,
-                zindex: 999999,
                 modal: false,
                 visible: false,
                 x: ptoLeft,
@@ -50,46 +49,36 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
                 autofillheight: null
             });
 
-            panel.moveEvent.subscribe(function(){
+            panel.moveEvent.subscribe(function () {
                 that.updateLocationPrefs.call(that);
             });
 
-            YAHOO.widget.Overlay.windowResizeEvent.subscribe( function(){
+            YAHOO.widget.Overlay.windowResizeEvent.subscribe(function () {
                 CStudioAuthoring.PreviewTools.panelCheckBounds.call(CStudioAuthoring.PreviewTools);
             });
 
             panel.setHeader("Preview Tools");
             panel.render();
 
-            CStudioAuthoring.Service.lookupConfigurtion(
-                CStudioAuthoringContext.site,
-                "/preview-tools/panel.xml",
-                {
-                    success: function(config) {
-                        var panelEl = document.getElementById("preview-tools-panel-container_c");
-                        panelEl.style.position = "fixed";   // This will keep the overlay fixed even when the user scrolls down the page
-
-                        this.context.buildModules(config);
-
-                        if(ptoOn){
-                            this.context.turnToolsOn();
-                        } else {
-                            this.context.turnToolsOff();
-                        }
-                    },
-
-                    failure: function() {
-                    },
-
-                    context: this
-                });
+            CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/preview-tools/panel.xml", {
+                success: function (config) {
+                    this.context.buildModules(config);
+                    if (ptoOn) {
+                        this.context.turnToolsOn();
+                    } else {
+                        this.context.turnToolsOff();
+                    }
+                },
+                failure: CStudioAuthoring.Utils.noop,
+                context: this
+            });
 
             this.panel = panel;
             this.initialized = true;
-        };
+        }
     },
 
-    turnToolsOn: function() {
+    turnToolsOn: function () {
 
         this.panelCheckBounds();
         this.panel.show();
@@ -98,7 +87,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
         this.PreviewToolsOnEvent.fire();
     },
 
-    turnToolsOff: function() {
+    turnToolsOff: function () {
 
         this.panel.hide();
         sessionStorage.setItem('pto-on', "");  // empty string value so that when we cast it to boolean we get false
@@ -109,7 +98,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
     /*
      * Update the panel's location preferences based on the panel's current coordinates.
      */
-    updateLocationPrefs: function() {
+    updateLocationPrefs: function () {
         var panelXYvalues = this.panel.cfg.config.xy.value;
 
         sessionStorage.setItem('pto-left', panelXYvalues[0]);
@@ -120,7 +109,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
      * Keep the panel within the horizontal limits of the window.
      * This method will be called, for example, when the window is resized.
      */
-    panelCheckBounds: function() {
+    panelCheckBounds: function () {
         var offsetX, panelWidth, rightPadding, panelX, panel, ptoTop, winWidth;
 
         panel = this.panel;
@@ -141,73 +130,72 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
     /**
      * given a dropdown configuration, build the nav
      */
-    buildModules: function(navConfig) {
+    buildModules: function (navConfig) {
 
         var containerEl = document.getElementById("preview-tools-panel-container");
         containerEl.style.height = "auto";
 
-        if(navConfig.modules.module) {
-            navConfig.modules = [ navConfig.modules.module ];
+        if (navConfig.modules.module) {
+            navConfig.modules = [navConfig.modules.module];
         }
 
-        if(navConfig.modules.length) {
+        if (navConfig.modules.length) {
             var containersEls = [];
 
-            for(var j=0; j<navConfig.modules.length; j++) {
+            for (var j = 0; j < navConfig.modules[0].length; j++) {
                 var moduleContainerEl = document.createElement("div");
                 containerEl.appendChild(moduleContainerEl);
                 containersEls[j] = moduleContainerEl;
             }
 
+            CStudioAuthoring.Module.requireModule('ice-tools',
+                '/static-assets/components/cstudio-preview-tools/ice-tools.js');
+
             for (var i = 0; i < navConfig.modules[0].length; i++) {
                 var module = navConfig.modules[0][i];
                 CStudioAuthoring.Module.requireModule(module.moduleName,
                     '/static-assets/components/cstudio-preview-tools/mods/' + module.moduleName + ".js",
-                    { config: module }, {
+                    {config: module}, {
                         context: this,
                         containerEl: containersEls[i],
-                        moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
-                            try {
-                                this.context.buildModule(this.containerEl, moduleClass, moduleConfig);
-                                moduleClass.initialize(moduleConfig);
-                            } catch (e) {
-                                // in preview, this function undefined raises error -- unlike dashboard.
-                                // I agree, not a good solution!
-                            }
+                        moduleLoaded: function (moduleName, moduleClass, moduleConfig) {
+                            this.context.buildModule(this.containerEl, moduleClass, moduleConfig);
+                            moduleClass.initialize(moduleConfig);
                         }
                     }
                 );
             }
+
         }
     },
 
-    buildModule: function(containerEl, moduleClass, moduleConfig) {
+    buildModule: function (containerEl, moduleClass, moduleConfig) {
         var moduleEl = document.createElement("div"),
             headerEl = document.createElement("div"),
             toggleEl = document.createElement("a"),
             panelEl = document.createElement("div");
 
-        var toggleFn = function(e) {
+        var toggleFn = function (e) {
             YEvent.preventDefault(e);
 
-            if(YDom.hasClass(moduleEl, 'contracted')) {
+            if (YDom.hasClass(moduleEl, 'contracted')) {
                 YDom.replaceClass(moduleEl, 'contracted', 'expanded');
 
-                if(!panelEl._csExpanded) {
+                if (!panelEl._csExpanded) {
                     // only call this once
                     panelEl._csExpanded = true;
-                    if(moduleClass.firstExpand) {
+                    if (moduleClass.firstExpand) {
                         moduleClass.firstExpand(panelEl, moduleConfig.config);
                     }
                 }
 
-                if(moduleClass.expand) {
+                if (moduleClass.expand) {
                     moduleClass.expand(panelEl, moduleConfig.config);
                 }
 
             } else {
                 YDom.replaceClass(moduleEl, 'expanded', 'contracted');
-                if(moduleClass.collapse) {
+                if (moduleClass.collapse) {
                     moduleClass.collapse(panelEl, moduleConfig.config);
                 }
             }
@@ -223,6 +211,7 @@ CStudioAuthoring.PreviewTools = CStudioAuthoring.PreviewTools || {
 
         toggleEl.href = "#";
         toggleEl.innerHTML = moduleConfig.config.title;
+        moduleEl.id = moduleConfig.config.moduleName + '-elem';
         headerEl.appendChild(toggleEl);
 
         containerEl.appendChild(moduleEl);

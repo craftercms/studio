@@ -24,4 +24,9 @@
     ORDER BY dsh1.syncdate desc LIMIT #{limit}
   </select>
 
+    <insert id="insertDeploymentSyncHistoryItem" parameterType="org.craftercms.studio.api.v1.dal.DeploymentSyncHistory">
+        INSERT INTO cstudio_deploymentsynchistory (syncdate, site, environment, path, target, username, contenttypeclass)
+        values (#{syncDate}, #{site}, #{environment}, #{path}, #{target}, #{user}, #{contentTypeClass})
+    </insert>
+
 </mapper>

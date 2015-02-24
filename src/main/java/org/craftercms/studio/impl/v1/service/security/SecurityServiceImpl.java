@@ -49,7 +49,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
     @Override
     public String authenticate(String username, String password) {
-        return "NOT IMPLEMENTED";
+        return securityProvider.authenticate(username, password);
     }
 
 

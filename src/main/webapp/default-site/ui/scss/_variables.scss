@@ -1,0 +1,22 @@
+
+$lib-path: '../../static-assets/libs/';
+
+$crimson: #ED1C24;
+$studio-blue: #283277;
+$old-purple: #7e9dbb;
+
+$brand-primary: #7e9dbb;
+$brand-danger: $crimson;
+
+$font-size-base: 12px;
+
+$class-prefix: 'studio' !default;
+
+$ice-class-prefix: $class-prefix + '-ice' !default;
+$ice-attribute-name: 'data-studio-ice' !default;
+$ice-indicator-size: 20px !default;
+
+$ice-components-container-attribute-name: 'data-studio-components-target' !default;
+$ice-component-attribute-name: 'data-studio-component' !default;
+
+@import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/variables";

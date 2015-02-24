@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
@@ -60,4 +61,10 @@ public interface DeploymentService {
             String filterType);
 
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
+
+    void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
+
+    List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
+
+    void insertDeploymentHistory(PublishingTargetItem target, List<PublishToTarget> publishedItems, Date publishingDate);
 }

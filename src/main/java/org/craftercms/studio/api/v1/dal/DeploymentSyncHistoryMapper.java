@@ -6,4 +6,6 @@ import java.util.Map;
 public interface DeploymentSyncHistoryMapper {
 
     List<DeploymentSyncHistory> getDeploymentHistory(Map params);
+
+    void insertDeploymentSyncHistoryItem(DeploymentSyncHistory item);
 }
