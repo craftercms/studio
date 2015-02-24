@@ -11,7 +11,8 @@
             amplify = window.amplify;
         }
 
-        var studio = crafter.studio;
+        var studio = crafter.studio,
+            undefined;
 
         var SCOPE_LOCAL     = 'SCOPE_LOCAL',
             SCOPE_BROADCAST = 'SCOPE_BROADCAST',
@@ -170,6 +171,16 @@
         }
 
         /*public*/ function publish(topic, message, scope) {
+
+            switch (message) {
+                case SCOPE_LOCAL:
+                case SCOPE_REMOTE:
+                case SCOPE_EXTERNAL:
+                case SCOPE_BROADCAST:
+                    scope = message;
+                    message = undefined;
+                    break;
+            }
 
             switch (scope) {
                 case SCOPE_LOCAL:

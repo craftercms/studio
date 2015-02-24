@@ -33,12 +33,19 @@
         preview: {
             Topics: {
                 "ALL": "*",
+
                 "GUEST_CHECKIN": "GUEST_CHECKIN",
                 "GUEST_CHECKOUT": "GUEST_CHECKOUT",
                 "GUEST_SITE_LOAD": "GUEST_SITE_LOAD",
+
                 "ICE_ZONE_ON": "ICE_ZONE_ON",
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
-                "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP"
+                "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
+                "COMPONENT_DROPPED": "COMPONENT_DROPPED",
+                "": ""
+            },
+            cstopic: function (topic) {
+                return (crafter.studio.preview.Topics[topic] + '_cstd');
             }
         }
     };

@@ -2875,37 +2875,38 @@ Copyright (c) 2014 Daniel Eden
   -webkit-animation-name: slideOutUp;
   animation-name: slideOutUp; }
 
-/* Structural & Behavioural Styles */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000311}}
-.studio-ice-overlay,
-.studio-ice-indicator {
-  cursor: pointer; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/_elements\.scss}line{font-family:\000032}}
+std-block {
+  display: block; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000316}}
-.studio-ice-overlay {
-  position: absolute;
-  border-style: solid;
-  border-width: 2px; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/_elements\.scss}line{font-family:\000036}}
+std-inline {
+  display: inline-block; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000323}}
-.studio-ice-indicator {
-  position: absolute;
-  border-radius: 0 0 5px 0;
-  width: 20px;
-  height: 20px;
-  background-image: url("/studio/static-assets/themes/cstudioTheme/images/edit.png");
-  background-repeat: no-repeat;
-  background-position: 3px 3px; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/_elements\.scss}line{font-family:\0000310}}
+std-h1,
+std-h2,
+std-h3,
+std-h4,
+std-h5,
+std-h6,
+std-heading {
+  display: block; }
 
-/* Look & feel / Theme Styles */
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000335}}
-.studio-ice-overlay {
-  border-color: #ed1c24;
-  box-shadow: inset 0 0 10px 5px rgba(237, 28, 36, 0.4); }
-
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000340}}
-.studio-ice-indicator {
-  background-color: rgba(255, 255, 255, 0.7); }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/_elements\.scss}line{font-family:\0000320}}
+studio-components {
+  display: block;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: auto;
+  background: #f8f8f8;
+  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);
+  border-top: 1px solid #ccc;
+  height: auto;
+  width: 100%;
+  z-index: 3; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/static-assets\/libs\/foundation\/scss\/foundation\/components\/_global\.scss}line{font-family:\00003348}}
 meta.foundation-version {
@@ -3998,26 +3999,39 @@ meta.foundation-data-attribute-namespace {
     .studio-view-scope button, .studio-view-scope .button {
       display: inline-block; } }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000346}}
-studio-element {
-  display: block; }
+/* Structural & Behavioural Styles */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000314}}
+.studio-ice-overlay,
+.studio-ice-indicator {
+  cursor: pointer; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000350}}
-studio-components {
-  display: block;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: auto;
-  background: #f8f8f8;
-  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);
-  border-top: 1px solid #ccc;
-  height: auto;
-  width: 100%;
-  z-index: 3; }
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000319}}
+.studio-ice-overlay {
+  position: absolute;
+  border-style: solid;
+  border-width: 2px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000365}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000326}}
+.studio-ice-indicator {
+  position: absolute;
+  border-radius: 0 0 5px 0;
+  width: 20px;
+  height: 20px;
+  background-image: url("/studio/static-assets/themes/cstudioTheme/images/edit.png");
+  background-repeat: no-repeat;
+  background-position: 3px 3px; }
+
+/* Look & feel / Theme Styles */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000338}}
+.studio-ice-overlay {
+  border-color: #ed1c24;
+  box-shadow: inset 0 0 10px 5px rgba(237, 28, 36, 0.4); }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000343}}
+.studio-ice-indicator {
+  background-color: rgba(255, 255, 255, 0.7); }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000347}}
 .studio-dnd-controller-overlay {
   z-index: 1;
   display: none;
@@ -4027,22 +4041,22 @@ studio-components {
   right: 0;
   left: 0;
   top: 0; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000374}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000356}}
   .studio-dnd-controller-overlay.fadeIn {
     display: block; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000379}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000361}}
 body.studio-dnd-enabled {
   padding-bottom: 100px !important; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000381}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000363}}
   body.studio-dnd-enabled [data-studio-components-target] {
     z-index: 2 !important;
     background-color: #fff;
     position: relative !important;
-    border: 2px dashed #ed1c24 !important;
+    border-color: #ed1c24 !important;
     border-radius: 4px !important;
     box-shadow: inset 0 0 5px 5px rgba(237, 28, 36, 0.4) !important; }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000393}}
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/ui\/scss\/guest\/guest\.scss}line{font-family:\0000375}}
   body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
     padding: 10px;
     background: #fff;

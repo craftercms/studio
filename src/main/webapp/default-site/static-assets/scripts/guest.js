@@ -30,16 +30,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
     communicator.on(Topics.START_DRAG_AND_DROP, function (message) {
         require(['dnd-controller'], function (DnDController) {
             (typeof dndController === 'undefined') && (dndController = new DnDController({
-                done: function () {
-                    communicator.publish(Topics.STOP_DRAG_AND_DROP);
-                }
+                communicator: communicator
             }));
             dndController.start(message.components);
         });
-    });
-
-    communicator.on(Topics.STOP_DRAG_AND_DROP, function () {
-        dndController && dndController.stop();
     });
 
     function initICETarget(elem) {
@@ -102,8 +96,6 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
                 width: $e.width(),
                 height: $e.height()
             };
-
-        // overlay.show(props);
 
         props.iceId = iceId;
         props.scrollTop = $window.scrollTop();

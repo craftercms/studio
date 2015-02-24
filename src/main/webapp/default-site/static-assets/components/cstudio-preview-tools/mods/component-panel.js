@@ -1,5 +1,7 @@
 (function (CStudioAuthoring, CStudioAuthoringContext) {
 
+    var cstopic = crafter.studio.preview.cstopic;
+
     function moduleLoaded() {
 
         var moduleName = 'component-panel',		// ties css file to the js file
@@ -116,9 +118,56 @@
                         self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true);
                     });
 
+                    amplify.subscribe(cstopic('COMPONENT_DROPPED'), function (type, path) {
+                        self.ondrop(type, path);
+                    });
+
                     // Load page model
                     this.getPageModel(this.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "init-components", true, false);
                 }
+            },
+
+            ondrop: function (componentType, componentPath) {
+
+                CStudioAuthoring.Operations.performSimpleIceEdit({
+                    contentType: componentType,
+                    uri: componentPath
+                }, null, false, {
+                    failure: CStudioAuthoring.Utils.noop,
+                    success: function (contentTO) {
+                        // Use the information from the newly created component entry and use it to load the model data for the
+                        // component placeholder in the UI. After this update, we can then proceed to save all the components
+                        var value = (!!contentTO.item.internalName) ? contentTO.item.internalName : contentTO.item.uri;
+
+                        // TO-DO: Create a process for storing the model data instead of doing it manually. We should not need
+                        // to know what properties a new component has.
+                        /*srcEl.componentPlaceholder.modelData = {
+                            key: contentTO.item.uri,
+                            value: value,
+                            include: contentTO.item.uri,
+                        };
+                        cpl.modelData = {
+                            key: contentTO.item.uri,
+                            value: value,
+                            include: contentTO.item.uri
+                        };*/
+
+                        CStudioAuthoring.ComponentsPanel.getPageModel(
+                            CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                                CStudioAuthoringContext.previewCurrentPath),
+                            "save-components-new", true, false);
+
+                    }
+                });
+
+                /*if (YDom.hasClass(srcEl, dcNewComponentClass)) {
+                    var cpl;
+                } else {
+                    CStudioAuthoring.ComponentsPanel.getPageModel(
+                        CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                            CStudioAuthoringContext.previewCurrentPath),
+                        "save-components", true, false);
+                }*/
             },
 
             render: function (containerEl, config) {
@@ -289,7 +338,7 @@
                 CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
                     failure: CStudioAuthoring.Utils.noop,
                     success: function (config) {
-                        amplify.publish(crafter.studio.preview.Topics.START_DRAG_AND_DROP + '_cstd', {
+                        amplify.publish(cstopic('START_DRAG_AND_DROP'), {
                             components: config
                         });
                     }
@@ -297,7 +346,7 @@
             },
 
             collapse: function (containerEl, config) {
-                amplify.publish(crafter.studio.preview.Topics.STOP_DRAG_AND_DROP+'_cstd', {
+                amplify.publish(cstopic('STOP_DRAG_AND_DROP'), {
                     components: config
                 });
             },

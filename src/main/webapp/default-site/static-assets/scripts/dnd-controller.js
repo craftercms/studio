@@ -1,5 +1,8 @@
-define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], function (crafter, $, $ui, Animator) {
+define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communicator'], function (crafter, $, $ui, Animator, Communicator) {
     'use strict';
+
+    var Topics = crafter.studio.preview.Topics,
+        string = crafter.String;
 
     var OVERLAY_TPL = '<studio-element class="studio-dnd-controller-overlay"></studio-element>';
     var PALETTE_TPL = '<studio-components class="studio-view-scope"><div class="studio-row"></div><div class="studio-row"><div class="studio-column studio-small-12"><button class="studio-btn" data-action="done">Done</button></div></div></studio-components>';
@@ -7,9 +10,9 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
     var DRAGGABLE_SELECTION = 'studio-components .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
 
-    var $body = $('body:first');
-    var $document = $(document);
-    var $window = $(window);
+    var $body       = $('body:first');
+    var $document   = $(document);
+    var $window     = $(window);
 
     function DnDController(config) {
 
@@ -90,8 +93,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
     }
 
     function done() {
-        (this.stop());
-        (this.cfg('done') || crafter.noop).call();
+        this.stop();
+        publish.call(this, Topics.STOP_DRAG_AND_DROP);
     }
 
     function enableDnD(components) {
@@ -100,7 +103,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
         this.active(true);
 
         var $p = this.getPalette(),
-            $o = this.getOverlay();
+            $o = this.getOverlay(),
+            me = this;
 
         $body.addClass('studio-dnd-enabled');
 
@@ -111,7 +115,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
         renderPalette.call(this, components);
 
         this.getAnimator($o).fadeIn();
-        this.getAnimator($p.show()).zoomIn();
+        this.getAnimator($p).zoomIn();
 
         $(DRAGGABLE_SELECTION).draggable({
             revert: 'invalid',
@@ -120,19 +124,33 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
         $(DROPPABLE_SELECTION).droppable({
             connectWithSortable: true,
             drop: function (e, ui) {
-                var $dropZone = $(e.target);
-                var $component = ui.draggable;
+                var $dropZone = $(this),
+                    $component = ui.draggable,
+                    path, type, name;
                 if ($component.hasClass('studio-component-drag-target')) {
-                    $dropZone.append('<div data-studio-component>'+$component.html()+'</div>');
+                    path = $component.attr('data-studio-component-path'),
+                    type = $component.attr('data-studio-component-type'),
+                    name = $component.html();
+                    $dropZone.append(string('<div data-studio-component="%@" data-studio-component-path="%@">%@</div>')
+                        .fmt(type, path, name));
+                } else {
+                    path = $component.attr('data-studio-component-path'),
+                    type = $component.attr('data-studio-component');
                 }
+                publish.call(me, Topics.COMPONENT_DROPPED, {
+                    type: type, path: path
+                });
             }
         }).sortable({
-            items: '[data-studio-component]',
-            sort: function () {
-
-            }
+            items: '[data-studio-component]'
         });
 
+    }
+
+    function publish(topic, message, com) {
+        if (com = this.cfg('communicator')) {
+            com.publish(topic, message);
+        }
     }
 
     function resize() {
@@ -140,10 +158,6 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator'], functio
             width: $document.width(),
             height: $document.height()
         });
-    }
-
-    function windowResize() {
-
     }
 
     function renderPalette(components) {

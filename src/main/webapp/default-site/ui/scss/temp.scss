@@ -349,16 +349,16 @@ div#acn-active-content {
 }
 
 .acn-dropdown-wrapper .acn-dropdown-menu-wrapper {
+  border-width: 1px;
+  border-style: none solid none none;
   background-color: #cdcdcd;
-  border-width: 0 2px 1px 0;
-  border-style: none solid solid none;
   border-color: #a1a1a1;
   left: 0;
   bottom: 0;
   top: 51px;
   width: 265px;
-  z-index: 100;
   position: fixed;
+  z-index: 100;
 }
 
 .acn-dropdown-wrapper .acn-dropdown-menu {

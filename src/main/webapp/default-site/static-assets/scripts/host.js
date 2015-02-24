@@ -1,6 +1,7 @@
 (function (window, amplify, CStudioAuthoring) {
     'use strict';
 
+    var cstopic = crafter.studio.preview.cstopic;
     var Topics = crafter.studio.preview.Topics;
     var origin = 'http://127.0.0.1:8080';
     var communicator = new crafter.studio.Communicator(origin);
@@ -52,7 +53,11 @@
         YDom.replaceClass('component-panel-elem', 'expanded', 'contracted');
     });
 
-    amplify.subscribe((Topics.START_DRAG_AND_DROP + '_cstd'), function (config) {
+    communicator.subscribe(Topics.COMPONENT_DROPPED, function (message) {
+        amplify.publish(cstopic('COMPONENT_DROPPED'), message.type, message.path);
+    });
+
+    amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
         communicator.publish(Topics.START_DRAG_AND_DROP, {
             components: config.components.category.component
