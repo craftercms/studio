@@ -225,11 +225,14 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         Map<String, String> params = new HashMap<String, String>();
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
         String query = "PATH:\"/app:company_home" + namespacedPath + "/*" +  "\"";
+        String nodeRef = getNodeRefForPath(path);
+        int idx = nodeRef.lastIndexOf("/");
+        nodeRef = nodeRef.substring(idx+1);
 
-        String lookupNodeRefURI = "/api/nodelocator/xpath?query={q}&store_type={storeType}&store_id={storeId}";
-        params.put("q", query);
+        String lookupNodeRefURI = "/slingshot/doclib/doclist/all/node/{storeType}/{storeId}/{nodeRef}";
         params.put("storeType", "workspace");
         params.put("storeId", "SpacesStore");
+        params.put("nodeRef", nodeRef);
 
         try{
             InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
@@ -237,18 +240,19 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
             JsonConfig cfg = new JsonConfig();
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-            int resultCount = root.getInt("numResults");
-            JSONArray results = root.getJSONArray("results");
+            int resultCount = root.getInt("totalRecords");
+            JSONArray results = root.getJSONArray("items");
 
             items = new RepositoryItem[resultCount];
             for(int i=0; i<resultCount; i++) {
                 JSONObject result = results.getJSONObject(i);
-                JSONObject resultName = result.getJSONObject("name");
+                String resultName = result.getString("fileName");
+                boolean isFolder = result.getBoolean("isFolder");
                 RepositoryItem item = new RepositoryItem();
 
                 item.path = path;
-                item.name = resultName.getString("prefixedName").replace("cm:", "");
-                item.isFolder = (item.name.contains(".")==false); // weak sauce
+                item.name = resultName;//.getString("prefixedName").replace("cm:", "");
+                item.isFolder = isFolder;
 
                 items[i] = item;
             }
