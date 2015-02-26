@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 import java.util.Date;
 import java.util.List;
@@ -29,17 +30,15 @@ import java.util.Set;
  */
 public interface PublishingManager {
 
-    Set<PublishingTargetItem> getAllTargetsForSite(String site);
+    boolean checkConnection(DeploymentEndpointConfigTO target);
 
-    boolean checkConnection(PublishingTargetItem target);
-
-    long getTargetVersion(PublishingTargetItem target, String site);
+    long getTargetVersion(DeploymentEndpointConfigTO target, String site);
 
     List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
 
-    void deployItemsToTarget(String site, List<PublishToTarget> filteredItems, PublishingTargetItem target) throws ContentNotFoundForPublishingException, UploadFailedException;
+    void deployItemsToTarget(String site, List<PublishToTarget> filteredItems, DeploymentEndpointConfigTO target) throws ContentNotFoundForPublishingException, UploadFailedException;
 
-    long setTargetVersion(PublishingTargetItem target, long newVersion, String site);
+    long setTargetVersion(DeploymentEndpointConfigTO target, long newVersion, String site);
 
     List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment);
 
@@ -47,7 +46,7 @@ public interface PublishingManager {
 
     void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
 
-    void insertDeploymentHistory(PublishingTargetItem target, List<PublishToTarget> filteredItems, Date date) throws DeploymentException;
+    void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> filteredItems, Date date) throws DeploymentException;
 
     void markItemsCompleted(String site, String environment, List<CopyToEnvironment> processedItems) throws DeploymentException;
 

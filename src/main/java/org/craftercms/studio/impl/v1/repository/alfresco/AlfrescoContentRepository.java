@@ -225,12 +225,14 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         Map<String, String> params = new HashMap<String, String>();
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
         String query = "PATH:\"/app:company_home" + namespacedPath + "/*" +  "\"";
+        String nodeRef = getNodeRefForPath(path);
+        int idx = nodeRef.lastIndexOf("/");
+        nodeRef = nodeRef.substring(idx+1);
 
-        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
-        params.put("q", query);
-        params.put("lang","fts-alfresco");
-        params.put("store", "workspace://SpacesStore");
-        params.put("maxResults", "10000");
+        String lookupNodeRefURI = "/slingshot/doclib/doclist/all/node/{storeType}/{storeId}/{nodeRef}";
+        params.put("storeType", "workspace");
+        params.put("storeId", "SpacesStore");
+        params.put("nodeRef", nodeRef);
 
         try{
             InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
@@ -238,18 +240,19 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
             JsonConfig cfg = new JsonConfig();
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-            int resultCount = root.getInt("numResults");
-            JSONArray results = root.getJSONArray("results");
+            int resultCount = root.getInt("totalRecords");
+            JSONArray results = root.getJSONArray("items");
 
             items = new RepositoryItem[resultCount];
             for(int i=0; i<resultCount; i++) {
                 JSONObject result = results.getJSONObject(i);
-                JSONObject resultName = result.getJSONObject("name");
+                String resultName = result.getString("fileName");
+                boolean isFolder = result.getBoolean("isFolder");
                 RepositoryItem item = new RepositoryItem();
 
                 item.path = path;
-                item.name = resultName.getString("prefixedName").replace("cm:", "");
-                item.isFolder = (item.name.contains(".")==false); // weak sauce
+                item.name = resultName;//.getString("prefixedName").replace("cm:", "");
+                item.isFolder = isFolder;
 
                 items[i] = item;
             }
@@ -361,19 +364,21 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
-        String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
+        String query = "/app:company_home" + namespacedPath;
 
-        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        String lookupNodeRefURI = "/api/nodelocator/xpath?query={q}&store_type={storeType}&store_id={storeId}";
         params.put("q", query);
-        params.put("lang","fts-alfresco");
-        params.put("store", "workspace://SpacesStore");
-        params.put("maxResults", "100");
+        params.put("storeType", "workspace");
+        params.put("storeId", "SpacesStore");
 
         try{
             InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
             String jsonResponse = IOUtils.toString(responseStream, "utf-8");
             JsonConfig cfg = new JsonConfig();
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
+            JSONObject data = root.getJSONObject("data");
+            nodeRef = data.getString("nodeRef");
+            /*
             int resultCount = root.getInt("numResults");
 
             if(resultCount == 1) {
@@ -385,7 +390,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             }
             else {
                 throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
-            }
+            }*/
 
         }
         catch(Exception err) {
@@ -408,17 +413,15 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
         String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
 
-        String lookupNodeRefURI = "/slingshot/node/search?q={q}&lang={lang}&store={store}&maxResults={maxResults}";
+        String lookupNodeRefURI = "/api/nodelocator/xpath?query={q}&store_type={storeType}&store_id={storeId}";
         params.put("q", query);
-        params.put("lang","fts-alfresco");
-        params.put("store", "workspace://SpacesStore");
-        params.put("maxResults", "100");
+        params.put("storeType", "workspace");
+        params.put("storeId", "SpacesStore");
 
         Map<String, String> lookupNodeRefParams = new HashMap<String, String>();
         lookupNodeRefParams.put("q", query);
-        lookupNodeRefParams.put("lang","fts-alfresco");
-        lookupNodeRefParams.put("store", "workspace://SpacesStore");
-        lookupNodeRefParams.put("maxResults", "100");
+        lookupNodeRefParams.put("storeType", "workspace");
+        lookupNodeRefParams.put("storeId", "SpacesStore");
         try{
             InputStream responseStream = this.alfrescoGetHttpRequest(lookupNodeRefURI, lookupNodeRefParams);
 
