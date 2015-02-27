@@ -440,14 +440,18 @@ public class ContentServiceImpl implements ContentService {
             }
             
             if(contentItem == null) {
-                contentItem = getContentItem(site, relativePath);
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
+                if (!StringUtils.endsWith(relativePath, "/index.xml")) {
+                    contentItem = getContentItem(site, relativePath);
+                    if (depth > 0) {
+                        contentItem.children = getContentItemTreeInternal(site, path, depth - 1, isPages);
+                        contentItem.numOfChildren = children.size();
+                    }
                 }
             }
 
-            children.add(contentItem);
+            if(contentItem != null) {
+                children.add(contentItem);
+            }
         }
 
         return children;
@@ -483,14 +487,17 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if(contentItem == null) {
-                contentItem = getContentItem(fullPath);
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(fullPath, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
+                if (!StringUtils.endsWith(fullPath, "/index.xml")) {
+                    contentItem = getContentItem(fullPath);
+                    if (depth > 0) {
+                        contentItem.children = getContentItemTreeInternal(fullPath, depth - 1, isPages);
+                        contentItem.numOfChildren = children.size();
+                    }
                 }
             }
-
-            children.add(contentItem);
+            if(contentItem == null) {
+                children.add(contentItem);
+            }
         }
 
         return children;
