@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -30,6 +31,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -40,7 +42,10 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
@@ -300,59 +305,31 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
     		String user, boolean unlock)
             throws ContentNotFoundException {
-        // if the given path is a file, create a folder as the same name
-        // and move the file under the folder and change the name to be
-        // index.xml
-        //String folderPath = fullPath;
-        OutputStream output = null;
         ContentItemTO fileItem = null;
 
         if (parentItem != null) {
             // convert file to folder if target path is a file
             String folderPath = fileToFolder(site, parentItem.getUri());
-            // create new content, apply group sandbox aspect, and apply new
-            // aspect
-            // input stream is closed by AvmService
-            try {/*
-                Map<QName, Serializable> nodeProperties = new FastMap<QName, Serializable>();
-                nodeProperties.put(CStudioContentModel.PROP_CONTENT_TYPE, contentType);
-                nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-                nodeProperties.put(ContentModel.PROP_MODIFIED, new Date());
-                nodeProperties.put(CStudioContentModel.PROP_CREATED_BY, user);
-                nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-                nodeProperties.put(CStudioContentModel.PROP_STATUS, DmConstants.DM_STATUS_IN_PROGRESS);
-                nodeProperties.put(CStudioContentModel.PROP_WEB_LAST_EDIT_DATE, new Date());
-                nodeProperties.put(ContentModel.PROP_AUTO_VERSION, false);
-                */
-                //fileNode = persistenceManagerService.createNewFile(parentNode, fileName, input, nodeProperties);
+            try {
                 contentService.writeContent(site, parentItem.getUri() + "/" + fileName, input);
+                objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + "/" + fileName);
+                Map<String, Object> properties = new HashMap<>();
+                properties.put(ObjectMetadata.PROP_NAME, fileName);
+                properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+                properties.put(ObjectMetadata.PROP_CREATOR, user);
+                properties.put(ObjectMetadata.PROP_MODIFIER, user);
+                properties.put(ObjectMetadata.PROP_OWNER, user);
+                if (unlock) {
+                    properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+                } else {
+                    properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+                }
+                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + "/" + fileName, properties);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
-                if (output != null) ContentUtils.release(output);
                 IOUtils.closeQuietly(input);
             }
-            //persistenceManagerService.addAspect(fileNode, ContentModel.ASPECT_LOCKABLE, new HashMap<QName, Serializable>());
-
-            // TODO: be able to lock content
-            //persistenceManagerService.lock(fileNode, LockType.WRITE_LOCK);
-
-            // TODO: be able to make content versionable
-            /*
-            HashMap<QName, Serializable> versionableProps = new HashMap<QName, Serializable>();
-            versionableProps.put(ContentModel.PROP_AUTO_VERSION, false);
-            versionableProps.put(ContentModel.PROP_AUTO_VERSION_PROPS, false);
-            persistenceManagerService.addAspect(fileNode, ContentModel.ASPECT_VERSIONABLE, versionableProps);
-*/
-
-            // TODO: Make conent previewable
-            /*
-            if (!persistenceManagerService.hasAspect(fileNode, CStudioContentModel.ASPECT_PREVIEWABLE)) {
-                persistenceManagerService.addAspect(fileNode, CStudioContentModel.ASPECT_PREVIEWABLE, new HashMap<QName, Serializable>());
-                if (!persistenceManagerService.hasAspect(parentNode, CStudioContentModel.ASPECT_PREVIEWABLE)) {
-                    persistenceManagerService.addAspect(parentNode, CStudioContentModel.ASPECT_PREVIEWABLE, new HashMap<QName, Serializable>());
-                }
-            }*/
 
             // unlock the content upon save
             if (unlock) {
@@ -410,27 +387,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 ContentUtils.release(input);
             }
 
-        //TODO: make content lockable
-        /*
-            if (!persistenceManagerService.hasAspect(contentNode, ContentModel.ASPECT_LOCKABLE)) {
-                persistenceManagerService.addAspect(contentNode, ContentModel.ASPECT_LOCKABLE, null);
-            }
-*/
-        // TODO: make content previewable
-        /*
-            if (!persistenceManagerService.hasAspect(contentNode, CStudioContentModel.ASPECT_PREVIEWABLE)) {
-                persistenceManagerService.addAspect(contentNode, CStudioContentModel.ASPECT_PREVIEWABLE, new HashMap<QName, Serializable>());
-            }
-          */
-        // TODO: make content versionable
-        /*
-            if (!persistenceManagerService.hasAspect(contentNode, ContentModel.ASPECT_VERSIONABLE)) {
-                HashMap<QName, Serializable> versionableProps = new HashMap<QName, Serializable>();
-                versionableProps.put(ContentModel.PROP_AUTO_VERSION, false);
-                versionableProps.put(ContentModel.PROP_AUTO_VERSION_PROPS, false);
-                persistenceManagerService.addAspect(contentNode, ContentModel.ASPECT_VERSIONABLE, versionableProps);
-            }
-*/
         // TODO: save properties
         /*
             Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(contentNode);
@@ -442,6 +398,19 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             nodeProperties.put(ContentModel.PROP_AUTO_VERSION_PROPS, false);
             persistenceManagerService.setProperties(contentNode, nodeProperties);
             */
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ObjectMetadata.PROP_MODIFIER, user);
+        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        if (unlock) {
+            properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+        } else {
+            properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+        }
+        String relativePath = contentService.getRelativeSitePath(site, fullPath);
+        if (!objectMetadataManager.metadataExist(site, relativePath)) {
+            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
+        }
+        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 
         //TODO: create next minor version
         /*
@@ -566,6 +535,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected WorkflowService workflowService;
     protected DmDependencyService dmDependencyService;
     protected ServicesConfig servicesConfig;
+    protected ObjectMetadataManager objectMetadataManager;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -578,4 +548,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 }

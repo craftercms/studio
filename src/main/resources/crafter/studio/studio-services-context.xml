@@ -252,6 +252,12 @@
     </bean>
 
     <!-- ////////////////////////////////////// -->
+    <!--      Managers                          -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioObjectMetadataManager" class="org.craftercms.studio.impl.v1.service.content.ObjectMetadataManagerImpl">
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
     <!--       Content ID Generator                   -->
     <!-- ////////////////////////////////////// -->
 
@@ -655,6 +661,7 @@
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

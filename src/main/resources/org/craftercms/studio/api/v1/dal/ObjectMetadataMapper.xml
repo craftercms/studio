@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2015 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.ObjectMetadataMapper">
+    <resultMap id="ObjectMetadataMap" type="org.craftercms.studio.api.v1.dal.ObjectMetadata">
+        <id property="id" column="id"/>
+        <result property="site" column="site"/>
+        <result property="path" column="path"/>
+        <result property="name" column="name"/>
+        <result property="modified" column="modified"/>
+        <result property="modifier" column="modifier"/>
+        <result property="owner" column="owner"/>
+        <result property="creator" column="creator"/>
+        <result property="firstName" column="firstname"/>
+        <result property="lastName" column="lastname"/>
+        <result property="lockOwner" column="lockowner"/>
+        <result property="email" column="email"/>
+        <result property="renamed" column="renamed"/>
+        <result property="oldUrl" column="oldurl"/>
+        <result property="deleteUrl" column="deleteurl"/>
+        <result property="imageWidth" column="imagewidth"/>
+        <result property="imageHeight" column="imageheight"/>
+        <result property="approvedBy" column="approvedby"/>
+        <result property="submittedBy" column="submittedby"/>
+        <result property="submittedForDeletion" column="submittedfordeletion"/>
+        <result property="sendEmail" column="sendemail"/>
+    </resultMap>
+
+    <cache/>
+
+    <select id="getProperties" parameterType="java.util.Map" resultMap="ObjectMetadataMap">
+        SELECT * FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+    </select>
+
+    <update id="setProperties" parameterType="java.util.Map">
+        UPDATE cstudio_objectmetadata
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="newPath != null">path=#{newPath},</if>
+            <if test="name != null">name=#{name},</if>
+            <if test="modified != null">modified=#{modified},</if>
+            <if test="modifier != null">modifier=#{modifier},</if>
+            <if test="owner != null">owner=#{owner},</if>
+            <if test="creator != null">creator=#{creator},</if>
+            <if test="firstName != null">firstname=#{firstName},</if>
+            <if test="lastName != null">lastname=#{lastName},</if>
+            <if test="lockOwner != null">lockowner=#{lastlockOwnerName},</if>
+            <if test="email != null">email=#{email},</if>
+            <if test="renamed != null">renamed=#{renamed},</if>
+            <if test="oldUrl != null">oldurl=#{oldUrl},</if>
+            <if test="deleteUrl != null">deleteurl=#{deleteUrl},</if>
+            <if test="imageWidth != null">imagewidth=#{imageWidth},</if>
+            <if test="imageHeight != null">imageheight=#{imageHeight},</if>
+            <if test="approvedBy != null">approvedby=#{approvedBy},</if>
+            <if test="submittedBy != null">submittedby=#{submittedBy},</if>
+            <if test="submittedForDeletion != null">submittedfordeletion=#{submittedForDeletion},</if>
+            <if test="sendEmail != null">sendemail=#{sendEmail}</if>
+        </trim>
+        WHERE site=#{site}
+        AND path=#{path}
+    </update>
+
+    <insert id="insertEntry" parameterType="java.util.Map">
+        INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path});
+    </insert>
+
+    <select id="countEntries" resultType="int" parameterType="java.util.Map">
+        SELECT count(1) FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+    </select>
+
+    <delete id="deleteEntry" parameterType="java.util.Map">
+        DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+    </delete>
+</mapper>
