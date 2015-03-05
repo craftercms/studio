@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
@@ -36,6 +37,7 @@ import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -123,7 +125,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 client = new HttpClient();
                 int status = client.executeMethod(getMethod);
                 if (status == HttpStatus.SC_OK) {
-                    String responseText = getMethod.getResponseBodyAsString();
+                    InputStream responseStream = getMethod.getResponseBodyAsStream();
+                    String responseText = IOUtils.toString(responseStream);
                     if (responseText != null && !responseText.isEmpty()) {
                         version = Long.parseLong(responseText.trim());
                     } else {
@@ -268,7 +271,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 client = new HttpClient();
                 int status = client.executeMethod(postMethod);
                 if (status == HttpStatus.SC_OK) {
-                    String responseText = postMethod.getResponseBodyAsString();
+                    InputStream responseStream = postMethod.getResponseBodyAsStream();
+                    String responseText = IOUtils.toString(responseStream);
                     if (responseText != null && !responseText.isEmpty()) {
                         resoponseVersion = Long.parseLong(responseText);
                     } else {
