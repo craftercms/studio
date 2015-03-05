@@ -71,7 +71,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 				self: this
 			};
 			
-			var serviceUri = "/proxy/alfresco/cstudio/objectstate/get-items?site="+CStudioAuthoringContext.site+"&state=ALL";
+			var serviceUri = "/api/1/services/api/1/content/get-item-states.json?site="+CStudioAuthoringContext.site+"&state=ALL";
 
 			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	},
@@ -135,7 +135,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			for(var i=0;  i< list.length; i++) {
 				var item = list[i];
 				var path = item.uri;
-				var serviceUri = "/proxy/alfresco/cstudio/objectstate/set-object-state?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
+				var serviceUri = "/api/1/services/api/1/content/set-object-state.json?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
 				
 				cb = { 
 						success:function() {
