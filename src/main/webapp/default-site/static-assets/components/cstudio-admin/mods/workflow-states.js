@@ -53,15 +53,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 					CStudioAdminConsole.Tool.WorkflowStates.states = states;
 					
 					var statesTableEl = document.getElementById("statesTable");
-					for(var i=0; i<states.length; i++) {
-						var state = states[i];
+					for(var i=0; i<states.items.length; i++) {
+						var state = states.items[i];
 						var trEl = document.createElement("tr");
 						     
 						var rowHTML = 				 	
-							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.uri+"' /></td>" +
-				 			"<td class='cs-statelist-detail-id'>" + state.uri + "</td>" +
+							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.path+"' /></td>" +
+				 			"<td class='cs-statelist-detail-id'>" + state.path + "</td>" +
 				 			"<td class='cs-statelist-detail'>" + state.state + "</td>" +
-				 			"<td class='cs-statelist-detail'>" + state.isSystemProcessing + "</td>";
+				 			"<td class='cs-statelist-detail'>" + state.systemProcessing + "</td>";
 				 		trEl.innerHTML = rowHTML;
 				 		statesTableEl.appendChild(trEl);
 					}

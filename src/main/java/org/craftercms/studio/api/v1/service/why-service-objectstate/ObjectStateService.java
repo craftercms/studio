@@ -90,9 +90,8 @@ public interface ObjectStateService {
     /**
      * get the object for a given set of states
      */
-    /*
-    List<ObjectStateTO> getObjectStateByStates(String site, List<State> states);
-*/
+    List<ObjectState> getObjectStateByStates(String site, List<String> states);
+
     public boolean isScheduled(String site, String path);
 
     public boolean isInWorkflow(String site,String path);

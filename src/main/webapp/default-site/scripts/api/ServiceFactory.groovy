@@ -10,6 +10,7 @@ import scripts.api.impl.workflow.SpringWorkflowServices;
 import scripts.api.impl.security.SpringSecurityServices;
 import scripts.api.impl.site.SpringSiteServices;
 import scripts.api.impl.dependency.SpringDependencyServices;
+import scripts.api.impl.objectstate.SpringObjectStateServices;
 
 /**
  * workflow services
@@ -108,5 +109,9 @@ class ServiceFactory {
 
     static getDependencyServices(context) {
         return new SpringDependencyServices(context);
+    }
+
+    static getObjectStateServices(context) {
+        return new SpringObjectStateServices(context);
     }
 }
