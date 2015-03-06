@@ -437,11 +437,26 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     
     /**
      * get the object for a given set of states
-     *//*
-    public List<ObjectStateTO> getObjectStateByStates(String site, List<ObjectStateService.State> states) {
-    	return  objectStateDAOService.getObjectStateByStates(site, states);
+     */
+    public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
+
+        if (states != null && !states.isEmpty()) {
+            /*
+            Map<String, Object> params = new HashMap<String, Object>();
+            List<String> statesValues = new ArrayList<String>();
+            for (State state : enumStates) {
+                statesValues.add(state.name());
+            }*/
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("states", states);
+            params.put("site", site);
+            List<ObjectState> result = objectStateMapper.getObjectStateByStates(params);
+            return result;
+        } else {
+            return new ArrayList<>(0);
+        }
     }
-*/
+
 
     private void initializeTransitionTable() {
         transitionTable = new State[][]{
