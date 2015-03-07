@@ -457,6 +457,20 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
+    public String setObjectState(String site, String path, String state, boolean systemProcessing) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", path);
+        ObjectState objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        if (objectState == null) {
+            insertNewEntry(site, path);
+            objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        }
+        objectState.setState(state);
+        objectState.setSystemProcessing(systemProcessing ? 1 : 0);
+        objectStateMapper.setObjectState(objectState);
+        return "Success";
+    }
 
     private void initializeTransitionTable() {
         transitionTable = new State[][]{

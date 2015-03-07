@@ -37,4 +37,9 @@ class ObjectStateServices {
         def objectStateServiceImpl = ServiceFactory.getObjectStateServices(context);
         return objectStateServiceImpl.getItemStates(site, states);
     }
+
+    static setObjectState(context, site, path, state, systemprocessing) {
+        def objectStateServiceImpl = ServiceFactory.getObjectStateServices(context);
+        return objectStateServiceImpl.setObjectState(site, path, state, systemprocessing);
+    }
 }

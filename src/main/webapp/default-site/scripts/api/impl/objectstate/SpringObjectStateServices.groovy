@@ -36,4 +36,9 @@ class SpringObjectStateServices {
         def springBackedService = this.context.applicationContext.get("cstudioObjectStateService");
         return springBackedService.getObjectStateByStates(site, states);
     }
+
+    def setObjectState(site, path, state, systemprocessing) {
+        def springBackedService = this.context.applicationContext.get("cstudioObjectStateService");
+        return springBackedService.setObjectState(site, path, state, systemprocessing);
+    }
 }
