@@ -45,7 +45,7 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.craftercms.commons.http.RequestContext;
+import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
@@ -78,7 +78,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     public InputStream getContent(String path) {
         InputStream retStream = null;
         String name = path.substring(path.lastIndexOf("/")+1);
-
+        addDebugStack();
         try {
             String nodeRef = getNodeRefForPath(path);
 
@@ -111,6 +111,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     @Override
     public boolean writeContent(String path, InputStream content) {
         logger.debug("writing content to " + path);
+        addDebugStack();
         String uploadURI = "/api/upload";
         String contentType = "cm:content";
         int splitIndex = path.lastIndexOf("/");
@@ -170,6 +171,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean createFolder(String path, String name) {
+        addDebugStack();
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
@@ -177,6 +179,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     @Override
     public boolean deleteContent(String path) {
         logger.debug("deleting content at " + path);
+        addDebugStack();
         boolean result = false;
         String deleteURI = "/slingshot/doclib/action/file/node/";
         String nodeRef = getNodeRefForPath(path);
@@ -199,12 +202,14 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
+        addDebugStack();
         return this.copyContentInternal(fromPath, toPath, false);
     }
 
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
+        addDebugStack();
         return this.copyContentInternal(fromPath, toPath, true);
     };
 
@@ -215,6 +220,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      */
     public RepositoryItem[] getContentChildren(String path) {
 
+        addDebugStack();
         RepositoryItem[] items = new RepositoryItem[0];
 
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -270,6 +276,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
+        addDebugStack();
         VersionTO[] versions = new VersionTO[0];
 
         try {
@@ -328,6 +335,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      * @param version - old version ID to base to version on
      */
     public boolean revertContent(String path, String version, boolean major, String comment) {
+        addDebugStack();
         boolean success = false;
         String nodeRef = getNodeRefForPath(path);
         
@@ -378,6 +386,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
             JSONObject data = root.getJSONObject("data");
             nodeRef = data.getString("nodeRef");
+            if ("null".equals(nodeRef)) {
+                nodeRef = null;
+            }
             /*
             int resultCount = root.getInt("numResults");
 
@@ -710,6 +721,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public Set<String> getUserGroups(String username) {
+        addDebugStack();
         InputStream retStream = null;
         Set<String> toRet = new HashSet<String>();
         try {
@@ -758,6 +770,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public String getCurrentUser() {
+        addDebugStack();
         String username = getUsernameFromCookie();
         return username;
     }
@@ -793,6 +806,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public String authenticate(String username, String password) {
+        addDebugStack();
         InputStream retStream = null;
         String toRet = null;
         try {
@@ -813,6 +827,31 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             logger.error("err getting content: ", err);
         }
         return toRet;
+    }
+
+    private void addDebugStack() {
+        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+            Thread thread = Thread.currentThread();
+            String threadName = thread.getName();
+            logger.debug("Thread: " + threadName);
+            StackTraceElement[] stackTraceElements = thread.getStackTrace();
+            StringBuilder sbStack = new StringBuilder();
+            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
+            for (int i = 2; i < stackSize+2; i++){
+                sbStack.append("\n\t").append(stackTraceElements[i].toString());
+            }
+            RequestContext context = RequestContext.getCurrent();
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+            if (context != null) {
+                HttpServletRequest request = context.getRequest();
+                String url = request.getRequestURI() + "?" + request.getQueryString();
+                logger.debug("Http request: " + url);
+            } else if (cronJobContext != null) {
+                logger.debug("Cron Job");
+
+            }
+            logger.debug("Stack trace (depth 10): " + sbStack.toString());
+        }
     }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }

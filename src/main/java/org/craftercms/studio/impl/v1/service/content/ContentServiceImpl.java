@@ -93,7 +93,7 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(_contentRepository.getContent(path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path '{0}'", err, path);
+            logger.error("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
@@ -173,7 +173,10 @@ public class ContentServiceImpl implements ContentService {
             item.asset = (item.component == false && item.page == false);
             item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
 
-            loadContentTypeProperties(site, item, item.contentType);
+            boolean studioContentType = (item.contentType.indexOf("/component") != -1) || (item.contentType.indexOf("/page") != -1);
+            if (studioContentType) {
+                loadContentTypeProperties(site, item, item.contentType);
+            }
         }
         return item;
     }
@@ -229,7 +232,7 @@ public class ContentServiceImpl implements ContentService {
 
                }
                 else {
-                     logger.error("no xml document could be loaded for path '{0}'", fullPath);
+                     logger.error("no xml document could be loaded for path {0}", fullPath);
                 }
             }
             else {
