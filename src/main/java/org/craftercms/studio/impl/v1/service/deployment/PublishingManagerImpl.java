@@ -334,6 +334,8 @@ public class PublishingManagerImpl implements PublishingManager {
             }
         } else {
             //contentRepository.setSystemProcessing(item.getSite(), item.getPath(), true);
+            LOGGER.debug("Setting system processing for {0}:{1}", item.getSite(), item.getPath());
+            objectStateService.setSystemProcessing(item.getSite(), item.getPath(), true);
             if (isLive) {
                 if (!importModeEnabled) {
                     //contentRepository.createNewVersion(item.getSite(), item.getPath(), item.getSubmissionComment(), true);
@@ -350,11 +352,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
             //contentRepository.copyToEnvironment(item.getSite(), item.getEnvironment(), item.getPath());
+            LOGGER.debug("Getting deployer for environment store.");
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             deployer.deployFile(item.getSite(), item.getPath());
             if (isLive) {
                 //contentRepository.stateTransition(item.getSite(), item.getPath(), org.craftercms.studio.api.v1.service.fsm.TransitionEvent.DEPLOYMENT);
             }
+            LOGGER.debug("Resetting system processing for {0}:{1}", item.getSite(), item.getPath());
             objectStateService.setSystemProcessing(item.getSite(), item.getPath(), false);
         }
     }

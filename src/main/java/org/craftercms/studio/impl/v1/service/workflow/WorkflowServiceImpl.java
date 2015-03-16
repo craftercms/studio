@@ -710,8 +710,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                         try {
                             goLive(site, goLiveItems, approver, mcpContext);
                         } finally {
-                            for (String nr : nodeRefs) {
-                                generalLockService.unlock(nr);
+                            for (String fullPath : goLivePaths) {
+                                String path = contentService.getRelativeSitePath(site, fullPath);
+                                String lockId = site + ":" + path;
+                                generalLockService.unlock(lockId);
                             }
                         }
                     }
