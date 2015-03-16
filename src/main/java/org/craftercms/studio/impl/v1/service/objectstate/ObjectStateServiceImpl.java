@@ -115,14 +115,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
         String lockId = site + ":" + path;
+        logger.debug("Locking with ID: {0}", lockId);
         generalLockService.lock(lockId);
         try {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
             params.put("path", path);
             params.put("systemProcessing", isSystemProcessing);
+            logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, path, isSystemProcessing);
             objectStateMapper.setSystemProcessingBySiteAndPath(params);
         } finally {
+            logger.debug("Unlocking with ID: {0}", lockId);
             generalLockService.unlock(lockId);
         }
     }
