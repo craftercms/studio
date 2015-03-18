@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -333,7 +334,6 @@ public class PublishingManagerImpl implements PublishingManager {
                 //contentRepository.deleteContent(item);
             }
         } else {
-            //contentRepository.setSystemProcessing(item.getSite(), item.getPath(), true);
             LOGGER.debug("Setting system processing for {0}:{1}", item.getSite(), item.getPath());
             objectStateService.setSystemProcessing(item.getSite(), item.getPath(), true);
             if (isLive) {
@@ -356,7 +356,8 @@ public class PublishingManagerImpl implements PublishingManager {
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             deployer.deployFile(item.getSite(), item.getPath());
             if (isLive) {
-                //contentRepository.stateTransition(item.getSite(), item.getPath(), org.craftercms.studio.api.v1.service.fsm.TransitionEvent.DEPLOYMENT);
+                ContentItemTO contentItem = contentService.getContentItem(item.getSite(), item.getPath());
+                objectStateService.transition(item.getSite(), contentItem, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DEPLOYMENT);
             }
             LOGGER.debug("Resetting system processing for {0}:{1}", item.getSite(), item.getPath());
             objectStateService.setSystemProcessing(item.getSite(), item.getPath(), false);
@@ -376,7 +377,6 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     public void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate) throws DeploymentException {
         deploymentService.insertDeploymentHistory(target, publishedItems, publishingDate);
-        //_deploymentDAL.insertDeploymentHistory(target, publishedItems, publishingDate);
     }
 
     @Override
@@ -415,7 +415,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */ ) {
                 String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
                 if (!missingDependenciesPaths.contains(parentFullPath) && !pathsToDeploy.contains(parentFullPath)) {
-                    cancelWorkflow(site, parentPath);
+                    deploymentService.cancelWorkflow(site, parentPath);
                     missingDependenciesPaths.add(parentFullPath);
                     CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
                     processItem(parentItem);
@@ -429,12 +429,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
                     String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
                     if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {
-                        /*
-                        try {
-                            _deploymentDAL.cancelWorkflow(site, dependentPath);
-                        } catch (DeploymentDALException e) {
-                            LOGGER.error("Error while canceling workflow for path {0}, site {1}", e, site, dependentPath);
-                        }*/
+                        deploymentService.cancelWorkflow(site, dependentPath);
                         missingDependenciesPaths.add(dependentFullPath);
                         CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
                         processItem(dependentItem);
@@ -469,16 +464,6 @@ public class PublishingManagerImpl implements PublishingManager {
         missingItem.setUser(item.getUser());
         missingItem.setSubmissionComment(item.getSubmissionComment());
         return missingItem;
-    }
-
-    protected void cancelWorkflow(String site, String path) throws DeploymentException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("path", path);
-        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
-        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
-        params.put("now", new Date());
-        copyToEnvironmentMapper.cancelWorkflow(params);
     }
 
     public String getIndexFile() {  return indexFile; }
