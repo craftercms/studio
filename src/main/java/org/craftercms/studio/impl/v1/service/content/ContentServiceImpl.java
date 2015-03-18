@@ -177,6 +177,7 @@ public class ContentServiceImpl implements ContentService {
             if (studioContentType) {
                 loadContentTypeProperties(site, item, item.contentType);
             }
+            loadWorkflowProperties(site, item);
         }
         return item;
     }
@@ -317,6 +318,15 @@ public class ContentServiceImpl implements ContentService {
             item.setPreviewable(config.isPreviewable());
         }
         // TODO CodeRev:but what if the config is null?
+    }
+
+    protected void loadWorkflowProperties(String site, ContentItemTO item) {
+        ObjectState state = objectStateService.getObjectState(site, item.getUri());
+        if (state != null) {
+            item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            item.isLive = item.isLive();
+            item.setInProgress(!item.isLive());
+        }
     }
 
     @Override

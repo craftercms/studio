@@ -179,12 +179,12 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 */
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
-        String lockId = site + ":" + item.getPath();
+        String lockId = site + ":" + item.getUri();
         generalLockService.lock(lockId);
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
-            params.put("path", item.getPath());
+            params.put("path", item.getUri());
             ObjectState currentState = objectStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
@@ -206,7 +206,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                 ObjectState newEntry = new ObjectState();
                 newEntry.setObjectId(item.getNodeRef());
                 newEntry.setSite(site);
-                newEntry.setPath(item.getPath());
+                newEntry.setPath(item.getUri());
                 newEntry.setSystemProcessing(0);
                 newEntry.setState(nextState.name());
                 objectStateMapper.insertEntry(newEntry);
