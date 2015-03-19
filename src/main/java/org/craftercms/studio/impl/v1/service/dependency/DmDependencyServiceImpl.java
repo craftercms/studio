@@ -1268,29 +1268,33 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             String fullPath = contentService.expandRelativeSitePath(site, sourceContentPath);
             ContentItemTO dependencyItem = contentService.getContentItem(site, sourceContentPath);
-            String contentType = dependencyItem.getContentType();
-            List<CopyDependencyConfigTO> copyDependencyPatterns  = servicesConfig.getCopyDependencyPatterns(site, contentType);
-            if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
-                logger.debug("Copy Pattern provided for contentType"+contentType);
-                DmDependencyTO dmDependencyTo = getDependencies(site, dependencyPath, false, true);
-                if (dmDependencyTo != null) {
-                    //TODO are pages also required?
-                    List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies(); //documents,assets,components
-                    for (DmDependencyTO dependency : dependencyTOItems) {
-                        String assocFilePath = dependency.getUri();
-                        for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
-                            if (StringUtils.isNotEmpty(copyConfig.getPattern()) &&
-                                    StringUtils.isNotEmpty(copyConfig.getTarget()) && assocFilePath.matches(copyConfig.getPattern())) {
-                                ContentItemTO assocItem = contentService.getContentItem(site, assocFilePath);
-                                if (assocItem != null) {
-                                    copyDependency.put(dependency.getUri(), copyConfig.getTarget());
+            if (dependencyItem != null) {
+                String contentType = dependencyItem.getContentType();
+                List<CopyDependencyConfigTO> copyDependencyPatterns = servicesConfig.getCopyDependencyPatterns(site, contentType);
+                if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
+                    logger.debug("Copy Pattern provided for contentType" + contentType);
+                    DmDependencyTO dmDependencyTo = getDependencies(site, dependencyPath, false, true);
+                    if (dmDependencyTo != null) {
+                        //TODO are pages also required?
+                        List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies(); //documents,assets,components
+                        for (DmDependencyTO dependency : dependencyTOItems) {
+                            String assocFilePath = dependency.getUri();
+                            for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
+                                if (StringUtils.isNotEmpty(copyConfig.getPattern()) &&
+                                        StringUtils.isNotEmpty(copyConfig.getTarget()) && assocFilePath.matches(copyConfig.getPattern())) {
+                                    ContentItemTO assocItem = contentService.getContentItem(site, assocFilePath);
+                                    if (assocItem != null) {
+                                        copyDependency.put(dependency.getUri(), copyConfig.getTarget());
+                                    }
                                 }
                             }
                         }
                     }
+                } else {
+                    logger.debug("Copy Pattern is not provided for contentType" + contentType);
                 }
-            }else{
-                logger.debug("Copy Pattern is not provided for contentType"+contentType);
+            } else {
+                logger.debug("Not found dependency item at {0}", fullPath);
             }
         }
         return copyDependency;
