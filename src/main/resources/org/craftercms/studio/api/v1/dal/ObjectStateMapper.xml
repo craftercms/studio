@@ -74,7 +74,7 @@
         WHERE object_id = #{objectId};
     </update>
 
-    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map">
+    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map" resultMap="ObjectStateMap">
         SELECT object_id, site, path, state, system_processing
         FROM cstudio_objectstate
         WHERE site = #{site}

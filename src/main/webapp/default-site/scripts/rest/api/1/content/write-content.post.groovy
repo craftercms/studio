@@ -58,7 +58,7 @@ else
 }*/
 def context = ContentServices.createContext(applicationContext, request)
 if (oldPath != null && oldPath != "" && (draft==null || draft!=true)) {
-    fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length);
+    fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length());
     result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true);
 
 } else {

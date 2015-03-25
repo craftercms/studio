@@ -210,6 +210,9 @@ public interface ContentService {
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock) throws ServiceException;
 
+    void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
+                               final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException;
+
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
      *
