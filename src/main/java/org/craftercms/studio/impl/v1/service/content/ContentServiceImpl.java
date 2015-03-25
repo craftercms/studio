@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -77,12 +78,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public InputStream getContent(String path) {
+    public InputStream getContent(String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(path);
     }
 
     @Override
-    public InputStream getContent(String site, String path) {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(expandRelativeSitePath(site, path));
     }
 
@@ -104,7 +105,12 @@ public class ContentServiceImpl implements ContentService {
     public Document getContentAsDocument(String path)
     throws DocumentException {
         Document retDocument = null;
-        InputStream is = this.getContent(path);
+        InputStream is = null;
+        try {
+            is = this.getContent(path);
+        } catch (ContentNotFoundException e) {
+            logger.error("Content not found for path {0}", e, path);
+        }
 
         if(is != null) {
             try {
@@ -447,7 +453,7 @@ public class ContentServiceImpl implements ContentService {
             
             if(repoItem.isFolder && isPages) {
                 contentItem = getContentItem(site,  relativePath+"/index.xml");
-                if(depth > 0) {
+                if (contentItem != null && depth > 0) {
                     contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
                     contentItem.numOfChildren = children.size();
                 }

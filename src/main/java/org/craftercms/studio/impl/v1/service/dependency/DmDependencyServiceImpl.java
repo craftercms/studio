@@ -321,6 +321,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         item.setPages(pageItems);
                     } catch (IOException e) {
                         logger.error("Error while getting dependent file names for " + path + " in " + site, e);
+                    } catch (ContentNotFoundException e) {
+                        logger.error("Error while getting dependent file names for " + path + " in " + site, e);
                     }
                 }
             }

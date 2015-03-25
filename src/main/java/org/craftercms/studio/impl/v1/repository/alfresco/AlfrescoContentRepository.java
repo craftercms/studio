@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.FileUtils;
@@ -53,6 +55,7 @@ import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -79,31 +82,8 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
     @Override
-    public InputStream getContent(String path) {
-        InputStream retStream = null;
-        String name = path.substring(path.lastIndexOf("/")+1);
-        addDebugStack();
-        try {
-            String nodeRef = getNodeRefForPathCMIS(path);
-
-            if(nodeRef != null) {
-                // construct and execute url to download result
-                String downloadURI = "/api/node/content/workspace/SpacesStore/{nodeRef}/{name}?a=true";
-                Map<String, String> lookupContentParams = new HashMap<String, String>();
-                lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
-                lookupContentParams.put("name", name);
-
-                retStream = this.alfrescoGetHttpRequest(downloadURI, lookupContentParams);
-            }
-            else {
-                throw new Exception("nodeRef not found for path: [" + path + "]");
-            }
-        }
-        catch(Exception err) {
-            logger.error("err getting content: ", err);   
-        }
-
-        return retStream;
+    public InputStream getContent(String path) throws ContentNotFoundException {
+        return getContentStreamCMIS(path);
     }
 
     @Override
@@ -858,9 +838,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
     }
 
-    protected String getNodeRefForPathCMIS(String path) {
+    protected String getNodeRefForPathCMIS(String fullPath) {
         Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
@@ -872,6 +852,32 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             nodeRef = property.getValueAsString();
         }
         return nodeRef;
+    }
+
+    protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        InputStream inputStream = null;
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            String nodeRef = null;
+            if (cmisObject != null) {
+                ObjectType type = cmisObject.getType();
+                if (type.isFileable()) {
+                    org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                    ContentStream contentStream = document.getContentStream();
+                    inputStream = contentStream.getStream();
+                }
+            }
+        } catch (CmisBaseException e) {
+            logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
+            throw new ContentNotFoundException(e);
+        }
+        return inputStream;
     }
 
     protected Session getCMISSession() {

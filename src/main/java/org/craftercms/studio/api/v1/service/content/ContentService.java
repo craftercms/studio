@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.content;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
@@ -51,7 +52,7 @@ public interface ContentService {
      * @return document
      * @oaram site
      */
-    public InputStream getContent(String site, String path);
+    public InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
      * get document from wcm content
@@ -59,7 +60,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    public InputStream getContent(String path);
+    public InputStream getContent(String path) throws ContentNotFoundException;
 
     /**
      * get from wcm content

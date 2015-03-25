@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.translation.dal.repository;
 
 import java.io.InputStream;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.impl.v1.service.translation.dal.AbstractTranslationContentDAL;
 
@@ -38,7 +39,7 @@ public class RepositoryTranslationContentDAL extends AbstractTranslationContentD
 	/**
 	 * retrieve the source content
 	 */
-	public InputStream getContent(String site, String path) {
+	public InputStream getContent(String site, String path) throws ContentNotFoundException {
 		return _contentService.getContent(site, path);
 	}
 
