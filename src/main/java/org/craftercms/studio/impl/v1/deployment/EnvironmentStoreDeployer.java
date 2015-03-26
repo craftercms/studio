@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -35,8 +36,13 @@ public class EnvironmentStoreDeployer implements Deployer{
 
     @Override
     public void deployFile(String site, String path) {
-        InputStream content = contentService.getContent(site, path);
-        writeFile(site, path, environment, content);
+        InputStream content = null;
+        try {
+            content = contentService.getContent(site, path);
+            writeFile(site, path, environment, content);
+        } catch (ContentNotFoundException e) {
+            logger.error("Deployment to environment store failed [{0}]. Content not found for [{1}:{2}]", e, environment, site, path);
+        }
     }
 /*
     @Override

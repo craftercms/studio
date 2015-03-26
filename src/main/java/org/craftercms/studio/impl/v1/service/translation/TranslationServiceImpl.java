@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.translation.TranslationService;
@@ -48,8 +49,13 @@ public class TranslationServiceImpl implements TranslationService {
 
 	@Override
 	public void translate(String sourceSite, String sourceLanguage, String targetLanguage, String path) {
-		InputStream untranslatedContentStream = _translationContentDAL.getContent(sourceSite, path);
-		
+		InputStream untranslatedContentStream = null;
+		try {
+			untranslatedContentStream = _translationContentDAL.getContent(sourceSite, path);
+		} catch (ContentNotFoundException e) {
+			logger.error("Content not found for {0}:{1}", e, sourceSite, path);
+		}
+
 		if(untranslatedContentStream != null) {
 			try {
 				// read content in to memory and close original stream

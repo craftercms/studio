@@ -444,6 +444,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
             preRenameCleanWorkFlow(site, sourcePath);
 
+            String dstNodeParentPath = contentService.getRelativeSitePath(site, dstNodeParentUrl);
+            String dstPath = contentService.getRelativeSitePath(site, dstFullPath);
+
             if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
                 ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
                 if (srcItem != null && /*srcItem.isFolder() &&*/ dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
@@ -451,13 +454,13 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                         //persistenceManagerService.deleteNode(srcFullPath);
                 } else if (srcItem != null /*&& !srcItem.isFolder()*/
                                 && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                    contentService.createFolder(site, contentService.getRelativeSitePath(site, dstNodeParentUrl), dstNodeName);
-                    contentService.moveContent(site, sourcePath, targetPath + "/" + DmConstants.INDEX_FILE);
+                    contentService.createFolder(site, dstNodeParentPath, dstNodeName);
+                    contentService.moveContent(site, sourcePath, dstPath);
                 } else {
-                    contentService.moveContent(site, sourcePath, targetPath);
+                    contentService.moveContent(site, sourcePath, dstPath);
                 }
             } else {
-                contentService.moveContent(site, sourcePath, targetPath);
+                contentService.moveContent(site, sourcePath, dstPath);
             }
 
             ContentItemTO item = contentService.getContentItem(dstFullPath);
@@ -542,6 +545,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED);
             }
         }catch(Exception e){
+            logger.error("Error during clean workflow",e);
             throw new ServiceException("Error during clean workflow",e);
         }
     }
@@ -584,8 +588,10 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         //persistenceManagerService.setProperty(node, CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
         if (srcFullPath.endsWith(DmConstants.INDEX_FILE)) {
             // if the file is index.xml, update child contnets
+
             String parentNodePath = ContentUtils.getParentUrl(srcFullPath);
-            ContentItemTO parentItem = contentService.getContentItem(parentNodePath);
+            String parentRelativePath = contentService.getRelativeSitePath(site, parentNodePath);
+            ContentItemTO parentItem = contentService.getContentItem(site, parentRelativePath);
             updateChildItems(site, parentItem, oldPath, path, addNodeProperty, user, false);
         } else {
             // for the file content, update the file itself

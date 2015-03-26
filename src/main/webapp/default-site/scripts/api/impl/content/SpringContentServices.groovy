@@ -208,6 +208,11 @@ class SpringContentServices {
 		return springBackedService.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
 	}
 
+    def writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+        springBackedService.writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder);
+    }
+
 	def getContentAtPath(path) {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
 		return springBackedService.getContent(path)

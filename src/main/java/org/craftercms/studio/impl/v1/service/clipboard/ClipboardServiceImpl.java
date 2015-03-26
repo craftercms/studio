@@ -431,7 +431,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 throw new ServiceException("Error while pasting content. " + destination + " does not exist.");
             }
             String destNodePath = destFullpath;
-            //if (!destNodeInfo.isFolder()) {
+            if (!destItem.isFolder()) {
                 if (destItem.getName().equals(DmConstants.INDEX_FILE)) {
                     destItem = contentService.getContentItem(site, destination.replace("/" + destItem.getName(), ""));
                     destNodePath = destItem.getUri();
@@ -440,14 +440,17 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                     destItem = contentService.getContentItem(site, folderPath);
                     destNodePath = folderPath;
                 }
-            //}
+            }
             for (final Map<String, String> pasteItem : pasteItems) {
+                DmPasteItemTO dmPasteItem = new DmPasteItemTO();
                 String pasteItemUri = pasteItem.get("uri");
+                dmPasteItem.setUri(pasteItemUri);
+                dmPasteItem.setDeep(Boolean.parseBoolean(pasteItem.get("deep")));
                 if (hasSameChild(pasteItemUri, destItem, site)) {
                     //if the parent folder has the same content then duplicate the content
                     duplicateContent(site, destination, user, destItem, pasteItemUri);
                 } else {
-                    copyContent(site, user, pasteItemUri, destNodePath, copiedItems);
+                    copyContent(site, user, dmPasteItem, destNodePath, copiedItems);
                 }
             }
         }
@@ -460,12 +463,12 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
      *
      * @throws ServiceException
      */
-    protected void copyContent(String site, String user, String pasteItem, String destination, List<String> copiedItems) throws ServiceException {
-        String path = pasteItem;
+    protected void copyContent(String site, String user, DmPasteItemTO pasteItem, String destination, List<String> copiedItems) throws ServiceException {
+        String path = pasteItem.getUri();
         boolean deep = true; //item.isDeep();
         String fullPath = contentService.expandRelativeSitePath(site, path);
         try {
-            ContentItemTO contentItem = contentService.getContentItem(site, path);
+            ContentItemTO contentItem = contentService.getContentItemTree(site, path, 1);
             if (contentItem == null) {
                 throw new ServiceException("Error while pasting content. " + path + " does not exist.");
             }
@@ -478,17 +481,16 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             //} else {
             //FileInfo nodeInfo = persistenceManagerService.getFileInfo(node);
             String nodePath = fullPath;
-            /*if (nodeInfo.isFolder()) {
-                copyChildren(site, user, path, node, destination + "/" + nodeInfo.getName(), item, deep, true, copiedItems);
-                if (item.getChildren() == null) {
-                    NodeRef destinationParentNodeRef = persistenceManagerService.getNodeRef(destination);
-                    QName assocQName = QName.createQName(ContentModel.TYPE_CONTENT.getNamespaceURI(), QName.createValidLocalName(nodeInfo.getName()));
-                    NodeRef copyNode = persistenceManagerService.copy(node, destinationParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName);
-                    Map<QName, Serializable> copyNodeProps = persistenceManagerService.getProperties(copyNode);
-                    copyNodeProps.put(ContentModel.PROP_NAME, nodeInfo.getName());
-                    persistenceManagerService.setProperties(copyNode, copyNodeProps);
+            if (contentItem.isFolder()) {
+                copyChildren(site, user, path, contentItem, destination + contentItem.getName(), pasteItem, deep, true, copiedItems);
+                if (contentItem.getChildren() == null || contentItem.getChildren().size() == 0) {
+                    ContentItemTO destinationParentItem = contentService.getContentItem(site, destination);
+                    //writeContent(site, );
+                    //copy(site, user, null, nodePath, destination, null, null, false, DmContentLifeCycleService.ContentLifeCycleOperation.COPY);
+                    contentService.copyContent(site, path, destination);
                 }
-            } else*/ if (contentItem.getName().equals(DmConstants.INDEX_FILE)) {
+
+            } else if (contentItem.getName().equals(DmConstants.INDEX_FILE)) {
 
                 ContentItemTO parentItem = contentService.getContentItem(site, contentItem.getPath());
                 path = path.replace("/" + DmConstants.INDEX_FILE, "");
@@ -520,7 +522,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
      *
      */
     protected void copyChildren(String site, String user, String parentPath, ContentItemTO parentContentItem,
-                                String destination, String parentItem, boolean deep, boolean copyIndex, List<String> copiedItems) throws ServiceException {
+                                String destination, DmPasteItemTO parentItem, boolean deep, boolean copyIndex, List<String> copiedItems) throws ServiceException {
         if (deep) {
             ContentItemTO parentItemTree = contentService.getContentItemTree(site, parentContentItem.getUri(), 1);
             ContentItemTO indexDescp = null;
@@ -540,12 +542,12 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             if(copyIndex && indexDescp != null) {
                 copyItem(site, user, parentPath,destination,deep, copiedItems, indexDescp);
             }
-        } else {/*
-            if (parentItem.getChildren() != null && parentItem.getChildren().size() > 0) {
+        } else {
+            if (parentContentItem.getChildren() != null && parentContentItem.getChildren().size() > 0) {
                 for (DmPasteItemTO childPasteItem : parentItem.getChildren()) {
                     copyContent(site, user, childPasteItem, destination, copiedItems);
                 }
-            }*/
+            }
         }
     }
 
@@ -555,11 +557,11 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     protected void copyItem(String site, String user, String parentPath, String destination, boolean deep,
                             List<String> copiedItems, ContentItemTO childItem) throws ServiceException {
 
-        //DmPasteItemTO childPasteItem = new DmPasteItemTO();
+        DmPasteItemTO childPasteItem = new DmPasteItemTO();
         String childUri = parentPath + "/" + childItem.getName();
-        //childPasteItem.setUri(childUri);
-        //childPasteItem.setDeep(deep);
-        copyContent(site, user, childUri, destination, copiedItems);
+        childPasteItem.setUri(childUri);
+        childPasteItem.setDeep(deep);
+        copyContent(site, user, childPasteItem, destination, copiedItems);
     }
 
     /**

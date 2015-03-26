@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.content;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
@@ -51,7 +52,7 @@ public interface ContentService {
      * @return document
      * @oaram site
      */
-    public InputStream getContent(String site, String path);
+    public InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
      * get document from wcm content
@@ -59,7 +60,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    public InputStream getContent(String path);
+    public InputStream getContent(String path) throws ContentNotFoundException;
 
     /**
      * get from wcm content
@@ -209,6 +210,9 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock) throws ServiceException;
+
+    void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
+                               final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException;
 
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
