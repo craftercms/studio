@@ -205,6 +205,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     public RepositoryItem[] getContentChildren(String path) {
 
         addDebugStack();
+        RepositoryItem[] items = getContentChildrenCMIS(path);
+        return items;
+        /*
         RepositoryItem[] items = new RepositoryItem[0];
 
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -253,6 +256,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
 
         return items;
+        */
     }
 
     /** 
@@ -344,106 +348,6 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return success;
     }
-
-    /**
-     * given a path, get an alfresco node ref
-     */
-    protected String getNodeRefForPath(String path) { 
-        String nodeRef = null;
-        Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
-        }
-        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
-        String query = "/app:company_home" + namespacedPath;
-
-        String lookupNodeRefURI = "/api/nodelocator/xpath?query={q}&store_type={storeType}&store_id={storeId}";
-        params.put("q", query);
-        params.put("storeType", "workspace");
-        params.put("storeId", "SpacesStore");
-
-        try{
-            InputStream responseStream = this.alfrescoGetRequest(lookupNodeRefURI, params);
-            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
-            JsonConfig cfg = new JsonConfig();
-            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-            JSONObject data = root.getJSONObject("data");
-            nodeRef = data.getString("nodeRef");
-            if ("null".equals(nodeRef)) {
-                nodeRef = null;
-            }
-            /*
-            int resultCount = root.getInt("numResults");
-
-            if(resultCount == 1) {
-                JSONObject result = root.getJSONArray("results").getJSONObject(0);
-                nodeRef = result.getString("nodeRef");
-            }
-            else if(resultCount == 0) {
-                throw new Exception("no results for query (" + query + ")");
-            }
-            else {
-                throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
-            }*/
-
-        }
-        catch(Exception err) {
-            logger.error("err getting noderef for path (" + path + "): ", err);   
-        }
-
-        return nodeRef;
-    }
-
-    /**
-     * given a path, get an alfresco node ref
-     */
-    protected String getNodeRefForPath2(String path) {
-        String nodeRef = null;
-        Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
-        }
-        String namespacedPath = cleanPath.replaceAll("/", "/cm:");
-        String query = "PATH:\"/app:company_home" + namespacedPath + "\"";
-
-        String lookupNodeRefURI = "/api/nodelocator/xpath?query={q}&store_type={storeType}&store_id={storeId}";
-        params.put("q", query);
-        params.put("storeType", "workspace");
-        params.put("storeId", "SpacesStore");
-
-        Map<String, String> lookupNodeRefParams = new HashMap<String, String>();
-        lookupNodeRefParams.put("q", query);
-        lookupNodeRefParams.put("storeType", "workspace");
-        lookupNodeRefParams.put("storeId", "SpacesStore");
-        try{
-            InputStream responseStream = this.alfrescoGetHttpRequest(lookupNodeRefURI, lookupNodeRefParams);
-
-            String jsonResponse = IOUtils.toString(responseStream, "utf-8");
-            JsonConfig cfg = new JsonConfig();
-            JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
-            int resultCount = root.getInt("numResults");
-
-            if(resultCount == 1) {
-                JSONObject result = root.getJSONArray("results").getJSONObject(0);
-                nodeRef = result.getString("nodeRef");
-            }
-            else if(resultCount == 0) {
-                throw new Exception("no results for query (" + query + ")");
-            }
-            else {
-                throw new Exception("too many results (" + resultCount + ") for query (" + query + ")");
-            }
-
-        }
-        catch(Exception err) {
-            logger.error("err getting noderef for path (" + path + "): ", err);
-        }
-
-        return nodeRef;
-    }
-
 
     /**
      * create a folder at the given path
@@ -878,6 +782,47 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             throw new ContentNotFoundException(e);
         }
         return inputStream;
+    }
+
+    protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        Session session = getCMISSession();
+        CmisObject cmisObject = session.getObjectByPath(cleanPath);
+        String nodeRef = null;
+        RepositoryItem[] items = null;
+        if (cmisObject != null) {
+            ObjectType type = cmisObject.getBaseType();
+            if (FolderType.FOLDER_BASETYPE_ID.equals(type.getId())) {
+                Folder folder = (Folder) cmisObject;
+                ItemIterable<CmisObject> children = folder.getChildren();
+                List<RepositoryItem> tempList = new ArrayList<RepositoryItem>();
+                Iterator<CmisObject> iterator = children.iterator();
+                while (iterator.hasNext()) {
+                    CmisObject child = iterator.next();
+
+                    boolean isFolder = FolderType.FOLDER_BASETYPE_ID.equals(child.getBaseType().getId());
+                    RepositoryItem item = new RepositoryItem();
+                    item.name = child.getName();
+                    if (child.getType().isFileable()) {
+                        FileableCmisObject fileableCmisObject = (FileableCmisObject) child;
+                        item.path = fileableCmisObject.getPaths().get(0);
+                    } else {
+                        item.path = fullPath;
+                    }
+                    item.path = item.path.replace("/" + item.name, "");
+                    item.isFolder = isFolder;
+
+                    tempList.add(item);
+                }
+                items = new RepositoryItem[tempList.size()];
+                items = tempList.toArray(items);
+            }
+        }
+        return items;
     }
 
     protected Session getCMISSession() {
