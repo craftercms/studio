@@ -254,6 +254,7 @@ class ContentServices {
 		return contentServicesImpl.writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock)
 	}
 
+
 	static getContentType(context, site, type) {
 		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
 		return contentTypeServicesImpl.getContentType(site, type)

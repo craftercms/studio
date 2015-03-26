@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -38,6 +39,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -76,12 +78,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public InputStream getContent(String path) {
+    public InputStream getContent(String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(path);
     }
 
     @Override
-    public InputStream getContent(String site, String path) {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(expandRelativeSitePath(site, path));
     }
 
@@ -93,7 +95,7 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(_contentRepository.getContent(path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path '{0}'", err, path);
+            logger.error("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
@@ -103,7 +105,12 @@ public class ContentServiceImpl implements ContentService {
     public Document getContentAsDocument(String path)
     throws DocumentException {
         Document retDocument = null;
-        InputStream is = this.getContent(path);
+        InputStream is = null;
+        try {
+            is = this.getContent(path);
+        } catch (ContentNotFoundException e) {
+            logger.error("Content not found for path {0}", e, path);
+        }
 
         if(is != null) {
             try {
@@ -173,7 +180,11 @@ public class ContentServiceImpl implements ContentService {
             item.asset = (item.component == false && item.page == false);
             item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
 
-            loadContentTypeProperties(site, item, item.contentType);
+            boolean studioContentType = (item.contentType.indexOf("/component") != -1) || (item.contentType.indexOf("/page") != -1);
+            if (studioContentType) {
+                loadContentTypeProperties(site, item, item.contentType);
+            }
+            loadWorkflowProperties(site, item);
         }
         return item;
     }
@@ -229,7 +240,7 @@ public class ContentServiceImpl implements ContentService {
 
                }
                 else {
-                     logger.error("no xml document could be loaded for path '{0}'", fullPath);
+                     logger.error("no xml document could be loaded for path {0}", fullPath);
                 }
             }
             else {
@@ -314,6 +325,15 @@ public class ContentServiceImpl implements ContentService {
             item.setPreviewable(config.isPreviewable());
         }
         // TODO CodeRev:but what if the config is null?
+    }
+
+    protected void loadWorkflowProperties(String site, ContentItemTO item) {
+        ObjectState state = objectStateService.getObjectState(site, item.getUri());
+        if (state != null) {
+            item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            item.isLive = item.isLive();
+            item.setInProgress(!item.isLive());
+        }
     }
 
     @Override
@@ -433,21 +453,25 @@ public class ContentServiceImpl implements ContentService {
             
             if(repoItem.isFolder && isPages) {
                 contentItem = getContentItem(site,  relativePath+"/index.xml");
-                if(depth > 0) {
+                if (contentItem != null && depth > 0) {
                     contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
                     contentItem.numOfChildren = children.size();
                 }
             }
             
             if(contentItem == null) {
-                contentItem = getContentItem(site, relativePath);
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(site, path, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
+                if (!StringUtils.endsWith(relativePath, "/index.xml")) {
+                    contentItem = getContentItem(site, relativePath);
+                    if (depth > 0) {
+                        contentItem.children = getContentItemTreeInternal(site, path, depth - 1, isPages);
+                        contentItem.numOfChildren = children.size();
+                    }
                 }
             }
 
-            children.add(contentItem);
+            if(contentItem != null) {
+                children.add(contentItem);
+            }
         }
 
         return children;
@@ -483,14 +507,17 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if(contentItem == null) {
-                contentItem = getContentItem(fullPath);
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(fullPath, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
+                if (!StringUtils.endsWith(fullPath, "/index.xml")) {
+                    contentItem = getContentItem(fullPath);
+                    if (depth > 0) {
+                        contentItem.children = getContentItemTreeInternal(fullPath, depth - 1, isPages);
+                        contentItem.numOfChildren = children.size();
+                    }
                 }
             }
-
-            children.add(contentItem);
+            if(contentItem == null) {
+                children.add(contentItem);
+            }
         }
 
         return children;
@@ -642,6 +669,29 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
+                                      final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
+        String id = site + ":" + path + ":" + fileName + ":" + contentType;
+        if (!generalLockService.tryLock(id)) {
+            generalLockService.lock(id);
+            generalLockService.unlock(id);
+            return;
+        }
+        try {
+            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
+            rename(site, path, targetPath, createFolder);
+        } catch (Throwable t) {
+            logger.error("Error while executing write and rename: ", t);
+        } finally {
+            generalLockService.unlock(id);
+        }
+    }
+
+    protected void rename(final String site, final String path, final String targetPath,final boolean createFolder) throws ServiceException {
+        dmRenameService.rename(site, path,targetPath,createFolder);
+    }
+
+    @Override
     public void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
         // get sandbox if not provided
         long start = System.currentTimeMillis();
@@ -756,6 +806,7 @@ public class ContentServiceImpl implements ContentService {
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
+    protected DmRenameService dmRenameService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -779,4 +830,7 @@ public class ContentServiceImpl implements ContentService {
 
     public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
+
+    public DmRenameService getDmRenameService() { return dmRenameService; }
+    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 }

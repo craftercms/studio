@@ -57,7 +57,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 			success: function(response) {
 				var loggerLisEl = document.getElementById("logger-list");
 		
-				var loggers = eval("(" + response.responseText + ")").loggers;
+				var loggers = eval("(" + response.responseText + ")");
 				CStudioAdminConsole.Tool.Logging.loggers = loggers;
 				// create the entire table HTML due to IE9 support
 				var jobsTableEl = document.getElementById("loggerTable");
@@ -93,7 +93,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 			self: this
 		};
 			
-		var serviceUri = "/proxy/alfresco/cstudio/logging/loggers";
+		var serviceUri = "/api/1/services/api/1/server/get-loggers.json";
 
 		YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	}

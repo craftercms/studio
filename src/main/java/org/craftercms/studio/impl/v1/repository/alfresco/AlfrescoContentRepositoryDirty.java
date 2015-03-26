@@ -22,6 +22,7 @@ import javax.transaction.*;
 import java.io.InputStream;
 import java.util.*;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
@@ -81,7 +82,7 @@ public class AlfrescoContentRepositoryDirty extends AlfrescoContentRepository {
      * @param store is an area to write to (live, stage, work-area, ...)
      * @param path is the file path to write
      */
-    public InputStream getContent(String site, String variant, String store, String path) {
+    public InputStream getContent(String site, String variant, String store, String path) throws ContentNotFoundException {
         return getContent("/wem-projects/"+site+"/"+site+"/"+store + path);
     }
     

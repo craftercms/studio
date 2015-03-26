@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.repository;
 
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -49,7 +50,7 @@ public interface ContentRepository {
      * @param path
      * @return document
      */
-    InputStream getContent(String path);
+    InputStream getContent(String path) throws ContentNotFoundException;
 
     /**
      * write content
@@ -145,7 +146,7 @@ public interface ContentRepository {
      * @param store is an area to write to (live, stage, work-area, ...)
      * @param path is the file path to write
      */
-    InputStream getContent(String site, String variant, String store, String path);
+    InputStream getContent(String site, String variant, String store, String path) throws ContentNotFoundException;
 
 
     /**

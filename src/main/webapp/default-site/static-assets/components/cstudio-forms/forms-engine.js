@@ -892,7 +892,7 @@ var CStudioForms = CStudioForms || function() {
                     var length = entityId.length;
                     var index_html = "";
                     var fileName   = form.model["file-name"];
-                    var folderName = form.definition.contentAsFolder == "true" ? form.model["folder-name"] : undefined;
+                    var folderName = (form.definition.contentAsFolder || form.definition.contentAsFolder == "true") ? form.model["folder-name"] : undefined;
                     /*
                      * No folderName means it is NOT a content-as-folder content type.
                      * See file-name.js function _onChange().

@@ -158,7 +158,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         var newPath = "";
         var path = this.getCurrentPath();
 
-        if(this.contentAsFolder == "true") {
+        if(this.contentAsFolder == true || this.contentAsFolder == "true") {
             newPath = this._getPath() + "/" + this.value + "/index.xml";
         }
         else {

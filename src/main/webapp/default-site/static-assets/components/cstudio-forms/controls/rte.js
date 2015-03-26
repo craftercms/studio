@@ -65,7 +65,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		CStudioForms.Controls.RTEManager.getRteConfiguration(configuration, "no-role-support", {
 			success: function(rteConfig) {
 
-				_thisControl._loadPlugins(rteConfig.rteModules, {
+				_thisControl._loadPlugins(rteConfig.rteModules.module, {
 					success: function() {
 						this.control._initializeRte(this.controlConfig, this.rteConfig, this.containerEl);
 						

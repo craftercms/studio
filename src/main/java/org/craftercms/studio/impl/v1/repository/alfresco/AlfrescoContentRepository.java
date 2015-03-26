@@ -18,6 +18,12 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
+import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BindingType;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.FileUtils;
@@ -45,10 +51,11 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.craftercms.commons.http.RequestContext;
+import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -75,51 +82,29 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
     @Override
-    public InputStream getContent(String path) {
-        InputStream retStream = null;
-        String name = path.substring(path.lastIndexOf("/")+1);
-
-        try {
-            String nodeRef = getNodeRefForPath(path);
-
-            if(nodeRef != null) {
-                // construct and execute url to download result
-                String downloadURI = "/api/node/content/workspace/SpacesStore/{nodeRef}/{name}?a=true";
-                Map<String, String> lookupContentParams = new HashMap<String, String>();
-                lookupContentParams.put("nodeRef", nodeRef.replace("workspace://SpacesStore/", ""));
-                lookupContentParams.put("name", name);
-
-                retStream = this.alfrescoGetHttpRequest(downloadURI, lookupContentParams);
-            }
-            else {
-                throw new Exception("nodeRef not found for path: [" + path + "]");
-            }
-        }
-        catch(Exception err) {
-            logger.error("err getting content: ", err);   
-        }
-
-        return retStream;
+    public InputStream getContent(String path) throws ContentNotFoundException {
+        return getContentStreamCMIS(path);
     }
 
     @Override
     public boolean contentExists(String path) {
-       return (this.getNodeRefForPath(path) != null); 
+       return (this.getNodeRefForPathCMIS(path) != null);
     }
 
 
     @Override
     public boolean writeContent(String path, InputStream content) {
         logger.debug("writing content to " + path);
+        addDebugStack();
         String uploadURI = "/api/upload";
         String contentType = "cm:content";
         int splitIndex = path.lastIndexOf("/");
         String name = path.substring(splitIndex + 1);
         // find the existing node by path
-        String nodeRef = getNodeRefForPath(path);
+        String nodeRef = getNodeRefForPathCMIS(path);
         // find the target folder node by its path
         String folderPath = path.substring(0, splitIndex);
-        String folderRef = getNodeRefForPath(folderPath);
+        String folderRef = getNodeRefForPathCMIS(folderPath);
         if (folderRef == null) {
             // if not, create the folder first
             int folderSplitIndex = folderPath.lastIndexOf("/");
@@ -170,6 +155,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean createFolder(String path, String name) {
+        addDebugStack();
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
@@ -177,9 +163,10 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     @Override
     public boolean deleteContent(String path) {
         logger.debug("deleting content at " + path);
+        addDebugStack();
         boolean result = false;
         String deleteURI = "/slingshot/doclib/action/file/node/";
-        String nodeRef = getNodeRefForPath(path);
+        String nodeRef = getNodeRefForPathCMIS(path);
 
         if (nodeRef == null) {
             // if no nodeRef, it's already deleted so just return true
@@ -199,12 +186,14 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
+        addDebugStack();
         return this.copyContentInternal(fromPath, toPath, false);
     }
 
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
+        addDebugStack();
         return this.copyContentInternal(fromPath, toPath, true);
     };
 
@@ -215,6 +204,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      */
     public RepositoryItem[] getContentChildren(String path) {
 
+        addDebugStack();
         RepositoryItem[] items = new RepositoryItem[0];
 
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -225,7 +215,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         Map<String, String> params = new HashMap<String, String>();
         String namespacedPath = cleanPath.replaceAll("/", "/cm:");
         String query = "PATH:\"/app:company_home" + namespacedPath + "/*" +  "\"";
-        String nodeRef = getNodeRefForPath(path);
+        String nodeRef = getNodeRefForPathCMIS(path);
         int idx = nodeRef.lastIndexOf("/");
         nodeRef = nodeRef.substring(idx+1);
 
@@ -270,10 +260,11 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
+        addDebugStack();
         VersionTO[] versions = new VersionTO[0];
 
         try {
-            String nodeRef = getNodeRefForPath(path);
+            String nodeRef = getNodeRefForPathCMIS(path);
 
             if(nodeRef != null) {
                 // construct and execute url to download result
@@ -328,8 +319,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
      * @param version - old version ID to base to version on
      */
     public boolean revertContent(String path, String version, boolean major, String comment) {
+        addDebugStack();
         boolean success = false;
-        String nodeRef = getNodeRefForPath(path);
+        String nodeRef = getNodeRefForPathCMIS(path);
         
         if(nodeRef != null) {
             String revertCommand = "{" +
@@ -378,6 +370,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             JSONObject root = JSONObject.fromObject(jsonResponse, cfg);
             JSONObject data = root.getJSONObject("data");
             nodeRef = data.getString("nodeRef");
+            if ("null".equals(nodeRef)) {
+                nodeRef = null;
+            }
             /*
             int resultCount = root.getInt("numResults");
 
@@ -464,7 +459,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         String newFolderRef = null;
         String createFolderURI = "/api/type/cm%3afolder/formprocessor";
         Map<String, String> params = new HashMap<String, String>();
-        String folderRef = getNodeRefForPath(path);
+        String folderRef = getNodeRefForPathCMIS(path);
         if (StringUtils.isEmpty(folderRef)) {
             logger.error("Failed to create " + name + " folder since " + path + " does not exist.");
         } else {
@@ -501,11 +496,11 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         logger.debug( (isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
         boolean result = false;
         // find all nodeRefs required
-        String targetRef = getNodeRefForPath(toPath);
-        String sourceRef = getNodeRefForPath(fromPath);
+        String targetRef = getNodeRefForPathCMIS(toPath);
+        String sourceRef = getNodeRefForPathCMIS(fromPath);
         // TODO: need to take care of duplicate at the target location
         if (targetRef != null && sourceRef != null) {
-            String sourceParentRef = getNodeRefForPath(fromPath.substring(0, fromPath.lastIndexOf("/")));
+            String sourceParentRef = getNodeRefForPathCMIS(fromPath.substring(0, fromPath.lastIndexOf("/")));
             String copyURL = "/slingshot/doclib/action/copy-to/node/";
             String moveURL = "/slingshot/doclib/action/move-to/node/";
             String actionURL = (isCut) ? moveURL : copyURL;
@@ -528,11 +523,11 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
                 IOUtils.closeQuietly(is);
             }
         } else {
-            if (sourceRef != null) {
-                logger.error((isCut ? "Move" : "Copy") + " failed since " + fromPath + " does not exist.");
+            if (sourceRef == null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since source path " + fromPath + " does not exist.");
             }
-            if (targetRef != null) {
-                logger.error((isCut ? "Move" : "Copy") + " failed since " + toPath + " does not exist.");
+            if (targetRef == null) {
+                logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toPath + " does not exist.");
             }
         }
         return result;
@@ -710,6 +705,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public Set<String> getUserGroups(String username) {
+        addDebugStack();
         InputStream retStream = null;
         Set<String> toRet = new HashSet<String>();
         try {
@@ -758,6 +754,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public String getCurrentUser() {
+        addDebugStack();
         String username = getUsernameFromCookie();
         return username;
     }
@@ -793,6 +790,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public String authenticate(String username, String password) {
+        addDebugStack();
         InputStream retStream = null;
         String toRet = null;
         try {
@@ -813,6 +811,101 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             logger.error("err getting content: ", err);
         }
         return toRet;
+    }
+
+    private void addDebugStack() {
+        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+            Thread thread = Thread.currentThread();
+            String threadName = thread.getName();
+            logger.debug("Thread: " + threadName);
+            StackTraceElement[] stackTraceElements = thread.getStackTrace();
+            StringBuilder sbStack = new StringBuilder();
+            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
+            for (int i = 2; i < stackSize+2; i++){
+                sbStack.append("\n\t").append(stackTraceElements[i].toString());
+            }
+            RequestContext context = RequestContext.getCurrent();
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+            if (context != null) {
+                HttpServletRequest request = context.getRequest();
+                String url = request.getRequestURI() + "?" + request.getQueryString();
+                logger.debug("Http request: " + url);
+            } else if (cronJobContext != null) {
+                logger.debug("Cron Job");
+
+            }
+            logger.debug("Stack trace (depth 10): " + sbStack.toString());
+        }
+    }
+
+    protected String getNodeRefForPathCMIS(String fullPath) {
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        Session session = getCMISSession();
+        CmisObject cmisObject = session.getObjectByPath(cleanPath);
+        String nodeRef = null;
+        if (cmisObject != null) {
+            Property property = cmisObject.getProperty("alfcmis:nodeRef");
+            nodeRef = property.getValueAsString();
+        }
+        return nodeRef;
+    }
+
+    protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        InputStream inputStream = null;
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            String nodeRef = null;
+            if (cmisObject != null) {
+                ObjectType type = cmisObject.getType();
+                if (type.isFileable()) {
+                    org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                    ContentStream contentStream = document.getContentStream();
+                    inputStream = contentStream.getStream();
+                }
+            }
+        } catch (CmisBaseException e) {
+            logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
+            throw new ContentNotFoundException(e);
+        }
+        return inputStream;
+    }
+
+    protected Session getCMISSession() {
+        // Create a SessionFactory and set up the SessionParameter map
+        SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
+        Map<String, String> parameter = new HashMap<String, String>();
+
+        // user credentials - using the standard admin/admin
+        String ticket = getAlfTicket();
+        parameter.put(SessionParameter.USER, "ROLE_TICKET");
+        parameter.put(SessionParameter.PASSWORD, ticket);
+
+        // connection settings - we're connecting to a public cmis repo,
+        // using the AtomPUB binding, but there are other options here,
+        // or you can substitute your own URL
+        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
+        parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+
+        // find all the repositories at this URL - there should only be one.
+        List<Repository> repositories = new ArrayList<Repository>();
+        repositories = sessionFactory.getRepositories(parameter);
+
+        // create session with the first (and only) repository
+        Repository repository = repositories.get(0);
+        parameter.put(SessionParameter.REPOSITORY_ID, repository.getId());
+        Session session = sessionFactory.createSession(parameter);
+
+        return session;
     }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }

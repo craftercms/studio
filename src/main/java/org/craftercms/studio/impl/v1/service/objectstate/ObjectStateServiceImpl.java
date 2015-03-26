@@ -115,14 +115,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
         String lockId = site + ":" + path;
+        logger.debug("Locking with ID: {0}", lockId);
         generalLockService.lock(lockId);
         try {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
             params.put("path", path);
             params.put("systemProcessing", isSystemProcessing);
+            logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, path, isSystemProcessing);
             objectStateMapper.setSystemProcessingBySiteAndPath(params);
         } finally {
+            logger.debug("Unlocking with ID: {0}", lockId);
             generalLockService.unlock(lockId);
         }
     }
@@ -176,12 +179,12 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 */
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
-        String lockId = site + ":" + item.getPath();
+        String lockId = site + ":" + item.getUri();
         generalLockService.lock(lockId);
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
-            params.put("path", item.getPath());
+            params.put("path", item.getUri());
             ObjectState currentState = objectStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
@@ -203,7 +206,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                 ObjectState newEntry = new ObjectState();
                 newEntry.setObjectId(item.getNodeRef());
                 newEntry.setSite(site);
-                newEntry.setPath(item.getPath());
+                newEntry.setPath(item.getUri());
                 newEntry.setSystemProcessing(0);
                 newEntry.setState(nextState.name());
                 objectStateMapper.insertEntry(newEntry);
@@ -437,11 +440,40 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     
     /**
      * get the object for a given set of states
-     *//*
-    public List<ObjectStateTO> getObjectStateByStates(String site, List<ObjectStateService.State> states) {
-    	return  objectStateDAOService.getObjectStateByStates(site, states);
+     */
+    public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
+
+        if (states != null && !states.isEmpty()) {
+            /*
+            Map<String, Object> params = new HashMap<String, Object>();
+            List<String> statesValues = new ArrayList<String>();
+            for (State state : enumStates) {
+                statesValues.add(state.name());
+            }*/
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("states", states);
+            params.put("site", site);
+            List<ObjectState> result = objectStateMapper.getObjectStateByStates(params);
+            return result;
+        } else {
+            return new ArrayList<>(0);
+        }
     }
-*/
+
+    public String setObjectState(String site, String path, String state, boolean systemProcessing) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", path);
+        ObjectState objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        if (objectState == null) {
+            insertNewEntry(site, path);
+            objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        }
+        objectState.setState(state);
+        objectState.setSystemProcessing(systemProcessing ? 1 : 0);
+        objectStateMapper.setObjectState(objectState);
+        return "Success";
+    }
 
     private void initializeTransitionTable() {
         transitionTable = new State[][]{

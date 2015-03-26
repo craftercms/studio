@@ -53,15 +53,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 					CStudioAdminConsole.Tool.WorkflowStates.states = states;
 					
 					var statesTableEl = document.getElementById("statesTable");
-					for(var i=0; i<states.length; i++) {
-						var state = states[i];
+					for(var i=0; i<states.items.length; i++) {
+						var state = states.items[i];
 						var trEl = document.createElement("tr");
 						     
 						var rowHTML = 				 	
-							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.uri+"' /></td>" +
-				 			"<td class='cs-statelist-detail-id'>" + state.uri + "</td>" +
+							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.path+"' /></td>" +
+				 			"<td class='cs-statelist-detail-id'>" + state.path + "</td>" +
 				 			"<td class='cs-statelist-detail'>" + state.state + "</td>" +
-				 			"<td class='cs-statelist-detail'>" + state.isSystemProcessing + "</td>";
+				 			"<td class='cs-statelist-detail'>" + state.systemProcessing + "</td>";
 				 		trEl.innerHTML = rowHTML;
 				 		statesTableEl.appendChild(trEl);
 					}
@@ -71,7 +71,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 				self: this
 			};
 			
-			var serviceUri = "/proxy/alfresco/cstudio/objectstate/get-items?site="+CStudioAuthoringContext.site+"&state=ALL";
+			var serviceUri = "/api/1/services/api/1/content/get-item-states.json?site="+CStudioAuthoringContext.site+"&state=ALL";
 
 			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	},
@@ -135,7 +135,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			for(var i=0;  i< list.length; i++) {
 				var item = list[i];
 				var path = item.uri;
-				var serviceUri = "/proxy/alfresco/cstudio/objectstate/set-object-state?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
+				var serviceUri = "/api/1/services/api/1/content/set-object-state.json?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
 				
 				cb = { 
 						success:function() {

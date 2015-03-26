@@ -59,6 +59,7 @@
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
         <property name="dependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="dmRenameService" ref="cstudioRenameService"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -249,6 +250,12 @@
         <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="dmPublishService" ref="cstudioDmPublishService" />
         <property name="WorkflowProcessor" ref="cstudioWorkflowProcessor" />
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--      Managers                          -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioObjectMetadataManager" class="org.craftercms.studio.impl.v1.service.content.ObjectMetadataManagerImpl">
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -655,6 +662,7 @@
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

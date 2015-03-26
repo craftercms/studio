@@ -119,3 +119,27 @@ CREATE TABLE `cstudio_site` (
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
   INDEX `site_id_idx` (`site_id` ASC));
+
+CREATE TABLE `crafter`.`cstudio_objectmetadata` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `site` VARCHAR(50) NOT NULL,
+  `path` TEXT NOT NULL,
+  `name` VARCHAR(45) NULL,
+  `modified` DATETIME NULL,
+  `modifier` VARCHAR(255) NULL,
+  `owner` VARCHAR(255) NULL,
+  `creator` VARCHAR(255) NULL,
+  `firstname` VARCHAR(255) NULL,
+  `lastname` VARCHAR(255) NULL,
+  `lockowner` VARCHAR(255) NULL,
+  `email` VARCHAR(255) NULL,
+  `renamed` INT NULL,
+  `oldurl` TEXT NULL,
+  `deleteurl` TEXT NULL,
+  `imagewidth` INT NULL,
+  `imageheight` INT NULL,
+  `approvedby` VARCHAR(255) NULL,
+  `submittedby` VARCHAR(255) NULL,
+  `submittedfordeletion` INT NULL,
+  `sendemail` INT NULL,
+  PRIMARY KEY (`id`));
