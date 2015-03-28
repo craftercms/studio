@@ -290,7 +290,12 @@ var YEvent = YAHOO.util.Event;
              * constructor
              */
             init: function() {
-                this.selectedContent = new Array();
+                this.selectedContent = [];
+            },
+
+            setContent: function (contentTO) {
+                this.selectedContent = [contentTO];
+                CSA.Events.contentSelected.fire(contentTO);
             },
 
             /**
@@ -551,7 +556,7 @@ var YEvent = YAHOO.util.Event;
                         this.loadPublishingChannels();
 
                         this.on("submitComplete", function(evt, args){
-                            dialogue.hide();
+                            window.location.reload();
                         });
 
                     }
