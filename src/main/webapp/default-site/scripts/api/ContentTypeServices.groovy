@@ -28,8 +28,9 @@ class ContentTypeServices {
 	 * @param site - the project ID
 	 * @param searchable - include non-searchable types (true/false)
 	 */
-	def getContentTypes(site, searchable) {
-
+	static getContentTypes(context, site, searchable) {
+        def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
+        return contentTypeServiceImpl.getContentTypes(site, searchable)
 	}
 
 	/**
