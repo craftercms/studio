@@ -11,13 +11,13 @@
     <script type="application/json" id="user">{"name":"${userFirstName}","surname":"${userLastName}","email":"${userEmail}"}</script>
     </#if>
 
-    
+
 
     <script>
         var CStudioAuthoring = { cookieDomain: "${envConfig.cookieDomain}" };
     </script>
 
-    
+
 
     <link rel="stylesheet" href="/studio/static-assets/styles/main.css">
 
@@ -378,9 +378,13 @@
     </div>
 </script>
 
-<script src="/studio/static-assets/js/angular.js"></script>
+<script src="/studio/static-assets/libs/angular/angular.js"></script>
+<script src="/studio/static-assets/libs/angular-ui-router/release/angular-ui-router.js"></script>
+<script src="/studio/static-assets/libs/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+<script src="/studio/static-assets/libs/angular-cookies/angular-cookies.js"></script>
+<script src="/studio/static-assets/libs/angular-ui-utils/ui-utils.js"></script>
 
-<script src="/studio/static-assets/js/studio.js"></script>
+<script src="/studio/static-assets/scripts/main.js"></script>
 
 </body>
 </html>
