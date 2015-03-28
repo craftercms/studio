@@ -550,6 +550,10 @@ var YEvent = YAHOO.util.Event;
                         this.loadItems(items);
                         this.loadPublishingChannels();
 
+                        this.on("submitComplete", function(evt, args){
+                            dialogue.hide();
+                        });
+
                     }
                 }, true, '800px');
 
