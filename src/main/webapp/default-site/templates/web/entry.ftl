@@ -7,12 +7,14 @@
     <title>Crafter Studio</title>
     <#-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-    <#-- TODO: Check if user is in session and spit it out here as shown by the example below.
-    <script type="application/json" id="user">{"name":"Roy","surname":"Art","email":"rart@rivetlogic.com"}</script>
-    -->
+   <#if userEmail??>
+    <script type="application/json" id="user">{"name":"${userFirstName}","surname":"${userLastName}","email":"${userEmail}"}</script>
+    </#if>
+
+    
 
     <script>
-        var CStudioAuthoring = { cookieDomain: "${cookieDomain}" };
+        var CStudioAuthoring = { cookieDomain: "${envConfig.cookieDomain}" };
     </script>
 
     
