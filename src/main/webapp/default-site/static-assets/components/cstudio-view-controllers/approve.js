@@ -14,7 +14,7 @@
 
     Base.extend('Approve', {
 
-        events: [],
+        events: ['submitStart','submitComplete','submitEnd'],
         actions: ['.close-button', '.submit-button', '.select-all-check'],
         startup: ['itemsClickedDelegation'],
 
@@ -109,15 +109,12 @@
             url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-live.json?site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
             callback: {
                 success: function(oResponse) {
-                    //_this.showProcessingOverlay(false);
                     _this.enableActions();
                     var oResp = JSON.parse(oResponse.responseText);
-                    //_this.afterSubmit(oResp.message);
-                    _this.fire("submitEnd", oResp);
                     _this.fire("submitComplete", oResp);
+                    _this.fire("submitEnd", oResp);
                 },
                 failure: function(oResponse) {
-                    //_this.showProcessingOverlay(false);
                     var oResp = JSON.parse(oResponse.responseText);
                     _this.fire("submitEnd", oResp);
                     _this.enableActions();
