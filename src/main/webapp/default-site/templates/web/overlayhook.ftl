@@ -18,6 +18,7 @@ require(['guest'], function () {
         user: "${envConfig.user!'UNSET1'}",
         role: "${envConfig.role!'UNSET2'}",
         site: "${envConfig.site!'UNSET3'}",
+        siteId: "${envConfig.site!'UNSET3'}", // same as site
         collabSandbox: "",
         baseUri: "/studio",
         authoringAppBaseUri: "${envConfig.authoringServerUrl!'UNSET4'}",
