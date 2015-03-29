@@ -22,6 +22,7 @@
 
 .site-dashboard {
   padding-top: 51px;
+  transition:padding .5s, transform .5s;
   .panel {
     .panel-heading {
       @include clearfix;
