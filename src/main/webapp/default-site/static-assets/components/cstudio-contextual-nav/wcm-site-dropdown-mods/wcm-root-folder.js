@@ -472,7 +472,7 @@ treeNode.getHtml = function() {
                     
                     var treeNode = new YAHOO.widget.TextNode(treeNodeTO, root, false);
 
-                    treeNode.labelStyle = treeNodeTO.style + " yui-resize-label";
+                    treeNode.labelStyle = treeNodeTO.style + " yui-resize-label treenode-label";
                     treeNode.nodeType = "CONTENT";
                     treeNode.treeNodeTO = treeNodeTO;
                     treeNode.renderHidden = true;

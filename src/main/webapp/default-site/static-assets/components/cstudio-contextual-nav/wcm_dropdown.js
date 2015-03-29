@@ -272,18 +272,22 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
 					return this;
 				},
 				setVisible: function(visible) {
-					var cfg = this.oPreferences,
-						setStyle = YDom.setStyle;
-					if (cfg.visible != visible) {
-						!visible && this.updateScrollPosition(visible);
-						setStyle("acn-dropdown-menu-wrapper", "display", visible ? "block" : "none");
-						setStyle("acn-dropdown-wrapper", "background-color", visible ? "#f0f0f0" : "");
-						setStyle("acn-dropdown-wrapper", "padding-bottom", visible ? "2px" : "");
-						visible && this.updateScrollPosition(visible);
+                    var animator = new crafter.studio.Animator('#acn-dropdown-menu-wrapper'),
+                        setStyle = YDom.setStyle,
+					    cfg = this.oPreferences;
+					if (cfg.visible !== visible) {
+                        if (visible) {
+                            YDom.addClass('acn-dropdown-wrapper', 'site-dropdown-open');
+                            animator.slideIn();
+                        } else {
+                            YDom.removeClass('acn-dropdown-wrapper', 'site-dropdown-open');
+                            animator.slideOut();
+                        }
 						cfg.visible = visible;
 						YEvent[visible ? "addListener" : "removeListener"](window, 'click', auth.ContextualNav.WcmSiteDropdown.windowClickCloseFn, null, this);
 						this.save();
 					}
+
 					return this;
 				},
 				/**

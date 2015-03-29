@@ -29,6 +29,9 @@
                 langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
     </script>
 
+    <script src="/studio/static-assets/scripts/crafter.js"></script>
+    <script src="/studio/static-assets/scripts/animator.js"></script>
+
 </head>
 
 <body class="yui-skin-cstudioTheme">
