@@ -2046,6 +2046,9 @@ var YEvent = YAHOO.util.Event;
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
             writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
+            allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
+            allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
+            
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
 
             // WRITE OPS
@@ -2073,12 +2076,18 @@ var YEvent = YAHOO.util.Event;
 
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
-
+            copyContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/copy-item.json",
+            cutContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/cut-item.json",
+            pasteContentFromClipboardServiceUri: "/api/1/services/api/1/clipboard/paste-item.json",
+            getClipboardItemsServiceUri: "/api/1/services/api/1/clipboard/get-items.json",
+            
+            // Analytics
+            getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
+            
             // Dependencies
             lookupContentDependenciesServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json?deletedep=true&",
 
             // not ported yet
-
             writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
             deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
             lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
@@ -2087,12 +2096,6 @@ var YEvent = YAHOO.util.Event;
             reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
 
             wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-            copyContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/copy-item.json",
-            cutContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/cut-item.json",
-            pasteContentFromClipboardServiceUri: "/api/1/services/api/1/clipboard/paste-item.json",
-            getClipboardItemsServiceUri: "/api/1/services/api/1/clipboard/get-items.json",
-            allContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-content-types",
-            allowedContentTypesForPath: "/proxy/alfresco/cstudio/wcm/contenttype/get-allowed-content-types",
             allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
             lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
             getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
@@ -2105,7 +2108,6 @@ var YEvent = YAHOO.util.Event;
             createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
             allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
             retrieveSitesUrl: "/proxy/alfresco/api/sites",
-            getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
             getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",

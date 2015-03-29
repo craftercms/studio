@@ -8,6 +8,7 @@
 		user: "${envConfig.user!'UNSET1'}",
 		role: "${envConfig.role!'UNSET2'}",
 		site: "${envConfig.site!'UNSET3'}",
+		siteId: "${envConfig.site!'UNSET3'}",
 		collabSandbox: "",
 		baseUri: "/studio",
 		authoringAppBaseUri: "${envConfig.authoringServerUrl!'/studio'}",
