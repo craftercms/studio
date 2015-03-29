@@ -202,7 +202,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         containerEl.id = this.id;
         
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -222,9 +222,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         path = path.replace("//","/");
 
         var pathEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(pathEl, 'cstudio-form-field-description');
-		//should only show the parents path 
-        pathEl.innerHTML = path;
+        pathEl.innerHTML = path + ' ';
         controlWidgetContainerEl.appendChild(pathEl);
 
         var inputEl = document.createElement("input");

@@ -358,7 +358,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		// we need to make the general layout of a control inherit from common
 		// you should be able to override it -- but most of the time it wil be the same
 		var titleEl = document.createElement("span");
-			YDom.addClass(titleEl, 'label');
+
   		    YDom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
