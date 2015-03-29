@@ -1,16 +1,13 @@
 import scripts.libs.EnvironmentOverrides
 import scripts.api.SecurityServices
+import scripts.libs.Cookies
 
 def result = [:]
 def email = params.username;
 def ticket = "";
 
 def context = SecurityServices.createContext(applicationContext, request);
-//def profile = [:]
-//profile.email="x";
-//profile.firstName="x"
-//profile.lastName="x"
-def profile = SecurityServices.getUserProfile(context, "admin");
+def profile = SecurityServices.getUserProfile(context, Cookies.getCookieValue('alfUsername3', request));
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
 model.userEmail = profile.email

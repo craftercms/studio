@@ -1,4 +1,5 @@
 import scripts.libs.Cookies
+import scripts.api.SecurityServices
 
 def result = [:]
 def username = params.username;
@@ -24,7 +25,11 @@ try {
     Cookies.createCookie('username', username, cookieDomain, "/", response)
     Cookies.createCookie('alfUsername3', username, cookieDomain, "/", response)
 
-    def user = ["name":"Roy","surname":"Art","email":"rart@rivetlogic.com"];
+    def context = SecurityServices.createContext(applicationContext, request);
+    def profile = SecurityServices.getUserProfile(context, username);
+
+ 
+    def user = ["name":profile.firstName,"surname":profile.lastName,"email":profile.email];
 
     result.type = "success";
     result.message = "Login successful";
