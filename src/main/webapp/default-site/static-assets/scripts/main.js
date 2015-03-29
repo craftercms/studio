@@ -237,7 +237,7 @@
                     // For future in-app iframe
                     // $state.go('preview', { site: site.siteId, url: site.cstudioURL });
 
-                    $window.location.href = site.cstudioURL;
+                    $window.location.href = '/studio/preview/#/?page=/&site=' + site.siteId;
 
                 }, 0, false);
             };
@@ -317,6 +317,7 @@
         function ($scope, $state, sitesService) {
 
             function percent(data) {
+                (!data) && (data = {});
                 return Math.ceil((data.used * 100) / (data.total));
             }
 

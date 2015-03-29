@@ -101,9 +101,12 @@
             }
         });
 
-        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, '/site/website/index.xml', {
+        var path = ('/site/website/' + (hash.page.indexOf('.html')
+            ? hash.page.replace('.html', '.xml')
+            : hash.page+'/index.xml')).replace('//','/');
+        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
             success: function(content) {
-                CStudioAuthoring.SelectedContent.selectContent(content.item);
+                CStudioAuthoring.SelectedContent.setContent(content.item);
             }
         });
 

@@ -31,17 +31,19 @@ CStudioAuthoring.ContextualNav.AdminConsoleMod = CStudioAuthoring.ContextualNav.
 				},
 				
 				clearActions: function() {
-					document.getElementById('acn-admin-console').innerHTML = ''; 
+					document.getElementById('activeContentActions').innerHTML = ''; 
 				},
 				
 				initActions: function(actions) {
 					this.clearActions();
 					
-					var containerEl = document.getElementById('acn-admin-console');
-					
+					var containerEl = document.getElementById('activeContentActions');
+					YDom.addClass(containerEl, "nav");
+					YDom.addClass(containerEl, "navbar-nav");
+
 					for(var i=0; i<actions.length; i++) {
 						var action = actions[i];						
-                    	var linkContainerEl = document.createElement("div");
+                    	var linkContainerEl = document.createElement("li");
                     	var linkEl = document.createElement("a");
                                         
                     	YDom.addClass(linkContainerEl, "acn-link");

@@ -428,9 +428,10 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                     renderEdit: {
                         render: function(option, isBulk, isAdmin, state,  isRelevant, isWrite, perms, isOneItemLocked) {
                             var content = CStudioAuthoring.SelectedContent.getSelectedContent();
-                            for (var i = 0, l = content.length; i < l; ++i) {
-                                if (content[i].asset) return;
-                            }
+
+//                            for (var i = 0, l = content.length; i < l; ++i) {
+//                                if (content[i].asset) return;
+//                            }
 
                             var editCallback = {
                                 success: function() {
@@ -467,13 +468,13 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                         false,
                                         editCallback);
                                 }
-                            };
+                            }; 
+
                             // relevant flag, allowing document & banner to be editable from Search result
                             // allowing banner type component
                             // alowing crafter-level-descriptor.xml
                             var rflag = ((isRelevant || content.document
-                            || ( (content.component) && ( (content.contentType == "/cstudio-com/component/general/banner")
-                            || (content.contentType.indexOf("level-descriptor") !=-1 ) ) )) && (state.indexOf("Delete") == -1));
+                            || ( (content.component) && ( (content.contentType.indexOf("level-descriptor") !=-1 ) ) )) && (state.indexOf("Delete") == -1));
                             //if item is deleted and in the go live queue , enable edit.
                             if(state.indexOf("Submitted for Delete")>=0 || state.indexOf("Scheduled for Delete")>=0) {
                                 rflag =  true;

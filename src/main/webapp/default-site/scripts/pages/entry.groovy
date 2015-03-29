@@ -1,6 +1,13 @@
+import scripts.libs.EnvironmentOverrides
+
 def result = [:]
 def email = params.username;
 def ticket = "";
+
+model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
+model.userEmail = "R"
+model.userFirstName = "R"
+model.userLastName =  "D"
 
 try {
 
@@ -17,7 +24,7 @@ try {
   }
 
   model.ticket = ticket;
-  model.cookieDomain = "127.0.0.1"
+ // model.cookieDomain = "127.0.0.1"
 
 } catch (err) {
   model.err = err;
