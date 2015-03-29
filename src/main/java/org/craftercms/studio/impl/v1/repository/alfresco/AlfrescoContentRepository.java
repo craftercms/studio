@@ -608,6 +608,36 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     }
 
     @Override
+    public Map<String, String> getUserProfile(String username) {
+        addDebugStack();
+        InputStream retStream = null;
+        Map<String, String> toRet = new HashMap<String,String>();
+        try {
+            // construct and execute url to download result
+            // TODO: use alfresco/service/api/sites/craftercms250/memberships/admin instead
+            String downloadURI = "/api/people/{username}";
+            Map<String, String> lookupContentParams = new HashMap<String, String>();
+            lookupContentParams.put("username", username);
+
+            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+ 
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+
+            toRet.put("userName", (String)result.get("userName"));
+            toRet.put("firstName", (String)result.get("firstName"));
+            toRet.put("lastName", (String)result.get("lastName"));
+            toRet.put("email", (String)result.get("email"));
+            //toRet.put("profileImage", result.get("NOTSET"));
+        }
+        catch(Exception err) {
+            logger.error("err getting user profile: ", err);
+        }
+
+        return toRet;
+    }
+
+    @Override
     public Set<String> getUserGroups(String username) {
         addDebugStack();
         InputStream retStream = null;

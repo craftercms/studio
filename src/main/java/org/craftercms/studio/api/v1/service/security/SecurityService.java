@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.security;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Dejan Brkic
@@ -40,5 +41,7 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
+    Map<String, String> getUserProfile(String user);
+    
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 }

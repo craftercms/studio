@@ -1,13 +1,21 @@
 import scripts.libs.EnvironmentOverrides
+import scripts.api.SecurityServices
 
 def result = [:]
 def email = params.username;
 def ticket = "";
 
+def context = SecurityServices.createContext(applicationContext, request);
+//def profile = [:]
+//profile.email="x";
+//profile.firstName="x"
+//profile.lastName="x"
+def profile = SecurityServices.getUserProfile(context, "admin");
+
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
-model.userEmail = "R"
-model.userFirstName = "R"
-model.userLastName =  "D"
+model.userEmail = profile.email
+model.userFirstName = profile.firstName
+model.userLastName =  profile.lastName
 
 try {
 

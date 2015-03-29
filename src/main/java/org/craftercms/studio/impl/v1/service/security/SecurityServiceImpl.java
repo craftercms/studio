@@ -37,6 +37,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import java.util.Map;
 import java.io.File;
 import java.util.*;
 
@@ -56,6 +57,11 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     @Override
     public String getCurrentUser() {
         return securityProvider.getCurrentUser();
+    }
+
+    @Override
+    public Map<String,String> getUserProfile(String user) {
+        return securityProvider.getUserProfile(user);
     }
 
     @Override

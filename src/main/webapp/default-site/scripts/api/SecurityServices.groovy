@@ -20,15 +20,6 @@ class SecurityServices {
 	}
 
 	/**
-	 * get a user's basic information
-	 * @param site - the project ID
-	 * @param userId - ID of the user to get
-	 */
-	def getUser(site, userId) {
-
-	}
-
-	/**
 	 * get permissions for a user at a given path
 	 * @param site - the project ID
 	 * @param userId - id of user
@@ -64,6 +55,15 @@ class SecurityServices {
 	def authenticate(username, password) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.authenticate(username, password)
+	}
+
+	/** 
+	 * get user profile
+	 * @param username
+	 */
+	static getUserProfile(context, username) {
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.getUserProfile(username)
 	}
 
 	static getUserPermissions(context, site, path, user, groups) {
