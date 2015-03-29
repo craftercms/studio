@@ -90,7 +90,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		containerEl.id = this.id;
 		
 		var titleEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(titleEl, 'title');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		

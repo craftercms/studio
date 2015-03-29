@@ -5138,7 +5138,7 @@ html {
   -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: "Raleway", sans-serif, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
@@ -12944,7 +12944,7 @@ address {
   z-index: 1070;
   display: block;
   visibility: visible;
-  font-family: "Raleway", sans-serif, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 11px;
   font-weight: normal;
   line-height: 1.4;
@@ -13067,7 +13067,7 @@ address {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: "Raleway", sans-serif, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   font-weight: normal;
   line-height: 1.42857;

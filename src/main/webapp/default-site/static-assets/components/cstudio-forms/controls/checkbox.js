@@ -56,7 +56,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		var _value = (_valueStr == "true" || _valueStr ==  true)?true:false;
 			
 		var titleEl = document.createElement("span");
-  		    YAHOO.util.Dom.addClass(titleEl, 'label');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
