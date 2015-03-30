@@ -1,41 +1,32 @@
 import scripts.libs.Cookies
+import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username;
-def password = params.password;
-def serverProperties = applicationContext.get("studio.crafter.properties")
-def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
-def cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1
+def username = params.username
+def password = params.password
 
-def url = alfrescoUrl + "/service/api/login?u=" + username + "&pw=" + password;
-def srvresponse = "";
-def invalidpw = false;
+def invalidpw = false
 
 try {
-    srvresponse = (url).toURL().getText();
-    srvresponse = srvresponse.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-    srvresponse = srvresponse.replace("\n", "");
-    srvresponse = srvresponse.replace("<ticket>", "");
-    srvresponse = srvresponse.replace("</ticket>", "");
+    def context = SecurityServices.createContext(applicationContext, request)
+    def ticket = SecurityServices.authenticate(context, username, password)
 
-    Cookies.createCookie('ccticket', srvresponse, cookieDomain, "/", response)
-    Cookies.createCookie('ccu', username, cookieDomain, "/", response)
-    Cookies.createCookie('alf_ticket', srvresponse, cookieDomain, "/", response)
-    Cookies.createCookie('username', username, cookieDomain, "/", response)
-    Cookies.createCookie('alfUsername3', username, cookieDomain, "/", response)
+    def session = request.getSession()
+    session.putValue("username", username)
+    session.putValue("alf_ticket", ticket)
 
-    def user = ["name":"Roy","surname":"Art","email":"rart@rivetlogic.com"];
+   def profile = SecurityServices.getUserProfile(context, username)
+   def user = ["name":profile.firstName,"surname":profile.lastName,"email":profile.email]
+   result.user = user
 
-    result.type = "success";
-    result.message = "Login successful";
-    result.user = user;
+    result.type = "success"
+    result.message = "Login successful"
 
 } catch(err) {
-    invalidpw = true;
-    result.exception = err;
-    result.response = srvresponse;
-    result.type = "error";
-    result.message = "Invalid user name or password";
+    invalidpw = true
+    result.exception = err
+    result.type = "error"
+    result.message = "Invalid user name or password"
 }
 
-return result;
+return result

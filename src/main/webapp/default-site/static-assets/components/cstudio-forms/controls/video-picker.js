@@ -228,7 +228,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         var datasource = null;
 
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 

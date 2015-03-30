@@ -1,7 +1,6 @@
 package scripts.libs
 
 import groovy.json.JsonSlurper
-import scripts.libs.Cookies
 
 class EnvironmentOverrides {
 
@@ -18,8 +17,8 @@ class EnvironmentOverrides {
 		result.role = "author" // default
 
 		try {		
-			result.user = Cookies.getCookieValue("ccu", request)
-			result.ticket = Cookies.getCookieValue("ccticket", request)
+			result.user = request.getSession().getValue("username")
+			result.ticket = request.getSession().getValue("alf_ticket")
 			result.site = Cookies.getCookieValue("crafterSite", request)
 
 

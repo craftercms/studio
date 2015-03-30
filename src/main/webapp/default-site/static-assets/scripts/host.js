@@ -101,7 +101,7 @@
             }
         });
 
-        var path = ('/site/website/' + (hash.page.indexOf('.html')
+        var path = ('/site/website/' + ((hash.page.indexOf('.html') !== -1)
             ? hash.page.replace('.html', '.xml')
             : hash.page+'/index.xml')).replace('//','/');
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {

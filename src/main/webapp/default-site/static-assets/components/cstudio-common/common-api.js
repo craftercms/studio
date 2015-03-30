@@ -1240,32 +1240,54 @@ var YEvent = YAHOO.util.Event;
 
             performSimpleIceEdit: function(item, field, isEdit, callback) {
 
-                var controller, view;
-                controller = "viewcontroller-in-context-edit";
-                view = CStudioAuthoring.Service.getInContextEditView;
+                var id = CSA.Utils.getScopedId(),
+                    controller = 'viewcontroller-in-context-edit',
+                    animator,
+                    view;
+
                 isEdit = (typeof(isEdit) == "undefined") ? true : isEdit;
 
+                var $modal = $('<div><div class="ice-mask"></div><div class="studio-ice-dialog" style="display:none"><div class="bd"></div></div></div>');
+                $modal.find('.bd').attr('id', id);
 
-                CStudioAuthoring.Operations._showDialogueView({
-                    fn: view,
-                    controller: controller,
+                animator = new crafter.studio.Animator($modal.find('.studio-ice-dialog'));
 
-                    callback: function(dialogue) {
-                        if(!callback) {
-                            callback = {
-                                success: function() {
-                                    window.location.reload();
-                                }
-                            }
-                        }
-
-                        this.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback);
-
-                        this.on("updateContent", function(evt, args){
-                            callback.success();
-                        });
+                (!callback) && (callback = {
+                    success: function() {
+                        window.location.reload();
                     }
-                },"","auto");
+                });
+
+                CSA.Env.Loader.use(controller, function() {
+                    CStudioAuthoring.Service.getInContextEditView({
+                        success: function (response) {
+
+                            $modal
+                                .find('.bd').html(response.responseText).end()
+                                .appendTo(document.body);
+
+                            var Controller = CSA.Env.ModuleMap.get(controller);
+
+                            view = new Controller({ context: id });
+
+                            view.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback, $modal.find('.studio-ice-dialog'));
+
+                            view.on("end", function () {
+                                $modal.remove();
+                            });
+
+                            view.on("updateContent", function(evt, args){
+                                callback.success();
+                            });
+
+                            animator.slideInDown();
+
+
+                        }
+                    });
+
+                });
+
             },
 
             openCopyDialog:function(site, uri, callback, args) {
@@ -2115,7 +2137,7 @@ var YEvent = YAHOO.util.Event;
             setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
             getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
             createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
-            verifyAlfrescoTicketUrl: "/proxy/alfresco/api/login/ticket",
+            //verifyAlfrescoTicketUrl: "MIGRATEME/proxy/alfresco/api/login/ticket",
 
             /**
              * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
@@ -3270,7 +3292,7 @@ var YEvent = YAHOO.util.Event;
              */
             retrieveSitesList: function(callback) {
                 var retSites = null;
-                var serviceUrl = "/proxy/alfresco/api/people/" + CStudioAuthoringContext.user + "/sites";
+                var serviceUrl = "/api/1/user/get-sites-3.json";
 
                 var serviceCallback = {
                     success : function(response) {
@@ -6467,7 +6489,7 @@ CStudioAuthoring.InContextEdit = {
                 success: function(contentTO) {
                     CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item, this.field);
                 },
-                failure: function() {},
+                failure: crafter.noop,
                 field: this.content.field
 
             };
@@ -6751,90 +6773,89 @@ CStudioAuthoring.InContextEdit = {
 
 }) (window);
 
-(function startAuthLoop() {
+// (function startAuthLoop() {
 
-    if (typeof CStudioAuthoringContext != 'undefined') {
+//     if (typeof CStudioAuthoringContext != 'undefined') {
 
-        var authLoopCb = {
-            success: function(config){
+//         var authLoopCb = {
+//             success: function(config){
 
-                function authRedirect(authConfig) {
-                    var redirectStr, redirectUrl,
-                        placeholder = '{currentUrl}';
+//                 function authRedirect(authConfig) {
+//                     var redirectStr, redirectUrl,
+//                         placeholder = '{currentUrl}';
 
-                    if (YAHOO.lang.isObject(authConfig)) {
-                        redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
-                            authConfig.ticketExpireRedirectUrl : '';
+//                     if (YAHOO.lang.isObject(authConfig)) {
+//                         redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
+//                             authConfig.ticketExpireRedirectUrl : '';
 
-                        if (redirectStr) {
-                            // Redirect to the authentication url specified in config
-                            redirectUrl = redirectStr.replace(placeholder, window.location.href);
-                            window.location.assign(redirectUrl);
-                        } else {
-                            // If authConfig's redirectUrl value is undefined, then 
-                            // use login authentication
-                            location.reload();
-                        }
-                    } else {
-                        // If authConfig is not an object or it's null, then 
-                        // use login authentication
-                        location.reload();
-                    }
-                }
+//                         if (redirectStr) {
+//                             // Redirect to the authentication url specified in config
+//                             redirectUrl = redirectStr.replace(placeholder, window.location.href);
+//                             window.location.assign(redirectUrl);
+//                         } else {
+//                             // If authConfig's redirectUrl value is undefined, then 
+//                             // use login authentication
+//                             location.reload();
+//                         }
+//                     } else {
+//                         // If authConfig is not an object or it's null, then 
+//                         // use login authentication
+//                         location.reload();
+//                     }
+//                 }
 
-                function authLoop(configObj) {
-                    var alfrescoTicket,
-                        serviceUri,
-                        serviceCallback,
-                        delay = 60000;  // poll once every minute
+//                 function authLoop(configObj) {
+//                 //     var alfrescoTicket,
+//                 //         serviceUri,
+//                 //         serviceCallback,
+//                 //         delay = 60000;  // poll once every minute
 
-                    if (document.hasFocus()) {
-                        alfrescoTicket = CStudioAuthoring.Utils.Cookies.readCookie("alf_ticket");
-                        serviceUri = CStudioAuthoring.Service.verifyAlfrescoTicketUrl + "/" + alfrescoTicket;
+//                 //     if (document.hasFocus()) {
+//                 //         alfrescoTicket = CStudioAuthoring.Utils.Cookies.readCookie("alf_ticket");
+//                 //         serviceUri = CStudioAuthoring.Service.verifyAlfrescoTicketUrl + "/" + alfrescoTicket;
 
-                        serviceCallback = {
-                            success: function(response) {
-                                var resObj = response.responseText
+//                 //         serviceCallback = {
+//                 //             success: function(response) {
+//                 //                 var resObj = response.responseText
 
-                                if (resObj.indexOf("TICKET" != -1)) {
-                                    setTimeout(function() { authLoop(configObj); }, delay);
-                                } else {
-                                    // Ticket is invalid
-                                    authRedirect(configObj);
-                                }
-                            },
-                            failure: function(response) {
-                                throw new Error('Unable to read session ticket');
-                            }
-                        };
+//                 //                 if (resObj.indexOf("TICKET" != -1)) {
+//                 //                     setTimeout(function() { authLoop(configObj); }, delay);
+//                 //                 } else {
+//                 //                     // Ticket is invalid
+//                 //                     authRedirect(configObj);
+//                 //                 }
+//                 //             },
+//                 //             failure: function(response) {
+//                 //                 throw new Error('Unable to read session ticket');
+//                 //             }
+//                 //         };
 
-                        YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-                    } else {
-                        setTimeout(function() {
-                            authLoop(configObj);
-                        }, delay);
-                    }
-                }
+//                 //         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
+//                 //     } else {
+//                 //         setTimeout(function() {
+//                 //             authLoop(configObj);
+//                 //         }, delay);
+//                 //     }
+//                 // }
 
-                // Start the authentication loop
-                if (config.authentication) {
-                    authLoop(config.authentication);
-                } else {
-                    authLoop(null);
-                }
-            },
+//                 // // Start the authentication loop
+//                 // if (config.authentication) {
+//                 //     authLoop(config.authentication);
+//                 // } else {
+//                 //     authLoop(null);
+//                 // }
+//             },
 
-            failure: function(){
-                throw new Error('Unable to read site configuration');
-            }
-        }
+//             failure: function(){
+//                 throw new Error('Unable to read site configuration');
+//             }
+//         }
 
-        CStudioAuthoring.Service.lookupConfigurtion(
-            CStudioAuthoringContext.site, "/site-config.xml", authLoopCb);
+//         CStudioAuthoring.Service.lookupConfigurtion(
+//             CStudioAuthoringContext.site, "/site-config.xml", authLoopCb);
 
-    } else {
-        // The authentication loop cannot be started until CStudioAuthoringContext exists
-        setTimeout(startAuthLoop, 1000);
-    }
-
-})();
+//     } else {
+//         // The authentication loop cannot be started until CStudioAuthoringContext exists
+//         setTimeout(startAuthLoop, 1000);
+//     }
+// })();

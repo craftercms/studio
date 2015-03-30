@@ -634,56 +634,47 @@ var CStudioForms = CStudioForms || function() {
                     success: function(formDef) {
                         CStudioForms.Util.LoadFormConfig(formId, {
                             success: function(customControllerClass, formConfig) {
-
                                 formDef.config = formConfig;    // Make the form configuration available in the form definition
-
                                 var path = CStudioAuthoring.Utils.getQueryVariable(location.search, "path");
-                                if( path && path.indexOf(".xml") != -1) {
+                                if(path && path.indexOf(".xml") != -1) {
                                     //Check if the form is locked
                                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
+                                        failure: crafter.noop,
                                         success: function (itemTO) {
                                             if (itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
                                                 readonly = true;
                                             }
 
-                                            CStudioAuthoring.Service.lookupContentType(
-                                                CStudioAuthoringContext.site,
-                                                formId, {
-                                                    success: function (typeInfoJson) {
-                                                        formDef.contentAsFolder = typeInfoJson.contentAsFolder;
+                                            CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, {
+                                                success: function (typeInfoJson) {
+                                                    formDef.contentAsFolder = typeInfoJson.contentAsFolder;
 
-                                                        if((edit && edit=="true") || readonly == true){
-                                                            CStudioAuthoring.Service.getContent(path, !readonly, {
-                                                                success: function(content) {
-                                                                    var dom = null;
+                                                    if((edit && edit=="true") || readonly == true){
+                                                        CStudioAuthoring.Service.getContent(path, !readonly, {
+                                                            success: function(content) {
+                                                                var dom = null;
 
-                                                                    try {
-                                                                        dom = ( new window.DOMParser()).parseFromString(content, "text/xml");
-                                                                        dom = dom.children[0];
-                                                                    }
-                                                                    catch(err) {
-                                                                        alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
-                                                                    }
-
-                                                                    _self._renderFormWithContent(dom, formId, formDef, style, customControllerClass, readonly);
-                                                                },
-                                                                failure: function(err) {
-                                                                    alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
+                                                                try {
+                                                                    dom = (new window.DOMParser()).parseFromString(content, "text/xml");
+                                                                    dom = dom.children[0];
+                                                                } catch(err) {
+                                                                    alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
                                                                 }
-                                                            });
-                                                        }
-                                                    },
-                                                    failure: function () {
 
+                                                                _self._renderFormWithContent(dom, formId, formDef, style, customControllerClass, readonly);
+
+                                                            },
+                                                            failure: function(err) {
+                                                                alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
+                                                            }
+                                                        });
                                                     }
-                                                });
-                                        },
-                                        failure: function () {
-
+                                                },
+                                                failure: crafter.noop
+                                            });
                                         }
                                     }, false);
-                                }
-                                else {
+                                } else {
                                     // new content item
 
                                     var contentTypeCb = {
@@ -711,9 +702,7 @@ var CStudioForms = CStudioForms || function() {
                                         contentTypeCb);
                                 }
                             },
-                            failure: function() {
-
-                            }
+                            failure: crafter.noop
                         });
                     },
                     failure: function(err) {
@@ -758,14 +747,10 @@ var CStudioForms = CStudioForms || function() {
                         window.previewTargetWindowId = (window.opener.previewTargetWindowId)
                             ? window.opener.previewTargetWindowId : window.opener.name;
                     }
-                }
-                catch(err) {
-
-                }
+                } catch(err) {}
 
                 var contentDom = content;
                 var contentMap = CStudioForms.Util.xmlModelToMap(contentDom);
-
 
                 var customController = null;
 
@@ -780,18 +765,13 @@ var CStudioForms = CStudioForms || function() {
 
                 var timezone = "GMT";
 
-                var timezoneCb = {
-
-                    success: function(config){
-                        timezone = config['default-timezone'];
-                    },
-
-                    failure: function(){
-                    }
-                }
-
                 CStudioAuthoring.Service.lookupConfigurtion(
-                    CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);
+                    CStudioAuthoringContext.site, "/site-config.xml", {
+                        failure: crafter.noop,
+                        success: function(config){
+                            timezone = config['default-timezone'];
+                        }
+                    });
 
                 var nowTimestamp = getDateTimeObject(new Date());
                 // Timestamp in UTC
@@ -815,21 +795,21 @@ var CStudioForms = CStudioForms || function() {
 
                 form.definition = formDef;
 
-                if (content.responseXML){
+                if (content.responseXML) {
                     var internalNameArr = "";
                     try{
                         internalNameArr = content.responseXML.getElementsByTagName("internal-name");
                         form.definition.pageName = (internalNameArr.length <= 0) ? "" :
                             (YAHOO.env.ua.ie) ? internalNameArr[0].text :
                                 internalNameArr[0].textContent;
-                    }catch(err){
+                    } catch(err) {
                         form.definition.pageName = "";
                     }
                 } else {
                     form.definition.pageName = "";
                 }
-                form.definition.pageLocation = this._getPageLocation(path);
 
+                form.definition.pageLocation = this._getPageLocation(path);
                 form.containerEl = document.getElementById("formContainer");
 
                 var iceId = CStudioAuthoring.Utils.getQueryVariable(location.search, "iceId");
@@ -841,8 +821,7 @@ var CStudioForms = CStudioForms || function() {
                     var html = this._renderIceLayout(form);
                     form.containerEl.innerHTML = html;
                     this._renderInContextEdit(form, iceId);
-                }
-                else {
+                } else {
 
                     var html = this._renderFormLayout(form);
                     form.containerEl.innerHTML = html;
@@ -1192,8 +1171,8 @@ var CStudioForms = CStudioForms || function() {
                 if(!form.readOnly) {
                     var saveButtonEl = document.createElement("input");
                     saveButtonEl.id = "cstudioSaveAndClose";
-                    YDom.addClass(saveButtonEl, "cstudio-form-control-button ");
-                    YDom.addClass(saveButtonEl, "cstudio-button");
+                    YDom.addClass(saveButtonEl, "btn");
+                    YDom.addClass(saveButtonEl, "btn-primary");
                     YDom.addClass(saveButtonEl, "cstudio-button-first");
                     saveButtonEl.type = "button";
                     saveButtonEl.value = CMgs.format(formsLangBundle, "saveAndClose");;
@@ -1210,8 +1189,8 @@ var CStudioForms = CStudioForms || function() {
                     };
 
                     var previewButtonEl = document.createElement("input");
-                    YDom.addClass(previewButtonEl, "cstudio-form-control-button ");
-                    YDom.addClass(previewButtonEl, "cstudio-button");
+                    YDom.addClass(previewButtonEl, "btn");
+                    YDom.addClass(previewButtonEl, "btn-default");
                     YDom.addClass(previewButtonEl, "cstudio-button-first");
                     previewButtonEl.id = "cstudioSaveAndPreview";
                     previewButtonEl.style.display = "none";
@@ -1246,8 +1225,8 @@ var CStudioForms = CStudioForms || function() {
                     };
 
                     var cancelButtonEl = document.createElement("input");
-                    YDom.addClass(cancelButtonEl, "cstudio-form-control-button ");
-                    YDom.addClass(cancelButtonEl, "cstudio-button");
+                    YDom.addClass(cancelButtonEl, "btn");
+                    YDom.addClass(cancelButtonEl, "btn-default");
                     cancelButtonEl.type = "button";
                     cancelButtonEl.value = CMgs.format(formsLangBundle, "cancel");
                     formButtonContainerEl.appendChild(cancelButtonEl);
@@ -1257,8 +1236,8 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Event.addListener(cancelButtonEl, "click", cancelFn, this);
                 } else {
                     var closeButtonEl = document.createElement("input");
-                    YDom.addClass(closeButtonEl, "cstudio-form-control-button ");
-                    YDom.addClass(closeButtonEl, "cstudio-button");
+                    YDom.addClass(closeButtonEl, "btn");
+                    YDom.addClass(closeButtonEl, "btn-default");
                     closeButtonEl.type = "button";
                     closeButtonEl.value = CMgs.format(formsLangBundle, "close");
                     formButtonContainerEl.appendChild(closeButtonEl);
@@ -1268,6 +1247,7 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(closeButtonEl, "click", cancelFn, this);
                 }
+
             },
 
             /**
@@ -1327,9 +1307,9 @@ var CStudioForms = CStudioForms || function() {
                     form.sections[form.sections.length] = formSection;
 
                     var sectionOpenCloseWidgetEl = YDom.getElementsByClassName("cstudio-form-section-widget", null, sectionContainerEl)[0];
-                    var sectionBodyEl = YDom.getElementsByClassName("cstudio-form-section-body", null, sectionContainerEl)[0];
+                    var sectionBodyEl = YDom.getElementsByClassName("panel-body", null, sectionContainerEl)[0];
 
-                    if(section.defaultOpen == "false" || section.defaultOpen == "" || section.defaultOpen == false) {
+                    if ((section.defaultOpen == "false") || (section.defaultOpen == "") || (section.defaultOpen == false)) {
                         sectionBodyEl.style.display = "none";
                         YAHOO.util.Dom.addClass(sectionOpenCloseWidgetEl, 'cstudio-form-section-widget-closed');
                     }
@@ -1342,8 +1322,7 @@ var CStudioForms = CStudioForms || function() {
                         if(this.sectionBodyEl.style.display == "none") {
                             this.sectionBodyEl.style.display = "block";
                             YAHOO.util.Dom.removeClass(this, 'cstudio-form-section-widget-closed');
-                        }
-                        else {
+                        } else {
                             this.sectionBodyEl.style.display = "none";
                             YAHOO.util.Dom.addClass(this, 'cstudio-form-section-widget-closed');
                         }
@@ -1355,13 +1334,13 @@ var CStudioForms = CStudioForms || function() {
                         if(field) {
                             if(field.type != "repeat") {
                                 this._renderField(formDef, field, form, formSection, sectionBodyEl);
-                            }
-                            else {
+                            } else {
                                 this._renderRepeat(formDef, field, form, formSection, sectionBodyEl);
                             }
                         }
                     }
                 }
+
             },
 
             /**
@@ -1682,6 +1661,8 @@ var CStudioForms = CStudioForms || function() {
                         }
                     }
                 }
+
+
             },
 
             /**
@@ -1712,71 +1693,52 @@ var CStudioForms = CStudioForms || function() {
                 // Update the window title
                 window.document.title = (formDef.pageName) ? formDef.title + " | " + formDef.pageName : formDef.title;
 
-                html = "<div class='cstudio-form-container'>";
+                $('header').show();
+                $('.page-header h1 .header').text(formDef.title);
+                if (formDef.pageName) {
+                    $('.page-header h1 .name').text(formDef.pageName);
+                }
+                if (formDef.pageLocation) {
+                    $('.page-header h1 .location').text(formDef.pageLocation);
+                }
+                $('.page-description').text(formDef.description);
+                $('#cstudio-form-expand-all').text(CMgs.format(formsLangBundle, "expandAll"));
+                $('#cstudio-form-collapse-all').text(CMgs.format(formsLangBundle, "collapseAll"));
 
-                html +="<div id='cstudio-form-readonly-banner' class='hidden'>READ ONLY</div>";
-                html +="<div class='cstudio-form-header'>"
-                +   "<div  class='cstudio-form-title-container'>"
-                +    "<span class='cstudio-form-title'>"
-                +     formDef.title
-                +   "</span>"
-                + "</div>";
-
-
-                html +="<div class='cstudio-form-expandcollapseall-container'>"
-                +   "<div class='cstudio-form-expandcollapseall'>"
-                +		"<a id='cstudio-form-expand-all'>"+CMgs.format(formsLangBundle, "expandAll")+"</a>"
-                +   "</div>"
-                +   "<div class='cstudio-form-expandcollapseall'>"
-                +		"<a id='cstudio-form-collapse-all'>"+CMgs.format(formsLangBundle, "collapseAll")+"</a>"
-                +   "</div>"
-                + "</div>";
-
-                html +="<div class='cstudio-form-description'>"
-                +   "<span>"+formDef.description+"</span>"
-                + "</div>"
-                + "<div class='page-name'><b>"+CMgs.format(formsLangBundle, "pageName")+":</b> <span id='page-name'>" + formDef.pageName + "</span></div>"
-                + "<div class='page-location'><b>"+CMgs.format(formsLangBundle, "location")+":</b> <span id='page-location'>" + formDef.pageLocation + "</span></div>"
-                +  "</div>";
-
+                html =
+                    '<div class="container">' +
+                    '<div class="panel-group">';
 
                 for(var i=0; i < formDef.sections.length; i++) {
                     var section = formDef.sections[i];
 
-                    html += "<div id='"+ section.id + "-container'>";
+                    html += "<div id='"+ section.id + "-container' class='panel panel-default'>";
 
-                    html +="<div id='"+ section.id + "-heading' class='cstudio-form-section-header'>" // secion heading
-                    +   "<div>" // open close
-                    +     "<div class='cstudio-form-section-widget'></div>"
-                    +   "</div>"
-                    +   "<div>" // validation
-                    +     "<div class='cstudio-form-section-indicator'></div>"
-                    +   "</div>"
-                    +   "<div>" // section title
-                    +     "<span class='cstudio-form-section-title'>"+section.title+"</span>"
-                    +   "</div>"
-                    +   "<div>" // section validation
-                    +     "<span class='cstudio-form-section-validation'></span>"
-                    +   "</div>"
-                    + "</div>";
+                    html +=
+                        "<div id='"+ section.id + "-heading' class='panel-heading'>" +
+                        '<div class="cstudio-form-section-widget"></div>' +
+                        '<div class="cstudio-form-section-indicator"></div>' +
+                        '<h2 class="panel-title">' + section.title + '</h2>' +
+                        '<span class="cstudio-form-section-validation"></span>'
+                        + "</div>";
 
-                    html +="<div id='"+ section.id + "-body'  class='cstudio-form-section-body'>" // secion body
-                    +   "<div class='cstudio-form-section-description'>" // description
-                    +     "<span>"+section.description+"</span>"
-                    +   "</div>"
-                    +   "<div id='"+ section.id + "-body-controls'>" // section controls
-                    +   "</div>"
-                    + "</div>";
+                    html +=
+                        '<div id="'+ section.id + '-body" class="panel-collapse collapse in">' +
+                        '<div class="panel-body">' +
+                        (section.description ? '<p>' + section.description + '</p>' : '') +
+                        '<div id="'+ section.id + '-body-controls"></div>' +
+                        '</div>' +
+                        '</div>';
 
                     html += "</div>";
 
                 }
-                html +="</div>" // end form
 
-                html +="<div class='cstudio-form-controls-container'></div>"   // command bar
-                + "<div id='ajax-overlay'>"
-                +  "<div class='ajax-loader'></div>"
-                + "</div>";
+                html +=
+                    "</div>" +
+                    "</div>" +
+                    "<div class='cstudio-form-controls-container'></div>" +
+                    "<div id='ajax-overlay'><div class='ajax-loader'></div></div>";
 
                 return html;
             },

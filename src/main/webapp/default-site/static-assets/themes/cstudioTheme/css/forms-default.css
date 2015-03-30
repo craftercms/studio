@@ -209,8 +209,10 @@
     display: block;
     float: left;
     height: 30px;
-    margin-right: 10px;
+  margin-right: 5px;
     width: 12px;
+  position: relative;
+  top: -7px;
 }
 
 .cstudio-form-section-widget-closed {
@@ -220,9 +222,11 @@
 .cstudio-form-section-indicator {
     background: url("../images/cstudio-accordion-section-alert-inactive.png") no-repeat scroll 0 50% transparent;
     display: block;
-    float: left;
+    float: right;
     height: 30px;
     width: 20px;
+  position: relative;
+  top: -7px;
  }
  
 .cstudio-form-section-invalid {
@@ -252,24 +256,27 @@
 		margin-left: 10px;
 }
 .cstudio-form-section-body {
-	background: scroll 0 0 #F0F0F0;
+	background: #fff;
 	padding-bottom: 20px;
 }
 
 .cstudio-form-controls-container {
-    background: url("../images/bg/bar_bg.gif") repeat-x scroll 0 0 #F0F0F0;
-    border-top: 1px solid #A1A1A1;
-    bottom: 0;
-    height: 30px;
+    background: #f8f8f8;
+    border-top: 1px solid #e7e7e7;
+  height: 50px;
+  bottom: 0;
     position: fixed;
     width: 100%;
     z-index: 20;
+  padding: 10px 0 0;
 }
 
 .cstudio-form-controls-button-container {
-    margin-left: auto;
-    margin-right: auto;
-    width: 300px;
+    text-align: center;
+}
+
+.cstudio-form-controls-button-container input {
+  margin-right: 10px;
 }
 
 .cstudio-form-field-container {
@@ -286,6 +293,10 @@
     margin-right: 21px;
     text-align: right;
     width: 24%;
+}
+
+.cstudio-form-field-title.label {
+  color: #000;
 }
 
 .cstudio-form-field-description {

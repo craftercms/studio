@@ -10,7 +10,10 @@
 
     var BOUNCE = { enter: 'bounceIn', exit: 'bounceOut'},
         FADE = { enter: 'fadeIn', exit: 'fadeOut'},
-        ZOOM = { enter: 'zoomIn', exit: 'zoomOut'};
+        ZOOM = { enter: 'zoomIn', exit: 'zoomOut'},
+        SLIDE_IN_LEFT = { enter: 'slideInLeft', exit: 'slideOutLeft'},
+        SLIDE_UP = { enter: 'slideInUp', exit: 'slideOutUp'},
+        SLIDE_DOWN = { enter: 'slideInDown', exit: 'slideOutDown'};
 
     function Animator(element) {
         var $element = $(element).addClass(ANIMATE_CLASS);
@@ -38,8 +41,28 @@
         },
         zoomOut: function (callback)  {
             exit.call(this, ZOOM, callback);
+        },
+        slideIn: function (callback) {
+            enter.call(this, SLIDE_IN_LEFT, callback);
+        },
+        slideOut: function (callback) {
+            exit.call(this, SLIDE_IN_LEFT, callback);
+        },
+        slideInUp: function (callback) {
+            enter.call(this, SLIDE_UP, callback);
+        },
+        slideOutDown: function (callback) {
+            enter.call(this, SLIDE_DOWN, callback);
+        },
+        slideInDown: function (callback) {
+            enter.call(this, SLIDE_DOWN, callback);
+        },
+        slideOutUp: function (callback) {
+            enter.call(this, SLIDE_UP, callback);
         }
     };
+
+    crafter.studio.define('Animator', Animator);
 
     return Animator;
 

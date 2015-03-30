@@ -1,5 +1,6 @@
 <#assign site = envConfig.site />
 <script>
+
 	/**
 	 * contextual variables 
 	 * note: these are all fixed at the moment but will be dynamic
@@ -8,6 +9,7 @@
 		user: "${envConfig.user!'UNSET1'}",
 		role: "${envConfig.role!'UNSET2'}",
 		site: "${envConfig.site!'UNSET3'}",
+		siteId: "${envConfig.site!'UNSET3'}",
 		collabSandbox: "",
 		baseUri: "/studio",
 		authoringAppBaseUri: "${envConfig.authoringServerUrl!'/studio'}",

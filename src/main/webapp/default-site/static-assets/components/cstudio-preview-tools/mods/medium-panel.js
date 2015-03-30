@@ -17,8 +17,9 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 	
 	render: function(containerEl, config) {
 
-		var channels = (config.config.channels.length) ? config.config.channels : [ config.config.channels.channel ];
-		
+		var channels = (config.config.channels.length) ? config.config.channels.channels[0] : [ config.config.channels.channel ];
+		channels = channels[0]; 
+		 
 		var channelSelectEl = document.createElement("select");
 		YAHOO.util.Dom.addClass(channelSelectEl, "acn-panel-dropdown");
 		channelSelectEl.style.height = "20px";

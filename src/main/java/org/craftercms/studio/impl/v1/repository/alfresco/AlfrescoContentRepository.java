@@ -574,29 +574,15 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     protected String getAlfTicket() {
         String ticket = "UNSET";
         RequestContext context = RequestContext.getCurrent();
+
         if (context != null) {
-            HttpServletRequest request = context.getRequest();
+            HttpSession httpSession = context.getRequest().getSession();
+            String sessionTicket = (String)httpSession.getValue("alf_ticket");
 
-            if (request != null) {
-                ticket = request.getParameter("alf_ticket");
-
-                if (ticket == null) {
-                    // check the cookies
-                    Cookie[] cookies = request.getCookies();
-                    for (int i = 0; i < cookies.length; i++) {
-                        Cookie cookie = cookies[i];
-                        if (cookie.getName().equals("alf_ticket")) {
-                            ticket = cookie.getValue();
-                            break;
-                        } else if (cookie.getName().equals("ccticket")) {
-                            ticket = cookie.getValue();
-                            break;
-                        }
-                    }
-                }
-            } else {
-                // maybe inside a chron trigger on other not request context
+            if(sessionTicket != null) {
+                ticket = sessionTicket;
             }
+
         } else {
             CronJobContext cronJobContext = CronJobContext.getCurrent();
             if (cronJobContext != null) {
@@ -605,6 +591,36 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
 
         return ticket;
+    }
+
+    @Override
+    public Map<String, String> getUserProfile(String username) {
+        addDebugStack();
+        InputStream retStream = null;
+        Map<String, String> toRet = new HashMap<String,String>();
+        try {
+            // construct and execute url to download result
+            // TODO: use alfresco/service/api/sites/craftercms250/memberships/admin instead
+            String downloadURI = "/api/people/{username}";
+            Map<String, String> lookupContentParams = new HashMap<String, String>();
+            lookupContentParams.put("username", username);
+
+            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+ 
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+
+            toRet.put("userName", (String)result.get("userName"));
+            toRet.put("firstName", (String)result.get("firstName"));
+            toRet.put("lastName", (String)result.get("lastName"));
+            toRet.put("email", (String)result.get("email"));
+            //toRet.put("profileImage", result.get("NOTSET"));
+        }
+        catch(Exception err) {
+            logger.error("err getting user profile: ", err);
+        }
+
+        return toRet;
     }
 
     @Override
@@ -659,36 +675,9 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     @Override
     public String getCurrentUser() {
         addDebugStack();
-        String username = getUsernameFromCookie();
-        return username;
-    }
-
-    /**
-     * Get the alfresco ticket from the URL or the cookie or from an authorinization
-     */
-    protected String getUsernameFromCookie() {
-        String username = "UNSET";
         RequestContext context = RequestContext.getCurrent();
-        HttpServletRequest request = context.getRequest();
-
-        if(request != null) {
-            Cookie[] cookies = request.getCookies();
-            for(int i=0; i<cookies.length; i++) {
-                Cookie cookie = cookies[i];
-                if(cookie.getName().equals("username")) {
-                    username = cookie.getValue();
-                    break;
-                }
-                else if(cookie.getName().equals("ccu")) {
-                    username = cookie.getValue();
-                    break;
-                }
-            }
-        }
-        else {
-            // maybe inside a chron trigger on other not request context
-        }
-
+        HttpSession httpSession = context.getRequest().getSession();
+        String username = (String)httpSession.getValue("username");
         return username;
     }
 

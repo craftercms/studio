@@ -86,7 +86,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 				success: function(list) {
 					keyValueList = list;
 					var titleEl = document.createElement("span");
-			  		    YAHOO.util.Dom.addClass(titleEl, 'label');
+
 			  		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 						titleEl.innerHTML = config.title;
 					

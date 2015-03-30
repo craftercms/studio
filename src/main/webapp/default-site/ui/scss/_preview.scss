@@ -1,6 +1,7 @@
 .studio-preview {
 
   top: 50px;
+  transition:padding .5s, transform .5s;
 
   &, iframe {
     left: 0;
@@ -18,5 +19,9 @@
     border: 0;
     height: 100%;
   }
+
+}
+
+.site-dropdown-open {
 
 }

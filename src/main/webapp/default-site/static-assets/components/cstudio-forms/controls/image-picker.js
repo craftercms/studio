@@ -294,7 +294,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         // we need to make the general layout of a control inherit from common
         // you should be able to override it -- but most of the time it wil be the same
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
