@@ -277,9 +277,11 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
 					    cfg = this.oPreferences;
 					if (cfg.visible !== visible) {
                         if (visible) {
+                            $('html').addClass('site-dropdown-open');
                             YDom.addClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideIn();
                         } else {
+                            $('html').removeClass('site-dropdown-open');
                             YDom.removeClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideOut();
                         }

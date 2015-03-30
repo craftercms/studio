@@ -7,14 +7,7 @@
 (function(){
 
     var InContextEdit,
-        Event = YAHOO.util.Event,
-        Dom = YAHOO.util.Dom,
-        JSON = YAHOO.lang.JSON,
-
-        eachfn = CStudioAuthoring.Utils.each,
-
-       TemplateAgent = CStudioAuthoring.Component.TemplateAgent,
-        template = CStudioAuthoring.TemplateHolder.History;
+        Dom = YAHOO.util.Dom;
 
     CStudioAuthoring.register("ViewController.InContextEdit", function() {
         CStudioAuthoring.ViewController.InContextEdit.superclass.constructor.apply(this, arguments);
@@ -28,91 +21,116 @@
         initialise: function(usrCfg) {
             Dom.setStyle(this.cfg.getProperty("context"), "overflow", "visible");
         },
-        
+
         /**
-         * on initialization, go out and get the content and 
+         * on initialization, go out and get the content and
          * populate the dialog.
-         * 
+         *
          * on error, display the issue and then close the dialog
          */
-        initializeContent: function(item, field, site, isEdit, callback) {
-			var iframeEl = document.getElementById("in-context-edit-editor");
-			var dialogEl = document.getElementById("viewcontroller-in-context-edit_0_c");
-			var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit_0")
-			
-	
-				contentTypeCb = {
-					success: function(contentType) {
-						var windowUrl = "";
-						
-						if(contentType.formPath == "simple") {
-							// use the simple form server
-							windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit);
-						}
-						else {
-							// use the legacy form server
-							windowUrl = this.context.constructUrlWebFormLegacyFormServer(item, field, site);
-						}
+        initializeContent: function(item, field, site, isEdit, callback, $modal) {
+            var iframeEl = document.getElementById("in-context-edit-editor");
+            var dialogEl = document.getElementById("viewcontroller-in-context-edit_0_c");
+            var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit_0");
 
-						this.iframeEl.src = windowUrl;
-						this.dialogEl.style.width = "auto";
-						this.dialogBodyEl.children[1].style.background = '#F0F0F0';					
-						window.iceCallback = callback;
-					},
-					failure: function() {
-					},
-					
-					iframeEl: iframeEl,
-					dialogEl: dialogEl,
-					dialogBodyEl: dialogBodyEl,
-					context: this
-				}
-				
-				CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, contentTypeCb);
+            CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, {
+                context: this,
+                iframeEl: iframeEl,
+                dialogEl: dialogEl,
+                failure: crafter.noop,
+                dialogBodyEl: dialogBodyEl,
+                success: function(contentType) {
+                    var windowUrl = "";
+
+                    if(contentType.formPath == "simple") {
+                        // use the simple form server
+                        windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit);
+                    } else {
+                        // use the legacy form server
+                        windowUrl = this.context.constructUrlWebFormLegacyFormServer(item, field, site);
+                    }
+
+                    this.iframeEl.src = windowUrl;
+                    window.iceCallback = callback;
+
+                    this.iframeEl.onload = function () {
+
+                        var body = this.contentDocument.body,
+                            html = $(body).parents('html').get(0),
+                            count = 1,
+                            max;
+
+                        var interval = setInterval(function () {
+
+                            max = Math.max(
+                                body.scrollHeight,
+                                html.offsetHeight,
+                                html.clientHeight,
+                                html.scrollHeight,
+                                html.offsetHeight);
+
+                            if (max > $(window).height()) {
+                                max = $(window).height() - 100;
+                            }
+
+                            if (max > 350) {
+                                clearInterval(interval);
+                                $modal.height(max);
+                            }
+
+                            if (count++ > 5) {
+                                clearInterval(interval);
+                            }
+
+                        }, 1000);
+
+                    };
+
+                }
+            });
         },
-        
-        /** 
+
+        /**
          * get the content from the input and send it back to the server
          */
         updateContentActionClicked: function(buttonEl, evt) {
-			//not used         
+            //not used
         },
-        
+
         /**
          * cancel the dialog
          */
         cancelActionClicked: function(buttonEl, evt) {
-			//not used
+            //not used
         },
-        
+
         /**
          * construct URL for simple form server
          */
         constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit) {
-        	var windowUrl = "";
+            var windowUrl = "";
 
-			windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
-					"/form?site=" + site + "&form=" +
-					contentType.form +
-					"&path=" + item.uri;
-					
-				if(field) {
-					windowUrl += "&iceId=" + field;
-				}
-				else {
-					windowUrl += "&iceComponent=true";
-				}
+            windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
+            "/form?site=" + site + "&form=" +
+            contentType.form +
+            "&path=" + item.uri;
 
-				windowUrl += "&edit="+isEdit;
+            if(field) {
+                windowUrl += "&iceId=" + field;
+            } else {
+                windowUrl += "&iceComponent=true";
+            }
 
-        	return windowUrl;
+            windowUrl += "&edit="+isEdit;
+
+            return windowUrl;
         },
-        
+
         /**
-         * provide support for legacy form server 
+         * provide support for legacy form server
          */
         constructUrlWebFormLegacyFormServer: function(item, field, site) {
-			alert("legacy form server is no longer supported");			
+            alert("legacy form server is no longer supported");
         }
     });
 

@@ -346,6 +346,15 @@ div#acn-active-content {
   padding: 18px 10px 15px;
 }
 
+.site-dropdown-open {
+  .acn-dropdown-toggler {
+    font-weight: bold;
+  }
+  .site-dashboard {
+    padding-left: 265px;
+  }
+}
+
 .acn-dropdown-wrapper {
   .acn-dropdown-menu-wrapper {
     border-width: 1px;
@@ -381,11 +390,6 @@ div#acn-active-content {
   }
   .acn-dropdown-toggler {
     text-decoration: none;
-  }
-  &.site-dropdown-open {
-    .acn-dropdown-toggler {
-      font-weight: bold;
-    }
   }
 }
 
