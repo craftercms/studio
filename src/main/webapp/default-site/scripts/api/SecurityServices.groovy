@@ -52,7 +52,7 @@ class SecurityServices {
 	 * @param username
 	 * @param password
 	 */
-	def authenticate(username, password) {
+	static authenticate(context, username, password) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.authenticate(username, password)
 	}

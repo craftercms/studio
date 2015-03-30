@@ -45,4 +45,10 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.getUserRoles(site, user);
     }
+
+    def authenticate(username, password) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.authenticate(username, password);
+    }
+
 }
