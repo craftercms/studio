@@ -1240,32 +1240,54 @@ var YEvent = YAHOO.util.Event;
 
             performSimpleIceEdit: function(item, field, isEdit, callback) {
 
-                var controller, view;
-                controller = "viewcontroller-in-context-edit";
-                view = CStudioAuthoring.Service.getInContextEditView;
+                var id = CSA.Utils.getScopedId(),
+                    controller = 'viewcontroller-in-context-edit',
+                    animator,
+                    view;
+
                 isEdit = (typeof(isEdit) == "undefined") ? true : isEdit;
 
+                var $modal = $('<div><div class="ice-mask"></div><div class="studio-ice-dialog" style="display:none"><div class="bd"></div></div></div>');
+                $modal.find('.bd').attr('id', id);
 
-                CStudioAuthoring.Operations._showDialogueView({
-                    fn: view,
-                    controller: controller,
+                animator = new crafter.studio.Animator($modal.find('.studio-ice-dialog'));
 
-                    callback: function(dialogue) {
-                        if(!callback) {
-                            callback = {
-                                success: function() {
-                                    window.location.reload();
-                                }
-                            }
-                        }
-
-                        this.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback);
-
-                        this.on("updateContent", function(evt, args){
-                            callback.success();
-                        });
+                (!callback) && (callback = {
+                    success: function() {
+                        window.location.reload();
                     }
-                },"","auto");
+                });
+
+                CSA.Env.Loader.use(controller, function() {
+                    CStudioAuthoring.Service.getInContextEditView({
+                        success: function (response) {
+
+                            $modal
+                                .find('.bd').html(response.responseText).end()
+                                .appendTo(document.body);
+
+                            var Controller = CSA.Env.ModuleMap.get(controller);
+
+                            view = new Controller({ context: id });
+
+                            view.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback, $modal.find('.studio-ice-dialog'));
+
+                            view.on("end", function () {
+                                $modal.remove();
+                            });
+
+                            view.on("updateContent", function(evt, args){
+                                callback.success();
+                            });
+
+                            animator.slideInDown();
+
+
+                        }
+                    });
+
+                });
+
             },
 
             openCopyDialog:function(site, uri, callback, args) {
@@ -6467,7 +6489,7 @@ CStudioAuthoring.InContextEdit = {
                 success: function(contentTO) {
                     CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item, this.field);
                 },
-                failure: function() {},
+                failure: crafter.noop,
                 field: this.content.field
 
             };

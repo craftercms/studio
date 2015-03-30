@@ -206,3 +206,44 @@ table.scroll-body {
   }
 
 }
+
+.ice-mask {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+
+.studio-ice-dialog {
+  z-index: 2;
+  bottom: auto;
+  left: 50%;
+  top: 50px;
+  height: 350px;
+  width: 90%;
+  position: fixed;
+  margin-left: -45%;
+  background-color: #fff;
+  border: 1px solid #e7e7e7;
+  border-bottom-left-radius: $border-radius-base;
+  border-bottom-right-radius: $border-radius-base;
+  transition:height .5s, transform .5s;
+  > .bd {
+    iframe {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      position: absolute;
+    }
+  }
+}

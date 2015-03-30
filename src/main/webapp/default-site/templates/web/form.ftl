@@ -5,9 +5,9 @@
     <title>Crafter Studio</title>
 
     <script src="/studio/static-assets/scripts/crafter.js"></script>
-    <link rel="stylesheet" href="/studio/static-assets/styles/forms-engine.css"/>
 
-    <link rel="stylesheet" href="/studio/static-assets/libs/jquery/dist/jquery.js"/>
+
+    <link rel="stylesheet" href="/studio/static-assets/styles/forms-engine.css"/>
 
     <#include "/templates/web/common/page-fragments/head.ftl" />
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
@@ -21,11 +21,13 @@
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/amplify-core.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-forms/forms-engine.js"></script>
 
+    <script src="/studio/static-assets/scripts/communicator.js"></script>
+
 </head>
 
 <body class="yui-skin-cstudioTheme">
 
-<header>
+<header style="display: none;">
     <hgroup>
         <div class="page-header">
             <div class="container">

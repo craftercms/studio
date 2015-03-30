@@ -634,56 +634,47 @@ var CStudioForms = CStudioForms || function() {
                     success: function(formDef) {
                         CStudioForms.Util.LoadFormConfig(formId, {
                             success: function(customControllerClass, formConfig) {
-
                                 formDef.config = formConfig;    // Make the form configuration available in the form definition
-
                                 var path = CStudioAuthoring.Utils.getQueryVariable(location.search, "path");
-                                if( path && path.indexOf(".xml") != -1) {
+                                if(path && path.indexOf(".xml") != -1) {
                                     //Check if the form is locked
                                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
+                                        failure: crafter.noop,
                                         success: function (itemTO) {
                                             if (itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
                                                 readonly = true;
                                             }
 
-                                            CStudioAuthoring.Service.lookupContentType(
-                                                CStudioAuthoringContext.site,
-                                                formId, {
-                                                    success: function (typeInfoJson) {
-                                                        formDef.contentAsFolder = typeInfoJson.contentAsFolder;
+                                            CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, {
+                                                success: function (typeInfoJson) {
+                                                    formDef.contentAsFolder = typeInfoJson.contentAsFolder;
 
-                                                        if((edit && edit=="true") || readonly == true){
-                                                            CStudioAuthoring.Service.getContent(path, !readonly, {
-                                                                success: function(content) {
-                                                                    var dom = null;
+                                                    if((edit && edit=="true") || readonly == true){
+                                                        CStudioAuthoring.Service.getContent(path, !readonly, {
+                                                            success: function(content) {
+                                                                var dom = null;
 
-                                                                    try {
-                                                                        dom = ( new window.DOMParser()).parseFromString(content, "text/xml");
-                                                                        dom = dom.children[0];
-                                                                    }
-                                                                    catch(err) {
-                                                                        alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
-                                                                    }
-
-                                                                    _self._renderFormWithContent(dom, formId, formDef, style, customControllerClass, readonly);
-                                                                },
-                                                                failure: function(err) {
-                                                                    alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
+                                                                try {
+                                                                    dom = (new window.DOMParser()).parseFromString(content, "text/xml");
+                                                                    dom = dom.children[0];
+                                                                } catch(err) {
+                                                                    alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
                                                                 }
-                                                            });
-                                                        }
-                                                    },
-                                                    failure: function () {
 
+                                                                _self._renderFormWithContent(dom, formId, formDef, style, customControllerClass, readonly);
+
+                                                            },
+                                                            failure: function(err) {
+                                                                alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", ""+err));
+                                                            }
+                                                        });
                                                     }
-                                                });
-                                        },
-                                        failure: function () {
-
+                                                },
+                                                failure: crafter.noop
+                                            });
                                         }
                                     }, false);
-                                }
-                                else {
+                                } else {
                                     // new content item
 
                                     var contentTypeCb = {
@@ -711,9 +702,7 @@ var CStudioForms = CStudioForms || function() {
                                         contentTypeCb);
                                 }
                             },
-                            failure: function() {
-
-                            }
+                            failure: crafter.noop
                         });
                     },
                     failure: function(err) {
@@ -758,14 +747,10 @@ var CStudioForms = CStudioForms || function() {
                         window.previewTargetWindowId = (window.opener.previewTargetWindowId)
                             ? window.opener.previewTargetWindowId : window.opener.name;
                     }
-                }
-                catch(err) {
-
-                }
+                } catch(err) {}
 
                 var contentDom = content;
                 var contentMap = CStudioForms.Util.xmlModelToMap(contentDom);
-
 
                 var customController = null;
 
@@ -780,18 +765,13 @@ var CStudioForms = CStudioForms || function() {
 
                 var timezone = "GMT";
 
-                var timezoneCb = {
-
-                    success: function(config){
-                        timezone = config['default-timezone'];
-                    },
-
-                    failure: function(){
-                    }
-                }
-
                 CStudioAuthoring.Service.lookupConfigurtion(
-                    CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);
+                    CStudioAuthoringContext.site, "/site-config.xml", {
+                        failure: crafter.noop,
+                        success: function(config){
+                            timezone = config['default-timezone'];
+                        }
+                    });
 
                 var nowTimestamp = getDateTimeObject(new Date());
                 // Timestamp in UTC
@@ -815,21 +795,21 @@ var CStudioForms = CStudioForms || function() {
 
                 form.definition = formDef;
 
-                if (content.responseXML){
+                if (content.responseXML) {
                     var internalNameArr = "";
                     try{
                         internalNameArr = content.responseXML.getElementsByTagName("internal-name");
                         form.definition.pageName = (internalNameArr.length <= 0) ? "" :
                             (YAHOO.env.ua.ie) ? internalNameArr[0].text :
                                 internalNameArr[0].textContent;
-                    }catch(err){
+                    } catch(err) {
                         form.definition.pageName = "";
                     }
                 } else {
                     form.definition.pageName = "";
                 }
-                form.definition.pageLocation = this._getPageLocation(path);
 
+                form.definition.pageLocation = this._getPageLocation(path);
                 form.containerEl = document.getElementById("formContainer");
 
                 var iceId = CStudioAuthoring.Utils.getQueryVariable(location.search, "iceId");
@@ -841,8 +821,7 @@ var CStudioForms = CStudioForms || function() {
                     var html = this._renderIceLayout(form);
                     form.containerEl.innerHTML = html;
                     this._renderInContextEdit(form, iceId);
-                }
-                else {
+                } else {
 
                     var html = this._renderFormLayout(form);
                     form.containerEl.innerHTML = html;
@@ -1268,6 +1247,7 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(closeButtonEl, "click", cancelFn, this);
                 }
+
             },
 
             /**
@@ -1360,6 +1340,7 @@ var CStudioForms = CStudioForms || function() {
                         }
                     }
                 }
+
             },
 
             /**
@@ -1680,6 +1661,8 @@ var CStudioForms = CStudioForms || function() {
                         }
                     }
                 }
+
+
             },
 
             /**
@@ -1710,6 +1693,7 @@ var CStudioForms = CStudioForms || function() {
                 // Update the window title
                 window.document.title = (formDef.pageName) ? formDef.title + " | " + formDef.pageName : formDef.title;
 
+                $('header').show();
                 $('.page-header h1 .header').text(formDef.title);
                 if (formDef.pageName) {
                     $('.page-header h1 .name').text(formDef.pageName);
@@ -1717,7 +1701,6 @@ var CStudioForms = CStudioForms || function() {
                 if (formDef.pageLocation) {
                     $('.page-header h1 .location').text(formDef.pageLocation);
                 }
-                // + (formDef.pageName ? '<small>(' + formDef.pageName + ')</small>' : '') + (formDef.pageLocation ? '<div><small>'+formDef.pageLocation+'</small></div>' : ''));
                 $('.page-description').text(formDef.description);
                 $('#cstudio-form-expand-all').text(CMgs.format(formsLangBundle, "expandAll"));
                 $('#cstudio-form-collapse-all').text(CMgs.format(formsLangBundle, "collapseAll"));
@@ -1733,10 +1716,10 @@ var CStudioForms = CStudioForms || function() {
 
                     html +=
                         "<div id='"+ section.id + "-heading' class='panel-heading'>" +
-                            '<div class="cstudio-form-section-widget"></div>' +
-                            '<div class="cstudio-form-section-indicator"></div>' +
-                            '<h2 class="panel-title">' + section.title + '</h2>' +
-                            '<span class="cstudio-form-section-validation"></span>'
+                        '<div class="cstudio-form-section-widget"></div>' +
+                        '<div class="cstudio-form-section-indicator"></div>' +
+                        '<h2 class="panel-title">' + section.title + '</h2>' +
+                        '<span class="cstudio-form-section-validation"></span>'
                         + "</div>";
 
                     html +=
