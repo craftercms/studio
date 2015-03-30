@@ -1,7 +1,7 @@
 
 // TODO
 document.domain = "127.0.0.1";
-
+ 
 requirejs.config({
     baseUrl: '/studio/static-assets/scripts',
     paths: {
@@ -15,7 +15,7 @@ requirejs.config({
 require(['guest'], function () {
 
     /*CStudioAuthoringContext = {
-        user: "${envConfig.user!'UNSET1'}",
+        user: "${envConfig.user!'admin'}",
         role: "${envConfig.role!'UNSET2'}",
         site: "${envConfig.site!'UNSET3'}",
         siteId: "${envConfig.site!'UNSET3'}", // same as site

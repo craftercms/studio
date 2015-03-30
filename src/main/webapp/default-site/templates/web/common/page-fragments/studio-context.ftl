@@ -1,5 +1,6 @@
 <#assign site = envConfig.site />
 <script>
+
 	/**
 	 * contextual variables 
 	 * note: these are all fixed at the moment but will be dynamic
