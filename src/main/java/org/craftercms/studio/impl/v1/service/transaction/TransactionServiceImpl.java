@@ -33,7 +33,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 * get a standard user transaction
 	 */
 	public UserTransaction getTransaction() {
-		return _contentRepository.getTransaction();
+ 		return null;
 	}
 	
 	/** getter for content repository */

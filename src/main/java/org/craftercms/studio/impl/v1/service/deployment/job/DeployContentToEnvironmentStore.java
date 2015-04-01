@@ -174,7 +174,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         List<String> paths = new ArrayList<String>(itemsToDeploy.size());
         if (mandatoryDependenciesCheckEnabled) {
             for (CopyToEnvironment item : itemsToDeploy) {
-                paths.add(contentRepository.getFullPath(item.getSite(), item.getPath()));
+                paths.add("");throw new java.lang.RuntimeException("FIX ME"); //contentRepository.getFullPath(item.getSite(), item.getPath()));
             }
         }
         return paths;
