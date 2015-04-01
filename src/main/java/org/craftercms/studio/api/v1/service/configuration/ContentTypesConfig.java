@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.configuration;
 
 
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
 /**
@@ -58,7 +59,7 @@ public interface ContentTypesConfig {
 	 * @param nodeRef
 	 * @return 
 	 */
-	//public ContentTypeConfigTO loadConfiguration(String site, NodeRef nodeRef);
+	ContentTypeConfigTO loadConfiguration(String site, ContentItemTO itemTO);
 
 	/**
 	 * get path to content types mapping

@@ -184,9 +184,13 @@
         <property name="securityProvider" ref="cstudioContentRepository"/>
     </bean>
 
-    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">
+    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl"
+          parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
+        <property name="configPath"><value>${contentTypeService.configPath}</value></property>
+        <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
     </bean>
 
     <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl"

@@ -760,7 +760,7 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
             String nodeRef = null;
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getType();
-                if (type.isFileable()) {
+                if (FolderType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     ContentStream contentStream = document.getContentStream();
                     inputStream = contentStream.getStream();

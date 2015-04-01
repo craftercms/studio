@@ -21,6 +21,7 @@ package org.craftercms.studio.api.v1.service.content;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -53,7 +54,9 @@ public interface ContentTypeService {
      * @param type
      * @return content type
      */
-    public ContentTypeConfigTO getContentType(String site, String type);
+    ContentTypeConfigTO getContentType(String site, String type);
 
     ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException;
+
+    List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
 }

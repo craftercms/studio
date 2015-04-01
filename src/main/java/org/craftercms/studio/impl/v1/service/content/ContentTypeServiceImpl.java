@@ -19,25 +19,27 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
+import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.TimeStamped;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Dejan Brkic
  */
-public class ContentTypeServiceImpl implements ContentTypeService {
+public class ContentTypeServiceImpl extends ConfigurableServiceBase implements ContentTypeService {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceImpl.class);
 
@@ -102,12 +104,81 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         return servicesConfig.getContentTypeConfig(site, type);
     }
 
+    @Override
+    public List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable) {
+        return getAllContentTypes(site);
+    }
+
+    protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
+        ContentItemTO folders = contentService.getContentItemTree(_configPath.replaceAll(CStudioConstants.PATTERN_SITE, site), 1);
+        List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
+        if (folders != null) {
+            for (ContentItemTO rootFolderInfo : folders.getChildren()) {
+                // traverse the children file-folder structure
+                getContentTypeConfigForChildren(site, rootFolderInfo, contentTypes);
+            }
+        }
+        return contentTypes;
+    }
+
+    /**
+     * Traverse file folder -- recursive!, searching for config.xml
+     *
+     * @param site
+     * @param node
+     */
+    protected void getContentTypeConfigForChildren(String site, ContentItemTO node, List<ContentTypeConfigTO> contentTypes) {
+        logger.debug("Get Content Type Config fot Children path = {0}", node.getUri());
+        ContentItemTO folders = contentService.getContentItemTree(node.getUri(), 1);
+        if (folders != null) {
+            for (ContentItemTO folderInfo : folders.getChildren()) {
+                if (folderInfo.isFolder()) {
+                    ContentItemTO configNode = contentService.getContentItem(folderInfo.getUri() + "/" + _configFileName);
+                    if (configNode != null){
+                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configNode);
+                        if (config != null) {
+                            contentTypes.add(config);
+                        }
+                    }
+                    // traverse the children file-folder structure
+
+                    getContentTypeConfigForChildren(site, folderInfo, contentTypes);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected TimeStamped getConfiguration(String key) {
+        // not used
+        return null;
+    }
+
+    @Override
+    protected void removeConfiguration(String key) {
+        // not used
+    }
+
+    @Override
+    protected void loadConfiguration(String key) {
+        // not used
+    }
+
+    @Override
+    public void register() {
+        getServicesManager().registerService(ContentTypeService.class, this);
+    }
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
+    public ContentTypesConfig getContentTypesConfig() { return contentTypesConfig; }
+    public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) { this.contentTypesConfig = contentTypesConfig; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
+    protected ContentTypesConfig contentTypesConfig;
 }
