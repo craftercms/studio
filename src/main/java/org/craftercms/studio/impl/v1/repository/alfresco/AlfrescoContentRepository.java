@@ -69,15 +69,22 @@ import org.dom4j.io.SAXReader;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
+
+/* these go away */
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import javax.transaction.*;
+
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure
  * @author russdanner
  *
  */
-// this class is abstract because I wont implement the dirty interface
-// this class contains all that we do in alfresco and nothing more
-public abstract class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
+public class AlfrescoContentRepository extends AbstractContentRepository 
+implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
@@ -841,6 +848,151 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return session;
     }
+
+
+
+
+
+
+
+/* WHY ARE THESE PART OF THE INTERFACE??? */
+
+    public void lockItem(final String site, final String path) {
+    }
+
+    public void unLockItem(final String site, final String path) {
+        }
+
+    public InputStream getContent(String site, String variant, String store, String path) throws ContentNotFoundException {
+        return getContent("/wem-projects/"+site+"/"+site+"/"+store + path);
+    }
+
+    public UserTransaction getTransaction() {
+        return null;
+    }
+     public void writeContent(String site, String variant, String store, String path, InputStream content) {
+   //     writeContent("/wem-projects/"+site+"/"+site+"/"+store + path, content);
+    }
+
+     public void stateTransition(String site, String path, TransitionEvent event) {
+     }
+
+    public void stateTransition(String site, List<String> paths, TransitionEvent event) {
+    }
+
+    public void setSystemProcessing(String site, List<String> paths, boolean isSystemProcessing) {
+    }
+    
+    public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
+    }
+
+    public void createNewVersion(String site, String path, String submissionComment, boolean isMajorVersion) {
+    }
+
+    public void copyToEnvironment(String site, String environment, String path) throws DeploymentException {
+    }
+
+    public Set<String> getAllAvailableSites() {
+       return null;
+    }
+
+    public Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site) {
+        return null;
+    }
+
+    public String getAdministratorUser() {
+        return "";
+    }
+
+    public boolean isNew(String site, String path) {
+        return false;
+    }
+
+    // @Override
+    public String getFilename(String site, String path) {
+        return "";
+    }
+
+    public boolean isRenamed(String site, String path) {
+        return false;
+    }
+
+    // @Override
+    public String getOldPath(String site, String path) {
+        return null;
+    }
+
+   // @Override
+    public InputStream getMetadataStream(String site, String path) {
+        return null;
+    }
+
+    // @Override
+    public void deleteContent(String site, String environment, String path) {
+    }
+
+    public void deleteContent(CopyToEnvironmentItem item) {
+
+    }
+
+  // @Override
+    public void clearRenamed(String site, String path) {
+    }
+
+    // @Override
+    public String getContentTypeClass(String site,  String path) {
+        return "";
+    }
+
+    @Override
+    public void setLockBehaviourEnabled(boolean enabled) {
+    }
+
+    // @Override
+    public String getFullPath(String site, String path) {
+        return "";
+    }
+
+    // @Override
+    public List<String> getDependentPaths(String site, String path) {
+        return null;
+    }
+
+    // @Override
+    public boolean isFolder(String site, String path) {
+        boolean toRet = false;
+         return toRet;
+    }
+
+    // @Override
+    public boolean environmentRepoExists(String site, String environment) {
+        return false;
+    }
+
+
+    // @Override
+    public void createEnvironmentRepo(String site, String environment) {
+    }
+
+    // @Override
+    public String getLiveEnvironmentName(String site) {
+        return null;
+    }
+
+    // @Override
+    public Set<String> getAllPublishingEnvironments(String site) {
+        return null;
+    }
+
+    // @Override
+    public void unlockRepository() {
+    }
+
+    // @Override
+    public void lockRepository() {
+    }    
+
+/*================================================= */
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
