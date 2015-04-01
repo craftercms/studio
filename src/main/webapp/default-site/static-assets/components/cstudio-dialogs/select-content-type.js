@@ -33,8 +33,8 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		this.onSaveCallback = onSaveCallback;
 		this.asPopup = asPopup;			
 
-		this.updateAvailableTemplates(this.dialog, contentTypes.types);
-		this.setDefaultTemplate(contentTypes.types)
+		this.updateAvailableTemplates(this.dialog, contentTypes);
+		this.setDefaultTemplate(contentTypes);
 		this.dialog.show();
 	},
 	

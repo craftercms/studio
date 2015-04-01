@@ -18,7 +18,9 @@
 package org.craftercms.studio.api.v1.service.configuration;
 
 
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.SiteContentTypePathsTO;
 
 /**
  * provides content type configuration
@@ -41,7 +43,7 @@ public interface ContentTypesConfig {
 	 * @param key
 	 * @return content type configuration
 	 */
-	//public ContentTypeConfigTO getContentTypeConfig(String key);
+	ContentTypeConfigTO getContentTypeConfig(String key);
 	
 	/**
 	 * get content type configuration for the given site and the content type
@@ -58,7 +60,7 @@ public interface ContentTypesConfig {
 	 * @param nodeRef
 	 * @return 
 	 */
-	//public ContentTypeConfigTO loadConfiguration(String site, NodeRef nodeRef);
+	ContentTypeConfigTO loadConfiguration(String site, ContentItemTO itemTO);
 
 	/**
 	 * get path to content types mapping
@@ -66,6 +68,6 @@ public interface ContentTypesConfig {
 	 * @param site
 	 * @return
 	 */
-	//public SiteContentTypePathsTO getPathMapping(String site);
+	SiteContentTypePathsTO getPathMapping(String site);
 
 }
