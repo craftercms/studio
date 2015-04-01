@@ -395,6 +395,17 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     @Override
+    public SiteContentTypePathsTO getPathMapping(String site) {
+        return pathMapping.get(site);
+    }
+
+    @Override
+    public ContentTypeConfigTO getContentTypeConfig(String key) {
+        checkForUpdate(key);
+        return contentTypeMap.get(key);
+    }
+
+    @Override
     public void register() {
         this.getServicesManager().registerService(ContentTypesConfig.class, this);
     }

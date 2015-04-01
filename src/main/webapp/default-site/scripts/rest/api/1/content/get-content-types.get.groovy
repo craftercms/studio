@@ -49,7 +49,10 @@ else
 }
 */
 def context = ContentTypeServices.createContext(applicationContext, request);
-
-result = ContentTypeServices.getContentTypes(context, site, true);
+if (path != null) {
+    result = ContentTypeServices.getAllowedContentTypesForPath(context, site, path);
+} else {
+    result = ContentTypeServices.getContentTypes(context, site, true);
+}
 
 return result

@@ -1335,19 +1335,19 @@ var YEvent = YAHOO.util.Event;
                 var chooseTemplateCb = {
                     success: function(contentTypes) {
                         //Remove current content type from list.
-                        var originalTypesCount = contentTypes.types.length;
-                        if (currentContentType && contentTypes.types.length > 1) {
+                        var originalTypesCount = contentTypes.length;
+                        if (currentContentType && contentTypes.length > 1) {
                             var newContentTypes = new Array();
-                            for (var typeIdx=0; typeIdx < contentTypes.types.length; typeIdx++) {
-                                var contType = contentTypes.types[typeIdx];
+                            for (var typeIdx=0; typeIdx < contentTypes.length; typeIdx++) {
+                                var contType = contentTypes[typeIdx];
                                 if (contType.formId != currentContentType) {
                                     newContentTypes.push(contType);
                                 }
                             }
-                            contentTypes.types = newContentTypes;
+                            contentTypes = newContentTypes;
                         }
 
-                        if (contentTypes.types.length == 0) {
+                        if (contentTypes.length == 0) {
                             alert("no content types available for [" + site + ":" + path + "]");
                         } else {
                             var selectTemplateDialogCb = {
@@ -1414,12 +1414,12 @@ var YEvent = YAHOO.util.Event;
 
                 var callback = {
                     success: function(contentTypes) {
-                        if (contentTypes.types.length == 0) {
+                        if (contentTypes.length == 0) {
                             alert("no content types available for [" + site + ":" + path + "]");
                         }
-                        else if (contentTypes.types.length == 1) {
+                        else if (contentTypes.length == 1) {
 
-                            var formId = contentTypes.types[0].formId;
+                            var formId = contentTypes[0].formId;
 
 
                             CStudioAuthoring.Operations.openContentWebForm(

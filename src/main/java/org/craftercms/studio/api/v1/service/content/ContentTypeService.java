@@ -59,4 +59,6 @@ public interface ContentTypeService {
     ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException;
 
     List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
+
+    List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException;
 }
