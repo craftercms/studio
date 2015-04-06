@@ -88,7 +88,11 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
     @Override
     public boolean contentExists(String path) {
-       return (this.getNodeRefForPathCMIS(path) != null);
+        try {
+            return (this.getNodeRefForPathCMIS(path) != null);
+        } catch (ContentNotFoundException e) {
+            return false;
+        }
     }
 
 
@@ -101,10 +105,21 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         int splitIndex = path.lastIndexOf("/");
         String name = path.substring(splitIndex + 1);
         // find the existing node by path
-        String nodeRef = getNodeRefForPathCMIS(path);
+
+        String nodeRef = null;
+        try {
+            nodeRef = getNodeRefForPathCMIS(path);
+        } catch (ContentNotFoundException e) {
+            logger.info("Content does not exist for path {0}", path);
+        }
         // find the target folder node by its path
-        String folderPath = path.substring(0, splitIndex);
-        String folderRef = getNodeRefForPathCMIS(folderPath);
+            String folderPath = path.substring(0, splitIndex);
+        String folderRef = null;
+        try {
+            folderRef = getNodeRefForPathCMIS(folderPath);
+        } catch (ContentNotFoundException e) {
+            logger.info("Content does not exist for path {0}", folderPath);
+        }
         if (folderRef == null) {
             // if not, create the folder first
             int folderSplitIndex = folderPath.lastIndexOf("/");
@@ -129,7 +144,6 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         params.put("overwrite", "true");
         // read back nodeRef
         logger.debug("request params\n" + params);
-
         try {
             String response = this.alfrescoMultipartPostRequest(uploadURI, params, content, "application/xml", "UTF-8");
             RepositoryEventMessage message = new RepositoryEventMessage();
@@ -166,7 +180,12 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         addDebugStack();
         boolean result = false;
         String deleteURI = "/slingshot/doclib/action/file/node/";
-        String nodeRef = getNodeRefForPathCMIS(path);
+        String nodeRef = null;
+        try {
+            nodeRef = getNodeRefForPathCMIS(path);
+        } catch (ContentNotFoundException e) {
+            logger.error("Could not find content for path {0}", path);
+        }
 
         if (nodeRef == null) {
             // if no nodeRef, it's already deleted so just return true
@@ -325,8 +344,13 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
     public boolean revertContent(String path, String version, boolean major, String comment) {
         addDebugStack();
         boolean success = false;
-        String nodeRef = getNodeRefForPathCMIS(path);
-        
+        String nodeRef = null;
+        try {
+            nodeRef = getNodeRefForPathCMIS(path);
+        } catch (ContentNotFoundException e) {
+            logger.info("Could not find content for path {0}", path);
+        }
+
         if(nodeRef != null) {
             String revertCommand = "{" +
                "\"nodeRef\":\"" + nodeRef + "\"," + 
@@ -363,7 +387,12 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         String newFolderRef = null;
         String createFolderURI = "/api/type/cm%3afolder/formprocessor";
         Map<String, String> params = new HashMap<String, String>();
-        String folderRef = getNodeRefForPathCMIS(path);
+        String folderRef = null;
+        try {
+            folderRef = getNodeRefForPathCMIS(path);
+        } catch (ContentNotFoundException e) {
+            logger.info("Could not find content for path {0}", path);
+        }
         if (StringUtils.isEmpty(folderRef)) {
             logger.error("Failed to create " + name + " folder since " + path + " does not exist.");
         } else {
@@ -400,25 +429,37 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         logger.debug( (isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
         boolean result = false;
         // find all nodeRefs required
-        String targetRef = getNodeRefForPathCMIS(toPath);
-        String sourceRef = getNodeRefForPathCMIS(fromPath);
+        String sourceRef = null;
+        String targetRef = null;
+        try {
+            targetRef = getNodeRefForPathCMIS(toPath);
+        } catch (ContentNotFoundException e) {
+            logger.info("Could not find content for path {0}", toPath);
+        }
+        try {
+            sourceRef = getNodeRefForPathCMIS(fromPath);
+        } catch (ContentNotFoundException e) {
+            logger.info("Could not find content for path {0}", fromPath);
+        }
         // TODO: need to take care of duplicate at the target location
         if (targetRef != null && sourceRef != null) {
-            String sourceParentRef = getNodeRefForPathCMIS(fromPath.substring(0, fromPath.lastIndexOf("/")));
-            String copyURL = "/slingshot/doclib/action/copy-to/node/";
-            String moveURL = "/slingshot/doclib/action/move-to/node/";
-            String actionURL = (isCut) ? moveURL : copyURL;
-            actionURL = actionURL + targetRef.replace("://", "/");
-            // no parameter
-            Map<String, String> params = new HashMap<String, String>();
-            // create request body
-            JSONObject requestObj = new JSONObject();
-            String [] nodeRefs = new String[1];
-            nodeRefs[0] = sourceRef;
-            requestObj.put("nodeRefs", nodeRefs);
-            requestObj.put("parentId", sourceParentRef);
-            InputStream is = IOUtils.toInputStream(requestObj.toString());
+            InputStream is = null;
             try {
+                String sourceParentRef = getNodeRefForPathCMIS(fromPath.substring(0, fromPath.lastIndexOf("/")));
+                String copyURL = "/slingshot/doclib/action/copy-to/node/";
+                String moveURL = "/slingshot/doclib/action/move-to/node/";
+                String actionURL = (isCut) ? moveURL : copyURL;
+                actionURL = actionURL + targetRef.replace("://", "/");
+                // no parameter
+                Map<String, String> params = new HashMap<String, String>();
+                // create request body
+                JSONObject requestObj = new JSONObject();
+                String[] nodeRefs = new String[1];
+                nodeRefs[0] = sourceRef;
+                requestObj.put("nodeRefs", nodeRefs);
+                requestObj.put("parentId", sourceParentRef);
+                is = IOUtils.toInputStream(requestObj.toString());
+
                 this.alfrescoPostRequest(actionURL, params, is, "application/json");
                 return true;
             } catch (Exception e) {
@@ -731,18 +772,23 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
         }
     }
 
-    protected String getNodeRefForPathCMIS(String fullPath) {
+    protected String getNodeRefForPathCMIS(String fullPath) throws ContentNotFoundException {
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        Session session = getCMISSession();
-        CmisObject cmisObject = session.getObjectByPath(cleanPath);
         String nodeRef = null;
-        if (cmisObject != null) {
-            Property property = cmisObject.getProperty("alfcmis:nodeRef");
-            nodeRef = property.getValueAsString();
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if (cmisObject != null) {
+                Property property = cmisObject.getProperty("alfcmis:nodeRef");
+                nodeRef = property.getValueAsString();
+            }
+        } catch (CmisBaseException e) {
+            logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
+            throw new ContentNotFoundException(e);
         }
         return nodeRef;
     }
