@@ -69,15 +69,22 @@ import org.dom4j.io.SAXReader;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
+
+/* these go away */
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import javax.transaction.*;
+
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure
  * @author russdanner
  *
  */
-// this class is abstract because I wont implement the dirty interface
-// this class contains all that we do in alfresco and nothing more
-public abstract class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
+public class AlfrescoContentRepository extends AbstractContentRepository 
+implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
@@ -887,6 +894,15 @@ public abstract class AlfrescoContentRepository extends AbstractContentRepositor
 
         return session;
     }
+
+    public void lockItem(String site, String path) {
+
+    }
+
+    public void unLockItem(String site, String path) {
+
+    }
+
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }

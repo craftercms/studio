@@ -65,10 +65,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
-            _contentRepository.stateTransition(site, paths, TransitionEvent.SCHEDULED_DEPLOYMENT);
-            _contentRepository.setSystemProcessing(site, paths, false);
+             if(true)throw new java.lang.RuntimeException("FIX ME"); //
+            //_contentRepository.stateTransition(site, paths, TransitionEvent.SCHEDULED_DEPLOYMENT);
+            //_contentRepository.setSystemProcessing(site, paths, false);
         } else {
-            _contentRepository.setSystemProcessing(site, paths, true);
+             if(true)throw new java.lang.RuntimeException("FIX ME"); //
+            //_contentRepository.setSystemProcessing(site, paths, true);
         }
 
         List<String> newPaths = new ArrayList<String>();
@@ -78,9 +80,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            if (_contentRepository.isNew(site, p)) {
+            if (false){if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isNew(site, p)) {
                 newPaths.add(p);
-            } else if (_contentRepository.isRenamed(site, p)) {
+            } else if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, p)) {
                 movedPaths.add(p);
             } else {
                 updatedPaths.add(p);
@@ -92,8 +94,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
 
         // use dal to setup deploy to environment log
-        if (!_contentRepository.environmentRepoExists(site, environment)) {
-            _contentRepository.createEnvironmentRepo(site, environment);
+        if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //!_contentRepository.environmentRepoExists(site, environment)) {
+             if(true)throw new java.lang.RuntimeException("FIX ME"); //
+            //_contentRepository.createEnvironmentRepo(site, environment);
         }
         List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
         for (CopyToEnvironment item : items) {
@@ -113,11 +116,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
                 item.setAction(action);
-                if (_contentRepository.isRenamed(site, path)) {
-                    String oldPath = _contentRepository.getOldPath(site, item.getPath());
+                if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
+                    String oldPath = "";  if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
                     item.setOldPath(oldPath);
                 }
-                String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+                String contentTypeClass = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
                 item.setUser(approver);
                 item.setSubmissionComment(submissionComment);
@@ -130,10 +133,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException {
         if (scheduledDate != null && scheduledDate.after(new Date())) {
-            _contentRepository.stateTransition(site, paths, TransitionEvent.DELETE);
-            _contentRepository.setSystemProcessing(site, paths, false);
+             if(true)throw new java.lang.RuntimeException("FIX ME"); //
+            //_contentRepository.stateTransition(site, paths, TransitionEvent.DELETE);
+            //_contentRepository.setSystemProcessing(site, paths, false);
         } else {
-            _contentRepository.setSystemProcessing(site, paths, true);
+             if(true)throw new java.lang.RuntimeException("FIX ME"); //
+            //_contentRepository.setSystemProcessing(site, paths, true);
         }
         Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
@@ -168,11 +173,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             item.setScheduledDate(scheduledDate);
             item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
             item.setAction(CopyToEnvironment.Action.DELETE);
-            if (_contentRepository.isRenamed(site, path)) {
-                String oldPath = _contentRepository.getOldPath(site, item.getPath());
+            if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
+                String oldPath = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
                 item.setOldPath(oldPath);
             }
-            String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+            String contentTypeClass = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
             item.setContentTypeClass(contentTypeClass);
             item.setUser(approver);
             newItems.add(item);

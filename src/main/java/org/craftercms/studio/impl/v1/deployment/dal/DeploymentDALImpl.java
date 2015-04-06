@@ -205,11 +205,11 @@ public class DeploymentDALImpl implements DeploymentDAL {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironmentItem.State.READY_FOR_LIVE);
                 item.setAction(action);
-                if (_contentRepository.isRenamed(site, path)) {
-                    String oldPath = _contentRepository.getOldPath(site, item.getPath());
+                if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
+                    String oldPath = "";if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
                     item.setOldPath(oldPath);
                 }
-                String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+                String contentTypeClass = "";if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
                 item.setUser(approver);
                 item.setSubmissionComment(submissionComment);
@@ -276,11 +276,11 @@ public class DeploymentDALImpl implements DeploymentDAL {
             item.setScheduledDate(scheduledDate);
             item.setState(CopyToEnvironmentItem.State.READY_FOR_LIVE);
             item.setAction(CopyToEnvironmentItem.Action.DELETE);
-            if (_contentRepository.isRenamed(site, path)) {
-                String oldPath = _contentRepository.getOldPath(site, item.getPath());
+            if (false){if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
+                String oldPath = "";if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
                 item.setOldPath(oldPath);
             }
-            String contentTypeClass = _contentRepository.getContentTypeClass(site, path);
+            String contentTypeClass = "";if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
             item.setContentTypeClass(contentTypeClass);
             item.setUser(approver);
             newItems.add(item);
