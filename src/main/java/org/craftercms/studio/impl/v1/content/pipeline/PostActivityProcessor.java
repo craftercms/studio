@@ -75,7 +75,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
             Map<String,String> extraInfo = new HashMap<String,String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentType(site, uri));
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, uri));
             activityService.postActivity(site, user, uri, activityType,extraInfo);
             // disabled due to a performance issue (CRAFTER-655)
             //updateDependenciesActivity(site, user, uri, activityType, extraInfo);
@@ -94,7 +94,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             if(ContentUtils.matchesPatterns(dep.getUri(), displayPatterns)){
                 ContentItemTO item = contentService.getContentItem(site, dep.getUri());
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentType(site, dep.getUri()));
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, dep.getUri()));
                 if (dep.getUri().startsWith(DmConstants.ROOT_PATTERN_SYSTEM_COMPONENTS)) {
                     activityService.postActivity(site, user, dep.getUri(), ActivityService.ActivityType.CREATED, extraInfo);
                 } else {

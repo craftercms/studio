@@ -151,32 +151,19 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             LOGGER.error(String.format("Error setting system processing flag. NodeRef is null"));
         }
     }
-
+*/
     @Override
-    public void setSystemProcessingBulk(List<String> objectIds, boolean isSystemProcessing) {
-        if (objectIds == null || objectIds.isEmpty()) {
+    public void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing) {
+        if (paths == null || paths.isEmpty()) {
             return;
         }
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
 
         // TODO: CodeRev: a lot of O(n) here, cant this be done in a single loop inside bulk op?
-        for (String objectId : objectIds) {
-            nodeLockService.lock(objectId);
-        }
-        
-        try {
-            objectStateDAOService.setSystemProcessingBulk(objectIds, isSystemProcessing);
-        } catch (Exception e) {
-            if (LOGGER.isErrorEnabled()) {
-                LOGGER.error("Error setting system processing flag", e);
-            }
-        } finally {
-            for (String objectId : objectIds) {
-                nodeLockService.unlock(objectId);
-            }
+        for (String path : paths) {
+            setSystemProcessing(site, path, isSystemProcessing);
         }
     }
-*/
+
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
         String lockId = site + ":" + item.getUri();

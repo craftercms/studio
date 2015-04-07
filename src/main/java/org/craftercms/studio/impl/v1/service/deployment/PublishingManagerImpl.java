@@ -459,7 +459,7 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setOldPath(oldPath);
             missingItem.setAction(CopyToEnvironment.Action.MOVE);
         }*/
-        String contentTypeClass = contentService.getContentType(site, itemPath);
+        String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
         missingItem.setUser(item.getUser());
         missingItem.setSubmissionComment(item.getSubmissionComment());

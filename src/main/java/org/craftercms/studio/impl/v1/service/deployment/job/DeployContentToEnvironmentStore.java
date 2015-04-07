@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -174,7 +175,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         List<String> paths = new ArrayList<String>(itemsToDeploy.size());
         if (mandatoryDependenciesCheckEnabled) {
             for (CopyToEnvironment item : itemsToDeploy) {
-                paths.add("");throw new java.lang.RuntimeException("FIX ME"); //contentRepository.getFullPath(item.getSite(), item.getPath()));
+                paths.add(contentService.expandRelativeSitePath(item.getSite(), item.getPath()));
             }
         }
         return paths;
@@ -216,6 +217,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
     protected org.craftercms.studio.api.v1.service.transaction.TransactionService transactionService;
     protected PublishingManager publishingManager;
     protected ContentRepository contentRepository;
@@ -223,4 +227,5 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected boolean masterPublishingNode;
     protected boolean mandatoryDependenciesCheckEnabled;
     protected SiteService siteService;
+    protected ContentService contentService;
 }

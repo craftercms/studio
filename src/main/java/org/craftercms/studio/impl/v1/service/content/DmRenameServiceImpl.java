@@ -499,8 +499,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 Serializable contentTypeValue = persistenceManagerService.getProperty(dstOrgFullPath, CStudioContentModel.PROP_CONTENT_TYPE);
                 contentType = (contentTypeValue != null) ? (String)contentTypeValue : null;
             }*/
-            String contentType = contentService.getContentType(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
-            dmContentLifeCycleService.process(site, user, targetPath, contentType,
+            String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
+            dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
                     DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
         //} catch (FileNotFoundException e) {
         //    throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
@@ -633,7 +633,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             String relativePath = node.getUri();
             addItemPropertyToChildren(site, relativePath, parentNewPath, parentOldPath, addNodeProperty, user,
                     fileContent);
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentType(site, getIndexFilePath(relativePath)));
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, getIndexFilePath(relativePath)));
             activityService.postActivity(site, user, getIndexFilePath(relativePath), ActivityService.ActivityType.UPDATED, extraInfo);
         }
     }

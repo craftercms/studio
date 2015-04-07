@@ -68,6 +68,26 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         }
     }
 
+    @Override
+    public boolean isRenamed(String site, String path) {
+        if (metadataExist(site, path)) {
+            ObjectMetadata metadata = getProperties(site, path);
+            return metadata.getRenamed() > 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String getOldPath(String site, String path) {
+        if (metadataExist(site, path)) {
+            ObjectMetadata metadata = getProperties(site, path);
+            return metadata.getOldUrl();
+        } else {
+            return "";
+        }
+    }
+
     @Autowired
     protected ObjectMetadataMapper objectMetadataMapper;
 }
