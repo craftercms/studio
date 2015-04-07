@@ -70,13 +70,6 @@ import reactor.core.Reactor;
 import reactor.event.Event;
 
 
-/* these go away */
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import javax.transaction.*;
-
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure
