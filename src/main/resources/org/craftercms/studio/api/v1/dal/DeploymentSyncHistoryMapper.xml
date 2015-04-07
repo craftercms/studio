@@ -8,7 +8,7 @@
 
   <cache />
 
-  <select id="getDeploymentHistory" resultMap="DeploymentSyncHistoryMap" parameterType="java.util.HashMap" >
+  <select id="getDeploymentHistory" resultMap="DeploymentSyncHistoryMap" parameterType="java.util.Map" >
     SELECT dsh1.*
     FROM cstudio_deploymentsynchistory as dsh1 INNER JOIN (
     SELECT dsh2.site, dsh2.path, dsh2.target, MAX(dsh2.syncdate) as syncdate
@@ -28,5 +28,10 @@
         INSERT INTO cstudio_deploymentsynchistory (syncdate, site, environment, path, target, username, contenttypeclass)
         values (#{syncDate}, #{site}, #{environment}, #{path}, #{target}, #{user}, #{contentTypeClass})
     </insert>
+
+  <delete id="deleteDeploymentDataForSite" parameterType="java.util.Map">
+    DELETE FROM cstudio_deploymentsynchistory
+    WHERE site = #{site};
+  </delete>
 
 </mapper>

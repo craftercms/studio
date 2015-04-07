@@ -106,7 +106,6 @@
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
-            <property name="contentRepository" ref="cstudioContentRepository" />
          <property name="contentService" ref="cstudioContentService"/>
          <property name="activityService" ref="cstudioActivityService" />
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -114,6 +113,7 @@
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
          <property name="siteService" ref="cstudioSiteServiceSimple" />
          <property name="objectStateService" ref="cstudioObjectStateService" />
+         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
@@ -399,6 +399,7 @@
         <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
         <property name="mandatoryDependenciesCheckEnabled" value="${deployContentToEnvironmentJob.mandatoryDependenciesCheckEnabled}" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"

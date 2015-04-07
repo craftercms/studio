@@ -26,15 +26,14 @@ import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.fsm.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
@@ -65,12 +64,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
-             if(true)throw new java.lang.RuntimeException("FIX ME"); //
-            //_contentRepository.stateTransition(site, paths, TransitionEvent.SCHEDULED_DEPLOYMENT);
-            //_contentRepository.setSystemProcessing(site, paths, false);
+            objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
+            objectStateService.setSystemProcessingBulk(site, paths, false);
         } else {
-             if(true)throw new java.lang.RuntimeException("FIX ME"); //
-            //_contentRepository.setSystemProcessing(site, paths, true);
+            objectStateService.setSystemProcessingBulk(site, paths, true);
         }
 
         List<String> newPaths = new ArrayList<String>();
@@ -80,9 +77,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            if (false){if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isNew(site, p)) {
+            if (objectStateService.isNew(site, p)) {
                 newPaths.add(p);
-            } else if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, p)) {
+            } else if (objectMetadataManager.isRenamed(site, p)) {
                 movedPaths.add(p);
             } else {
                 updatedPaths.add(p);
@@ -93,11 +90,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(CopyToEnvironment.Action.MOVE, movedPaths);
         groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
 
-        // use dal to setup deploy to environment log
-        if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //!_contentRepository.environmentRepoExists(site, environment)) {
-             if(true)throw new java.lang.RuntimeException("FIX ME"); //
-            //_contentRepository.createEnvironmentRepo(site, environment);
-        }
         List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
         for (CopyToEnvironment item : items) {
             copyToEnvironmentMapper.insertItemForDeployment(item);
@@ -116,11 +108,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
                 item.setAction(action);
-                if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
-                    String oldPath = "";  if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
+                if (objectMetadataManager.isRenamed(site, path)) {
+                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
                     item.setOldPath(oldPath);
                 }
-                String contentTypeClass = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
+                String contentTypeClass = contentService.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
                 item.setUser(approver);
                 item.setSubmissionComment(submissionComment);
@@ -133,12 +125,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException {
         if (scheduledDate != null && scheduledDate.after(new Date())) {
-             if(true)throw new java.lang.RuntimeException("FIX ME"); //
-            //_contentRepository.stateTransition(site, paths, TransitionEvent.DELETE);
-            //_contentRepository.setSystemProcessing(site, paths, false);
+            objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
+            objectStateService.setSystemProcessingBulk(site, paths, false);
         } else {
-             if(true)throw new java.lang.RuntimeException("FIX ME"); //
-            //_contentRepository.setSystemProcessing(site, paths, true);
+            objectStateService.setSystemProcessingBulk(site, paths, true);
         }
         Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
@@ -173,11 +163,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             item.setScheduledDate(scheduledDate);
             item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
             item.setAction(CopyToEnvironment.Action.DELETE);
-            if (false){ if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.isRenamed(site, path)) {
-                String oldPath = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getOldPath(site, item.getPath());
+            if (objectMetadataManager.isRenamed(site, path)) {
+                String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
                 item.setOldPath(oldPath);
             }
-            String contentTypeClass = ""; if(true)throw new java.lang.RuntimeException("FIX ME"); //_contentRepository.getContentTypeClass(site, path);
+            String contentTypeClass = contentService.getContentTypeClass(site, path);
             item.setContentTypeClass(contentTypeClass);
             item.setUser(approver);
             newItems.add(item);
@@ -187,14 +177,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void deleteDeploymentDataForSite(final String site) {
-        //try {
-            signalWorkersToStop();
-            //_deploymentDAL.deleteDeploymentDataForSite(site);
-        //} catch (DeploymentDALException e) {
-        //    logger.error("Error while deleting deployment data for site {0}", e, site);
-        //} finally {
-            signalWorkersToContinue();
-        //}
+        signalWorkersToStop();
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        copyToEnvironmentMapper.deleteDeploymentDataForSite(params);
+        publishToTargetMapper.deleteDeploymentDataForSite(params);
+        deploymentSyncHistoryMapper.deleteDeploymentDataForSite(params);
+        signalWorkersToContinue();
     }
 
 
@@ -322,8 +311,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ContentItemTO getDeployedItem(String site, String path) {
 
         ContentItemTO item;
-        //ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        //String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
         item = contentService.getContentItem(site, path);
         if (item == null) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
@@ -645,10 +632,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         return items;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this._contentRepository = contentRepository;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
@@ -675,7 +658,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    protected ContentRepository _contentRepository;
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -683,6 +668,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectMetadataManager objectMetadataManager;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

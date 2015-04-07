@@ -60,4 +60,9 @@
         )
     </select>
 
+    <delete id="deleteDeploymentDataForSite" parameterType="java.util.Map">
+        DELETE FROM cstudio_publishtotarget
+        WHERE site = #{site};
+    </delete>
+
 </mapper>

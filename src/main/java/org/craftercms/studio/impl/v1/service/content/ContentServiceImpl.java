@@ -410,11 +410,11 @@ public class ContentServiceImpl implements ContentService {
 
         //item.defaultWebApp = path.getDmSitePath();
         //set content type based on the relative Path
-        String contentType = getContentType(site, relativePath);
-        item.contentType = contentType;
-        if (contentType.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+        String contentTypeClass = getContentTypeClass(site, relativePath);
+        item.contentType = contentTypeClass;
+        if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
             item.component = true;
-        } else if (contentType.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+        } else if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
             item.document = true;
         }
         // set if the content is new
@@ -592,7 +592,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentType(String site, String uri) {
+    public String getContentTypeClass(String site, String uri) {
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return DmConstants.CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {

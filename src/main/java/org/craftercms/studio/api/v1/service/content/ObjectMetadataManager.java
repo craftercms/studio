@@ -31,4 +31,8 @@ public interface ObjectMetadataManager {
     ObjectMetadata getProperties(String site, String path);
 
     boolean metadataExist(String site, String path);
+
+    boolean isRenamed(String site, String path);
+
+    String getOldPath(String site, String path);
 }

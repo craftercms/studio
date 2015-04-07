@@ -35,4 +35,6 @@ public interface CopyToEnvironmentMapper {
     List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
 
     void updateItemDeploymentState(CopyToEnvironment item);
+
+    void deleteDeploymentDataForSite(Map params);
 }
