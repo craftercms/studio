@@ -71,7 +71,18 @@ public class DiskContentRepository extends AbstractContentRepository {
 
     @Override
     public boolean writeContent(String path, InputStream content) {
-        return false;
+        
+        boolean success = true;
+        
+        try {
+            Files.copy(content,constructRepoPath(path));
+        }
+        catch(Exception err) {
+            // log this error
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
