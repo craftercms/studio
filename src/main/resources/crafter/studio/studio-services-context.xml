@@ -482,9 +482,13 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <!-- this bean is NOT the repository but it sits on top of all the old stuff that was tied to the repo -->
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
+    <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
+    </bean-->
+
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+        <property name="repositoryReactor" ref="repositoryReactor"/>
+        <property name="rootPath" value="./crafter/data/repo" />
     </bean>
 
 
