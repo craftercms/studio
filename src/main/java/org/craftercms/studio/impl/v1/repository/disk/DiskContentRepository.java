@@ -18,8 +18,11 @@
 package org.craftercms.studio.impl.v1.repository.disk;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.String;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -36,6 +39,9 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitResult;
 
 /**
  * Disk repository implementation. 
@@ -73,7 +79,7 @@ public class DiskContentRepository extends AbstractContentRepository {
     public boolean writeContent(String path, InputStream content) {
         
         boolean success = true;
-        
+
         try {
             Files.copy(content,constructRepoPath(path));
         }
@@ -87,23 +93,66 @@ public class DiskContentRepository extends AbstractContentRepository {
 
     @Override
     public boolean createFolder(String path, String name) {
-        return false;
+        
+        boolean success = true;
+        
+        try {
+            Files.createDirectories(constructRepoPath(path,name));
+        }
+        catch(Exception err) {
+            // log this error
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
     public boolean deleteContent(String path) {
-        return false;
+        
+        boolean success = true;
+        
+        try {
+            Files.delete(constructRepoPath(path));
+        }
+        catch(Exception err) {
+            // log this error
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
-        return false;
-    }
+        
+        boolean success = true;
 
+        try {
+            Files.copy(constructRepoPath(fromPath), constructRepoPath(toPath));
+        }
+        catch(Exception err) {
+            // log this error
+            success = false;
+        }
+
+        return success;
+    }
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
-        return false;
+        
+        boolean success = true;
+
+        try {
+            Files.move(constructRepoPath(fromPath), constructRepoPath(toPath));
+        }
+        catch(Exception err) {
+            // log this error
+            success = false;
+        }
+
+        return success;
     }
 
 
@@ -112,7 +161,29 @@ public class DiskContentRepository extends AbstractContentRepository {
      * @param path path to content
      */
     public RepositoryItem[] getContentChildren(String path) {
-        return null;
+        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        
+        try {
+            Files.walkFileTree(constructRepoPath(path), new SimpleFileVisitor<Path>() { 
+                @Override
+                public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
+                throws IOException
+                {
+                    RepositoryItem item = new RepositoryItem();
+                    item.name = visitPath.toFile().getName();
+                    item.path = visitPath.toString();
+                    item.isFolder = Files.isDirectory(visitPath);
+
+                    retItems.add(item);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        catch(Exception err) {
+            // log this error
+        }
+
+        return (RepositoryItem[])retItems.toArray();
     }
 
     /** 
@@ -120,7 +191,7 @@ public class DiskContentRepository extends AbstractContentRepository {
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
-        return null;
+        return new VersionTO[0];
     }
 
     /** 
@@ -141,8 +212,9 @@ public class DiskContentRepository extends AbstractContentRepository {
     /**
      * build a repo path from the relative path
      */
-    protected Path constructRepoPath(String relativePath) {
-        return java.nio.file.FileSystems.getDefault().getPath(rootPath, relativePath);
+    protected Path constructRepoPath(String ... args) {
+
+        return java.nio.file.FileSystems.getDefault().getPath(rootPath, args);
 
     }
 
