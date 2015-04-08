@@ -110,10 +110,11 @@ public interface ContentRepository {
 
     /**
      * create a version
+     * @param path location of content
      * @param majorVersion true if major
-     * @return the created version ID
+     * @return the created version ID or null on failure
      */
-    String createVersion(boolean majorVersion);
+    String createVersion(String path, boolean majorVersion); 
 
     /** 
      * revert a version (create a new version based on an old version)

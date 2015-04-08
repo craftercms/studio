@@ -212,10 +212,11 @@ public class DiskContentRepository extends AbstractContentRepository {
 
     /**
      * create a version
+     * @param path location of content
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    public String createVersion(boolean majorVersion) {
+    public String createVersion(String path, boolean majorVersion) {
         return null;
     }
 
@@ -240,6 +241,15 @@ public class DiskContentRepository extends AbstractContentRepository {
     protected Path constructRepoPath(String ... args) {
 
         return java.nio.file.FileSystems.getDefault().getPath(rootPath, args);
+
+    }
+
+    /**
+     * build a repo path from the relative path
+     */
+    protected Path constructVersionRepoPath(String ... args) {
+
+        return java.nio.file.FileSystems.getDefault().getPath(rootPath+"/versions", args);
 
     }
 
