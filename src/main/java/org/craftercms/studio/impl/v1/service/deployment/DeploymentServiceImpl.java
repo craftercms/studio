@@ -38,8 +38,6 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.impl.v1.deployment.dal.DeploymentDAL;
-import org.craftercms.studio.impl.v1.deployment.dal.DeploymentDALException;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
