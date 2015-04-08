@@ -37,7 +37,9 @@ import reactor.event.Event;
 
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
+import java.nio.file.CopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -81,7 +83,10 @@ public class DiskContentRepository extends AbstractContentRepository {
         boolean success = true;
 
         try {
-            Files.copy(content,constructRepoPath(path));
+            logger.info("writing file: "+path);
+
+            CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
+            Files.copy(content,constructRepoPath(path), options);
         }
         catch(Exception err) {
             logger.error("error writing file: "+path, err);
@@ -203,6 +208,15 @@ public class DiskContentRepository extends AbstractContentRepository {
      */
     public VersionTO[] getContentVersionHistory(String path) {
         return new VersionTO[0];
+    }
+
+    /**
+     * create a version
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    public String createVersion(boolean majorVersion) {
+        return null;
     }
 
     /** 

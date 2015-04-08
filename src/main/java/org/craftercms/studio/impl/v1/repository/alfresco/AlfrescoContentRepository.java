@@ -166,6 +166,15 @@ implements SecurityProvider {
         return items;
     }
 
+    /**
+     * create a version
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    public String createVersion(boolean majorVersion) {
+        return null;
+    }
+    
     /** 
      * get the version history for an item
      * @param path - the path of the item

@@ -108,6 +108,13 @@ public interface ContentRepository {
      */
     VersionTO[] getContentVersionHistory(String path);
 
+    /**
+     * create a version
+     * @param majorVersion true if major
+     * @return the created version ID
+     */
+    String createVersion(boolean majorVersion);
+
     /** 
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
