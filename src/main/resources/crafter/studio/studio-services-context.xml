@@ -181,7 +181,7 @@
         <property name="configPath"><value>${permissionService.configPath}</value></property>
         <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
-        <property name="securityProvider" ref="cstudioContentRepository"/>
+        <property name="securityProvider" ref="securityProvider"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl"
@@ -484,13 +484,20 @@
     <!-- ////////////////////////////////////// -->
     <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
-    </bean-->
+    </bean
+
+    <alias name="cstudioContentRepository" alias="securityProvider"/>
+    -->
 
     <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
-        <property name="rootPath" value="./crafter/data/repo" />
+        <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
     </bean>
 
+    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
+    </bean>
+
+ 
 
     <!-- ////////////////////////////////////// -->
     <!--       Object type filters                   -->

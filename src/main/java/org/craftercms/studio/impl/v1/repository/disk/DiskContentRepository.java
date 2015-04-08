@@ -84,7 +84,7 @@ public class DiskContentRepository extends AbstractContentRepository {
             Files.copy(content,constructRepoPath(path));
         }
         catch(Exception err) {
-            // log this error
+            logger.error("error writing file: "+path, err);
             success = false;
         }
 
@@ -164,15 +164,24 @@ public class DiskContentRepository extends AbstractContentRepository {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         
         try {
-            Files.walkFileTree(constructRepoPath(path), new SimpleFileVisitor<Path>() { 
+            Files.walkFileTree(constructRepoPath(path), null, 2, new SimpleFileVisitor<Path>() { 
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
-                throws IOException
-                {
+                throws IOException {
+
                     RepositoryItem item = new RepositoryItem();
                     item.name = visitPath.toFile().getName();
-                    item.path = visitPath.toString();
-                    item.isFolder = Files.isDirectory(visitPath);
+                    logger.error("MAKING ITEM: " + item.name);
+
+
+                    String visitFolderPath = visitPath.toString().replace("/index.xml", "");
+                    Path visitFolder = constructRepoPath(visitFolderPath);
+                    item.path = visitFolderPath;
+
+                    item.isFolder = Files.isDirectory(visitFolder);
+                    logger.error("ITEM PATH: " + item.path);
+                    logger.error("ITEM FOLDER: " + item.isFolder);
+                    logger.error("==" + item.isFolder);
 
                     retItems.add(item);
                     return FileVisitResult.CONTINUE;
@@ -183,7 +192,9 @@ public class DiskContentRepository extends AbstractContentRepository {
             // log this error
         }
 
-        return (RepositoryItem[])retItems.toArray();
+        RepositoryItem[] items = new RepositoryItem[retItems.size()];
+        items = retItems.toArray(items);
+        return items;
     }
 
     /** 
