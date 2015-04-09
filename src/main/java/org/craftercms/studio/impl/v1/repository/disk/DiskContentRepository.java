@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.lang.String;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -35,15 +37,8 @@ import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.CopyOption;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.FileVisitResult;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
 
 /**
  * Disk repository implementation. 
@@ -83,8 +78,7 @@ public class DiskContentRepository extends AbstractContentRepository {
         boolean success = true;
 
         try {
-            logger.info("writing file: "+path);
-
+            logger.debug("writing file: "+path);
             CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
             Files.copy(content,constructRepoPath(path), options);
         }
@@ -207,7 +201,47 @@ public class DiskContentRepository extends AbstractContentRepository {
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
-        return new VersionTO[0];
+        final List<VersionTO> versionList = new ArrayList<VersionTO>();
+
+        try {
+            final String pathToContent = path.substring(0, path.lastIndexOf("/"));
+            final String filename = path.substring(path.lastIndexOf("/")+1);
+ 
+            Path versionPath = constructVersionRepoPath(pathToContent);
+            logger.info("get version history in folder: "+versionPath.toString());
+
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+
+            Files.walkFileTree(versionPath, opts, 1, new SimpleFileVisitor<Path>() { 
+                @Override
+                public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
+                throws IOException {
+                    String versionFilename = visitPath.toString();
+
+                    if(versionFilename.contains(filename)) {
+                        VersionTO version = new VersionTO();
+                        String label = versionFilename.substring(versionFilename.lastIndexOf("--")+2);
+
+                        BasicFileAttributes attr = Files.readAttributes(visitPath, BasicFileAttributes.class);
+
+                        version.setVersionNumber(label);
+                        version.setLastModifier("ADMIN");
+                        version.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));  
+                        version.setComment("");
+
+                        versionList.add(version);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        catch(Exception err) {
+            logger.error("error while getting history for content item " + path, err);
+        }
+
+        VersionTO[] versions = new VersionTO[versionList.size()];
+        versions = versionList.toArray(versions);
+        return versions;
     }
 
     /**
@@ -217,7 +251,53 @@ public class DiskContentRepository extends AbstractContentRepository {
      * @return the created version ID or null on failure
      */
     public String createVersion(String path, boolean majorVersion) {
-        return null;
+        String versionId = null;
+
+        synchronized(path) {
+            VersionTO[] versions = getContentVersionHistory(path);
+
+            if(versions.length != 0) {
+                VersionTO latestVersion = versions[versions.length-1];
+
+                String label = latestVersion.getVersionNumber();
+                String[] labelParts = label.split("\\.");
+                int major = Integer.parseInt(labelParts[0]);
+                int minor = Integer.parseInt(labelParts[1]);
+
+                if(majorVersion) {
+                    versionId = (major+1) + ".0";
+                }
+                else {
+                    versionId = major + "." + (minor+1);
+                }                
+            }
+            else {
+                if(majorVersion) {
+                    versionId = "1.0";
+                }
+                else {
+                    versionId = "0.1";
+                }
+            }
+
+            try {
+                InputStream content = getContent(path);
+                String versionPath = path+"--"+versionId;
+                logger.debug("writing version file: "+versionPath);
+                CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
+
+                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
+                Files.createDirectories(constructVersionRepoPath(pathToContent));
+
+                Files.copy(content, constructVersionRepoPath(versionPath), options);
+            }
+            catch(Exception err) {
+                logger.error("error versionign file: "+path, err);
+                versionId = null;
+            }
+        }
+
+        return versionId;
     }
 
     /** 

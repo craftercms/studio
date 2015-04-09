@@ -216,6 +216,7 @@ implements SecurityProvider {
                             version.setComment(result.getString("description"));
 
                             versions[i] = version;
+                            logger.error("GET VERSIONS DATE IS HARD CODED AS NEW DATE");
                         }
                     }
                 }
