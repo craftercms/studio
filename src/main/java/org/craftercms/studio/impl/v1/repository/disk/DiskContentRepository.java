@@ -163,7 +163,9 @@ public class DiskContentRepository extends AbstractContentRepository {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         
         try {
-            Files.walkFileTree(constructRepoPath(path), null, 2, new SimpleFileVisitor<Path>() { 
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+
+            Files.walkFileTree(constructRepoPath(path), opts, 2, new SimpleFileVisitor<Path>() { 
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
                 throws IOException {
@@ -175,7 +177,9 @@ public class DiskContentRepository extends AbstractContentRepository {
 
                     String visitFolderPath = visitPath.toString().replace("/index.xml", "");
                     Path visitFolder = constructRepoPath(visitFolderPath);
-                    item.path = visitFolderPath;
+                    item.path = visitFolderPath.replace("/"+item.name, "");
+                    item.path = item.path.replace(getRootPath(), "");
+
 
                     item.isFolder = Files.isDirectory(visitFolder);
                     logger.error("ITEM PATH: " + item.path);
