@@ -162,10 +162,13 @@ public class DiskContentRepository extends AbstractContentRepository {
     public RepositoryItem[] getContentChildren(String path) {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         
+        logger.error("=================================================================");
+        logger.error("get tree for :" + path);
+
         try {
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
-            Files.walkFileTree(constructRepoPath(path), opts, 2, new SimpleFileVisitor<Path>() { 
+            Files.walkFileTree(constructRepoPath(path), opts, 3, new SimpleFileVisitor<Path>() { 
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
                 throws IOException {
@@ -179,6 +182,7 @@ public class DiskContentRepository extends AbstractContentRepository {
                     Path visitFolder = constructRepoPath(visitFolderPath);
                     item.path = visitFolderPath.replace("/"+item.name, "");
                     item.path = item.path.replace(getRootPath(), "");
+                    item.path = item.path.replace("/.xml", "");
 
 
                     item.isFolder = Files.isDirectory(visitFolder);
@@ -258,31 +262,7 @@ public class DiskContentRepository extends AbstractContentRepository {
         String versionId = null;
 
         synchronized(path) {
-            VersionTO[] versions = getContentVersionHistory(path);
-
-            if(versions.length != 0) {
-                VersionTO latestVersion = versions[versions.length-1];
-
-                String label = latestVersion.getVersionNumber();
-                String[] labelParts = label.split("\\.");
-                int major = Integer.parseInt(labelParts[0]);
-                int minor = Integer.parseInt(labelParts[1]);
-
-                if(majorVersion) {
-                    versionId = (major+1) + ".0";
-                }
-                else {
-                    versionId = major + "." + (minor+1);
-                }                
-            }
-            else {
-                if(majorVersion) {
-                    versionId = "1.0";
-                }
-                else {
-                    versionId = "0.1";
-                }
-            }
+            versionId = determineNextVersionLabel(path, majorVersion);
 
             try {
                 InputStream content = getContent(path);
@@ -309,14 +289,94 @@ public class DiskContentRepository extends AbstractContentRepository {
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String version, boolean major, String comment) {
-        return false;
+    public boolean revertContent(String path, String label, boolean major, String comment) {
+        boolean success = false;
+
+        synchronized(path) {
+            String versionId = determineNextVersionLabel(path, major);
+
+            try {
+                InputStream versionContent = getVersionedContent(path, label);
+                String versionPath = path+"--"+versionId;
+                
+                logger.debug("writing version file: "+versionPath);
+                CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
+                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
+                Files.createDirectories(constructVersionRepoPath(pathToContent));
+                Files.copy(versionContent, constructVersionRepoPath(versionPath), options);
+
+                // write the repo content
+                InputStream wipContent = getVersionedContent(path, label);
+                Files.copy(wipContent, constructRepoPath(path), options);
+            }
+            catch(Exception err) {
+                logger.error("error versionign file: "+path, err);
+                versionId = null;
+            }
+        }
+
+        return success;
     }
 
     public void lockItem(String site, String path) {
     }
 
     public void unLockItem(String site, String path) {
+    }
+
+
+    protected InputStream getVersionedContent(String path, String label) 
+    throws ContentNotFoundException {
+        InputStream retStream = null;
+
+        try {
+            OpenOption options[] = { StandardOpenOption.READ };
+            retStream = Files.newInputStream(constructVersionRepoPath(path+"--"+label));
+        }
+
+        catch(Exception err) {
+            throw new ContentNotFoundException("error while opening file", err);
+        }
+
+        return retStream;
+    }
+
+    /**
+     * determine the next version label based on what's in the current version store
+     * @param path path to item
+     * @param majorVersion true if version is major
+     * @return next label
+     */
+    protected String determineNextVersionLabel(String path, boolean majorVersion) {
+        String versionId = null;
+
+        VersionTO[] versions = getContentVersionHistory(path);
+
+        if(versions.length != 0) {
+            VersionTO latestVersion = versions[versions.length-1];
+
+            String label = latestVersion.getVersionNumber();
+            String[] labelParts = label.split("\\.");
+            int major = Integer.parseInt(labelParts[0]);
+            int minor = Integer.parseInt(labelParts[1]);
+
+            if(majorVersion) {
+                versionId = (major+1) + ".0";
+            }
+            else {
+                versionId = major + "." + (minor+1);
+            }                
+        }
+        else {
+            if(majorVersion) {
+                versionId = "1.0";
+            }
+            else {
+                versionId = "0.1";
+            }
+        }
+
+        return versionId;
     }
 
     /**
