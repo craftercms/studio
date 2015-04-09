@@ -117,29 +117,7 @@ implements SecurityProvider {
     public boolean deleteContent(String path) {
         logger.debug("deleting content at " + path);
         addDebugStack();
-        boolean result = false;
-        String deleteURI = "/slingshot/doclib/action/file/node/";
-        String nodeRef = null;
-        try {
-            nodeRef = getNodeRefForPathCMIS(path);
-        } catch (ContentNotFoundException e) {
-            logger.error("Could not find content for path {0}", path);
-        }
-
-        if (nodeRef == null) {
-            // if no nodeRef, it's already deleted so just return true
-            logger.debug("No content found at " + path);
-            result = true;
-        } else {
-            Map<String, String> params = new HashMap<String, String>();
-            try {
-                deleteURI = deleteURI + nodeRef.replace("://", "/");
-                result = this.alfrescoDeleteRequest(deleteURI, params);
-            } catch (Exception e) {
-                logger.error("Error while deleting " + path, e);
-            }
-        }
-        return result;
+        return deleteContentCMIS(path);
     }
 
     @Override
@@ -182,57 +160,7 @@ implements SecurityProvider {
      */
     public VersionTO[] getContentVersionHistory(String path) {
         addDebugStack();
-        VersionTO[] versions = new VersionTO[0];
-
-        try {
-            String nodeRef = getNodeRefForPathCMIS(path);
-
-            if(nodeRef != null) {
-                // construct and execute url to download result
-                String historyURI = "/api/version?nodeRef={nodeRef}";
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("nodeRef", nodeRef);
-
-                InputStream response = this.alfrescoGetRequest(historyURI, params);
-
-                try{
-                    String jsonResponse = IOUtils.toString(response, "utf-8");
-                    JsonConfig cfg = new JsonConfig();
-                    JSONArray results = JSONArray.fromObject(jsonResponse, cfg);
-                    int resultCount = results.size();
-
-                    if(resultCount > 0) {
-                        versions = new VersionTO[resultCount];
-                        for(int i=0; i<resultCount; i++) {
-                            JSONObject result = results.getJSONObject(i);
-                            JSONObject creator = result.getJSONObject("creator");
-                            VersionTO version = new VersionTO();
-
-                            version.setVersionNumber(result.getString("label"));
-                            version.setLastModifier(creator.getString("userName"));
-                            version.setLastModifiedDate(new Date()); //result.getString("createdDate"));
-                            //       "createdDate": "16 Nov 2014 21:28:09 GMT-0500 (EST)",
-                            //       "createdDateISO": "2014-11-16T21:28:09.141-05:00",
-                            version.setComment(result.getString("description"));
-
-                            versions[i] = version;
-                            logger.error("GET VERSIONS DATE IS HARD CODED AS NEW DATE");
-                        }
-                    }
-                }
-                catch(Exception err) {
-                    logger.error("err getting noderef for path (" + path + "): ", err);   
-                }
-            }
-            else {
-                throw new Exception("nodeRef not found for path: [" + path + "]");
-            }
-        }
-        catch(Exception err) {
-            logger.error("err getting content: ", err);   
-        }
-
-        return versions;
+        return getContentVersionHistoryCMIS(path);
     }
 
     /** 
@@ -242,34 +170,7 @@ implements SecurityProvider {
      */
     public boolean revertContent(String path, String version, boolean major, String comment) {
         addDebugStack();
-        boolean success = false;
-        String nodeRef = null;
-        try {
-            nodeRef = getNodeRefForPathCMIS(path);
-        } catch (ContentNotFoundException e) {
-            logger.info("Could not find content for path {0}", path);
-        }
-
-        if(nodeRef != null) {
-            String revertCommand = "{" +
-               "\"nodeRef\":\"" + nodeRef + "\"," + 
-               "\"version\":\"" + version + "\"," +
-               "\"majorVersion\":\"" + major + "\"," +
-               "\"description\":\"" + comment+ "\"" +
-               "}";
-
-            try {
-                InputStream bodyStream = IOUtils.toInputStream(revertCommand, "UTF-8");
-                String result = alfrescoPostRequest("/api/revert", null, bodyStream, "application/json");
-                
-                success = result.contains("true");
-             }
-            catch(Exception err) {
-                logger.error("err reverting content content: ", err);   
-            }
-        }
-
-        return success;
+        return revertContentCMIS(path, version, major, comment);
     }
 
     /**
@@ -283,35 +184,7 @@ implements SecurityProvider {
      */
     protected String createFolderInternal(String path, String name) {
         logger.debug("creating a folder at " + path + " with name: " + name);
-        String newFolderRef = null;
-        String createFolderURI = "/api/type/cm%3afolder/formprocessor";
-        Map<String, String> params = new HashMap<String, String>();
-        String folderRef = null;
-        try {
-            folderRef = getNodeRefForPathCMIS(path);
-        } catch (ContentNotFoundException e) {
-            logger.info("Could not find content for path {0}", path);
-        }
-        if (StringUtils.isEmpty(folderRef)) {
-            logger.error("Failed to create " + name + " folder since " + path + " does not exist.");
-        } else {
-            JSONObject requestObj = new JSONObject();
-            requestObj.put("alf_destination", folderRef);
-            requestObj.put("prop_cm_name", name);
-            requestObj.put("prop_cm_title", name);
-            InputStream is = IOUtils.toInputStream(requestObj.toString());
-            try {
-                String responseBody = this.alfrescoPostRequest(createFolderURI, params, is, "application/json");
-                JsonConfig cfg = new JsonConfig();
-                JSONObject respObj = JSONObject.fromObject(responseBody, cfg);
-                newFolderRef = (String) respObj.get("persistedObject");
-            } catch (Exception e) {
-                logger.error("Error while creating " + name + " at " + path, e);
-            } finally {
-                IOUtils.closeQuietly(is);
-            }
-        }
-        return newFolderRef;
+        return createFolderInternalCMIS(path, name);
     }
 
     /**
@@ -325,56 +198,8 @@ implements SecurityProvider {
      * @return  true if successful
      */
     protected boolean copyContentInternal(String fromPath, String toPath, boolean isCut) {
-        logger.debug( (isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
-        boolean result = false;
-        // find all nodeRefs required
-        String sourceRef = null;
-        String targetRef = null;
-        try {
-            targetRef = getNodeRefForPathCMIS(toPath);
-        } catch (ContentNotFoundException e) {
-            logger.info("Could not find content for path {0}", toPath);
-        }
-        try {
-            sourceRef = getNodeRefForPathCMIS(fromPath);
-        } catch (ContentNotFoundException e) {
-            logger.info("Could not find content for path {0}", fromPath);
-        }
-        // TODO: need to take care of duplicate at the target location
-        if (targetRef != null && sourceRef != null) {
-            InputStream is = null;
-            try {
-                String sourceParentRef = getNodeRefForPathCMIS(fromPath.substring(0, fromPath.lastIndexOf("/")));
-                String copyURL = "/slingshot/doclib/action/copy-to/node/";
-                String moveURL = "/slingshot/doclib/action/move-to/node/";
-                String actionURL = (isCut) ? moveURL : copyURL;
-                actionURL = actionURL + targetRef.replace("://", "/");
-                // no parameter
-                Map<String, String> params = new HashMap<String, String>();
-                // create request body
-                JSONObject requestObj = new JSONObject();
-                String[] nodeRefs = new String[1];
-                nodeRefs[0] = sourceRef;
-                requestObj.put("nodeRefs", nodeRefs);
-                requestObj.put("parentId", sourceParentRef);
-                is = IOUtils.toInputStream(requestObj.toString());
-
-                this.alfrescoPostRequest(actionURL, params, is, "application/json");
-                return true;
-            } catch (Exception e) {
-                logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromPath + " to " + toPath, e);
-            } finally {
-                IOUtils.closeQuietly(is);
-            }
-        } else {
-            if (sourceRef == null) {
-                logger.error((isCut ? "Move" : "Copy") + " failed since source path " + fromPath + " does not exist.");
-            }
-            if (targetRef == null) {
-                logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toPath + " does not exist.");
-            }
-        }
-        return result;
+        logger.debug((isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
+        return copyContentInternalCMIS(fromPath, toPath, isCut);
     }
 
 
@@ -389,37 +214,6 @@ implements SecurityProvider {
         retResponse = serviceURI.toURL().openStream();
 
         return retResponse;
-    }
-
-    /**
-     * fire DELETE request to Alfresco with proper security
-     */
-    protected boolean alfrescoDeleteRequest(String uri, Map<String, String> params) throws Exception {
-        String serviceURL = buildAlfrescoRequestURL(uri, params);
-        DeleteMethod deleteMethod = new DeleteMethod(serviceURL);
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-        int status = httpClient.executeMethod(deleteMethod);
-        if (status == 200 || status == 204) {
-            return true;
-        } else {
-            // TODO: we might need to return response stream
-            logger.error("Delete failed with " + status);
-            return false;
-        }
-    }
-
-    /**
-     * fire POST request to Alfresco with propert security
-     */
-    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
-        String serviceURL = buildAlfrescoRequestURL(uri, params);        
-        PostMethod postMethod = new PostMethod(serviceURL);
-        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
-
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-        int status = httpClient.executeMethod(postMethod);
-        
-        return postMethod.getResponseBodyAsString();
     }
 
     /**
@@ -728,6 +522,204 @@ implements SecurityProvider {
             logger.error("Error writing content to a path {0}", t, fullPath);
         }
         return false;
+    }
+
+    protected boolean deleteContentCMIS(String fullPath) {
+        boolean result = false;
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if (cmisObject == null) {
+                // if no cmisObject, it's already deleted so just return true
+                logger.debug("No content found at " + fullPath);
+                result = true;
+            } else {
+                cmisObject.delete(true);
+                result = true;
+            }
+        } catch (CmisBaseException e) {
+            logger.error("Could not find content for path {0}", fullPath);
+        }
+        return result;
+    }
+
+    protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+        VersionTO[] versions = new VersionTO[0];
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if(cmisObject != null) {
+                ObjectType type = cmisObject.getType();
+                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                    List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
+                    if (versionsCMIS != null && versionsCMIS.size() > 0) {
+                        versions = new VersionTO[versionsCMIS.size()];
+                    }
+                    int idx = 0;
+                    for (org.apache.chemistry.opencmis.client.api.Document version : versionsCMIS) {
+                        VersionTO versionTO = new VersionTO();
+                        versionTO.setVersionNumber(version.getVersionLabel());
+                        versionTO.setLastModifier(version.getLastModifiedBy());
+                        versionTO.setLastModifiedDate(version.getLastModificationDate().getTime());
+                        versionTO.setComment(version.getDescription());
+
+                        versions[idx++] = versionTO;
+                    }
+                }
+            } else {
+                logger.info("Content not found for path: [" + fullPath + "]");
+            }
+        } catch(CmisBaseException err) {
+            logger.error("err getting content: ", err);
+        }
+        return versions;
+    }
+
+    protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+        boolean success = false;
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if(cmisObject != null) {
+                ObjectType type = cmisObject.getType();
+                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                    List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
+                    if (versionsCMIS != null && versionsCMIS.size() > 0) {
+                        for (org.apache.chemistry.opencmis.client.api.Document documentVersion : versionsCMIS) {
+                            if (version.equals(documentVersion.getVersionLabel())) {
+                                ContentStream contentStream = documentVersion.getContentStream();
+                                doc.setContentStream(contentStream, true);
+                                Map<String, Object> props = new HashMap<String, Object>();
+                                props.put("cmis:description", comment);
+                                doc.updateProperties(props);
+                                success = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (CmisBaseException err) {
+            logger.error("err reverting content content: ", err);
+        }
+        return success;
+    }
+
+    protected String createFolderInternalCMIS(String fullPath, String name) {
+        String newFolderRef = null;
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if (cmisObject != null) {
+                ObjectType type = cmisObject.getType();
+                if (FolderType.FOLDER_BASETYPE_ID.equals(type.getId())) {
+                    Folder folder = (Folder)cmisObject;
+                    Map<String, String> newFolderProps = new HashMap<String, String>();
+                    newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, FolderType.FOLDER_BASETYPE_ID);
+                    newFolderProps.put(PropertyIds.NAME, name);
+                    Folder newFolder = folder.createFolder(newFolderProps);
+                    Property property = newFolder.getProperty("alfcmis:nodeRef");
+                    newFolderRef = property.getValueAsString();
+                }
+            } else {
+                logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Failed to create " + name + " folder in " + fullPath, err);
+        }
+        return newFolderRef;
+    }
+
+    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut) {
+        boolean result = false;
+        String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanFromPath.endsWith("/")) {
+            cleanFromPath = cleanFromPath.substring(0, cleanFromPath.length() - 1);
+        }
+        String cleanToPath = toFullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanToPath.endsWith("/")) {
+            cleanToPath = cleanToPath.substring(0, cleanToPath.length() - 1);
+        }
+
+        try {
+            Session session = getCMISSession();
+            CmisObject sourceCmisObject = session.getObjectByPath(cleanFromPath);
+            CmisObject targetCmisObject = session.getObjectByPath(cleanToPath);
+
+            if (sourceCmisObject != null && targetCmisObject != null) {
+                ObjectType sourceType = sourceCmisObject.getType();
+                ObjectType targetType = targetCmisObject.getType();
+                if (FolderType.FOLDER_BASETYPE_ID.equals(targetType.getId())) {
+                    Folder targetFolder = (Folder)targetCmisObject;
+                    if (DocumentType.DOCUMENT_BASETYPE_ID.equals(sourceType.getId())) {
+                        org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                        copyDocument(targetFolder, sourceDocument);
+                    } else if (FolderType.FOLDER_BASETYPE_ID.equals(sourceType.getId())) {
+                        Folder sourceFolder = (Folder)sourceCmisObject;
+                        copyFolder(targetFolder, sourceFolder);
+                    }
+                    return true;
+                } else {
+                    logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath + " is not folder.");
+                }
+            } else {
+                if (sourceCmisObject == null) {
+                    logger.error((isCut ? "Move" : "Copy") + " failed since source path " + fromFullPath + " does not exist.");
+                }
+                if (targetCmisObject == null) {
+                    logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath + " does not exist.");
+                }
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " + toFullPath, err);
+        }
+
+        return result;
+    }
+
+    private void copyFolder(Folder parentFolder, Folder toCopyFolder) {
+        Map<String, Object> folderProperties = new HashMap<String, Object>(2);
+        folderProperties.put(PropertyIds.NAME, toCopyFolder.getName());
+        folderProperties.put(PropertyIds.OBJECT_TYPE_ID, toCopyFolder.getBaseTypeId().value());
+        Folder newFolder = parentFolder.createFolder(folderProperties);
+        copyChildren(newFolder, toCopyFolder);
+    }
+
+    private void copyChildren(Folder parentFolder, Folder toCopyFolder) {
+        ItemIterable<CmisObject> immediateChildren = toCopyFolder.getChildren();
+        for (CmisObject child : immediateChildren) {
+            if (child instanceof Document) {
+                copyDocument(parentFolder, (org.apache.chemistry.opencmis.client.api.Document) child);
+            } else if (child instanceof Folder) {
+                copyFolder(parentFolder, (Folder) child);
+            }
+        }
+    }
+
+    private void copyDocument(Folder parentFolder, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
+        Map<String, Object> documentProperties = new HashMap<String, Object>(2);
+        documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
+        documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
+        sourceDocument.copy(parentFolder, documentProperties, null, null, null, null, null);
     }
 
     protected Session getCMISSession() {
