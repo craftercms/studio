@@ -191,7 +191,7 @@ public interface ContentService {
 
     String getRelativeSitePath(String site, String fullPath);
 
-    String getContentType(String site, String uri);
+    String getContentTypeClass(String site, String uri);
 
     /**
      * write content

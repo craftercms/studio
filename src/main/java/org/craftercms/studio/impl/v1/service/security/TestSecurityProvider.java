@@ -16,25 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.impl.v1.service.security;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 
 /**
- * @author Dejan Brkic
  */
-public interface CopyToEnvironmentMapper {
+public class TestSecurityProvider implements SecurityProvider {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    public Set<String> getUserGroups(String user) {
+    	HashSet<String> groups = new HashSet<String>();
+    	groups.add("site_global1_SiteManager");
+    	return groups;
+    };
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    public String getCurrentUser() {
+    	return "admin";
+    };
 
-    void cancelWorkflow(Map params);
+    public Map<String, String> getUserProfile(String user) {
+    	Map<String, String> profile = new HashMap<String, String>();
+    	return profile;
+    }
 
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
-
-    void updateItemDeploymentState(CopyToEnvironment item);
-
-    void deleteDeploymentDataForSite(Map params);
+    public String authenticate(String username, String password) {
+    	return "FAKETICKET";
+    }
 }

@@ -38,8 +38,9 @@ class ContentTypeServices {
 	 * @param site - the project ID
 	 * @param path - the path
 	 */
-	def getAllowedContentTypesForPath(site, path){
-
+	static getAllowedContentTypesForPath(context, site, path){
+		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
+		return contentTypeServiceImpl.getAllowedContentTypesForPath(site, path)
 	}
 
 	/**

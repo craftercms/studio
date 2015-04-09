@@ -18,11 +18,13 @@
 
 package org.craftercms.studio.api.v1.dal;
 
-public interface PageNavigationOrderMapper {
+import java.util.Map;
 
-    PageNavigationOrder getPageNavigationOrderForSiteAndPath(String site, String path);
+public interface PageNavigationOrderMapper {
 
     void insert(PageNavigationOrder pageNavigationOrder);
 
     void update(PageNavigationOrder pageNavigationOrder);
+
+    PageNavigationOrder getPageNavigationOrderForSiteAndPath(Map<String, String> params);
 }

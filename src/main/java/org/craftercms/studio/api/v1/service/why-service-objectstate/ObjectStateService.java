@@ -59,9 +59,8 @@ public interface ObjectStateService {
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing);
 /*
     public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);
-
-    public void setSystemProcessingBulk(List<String> objectIds, boolean isSystemProcessing);
-    */
+*/
+    void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing);
 
     public void updateObjectPath(String site, String oldPath, String newPath);
 
@@ -85,7 +84,7 @@ public interface ObjectStateService {
 
     public void deleteObjectStateForPaths(String site, List<String> paths);
 */
-    public void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
+    void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
 
     /**
      * get the object for a given set of states

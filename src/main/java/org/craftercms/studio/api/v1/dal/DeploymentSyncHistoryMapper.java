@@ -8,4 +8,6 @@ public interface DeploymentSyncHistoryMapper {
     List<DeploymentSyncHistory> getDeploymentHistory(Map params);
 
     void insertDeploymentSyncHistoryItem(DeploymentSyncHistory item);
+
+    void deleteDeploymentDataForSite(Map params);
 }

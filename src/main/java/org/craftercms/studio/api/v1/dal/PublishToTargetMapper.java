@@ -26,4 +26,6 @@ public interface PublishToTargetMapper {
     void insertItemForTargetSync(PublishToTarget publishToTargetItem);
 
     List<PublishToTarget> getItemsReadyForTargetSync(Map<String, Object> params);
+
+    void deleteDeploymentDataForSite(Map params);
 }

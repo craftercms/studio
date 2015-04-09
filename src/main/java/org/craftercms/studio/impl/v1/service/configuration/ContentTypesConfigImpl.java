@@ -32,6 +32,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -370,6 +371,40 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
 
     }
 
+    public ContentTypeConfigTO loadConfiguration(String site, ContentItemTO configItem) {
+        String key = contentTypeNodeMap.get(site + ":" + configItem.getPath());
+        // if key is found, check the timestamp
+        if (!StringUtils.isEmpty(key)) {
+            ContentTypeConfigTO contentTypeConfig = contentTypeMap.get(key);
+            if (contentTypeConfig != null) {
+                Date modifiedDate = configItem.getLastEditDate();
+                if (! (modifiedDate.after(contentTypeConfig.getLastUpdated()))) {
+                    // if the node modified date is not after the timestamp, no need to load again
+                    logger.debug("Skipping loading " + key + " since it is previsouly loaded and no change was made.");
+                    return contentTypeConfig;
+                }
+            }
+        }
+        logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
+
+        // otherwise load the configuration file
+        ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configItem.getUri());
+        key = this.createKey(site, contentTypeConfig.getName());
+        this.addContentType(key, contentTypeConfig);
+        return contentTypeConfig;
+    }
+
+    @Override
+    public SiteContentTypePathsTO getPathMapping(String site) {
+        return pathMapping.get(site);
+    }
+
+    @Override
+    public ContentTypeConfigTO getContentTypeConfig(String key) {
+        checkForUpdate(key);
+        return contentTypeMap.get(key);
+    }
+
     @Override
     public void register() {
         this.getServicesManager().registerService(ContentTypesConfig.class, this);
@@ -383,5 +418,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
 
     protected Map<String, ContentTypeConfigTO> contentTypeMap = new HashMap<String, ContentTypeConfigTO>();
     protected Map<String, SiteContentTypePathsTO> pathMapping = new HashMap<String, SiteContentTypePathsTO>();
+    /** a map of noderefs as string and keys (site, content-type-name) **/
+    protected Map<String, String> contentTypeNodeMap = new HashMap<String, String>();
     protected ContentService contentService;
 }

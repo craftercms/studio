@@ -36,7 +36,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 	setLoggingLevel: function (index, level) {
 		var logger = CStudioAdminConsole.Tool.Logging.loggers[index];
 		if(logger) {
-			var serviceUri = "/proxy/alfresco/cstudio/logging/set-level?logger="+logger.name+"&level="+level;
+			var serviceUri = "/api/1/services/api/1/server/set-logger-state.json?logger="+logger.name+"&level="+level;
 			var cb = {
 				success:function() {
 					CStudioAdminConsole.Tool.Logging.prototype.refreshLoggingLevels();

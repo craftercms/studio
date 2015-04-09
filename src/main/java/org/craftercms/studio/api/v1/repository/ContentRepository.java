@@ -108,6 +108,14 @@ public interface ContentRepository {
      */
     VersionTO[] getContentVersionHistory(String path);
 
+    /**
+     * create a version
+     * @param path location of content
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    String createVersion(String path, boolean majorVersion); 
+
     /** 
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
@@ -134,94 +142,5 @@ public interface ContentRepository {
 
 
 
-
-
-/* ========================================================================== */
-// everything below here is methods that will not be part of the interface
-
-    /**
-     * get content
-     * @param site the site project id
-     * @param variant variant is a variation of the site (like a translation for example)
-     * @param store is an area to write to (live, stage, work-area, ...)
-     * @param path is the file path to write
-     */
-    InputStream getContent(String site, String variant, String store, String path) throws ContentNotFoundException;
-
-
-    /**
-     * get transaction
-     */
-    UserTransaction getTransaction();
-    /**
-     * write content
-     * @param site the site project id
-     * @param variant variant is a variation of the site (like a translation for example)
-     * @param store is an area to write to (live, stage, work-area, ...)
-     * @param path is the file path to write
-     * @param content is the bits to write
-     */
-    void writeContent(String site, String variant, String store, String path, InputStream content);
-
-    void stateTransition(String site, List<String> paths, org.craftercms.studio.api.v1.service.fsm.TransitionEvent event);
-
-    // are these repository interfaces?  I don't think they have much to do with the repository
-    void stateTransition(String site, String path, org.craftercms.studio.api.v1.service.fsm.TransitionEvent event);
-
-    void setSystemProcessing(String site, List<String> paths, boolean isSystemProcessing);
-
-    void setSystemProcessing(String site, String path, boolean isSystemProcessing);
-
-    void createNewVersion(String site, String path, String submissionComment, boolean isMajorVersion);
-
-    void copyToEnvironment(String site, String environment, String path) throws DeploymentException;
-
-    Set<String> getAllAvailableSites();
-
-    Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site);
-
-    String getCurrentUser();
-
-    String getAdministratorUser();
-
-    boolean isNew(String site, String path);
-
-    String getFilename(String site, String path);
-
-    boolean isRenamed(String site, String path);
-
-    String getOldPath(String site, String path);
-
-    InputStream getMetadataStream(String site, String path);
-
-    //void publishDeployEvent(String endpoint, List<DeploymentEventItem> items);
-
-    void deleteContent(CopyToEnvironmentItem item);
-
-    void deleteContent(String site, String environment, String path);
-
-    void clearRenamed(String site, String path);
-
-    String getContentTypeClass(String site,  String path);
-
-    void setLockBehaviourEnabled(boolean enabled);
-
-    String getFullPath(String site, String path);
-
-    List<String> getDependentPaths(String site, String path);
-
-    boolean isFolder(String site, String path);
-
-    boolean environmentRepoExists(String site, String environment);
-
-    void createEnvironmentRepo(String site, String environment);
-
-    String getLiveEnvironmentName(String site);
-
-    Set<String> getAllPublishingEnvironments(String site);
-
-    void lockRepository();
-
-    void unlockRepository();
 
 }

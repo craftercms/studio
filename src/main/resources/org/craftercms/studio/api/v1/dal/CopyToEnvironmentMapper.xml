@@ -38,7 +38,7 @@
 
   <cache />
 
-  <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.HashMap" >
+  <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map" >
     SELECT *
     FROM cstudio_copytoenvironment
     WHERE site = #{site}
@@ -52,7 +52,7 @@
         values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})
     </insert>
 
-    <update id="cancelWorkflow" parameterType="java.util.HashMap">
+    <update id="cancelWorkflow" parameterType="java.util.Map">
         UPDATE cstudio_copytoenvironment
         SET state = #{canceledState}
         WHERE site = #{site}
@@ -76,4 +76,9 @@
         SET state = #{state}
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteDeploymentDataForSite" parameterType="java.util.Map">
+        DELETE FROM cstudio_copytoenvironment
+        WHERE site = #{site};
+    </delete>
 </mapper>

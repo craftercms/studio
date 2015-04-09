@@ -258,7 +258,7 @@ public class ContentServiceImpl implements ContentService {
 
                     item.uri = fullPath;
                     if (fullPath.contains("/") && fullPath.length() > 1) {
-                        item.path = fullPath.substring(0, fullPath.lastIndexOf("/") - 1);
+                        item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
                         item.name = fullPath.substring(fullPath.lastIndexOf("/") + 1);
                     } else {
                         item.path = "";
@@ -410,11 +410,11 @@ public class ContentServiceImpl implements ContentService {
 
         //item.defaultWebApp = path.getDmSitePath();
         //set content type based on the relative Path
-        String contentType = getContentType(site, relativePath);
-        item.contentType = contentType;
-        if (contentType.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+        String contentTypeClass = getContentTypeClass(site, relativePath);
+        item.contentType = contentTypeClass;
+        if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
             item.component = true;
-        } else if (contentType.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+        } else if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
             item.document = true;
         }
         // set if the content is new
@@ -498,24 +498,36 @@ public class ContentServiceImpl implements ContentService {
 
             ContentItemTO contentItem = null;
 
-            if(repoItem.isFolder && isPages) {
-                contentItem = getContentItem(repoItem.path + "/" + repoItem.name + "/index.xml");
+            if(repoItem.isFolder) {
+                if (isPages) {
+                    logger.debug("1 - Get content item for path {0}", repoItem.path + "/" + repoItem.name + "/index.xml");
+                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name + "/index.xml");
+                } else {
+                    logger.debug("2 - Get content item for path {0}", repoItem.path + "/" + repoItem.name);
+                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
+                }
                 if(depth > 0) {
                     contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth-1, isPages);
                     contentItem.numOfChildren = children.size();
                 }
+            } else {
+                logger.debug("3 - Get content item for path {0}", fullPath);
+                contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
             }
-
+/*
             if(contentItem == null) {
                 if (!StringUtils.endsWith(fullPath, "/index.xml")) {
+                    logger.debug("3 - Get content item for path {0}", fullPath);
                     contentItem = getContentItem(fullPath);
                     if (depth > 0) {
-                        contentItem.children = getContentItemTreeInternal(fullPath, depth - 1, isPages);
+                        contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth - 1, isPages);
                         contentItem.numOfChildren = children.size();
                     }
                 }
             }
-            if(contentItem == null) {
+            */
+            if(contentItem != null) {
+                logger.debug("Adding child {0} for path {1}", contentItem.getUri(), fullPath);
                 children.add(contentItem);
             }
         }
@@ -580,7 +592,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentType(String site, String uri) {
+    public String getContentTypeClass(String site, String uri) {
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return DmConstants.CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
@@ -721,20 +733,18 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public String getNextAvailableName(String site, String path) {
-        String fullPath = expandRelativeSitePath(site, path);
         String[] levels = path.split("/");
         int length = levels.length;
         if (length > 0) {
             ContentItemTO item = getContentItem(site, path);
             if (item != null) {
                 String name = item.getName();
-                //String parentPath = fullPath.replace("/" + name, "");
                 String parentPath = ContentUtils.getParentUrl(path);
                 ContentItemTO parentItem = getContentItemTree(site, parentPath, 1);
                 if (parentItem != null) {
                     int lastIndex = name.lastIndexOf(".");
-                    String ext = (/*item.isFolder()*/ false) ? "" : name.substring(lastIndex);
-                    String originalName = (/*item.isFolder()*/ false) ? name : name.substring(0, lastIndex);
+                    String ext = (item.isFolder()) ? "" : name.substring(lastIndex);
+                    String originalName = (item.isFolder()) ? name : name.substring(0, lastIndex);
                     List<ContentItemTO> children = parentItem.getChildren();
                     // pattern matching doesn't work here
                     // String childNamePattern = originalName + "%" + ext;
@@ -743,17 +753,17 @@ public class ContentServiceImpl implements ContentService {
                     if (children != null && children.size() > 0) {
                         // since it is already sorted, we only care about the last matching item
                         for (ContentItemTO child : children) {
-                            //if ((item.isFolder() == child.isFolder())) {
+                            if ((item.isFolder() == child.isFolder())) {
                                 String childName = child.getName();
                                 if (childName.matches(namePattern)) {
-                                    Pattern pattern = (/*item.isFolder()*/false) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
+                                    Pattern pattern = (item.isFolder()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
                                     Matcher matcher = pattern.matcher(childName);
                                     if (matcher.matches()) {
                                         int helper = ContentFormatUtils.getIntValue(matcher.group(2));
                                         lastNumber = (helper > lastNumber) ? helper : lastNumber;
                                     }
                                 }
-                            //}
+                            }
                         }
                     }
                     String nextName = originalName + "-" + ++lastNumber + ext;

@@ -33,6 +33,9 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService implements DmPageNavigationOrderService {
 
@@ -50,14 +53,21 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         generalLockService.lock(lockId);
         float lastNavOrder = 1000F;
         try {
-            PageNavigationOrder pageNavigationOrder = pageNavigationOrderMapper.getPageNavigationOrderForSiteAndPath(site, path);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("path", path);
+            PageNavigationOrder pageNavigationOrder = pageNavigationOrderMapper.getPageNavigationOrderForSiteAndPath(params);
             if (pageNavigationOrder == null) {
-                ContentItemTO itemTreeTO = contentService.getContentItemTree(site, path, 1);
                 pageNavigationOrder = new PageNavigationOrder();
-                pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
                 pageNavigationOrder.setSite(site);
                 pageNavigationOrder.setPath(path);
-                pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+                ContentItemTO itemTreeTO = contentService.getContentItemTree(site, path, 1);
+                if (itemTreeTO == null) {
+                    pageNavigationOrder.setMaxCount(0F);
+                } else {
+                    pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
+                    pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+                }
                 pageNavigationOrderMapper.insert(pageNavigationOrder);
             } else {
                 float newMaxCount = pageNavigationOrder.getMaxCount() + pageNavigationOrderIncrement;
