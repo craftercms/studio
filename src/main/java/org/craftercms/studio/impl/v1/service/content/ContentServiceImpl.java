@@ -136,7 +136,13 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean writeContent(String path, InputStream content) {
-       return _contentRepository.writeContent(path, content);
+
+       boolean writeSuccess = false;
+
+        writeSuccess = _contentRepository.writeContent(path, content);
+        _contentRepository.createVersion(path, false);
+ 
+       return writeSuccess;
     }
 
     @Override
