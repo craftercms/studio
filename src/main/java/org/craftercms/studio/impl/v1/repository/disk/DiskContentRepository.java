@@ -185,12 +185,13 @@ public class DiskContentRepository extends AbstractContentRepository {
                     item.path = item.path.replace(getRootPath(), "");
                     item.path = item.path.replace("/.xml", "");
 
-
-                    logger.info("ITEM NAME: " + item.name);
-                    logger.info("ITEM PATH: " + item.path);
-                    logger.info("ITEM FOLDER: ("+visitFolderPath+"): " + item.isFolder);
-
-                    retItems.add(item);
+                    if(!".DS_Store".equals(item.name)){
+                        logger.info("ITEM NAME: " + item.name);
+                        logger.info("ITEM PATH: " + item.path);
+                        logger.info("ITEM FOLDER: ("+visitFolderPath+"): " + item.isFolder);
+                        retItems.add(item);
+                    }
+                    
                     return FileVisitResult.CONTINUE;
                 }
             });

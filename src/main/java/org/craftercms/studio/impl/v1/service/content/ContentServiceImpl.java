@@ -213,7 +213,14 @@ public class ContentServiceImpl implements ContentService {
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
-        boolean itemIsPage = (contentPath.startsWith("/website/site"));
+        logger.info("Pupulating page props {0}", contentPath);
+        boolean itemIsPage = false;
+
+        if((contentPath.startsWith("/site/website"))
+        && contentPath.indexOf(".level.xml") == -1) {
+            itemIsPage = true;
+        }
+         
         item.page = itemIsPage;
         item.previewable = itemIsPage;
         item.component = !itemIsPage;
@@ -240,20 +247,29 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    protected ContentItemTO populateItemChildren(ContentItemTO item) {
+    protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
+
+        item.children = new ArrayList<ContentItemTO>();
+        item.numOfChildren = 0;
 
         if (contentPath.indexOf("/index.xml") != -1 || contentPath.indexOf(".xml") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
                 fullContentPath = fullContentPath.replace("/index.xml", "");
             }
-            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
-            if (childRepoItems != null) {
 
+
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
+            boolean indexFound = false;
+                
+            if(childRepoItems != null) {
                 item.numOfChildren = childRepoItems.length;
-                if (item.numOfChildren != 0) item.isContainer = true;
+                if (item.numOfChildren != 0) {
+                    item.isContainer = true;
+                    item.container = true;
+                }
 
                 logger.info("Checking if {0} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
@@ -262,26 +278,45 @@ public class ContentServiceImpl implements ContentService {
                             item.uri = item.uri + "/index.xml";
                         }
                         item.numOfChildren--;
-
-                        //break;
+                        indexFound = true;
                     }
                     else {
-                        item.children .add(getContentItem(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name, false));
+                        String childPath = getRelativeSitePath(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name);
+                        item.children.add(getContentItem(item.site, childPath, depth-1));
                     }
                 }
 
-            } else {
-                item.children = new ArrayList<ContentItemTO>();
-                item.numOfChildren = 0;
-                item.isContainer = true;
-            }
+                if(indexFound == false) {
+                    // ITEM IS A FOLDER
+                    item.folder = true;
+                    item.isContainer = true;
+                    item.container = true; 
 
+                    item.page = false;
+                    item.asset = false;
+                    item.component = false;
+                    item.previewable = false;
+        
+                    item.internalName = item.name;
+                    item.contentType = "folder";
+                    item.path = item.uri;
+                }
+
+                // ORDER THE CHILDREN
+                    // level descriptors first
+                    // nav pages by order
+                    // floating pages via Alpha
+
+            } else {
+                // ITEM HAS NO CHILDREN
+                item.isContainer = true;
+                item.container = true;
+            }
         }
         else {
-            // otherwise it can't have children
-            item.children = new ArrayList<ContentItemTO>();
-            item.numOfChildren = 0;   
-            item.isContainer = false;   
+            // ITEM IS A STAND-ALONE XML
+            item.isContainer = false;
+            item.container = false;   
         }
 
         return item;
@@ -289,10 +324,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItem(String site, String path) {
-        return getContentItem(site, path, true);
+        return getContentItem(site, path, 2);
     }
 
-    public ContentItemTO getContentItem(String site, String path, boolean deep) {
+    public ContentItemTO getContentItem(String site, String path, int depth) {
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;
@@ -304,13 +339,17 @@ public class ContentServiceImpl implements ContentService {
         try {
             item = createNewContentItemTO(site, contentPath);
 
-            if(deep) {
-                item = populateItemChildren(item);
+            if(depth!=0) {
+                item = populateItemChildren(item, depth);
             }
 
             if(item.uri.endsWith(".xml")) {
                 item = populateContentDrivenProperties(item);
             }
+
+            // POPULATE LOCK STATUS
+
+            // POPULATE WORKFLOW STATUS
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
@@ -437,6 +476,7 @@ public class ContentServiceImpl implements ContentService {
         // set if the content is new
         item.isDeleted = true;
         item.isContainer = false;
+        item.container = false;
         //item.isNewFile = false;
         item.isNew = false;
         item.isInProgress = false;

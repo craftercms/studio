@@ -68,6 +68,7 @@ public class ContentItemTO implements Serializable {
 	public boolean document;
 	public boolean asset;
 	public boolean isContainer;
+	public boolean container;
 
 	// special states
 	public boolean disabled;
