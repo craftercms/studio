@@ -136,7 +136,13 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean writeContent(String path, InputStream content) {
-       return _contentRepository.writeContent(path, content);
+
+       boolean writeSuccess = false;
+
+        writeSuccess = _contentRepository.writeContent(path, content);
+        _contentRepository.createVersion(path, false);
+ 
+       return writeSuccess;
     }
 
     @Override
@@ -166,166 +172,139 @@ public class ContentServiceImpl implements ContentService {
                 expandRelativeSitePath(site, toPath));
     }
 
+    protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
+        ContentItemTO item = new ContentItemTO();
+
+        item.asset = true;
+        item.site = site;
+        item.internalName = item.name;
+        item.contentType = "asset";
+        item.disabled = false;
+        item.floating = false;
+        item.hideInAuthoring = false;
+
+        item.uri = contentPath;
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
+        
+        item.page = false;
+        item.previewable = false;
+        item.component = false;
+        item.document = false;
+        item.asset = true;
+        item.browserUri = "";
+
+        // populate with workflow states and other metadata
+        item.isNew = true;
+        item.submitted = false;
+        item.scheduled = false;
+        item.deleted = false;
+        item.submittedForDeletion = false;
+        item.inProgress = true;
+        item.live = false;
+        item.folder = (item.name.contains(".")==false);
+
+        return item;
+    }
+
+    protected ContentItemTO populateContentDrivenProperties(ContentItemTO item)
+    throws Exception {
+        
+        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
+        String contentPath = item.uri;
+
+        boolean itemIsPage = (contentPath.startsWith("/website/site"));
+        item.page = itemIsPage;
+        item.previewable = itemIsPage;
+        item.component = !itemIsPage;
+        item.asset = false;
+
+        item.uri = contentPath;
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
+        item.browserUri = (item.page) ? contentPath.replace("/site/website", "").replace("/index.xml", "") : null;
+
+        Document contentDoc = this.getContentAsDocument(fullContentPath);
+        if(contentDoc != null) {
+            Element rootElement = contentDoc.getRootElement();
+            item.internalName = rootElement.valueOf("internal-name");
+            item.contentType = rootElement.valueOf("content-type");
+            item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
+            item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
+            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
+        }
+        else {
+             logger.error("no xml document could be loaded for path {0}", fullContentPath);
+        }
+
+        return item;
+    }
+
+    protected ContentItemTO populateItemChildren(ContentItemTO item) {
+        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
+        String contentPath = item.uri;
+
+        if(contentPath.indexOf("index.xml") != -1 // item is index
+        && contentPath.indexOf(".xml") == -1) {   // iten may be folder?
+
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
+            item.numOfChildren = childRepoItems.length;   
+            if(item.numOfChildren != 0) item.isContainer = true;   
+
+            if(contentPath.indexOf("/index.xml") == -1) {
+                logger.info("Checking if {0} has index", contentPath);           
+                for(int j=0; j<childRepoItems.length; j++) { 
+                    if("index.xml".equals(childRepoItems[j].name)) {
+                        item.uri = item.uri + "/index.xml";
+                        item.numOfChildren--;
+                        break;
+                    }
+               } 
+            } 
+        }
+        else {
+            // otherwise it can't have children
+            item.children = new ArrayList<ContentItemTO>();
+            item.numOfChildren = 0;   
+            item.isContainer = false;   
+        }
+
+        return item;
+    }
+
     @Override
     public ContentItemTO getContentItem(String site, String path) {
-        logger.debug("Getting content item for {0}:{1}", site, path);
+        ContentItemTO item = null;
+        String fullContentPath = expandRelativeSitePath(site, path);
+        String contentPath = path;
+        logger.info("Getting content item for {0}", contentPath);
+
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
-        ContentItemTO item = getContentItem(expandRelativeSitePath(site, path));
-        if (item != null) {
-            item.uri = path;
-            item.path = path.substring(0, path.lastIndexOf("/"));
-            item.name = path.substring(path.lastIndexOf("/") + 1);
-            item.page = (item.contentType.indexOf("/page") != -1);
-            item.isContainer = path.endsWith("/index.xml");
-            item.previewable = item.page;
-            item.component = (item.contentType.indexOf("/component") != -1);
-            item.document = false;
-            item.asset = (item.component == false && item.page == false);
-            item.browserUri = (item.page) ? path.replace("/site/website", "").replace("/index.xml", "") : null;
 
-            boolean studioContentType = (item.contentType.indexOf("/component") != -1) || (item.contentType.indexOf("/page") != -1);
-            if (studioContentType) {
-                loadContentTypeProperties(site, item, item.contentType);
+        try {
+            item = createNewContentItemTO(site, contentPath);
+            item = populateItemChildren(item);
+
+            if(item.uri.endsWith(".xml")) {
+                item = populateContentDrivenProperties(item);
             }
-            loadWorkflowProperties(site, item);
         }
+        catch(Exception err) {
+            logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
+        }
+        
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0}:{1}] retrieved in {2} milis", site, path, executionTime);
+        logger.debug("Content item [{0}] retrieved in {1} milis", fullContentPath, executionTime);
         return item;
     }
 
     @Override
     public ContentItemTO getContentItem(String fullPath) {
-        logger.debug("Getting content item for {0}", fullPath);
-        DebugUtils.addDebugStack(logger);
-        long startTime = System.currentTimeMillis();
-        ContentItemTO item = null;
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
 
-        try {
-            // this may be faster to get evenything from on of the other services?
-            // the idea heare is that repo does not know enough to get an item,
-            // this requires either a different servivice/subsystem or a combination of them
-            if(fullPath.endsWith(".xml")) {
-                Document contentDoc = this.getContentAsDocument(fullPath);
-                if(contentDoc != null) {
-                    item = new ContentItemTO();
-
-                    Element rootElement = contentDoc.getRootElement();
-                    item.internalName = rootElement.valueOf("internal-name");
-                    item.contentType = rootElement.valueOf("content-type");
-                    item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
-                    item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
-                    item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-
-                    item.uri = fullPath;
-                    item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
-                    item.name = fullPath.substring(fullPath.lastIndexOf("/")+1);
-                    item.page = (item.contentType.indexOf("/page") != -1);
-                    item.isContainer = fullPath.endsWith("/index.xml");
-                    item.previewable = item.page;
-                    item.component = (item.contentType.indexOf("/component") != -1);
-                    item.document = false;
-                    item.asset = (item.component == false && item.page == false);
-                    item.browserUri = (item.page) ? fullPath.replace("/site/website", "").replace("/index.xml", "") : null;
-
-                    // populate with workflow states and other metadata
-
-                    item.isNew = true;
-                    item.submitted = false;
-                    item.scheduled = false;
-                    item.deleted = false;
-                    item.submittedForDeletion = false;
-                    item.inProgress = true;
-                    item.live = false;
-
-                    item.lockOwner = "";
-                    item.user = "";
-                    item.userFirstName = "";
-                    item.userLastName = "";
-                    item.nodeRef = "";
-                    item.metaDescription = "";
-                    item.folder = (item.name.contains(".")==false);
-
-
-               }
-                else {
-                     logger.error("no xml document could be loaded for path {0}", fullPath);
-                }
-            }
-            else {
-                if (this.contentExists(fullPath)) {
-                    item = new ContentItemTO();
-                    item.uri = fullPath;
-                    item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
-                    item.name = fullPath.substring(fullPath.lastIndexOf("/")+1);
-                    item.asset = true;
-                    item.internalName = item.name;
-                    item.contentType = "asset";
-                    item.disabled = false;
-                    item.floating = false;
-                    item.hideInAuthoring = false;
-
-                    item.uri = fullPath;
-                    if (fullPath.contains("/") && fullPath.length() > 1) {
-                        item.path = fullPath.substring(0, fullPath.lastIndexOf("/"));
-                        item.name = fullPath.substring(fullPath.lastIndexOf("/") + 1);
-                    } else {
-                        item.path = "";
-                        item.name = fullPath;
-                    }
-                    item.page = false;
-                    item.isContainer = (item.name.contains(".") == false);
-                    item.previewable = false;
-                    item.component = false;
-                    item.document = false;
-                    item.asset = (item.isContainer == false);
-                    item.browserUri = "";
-
-                    // populate with workflow states and other metadata
-                    item.isNew = true;
-                    item.submitted = false;
-                    item.scheduled = false;
-                    item.deleted = false;
-                    item.submittedForDeletion = false;
-                    item.inProgress = true;
-                    item.live = false;
-                    item.folder = (item.name.contains(".")==false);
-                }
-            }
-
-            if(item != null) {
-                item.lockOwner = "";
-                item.user = "";
-                item.userFirstName = "";
-                item.userLastName = "";
-                item.nodeRef = "";
-                item.metaDescription = "";
-
-                // duplicate properties
-                item.isDisabled = item.disabled;
-                item.isInProgress = item.inProgress;
-                item.isLive = item.live;
-                item.isSubmittedForDeletion = item.submittedForDeletion;
-                item.isScheduled = item.scheduled;
-                item.isNavigation = item.navigation;
-                item.isDeleted = item.deleted;
-                item.isSubmitted = item.submitted;
-                item.isFloating = item.floating;
-                item.isPage = item.page;
-                item.isPreviewable = item.previewable;
-                item.isComponent = item.component;
-                item.isDocument = item.document;
-                item.isAsset = item.asset;
-                item.folder = (item.name.contains(".")==false);
-            }
-        }
-        catch(Exception err) {
-            logger.error("error constructing item for object at path '{0}'", err, fullPath);
-        }
-        long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0}] retrieved in {1} milis", fullPath, executionTime);
-        return item;
+        return getContentItem(site, fullPath);
     }
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
@@ -362,8 +341,9 @@ public class ContentServiceImpl implements ContentService {
             root = getContentItem(site, path);
         }
 
-        root.children = getContentItemTreeInternal(site, path, depth, isPages);
-        root.numOfChildren = root.children.size();
+        // root.children = getContentItemTreeInternal(site, path, depth, isPages);
+        // root.numOfChildren = root.children.size();
+        // if(root.numOfChildren != 0)  root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
@@ -373,17 +353,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItemTree(String fullPath, int depth) {
-        logger.debug("Getting content item tree for {0} depth {1}", fullPath, depth);
-        DebugUtils.addDebugStack(logger);
-        long startTime = System.currentTimeMillis();
-        ContentItemTO root = getContentItem(fullPath);
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
 
-        root.children = getContentItemTreeInternal(fullPath, depth, false);
-        root.numOfChildren = root.children.size();
-
-        long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0} depth {1}] retrieved in {2} milis", fullPath, depth, executionTime);
-        return root;
+        return getContentItemTree(site, relativePath, depth);
     }
 
     @Override
@@ -472,22 +445,24 @@ public class ContentServiceImpl implements ContentService {
                 String relativePath = getRelativeSitePath(site, (repoItem.path + "/" + repoItem.name));
 
                 ContentItemTO contentItem = null;
-
                 if (repoItem.isFolder && isPages) {
-                    contentItem = getContentItem(site, relativePath + "/index.xml");
-                    if (contentItem != null && depth > 0) {
-                        contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                        contentItem.numOfChildren = children.size();
-                    }
+
+                    contentItem = getContentItem(site, relativePath);  
+                    // if (contentItem != null && depth > 0) {
+                    //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
+                    //     contentItem.numOfChildren = contentItem.children.size();
+                    //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
+                    // }
                 }
 
                 if (contentItem == null) {
                     if (!StringUtils.endsWith(relativePath, "/index.xml")) {
                         contentItem = getContentItem(site, relativePath);
-                        if (depth > 0) {
-                            contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                            contentItem.numOfChildren = children.size();
-                        }
+                        // if (depth > 0) {
+                        //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
+                        //     contentItem.numOfChildren = contentItem.children.size();
+                        //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
+                        // }
                     }
                 }
 
@@ -510,40 +485,9 @@ public class ContentServiceImpl implements ContentService {
      * @return return an array of child nodes
      */
     protected List<ContentItemTO> getContentItemTreeInternal(String fullPath, int depth, boolean isPages) {
-
-        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
-
-        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullPath);
-
-        for(int i=0; i<childRepoItems.length; i++) {
-            RepositoryItem repoItem = childRepoItems[i];
-            //String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
-
-            ContentItemTO contentItem = null;
-
-            if(repoItem.isFolder) {
-                if (isPages) {
-                    logger.debug("1 - Get content item for path {0}", repoItem.path + "/" + repoItem.name + "/index.xml");
-                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name + "/index.xml");
-                } else {
-                    logger.debug("2 - Get content item for path {0}", repoItem.path + "/" + repoItem.name);
-                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
-                }
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
-                }
-            } else {
-                logger.debug("3 - Get content item for path {0}", fullPath);
-                contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
-            }
-            if(contentItem != null) {
-                logger.debug("Adding child {0} for path {1}", contentItem.getUri(), fullPath);
-                children.add(contentItem);
-            }
-        }
-
-        return children;
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
+        return getContentItemTreeInternal(site, relativePath, depth, isPages);
     }
 
     /**
@@ -569,6 +513,18 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public String getRelativeSitePath(String site, String fullPath) {
         return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
+    }
+
+    protected String getRelativeSitePath(String fullPath) {
+        String path = fullPath.replace("/wem-projects/", "");
+        String site = path.substring(0, path.indexOf("/"));
+        return getRelativeSitePath(site, fullPath);
+    }
+
+    protected String getSiteFromFullPath(String fullPath) {
+        String path = fullPath.replace("/wem-projects/", "");
+        String site = path.substring(0, path.indexOf("/"));
+        return site;
     }
 
     protected String getBrowserUri(ContentItemTO item) {

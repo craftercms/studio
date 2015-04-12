@@ -168,27 +168,27 @@ public class DiskContentRepository extends AbstractContentRepository {
         try {
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
-            Files.walkFileTree(constructRepoPath(path), opts, 3, new SimpleFileVisitor<Path>() { 
+            Files.walkFileTree(constructRepoPath(path), opts, 1, new SimpleFileVisitor<Path>() { 
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
                 throws IOException {
 
                     RepositoryItem item = new RepositoryItem();
                     item.name = visitPath.toFile().getName();
-                    logger.error("MAKING ITEM: " + item.name);
 
 
                     String visitFolderPath = visitPath.toString().replace("/index.xml", "");
-                    Path visitFolder = constructRepoPath(visitFolderPath);
+                    //Path visitFolder = constructRepoPath(visitFolderPath);
+                    item.isFolder = (item.name.indexOf(".") == -1); // lies Files.isDirectory(visitFolder);
+
                     item.path = visitFolderPath.replace("/"+item.name, "");
                     item.path = item.path.replace(getRootPath(), "");
                     item.path = item.path.replace("/.xml", "");
 
 
-                    item.isFolder = Files.isDirectory(visitFolder);
-                    logger.error("ITEM PATH: " + item.path);
-                    logger.error("ITEM FOLDER: " + item.isFolder);
-                    logger.error("==" + item.isFolder);
+                    logger.info("ITEM NAME: " + item.name);
+                    logger.info("ITEM PATH: " + item.path);
+                    logger.info("ITEM FOLDER: ("+visitFolderPath+"): " + item.isFolder);
 
                     retItems.add(item);
                     return FileVisitResult.CONTINUE;
