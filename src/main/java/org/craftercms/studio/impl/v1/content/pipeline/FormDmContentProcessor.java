@@ -374,30 +374,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         		)
         /***** end ******//*
         {*/
-            OutputStream output = null;
             try {
-                //output = persistenceManagerService.getWriter(contentNode).getContentOutputStream();
                 contentService.writeContent(fullPath, input);
-             /*
-            } catch (IOException e) {
-                logger.error("Failed to write content to " + fullPath);
-                throw new ServiceException(e);*/
             } finally {
-                //ContentUtils.release(output);
                 ContentUtils.release(input);
             }
 
-        // TODO: save properties
-        /*
-            Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(contentNode);
-            nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-            nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-            nodeProperties.put(CStudioContentModel.PROP_WEB_LAST_EDIT_DATE, new Date());
-            nodeProperties.put(ContentModel.PROP_MODIFIED, new Date());
-            nodeProperties.put(ContentModel.PROP_AUTO_VERSION, false);
-            nodeProperties.put(ContentModel.PROP_AUTO_VERSION_PROPS, false);
-            persistenceManagerService.setProperties(contentNode, nodeProperties);
-            */
         Map<String, Object> properties = new HashMap<>();
         properties.put(ObjectMetadata.PROP_MODIFIER, user);
         properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
