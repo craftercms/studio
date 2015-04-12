@@ -172,23 +172,11 @@ public class ContentServiceImpl implements ContentService {
                 expandRelativeSitePath(site, toPath));
     }
 
-    @Override
-    public ContentItemTO getContentItem(String site, String path) {
-        return getContentItem(expandRelativeSitePath(site, path));
-    }
-
-    @Override
-    public ContentItemTO getContentItem(String fullPath) {
-        String fullContentPath = fullPath;
-        String contentPath = getRelativeSitePath(fullContentPath);
-
-        DebugUtils.addDebugStack(logger);
-        long startTime = System.currentTimeMillis();
+    protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
-        item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-        item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
+
         item.asset = true;
+        item.site = site;
         item.internalName = item.name;
         item.contentType = "asset";
         item.disabled = false;
@@ -196,19 +184,14 @@ public class ContentServiceImpl implements ContentService {
         item.hideInAuthoring = false;
 
         item.uri = contentPath;
-        if (contentPath.contains("/") && fullPath.length() > 1) {
-            item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-            item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
-        } else {
-            item.path = "";
-            item.name = contentPath;
-        }
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
+        
         item.page = false;
-        item.isContainer = (item.name.contains(".") == false);
         item.previewable = false;
         item.component = false;
         item.document = false;
-        item.asset = (item.isContainer == false);
+        item.asset = true;
         item.browserUri = "";
 
         // populate with workflow states and other metadata
@@ -221,65 +204,106 @@ public class ContentServiceImpl implements ContentService {
         item.live = false;
         item.folder = (item.name.contains(".")==false);
 
+        return item;
+    }
 
-
+    protected ContentItemTO populateContentDrivenProperties(ContentItemTO item)
+    throws Exception {
         
-        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullPath);
-        item.numOfChildren = childRepoItems.length;   
-        if(item.numOfChildren != 0) item.isContainer = true;   
+        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
+        String contentPath = item.uri;
 
-        if(contentPath.indexOf("index.xml") == -1) {
-            logger.info("Checking if {0} has index", contentPath);           
-            for(int j=0; j<childRepoItems.length; j++) { 
-                if("index.xml".equals(childRepoItems[j].name)) {
-                    contentPath = contentPath + "/index.xml";
-                    fullContentPath = fullContentPath + "/index.xml";
-                    break;
-                }
-                
+        boolean itemIsPage = (contentPath.startsWith("/website/site"));
+        item.page = itemIsPage;
+        item.previewable = itemIsPage;
+        item.component = !itemIsPage;
+        item.asset = false;
+
+        item.uri = contentPath;
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
+        item.browserUri = (item.page) ? contentPath.replace("/site/website", "").replace("/index.xml", "") : null;
+
+        Document contentDoc = this.getContentAsDocument(fullContentPath);
+        if(contentDoc != null) {
+            Element rootElement = contentDoc.getRootElement();
+            item.internalName = rootElement.valueOf("internal-name");
+            item.contentType = rootElement.valueOf("content-type");
+            item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
+            item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
+            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
+        }
+        else {
+             logger.error("no xml document could be loaded for path {0}", fullContentPath);
+        }
+
+        return item;
+    }
+
+    protected ContentItemTO populateItemChildren(ContentItemTO item) {
+        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
+        String contentPath = item.uri;
+
+        if(contentPath.indexOf("index.xml") != -1 // item is index
+        && contentPath.indexOf(".xml") == -1) {   // iten may be folder?
+
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
+            item.numOfChildren = childRepoItems.length;   
+            if(item.numOfChildren != 0) item.isContainer = true;   
+
+            if(contentPath.indexOf("index.xml") == -1) {
+                logger.info("Checking if {0} has index", contentPath);           
+                for(int j=0; j<childRepoItems.length; j++) { 
+                    if("index.xml".equals(childRepoItems[j].name)) {
+                        item.uri = item.uri + "/index.xml";
+                        break;
+                    }
+               } 
             } 
         }
         else {
-            logger.info("inbound w index.xml", contentPath);
+            // otherwise it can't have children
+            item.children = new ArrayList<ContentItemTO>();
+            item.numOfChildren = 0;   
+            item.isContainer = false;   
         }
 
+        return item;
+    }
+
+    @Override
+    public ContentItemTO getContentItem(String site, String path) {
+        ContentItemTO item = null;
+        String fullContentPath = expandRelativeSitePath(site, path);
+        String contentPath = path;
         logger.info("Getting content item for {0}", contentPath);
 
+        DebugUtils.addDebugStack(logger);
+        long startTime = System.currentTimeMillis();
+
         try {
-            if(contentPath.endsWith(".xml")) {
-                Document contentDoc = this.getContentAsDocument(fullContentPath);
-                if(contentDoc != null) {
+            item = createNewContentItemTO(site, contentPath);
+            item = populateItemChildren(item);
 
-logger.info("XXXXXXXX {0}", contentPath);
-                    Element rootElement = contentDoc.getRootElement();
-                    item.internalName = rootElement.valueOf("internal-name");
-                    item.contentType = rootElement.valueOf("content-type");
-                    item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
-                    item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
-                    item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-
-                    item.uri = contentPath;
-                    item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-                    item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
-                    item.page = (item.contentType.indexOf("/page") != -1);
-                    item.isContainer = childRepoItems.length > 0;
-                    item.previewable = item.page;
-                    item.component = (item.contentType.indexOf("/component") != -1);
-                    item.document = false;
-                    item.asset = (item.component == false && item.page == false);
-                    item.browserUri = (item.page) ? contentPath.replace("/site/website", "").replace("/index.xml", "") : null;
-               }
-                else {
-                     logger.error("no xml document could be loaded for path {0}", fullPath);
-                }
+            if(item.uri.endsWith(".xml")) {
+                item = populateContentDrivenProperties(item);
             }
-       }
-        catch(Exception err) {
-            logger.error("error constructing item for object at path '{0}'", err, fullPath);
         }
+        catch(Exception err) {
+            logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
+        }
+        
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0}] retrieved in {1} milis", fullPath, executionTime);
+        logger.debug("Content item [{0}] retrieved in {1} milis", fullContentPath, executionTime);
         return item;
+    }
+
+    @Override
+    public ContentItemTO getContentItem(String fullPath) {
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
+
+        return getContentItem(site, fullPath);
     }
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
@@ -468,42 +492,9 @@ logger.info("XXXXXXXX {0}", contentPath);
      * @return return an array of child nodes
      */
     protected List<ContentItemTO> getContentItemTreeInternal(String fullPath, int depth, boolean isPages) {
-
-        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
-
-        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullPath);
-
-        for(int i=0; i<childRepoItems.length; i++) {
-            RepositoryItem repoItem = childRepoItems[i];
-            //String relativePath = getRelativeSitePath(site, (repoItem.path+ "/" + repoItem.name));
-
-            ContentItemTO contentItem = null;
-
-            if(repoItem.isFolder) {
-                if (isPages) {
-                    logger.debug("1 - Get content item for path {0}", repoItem.path + "/" + repoItem.name + "/index.xml");
-                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name + "/index.xml");
-                } else {
-                    logger.debug("2 - Get content item for path {0}", repoItem.path + "/" + repoItem.name);
-                    contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
-                }
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth-1, isPages);
-                    contentItem.numOfChildren = contentItem.children.size();
-                    if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
-                }
-            } else {
-                logger.debug("3 - Get content item for path {0}", fullPath);
-                contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
-            }
- 
-            if(contentItem != null) {
-                logger.debug("Adding child {0} for path {1}", contentItem.getUri(), fullPath);
-                children.add(contentItem);
-            }
-        }
-
-        return children;
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
+        return getContentItemTreeInternal(site, relativePath, depth, isPages);
     }
 
     /**
@@ -535,6 +526,12 @@ logger.info("XXXXXXXX {0}", contentPath);
         String path = fullPath.replace("/wem-projects/", "");
         String site = path.substring(0, path.indexOf("/"));
         return getRelativeSitePath(site, fullPath);
+    }
+
+    protected String getSiteFromFullPath(String fullPath) {
+        String path = fullPath.replace("/wem-projects/", "");
+        String site = path.substring(0, path.indexOf("/"));
+        return site;
     }
 
     protected String getBrowserUri(ContentItemTO item) {
