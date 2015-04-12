@@ -253,6 +253,10 @@ public class ContentServiceImpl implements ContentService {
                     item.metaDescription = "";
                     item.folder = (item.name.contains(".")==false);
 
+                    RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullPath);
+                    item.numOfChildren = childRepoItems.length;   
+                    if(item.numOfChildren != 0) item.isContainer = true;   
+
 
                }
                 else {
@@ -370,6 +374,7 @@ public class ContentServiceImpl implements ContentService {
 
         root.children = getContentItemTreeInternal(site, path, depth, isPages);
         root.numOfChildren = root.children.size();
+        if(root.numOfChildren != 0)  root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
@@ -386,6 +391,7 @@ public class ContentServiceImpl implements ContentService {
 
         root.children = getContentItemTreeInternal(fullPath, depth, false);
         root.numOfChildren = root.children.size();
+        if(root.numOfChildren != 0) root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item [{0} depth {1}] retrieved in {2} milis", fullPath, depth, executionTime);
@@ -478,29 +484,13 @@ public class ContentServiceImpl implements ContentService {
                 String relativePath = getRelativeSitePath(site, (repoItem.path + "/" + repoItem.name));
 
                 ContentItemTO contentItem = null;
-/*
-            if(repoItem.isFolder) {
-                if (isPages) {
-                    logger.debug("1 - Get content item for path {0}", relativePath + "/index.xml");
-                    contentItem = getContentItem(site, relativePath + "/index.xml");
-                } else {
-                    logger.debug("2 - Get content item for path {0}", relativePath);
-                    contentItem = getContentItem(site, relativePath);
-                }
-                if(depth > 0) {
-                    contentItem.children = getContentItemTreeInternal(site, relativePath, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
-                }
-            } else {
-                logger.debug("3 - Get content item for path {0}", relativePath);
-                contentItem = getContentItem(site, relativePath);
-            }*/
-
                 if (repoItem.isFolder && isPages) {
-                    contentItem = getContentItem(site, relativePath + "/index.xml");
+
+                    contentItem = getContentItem(site, relativePath); //WHY? + "/index.xml");
                     if (contentItem != null && depth > 0) {
                         contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                        contentItem.numOfChildren = children.size();
+                        contentItem.numOfChildren = contentItem.children.size();
+                        if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
                     }
                 }
 
@@ -509,7 +499,8 @@ public class ContentServiceImpl implements ContentService {
                         contentItem = getContentItem(site, relativePath);
                         if (depth > 0) {
                             contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                            contentItem.numOfChildren = children.size();
+                            contentItem.numOfChildren = contentItem.children.size();
+                            if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
                         }
                     }
                 }
@@ -554,24 +545,14 @@ public class ContentServiceImpl implements ContentService {
                 }
                 if(depth > 0) {
                     contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth-1, isPages);
-                    contentItem.numOfChildren = children.size();
+                    contentItem.numOfChildren = contentItem.children.size();
+                    if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
                 }
             } else {
                 logger.debug("3 - Get content item for path {0}", fullPath);
                 contentItem = getContentItem(repoItem.path + "/" + repoItem.name);
             }
-/*
-            if(contentItem == null) {
-                if (!StringUtils.endsWith(fullPath, "/index.xml")) {
-                    logger.debug("3 - Get content item for path {0}", fullPath);
-                    contentItem = getContentItem(fullPath);
-                    if (depth > 0) {
-                        contentItem.children = getContentItemTreeInternal(repoItem.path + "/" + repoItem.name, depth - 1, isPages);
-                        contentItem.numOfChildren = children.size();
-                    }
-                }
-            }
-            */
+ 
             if(contentItem != null) {
                 logger.debug("Adding child {0} for path {1}", contentItem.getUri(), fullPath);
                 children.add(contentItem);
