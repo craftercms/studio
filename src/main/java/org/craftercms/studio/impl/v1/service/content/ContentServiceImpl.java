@@ -244,23 +244,38 @@ public class ContentServiceImpl implements ContentService {
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
-        if(contentPath.indexOf("index.xml") != -1 // item is index
-        && contentPath.indexOf(".xml") == -1) {   // iten may be folder?
+        if (contentPath.indexOf("/index.xml") != -1 || contentPath.indexOf(".xml") == -1 ) { // item.isFolder?
 
+            if (contentPath.indexOf("/index.xml") != -1) {
+                fullContentPath = fullContentPath.replace("/index.xml", "");
+            }
             RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
-            item.numOfChildren = childRepoItems.length;   
-            if(item.numOfChildren != 0) item.isContainer = true;   
+            if (childRepoItems != null) {
 
-            if(contentPath.indexOf("/index.xml") == -1) {
-                logger.info("Checking if {0} has index", contentPath);           
-                for(int j=0; j<childRepoItems.length; j++) { 
-                    if("index.xml".equals(childRepoItems[j].name)) {
-                        item.uri = item.uri + "/index.xml";
+                item.numOfChildren = childRepoItems.length;
+                if (item.numOfChildren != 0) item.isContainer = true;
+
+                logger.info("Checking if {0} has index", contentPath);
+                for (int j = 0; j < childRepoItems.length; j++) {
+                    if ("index.xml".equals(childRepoItems[j].name)) {
+                        if (item.uri.indexOf("/index.xml") == -1) {
+                            item.uri = item.uri + "/index.xml";
+                        }
                         item.numOfChildren--;
-                        break;
+
+                        //break;
                     }
-               } 
-            } 
+                    else {
+                        item.children .add(getContentItem(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name, false));
+                    }
+                }
+
+            } else {
+                item.children = new ArrayList<ContentItemTO>();
+                item.numOfChildren = 0;
+                item.isContainer = true;
+            }
+
         }
         else {
             // otherwise it can't have children
@@ -274,6 +289,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItem(String site, String path) {
+        return getContentItem(site, path, true);
+    }
+
+    public ContentItemTO getContentItem(String site, String path, boolean deep) {
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;
@@ -284,7 +303,10 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             item = createNewContentItemTO(site, contentPath);
-            item = populateItemChildren(item);
+
+            if(deep) {
+                item = populateItemChildren(item);
+            }
 
             if(item.uri.endsWith(".xml")) {
                 item = populateContentDrivenProperties(item);
