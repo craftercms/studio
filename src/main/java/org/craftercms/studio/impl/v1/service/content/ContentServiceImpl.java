@@ -251,11 +251,12 @@ public class ContentServiceImpl implements ContentService {
             item.numOfChildren = childRepoItems.length;   
             if(item.numOfChildren != 0) item.isContainer = true;   
 
-            if(contentPath.indexOf("index.xml") == -1) {
+            if(contentPath.indexOf("/index.xml") == -1) {
                 logger.info("Checking if {0} has index", contentPath);           
                 for(int j=0; j<childRepoItems.length; j++) { 
                     if("index.xml".equals(childRepoItems[j].name)) {
                         item.uri = item.uri + "/index.xml";
+                        item.numOfChildren--;
                         break;
                     }
                } 
@@ -340,9 +341,9 @@ public class ContentServiceImpl implements ContentService {
             root = getContentItem(site, path);
         }
 
-        root.children = getContentItemTreeInternal(site, path, depth, isPages);
-        root.numOfChildren = root.children.size();
-        if(root.numOfChildren != 0)  root.isContainer = true;
+        // root.children = getContentItemTreeInternal(site, path, depth, isPages);
+        // root.numOfChildren = root.children.size();
+        // if(root.numOfChildren != 0)  root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
@@ -352,18 +353,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItemTree(String fullPath, int depth) {
-        logger.debug("Getting content item tree for {0} depth {1}", fullPath, depth);
-        DebugUtils.addDebugStack(logger);
-        long startTime = System.currentTimeMillis();
-        ContentItemTO root = getContentItem(fullPath);
+        String site = getSiteFromFullPath(fullPath);
+        String relativePath = getRelativeSitePath(site, fullPath);
 
-        root.children = getContentItemTreeInternal(fullPath, depth, false);
-        root.numOfChildren = root.children.size();
-        if(root.numOfChildren != 0) root.isContainer = true;
-
-        long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0} depth {1}] retrieved in {2} milis", fullPath, depth, executionTime);
-        return root;
+        return getContentItemTree(site, relativePath, depth);
     }
 
     @Override
@@ -454,22 +447,22 @@ public class ContentServiceImpl implements ContentService {
                 ContentItemTO contentItem = null;
                 if (repoItem.isFolder && isPages) {
 
-                    contentItem = getContentItem(site, relativePath); //WHY? + "/index.xml");
-                    if (contentItem != null && depth > 0) {
-                        contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                        contentItem.numOfChildren = contentItem.children.size();
-                        if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
-                    }
+                    contentItem = getContentItem(site, relativePath);  
+                    // if (contentItem != null && depth > 0) {
+                    //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
+                    //     contentItem.numOfChildren = contentItem.children.size();
+                    //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
+                    // }
                 }
 
                 if (contentItem == null) {
                     if (!StringUtils.endsWith(relativePath, "/index.xml")) {
                         contentItem = getContentItem(site, relativePath);
-                        if (depth > 0) {
-                            contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                            contentItem.numOfChildren = contentItem.children.size();
-                            if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
-                        }
+                        // if (depth > 0) {
+                        //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
+                        //     contentItem.numOfChildren = contentItem.children.size();
+                        //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
+                        // }
                     }
                 }
 
