@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -40,6 +41,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -347,9 +349,14 @@ public class ContentServiceImpl implements ContentService {
                 item = populateContentDrivenProperties(item);
             }
 
+            loadContentTypeProperties(site, item, item.contentType);
+
             // POPULATE LOCK STATUS
+            populateMetadata(site, item);
 
             // POPULATE WORKFLOW STATUS
+            populateWorkflowProperties(site, item);
+            item.setLockOwner("");
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
@@ -378,12 +385,25 @@ public class ContentServiceImpl implements ContentService {
         // TODO CodeRev:but what if the config is null?
     }
 
-    protected void loadWorkflowProperties(String site, ContentItemTO item) {
+    protected void populateWorkflowProperties(String site, ContentItemTO item) {
         ObjectState state = objectStateService.getObjectState(site, item.getUri());
         if (state != null) {
             item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isLive = item.isLive();
             item.setInProgress(!item.isLive());
+            item.isInProgress = item.isInProgress();
+            item.setScheduled(org.craftercms.studio.api.v1.service.objectstate.State.isScheduled(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            item.isScheduled = item.isScheduled();
+            item.setSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.isSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            item.isSubmitted = item.isSubmitted();
+        }
+    }
+
+    protected void populateMetadata(String site, ContentItemTO item) {
+        ObjectMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
+        if (metadata != null) {
+            item.setLockOwner(metadata.getLockOwner());
+            item.setLockOwner("");
         }
     }
 
@@ -846,6 +866,7 @@ public class ContentServiceImpl implements ContentService {
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
     protected DmRenameService dmRenameService;
+    protected ObjectMetadataManager objectMetadataManager;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -872,4 +893,7 @@ public class ContentServiceImpl implements ContentService {
 
     public DmRenameService getDmRenameService() { return dmRenameService; }
     public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 }
