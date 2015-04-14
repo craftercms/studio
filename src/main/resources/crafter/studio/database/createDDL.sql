@@ -120,7 +120,7 @@ CREATE TABLE `cstudio_site` (
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
   INDEX `site_id_idx` (`site_id` ASC));
 
-CREATE TABLE `crafter`.`cstudio_objectmetadata` (
+CREATE TABLE `cstudio_objectmetadata` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `site` VARCHAR(50) NOT NULL,
   `path` TEXT NOT NULL,
