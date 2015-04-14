@@ -60,6 +60,7 @@
         <property name="dependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -482,20 +483,20 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
-    </bean
+    </bean>
 
     <alias name="cstudioContentRepository" alias="securityProvider"/>
-    -->
 
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+
+    <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
-    </bean>
+    </bean -->
 
  
 

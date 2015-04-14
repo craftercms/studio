@@ -26,38 +26,17 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.methods.multipart.*;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.lang.String;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.regex.Matcher;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
-import javax.servlet.http.Cookie;
 
-import org.apache.commons.httpclient.*;
-
-import net.sf.json.*;
-
-import org.apache.commons.io.IOUtils;
-
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
 import org.craftercms.commons.http.*;
-import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -70,7 +49,6 @@ import org.dom4j.Document;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import reactor.core.Reactor;
-import reactor.event.Event;
 
 
 /**
@@ -151,7 +129,30 @@ implements SecurityProvider {
      * @return the created version ID or null on failure
      */
     public String createVersion(String path, boolean majorVersion) {
-        return null;
+        String versionLabel = null;
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if (cmisObject != null) {
+                ObjectType type = cmisObject.getBaseType();
+                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                    ContentStream contentStream = document.getContentStream();
+                    document.checkOut();
+                    ObjectId objId = document.checkIn(majorVersion, null, contentStream, null);
+                    document = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(objId);
+                    versionLabel = document.getVersionLabel();
+                }
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, err);
+        }
+        return versionLabel;
     }
 
     /** 

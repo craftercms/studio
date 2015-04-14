@@ -60,6 +60,7 @@ public class ContentItemTO implements Serializable {
     public String userLastName;
     public String nodeRef;
     public String metaDescription;
+    public String site;
 
 	// what it is
 	public boolean page;
@@ -67,6 +68,7 @@ public class ContentItemTO implements Serializable {
 	public boolean document;
 	public boolean asset;
 	public boolean isContainer;
+	public boolean container;
 
 	// special states
 	public boolean disabled;
