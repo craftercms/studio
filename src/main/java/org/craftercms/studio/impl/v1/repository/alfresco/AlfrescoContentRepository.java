@@ -752,7 +752,26 @@ implements SecurityProvider {
     }
 
     public void lockItem(String site, String path) {
+        String fullPath = expandRelativeSitePath(site, path);
+        Session session = getCMISSession();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("cm:lockOwner", getCurrentUser());
+            //properties.put("cm:lockType", "READ_ONLY_LOCK");
+            cmisObject.updateProperties(properties);
+            //cmisObject.
+        } catch (CmisBaseException err) {
 
+        }
+    }
+
+    protected String expandRelativeSitePath(String site, String relativePath) {
+        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
     public void unLockItem(String site, String path) {
