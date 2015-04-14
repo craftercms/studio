@@ -1,5 +1,5 @@
 import scripts.libs.Cookies
-
+model.cookieDomain = request.getServerName();
 def serverProperties = applicationContext.get("studio.crafter.properties")
 def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
 def cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1

@@ -1,6 +1,6 @@
 
 // TODO
-document.domain = "127.0.0.1";
+document.domain = "${cookieDomain}";
  
 requirejs.config({
     baseUrl: '/studio/static-assets/scripts',
