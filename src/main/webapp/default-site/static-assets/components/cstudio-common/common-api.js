@@ -3580,6 +3580,10 @@ var YEvent = YAHOO.util.Event;
 
                         try {
                             var contentTypes = eval("(" + contentTypeJson + ")");
+
+                            if(!contentTypes.length) {
+                                contentTypes = [contentTypes];
+                            }
                             callback.success(contentTypes);
                         }
                         catch(err) {
