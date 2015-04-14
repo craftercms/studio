@@ -9,10 +9,10 @@
 }
 
 .cs-statelist {
-    left: 250px;
+   left: 250px;
     position: relative;
     right: auto;
-	top: 15px;
+    top: 85px;
 }
 
 .cs-statelist-detail {

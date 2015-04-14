@@ -5,7 +5,8 @@ CStudioAdminConsole.Tool.WorkflowStates = CStudioAdminConsole.Tool.WorkflowState
 	this.types = [];
 	return this;
 }
-
+var list = [];
+var wfStates = [];
 /**
  * Overarching class that drives the content type tools
  */
@@ -50,7 +51,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			cb = {
 				success: function(response) {
 					var states = eval("(" + response.responseText + ")");
-					CStudioAdminConsole.Tool.WorkflowStates.states = states;
+					wfStates = states.items;
 					
 					var statesTableEl = document.getElementById("statesTable");
 					for(var i=0; i<states.items.length; i++) {
@@ -61,7 +62,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.path+"' /></td>" +
 				 			"<td class='cs-statelist-detail-id'>" + state.path + "</td>" +
 				 			"<td class='cs-statelist-detail'>" + state.state + "</td>" +
-				 			"<td class='cs-statelist-detail'>" + state.systemProcessing + "</td>";
+				 			"<td class='cs-statelist-detail'>" + (state.systemProcessing=="1") + "</td>";
 				 		trEl.innerHTML = rowHTML;
 				 		statesTableEl.appendChild(trEl);
 					}
@@ -73,15 +74,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			
 			var serviceUri = "/api/1/services/api/1/content/get-item-states.json?site="+CStudioAuthoringContext.site+"&state=ALL";
 
-			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+			YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	},
-	
+			
 	setStates: function() {
 		var items = document.getElementsByClassName('act');
-		var list = [];
+
 		for(var i=0; i<items.length; i++) {
 			if(items[i].checked == true) {
-				list[list.length] = CStudioAdminConsole.Tool.WorkflowStates.states[i]; 
+				list[list.length] = wfStates[i]; 
 			}
 		}
 
@@ -134,7 +135,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			
 			for(var i=0;  i< list.length; i++) {
 				var item = list[i];
-				var path = item.uri;
+				var path = item.path;
 				var serviceUri = "/api/1/services/api/1/content/set-object-state.json?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
 				
 				cb = { 
@@ -173,7 +174,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 // add static function
 CStudioAdminConsole.Tool.WorkflowStates.selectAll = function() {
 	var items = document.getElementsByClassName('act');
-	var list = [];
+ 
 	for(var i=0; i<items.length; i++) {
 		items[i].checked = true; 
 	}
