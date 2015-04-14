@@ -761,9 +761,9 @@ implements SecurityProvider {
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put("cm:lockOwner", getCurrentUser());
+            //properties.put("cm:lockOwner", getCurrentUser());
             //properties.put("cm:lockType", "READ_ONLY_LOCK");
-            cmisObject.updateProperties(properties);
+            //cmisObject.updateProperties(properties);
             //cmisObject.
         } catch (CmisBaseException err) {
 
