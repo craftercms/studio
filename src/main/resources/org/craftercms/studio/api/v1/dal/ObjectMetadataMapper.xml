@@ -78,6 +78,13 @@
         AND path=#{path}
     </update>
 
+    <update id="setLockOwner" parameterType="java.util.Map">
+        UPDATE cstudio_objectmetadata SET
+        lockowner=#{lockOwner}
+        WHERE site=#{site}
+        AND path=#{path}
+    </update>
+
     <insert id="insertEntry" parameterType="java.util.Map">
         INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path});
     </insert>

@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -356,7 +357,7 @@ public class ContentServiceImpl implements ContentService {
 
             // POPULATE WORKFLOW STATUS
             populateWorkflowProperties(site, item);
-            item.setLockOwner("");
+            //item.setLockOwner("");
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
@@ -402,7 +403,12 @@ public class ContentServiceImpl implements ContentService {
     protected void populateMetadata(String site, ContentItemTO item) {
         ObjectMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
         if (metadata != null) {
-            item.setLockOwner(metadata.getLockOwner());
+            if (StringUtils.isEmpty(metadata.getLockOwner())) {
+                item.setLockOwner("");
+            } else {
+                item.setLockOwner(metadata.getLockOwner());
+            }
+        } else {
             item.setLockOwner("");
         }
     }
@@ -859,6 +865,12 @@ public class ContentServiceImpl implements ContentService {
         items.getPaths().add(contentItem.getUri());
     }
 
+    @Override
+    public void lockContent(String site, String path) {
+        _contentRepository.lockItem(site, path);
+        objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
+    }
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
@@ -867,6 +879,7 @@ public class ContentServiceImpl implements ContentService {
     protected ProcessContentExecutor contentProcessor;
     protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
+    protected SecurityService securityService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -896,4 +909,7 @@ public class ContentServiceImpl implements ContentService {
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 }

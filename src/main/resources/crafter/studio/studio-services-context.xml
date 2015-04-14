@@ -61,6 +61,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->

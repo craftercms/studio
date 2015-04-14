@@ -31,4 +31,6 @@ public interface ObjectMetadataMapper {
     int countEntries(Map params);
 
     void deleteEntry(Map params);
+
+    void setLockOwner(Map params);
 }

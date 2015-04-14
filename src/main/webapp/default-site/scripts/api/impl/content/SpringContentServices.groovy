@@ -217,4 +217,9 @@ class SpringContentServices {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
 		return springBackedService.getContent(path)
 	}
+
+	def lockContent(site, path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+		springBackedService.lockContent(site, path);
+	}
 }
