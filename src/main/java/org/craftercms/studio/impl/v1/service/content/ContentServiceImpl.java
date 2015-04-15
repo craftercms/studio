@@ -330,6 +330,7 @@ public class ContentServiceImpl implements ContentService {
         return getContentItem(site, path, 2);
     }
 
+    @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);

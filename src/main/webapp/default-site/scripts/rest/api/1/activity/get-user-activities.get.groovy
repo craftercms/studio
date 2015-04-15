@@ -58,14 +58,15 @@ if (valid) {
 }*/
 
 def context = ActivityServices.createContext(applicationContext, request)
-
+def activities;
 if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
-    result.content = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType);
+    activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType);
+
 } else {
-    def activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType);
-    result.total = activities.size();
-    result.sortedBy = "eventDate";
-    result.ascending = "false";
-    result.documents = activities;
+    activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType);
 }
+result.total = activities.size();
+result.sortedBy = "eventDate";
+result.ascending = "false";
+result.documents = activities;
 return result

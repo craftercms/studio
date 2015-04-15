@@ -158,7 +158,16 @@ public interface ContentService {
      * @param site - the project ID
      * @param path - the path of the content item
      */
-    public ContentItemTO getContentItem(String site, String path);
+    ContentItemTO getContentItem(String site, String path);
+
+    /**
+     * get the content item (metadata) at a specific path
+     *
+     * @param site - the project ID
+     * @param path - the path of the content item
+     * @param depth - depth to get desendents
+     */
+    ContentItemTO getContentItem(String site, String path, int depth);
 
     /**
      * get the content item (metadata) at a specific path

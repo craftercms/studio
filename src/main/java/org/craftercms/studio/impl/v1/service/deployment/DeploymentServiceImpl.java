@@ -309,7 +309,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ContentItemTO getDeployedItem(String site, String path) {
 
         ContentItemTO item;
-        item = contentService.getContentItem(site, path);
+        item = contentService.getContentItem(site, path, 0);
         if (item == null) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
             ActivityFeed activity = activityService.getDeletedActivity(site, path);
@@ -410,7 +410,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         // deployed with index.xml)
         // display only if the path matches one of display patterns
         if (ContentUtils.matchesPatterns(path.getRelativePath(), displayPatterns)) {
-            ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath());
+            ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath(), 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
                 itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
