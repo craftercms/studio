@@ -228,4 +228,6 @@ public interface ContentService {
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
 
     void lockContent(String site, String path);
+
+    void unLockContent(String site, String path);
 }
