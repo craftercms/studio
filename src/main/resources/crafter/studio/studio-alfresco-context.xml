@@ -6,10 +6,26 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
+    <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
     </bean>
 
-    <alias name="cstudioContentRepository" alias="securityProvider"/>
+    <bean id="cstudioAlfrescoContentRepositoryRegistration" 
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioAlfrescoContentRepository"/>
+        <property name="repositoryType" value="alfresco"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         security layer               -->
+    <!-- ////////////////////////////////////// -->
+    <alias name="cstudioAlfrescoContentRepository" alias="cstudioAlfrescoSecurityProvider"/>
+
+        <bean id="cstudioAlfrescoSecurityProviderRegistration" 
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioAlfrescoSecurityProvider"/>
+        <property name="providerType" value="alfresco"/>
+    </bean>
+
 
 </beans>
