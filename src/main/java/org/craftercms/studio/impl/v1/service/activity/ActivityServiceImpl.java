@@ -329,7 +329,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	 */
 	protected ContentItemTO createActivityItem(String site, JSONObject feedObject, String id) {
 		try {
-			ContentItemTO item = contentService.getContentItem(site, id);
+			ContentItemTO item = contentService.getContentItem(site, id, 0);
 			if(item == null) // Item was deleted.
 			{
 				item = contentService.createDummyDmContentItemForDeletedNode(site, id);

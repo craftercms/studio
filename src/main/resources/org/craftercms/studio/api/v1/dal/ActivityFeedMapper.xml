@@ -55,7 +55,6 @@
              open="(" separator="," close=")">
       #{state}
     </foreach>
-      and os.state not in ('EXISTING_UNEDITED_LOCKED', 'EXISTING_UNEDITED_UNLOCKED', 'NEW_DELETED')
       order by act.modified_date desc limit #{startPos},#{feedSize}
   </select>
 
