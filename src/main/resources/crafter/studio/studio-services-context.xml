@@ -465,7 +465,7 @@
     <!--bean id="cstudioWorkflowJobDAL" class="org.craftercms.cstudio.impl.service.workflow.dal.DbWorkflowJobDAL"
           init-method="initTable">
         <property name="sqlMap" ref="cstudioWorkflowSqlMap"/>
-        <property name="initializeScriptPath" value="alfresco/workflow/${hibernate.dialect}/initialize.sql"/>
+        <property name="initializeScriptPath" value="/workflow/${hibernate.dialect}/initialize.sql"/>
     </bean-->
 
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
@@ -484,22 +484,13 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
-    </bean>
-
-    <alias name="cstudioContentRepository" alias="securityProvider"/>
-
-
-    <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
-    </bean -->
-
- 
+    </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--       Object type filters                   -->

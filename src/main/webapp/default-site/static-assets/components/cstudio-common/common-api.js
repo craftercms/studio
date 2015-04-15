@@ -1340,7 +1340,7 @@ var YEvent = YAHOO.util.Event;
                             var newContentTypes = new Array();
                             for (var typeIdx=0; typeIdx < contentTypes.length; typeIdx++) {
                                 var contType = contentTypes[typeIdx];
-                                if (contType.formId != currentContentType) {
+                                if (contType.form != currentContentType) {
                                     newContentTypes.push(contType);
                                 }
                             }
@@ -1419,7 +1419,7 @@ var YEvent = YAHOO.util.Event;
                         }
                         else if (contentTypes.length == 1) {
 
-                            var formId = contentTypes[0].formId;
+                            var formId = contentTypes[0].form;
 
 
                             CStudioAuthoring.Operations.openContentWebForm(
@@ -1587,7 +1587,7 @@ var YEvent = YAHOO.util.Event;
 
                         try {
                             var contentTypes = eval("(" + contentTypeJson + ")");
-                            var formId = contentTypes.formId;
+                            var formId = contentTypes.form;
                             var path = contentTypes.path;
                             var editCb = {
                                 success: function() {
@@ -6110,7 +6110,7 @@ var YEvent = YAHOO.util.Event;
             openChildForm: function(childFormConfig) {
                 this.forms = this.forms || {};
 
-                var formId = childFormConfig.formId;
+                var formId = childFormConfig.form;
                 var childFormId;
 
                 if (childFormConfig.windowName == null || childFormConfig.windowName == "") {
