@@ -19,7 +19,7 @@
 		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
 		navContext: "default",
-		cookieDomain: "${envConfig.cookieDomain!'UNSET'}",
+		cookieDomain: "${cookieDomain!'UNSET'}",
 		openSiteDropdown: ${envConfig.openSiteDropdown!"false"},
 		isPreview: false,
 		liveAppBaseUri:"",

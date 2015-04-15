@@ -12,6 +12,7 @@ model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, requ
 model.userEmail = profile.email
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName
+model.cookieDomain = request.getServerName();
 
 model.username = username
 model.ticket = ticket
