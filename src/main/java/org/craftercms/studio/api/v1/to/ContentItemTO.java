@@ -108,6 +108,8 @@ public class ContentItemTO implements Serializable {
 	public boolean isLevelDescriptor = false;
 	public String categoryRoot;
 	public Date lastEditDate;
+	public String form;
+	public String formPagePath;
 	public boolean folder;
     protected String submissionComment;
     protected List<ContentItemTO> components;
