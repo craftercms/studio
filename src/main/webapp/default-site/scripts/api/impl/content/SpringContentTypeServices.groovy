@@ -37,7 +37,7 @@ class SpringContentTypeServices {
 
     def getContentTypes(site, searchable) {
         def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
-        return springBackedService.getContentTypeByRelativePath(site, "/site/website")
+        return springBackedService.getAllContentTypes(site, searchable)
     }
 
     def getContentType(site, type) {

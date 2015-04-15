@@ -24,6 +24,8 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -109,12 +111,13 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
-        ContentItemTO folders = contentService.getContentItemTree(_configPath.replaceAll(CStudioConstants.PATTERN_SITE, site), 1);
+        String contentTypesRootPath = _configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+        RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
+
         if (folders != null) {
-            for (ContentItemTO rootFolderInfo : folders.getChildren()) {
-                // traverse the children file-folder structure
-                getContentTypeConfigForChildren(site, rootFolderInfo, contentTypes);
+            for (int i = 0; i < folders.length; i++) {
+                getContentTypeConfigForChildren(site, folders[i], contentTypes);
             }
         }
         return contentTypes;
@@ -122,17 +125,17 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
 
     /**
      * Traverse file folder -- recursive!, searching for config.xml
-     *
-     * @param site
+     *  @param site
      * @param node
      */
-    protected void getContentTypeConfigForChildren(String site, ContentItemTO node, List<ContentTypeConfigTO> contentTypes) {
-        logger.debug("Get Content Type Config fot Children path = {0}", node.getUri());
-        ContentItemTO folders = contentService.getContentItemTree(node.getUri(), 1);
+    protected void getContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
+        String fullPath = node.path + "/" + node.name;
+        logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
+        RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
         if (folders != null) {
-            for (ContentItemTO folderInfo : folders.getChildren()) {
-                if (folderInfo.isFolder()) {
-                    ContentItemTO configNode = contentService.getContentItem(folderInfo.getUri() + "/" + _configFileName);
+            for (int i = 0; i < folders.length; i++) {
+                if (folders[i].isFolder) {
+                    ContentItemTO configNode = contentService.getContentItem(folders[i].path + "/" + folders[i].name + "/" + _configFileName);
                     if (configNode != null) {
                         ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configNode);
                         if (config != null) {
@@ -141,7 +144,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                     }
                     // traverse the children file-folder structure
 
-                    getContentTypeConfigForChildren(site, folderInfo, contentTypes);
+                    getContentTypeConfigForChildren(site, folders[i], contentTypes);
                 }
             }
         }
@@ -228,40 +231,24 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         getServicesManager().registerService(ContentTypeService.class, this);
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
+    public ContentTypesConfig getContentTypesConfig() { return contentTypesConfig; }
+    public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) { this.contentTypesConfig = contentTypesConfig; }
 
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
-    public ContentTypesConfig getContentTypesConfig() {
-        return contentTypesConfig;
-    }
-
-    public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
-        this.contentTypesConfig = contentTypesConfig;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected ContentTypesConfig contentTypesConfig;
     protected SecurityService securityService;
+    protected ContentRepository contentRepository;
 }

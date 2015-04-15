@@ -194,6 +194,7 @@
         <property name="configPath"><value>${contentTypeService.configPath}</value></property>
         <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl"
