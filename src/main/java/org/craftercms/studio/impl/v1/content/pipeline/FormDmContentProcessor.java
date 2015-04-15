@@ -200,7 +200,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                     if (unlock) {
                         // TODO: We need ability to lock/unlock content in repo
-                        //contentService.unlock(site, path);
+                        contentService.unLockContent(site, path);
                         logger.debug("Unlocked the content " + parentContentPath);
                     }
                     return;
@@ -333,7 +333,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                // TODO: unlock content
+                contentService.unLockContent(site, parentItem.getUri() + "/" + fileName);
                 //persistenceManagerService.unlock(fileNode);
             } else {
             }
@@ -400,13 +400,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             */
             // unlock the content upon save if the flag is true
             if (unlock) {
-                //TODO: unlock content
-                //contentService.unlock(contentNode);
-                    logger.debug("Unlocked the content " + fullPath);
-
+                contentService.unLockContent(site, relativePath);
+                logger.debug("Unlocked the content " + fullPath);
             } else {
-                // TODO: lock content
-                //contentService.lock(contentNode, LockType.WRITE_LOCK);
+                contentService.lockContent(site, relativePath);
             }
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {

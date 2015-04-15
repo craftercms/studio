@@ -688,7 +688,7 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = getContentItem(site, path);
         String lockKey = id;
         if (item != null) {
-            lockKey = item.getNodeRef();
+            lockKey = site + ":" + item.getUri();
         }
         generalLockService.lock(lockKey);
         try {
@@ -869,6 +869,12 @@ public class ContentServiceImpl implements ContentService {
     public void lockContent(String site, String path) {
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
+    }
+
+    @Override
+    public void unLockContent(String site, String path) {
+        _contentRepository.unLockItem(site, path);
+        objectMetadataManager.unLockContent(site, path);
     }
 
     private ContentRepository _contentRepository;

@@ -37,4 +37,6 @@ public interface ObjectMetadataManager {
     String getOldPath(String site, String path);
 
     void lockContent(String site, String path, String lockOwner);
+
+    void unLockContent(String site, String path);
 }
