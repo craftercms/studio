@@ -70,6 +70,17 @@
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
         </repository>
+
+        <repository>
+            <id>alfresco</id>
+            <name>Alfresco Repository</name>
+            <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
     </repositories>
 
     <distributionManagement>
@@ -197,7 +208,7 @@
         <dependency>
             <groupId>org.alfresco.cmis.client</groupId>
             <artifactId>alfresco-opencmis-extension</artifactId>
-            <version>0.7</version>
+            <version>1.0</version>
         </dependency>
     </dependencies>
 
