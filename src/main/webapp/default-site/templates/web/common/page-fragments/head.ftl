@@ -32,6 +32,6 @@
 <script src="/studio/static-assets/components/cstudio-common/common-api.js"></script>
 <script src="/studio/static-assets/themes/cstudioTheme/js/global.js"></script>
 
-<script>document.domain = "${envConfig.cookieDomain}";</script>
+<script>document.domain = "${cookieDomain}";</script>
 
 </#if>

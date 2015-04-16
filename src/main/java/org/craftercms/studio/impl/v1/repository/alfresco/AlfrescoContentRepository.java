@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.alfresco.cmis.client.AlfrescoDocument;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -222,7 +223,7 @@ implements SecurityProvider {
      */
     protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
         String url = "";
-        String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
+        String serviceUrlBase = alfrescoUrl+"/service";
         String ticket = getAlfTicket();
 
         if(params != null) {
@@ -736,8 +737,12 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
+        //parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8888/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+
+        // set the alfresco object factory
+        parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
 
         // find all the repositories at this URL - there should only be one.
         List<Repository> repositories = new ArrayList<Repository>();
@@ -752,13 +757,67 @@ implements SecurityProvider {
     }
 
     public void lockItem(String site, String path) {
+        String fullPath = expandRelativeSitePath(site, path);
+        Session session = getCMISSession();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
+            if (!document.hasAspect("P:cm:lockable")) {
+                document.addAspect("P:cm:lockable");
+                logger.debug("Added lockable aspect for content at path " + cleanPath);
+            } else {
+                logger.debug("Already has lockable aspect for content at path " + cleanPath);
+            }
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("cm:lockOwner", getCurrentUser());
+            properties.put("cm:lockType", "WRITE_LOCK");
+            document.updateProperties(properties);
+        } catch (CmisBaseException err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        } catch (Throwable err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        }
+    }
 
+    protected String expandRelativeSitePath(String site, String relativePath) {
+        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
     public void unLockItem(String site, String path) {
-
+        String fullPath = expandRelativeSitePath(site, path);
+        Session session = getCMISSession();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
+            if (document.hasAspect("P:cm:lockable")) {
+                Map<String, Object> properties = new HashMap<String, Object>();
+                properties.put("cm:lockOwner", null);
+                properties.put("cm:lockType", null);
+                document.updateProperties(properties);
+                document.removeAspect("P:cm:lockable");
+                logger.debug("Removing lockable aspect for content at path " + cleanPath);
+            } else {
+                logger.debug("Lockable aspect was already removed for content at path " + cleanPath);
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        } catch (Throwable err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        }
     }
 
+
+    protected String alfrescoUrl;
+    public String getAlfrescoUrl() { return alfrescoUrl; }
+    public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }

@@ -14,7 +14,7 @@
 
 
     <script>
-        var CStudioAuthoring = { cookieDomain: "${envConfig.cookieDomain}" };
+        var CStudioAuthoring = { cookieDomain: "${cookieDomain}" };
     </script>
 
 

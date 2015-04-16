@@ -138,7 +138,7 @@
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
         PATH_IMG: '/images/',
-        SERVICE: 'http://127.0.0.1:8080/studio/api/1/services/api/1/user/'
+        SERVICE: '/studio/api/1/services/api/1/user/'
     });
 
     app.service('authService', [
@@ -459,9 +459,10 @@
 
             function receiveMessage(event) {
 
-                if (event.origin !== 'http://127.0.0.1:8080') {
-                    return;
-                }
+                // checking this here is not secure anyway and origin needs to be dynamic, not hardcoded
+                //if (event.origin !== 'http://HOST:PORT') {
+                //    return;
+                //}
 
                 //var frame = event.source;
                 //var message = event.data;

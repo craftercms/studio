@@ -138,7 +138,7 @@
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
         PATH_IMG: '/images/',
-        SERVICE: 'http://127.0.0.1:8080/studio/api/1/services/api/1/user/'
+        SERVICE: 'http://HOST:PORT-FIXME/studio/api/1/services/api/1/user/'
     });
 
     app.service('authService', [
@@ -458,9 +458,9 @@
 
             function receiveMessage(event) {
 
-                if (event.origin !== 'http://127.0.0.1:8080') {
-                    return;
-                }
+                // if (event.origin !== 'http://HOST:PORT') {
+                //     return;
+                // }
 
                 //var frame = event.source;
                 //var message = event.data;

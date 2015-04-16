@@ -129,8 +129,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 		this.CMgs = CStudioAuthoring.Messages;
      	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
-		var controls = config.controls;
-		var datasources = config.datasources;
+		var controls = config.controls.control;
+		var datasources = config.datasources.datasource;
 		var toolbarEl = document.getElementById("content-type-tools");
 		
 		if(!controls.length) {
@@ -230,6 +230,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 						controlContainerEl: controlContainerEl
 					};
 
+
+		    			
 			
 		    		CStudioAuthoring.Module.requireModule(
                 		"cstudio-forms-controls-" + controls[j],

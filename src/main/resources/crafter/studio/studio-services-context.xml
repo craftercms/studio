@@ -7,6 +7,7 @@
     <import resource="classpath:crafter/studio/cstudio-dao-context.xml"/>
     <import resource="classpath:crafter/studio/studio-ebus-context.xml"/>
 
+
       <!-- ////////////////////////////////////// -->
       <!--         logging                        -->
       <!-- ////////////////////////////////////// -->
@@ -61,6 +62,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -193,6 +195,7 @@
         <property name="configPath"><value>${contentTypeService.configPath}</value></property>
         <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl"
@@ -464,7 +467,7 @@
     <!--bean id="cstudioWorkflowJobDAL" class="org.craftercms.cstudio.impl.service.workflow.dal.DbWorkflowJobDAL"
           init-method="initTable">
         <property name="sqlMap" ref="cstudioWorkflowSqlMap"/>
-        <property name="initializeScriptPath" value="alfresco/workflow/${hibernate.dialect}/initialize.sql"/>
+        <property name="initializeScriptPath" value="/workflow/${hibernate.dialect}/initialize.sql"/>
     </bean-->
 
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
@@ -483,22 +486,58 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepository">
+        <property name="repositoryType" value="${repositoryType}"/>
     </bean>
 
-    <alias name="cstudioContentRepository" alias="securityProvider"/>
-
-
-    <!--bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+    <bean id="cstudioContentRepositoryRegistration" 
+          abstract="true" 
+          class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepositoryRegistration"
+          init-method="registerRepository">
+        <property name="mappedContentRepository" ref="cstudioContentRepository"/>
+    </bean>
+    
+    <!-- default option -->
+    <bean id="cstudioDiskContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
     </bean>
 
-    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
-    </bean -->
+    <bean id="cstudioDiskContentRepositoryRegistration" 
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioDiskContentRepository"/>
+        <property name="repositoryType" value="default"/>
+    </bean>
 
- 
+    <!-- ////////////////////////////////////// -->
+    <!--         Security layer               -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
+        <property name="providerType" value="${securityType}"/>
+    </bean>
+
+    <bean id="cstudioSecurityProviderRegistration" 
+          abstract="true" 
+          class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProviderRegistration"
+          init-method="registerProvider">
+        <property name="mappedSecurityProvider" ref="securityProvider"/>
+    </bean>
+
+    <bean id="cstudioFauxSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
+    </bean>
+
+    <bean id="cstudioFauxSecurityProviderRegistration" 
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioFauxSecurityProvider"/>
+        <property name="providerType" value="default"/>
+    </bean>
+
+    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
+         do anything.  Remember another repostory may be configured for use and Alfresco 
+         may not exist on the server. I.e. evaluation
+     -->
+    <import resource="classpath*:crafter/studio/studio-alfresco-context.xml" />
 
     <!-- ////////////////////////////////////// -->
     <!--       Object type filters                   -->

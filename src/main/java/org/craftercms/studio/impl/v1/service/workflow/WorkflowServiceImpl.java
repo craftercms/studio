@@ -269,7 +269,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 			// add all content items from each task if task is the review task
 			for (ObjectState state : changeSet) {
 				try {
-					ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath());
+					ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
 					addToQueue(site, goLiveQueue, inProcessQueue, item, state);
 				} catch (Exception e) {
 					logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());
@@ -337,7 +337,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 			for (ObjectState state : changeSet) {
 				if (contentService.contentExists(state.getSite(), state.getPath())) {
 					if (ContentUtils.matchesPatterns(state.getPath(), displayPatterns)) {
-						ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath());
+						ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
 						addInProgressItems(site, item, categoryItems, comparator, inProgressOnly);
 					}
 				}

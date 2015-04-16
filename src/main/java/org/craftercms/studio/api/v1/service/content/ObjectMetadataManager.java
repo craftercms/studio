@@ -35,4 +35,8 @@ public interface ObjectMetadataManager {
     boolean isRenamed(String site, String path);
 
     String getOldPath(String site, String path);
+
+    void lockContent(String site, String path, String lockOwner);
+
+    void unLockContent(String site, String path);
 }

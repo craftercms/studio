@@ -64,7 +64,7 @@ def lookupReportFn = { webPropertyId, reportId, config ->
 
 def serverProperties = applicationContext.get("studio.crafter.properties")
 def analyticsService = applicationContext.get("crafter.analyticsService")
-def alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
+def alfrescoUrl = serverProperties["alfrescoUrl"]  
 def ticket = Cookies.getCookieValue("ccticket", request)
 
 // get parameter values

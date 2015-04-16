@@ -52,7 +52,7 @@ public interface ContentService {
      * @return document
      * @oaram site
      */
-    public InputStream getContent(String site, String path) throws ContentNotFoundException;
+    InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
      * get document from wcm content
@@ -158,7 +158,16 @@ public interface ContentService {
      * @param site - the project ID
      * @param path - the path of the content item
      */
-    public ContentItemTO getContentItem(String site, String path);
+    ContentItemTO getContentItem(String site, String path);
+
+    /**
+     * get the content item (metadata) at a specific path
+     *
+     * @param site - the project ID
+     * @param path - the path of the content item
+     * @param depth - depth to get desendents
+     */
+    ContentItemTO getContentItem(String site, String path, int depth);
 
     /**
      * get the content item (metadata) at a specific path
@@ -226,4 +235,8 @@ public interface ContentService {
     void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
+
+    void lockContent(String site, String path);
+
+    void unLockContent(String site, String path);
 }

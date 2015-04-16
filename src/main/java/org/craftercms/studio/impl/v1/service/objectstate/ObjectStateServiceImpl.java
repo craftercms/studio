@@ -399,7 +399,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                 if (!bulkSubsets.containsKey(state.getState())) {
                     bulkSubsets.put(State.valueOf(state.getState()), new ArrayList<String>());
                 }
-                bulkSubsets.get(state.getState()).add(state.getObjectId());
+                bulkSubsets.get(State.valueOf(state.getState())).add(state.getObjectId());
             }
             State nextState = null;
             for (Map.Entry<State, List<String>> entry : bulkSubsets.entrySet()) {

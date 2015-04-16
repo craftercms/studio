@@ -88,6 +88,30 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         }
     }
 
+    @Override
+    public void lockContent(String site, String path, String lockOwner) {
+        if (!metadataExist(site, path)) {
+            insertNewObjectMetadata(site, path);
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("lockOwner", lockOwner);
+        objectMetadataMapper.setLockOwner(params);
+    }
+
+    @Override
+    public void unLockContent(String site, String path) {
+        if (!metadataExist(site, path)) {
+            insertNewObjectMetadata(site, path);
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("lockOwner", "");
+        objectMetadataMapper.setLockOwner(params);
+    }
+
     @Autowired
     protected ObjectMetadataMapper objectMetadataMapper;
 }

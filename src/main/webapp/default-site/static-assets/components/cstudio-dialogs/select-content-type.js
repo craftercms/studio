@@ -178,7 +178,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 
 		for(var k=0; k<contentTypes.length; k++) {
-			if(contentTypesSelect.value == contentTypes[k].formId){
+			if(contentTypesSelect.value == contentTypes[k].form){
 				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
 					contentTypePreviewImg.src = 
 						CStudioAuthoringContext.baseUri+
@@ -224,7 +224,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 			var label = contentTypes[j].label;
 			var option = document.createElement("option");
 			option.text = contentTypes[j].label;
-			option.value = contentTypes[j].formId;
+			option.value = contentTypes[j].form;
 			if(j == 0 ) option.selected = "selected";//first template will be selected. 
 			contentTypesSelect.options.add(option);
 		}
@@ -237,7 +237,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 			var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 
 			for(var k=0; k<contentTypes.length; k++) {
-				if(this.value == contentTypes[k].formId){
+				if(this.value == contentTypes[k].form){
 					if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
 						contentTypePreviewImg.src = 			 
 							CStudioAuthoringContext.baseUri +
