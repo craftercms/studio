@@ -97,7 +97,7 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 * @param key
 	 * @return timpStamped configuration object
 	 */
-	protected abstract TimeStamped getConfiguration(final String key);
+	protected abstract TimeStamped getConfigurationById(final String key);
 
     /**
      * remove configuration for the given key

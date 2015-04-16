@@ -151,7 +151,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     @Override
-    protected TimeStamped getConfiguration(String key) {
+    protected TimeStamped getConfigurationById(String key) {
         // not used
         return null;
     }

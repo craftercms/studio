@@ -59,14 +59,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 							           failure: function() { alert(this.CMgs.format(this.langBundle, "saveFailed")); } 
 							};
 							
-							var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+	   				var defPath = '/cstudio/config/sites/' + 
 							          CStudioAuthoringContext.site +
-							          '/content-types' + formDef.contentType + 
-							          '/form-definition.xml'
+							          '/content-types' + formDef.contentType +
+							          '/form-definition.xml';
+							          
+                    var url = "/api/1/services/api/1/site/write-configuration.json" +
+                        "?path=" + defPath;
 
 							YAHOO.util.Connect.setDefaultPostHeader(false);
 							YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-							YAHOO.util.Connect.asyncRequest('POST', url, cb, xml);
+							YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, xml);
 						}	
 					},
 					{label:"Cancel", fn: function() {

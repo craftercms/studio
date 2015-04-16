@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -54,6 +56,21 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	public void register() {
 		this._servicesManager.registerService(SiteService.class, this);
 	}
+	
+	@Override
+	public boolean writeConfiguration(String site, String path, InputStream content) {
+		return contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+	}
+
+	@Override	
+	public boolean writeConfiguration(String path, InputStream content) {
+		return contentRepository.writeContent(path, content);
+	}
+
+	@Override
+	public Map<String, Object> getConfiguration(String path) {
+		return null;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -61,7 +78,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 * @seeorg.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#
 	 * getConfiguration(java.lang.String)
 	 */
-	protected TimeStamped getConfiguration(String key) {
+	protected TimeStamped getConfigurationById(String key) {
 		// key is not being used here
 		return sitesConfig;
 	}
@@ -440,6 +457,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
 
+	protected ContentRepository contentRepository;
+	public ContentRepository getContenetRepository() { return contentRepository; }
+	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 

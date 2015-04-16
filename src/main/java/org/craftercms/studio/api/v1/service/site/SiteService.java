@@ -27,6 +27,7 @@ import org.dom4j.Document;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.InputStream;
 
 /**
  * Note: consider renaming
@@ -35,6 +36,20 @@ import java.util.Set;
  * @author russdanner
  */
 public interface SiteService {
+
+	/**
+	 * write configuraiton content at the given path
+	 * (can be any kind of content)
+	 * @param path
+	 */
+    boolean writeConfiguration(String site, String path, InputStream content);
+
+	/**
+	 * write configuraiton content at the given path
+	 * (can be any kind of content)
+	 * @param path
+	 */
+	boolean writeConfiguration(String path, InputStream content);
 	
 	/**
 	 * given a site ID return the configuration as a document
@@ -54,7 +69,18 @@ public interface SiteService {
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
-	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
+	Map<String, Object> getConfiguration(String path);
+
+	/**
+	 * get configuraiton content as XML string at the given path
+	 *
+	 * @param site
+	 * @param path
+	 * @param applyEnv
+	 * 			find from the environment overrides location?
+	 * @return configuration as XML string
+	 */
+	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
 	List<SiteFeed> getUserSites(String user);
 

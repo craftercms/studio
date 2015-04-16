@@ -126,7 +126,7 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
     }
 
     @Override
-    protected TimeStamped getConfiguration(String key) {
+    protected TimeStamped getConfigurationById(String key) {
         return siteMapping.get(key);
     }
 

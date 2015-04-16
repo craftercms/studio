@@ -31,6 +31,21 @@ class SpringSiteServices {
         this.context = context
     }
 
+    def writeConfiguration(path, content){
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.writeConfiguration(path, content);       
+    }
+
+    def writeConfiguration(site, path, content){
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.writeConfiguration(site, path, content);
+    }
+
+    def getConfiguraiton(path) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getConfiguration(site, path);
+    }
+
     def getConfiguration(site, path, applyEnvironment) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getConfiguration(site, path, applyEnvironment);

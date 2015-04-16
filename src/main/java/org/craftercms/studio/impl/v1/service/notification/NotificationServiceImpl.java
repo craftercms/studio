@@ -507,7 +507,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 */
 
     @Override
-    protected TimeStamped getConfiguration(String key) {
+    protected TimeStamped getConfigurationById(String key) {
 return null;
 //        return _notificationConfigMap.get(key);
     }
