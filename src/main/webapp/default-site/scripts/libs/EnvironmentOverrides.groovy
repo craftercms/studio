@@ -1,6 +1,6 @@
 package scripts.libs
 
-import groovy.json.JsonSlurper
+import scripts.api.SiteServices;
 
 class EnvironmentOverrides {
 
@@ -15,23 +15,27 @@ class EnvironmentOverrides {
 		 
 		result.role = "author" // default
 
+  
 		try {		
 			result.user = request.getSession().getValue("username")
 			result.ticket = request.getSession().getValue("alf_ticket")
 			result.site = Cookies.getCookieValue("crafterSite", request)
+    		def context = SiteServices.createContext(appContext, request)
+    		def sites = SiteServices.getUserSites(context, result.user)
 
+			result.siteTitle = result.site +sites.size;
 
-  			def sitesurl = result.alfrescoUrl + "/service/api/people/"+result.user+"/sites?roles=user&size=100&alf_ticket="+result.ticket;
-			def sitesResponse = (sitesurl).toURL().getText();
-			def sites = new JsonSlurper().parseText( sitesResponse );
-			
-		     for(int j = 0; j < sites.size; j++) {
-		        def alfSite = sites[j];
-		        if(alfSite.shortName == result.site) {
-		     		result.siteTitle = alfSite.title
+ /*
+			 for(int j = 0; j < sites.size; j++) {
+		        def site = sites[j];
+		         result.siteTitle+="|"+site.siteId
+
+		        if(site.siteId == result.site) {
+		     		result.siteTitle = site.name;
+		     		break;
 		     	}
 		     }
-
+ 
 			  def overridesUrl = result.alfrescoUrl + 
 			  	"/service/cstudio/site/get-configuration"+
 			  		"?site="+result.site+
@@ -57,9 +61,11 @@ class EnvironmentOverrides {
 		      result.liveServerUrl = config["live-server-url"]
 		      result.publishingChannels = config["publishing-channels"]
 		      result.openSiteDropdown = config["open-site-dropdown"]
+*/
 		  }
 		  catch(err) {
 		     result.err = err
+		     throw new Exception(err)
 		  }
 		  
 	      return result;

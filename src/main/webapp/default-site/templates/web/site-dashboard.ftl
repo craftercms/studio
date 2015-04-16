@@ -214,7 +214,7 @@
         var langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
         var loc = CStudioAuthoring.Messages.format;
 
-        document.querySelector('.page-header h1').innerHTML = loc(langBundle, "dashboardTitle", "${envConfig.siteTitle!}");
+        document.querySelector('.page-header h1').innerHTML = loc(langBundle, "dashboardTitle", "${envConfig.siteTitle!"SITE"}");
         document.querySelector('#GoLiveQueue .panel-title span').innerHTML = loc(langBundle, "dashletGoLiveQueueTitle");
         document.querySelector('#approvedScheduledItems .panel-title span').innerHTML = loc(langBundle, "dashletApprovedSchedTitle");
         document.querySelector('#recentlyMadeLive .panel-title span').innerHTML = loc(langBundle, "dashletRecentDeployTitle");
