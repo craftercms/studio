@@ -5,14 +5,13 @@ import groovy.json.JsonSlurper
 class EnvironmentOverrides {
 
 	static getValuesForSite(appContext, request) {
+		 
 		def result = [:]
 		def serverProperties = appContext.get("studio.crafter.properties")
 		def cookies = request.getCookies();
 
-		result.environment = serverProperties["environment"] // local
-		result.alfrescoUrl = serverProperties["alfrescoUrl"] // http://127.0.0.1:8080/alfresco
-		result.cookieDomain = serverProperties["cookieDomain"] // 127.0.0.1
-
+		result.environment = serverProperties["environment"]  
+		result.alfrescoUrl = serverProperties["alfrescoUrl"]  
 		 
 		result.role = "author" // default
 

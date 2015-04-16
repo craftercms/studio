@@ -460,7 +460,7 @@
             function receiveMessage(event) {
 
                 // checking this here is not secure anyway and origin needs to be dynamic, not hardcoded
-                //if (event.origin !== 'http://127.0.0.1:8080') {
+                //if (event.origin !== 'http://HOST:PORT') {
                 //    return;
                 //}
 
