@@ -28,14 +28,15 @@
                 <value>classpath:crafter/engine/server-config.properties</value>
                 <value>classpath:crafter/engine/studio-server-config.properties</value>
                 <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
+                <value>classpath*:crafter/cstudio/extension/server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true" />
     </bean>
 
     <!--
-	Activates various annotations to be detected in bean classes: Spring's @Required and @Autowired, as well as JSR
-	250's @PostConstruct, @PreDestroy and @Resource (if available), JAX-WS's @WebServiceRef (if available), EJB3's @EJB
+	Activates various annotations to 
+	250's @PostConstruct, @PreDestrbe detected in bean classes: Spring's @Required and @Autowired, as well as JSRoy and @Resource (if available), JAX-WS's @WebServiceRef (if available), EJB3's @EJB
 	(if available), and JPA's @PersistenceContext and @PersistenceUnit (if available).
     -->
     <context:annotation-config/>
@@ -281,7 +282,7 @@
 
     <bean id="crafter.proxy.alfresco" class="org.craftercms.engine.http.impl.AlfrescoHttpProxy">
         <property name="alfrescoTicketCookieName" value="alf_ticket"/>
-        <property name="baseServiceUrl" value="http://localhost:8080/alfresco/service"/>
+        <property name="baseServiceUrl" value="${alfrescoUrl}/service"/>
     </bean>
 
   <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">

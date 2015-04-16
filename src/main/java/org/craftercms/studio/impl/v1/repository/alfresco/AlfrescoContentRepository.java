@@ -223,7 +223,7 @@ implements SecurityProvider {
      */
     protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
         String url = "";
-        String serviceUrlBase = "http://127.0.0.1:8080/alfresco/service";
+        String serviceUrlBase = alfrescoUrl+"/service";
         String ticket = getAlfTicket();
 
         if(params != null) {
@@ -737,8 +737,8 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        //parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
-        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/cmisatom");
+        //parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8888/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
         // set the alfresco object factory
@@ -814,6 +814,10 @@ implements SecurityProvider {
         }
     }
 
+
+    protected String alfrescoUrl;
+    public String getAlfrescoUrl() { return alfrescoUrl; }
+    public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
