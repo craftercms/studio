@@ -79,6 +79,13 @@ public class DiskContentRepository extends AbstractContentRepository {
 
         try {
             logger.debug("writing file: "+path);
+            
+            try {
+                Files.createDirectories(constructRepoPath(path.substring(0, path.lastIndexOf("/") ) ) );
+            }
+            catch(Exception err) {
+            }
+
             CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
             Files.copy(content,constructRepoPath(path), options);
         }

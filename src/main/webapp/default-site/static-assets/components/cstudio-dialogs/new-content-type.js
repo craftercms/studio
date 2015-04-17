@@ -151,7 +151,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		var contentAsFolder = (
 			type == 'component' ? false : params.asFolderEl.checked
 		);
-		var baseServicePath = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+		var baseServicePath = '/api/1/services/api/1/site/write-configuration.json?path=/cstudio/config/sites/' + 
 			CStudioAuthoringContext.site +
 			'/content-types/' + type + '/' + name + 
 			'/';
@@ -280,7 +280,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 	writeConfig: function(url, content, cb) {
 		YAHOO.util.Connect.setDefaultPostHeader(false);
 		YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-		YAHOO.util.Connect.asyncRequest('POST', url, cb, content);		
+		YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, content);		
 	},
 	
 	/**
