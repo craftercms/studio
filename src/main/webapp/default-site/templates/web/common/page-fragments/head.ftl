@@ -31,6 +31,8 @@
 
 <script src="/studio/static-assets/components/cstudio-common/common-api.js"></script>
 <script src="/studio/static-assets/themes/cstudioTheme/js/global.js"></script>
+<script src="/studio/static-assets/yui/bubbling.v1.5.0-min.js" type="text/javascript"></script>
+
 
 <script>document.domain = "${cookieDomain}";</script>
 
