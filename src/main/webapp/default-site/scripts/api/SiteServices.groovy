@@ -36,6 +36,22 @@ class SiteServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
+    static writeConfiguration(context, path, content){
+        
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(path, content)        
+    }
+
+    static writeConfiguration(context, site, path, content){
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(site, path, content)  
+    }
+
+    static getConfiguraiton(context, path, content) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(path, content)  
+    }
+
     static getConfiguration(context, site, path, applyEnvironment) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getConfiguration(site, path, applyEnvironment)

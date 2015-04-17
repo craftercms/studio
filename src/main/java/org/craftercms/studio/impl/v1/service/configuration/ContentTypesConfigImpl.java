@@ -313,7 +313,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     @Override
-    protected TimeStamped getConfiguration(String key) {
+    protected TimeStamped getConfigurationById(String key) {
         return contentTypeMap.get(key);
     }
 

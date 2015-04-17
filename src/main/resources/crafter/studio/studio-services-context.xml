@@ -81,6 +81,7 @@
         </property>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
