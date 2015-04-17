@@ -56,14 +56,14 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
                            '<div class="content">'+
                              '<label for="contentTypeDisplayName"><span>Display Label:</span>'+
                              '<input title="Provide a display label for this content type" id="contentTypeDisplayName" type="text"></label>' +
-                             '<label for="contentTypeName"><span>System Name:</span>'+
-                             '<input title="Provide a system name for this content type" id="contentTypeName" type="text"></label>' +
+                             '<label for="contentTypeName"><span>Content Type Name:</span>'+
+                             '<input style="disabled" title="Provide a system name for this content type" id="contentTypeName" type="text"></label>' +
                              '<div class="selectInput">' +
                              '<label for="contentTypeObjectType">Type:</label>'+
                              '<select title="Select the type for this content type" id="contentTypeObjectType">' + 
                              '</select></div>' +
-                             '<label class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
-                             '<input id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
+                             '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
+                             '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
                              '<div class="contentTypePopupBtn"> ' +
                                '<input type="button" class="cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
                                '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
@@ -73,13 +73,13 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		document.getElementById("upload-popup-inner").style.width = "350px";
 		document.getElementById("upload-popup-inner").style.height = "270px";
 		
-		if(!this.config.objectTypes.length) {
-			this.config.objectTypes = [ this.config.objectTypes.type ];
+		if(!this.config.objectTypes.type.length) {
+			this.config.objectTypes.type = [ this.config.objectTypes.type ];
 		}
 		
 		var typeEl = document.getElementById("contentTypeObjectType");
-		for(var k=0; k<this.config.objectTypes.length; k++) {
-			var objectType = this.config.objectTypes[k];
+		for(var k=0; k<this.config.objectTypes.type.length; k++) {
+			var objectType = this.config.objectTypes.type[k];
 			typeEl.options[typeEl.options.length] = new Option(objectType.label, objectType.name);
 		}
 
@@ -97,8 +97,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		// Render the Dialog
 		dialog.render();
 		
-		this.buttonValidator("createButton", { "contentTypeDisplayName" : [/^$/], 
-		                                       "contentTypeName" : [/^$/] });
+		this.buttonValidator("createButton", { "contentTypeDisplayName" : [/^$/] });
 		
 		var eventParams = {
 			self: this,
@@ -108,12 +107,31 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 			objectTypeEl: document.getElementById('contentTypeObjectType')
 		};
 		
+		YEvent.on("contentTypeObjectType", "change", function() {
+			 var type = document.getElementById('contentTypeObjectType').value;
+			 if(type=="page") {
+				 document.getElementById('contentTypeAsFolder').checked = true;
+			 }
+			 else {
+			 	document.getElementById('contentTypeAsFolder').checked = false;
+			 }
+		});
+
 		YEvent.on("contentTypeDisplayName", "keyup", function() {
                     YAHOO.Bubbling.fire("content-type.values.changed");
+					value = document.getElementById('contentTypeDisplayName').value;
+
+					var find = ' ';
+					var re = new RegExp(find, 'g');
+					value = value.replace(re, '-');
+					value = value.toLowerCase();
+
+                    document.getElementById('contentTypeName').value = value;
+
                 });
-                YEvent.on("contentTypeName", "keyup", function() {
-                    YAHOO.Bubbling.fire("content-type.values.changed");
-                });
+                //YEvent.on("contentTypeName", "keyup", function() {
+                //    YAHOO.Bubbling.fire("content-type.values.changed");
+                //});
 
 		YEvent.addListener("createButton", "click", this.createClick, eventParams);
 
