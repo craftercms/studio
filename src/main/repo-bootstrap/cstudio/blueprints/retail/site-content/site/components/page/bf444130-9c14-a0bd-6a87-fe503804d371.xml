@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>bf44</objectGroupId>
+	<objectId>bf444130-9c14-a0bd-6a87-fe503804d371</objectId>
+	<file-name>bf444130-9c14-a0bd-6a87-fe503804d371.xml</file-name>
+	<folder-name/>
+	<image>/static-assets/page/images/{groupid}/{objectid}/cms-freeshippingNreturns.png</image>
+	<alttext/>
+	<createdDate>02/09/2013 09:36:05</createdDate>
+	<lastModifiedDate>02/09/2013 09:36:05</lastModifiedDate>
+</component>

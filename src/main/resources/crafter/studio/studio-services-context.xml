@@ -501,7 +501,7 @@
     <!-- default option -->
     <bean id="cstudioDiskContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
         <property name="repositoryReactor" ref="repositoryReactor"/>
-        <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
+        <property name="rootPath" value="${repository.diskImplementation.path}" />
     </bean>
 
     <bean id="cstudioDiskContentRepositoryRegistration" 

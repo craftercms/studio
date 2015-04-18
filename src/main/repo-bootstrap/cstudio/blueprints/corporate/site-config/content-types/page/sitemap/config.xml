@@ -1,0 +1,11 @@
+<content-type name="/page/sitemap" is-wcm-type="true">
+<label>Site Map</label>
+<form>/page/sitemap</form>
+<form-path>simple</form-path>
+<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+<file-extension>xml</file-extension>
+<content-as-folder>false</content-as-folder>
+<previewable>true</previewable>
+<noThumbnail>true</noThumbnail>
+<image-thumbnail></image-thumbnail>
+</content-type>

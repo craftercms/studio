@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/redirect</content-type>
+	<content-type>/page/redirect</content-type>
+	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>d8fc</objectGroupId>
+	<objectId>d8fc4881-9d9e-c301-e735-fd3efa5d303a</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>mens</folder-name>
+	<internal-name>Mens</internal-name>
+	<navLabel>Mens</navLabel>
+	<redirect-url>/mens/jeans</redirect-url>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>4000</orderDefault_f>
+	<createdDate>04/22/2013 01:01:46</createdDate>
+	<lastModifiedDate>04/22/2013 01:01:46</lastModifiedDate>
+</page>

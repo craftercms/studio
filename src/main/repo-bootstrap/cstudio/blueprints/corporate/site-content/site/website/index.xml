@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/entry</content-type>	<placeInNav>true</placeInNav>
+	<display-template>/templates/web/entry.ftl</display-template>
+	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>1000</orderDefault_f>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<title>globalintegrity minimal site</title>
+	<meta-description>globalintegrity</meta-description>
+	<meta-keywords>globalintegrity</meta-keywords>
+	<objectGroupId>b390</objectGroupId>
+	<objectId>b3900ed2-0b3d-86d3-89b2-be3746d54ec6</objectId>
+	<folder-name/>
+	<heroImage>/static-assets/images/home-page-heros/home-bg.png</heroImage>
+	<enableTouts>true</enableTouts>
+	<createdDate>4/8/2015 19:42:8</createdDate>
+	<lastModifiedDate>4/18/2015 2:51:5</lastModifiedDate>
+</page>
