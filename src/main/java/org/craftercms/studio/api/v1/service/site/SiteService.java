@@ -93,4 +93,14 @@ public interface SiteService {
     Set<String> getAllAvailableSites();
 
     String getLiveEnvironmentName(String site);
+
+    /**
+     * Create a new site based on an existing blueprint
+     * @param blueprintName
+     * @param siteName
+     * @param siteId
+     * @param desc
+     */
+    boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc);
+
 }
