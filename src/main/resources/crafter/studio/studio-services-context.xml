@@ -499,7 +499,9 @@
     </bean>
     
     <!-- default option -->
-    <bean id="cstudioDiskContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+    <bean id="cstudioDiskContentRepository" 
+        class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
+        init-method="bootstrap">
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="${repository.diskImplementation.path}" />
     </bean>
