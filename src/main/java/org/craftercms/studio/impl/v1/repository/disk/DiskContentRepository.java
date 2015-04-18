@@ -146,7 +146,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            Files.copy(constructRepoPath(fromPath), constructRepoPath(toPath));
+            Path source = constructRepoPath(fromPath);
+            Path target = constructRepoPath(toPath);
+            TreeCopier tc = new TreeCopier(source, target, false, false);
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
         }
         catch(Exception err) {
             // log this error

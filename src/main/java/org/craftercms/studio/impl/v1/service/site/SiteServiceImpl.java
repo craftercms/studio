@@ -422,9 +422,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
  		boolean success = true;
  		try {
+ 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
 	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
 	 			"/wem-projects/"+siteId+"/"+siteId+"/work-area");
-	 		
+
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
 	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
 	 			"/cstudio/config/sites/"+siteId);
 

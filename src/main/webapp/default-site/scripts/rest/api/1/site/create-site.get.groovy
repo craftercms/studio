@@ -20,7 +20,7 @@ import scripts.api.SiteServices;
 def result = [:]
 def blueprintName = params.blueprintName
 def siteName = params.siteName
-def site = params.siteId
+def siteId = params.siteId
 def desc = params.desc
 
 def context = SiteServices.createContext(applicationContext, request)
