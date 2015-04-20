@@ -15,19 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.SiteServices;
 
-package org.craftercms.studio.api.v1.dal;
+def result = [:]
+def siteId = params.siteId
 
-import java.util.List;
-
-/**
- * Created by dejanbrkic on 1/19/15.
- */
-public interface SiteFeedMapper {
-
-    List<SiteFeed> getSites();
-
-	boolean createSite(String blueprintName, String siteName, String siteId, String desc);
-
-    boolean deleteSite(String siteId);
-}
+def context = SiteServices.createContext(applicationContext, request)
+result = SiteServices.deleteSite(context, siteId)
+ 
+return result

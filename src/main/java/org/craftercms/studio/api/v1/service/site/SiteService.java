@@ -103,4 +103,8 @@ public interface SiteService {
      */
     boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc);
 
+    /**
+     * remove a site from the system
+     */
+   	boolean deleteSite(String siteId);
 }

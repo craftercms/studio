@@ -89,8 +89,6 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            logger.debug("writing file: "+path);
-            
             try {
                 Files.createDirectories(constructRepoPath(path.substring(0, path.lastIndexOf("/") ) ) );
             }
@@ -130,10 +128,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
         
         try {
-            Files.delete(constructRepoPath(path));
+            //DeleteOption options[] = { StandardDeleteOption.DELETE_NON_EMPTY };
+            Files.delete(constructRepoPath(path));//, options);
         }
         catch(Exception err) {
             // log this error
+            logger.error("error while deleting content", err);
             success = false;
         }
 

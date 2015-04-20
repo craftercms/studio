@@ -66,4 +66,10 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }    
+
+    static deleteSite(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.deleteSite(siteId)
+    }
+
 }
