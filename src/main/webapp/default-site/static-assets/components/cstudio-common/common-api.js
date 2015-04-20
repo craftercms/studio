@@ -473,17 +473,19 @@ var YEvent = YAHOO.util.Event;
             },
 
             deleteContent: function(items) {
+
                 var controller, view;
                 if (CSA.Utils.isAdmin()) {
                     controller = "viewcontroller-delete";
                     view = CSA.Service.getDeleteView;
                 } else {
                     // scheduled delete not supported
-                    //controller = "viewcontroller-schedulefordelete";
-                    //view = CSA.Service.getScheduleForDeleteView;
-                    controller = "viewcontroller-delete";
-                    view = CSA.Service.getDeleteView;
+                    controller = "viewcontroller-schedulefordelete";
+                    view = CSA.Service.getScheduleForDeleteView;
+                    //controller = "viewcontroller-request-delete";
+                    //view = CSA.Service.getRequestDeleteView;
                 }
+
                 CSA.Operations._showDialogueView({
                     fn: view,
                     controller: controller,
@@ -506,6 +508,7 @@ var YEvent = YAHOO.util.Event;
                         });
                     }
                 }, true);
+
             },
             viewSchedulingPolicy: function(callback) {
                 CSA.Operations._showDialogueView({
@@ -562,21 +565,28 @@ var YEvent = YAHOO.util.Event;
                     }
                 }, true, '800px');
 
-                /*
-                 CStudioAuthoring.Module.requireModule(
-                 'dialog-approve',
-                 '/static-assets/components/cstudio-dialogs/go-live.js', {
-                 contentItems: items,
-                 site: site
-                 }, {
-                 moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                 // in preview, this function undefined raises error -- unlike dashboard
-                 dialogClass.showDialog &&
-                 dialogClass.showDialog(
-                 moduleConfig.site, moduleConfig.contentItems);
-                 }
-                 });
-                 */
+            },
+
+            submitContent: function(site, contentItems) {
+
+                CSA.Operations._showDialogueView({
+                    fn: CSA.Service.getRequestPublishView,
+                    controller: 'viewcontroller-requestpublish',
+                    callback: function(dialog) {
+                        this.renderItems(contentItems);
+                    }
+                }, true, '800px');
+
+                /*CStudioAuthoring.Module.requireModule('dialog-simple-submit',
+                    '/static-assets/components/cstudio-dialogs/submit-simple.js', {
+                        contentItems: contentItems,
+                        site: site
+                    }, {
+                        moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
+                            // in preview, this function undefined raises error -- unlike dashboard
+                            dialogClass.showDialog && dialogClass.showDialog(moduleConfig.site, moduleConfig.contentItems);
+                        }
+                    });*/
             },
 
             /**
@@ -1004,11 +1014,6 @@ var YEvent = YAHOO.util.Event;
 
                 }
 
-            },
-
-
-            openContentWebForm: function(formId, id, noderef, path, edit, asPopup, callback, auxParams) {
-                this.openContentWebForm(formId, id, noderef, path, edit, asPopup, callback, auxParams,false);
             },
 
             /**
@@ -1745,25 +1750,7 @@ var YEvent = YAHOO.util.Event;
                 CStudioAuthoring.Service.lookupAllowedTaxonomyTypesForPath(path, callback);
             },
 
-            /**
-             * submit content
-             */
-            submitContent: function(site, contentItems) {
-                var submitDialogCb = {
-                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                        // in preview, this function undefined raises error -- unlike dashboard
-                        dialogClass.showDialog && dialogClass.showDialog(moduleConfig.site, moduleConfig.contentItems);
-                    }
-                }
-                var moduleConfig = {
-                    contentItems: contentItems,
-                    site: site
-                };
-                CStudioAuthoring.Module.requireModule("dialog-simple-submit",
-                    "/static-assets/components/cstudio-dialogs/submit-simple.js",
-                    moduleConfig,
-                    submitDialogCb);
-            },
+            /* submit content moved up, next to approveCommon */
 
             /**
              * approve content
@@ -1781,6 +1768,7 @@ var YEvent = YAHOO.util.Event;
                             dialogClass.showDialog(moduleConfig.site, moduleConfig.contentItems);
                         } });
             },
+
             /**
              * approve-schedule content
              */
@@ -1974,50 +1962,44 @@ var YEvent = YAHOO.util.Event;
                 });
             },
 
-            getHistoryView: function(callback) {
+            getViewCommon: function (url, callback) {
+
                 var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/history.html?site={site}");
+                    url = srv._formatURL(url);
+
                 srv._getView({
                     url: url,
                     callback: callback,
-                    method: "GET",
-                    defaultPostHeader: true
-                });
-            },
-            getApproveView: function(callback) {
-
-                var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL(
-                        '{base}/static-assets/components/cstudio-dialogs-templates/approve.html?site={site}');
-
-                srv._getView({
-                    url: url,
                     method: 'GET',
-                    callback: callback,
                     defaultPostHeader: true
                 });
 
             },
+
+            getHistoryView: function(callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/history.html?site={site}', callback);
+            },
+
+            getApproveView: function(callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/approve.html?site={site}', callback);
+            },
+
+            getRequestPublishView: function (callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/request-publish.html?site={site}', callback);
+            },
+
+            getRequestDeleteView: function (callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/request-delete.html?site={site}', callback);
+            },
+
             getScheduleForDeleteView: function(callback) {
-                var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}");
-                srv._getView({
-                    url: url,
-                    callback: callback,
-                    method: "GET",
-                    defaultPostHeader: true
-                });
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}', callback);
             },
+
             getDeleteView: function(callback) {
-                var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/delete.html?site={site}");
-                srv._getView({
-                    url: url,
-                    callback: callback,
-                    method: "GET",
-                    defaultPostHeader: true
-                });
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/delete.html?site={site}', callback);
             },
+
             getSchedulingPolicyView: function(callback) {
                 var srv = CStudioAuthoring.Service,
                     url = srv._formatURL("{base}/service/ui/workflow-actions/schedule-policy?site={site}");
@@ -2027,25 +2009,13 @@ var YEvent = YAHOO.util.Event;
                     method: "GET"
                 });
             },
+
             getScheduleView: function (callback) {
-                var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/schedule.html?site={site}");
-                srv._getView({
-                    url: url,
-                    callback: callback,
-                    method: "GET",
-                    defaultPostHeader: true
-                });
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/schedule.html?site={site}', callback);
             },
 
             getInContextEditView: function(callback) {
-                var srv = CStudioAuthoring.Service,
-                    url = srv._formatURL("{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html");
-                srv._getView({
-                    url: url,
-                    callback: callback,
-                    method: "GET"
-                });
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html', callback);
             },
 
             // constants
@@ -3152,7 +3122,7 @@ var YEvent = YAHOO.util.Event;
                 var serviceUrl = this.contextServiceUri + "?site=" +  CStudioAuthoringContext.site + "&context=" + navContext;
                 YConnect.asyncRequest("GET", this.createServiceUri(serviceUrl), {
                     success: function(oResponse) {
-                        navContent = oResponse.responseText;
+                        var navContent = oResponse.responseText;
                         callback.success(navContent);
                     },
                     failure: function(response) {
