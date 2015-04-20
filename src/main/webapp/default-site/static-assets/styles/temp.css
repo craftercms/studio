@@ -2481,27 +2481,11 @@ body, var {
 div#acn-active-content {
   padding: 2px 0 0; }
 
-/*div.acn-link {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/widget_vertical_divider.png') no-repeat scroll left center;
-  float: left;
-  margin: 6px 0 0 0;
-  color: #FFF;
-  padding: 1px 5px 0px;
-  text-align: center;
-}*/
-/*div.acn-link a {
-  border-right: 1px solid #fff;
-  line-height: 12px;
-  padding: 0 5px 0 5px;
-}*/
 .acn-link img {
   float: right;
   height: 10px;
   display: none; }
 
-/*div#acn-active-content div.acn-link-last a {
-  border-right: none;
-}*/
 #acn-render {
   float: left;
   padding-top: 0; }
@@ -2606,16 +2590,6 @@ div#acn-active-content {
   padding-right: 5px;
   width: 162px; }
 
-/*#acn-search input {
-  border: 1px solid #0176B1;
-  color: #000;
-  font-size: 1em;
-  height: 17px;
-  margin: 0;
-  margin-right: 3px;
-  padding: 1px 0 0 2px;
-  width: 148px;
-}*/
 #acn-logout {
   background: url("/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif") repeat-y left;
   float: right;
@@ -2642,32 +2616,14 @@ div#acn-active-content {
   -webkit-user-select: none;
   user-select: none; }
 
-/*.acn-dropdown-wrapper {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y left;
-  font-size: 12px;
-  margin: 0 0 0 10px;
-  padding: 0;
-  height: 30px;
-  float: left;
-}
-
-.acn-dropdown-wrapper .acn-dropdown {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y right;
-  float: left;
-  height: 30px;
-  margin: 0 0 0 10px;
-  padding: 0 10px 0 0;
-}
-
-.acn-dropdown-wrapper .acn-dropdown-inner {
-  padding: 8px 0 0;
-}*/
 .acn-dropdown-wrapper .acn-drop-arrow {
   display: block;
   padding: 18px 10px 15px; }
 
 .site-dropdown-open .acn-dropdown-toggler {
-  font-weight: bold; }
+  font-weight: bold;
+  padding-left: 8px;
+  padding-right: 9px; }
 .site-dropdown-open .site-dashboard {
   padding-left: 265px; }
 
@@ -4218,104 +4174,6 @@ table.yui-calendar {
   background-color: #fff !important;
   color: #a6a6a6 !important; }
 
-/*
-
-#level1
-{
-  margin:0;
-}
-
-#acn-context-menuWrapper ul
-{
-  border-color:#CCCCCC;
-  border-style:solid;
-  border-width:0;
-  padding:0;
-}
-
-#acn-context-menuWrapper
-{
-  background:#FFF;
-  border:1px #444 solid;
-  margin:0;
-  padding:0;
-  width:68px;
-}
-
-#acn-context-menuWrapper .yuimenuitemlabel
-{
-  font-size:12px;
-  line-height:22px;
-  padding-left:5px;
-  text-align:left;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-
-#acn-context-menuWrapper a
-{
-  color:#000000;
-}
-
-
-#level1 .yuimenubar ul,.yuimenu ul,.yuimenubar li,.yuimenu li,.yuimenu h6,.yuimenubar h6
-{
-  margin:0 auto 5px;
-}
-
-#level1 .yui-skin-cstudioTheme .yuimenu .bd
-{
-  border:0 #444 solid;
-}
-
-.yui-skin-cstudioTheme .yui-menu-shadow-visible
-{
-  display:none;
-}
-
-#level1 .yuimenuitem
-{
-  margin:0 auto 5px;
-  width:100%;
-}
-
-#level1 .ygtvitem
-{
-  line-height:13px;
-}
-
-#level1 .ygtvitem table
-{
-  width:100%;
-}
-
-#level1 .ygtvrow
-{
-  width:100%;
-  vertical-align:middle;
-  height:18px;
-}
-
-#level1 .ygtvrow td
-{
-  overflow:hidden;
-  vertical-align:middle;
-  height:18px;
-}
-
-#level1 .ygtvcontent
-{
-  overflow:hidden;
-}
-
-#level1 .yui-resize-label
-{
-  overflow:hidden;
-  display:inline-block;
-  color:#0176B1;
-  font-size:12px;
-}
-*/
 /* CSS for preview server dialog icons */
 .document {
   background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
@@ -4825,6 +4683,10 @@ span.acn-canned-search {
 .dropbox-file-display .progress {
   margin: 10px 0; }
 
+/** End bulk upload */
+.xdsoft_datetimepicker {
+  z-index: 1000000 !important; }
+
 /**
  * Progress bar styles from Twitter's Bootstrap */
 .progress {
@@ -5220,6 +5082,9 @@ hr {
   overflow: visible;
   clip: auto; }
 
+[role="button"] {
+  cursor: pointer; }
+
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: inherit;
@@ -5333,7 +5198,7 @@ mark,
 .text-lowercase {
   text-transform: lowercase; }
 
-.text-uppercase {
+.text-uppercase, .initialism {
   text-transform: uppercase; }
 
 .text-capitalize {
@@ -5470,8 +5335,7 @@ abbr[data-original-title] {
   border-bottom: 1px dotted #777777; }
 
 .initialism {
-  font-size: 90%;
-  text-transform: uppercase; }
+  font-size: 90%; }
 
 blockquote {
   padding: 8.5px 17px;
@@ -5563,7 +5427,7 @@ address {
   .site-dashboard {
     font-family: 'Glyphicons Halflings';
     src: url("../fonts/bootstrap/glyphicons-halflings-regular.eot");
-    src: url("../fonts/bootstrap/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/bootstrap/glyphicons-halflings-regular.woff") format("woff"), url("../fonts/bootstrap/glyphicons-halflings-regular.ttf") format("truetype"), url("../fonts/bootstrap/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg"); } }
+    src: url("../fonts/bootstrap/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/bootstrap/glyphicons-halflings-regular.woff2") format("woff2"), url("../fonts/bootstrap/glyphicons-halflings-regular.woff") format("woff"), url("../fonts/bootstrap/glyphicons-halflings-regular.ttf") format("truetype"), url("../fonts/bootstrap/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg"); } }
 .studio-view .glyphicon,
 .studio-dialog .glyphicon,
 .site-dashboard .glyphicon {
@@ -6379,6 +6243,254 @@ address {
 .studio-dialog .glyphicon-tree-deciduous:before,
 .site-dashboard .glyphicon-tree-deciduous:before {
   content: "\e200"; }
+.studio-view .glyphicon-cd:before,
+.studio-dialog .glyphicon-cd:before,
+.site-dashboard .glyphicon-cd:before {
+  content: "\e201"; }
+.studio-view .glyphicon-save-file:before,
+.studio-dialog .glyphicon-save-file:before,
+.site-dashboard .glyphicon-save-file:before {
+  content: "\e202"; }
+.studio-view .glyphicon-open-file:before,
+.studio-dialog .glyphicon-open-file:before,
+.site-dashboard .glyphicon-open-file:before {
+  content: "\e203"; }
+.studio-view .glyphicon-level-up:before,
+.studio-dialog .glyphicon-level-up:before,
+.site-dashboard .glyphicon-level-up:before {
+  content: "\e204"; }
+.studio-view .glyphicon-copy:before,
+.studio-dialog .glyphicon-copy:before,
+.site-dashboard .glyphicon-copy:before {
+  content: "\e205"; }
+.studio-view .glyphicon-paste:before,
+.studio-dialog .glyphicon-paste:before,
+.site-dashboard .glyphicon-paste:before {
+  content: "\e206"; }
+.studio-view .glyphicon-alert:before,
+.studio-dialog .glyphicon-alert:before,
+.site-dashboard .glyphicon-alert:before {
+  content: "\e209"; }
+.studio-view .glyphicon-equalizer:before,
+.studio-dialog .glyphicon-equalizer:before,
+.site-dashboard .glyphicon-equalizer:before {
+  content: "\e210"; }
+.studio-view .glyphicon-king:before,
+.studio-dialog .glyphicon-king:before,
+.site-dashboard .glyphicon-king:before {
+  content: "\e211"; }
+.studio-view .glyphicon-queen:before,
+.studio-dialog .glyphicon-queen:before,
+.site-dashboard .glyphicon-queen:before {
+  content: "\e212"; }
+.studio-view .glyphicon-pawn:before,
+.studio-dialog .glyphicon-pawn:before,
+.site-dashboard .glyphicon-pawn:before {
+  content: "\e213"; }
+.studio-view .glyphicon-bishop:before,
+.studio-dialog .glyphicon-bishop:before,
+.site-dashboard .glyphicon-bishop:before {
+  content: "\e214"; }
+.studio-view .glyphicon-knight:before,
+.studio-dialog .glyphicon-knight:before,
+.site-dashboard .glyphicon-knight:before {
+  content: "\e215"; }
+.studio-view .glyphicon-baby-formula:before,
+.studio-dialog .glyphicon-baby-formula:before,
+.site-dashboard .glyphicon-baby-formula:before {
+  content: "\e216"; }
+.studio-view .glyphicon-tent:before,
+.studio-dialog .glyphicon-tent:before,
+.site-dashboard .glyphicon-tent:before {
+  content: "\26fa"; }
+.studio-view .glyphicon-blackboard:before,
+.studio-dialog .glyphicon-blackboard:before,
+.site-dashboard .glyphicon-blackboard:before {
+  content: "\e218"; }
+.studio-view .glyphicon-bed:before,
+.studio-dialog .glyphicon-bed:before,
+.site-dashboard .glyphicon-bed:before {
+  content: "\e219"; }
+.studio-view .glyphicon-apple:before,
+.studio-dialog .glyphicon-apple:before,
+.site-dashboard .glyphicon-apple:before {
+  content: "\f8ff"; }
+.studio-view .glyphicon-erase:before,
+.studio-dialog .glyphicon-erase:before,
+.site-dashboard .glyphicon-erase:before {
+  content: "\e221"; }
+.studio-view .glyphicon-hourglass:before,
+.studio-dialog .glyphicon-hourglass:before,
+.site-dashboard .glyphicon-hourglass:before {
+  content: "\231b"; }
+.studio-view .glyphicon-lamp:before,
+.studio-dialog .glyphicon-lamp:before,
+.site-dashboard .glyphicon-lamp:before {
+  content: "\e223"; }
+.studio-view .glyphicon-duplicate:before,
+.studio-dialog .glyphicon-duplicate:before,
+.site-dashboard .glyphicon-duplicate:before {
+  content: "\e224"; }
+.studio-view .glyphicon-piggy-bank:before,
+.studio-dialog .glyphicon-piggy-bank:before,
+.site-dashboard .glyphicon-piggy-bank:before {
+  content: "\e225"; }
+.studio-view .glyphicon-scissors:before,
+.studio-dialog .glyphicon-scissors:before,
+.site-dashboard .glyphicon-scissors:before {
+  content: "\e226"; }
+.studio-view .glyphicon-bitcoin:before,
+.studio-dialog .glyphicon-bitcoin:before,
+.site-dashboard .glyphicon-bitcoin:before {
+  content: "\e227"; }
+.studio-view .glyphicon-btc:before,
+.studio-dialog .glyphicon-btc:before,
+.site-dashboard .glyphicon-btc:before {
+  content: "\e227"; }
+.studio-view .glyphicon-xbt:before,
+.studio-dialog .glyphicon-xbt:before,
+.site-dashboard .glyphicon-xbt:before {
+  content: "\e227"; }
+.studio-view .glyphicon-yen:before,
+.studio-dialog .glyphicon-yen:before,
+.site-dashboard .glyphicon-yen:before {
+  content: "\00a5"; }
+.studio-view .glyphicon-jpy:before,
+.studio-dialog .glyphicon-jpy:before,
+.site-dashboard .glyphicon-jpy:before {
+  content: "\00a5"; }
+.studio-view .glyphicon-ruble:before,
+.studio-dialog .glyphicon-ruble:before,
+.site-dashboard .glyphicon-ruble:before {
+  content: "\20bd"; }
+.studio-view .glyphicon-rub:before,
+.studio-dialog .glyphicon-rub:before,
+.site-dashboard .glyphicon-rub:before {
+  content: "\20bd"; }
+.studio-view .glyphicon-scale:before,
+.studio-dialog .glyphicon-scale:before,
+.site-dashboard .glyphicon-scale:before {
+  content: "\e230"; }
+.studio-view .glyphicon-ice-lolly:before,
+.studio-dialog .glyphicon-ice-lolly:before,
+.site-dashboard .glyphicon-ice-lolly:before {
+  content: "\e231"; }
+.studio-view .glyphicon-ice-lolly-tasted:before,
+.studio-dialog .glyphicon-ice-lolly-tasted:before,
+.site-dashboard .glyphicon-ice-lolly-tasted:before {
+  content: "\e232"; }
+.studio-view .glyphicon-education:before,
+.studio-dialog .glyphicon-education:before,
+.site-dashboard .glyphicon-education:before {
+  content: "\e233"; }
+.studio-view .glyphicon-option-horizontal:before,
+.studio-dialog .glyphicon-option-horizontal:before,
+.site-dashboard .glyphicon-option-horizontal:before {
+  content: "\e234"; }
+.studio-view .glyphicon-option-vertical:before,
+.studio-dialog .glyphicon-option-vertical:before,
+.site-dashboard .glyphicon-option-vertical:before {
+  content: "\e235"; }
+.studio-view .glyphicon-menu-hamburger:before,
+.studio-dialog .glyphicon-menu-hamburger:before,
+.site-dashboard .glyphicon-menu-hamburger:before {
+  content: "\e236"; }
+.studio-view .glyphicon-modal-window:before,
+.studio-dialog .glyphicon-modal-window:before,
+.site-dashboard .glyphicon-modal-window:before {
+  content: "\e237"; }
+.studio-view .glyphicon-oil:before,
+.studio-dialog .glyphicon-oil:before,
+.site-dashboard .glyphicon-oil:before {
+  content: "\e238"; }
+.studio-view .glyphicon-grain:before,
+.studio-dialog .glyphicon-grain:before,
+.site-dashboard .glyphicon-grain:before {
+  content: "\e239"; }
+.studio-view .glyphicon-sunglasses:before,
+.studio-dialog .glyphicon-sunglasses:before,
+.site-dashboard .glyphicon-sunglasses:before {
+  content: "\e240"; }
+.studio-view .glyphicon-text-size:before,
+.studio-dialog .glyphicon-text-size:before,
+.site-dashboard .glyphicon-text-size:before {
+  content: "\e241"; }
+.studio-view .glyphicon-text-color:before,
+.studio-dialog .glyphicon-text-color:before,
+.site-dashboard .glyphicon-text-color:before {
+  content: "\e242"; }
+.studio-view .glyphicon-text-background:before,
+.studio-dialog .glyphicon-text-background:before,
+.site-dashboard .glyphicon-text-background:before {
+  content: "\e243"; }
+.studio-view .glyphicon-object-align-top:before,
+.studio-dialog .glyphicon-object-align-top:before,
+.site-dashboard .glyphicon-object-align-top:before {
+  content: "\e244"; }
+.studio-view .glyphicon-object-align-bottom:before,
+.studio-dialog .glyphicon-object-align-bottom:before,
+.site-dashboard .glyphicon-object-align-bottom:before {
+  content: "\e245"; }
+.studio-view .glyphicon-object-align-horizontal:before,
+.studio-dialog .glyphicon-object-align-horizontal:before,
+.site-dashboard .glyphicon-object-align-horizontal:before {
+  content: "\e246"; }
+.studio-view .glyphicon-object-align-left:before,
+.studio-dialog .glyphicon-object-align-left:before,
+.site-dashboard .glyphicon-object-align-left:before {
+  content: "\e247"; }
+.studio-view .glyphicon-object-align-vertical:before,
+.studio-dialog .glyphicon-object-align-vertical:before,
+.site-dashboard .glyphicon-object-align-vertical:before {
+  content: "\e248"; }
+.studio-view .glyphicon-object-align-right:before,
+.studio-dialog .glyphicon-object-align-right:before,
+.site-dashboard .glyphicon-object-align-right:before {
+  content: "\e249"; }
+.studio-view .glyphicon-triangle-right:before,
+.studio-dialog .glyphicon-triangle-right:before,
+.site-dashboard .glyphicon-triangle-right:before {
+  content: "\e250"; }
+.studio-view .glyphicon-triangle-left:before,
+.studio-dialog .glyphicon-triangle-left:before,
+.site-dashboard .glyphicon-triangle-left:before {
+  content: "\e251"; }
+.studio-view .glyphicon-triangle-bottom:before,
+.studio-dialog .glyphicon-triangle-bottom:before,
+.site-dashboard .glyphicon-triangle-bottom:before {
+  content: "\e252"; }
+.studio-view .glyphicon-triangle-top:before,
+.studio-dialog .glyphicon-triangle-top:before,
+.site-dashboard .glyphicon-triangle-top:before {
+  content: "\e253"; }
+.studio-view .glyphicon-console:before,
+.studio-dialog .glyphicon-console:before,
+.site-dashboard .glyphicon-console:before {
+  content: "\e254"; }
+.studio-view .glyphicon-superscript:before,
+.studio-dialog .glyphicon-superscript:before,
+.site-dashboard .glyphicon-superscript:before {
+  content: "\e255"; }
+.studio-view .glyphicon-subscript:before,
+.studio-dialog .glyphicon-subscript:before,
+.site-dashboard .glyphicon-subscript:before {
+  content: "\e256"; }
+.studio-view .glyphicon-menu-left:before,
+.studio-dialog .glyphicon-menu-left:before,
+.site-dashboard .glyphicon-menu-left:before {
+  content: "\e257"; }
+.studio-view .glyphicon-menu-right:before,
+.studio-dialog .glyphicon-menu-right:before,
+.site-dashboard .glyphicon-menu-right:before {
+  content: "\e258"; }
+.studio-view .glyphicon-menu-down:before,
+.studio-dialog .glyphicon-menu-down:before,
+.site-dashboard .glyphicon-menu-down:before {
+  content: "\e259"; }
+.studio-view .glyphicon-menu-up:before,
+.studio-dialog .glyphicon-menu-up:before,
+.site-dashboard .glyphicon-menu-up:before {
+  content: "\e260"; }
 .studio-view code,
 .studio-view kbd,
 .studio-view pre,
@@ -7659,9 +7771,9 @@ address {
   .site-dashboard .table-bordered > thead > tr > th,
   .site-dashboard .table-bordered > thead > tr > td {
     border-bottom-width: 2px; }
-.studio-view .table-striped > tbody > tr:nth-child(odd),
-.studio-dialog .table-striped > tbody > tr:nth-child(odd),
-.site-dashboard .table-striped > tbody > tr:nth-child(odd) {
+.studio-view .table-striped > tbody > tr:nth-of-type(odd),
+.studio-dialog .table-striped > tbody > tr:nth-of-type(odd),
+.site-dashboard .table-striped > tbody > tr:nth-of-type(odd) {
   background-color: #f9f9f9; }
 .studio-view .table-hover > tbody > tr:hover,
 .studio-dialog .table-hover > tbody > tr:hover,
@@ -8137,9 +8249,14 @@ address {
   .site-dashboard .form-control[disabled],
   .site-dashboard .form-control[readonly], fieldset[disabled]
   .site-dashboard .form-control {
-    cursor: not-allowed;
     background-color: #eeeeee;
     opacity: 1; }
+  .studio-view .form-control[disabled], fieldset[disabled] .studio-view .form-control,
+  .studio-dialog .form-control[disabled], fieldset[disabled]
+  .studio-dialog .form-control,
+  .site-dashboard .form-control[disabled], fieldset[disabled]
+  .site-dashboard .form-control {
+    cursor: not-allowed; }
 .studio-view textarea.form-control,
 .studio-dialog textarea.form-control,
 .site-dashboard textarea.form-control {
@@ -8162,102 +8279,124 @@ address {
   .site-dashboard input[type="datetime-local"],
   .site-dashboard input[type="month"] {
     line-height: 31px; }
-  .studio-view input[type="date"].input-sm, .studio-view .input-group-sm > input[type="date"].form-control,
-  .studio-view .input-group-sm > input[type="date"].input-group-addon,
-  .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn,
-  .studio-view input[type="time"].input-sm,
-  .studio-view .input-group-sm > input[type="time"].form-control,
-  .studio-view .input-group-sm > input[type="time"].input-group-addon,
-  .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn,
-  .studio-view input[type="datetime-local"].input-sm,
-  .studio-view .input-group-sm > input[type="datetime-local"].form-control,
-  .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
-  .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
-  .studio-view input[type="month"].input-sm,
-  .studio-view .input-group-sm > input[type="month"].form-control,
-  .studio-view .input-group-sm > input[type="month"].input-group-addon,
-  .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn,
-  .studio-dialog input[type="date"].input-sm,
-  .studio-dialog .input-group-sm > input[type="date"].form-control,
-  .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
-  .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn,
-  .studio-dialog input[type="time"].input-sm,
-  .studio-dialog .input-group-sm > input[type="time"].form-control,
-  .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
-  .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn,
-  .studio-dialog input[type="datetime-local"].input-sm,
-  .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
-  .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
-  .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
-  .studio-dialog input[type="month"].input-sm,
-  .studio-dialog .input-group-sm > input[type="month"].form-control,
-  .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
-  .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn,
-  .site-dashboard input[type="date"].input-sm,
-  .site-dashboard .input-group-sm > input[type="date"].form-control,
-  .site-dashboard .input-group-sm > input[type="date"].input-group-addon,
-  .site-dashboard .input-group-sm > .input-group-btn > input[type="date"].btn,
-  .site-dashboard input[type="time"].input-sm,
-  .site-dashboard .input-group-sm > input[type="time"].form-control,
-  .site-dashboard .input-group-sm > input[type="time"].input-group-addon,
-  .site-dashboard .input-group-sm > .input-group-btn > input[type="time"].btn,
-  .site-dashboard input[type="datetime-local"].input-sm,
-  .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
-  .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon,
-  .site-dashboard .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
-  .site-dashboard input[type="month"].input-sm,
-  .site-dashboard .input-group-sm > input[type="month"].form-control,
-  .site-dashboard .input-group-sm > input[type="month"].input-group-addon,
-  .site-dashboard .input-group-sm > .input-group-btn > input[type="month"].btn {
-    line-height: 28px; }
-  .studio-view input[type="date"].input-lg, .studio-view .input-group-lg > input[type="date"].form-control,
-  .studio-view .input-group-lg > input[type="date"].input-group-addon,
-  .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn,
-  .studio-view input[type="time"].input-lg,
-  .studio-view .input-group-lg > input[type="time"].form-control,
-  .studio-view .input-group-lg > input[type="time"].input-group-addon,
-  .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn,
-  .studio-view input[type="datetime-local"].input-lg,
-  .studio-view .input-group-lg > input[type="datetime-local"].form-control,
-  .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
-  .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
-  .studio-view input[type="month"].input-lg,
-  .studio-view .input-group-lg > input[type="month"].form-control,
-  .studio-view .input-group-lg > input[type="month"].input-group-addon,
-  .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn,
-  .studio-dialog input[type="date"].input-lg,
-  .studio-dialog .input-group-lg > input[type="date"].form-control,
-  .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
-  .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn,
-  .studio-dialog input[type="time"].input-lg,
-  .studio-dialog .input-group-lg > input[type="time"].form-control,
-  .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
-  .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn,
-  .studio-dialog input[type="datetime-local"].input-lg,
-  .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
-  .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
-  .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
-  .studio-dialog input[type="month"].input-lg,
-  .studio-dialog .input-group-lg > input[type="month"].form-control,
-  .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
-  .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn,
-  .site-dashboard input[type="date"].input-lg,
-  .site-dashboard .input-group-lg > input[type="date"].form-control,
-  .site-dashboard .input-group-lg > input[type="date"].input-group-addon,
-  .site-dashboard .input-group-lg > .input-group-btn > input[type="date"].btn,
-  .site-dashboard input[type="time"].input-lg,
-  .site-dashboard .input-group-lg > input[type="time"].form-control,
-  .site-dashboard .input-group-lg > input[type="time"].input-group-addon,
-  .site-dashboard .input-group-lg > .input-group-btn > input[type="time"].btn,
-  .site-dashboard input[type="datetime-local"].input-lg,
-  .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
-  .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon,
-  .site-dashboard .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
-  .site-dashboard input[type="month"].input-lg,
-  .site-dashboard .input-group-lg > input[type="month"].form-control,
-  .site-dashboard .input-group-lg > input[type="month"].input-group-addon,
-  .site-dashboard .input-group-lg > .input-group-btn > input[type="month"].btn {
-    line-height: 42px; } }
+    .studio-view input[type="date"].input-sm, .studio-view .input-group-sm > input[type="date"].form-control,
+    .studio-view .input-group-sm > input[type="date"].input-group-addon,
+    .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm .studio-view input[type="date"],
+    .studio-view input[type="time"].input-sm,
+    .studio-view .input-group-sm > input[type="time"].form-control,
+    .studio-view .input-group-sm > input[type="time"].input-group-addon,
+    .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+    .studio-view input[type="time"],
+    .studio-view input[type="datetime-local"].input-sm,
+    .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
+    .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+    .studio-view input[type="datetime-local"],
+    .studio-view input[type="month"].input-sm,
+    .studio-view .input-group-sm > input[type="month"].form-control,
+    .studio-view .input-group-sm > input[type="month"].input-group-addon,
+    .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+    .studio-view input[type="month"],
+    .studio-dialog input[type="date"].input-sm,
+    .studio-dialog .input-group-sm > input[type="date"].form-control,
+    .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
+    .studio-dialog input[type="date"],
+    .studio-dialog input[type="time"].input-sm,
+    .studio-dialog .input-group-sm > input[type="time"].form-control,
+    .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+    .studio-dialog input[type="time"],
+    .studio-dialog input[type="datetime-local"].input-sm,
+    .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+    .studio-dialog input[type="datetime-local"],
+    .studio-dialog input[type="month"].input-sm,
+    .studio-dialog .input-group-sm > input[type="month"].form-control,
+    .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+    .studio-dialog input[type="month"],
+    .site-dashboard input[type="date"].input-sm,
+    .site-dashboard .input-group-sm > input[type="date"].form-control,
+    .site-dashboard .input-group-sm > input[type="date"].input-group-addon,
+    .site-dashboard .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
+    .site-dashboard input[type="date"],
+    .site-dashboard input[type="time"].input-sm,
+    .site-dashboard .input-group-sm > input[type="time"].form-control,
+    .site-dashboard .input-group-sm > input[type="time"].input-group-addon,
+    .site-dashboard .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+    .site-dashboard input[type="time"],
+    .site-dashboard input[type="datetime-local"].input-sm,
+    .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+    .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon,
+    .site-dashboard .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+    .site-dashboard input[type="datetime-local"],
+    .site-dashboard input[type="month"].input-sm,
+    .site-dashboard .input-group-sm > input[type="month"].form-control,
+    .site-dashboard .input-group-sm > input[type="month"].input-group-addon,
+    .site-dashboard .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+    .site-dashboard input[type="month"] {
+      line-height: 28px; }
+    .studio-view input[type="date"].input-lg, .studio-view .input-group-lg > input[type="date"].form-control,
+    .studio-view .input-group-lg > input[type="date"].input-group-addon,
+    .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg .studio-view input[type="date"],
+    .studio-view input[type="time"].input-lg,
+    .studio-view .input-group-lg > input[type="time"].form-control,
+    .studio-view .input-group-lg > input[type="time"].input-group-addon,
+    .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+    .studio-view input[type="time"],
+    .studio-view input[type="datetime-local"].input-lg,
+    .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
+    .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+    .studio-view input[type="datetime-local"],
+    .studio-view input[type="month"].input-lg,
+    .studio-view .input-group-lg > input[type="month"].form-control,
+    .studio-view .input-group-lg > input[type="month"].input-group-addon,
+    .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+    .studio-view input[type="month"],
+    .studio-dialog input[type="date"].input-lg,
+    .studio-dialog .input-group-lg > input[type="date"].form-control,
+    .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
+    .studio-dialog input[type="date"],
+    .studio-dialog input[type="time"].input-lg,
+    .studio-dialog .input-group-lg > input[type="time"].form-control,
+    .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+    .studio-dialog input[type="time"],
+    .studio-dialog input[type="datetime-local"].input-lg,
+    .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+    .studio-dialog input[type="datetime-local"],
+    .studio-dialog input[type="month"].input-lg,
+    .studio-dialog .input-group-lg > input[type="month"].form-control,
+    .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+    .studio-dialog input[type="month"],
+    .site-dashboard input[type="date"].input-lg,
+    .site-dashboard .input-group-lg > input[type="date"].form-control,
+    .site-dashboard .input-group-lg > input[type="date"].input-group-addon,
+    .site-dashboard .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
+    .site-dashboard input[type="date"],
+    .site-dashboard input[type="time"].input-lg,
+    .site-dashboard .input-group-lg > input[type="time"].form-control,
+    .site-dashboard .input-group-lg > input[type="time"].input-group-addon,
+    .site-dashboard .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+    .site-dashboard input[type="time"],
+    .site-dashboard input[type="datetime-local"].input-lg,
+    .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+    .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon,
+    .site-dashboard .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+    .site-dashboard input[type="datetime-local"],
+    .site-dashboard input[type="month"].input-lg,
+    .site-dashboard .input-group-lg > input[type="month"].form-control,
+    .site-dashboard .input-group-lg > input[type="month"].input-group-addon,
+    .site-dashboard .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+    .site-dashboard input[type="month"] {
+      line-height: 42px; } }
 .studio-view .form-group,
 .studio-dialog .form-group,
 .site-dashboard .form-group {
@@ -8311,6 +8450,7 @@ address {
 .studio-dialog .checkbox-inline,
 .site-dashboard .radio-inline,
 .site-dashboard .checkbox-inline {
+  position: relative;
   display: inline-block;
   padding-left: 20px;
   margin-bottom: 0;
@@ -8371,7 +8511,8 @@ address {
 .site-dashboard .form-control-static {
   padding-top: 7px;
   padding-bottom: 7px;
-  margin-bottom: 0; }
+  margin-bottom: 0;
+  min-height: 29px; }
   .studio-view .form-control-static.input-lg, .studio-view .input-group-lg > .form-control-static.form-control,
   .studio-view .input-group-lg > .form-control-static.input-group-addon,
   .studio-view .input-group-lg > .input-group-btn > .form-control-static.btn, .studio-view .form-control-static.input-sm, .studio-view .input-group-sm > .form-control-static.form-control,
@@ -8397,17 +8538,15 @@ address {
     padding-right: 0; }
 .studio-view .input-sm, .studio-view .input-group-sm > .form-control,
 .studio-view .input-group-sm > .input-group-addon,
-.studio-view .input-group-sm > .input-group-btn > .btn, .studio-view .form-group-sm .form-control,
+.studio-view .input-group-sm > .input-group-btn > .btn,
 .studio-dialog .input-sm,
 .studio-dialog .input-group-sm > .form-control,
 .studio-dialog .input-group-sm > .input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > .btn,
-.studio-dialog .form-group-sm .form-control,
 .site-dashboard .input-sm,
 .site-dashboard .input-group-sm > .form-control,
 .site-dashboard .input-group-sm > .input-group-addon,
-.site-dashboard .input-group-sm > .input-group-btn > .btn,
-.site-dashboard .form-group-sm .form-control {
+.site-dashboard .input-group-sm > .input-group-btn > .btn {
   height: 28px;
   padding: 5px 10px;
   font-size: 11px;
@@ -8415,108 +8554,150 @@ address {
   border-radius: 3px; }
 .studio-view select.input-sm, .studio-view .input-group-sm > select.form-control,
 .studio-view .input-group-sm > select.input-group-addon,
-.studio-view .input-group-sm > .input-group-btn > select.btn, .studio-view .form-group-sm .form-control,
+.studio-view .input-group-sm > .input-group-btn > select.btn,
 .studio-dialog select.input-sm,
 .studio-dialog .input-group-sm > select.form-control,
 .studio-dialog .input-group-sm > select.input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > select.btn,
-.studio-dialog .form-group-sm .form-control,
 .site-dashboard select.input-sm,
 .site-dashboard .input-group-sm > select.form-control,
 .site-dashboard .input-group-sm > select.input-group-addon,
-.site-dashboard .input-group-sm > .input-group-btn > select.btn,
-.site-dashboard .form-group-sm .form-control {
+.site-dashboard .input-group-sm > .input-group-btn > select.btn {
   height: 28px;
   line-height: 28px; }
 .studio-view textarea.input-sm, .studio-view .input-group-sm > textarea.form-control,
 .studio-view .input-group-sm > textarea.input-group-addon,
-.studio-view .input-group-sm > .input-group-btn > textarea.btn, .studio-view .form-group-sm .form-control,
+.studio-view .input-group-sm > .input-group-btn > textarea.btn,
 .studio-view select[multiple].input-sm,
 .studio-view .input-group-sm > select[multiple].form-control,
 .studio-view .input-group-sm > select[multiple].input-group-addon,
-.studio-view .input-group-sm > .input-group-btn > select[multiple].btn, .studio-view .form-group-sm .form-control,
+.studio-view .input-group-sm > .input-group-btn > select[multiple].btn,
 .studio-dialog textarea.input-sm,
 .studio-dialog .input-group-sm > textarea.form-control,
 .studio-dialog .input-group-sm > textarea.input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > textarea.btn,
-.studio-dialog .form-group-sm .form-control,
 .studio-dialog select[multiple].input-sm,
 .studio-dialog .input-group-sm > select[multiple].form-control,
 .studio-dialog .input-group-sm > select[multiple].input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > select[multiple].btn,
-.studio-dialog .form-group-sm .form-control,
 .site-dashboard textarea.input-sm,
 .site-dashboard .input-group-sm > textarea.form-control,
 .site-dashboard .input-group-sm > textarea.input-group-addon,
 .site-dashboard .input-group-sm > .input-group-btn > textarea.btn,
-.site-dashboard .form-group-sm .form-control,
 .site-dashboard select[multiple].input-sm,
 .site-dashboard .input-group-sm > select[multiple].form-control,
 .site-dashboard .input-group-sm > select[multiple].input-group-addon,
-.site-dashboard .input-group-sm > .input-group-btn > select[multiple].btn,
-.site-dashboard .form-group-sm .form-control {
+.site-dashboard .input-group-sm > .input-group-btn > select[multiple].btn {
   height: auto; }
+.studio-view .form-group-sm .form-control,
+.studio-dialog .form-group-sm .form-control,
+.site-dashboard .form-group-sm .form-control {
+  height: 28px;
+  padding: 5px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  border-radius: 3px; }
+.studio-view .form-group-sm select.form-control,
+.studio-dialog .form-group-sm select.form-control,
+.site-dashboard .form-group-sm select.form-control {
+  height: 28px;
+  line-height: 28px; }
+.studio-view .form-group-sm textarea.form-control,
+.studio-view .form-group-sm select[multiple].form-control,
+.studio-dialog .form-group-sm textarea.form-control,
+.studio-dialog .form-group-sm select[multiple].form-control,
+.site-dashboard .form-group-sm textarea.form-control,
+.site-dashboard .form-group-sm select[multiple].form-control {
+  height: auto; }
+.studio-view .form-group-sm .form-control-static,
+.studio-dialog .form-group-sm .form-control-static,
+.site-dashboard .form-group-sm .form-control-static {
+  height: 28px;
+  padding: 5px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  min-height: 28px; }
 .studio-view .input-lg, .studio-view .input-group-lg > .form-control,
 .studio-view .input-group-lg > .input-group-addon,
-.studio-view .input-group-lg > .input-group-btn > .btn, .studio-view .form-group-lg .form-control,
+.studio-view .input-group-lg > .input-group-btn > .btn,
 .studio-dialog .input-lg,
 .studio-dialog .input-group-lg > .form-control,
 .studio-dialog .input-group-lg > .input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > .btn,
-.studio-dialog .form-group-lg .form-control,
 .site-dashboard .input-lg,
 .site-dashboard .input-group-lg > .form-control,
 .site-dashboard .input-group-lg > .input-group-addon,
-.site-dashboard .input-group-lg > .input-group-btn > .btn,
-.site-dashboard .form-group-lg .form-control {
+.site-dashboard .input-group-lg > .input-group-btn > .btn {
   height: 42px;
   padding: 10px 16px;
   font-size: 15px;
-  line-height: 1.33;
+  line-height: 1.33333;
   border-radius: 6px; }
 .studio-view select.input-lg, .studio-view .input-group-lg > select.form-control,
 .studio-view .input-group-lg > select.input-group-addon,
-.studio-view .input-group-lg > .input-group-btn > select.btn, .studio-view .form-group-lg .form-control,
+.studio-view .input-group-lg > .input-group-btn > select.btn,
 .studio-dialog select.input-lg,
 .studio-dialog .input-group-lg > select.form-control,
 .studio-dialog .input-group-lg > select.input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > select.btn,
-.studio-dialog .form-group-lg .form-control,
 .site-dashboard select.input-lg,
 .site-dashboard .input-group-lg > select.form-control,
 .site-dashboard .input-group-lg > select.input-group-addon,
-.site-dashboard .input-group-lg > .input-group-btn > select.btn,
-.site-dashboard .form-group-lg .form-control {
+.site-dashboard .input-group-lg > .input-group-btn > select.btn {
   height: 42px;
   line-height: 42px; }
 .studio-view textarea.input-lg, .studio-view .input-group-lg > textarea.form-control,
 .studio-view .input-group-lg > textarea.input-group-addon,
-.studio-view .input-group-lg > .input-group-btn > textarea.btn, .studio-view .form-group-lg .form-control,
+.studio-view .input-group-lg > .input-group-btn > textarea.btn,
 .studio-view select[multiple].input-lg,
 .studio-view .input-group-lg > select[multiple].form-control,
 .studio-view .input-group-lg > select[multiple].input-group-addon,
-.studio-view .input-group-lg > .input-group-btn > select[multiple].btn, .studio-view .form-group-lg .form-control,
+.studio-view .input-group-lg > .input-group-btn > select[multiple].btn,
 .studio-dialog textarea.input-lg,
 .studio-dialog .input-group-lg > textarea.form-control,
 .studio-dialog .input-group-lg > textarea.input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > textarea.btn,
-.studio-dialog .form-group-lg .form-control,
 .studio-dialog select[multiple].input-lg,
 .studio-dialog .input-group-lg > select[multiple].form-control,
 .studio-dialog .input-group-lg > select[multiple].input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > select[multiple].btn,
-.studio-dialog .form-group-lg .form-control,
 .site-dashboard textarea.input-lg,
 .site-dashboard .input-group-lg > textarea.form-control,
 .site-dashboard .input-group-lg > textarea.input-group-addon,
 .site-dashboard .input-group-lg > .input-group-btn > textarea.btn,
-.site-dashboard .form-group-lg .form-control,
 .site-dashboard select[multiple].input-lg,
 .site-dashboard .input-group-lg > select[multiple].form-control,
 .site-dashboard .input-group-lg > select[multiple].input-group-addon,
-.site-dashboard .input-group-lg > .input-group-btn > select[multiple].btn,
-.site-dashboard .form-group-lg .form-control {
+.site-dashboard .input-group-lg > .input-group-btn > select[multiple].btn {
   height: auto; }
+.studio-view .form-group-lg .form-control,
+.studio-dialog .form-group-lg .form-control,
+.site-dashboard .form-group-lg .form-control {
+  height: 42px;
+  padding: 10px 16px;
+  font-size: 15px;
+  line-height: 1.33333;
+  border-radius: 6px; }
+.studio-view .form-group-lg select.form-control,
+.studio-dialog .form-group-lg select.form-control,
+.site-dashboard .form-group-lg select.form-control {
+  height: 42px;
+  line-height: 42px; }
+.studio-view .form-group-lg textarea.form-control,
+.studio-view .form-group-lg select[multiple].form-control,
+.studio-dialog .form-group-lg textarea.form-control,
+.studio-dialog .form-group-lg select[multiple].form-control,
+.site-dashboard .form-group-lg textarea.form-control,
+.site-dashboard .form-group-lg select[multiple].form-control {
+  height: auto; }
+.studio-view .form-group-lg .form-control-static,
+.studio-dialog .form-group-lg .form-control-static,
+.site-dashboard .form-group-lg .form-control-static {
+  height: 42px;
+  padding: 10px 16px;
+  font-size: 15px;
+  line-height: 1.33333;
+  min-height: 32px; }
 .studio-view .has-feedback,
 .studio-dialog .has-feedback,
 .site-dashboard .has-feedback {
@@ -8851,7 +9032,7 @@ address {
   .studio-view .form-horizontal .form-group-lg .control-label,
   .studio-dialog .form-horizontal .form-group-lg .control-label,
   .site-dashboard .form-horizontal .form-group-lg .control-label {
-    padding-top: 14.3px; } }
+    padding-top: 14.33333px; } }
 @media (min-width: 768px) {
   .studio-view .form-horizontal .form-group-sm .control-label,
   .studio-dialog .form-horizontal .form-group-sm .control-label,
@@ -9425,7 +9606,7 @@ address {
 .site-dashboard .btn-group-lg > .btn {
   padding: 10px 16px;
   font-size: 15px;
-  line-height: 1.33;
+  line-height: 1.33333;
   border-radius: 6px; }
 .studio-view .btn-sm, .studio-view .btn-group-sm > .btn,
 .studio-dialog .btn-sm,
@@ -9478,13 +9659,11 @@ address {
 .studio-view .collapse,
 .studio-dialog .collapse,
 .site-dashboard .collapse {
-  display: none;
-  visibility: hidden; }
+  display: none; }
   .studio-view .collapse.in,
   .studio-dialog .collapse.in,
   .site-dashboard .collapse.in {
-    display: block;
-    visibility: visible; }
+    display: block; }
 .studio-view tr.collapse.in,
 .studio-dialog tr.collapse.in,
 .site-dashboard tr.collapse.in {
@@ -9513,11 +9692,14 @@ address {
   height: 0;
   margin-left: 2px;
   vertical-align: middle;
-  border-top: 4px solid;
+  border-top: 4px dashed;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent; }
+.studio-view .dropup,
 .studio-view .dropdown,
+.studio-dialog .dropup,
 .studio-dialog .dropdown,
+.site-dashboard .dropup,
 .site-dashboard .dropdown {
   position: relative; }
 .studio-view .dropdown-toggle:focus,
@@ -9663,7 +9845,7 @@ address {
 .site-dashboard .navbar-fixed-bottom .dropdown .dropdown-menu {
   top: auto;
   bottom: 100%;
-  margin-bottom: 1px; }
+  margin-bottom: 2px; }
 @media (min-width: 768px) {
   .studio-view .navbar-right .dropdown-menu,
   .studio-dialog .navbar-right .dropdown-menu,
@@ -9788,17 +9970,17 @@ address {
 .studio-dialog .btn-group > .btn-group:not(:first-child):not(:last-child) > .btn,
 .site-dashboard .btn-group > .btn-group:not(:first-child):not(:last-child) > .btn {
   border-radius: 0; }
-.studio-view .btn-group > .btn-group:first-child > .btn:last-child,
-.studio-view .btn-group > .btn-group:first-child > .dropdown-toggle,
-.studio-dialog .btn-group > .btn-group:first-child > .btn:last-child,
-.studio-dialog .btn-group > .btn-group:first-child > .dropdown-toggle,
-.site-dashboard .btn-group > .btn-group:first-child > .btn:last-child,
-.site-dashboard .btn-group > .btn-group:first-child > .dropdown-toggle {
+.studio-view .btn-group > .btn-group:first-child:not(:last-child) > .btn:last-child,
+.studio-view .btn-group > .btn-group:first-child:not(:last-child) > .dropdown-toggle,
+.studio-dialog .btn-group > .btn-group:first-child:not(:last-child) > .btn:last-child,
+.studio-dialog .btn-group > .btn-group:first-child:not(:last-child) > .dropdown-toggle,
+.site-dashboard .btn-group > .btn-group:first-child:not(:last-child) > .btn:last-child,
+.site-dashboard .btn-group > .btn-group:first-child:not(:last-child) > .dropdown-toggle {
   border-bottom-right-radius: 0;
   border-top-right-radius: 0; }
-.studio-view .btn-group > .btn-group:last-child > .btn:first-child,
-.studio-dialog .btn-group > .btn-group:last-child > .btn:first-child,
-.site-dashboard .btn-group > .btn-group:last-child > .btn:first-child {
+.studio-view .btn-group > .btn-group:last-child:not(:first-child) > .btn:first-child,
+.studio-dialog .btn-group > .btn-group:last-child:not(:first-child) > .btn:first-child,
+.site-dashboard .btn-group > .btn-group:last-child:not(:first-child) > .btn:first-child {
   border-bottom-left-radius: 0;
   border-top-left-radius: 0; }
 .studio-view .btn-group .dropdown-toggle:active,
@@ -10371,13 +10553,11 @@ address {
 .studio-view .tab-content > .tab-pane,
 .studio-dialog .tab-content > .tab-pane,
 .site-dashboard .tab-content > .tab-pane {
-  display: none;
-  visibility: hidden; }
+  display: none; }
 .studio-view .tab-content > .active,
 .studio-dialog .tab-content > .active,
 .site-dashboard .tab-content > .active {
-  display: block;
-  visibility: visible; }
+  display: block; }
 .studio-view .nav-tabs .dropdown-menu,
 .studio-dialog .nav-tabs .dropdown-menu,
 .site-dashboard .nav-tabs .dropdown-menu {
@@ -10458,7 +10638,6 @@ address {
       .studio-dialog .navbar-collapse.collapse,
       .site-dashboard .navbar-collapse.collapse {
         display: block !important;
-        visibility: visible !important;
         height: auto !important;
         padding-bottom: 0;
         overflow: visible !important; }
@@ -10781,6 +10960,7 @@ address {
 .studio-view .navbar-fixed-bottom .navbar-nav > li > .dropdown-menu,
 .studio-dialog .navbar-fixed-bottom .navbar-nav > li > .dropdown-menu,
 .site-dashboard .navbar-fixed-bottom .navbar-nav > li > .dropdown-menu {
+  margin-bottom: 0;
   border-top-right-radius: 4px;
   border-top-left-radius: 4px;
   border-bottom-right-radius: 0;
@@ -11468,18 +11648,20 @@ address {
     top: -1px; }
   .btn-xs .studio-view .badge, .studio-view .btn-group-xs > .btn .studio-view .badge,
   .studio-dialog .btn-group-xs > .btn .studio-view .badge,
-  .site-dashboard .btn-group-xs > .btn .studio-view .badge, .btn-xs
+  .site-dashboard .btn-group-xs > .btn .studio-view .badge, .btn-group-xs > .btn .studio-view .badge, .btn-xs
   .studio-dialog .badge, .studio-view .btn-group-xs > .btn
   .studio-dialog .badge,
   .studio-dialog .btn-group-xs > .btn
   .studio-dialog .badge,
   .site-dashboard .btn-group-xs > .btn
+  .studio-dialog .badge, .btn-group-xs > .btn
   .studio-dialog .badge, .btn-xs
   .site-dashboard .badge, .studio-view .btn-group-xs > .btn
   .site-dashboard .badge,
   .studio-dialog .btn-group-xs > .btn
   .site-dashboard .badge,
   .site-dashboard .btn-group-xs > .btn
+  .site-dashboard .badge, .btn-group-xs > .btn
   .site-dashboard .badge {
     top: 0;
     padding: 1px 5px; }
@@ -11823,6 +12005,22 @@ address {
   .studio-dialog .media:first-child,
   .site-dashboard .media:first-child {
     margin-top: 0; }
+.studio-view .media,
+.studio-view .media-body,
+.studio-dialog .media,
+.studio-dialog .media-body,
+.site-dashboard .media,
+.site-dashboard .media-body {
+  zoom: 1;
+  overflow: hidden; }
+.studio-view .media-body,
+.studio-dialog .media-body,
+.site-dashboard .media-body {
+  width: 10000px; }
+.studio-view .media-object,
+.studio-dialog .media-object,
+.site-dashboard .media-object {
+  display: block; }
 .studio-view .media-right,
 .studio-view .media > .pull-right,
 .studio-dialog .media-right,
@@ -12151,8 +12349,20 @@ address {
   font-size: 14px;
   color: inherit; }
   .studio-view .panel-title > a,
+  .studio-view .panel-title > small,
+  .studio-view .panel-title > .small,
+  .studio-view .panel-title > small > a,
+  .studio-view .panel-title > .small > a,
   .studio-dialog .panel-title > a,
-  .site-dashboard .panel-title > a {
+  .studio-dialog .panel-title > small,
+  .studio-dialog .panel-title > .small,
+  .studio-dialog .panel-title > small > a,
+  .studio-dialog .panel-title > .small > a,
+  .site-dashboard .panel-title > a,
+  .site-dashboard .panel-title > small,
+  .site-dashboard .panel-title > .small,
+  .site-dashboard .panel-title > small > a,
+  .site-dashboard .panel-title > .small > a {
     color: inherit; }
 .studio-view .panel-footer,
 .studio-dialog .panel-footer,
@@ -12724,14 +12934,14 @@ address {
     height: 100%;
     width: 100%;
     border: 0; }
-  .studio-view .embed-responsive.embed-responsive-16by9,
-  .studio-dialog .embed-responsive.embed-responsive-16by9,
-  .site-dashboard .embed-responsive.embed-responsive-16by9 {
-    padding-bottom: 56.25%; }
-  .studio-view .embed-responsive.embed-responsive-4by3,
-  .studio-dialog .embed-responsive.embed-responsive-4by3,
-  .site-dashboard .embed-responsive.embed-responsive-4by3 {
-    padding-bottom: 75%; }
+.studio-view .embed-responsive-16by9,
+.studio-dialog .embed-responsive-16by9,
+.site-dashboard .embed-responsive-16by9 {
+  padding-bottom: 56.25%; }
+.studio-view .embed-responsive-4by3,
+.studio-dialog .embed-responsive-4by3,
+.site-dashboard .embed-responsive-4by3 {
+  padding-bottom: 75%; }
 .studio-view .well,
 .studio-dialog .well,
 .site-dashboard .well {
@@ -12801,7 +13011,7 @@ address {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 1040;
+  z-index: 1050;
   -webkit-overflow-scrolling: touch;
   outline: 0; }
   .studio-view .modal.fade .modal-dialog,
@@ -12848,10 +13058,12 @@ address {
 .studio-view .modal-backdrop,
 .studio-dialog .modal-backdrop,
 .site-dashboard .modal-backdrop {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
+  bottom: 0;
   left: 0;
+  z-index: 1040;
   background-color: black; }
   .studio-view .modal-backdrop.fade,
   .studio-dialog .modal-backdrop.fade,
@@ -12947,7 +13159,6 @@ address {
   position: absolute;
   z-index: 1070;
   display: block;
-  visibility: visible;
   font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 11px;
   font-weight: normal;
@@ -13233,14 +13444,22 @@ address {
       .studio-view .carousel-inner > .item,
       .studio-dialog .carousel-inner > .item,
       .site-dashboard .carousel-inner > .item {
-        transition: transform .6s ease-in-out;
+        -webkit-transition: -webkit-transform 0.6s ease-in-out;
+        -moz-transition: -moz-transform 0.6s ease-in-out;
+        -o-transition: -o-transform 0.6s ease-in-out;
+        transition: transform 0.6s ease-in-out;
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
         backface-visibility: hidden;
+        -webkit-perspective: 1000;
+        -moz-perspective: 1000;
         perspective: 1000; }
         .studio-view .carousel-inner > .item.next, .studio-view .carousel-inner > .item.active.right,
         .studio-dialog .carousel-inner > .item.next,
         .studio-dialog .carousel-inner > .item.active.right,
         .site-dashboard .carousel-inner > .item.next,
         .site-dashboard .carousel-inner > .item.active.right {
+          -webkit-transform: translate3d(100%, 0, 0);
           transform: translate3d(100%, 0, 0);
           left: 0; }
         .studio-view .carousel-inner > .item.prev, .studio-view .carousel-inner > .item.active.left,
@@ -13248,6 +13467,7 @@ address {
         .studio-dialog .carousel-inner > .item.active.left,
         .site-dashboard .carousel-inner > .item.prev,
         .site-dashboard .carousel-inner > .item.active.left {
+          -webkit-transform: translate3d(-100%, 0, 0);
           transform: translate3d(-100%, 0, 0);
           left: 0; }
         .studio-view .carousel-inner > .item.next.left, .studio-view .carousel-inner > .item.prev.right, .studio-view .carousel-inner > .item.active,
@@ -13257,6 +13477,7 @@ address {
         .site-dashboard .carousel-inner > .item.next.left,
         .site-dashboard .carousel-inner > .item.prev.right,
         .site-dashboard .carousel-inner > .item.active {
+          -webkit-transform: translate3d(0, 0, 0);
           transform: translate3d(0, 0, 0);
           left: 0; } }
   .studio-view .carousel-inner > .active,
@@ -13388,6 +13609,7 @@ address {
     width: 20px;
     height: 20px;
     margin-top: -10px;
+    line-height: 1;
     font-family: serif; }
   .studio-view .carousel-control .icon-prev:before,
   .studio-dialog .carousel-control .icon-prev:before,
@@ -13535,8 +13757,7 @@ address {
 .studio-view .hidden,
 .studio-dialog .hidden,
 .site-dashboard .hidden {
-  display: none !important;
-  visibility: hidden !important; }
+  display: none !important; }
 .studio-view .affix,
 .studio-dialog .affix,
 .site-dashboard .affix {
@@ -13546,14 +13767,20 @@ address {
   .studio-dialog,
   .site-dashboard {
     width: device-width; } }
-.studio-view .visible-xs, .studio-view .visible-sm, .studio-view .visible-md, .studio-view .visible-lg,
+.studio-view .visible-xs,
 .studio-dialog .visible-xs,
+.site-dashboard .visible-xs {
+  display: none !important; }
+.studio-view .visible-sm,
 .studio-dialog .visible-sm,
+.site-dashboard .visible-sm {
+  display: none !important; }
+.studio-view .visible-md,
 .studio-dialog .visible-md,
+.site-dashboard .visible-md {
+  display: none !important; }
+.studio-view .visible-lg,
 .studio-dialog .visible-lg,
-.site-dashboard .visible-xs,
-.site-dashboard .visible-sm,
-.site-dashboard .visible-md,
 .site-dashboard .visible-lg {
   display: none !important; }
 .studio-view .visible-xs-block,

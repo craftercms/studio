@@ -28,10 +28,10 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
 
 		context = (context) ? context : CStudioAuthoringContext.navContext;
 		CStudioAuthoring.Service.retrieveContextualNavContent(context, {
-			success: function(content) {
+			success: function(navContent) {
 				CStudioAuthoring.ContextualNav.addNavContent(navContent);
 				YAHOO.util.Event.onAvailable("authoringContextNavHeader", function() {
-                    document.domain=CStudioAuthoringContext.cookieDomain;
+                    document.domain = CStudioAuthoringContext.cookieDomain;
 					CStudioAuthoring.Events.contextNavReady.fire();
 				}, this);
 			},
@@ -45,24 +45,22 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
 	 * add the contextual nav to the page - first time call
 	 */
 	addNavContent: function(navHtmlContent) {
-		
-		var body = document.body;
 
 		var bar = document.createElement("div");
 
 		bar.id = "controls-overlay";
 		bar.innerHTML = navHtmlContent;
 
-		body.appendChild(bar);
-
 		CStudioAuthoring.Service.retrieveContextNavConfiguration("default", {
 			success: function(config) {
-				this.context.buildModules(config);
+				var me = this;
+				var $ = jQuery || function(fn) { fn() };
+				$(function () {
+					document.body.appendChild(bar);
+					me.context.buildModules(config);
+				});
 			},
-			
-			failure: function() {
-			},
-			
+			failure: function() {},
 			context: this
 		});
 	},

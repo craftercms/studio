@@ -3,7 +3,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     $.noConflict(true);
 
-    var origin = 'http://127.0.0.1:8080';
+    var origin = window.location.origin; // 'http://127.0.0.1:8080';
     var Topics = crafter.studio.preview.Topics;
     var communicator = new Communicator({window: window.parent, origin: origin}, origin);
 

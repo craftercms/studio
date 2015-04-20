@@ -297,8 +297,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 if(selectedContent[0].lockOwner != "") {
                                     if(selectedContent[0].lockOwner != CStudioAuthoringContext.user) {
                                         isWrite = false;
-                                    }
-                                    else {
+                                    } else {
                                         isWrite = true;
                                     }
                                 }
