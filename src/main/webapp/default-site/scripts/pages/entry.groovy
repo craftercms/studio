@@ -8,7 +8,7 @@ def username = request.getSession().getValue("username");
 def context = SecurityServices.createContext(applicationContext, request);
 def profile = SecurityServices.getUserProfile(context, username);
 
-model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
+//model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
 model.userEmail = profile.email
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName

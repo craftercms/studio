@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
+import org.springframework.web.context.ServletContextAware;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +27,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import javax.servlet.http.*;
+import javax.servlet.ServletContext;
+
+import org.craftercms.commons.http.*;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -39,13 +45,18 @@ import reactor.event.Event;
 
 import java.nio.file.*;
 import java.nio.file.attribute.*;
-
+import java.nio.file.*;
+import static java.nio.file.StandardCopyOption.*;
+import java.nio.file.attribute.*;
+import static java.nio.file.FileVisitResult.*;
+import java.io.IOException;
+import java.util.*;
 /**
  * Disk repository implementation. 
  * @author russdanner
  *
  */
-public class DiskContentRepository extends AbstractContentRepository {
+public class DiskContentRepository extends AbstractContentRepository implements ServletContextAware{
 
     private static final Logger logger = LoggerFactory.getLogger(DiskContentRepository.class);
 
@@ -78,7 +89,12 @@ public class DiskContentRepository extends AbstractContentRepository {
         boolean success = true;
 
         try {
-            logger.debug("writing file: "+path);
+            try {
+                Files.createDirectories(constructRepoPath(path.substring(0, path.lastIndexOf("/") ) ) );
+            }
+            catch(Exception err) {
+            }
+
             CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
             Files.copy(content,constructRepoPath(path), options);
         }
@@ -112,10 +128,12 @@ public class DiskContentRepository extends AbstractContentRepository {
         boolean success = true;
         
         try {
-            Files.delete(constructRepoPath(path));
+            //DeleteOption options[] = { StandardDeleteOption.DELETE_NON_EMPTY };
+            Files.delete(constructRepoPath(path));//, options);
         }
         catch(Exception err) {
             // log this error
+            logger.error("error while deleting content", err);
             success = false;
         }
 
@@ -128,7 +146,11 @@ public class DiskContentRepository extends AbstractContentRepository {
         boolean success = true;
 
         try {
-            Files.copy(constructRepoPath(fromPath), constructRepoPath(toPath));
+            Path source = constructRepoPath(fromPath);
+            Path target = constructRepoPath(toPath);
+            TreeCopier tc = new TreeCopier(source, target, false, false);
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
         }
         catch(Exception err) {
             // log this error
@@ -161,9 +183,6 @@ public class DiskContentRepository extends AbstractContentRepository {
      */
     public RepositoryItem[] getContentChildren(String path) {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
-        
-        logger.error("=================================================================");
-        logger.error("get tree for :" + path);
 
         try {
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
@@ -217,7 +236,6 @@ public class DiskContentRepository extends AbstractContentRepository {
             final String filename = path.substring(path.lastIndexOf("/")+1);
  
             Path versionPath = constructVersionRepoPath(pathToContent);
-            logger.info("get version history in folder: "+versionPath.toString());
 
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
@@ -268,7 +286,7 @@ public class DiskContentRepository extends AbstractContentRepository {
             try {
                 InputStream content = getContent(path);
                 String versionPath = path+"--"+versionId;
-                logger.debug("writing version file: "+versionPath);
+
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
 
                 String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
@@ -299,8 +317,7 @@ public class DiskContentRepository extends AbstractContentRepository {
             try {
                 InputStream versionContent = getVersionedContent(path, label);
                 String versionPath = path+"--"+versionId;
-                
-                logger.debug("writing version file: "+versionPath);
+
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
                 String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
                 Files.createDirectories(constructVersionRepoPath(pathToContent));
@@ -381,6 +398,45 @@ public class DiskContentRepository extends AbstractContentRepository {
     }
 
     /**
+     * bootstrap the repository
+     */
+    public void bootstrap() throws Exception {
+        Path cstudioFolder = constructRepoPath("cstudio");
+        boolean bootstrapCheck = Files.exists(cstudioFolder);
+
+        if(bootstrapCheck == false) {
+            try{
+                logger.error("Bootstrapping repository for Crafter CMS");
+                Files.createDirectories(constructRepoPath());
+            }
+            catch(Exception alreadyExistsErr){
+                // do nothing.
+            }
+
+            RequestContext context = RequestContext.getCurrent();
+            //ServletContext servletContext = context.getServletContext();
+
+            String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
+            bootstrapFolderPath = bootstrapFolderPath.replace("/bootstrap.xml", "");
+
+            System.out.println("Bootstrapping with baseline @ "+bootstrapFolderPath);
+            Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+            Path target = constructRepoPath();
+
+            TreeCopier tc = new TreeCopier(source, target, false, false);
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+        }
+    }
+
+    private ServletContext ctx;
+
+    public void setServletContext(ServletContext ctx) {
+    logger.info("ServletContext: " + ctx);
+    this.ctx = ctx;
+    }
+
+    /**
      * build a repo path from the relative path
      */
     protected Path constructRepoPath(String ... args) {
@@ -398,6 +454,8 @@ public class DiskContentRepository extends AbstractContentRepository {
 
     }
 
+
+
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 
@@ -406,4 +464,85 @@ public class DiskContentRepository extends AbstractContentRepository {
     public void setRootPath(String path) { rootPath = path; }
 
     protected Reactor repositoryReactor;
+
+    /**
+     * A {@code FileVisitor} that copies a file-tree ("cp -r")
+     */
+    static class TreeCopier implements FileVisitor<Path> {
+        private final Path source;
+        private final Path target;
+        private final boolean prompt;
+        private final boolean preserve;
+
+        static void copyFile(Path source, Path target, boolean prompt, boolean preserve) {
+            CopyOption[] options = (preserve) ?
+                new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING } :
+                new CopyOption[] { REPLACE_EXISTING };
+            
+                try {
+                    Files.copy(source, target, options);
+                } catch (IOException x) {
+                    System.err.format("Unable to copy: %s: %s%n", source, x);
+                }
+            
+        }
+     
+        TreeCopier(Path source, Path target, boolean prompt, boolean preserve) {
+            this.source = source;
+            this.target = target;
+            this.prompt = prompt;
+            this.preserve = preserve;
+        }
+ 
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            // before visiting entries in a directory we copy the directory
+            // (okay if directory already exists).
+            CopyOption[] options = (preserve) ?
+                new CopyOption[] { COPY_ATTRIBUTES } : new CopyOption[0];
+ 
+            Path newdir = target.resolve(source.relativize(dir));
+            try {
+                Files.copy(dir, newdir, options);
+            } catch (FileAlreadyExistsException x) {
+                // ignore
+            } catch (IOException x) {
+                System.err.format("Unable to create: %s: %s%n", newdir, x);
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            return FileVisitResult.CONTINUE;
+        }
+ 
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            TreeCopier.copyFile(file, target.resolve(source.relativize(file)),
+                     prompt, preserve);
+            return FileVisitResult.CONTINUE;
+        }
+ 
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+            // fix up modification time of directory when done
+            if (exc == null && preserve) {
+                Path newdir = target.resolve(source.relativize(dir));
+                try {
+                    FileTime time = Files.getLastModifiedTime(dir);
+                    Files.setLastModifiedTime(newdir, time);
+                } catch (IOException x) {
+                    System.err.format("Unable to copy all attributes to: %s: %s%n", newdir, x);
+                }
+            }
+            return FileVisitResult.CONTINUE;
+        }
+ 
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            if (exc instanceof FileSystemLoopException) {
+                System.err.println("cycle detected: " + file);
+            } else {
+                System.err.format("Unable to copy: %s: %s%n", file, exc);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+    }
 }

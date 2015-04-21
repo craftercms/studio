@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/entry</content-type>
+	<placeInNav>true</placeInNav>
+	<display-template>/templates/web/entry.ftl</display-template>
+	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<placeInNav>false</placeInNav>
+	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<title>A Page</title>
+	<meta-description>example</meta-description>
+	<corporateKeywords/>
+	<meta-keywords>example</meta-keywords>
+	<orderDefault_f>-1</orderDefault_f>
+	<body>Hello World!</body>
+	<objectGroupId>ae29</objectGroupId>
+	<objectId>ae294ad8-71fb-5459-c8ce-70a04ab029a6</objectId>
+	<folder-name/>
+	<headerTitle/>
+	<tiles>	<item>	<mouseOverText>Jeans</mouseOverText>
+	<url/>
+	<height>230</height>
+	<width>240</width>
+	<top>246</top>
+	<left>510</left>
+	<image>/static-assets/images/home/tiles/jeans.jpg</image>
+	<test>&lt;p&gt;dddd&lt;/p&gt;</test>
+	</item>	<item>	<test>&lt;p&gt;cccccc&lt;/p&gt;</test>
+	</item></tiles>
+	<createdDate>04/22/2013 12:45:08</createdDate>
+	<lastModifiedDate>04/22/2013 12:55:38</lastModifiedDate>
+</page>

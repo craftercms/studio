@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -54,6 +56,21 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	public void register() {
 		this._servicesManager.registerService(SiteService.class, this);
 	}
+	
+	@Override
+	public boolean writeConfiguration(String site, String path, InputStream content) {
+		return contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+	}
+
+	@Override	
+	public boolean writeConfiguration(String path, InputStream content) {
+		return contentRepository.writeContent(path, content);
+	}
+
+	@Override
+	public Map<String, Object> getConfiguration(String path) {
+		return null;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -61,7 +78,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 * @seeorg.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#
 	 * getConfiguration(java.lang.String)
 	 */
-	protected TimeStamped getConfiguration(String key) {
+	protected TimeStamped getConfigurationById(String key) {
 		// key is not being used here
 		return sitesConfig;
 	}
@@ -401,6 +418,64 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         }
     }
 
+   	@Override
+   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
+ 		boolean success = true;
+ 		try {
+ 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+	 			"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+
+	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
+	 			siteConfigFolder);
+
+	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_NAME", siteName);
+	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
+	 		
+	 		// permissions
+	 		// environment overrides
+	 		// deployment
+
+	 		// insert database records
+	 	}
+	 	catch(Exception err) {
+	 		success = false;
+	 	}
+
+	 	return success;
+    }
+
+    protected void replaceFileContent(String path, String find, String replace) throws Exception {
+    	InputStream content = contentRepository.getContent(path);
+    	String contentAsString = "";
+
+    	contentAsString = contentAsString.replaceAll(find, replace);
+
+    	InputStream contentToWrite = null;
+
+		contentRepository.writeContent(path, contentToWrite);    	
+    }
+
+   	@Override
+   	public boolean deleteSite(String siteId) {
+ 		boolean success = true;
+ 		try {
+ 			contentRepository.deleteContent("/wem-projects/"+siteId);
+ 			contentRepository.deleteContent("/cstudio/config/sites/"+siteId);	 
+
+	 		// delete database records
+	 	}
+	 	catch(Exception err) {
+	 		success = false;
+	 	}
+
+	 	return success;
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -440,6 +515,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
 
+	protected ContentRepository contentRepository;
+	public ContentRepository getContenetRepository() { return contentRepository; }
+	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 

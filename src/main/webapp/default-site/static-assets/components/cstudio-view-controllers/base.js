@@ -199,7 +199,16 @@
         end: function() {
             this.fire("end");
             return this;
+        },
+
+        $: function (selector) {
+            if (window.jQuery) {
+                return $("#" + this.cfg.getProperty("context")).find(selector);
+            } else {
+                return;
+            }
         }
+
     };
 
     Base.extend = function (className, classBody) {

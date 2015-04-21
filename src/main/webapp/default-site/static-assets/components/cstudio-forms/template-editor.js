@@ -24,23 +24,17 @@ CStudioAuthoring.Module.requireModule(
 				CStudioForms.TemplateEditor.prototype = {
 
 					render: function(templatePath, channel, onSaveCb) {
-						
-						var serviceUri = CStudioAuthoringContext.baseUri
-						    + "/proxy/alfresco/cstudio/wcm/content/get-content" 
-							+ "?site=" + CStudioAuthoringContext.site 
-							+ "&path=" + templatePath 
-							+ "&edit=true";
-					
+	
 						var getContentCb = {
 							success: function(response) {
-								this.context.renderTemplateEditor(templatePath, response.responseText, onSaveCb);
+								this.context.renderTemplateEditor(templatePath, response, onSaveCb);
 							},
 							failure: function() {
 							},
 							context: this
 						};
 						
-						YAHOO.util.Connect.asyncRequest('GET', serviceUri, getContentCb);				
+						CStudioAuthoring.Service.getContent(templatePath, true, getContentCb, false);			
 					},
 					
 					renderTemplateEditor: function(templatePath, content, onSaveCb) {
@@ -151,10 +145,14 @@ CStudioAuthoring.Module.requireModule(
 										saveEl.onclick = function() {
 											editorEl.codeMirrorEditor.save();
 											var value = editorEl.value;
-										
-											var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-											                    + "?site=" + CStudioAuthoringContext.site 
-											                    + "&path=" + templatePath;
+											var path = templatePath.substring(0, templatePath.lastIndexOf("/"));
+											var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
+
+										    var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+										                        "?site=" + CStudioAuthoringContext.site +
+										                        "&phase=onSave" +
+										                        "&path=" + path +
+										                        "&fileName=" + filename;
 											                    
 											YAHOO.util.Connect.setDefaultPostHeader(false);
 											YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");

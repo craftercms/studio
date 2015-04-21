@@ -1789,33 +1789,54 @@ var CStudioForms = CStudioForms || function() {
                         def.contentType = formId;
 
                         // handle datasources
+                        
                         if(!def.datasources || typeof def.datasources === 'string') {
                             def.datasources = [];
                         }
-                        else if(!def.datasources.length) {
-                            def.datasources = [].concat(def.datasources.datasource);
+                        else {
+                            def.datasources = def.datasources.datasource;
+                        }
+                        
+                        if(!def.datasources.length) {
+                            def.datasources = [].concat(def.datasources);
                         }
 
                         for(var k=0; k < def.datasources.length; k++) {
                             var datasource = def.datasources[k];
                             datasource.form = def;
+                            
+                            if(!datasource.properties || ! datasource.properties.property) {
+                                datasource.properties = [];
+                            }
+                            else {
+                                datasource.properties = datasource.properties.property;
+                                if(!datasource.properties.length) {
+                                    datasource.properties = [].concat(datasource.properties);
+                                }
 
-                            if(!datasource.properties.length) {
-                                datasource.properties = [].concat(datasource.properties.property);
                             }
                         }
 
                         // handle form properties
-                        if(!def.properties) {
+                        if(!def.properties || !def.properties.property) {
                             def.properties = [];
                         }
-                        else if(!def.properties.length) {
-                            def.properties = [ def.property ];
+                        else {
+                            def.properties = def.properties.property;
+                            if(!def.properties.length) {
+                                def.properties = [ def.properties ];
+                            }
                         }
 
                         // handle form dections
-                        if(!def.sections.length) {
-                            def.sections = [].concat(def.sections.section);
+                        if(!def.sections || !def.sections.section){
+                            def.sections = [];
+                        }
+                        else{
+                            def.sections = def.sections.section;
+                            if(!def.sections.length) {
+                                def.sections = [].concat(def.sections);
+                            }
                         }
 
                         for(var i=0; i < def.sections.length; i++) {
@@ -1826,34 +1847,39 @@ var CStudioForms = CStudioForms || function() {
                             section.id = sectionId;
 
                             processFieldsFn = function(container) {
-                                if(!container.fields.length) {
-                                    container.fields = [].concat(container.fields.field);
+                                if(!container.fields || !container.fields.field){
+                                    container.fields = [];
+                                }
+                                else {
+                                    container.fields = container.fields.field;
+                                    if(!container.fields.length) {
+                                        container.fields = [].concat(container.fields);
+                                    }
                                 }
 
                                 for(var j=0; j < container.fields.length; j++) {
                                     var field = container.fields[j];
                                     if(field) {
 
-                                        if(!field.properties) {
+                                        if(!field.properties || !field.properties.property) {
                                             field.properties = [];
                                         }
-
-                                        if(!field.properties.length) {
-                                            field.properties = [].concat(field.properties.property);
-                                        }
-
-                                        if(!field.constraints) {
-                                            field.constraints = [];
-                                        } else {
-                                            if(!field.constraints.length) {
-                                                if (!field.constraints.constraint) {
-                                                    field.constraints = [];
-                                                } else {
-                                                    field.constraints = [].concat(field.constraints.constraint);
-                                                }
+                                        else {
+                                            field.properties = field.properties.property;
+                                            if(!field.properties.length) {
+                                                field.properties = [].concat(field.properties);
                                             }
                                         }
 
+                                        if(!field.constraints || !field.constraints.constraint) {
+                                            field.constraints = [];
+                                        } else {
+                                            field.constraints = field.constraints.constraint;
+
+                                            if(!field.constraints.length) {
+                                                field.constraints = [].concat(field.constraints);
+                                            }
+                                        }
 
                                         if(field.type == "repeat") {
                                             processFieldsFn(field);

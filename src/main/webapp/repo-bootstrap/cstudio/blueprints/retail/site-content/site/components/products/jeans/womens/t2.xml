@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/jeans</content-type>
+	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>eb89</objectGroupId>
+	<objectId>eb890bb3-2826-3998-ba7d-12910a691d33</objectId>
+	<fit>	<item>	<fitNote/>
+	</item></fit>
+	<file-name>t2.xml</file-name>
+	<folder-name/>
+	<internal-name/>
+	<productTitle/>
+	<measurementDetails/>
+	<frontRise/>
+	<backRise/>
+	<inseam/>
+	<legOpening/>
+	<category>jeans</category>
+	<description/>
+	<frontImage/>
+	<backImage/>
+	<zoomImage/>
+	<skus/>
+	<gender/>
+	<collection/>
+</component>

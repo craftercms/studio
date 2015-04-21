@@ -31,6 +31,21 @@ class SpringSiteServices {
         this.context = context
     }
 
+    def writeConfiguration(path, content){
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.writeConfiguration(path, content);       
+    }
+
+    def writeConfiguration(site, path, content){
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.writeConfiguration(site, path, content);
+    }
+
+    def getConfiguraiton(path) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getConfiguration(site, path);
+    }
+
     def getConfiguration(site, path, applyEnvironment) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getConfiguration(site, path, applyEnvironment);
@@ -40,4 +55,15 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getUserSites(user);
     }
+
+    def createSiteFromBlueprint(blueprintName, siteName, siteId, desc) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
+    }
+
+    def deleteSite(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.deleteSite(siteId)
+    }
+
 }

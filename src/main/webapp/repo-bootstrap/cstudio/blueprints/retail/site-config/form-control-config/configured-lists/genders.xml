@@ -1,0 +1,16 @@
+<list>
+	<values>
+		<item>
+			<key>all</key>
+			<value>All</value>
+		</item>
+		<item>
+			<key>female</key>
+			<value>Female</value>
+		</item>
+		<item>
+			<key>male</key>
+			<value>Male</value>
+		</item>
+	</values>
+</list>

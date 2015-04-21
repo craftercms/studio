@@ -149,6 +149,100 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
+    public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+                             String createFolders, String edit, String unlock) throws ServiceException {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(DmConstants.KEY_SITE, site);
+        params.put(DmConstants.KEY_PATH, path);
+        params.put(DmConstants.KEY_FILE_NAME, fileName);
+        params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+        params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
+        params.put(DmConstants.KEY_EDIT, edit);
+        params.put(DmConstants.KEY_UNLOCK, unlock);
+        String id = site + ":" + path + ":" + fileName + ":" + contentType;
+        String fullPath = expandRelativeSitePath(site, path);
+        ContentItemTO item = getContentItem(site, path);
+        String lockKey = id;
+        if (item != null) {
+            lockKey = site + ":" + item.getUri();
+        }
+        generalLockService.lock(lockKey);
+        try {
+            boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
+            if (item != null) {
+                ObjectState objectState = objectStateService.getObjectState(site, path);
+                if (objectState == null) {
+                    objectStateService.insertNewEntry(site, item);
+                    objectState = objectStateService.getObjectState(site, path);
+                }
+                if (objectState.getSystemProcessing() != 0){
+                    logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
+                    throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                }
+
+                objectStateService.setSystemProcessing(site, path, true);
+            }
+
+            // default chain is asset type
+            String chainID = DmConstants.CONTENT_CHAIN_ASSET;
+
+            if(path.startsWith("/site")) {
+                // anything inside site is a form based XML
+                // example /site/website 
+                //         /site/components  
+                //         /site/books
+                chainID = DmConstants.CONTENT_CHAIN_FORM;
+            }
+
+            processContent(id, input, true, params, chainID);
+            objectStateService.setSystemProcessing(site, path, false);
+            String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
+            String savedPath = params.get(DmConstants.KEY_PATH);
+            fullPath = expandRelativeSitePath(site, savedPath);
+            if (!savedPath.endsWith(savedFileName)) {
+                fullPath = fullPath + "/" + savedFileName;
+            }
+            fullPath = fullPath.replace("//", "/");
+            String relativePath = getRelativeSitePath(site, fullPath);
+            ContentItemTO itemTo = getContentItem(site, relativePath);
+            if (itemTo != null) {
+                if (savaAndClose) {
+                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+                } else {
+                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
+                }
+            } else {
+                objectStateService.insertNewEntry(site, itemTo);
+            }
+            objectStateService.setSystemProcessing(site, relativePath, false);
+        }  catch (RuntimeException e) {
+            logger.error("error writing content",e);
+            throw e;
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
+    @Override
+    public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
+                                      final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
+        String id = site + ":" + path + ":" + fileName + ":" + contentType;
+        if (!generalLockService.tryLock(id)) {
+            generalLockService.lock(id);
+            generalLockService.unlock(id);
+            return;
+        }
+        try {
+            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
+            rename(site, path, targetPath, createFolder);
+        } catch (Throwable t) {
+            logger.error("Error while executing write and rename: ", t);
+        } finally {
+            generalLockService.unlock(id);
+        }
+    }
+
+    @Override
     public boolean writeContent(String site, String path, InputStream content){
         return writeContent(expandRelativeSitePath(site, path), content);
     }
@@ -673,87 +767,6 @@ public class ContentServiceImpl implements ContentService {
         return false;
     }
 
-    @Override
-    public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                             String createFolders, String edit, String unlock) throws ServiceException {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(DmConstants.KEY_SITE, site);
-        params.put(DmConstants.KEY_PATH, path);
-        params.put(DmConstants.KEY_FILE_NAME, fileName);
-        params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-        params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
-        params.put(DmConstants.KEY_EDIT, edit);
-        params.put(DmConstants.KEY_UNLOCK, unlock);
-        String id = site + ":" + path + ":" + fileName + ":" + contentType;
-        String fullPath = expandRelativeSitePath(site, path);
-        ContentItemTO item = getContentItem(site, path);
-        String lockKey = id;
-        if (item != null) {
-            lockKey = site + ":" + item.getUri();
-        }
-        generalLockService.lock(lockKey);
-        try {
-            boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
-            if (item != null) {
-                ObjectState objectState = objectStateService.getObjectState(site, path);
-                if (objectState == null) {
-                    objectStateService.insertNewEntry(site, item);
-                    objectState = objectStateService.getObjectState(site, path);
-                }
-                if (objectState.getSystemProcessing() != 0){
-                    logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
-                    throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
-                }
-
-                objectStateService.setSystemProcessing(site, path, true);
-            }
-            processContent(id, input, true, params, DmConstants.CONTENT_CHAIN_FORM);
-            objectStateService.setSystemProcessing(site, path, false);
-            String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
-            String savedPath = params.get(DmConstants.KEY_PATH);
-            fullPath = expandRelativeSitePath(site, savedPath);
-            if (!savedPath.endsWith(savedFileName)) {
-                fullPath = fullPath + "/" + savedFileName;
-            }
-            fullPath = fullPath.replace("//", "/");
-            String relativePath = getRelativeSitePath(site, fullPath);
-            ContentItemTO itemTo = getContentItem(site, relativePath);
-            if (itemTo != null) {
-                if (savaAndClose) {
-                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
-                } else {
-                    objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
-                }
-            } else {
-                objectStateService.insertNewEntry(site, itemTo);
-            }
-            objectStateService.setSystemProcessing(site, relativePath, false);
-        }  catch (RuntimeException e) {
-            logger.error("error writing content",e);
-            throw e;
-        } finally {
-            generalLockService.unlock(lockKey);
-        }
-    }
-
-    @Override
-    public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
-                                      final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
-        String id = site + ":" + path + ":" + fileName + ":" + contentType;
-        if (!generalLockService.tryLock(id)) {
-            generalLockService.lock(id);
-            generalLockService.unlock(id);
-            return;
-        }
-        try {
-            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            rename(site, path, targetPath, createFolder);
-        } catch (Throwable t) {
-            logger.error("Error while executing write and rename: ", t);
-        } finally {
-            generalLockService.unlock(id);
-        }
-    }
 
     protected void rename(final String site, final String path, final String targetPath,final boolean createFolder) throws ServiceException {
         dmRenameService.rename(site, path,targetPath,createFolder);

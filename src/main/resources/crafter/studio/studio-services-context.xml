@@ -81,6 +81,7 @@
         </property>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
@@ -498,9 +499,11 @@
     </bean>
     
     <!-- default option -->
-    <bean id="cstudioDiskContentRepository" class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository">
+    <bean id="cstudioDiskContentRepository" 
+        class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
+        init-method="bootstrap">
         <property name="repositoryReactor" ref="repositoryReactor"/>
-        <property name="rootPath" value="/Users/rdanner/crafter-installs/2-5-0-test-1/crafter/data/repo" />
+        <property name="rootPath" value="${repository.diskImplementation.path}" />
     </bean>
 
     <bean id="cstudioDiskContentRepositoryRegistration" 

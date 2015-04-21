@@ -377,7 +377,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         var path = this.getCurrentPath();
         var hasXmlFile = (path.indexOf(".xml") >= 0);
 
-        if(this.contentAsFolder == "true") {
+        if(this.contentAsFolder == true) {
             path = path.replace("/index.xml", "");
         }
 

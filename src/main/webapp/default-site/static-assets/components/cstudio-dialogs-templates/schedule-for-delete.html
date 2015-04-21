@@ -22,19 +22,25 @@
         </div>
         <div>
         	<div class="radio">
-        	<label>
-            <input id="settime" type="radio" name="timing" class="at-requested-time" /> 
-            At the requested time:
-            </label>
+                <label>
+                    <input id="settime" type="radio" name="timing" class="at-requested-time" /> At the requested time:
+                </label>
 			</div>
-            <input id="datepicker" class="date-picker water-marked form-control" value="Date..." default="Date..." />
-            <input id="timepicker" class="time-picker water-marked form-control" value="Time..." default="Time..." />
-            <div class="timeButtonContainer" style="float:none; vertical-align:middle; display:inline-block;">
-                <input id="timeIncrementButton" type="submit" value=""/>
-                <input id="timeDecrementButton" type="submit" value=""/>
+            <div class="row unpad">
+                <div class="col-sm-4">
+                    <input id="datepicker" class="date-picker water-marked form-control" value="Date..." default="Date..." />
+                </div>
+                <div class="col-sm-4">
+                    <input id="timepicker" class="time-picker water-marked form-control" value="Time..." default="Time..." />
+                </div>
+                <div class="col-sm-4">
+                    <div class="timeButtonContainer" style="float:none; vertical-align:middle; display:inline-block;">
+                        <input id="timeIncrementButton" type="submit" value=""/>
+                        <input id="timeDecrementButton" type="submit" value=""/>
+                    </div>
+                    <span class=""><span id="timeZone">EST</span> (<a href="javascript:" class="scheduling-policy">Scheduling Policy</a>)</span>
+                </div>
             </div>
-
-            <span class=""><span id="timeZone">EST</span> (<a href="javascript:" class="scheduling-policy">Scheduling Policy</a>)</span>
         </div>
     </div>
     <div class="form-group checkbox">

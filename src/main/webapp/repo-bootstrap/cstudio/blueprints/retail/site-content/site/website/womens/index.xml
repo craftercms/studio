@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/section</content-type>
+	<display-template>/templates/web/section.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>2244</objectGroupId>
+	<objectId>2244e5fc-629f-2c39-996e-d0dddc689a6c</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>womens</folder-name>
+	<internal-name>Womens</internal-name>
+	<navLabel>Womens</navLabel>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>2000</orderDefault_f>
+	<bottomPromos/>
+	<createdDate>02/09/2013 04:20:29</createdDate>
+	<lastModifiedDate>04/22/2013 12:59:42</lastModifiedDate>
+	<bodyModules>	</bodyModules>
+	<bottomPromos3>	<item>	<key>/site/components/page/edbc213c-f6ee-8d4f-1da4-c404614471c8.xml</key>
+	<value>edbc213c-f6ee-8d4f-1da4-c404614471c8.xml</value>
+	<include>/site/components/page/edbc213c-f6ee-8d4f-1da4-c404614471c8.xml</include>
+	</item></bottomPromos3>
+	<bottomPromos2>	<item>	<key>/site/components/page/83570bf5-f774-6abf-14a1-cc23523cfea6.xml</key>
+	<value>83570bf5-f774-6abf-14a1-cc23523cfea6.xml</value>
+	<include>/site/components/page/83570bf5-f774-6abf-14a1-cc23523cfea6.xml</include>
+	</item>	<item>	<key>/site/components/page/b2cff07d-c185-2ba9-f640-ca2ae354b52d.xml</key>
+	<value>Zone 1</value>
+	<include>/site/components/page/b2cff07d-c185-2ba9-f640-ca2ae354b52d.xml</include>
+	</item></bottomPromos2>
+	<bottomPromos1>	<item>	<key>/site/components/page/93ebe8a0-6ef2-77bd-0f13-102d85fa4b6b.xml</key>
+	<value>93ebe8a0-6ef2-77bd-0f13-102d85fa4b6b.xml</value>
+	<include>/site/components/page/93ebe8a0-6ef2-77bd-0f13-102d85fa4b6b.xml</include>
+	</item></bottomPromos1>
+</page>

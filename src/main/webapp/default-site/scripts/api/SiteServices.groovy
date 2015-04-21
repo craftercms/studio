@@ -36,13 +36,40 @@ class SiteServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
+    static writeConfiguration(context, path, content){
+        
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(path, content)        
+    }
+
+    static writeConfiguration(context, site, path, content){
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(site, path, content)  
+    }
+
+    static getConfiguraiton(context, path, content) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.writeConfiguration(path, content)  
+    }
+
     static getConfiguration(context, site, path, applyEnvironment) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getConfiguration(site, path, applyEnvironment)
     }
 
     static getUserSites(context, user) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context);
-        return siteServicesImpl.getUserSites(user);
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getUserSites(user)
     }
+
+    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
+    }    
+
+    static deleteSite(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.deleteSite(siteId)
+    }
+
 }

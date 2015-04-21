@@ -149,7 +149,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#getConfiguration(java.lang.String)
 	 */
-	protected TimeStamped getConfiguration(String key) {
+	protected TimeStamped getConfigurationById(String key) {
 		return siteMapping.get(key);
 	}
 

@@ -124,30 +124,11 @@ div#acn-active-content {
   padding: 2px 0 0;
 }
 
-/*div.acn-link {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/widget_vertical_divider.png') no-repeat scroll left center;
-  float: left;
-  margin: 6px 0 0 0;
-  color: #FFF;
-  padding: 1px 5px 0px;
-  text-align: center;
-}*/
-
-/*div.acn-link a {
-  border-right: 1px solid #fff;
-  line-height: 12px;
-  padding: 0 5px 0 5px;
-}*/
-
 .acn-link img {
   float: right;
   height: 10px;
   display: none;
 }
-
-/*div#acn-active-content div.acn-link-last a {
-  border-right: none;
-}*/
 
 #acn-render {
   float: left;
@@ -277,17 +258,6 @@ div#acn-active-content {
   width: 162px;
 }
 
-/*#acn-search input {
-  border: 1px solid #0176B1;
-  color: #000;
-  font-size: 1em;
-  height: 17px;
-  margin: 0;
-  margin-right: 3px;
-  padding: 1px 0 0 2px;
-  width: 148px;
-}*/
-
 #acn-logout {
   background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y left;
   float: right;
@@ -320,27 +290,6 @@ div#acn-active-content {
   user-select: none;
 }
 
-/*.acn-dropdown-wrapper {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y left;
-  font-size: 12px;
-  margin: 0 0 0 10px;
-  padding: 0;
-  height: 30px;
-  float: left;
-}
-
-.acn-dropdown-wrapper .acn-dropdown {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif') repeat-y right;
-  float: left;
-  height: 30px;
-  margin: 0 0 0 10px;
-  padding: 0 10px 0 0;
-}
-
-.acn-dropdown-wrapper .acn-dropdown-inner {
-  padding: 8px 0 0;
-}*/
-
 .acn-dropdown-wrapper .acn-drop-arrow {
   display: block;
   padding: 18px 10px 15px;
@@ -349,6 +298,8 @@ div#acn-active-content {
 .site-dropdown-open {
   .acn-dropdown-toggler {
     font-weight: bold;
+    padding-left: 8px;
+    padding-right: 9px;
   }
   .site-dashboard {
     padding-left: 265px;
@@ -2209,105 +2160,6 @@ table.yui-calendar {
   color: #a6a6a6 !important;
 }
 
-/*
-
-#level1
-{
-  margin:0;
-}
-
-#acn-context-menuWrapper ul
-{
-  border-color:#CCCCCC;
-  border-style:solid;
-  border-width:0;
-  padding:0;
-}
-
-#acn-context-menuWrapper
-{
-  background:#FFF;
-  border:1px #444 solid;
-  margin:0;
-  padding:0;
-  width:68px;
-}
-
-#acn-context-menuWrapper .yuimenuitemlabel
-{
-  font-size:12px;
-  line-height:22px;
-  padding-left:5px;
-  text-align:left;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-
-#acn-context-menuWrapper a
-{
-  color:#000000;
-}
-
-
-#level1 .yuimenubar ul,.yuimenu ul,.yuimenubar li,.yuimenu li,.yuimenu h6,.yuimenubar h6
-{
-  margin:0 auto 5px;
-}
-
-#level1 .yui-skin-cstudioTheme .yuimenu .bd
-{
-  border:0 #444 solid;
-}
-
-.yui-skin-cstudioTheme .yui-menu-shadow-visible
-{
-  display:none;
-}
-
-#level1 .yuimenuitem
-{
-  margin:0 auto 5px;
-  width:100%;
-}
-
-#level1 .ygtvitem
-{
-  line-height:13px;
-}
-
-#level1 .ygtvitem table
-{
-  width:100%;
-}
-
-#level1 .ygtvrow
-{
-  width:100%;
-  vertical-align:middle;
-  height:18px;
-}
-
-#level1 .ygtvrow td
-{
-  overflow:hidden;
-  vertical-align:middle;
-  height:18px;
-}
-
-#level1 .ygtvcontent
-{
-  overflow:hidden;
-}
-
-#level1 .yui-resize-label
-{
-  overflow:hidden;
-  display:inline-block;
-  color:#0176B1;
-  font-size:12px;
-}
-*/
-
 /* CSS for preview server dialog icons */
 .document {
   background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
@@ -2937,6 +2789,12 @@ span.acn-canned-search {
 
 .dropbox-file-display .progress {
   margin: 10px 0;
+}
+
+/** End bulk upload */
+
+.xdsoft_datetimepicker {
+  z-index: 1000000 !important;
 }
 
 /**

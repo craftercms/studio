@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role-mappings>
+    <groups>
+        <group name="site_global1_SiteManager">
+            <role>admin</role>
+        </group>
+        <group name="site_global1_SiteCollaborator">
+            <role>author</role>
+        </group>
+        <group name="site_global1_SiteContributor">
+            <role>author</role>
+        </group>
+        <group name="site_global1_SiteConsumer">
+            <role>viewer</role>
+        </group>         
+    </groups>
+</role-mappings>

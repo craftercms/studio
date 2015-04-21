@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/search</content-type>
+	<display-template>/templates/web/search.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>f6a4</objectGroupId>
+	<objectId>f6a431ce-27ff-e93f-7b6b-10a62dd82641</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>search</folder-name>
+	<internal-name>Search</internal-name>
+	<placeInNav>false</placeInNav>
+	<orderDefault_f>-1</orderDefault_f>
+</page>

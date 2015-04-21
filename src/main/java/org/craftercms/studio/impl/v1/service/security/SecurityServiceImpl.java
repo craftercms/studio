@@ -324,7 +324,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     @Override
-    protected TimeStamped getConfiguration(String key) {
+    protected TimeStamped getConfigurationById(String key) {
         return permissionsConfigMap.get(key);
     }
 

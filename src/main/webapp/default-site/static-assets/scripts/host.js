@@ -3,7 +3,7 @@
 
     var cstopic = crafter.studio.preview.cstopic;
     var Topics = crafter.studio.preview.Topics;
-    var origin = 'http://127.0.0.1:8080';
+    var origin = window.location.origin; // 'http://127.0.0.1:8080';
     var communicator = new crafter.studio.Communicator(origin);
     // CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
 
