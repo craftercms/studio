@@ -70,7 +70,7 @@
 
     <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState">
         UPDATE cstudio_objectstate
-        SET state = #{state}
+        SET state = #{state}, system_processing = #{systemProcessing}
         WHERE object_id = #{objectId};
     </update>
 
