@@ -117,7 +117,7 @@ CStudioAuthoring.Module.requireModule(
 
 									var cancelEl = document.getElementById('template-editor-cancel-button');
 									cancelEl.onclick = function() {
-							            var cancelEditServiceUrl = "/proxy/alfresco/cstudio/wcm/content/cancel-editing"
+							            var cancelEditServiceUrl = "/api/1/services/api/1/content/unlock-content.json"
 							                + "?site=" + CStudioAuthoringContext.site
 							                + "&path=" + templatePath;
 
