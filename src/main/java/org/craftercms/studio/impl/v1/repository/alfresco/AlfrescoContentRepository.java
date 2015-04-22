@@ -141,13 +141,61 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getBaseType();
-                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
-                    org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
-                    ContentStream contentStream = document.getContentStream();
-                    document.checkOut();
-                    ObjectId objId = document.checkIn(majorVersion, null, contentStream, null);
-                    document = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(objId);
-                    versionLabel = document.getVersionLabel();
+                if ("cmis:document".equals(type.getId())) {
+                    AlfrescoDocument alfDoc = (AlfrescoDocument)cmisObject;
+                    /*
+                    if (!alfDoc.hasAspect("D:cm:versionable")) {
+                        alfDoc.addAspect("D:cm:versionable");
+                        session.clear();
+                        session.removeObjectFromCache(alfDoc.getId());
+                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
+                    }*/
+                    /*
+                    Property autoVersion = alfDoc.getProperty("cm:autoVersion");
+                    if (autoVersion == null || (Boolean.parseBoolean(autoVersion.getValueAsString()))) {
+                        Map<String, Object> properties = new HashMap<String, Object>();
+                        properties.put("cm:autoVersion", false);
+                        alfDoc.updateProperties(properties, true);
+                        session.clear();
+                        session.removeObjectFromCache(alfDoc.getId());
+                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
+                    }*/
+
+                    Property lockOwner = alfDoc.getProperty("cm:lockOwner");
+                    Property lockType = alfDoc.getProperty("cm:lockType");
+                    if (lockOwner != null && lockType != null) {
+                        if (!alfDoc.hasAspect("P:cm:lockable")) {
+                            alfDoc.addAspect("P:cm:lockable");
+                        } else {
+                            Map<String, Object> properties = new HashMap<String, Object>();
+                            properties.put("cm:lockOwner", null);
+                            properties.put("cm:lockType", null);
+                            alfDoc.updateProperties(properties, true);
+                        }
+                        //session.clear();
+                        //alfDoc = (AlfrescoDocument)session.getObject(alfDoc.getId());
+                    }
+                    session.removeObjectFromCache(alfDoc.getId());
+                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
+                    ObjectId objId = alfDoc.checkOut();
+                    AlfrescoDocument workingCopy = (AlfrescoDocument)session.getObject(objId);
+                    ContentStream contentStream = workingCopy.getContentStream();
+                    objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                    session.removeObjectFromCache(alfDoc.getId());
+                    session.removeObjectFromCache(objId);
+                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
+                    if (lockOwner != null && lockType != null) {
+                        if (!alfDoc.hasAspect("P:cm:lockable")) {
+                            alfDoc.addAspect("P:cm:lockable");
+                        }
+                        session.clear();
+                        session.removeObjectFromCache(alfDoc.getId());
+                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
+                        Map<String, Object> properties = new HashMap<String, Object>();
+                        properties.put("cm:lockOwner", lockOwner.getValue());
+                        properties.put("cm:lockType", lockType.getValue());
+                        alfDoc.updateProperties(properties, true);
+                    }
                 }
             }
         } catch (CmisBaseException err) {
@@ -415,7 +463,7 @@ implements SecurityProvider {
             String nodeRef = null;
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getType();
-                if (FolderType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     ContentStream contentStream = document.getContentStream();
                     inputStream = contentStream.getStream();
@@ -440,7 +488,7 @@ implements SecurityProvider {
         RepositoryItem[] items = null;
         if (cmisObject != null) {
             ObjectType type = cmisObject.getBaseType();
-            if (FolderType.FOLDER_BASETYPE_ID.equals(type.getId())) {
+            if ("cmis:folder".equals(type.getId())) {
                 Folder folder = (Folder) cmisObject;
                 ItemIterable<CmisObject> children = folder.getChildren();
                 List<RepositoryItem> tempList = new ArrayList<RepositoryItem>();
@@ -448,7 +496,7 @@ implements SecurityProvider {
                 while (iterator.hasNext()) {
                     CmisObject child = iterator.next();
 
-                    boolean isFolder = FolderType.FOLDER_BASETYPE_ID.equals(child.getBaseType().getId());
+                    boolean isFolder = "cmis:folder".equals(child.getBaseType().getId());
                     RepositoryItem item = new RepositoryItem();
                     item.name = child.getName();
                     if (child.getType().isFileable()) {
@@ -485,7 +533,7 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getBaseType();
-                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     document.setContentStream(contentStream, true);
                 }
@@ -500,10 +548,10 @@ implements SecurityProvider {
                     String folderName = folderPath.substring(folderSplitIndex + 1);
                     CmisObject parentFolderCmisObject = session.getObjectByPath(parentFolderPath);
                     ObjectType parentFolderType = parentFolderCmisObject.getType();
-                    if (FolderType.FOLDER_BASETYPE_ID.equals(parentFolderType.getId())) {
+                    if ("cmis:folder".equals(parentFolderType.getId())) {
                         Folder parentFolder = (Folder)parentFolderCmisObject;
                         Map<String, String> newFolderProps = new HashMap<String, String>();
-                        newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, FolderType.FOLDER_BASETYPE_ID);
+                        newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
                         newFolderProps.put(PropertyIds.NAME, folderName);
                         folder = parentFolder.createFolder(newFolderProps);
                     }
@@ -511,7 +559,7 @@ implements SecurityProvider {
                     folder = (Folder)folderCmisObject;
                 }
                 Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put(PropertyIds.OBJECT_TYPE_ID, DocumentType.DOCUMENT_BASETYPE_ID);
+                properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
                 folder.createDocument(properties, contentStream, VersioningState.NONE);
             }
@@ -561,7 +609,7 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             if(cmisObject != null) {
                 ObjectType type = cmisObject.getType();
-                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
                     if (versionsCMIS != null && versionsCMIS.size() > 0) {
@@ -598,7 +646,7 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             if(cmisObject != null) {
                 ObjectType type = cmisObject.getType();
-                if (DocumentType.DOCUMENT_BASETYPE_ID.equals(type.getId())) {
+                if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
                     if (versionsCMIS != null && versionsCMIS.size() > 0) {
@@ -633,10 +681,10 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getType();
-                if (FolderType.FOLDER_BASETYPE_ID.equals(type.getId())) {
+                if ("cmis:folder".equals(type.getId())) {
                     Folder folder = (Folder)cmisObject;
                     Map<String, String> newFolderProps = new HashMap<String, String>();
-                    newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, FolderType.FOLDER_BASETYPE_ID);
+                    newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
                     newFolderProps.put(PropertyIds.NAME, name);
                     Folder newFolder = folder.createFolder(newFolderProps);
                     Property property = newFolder.getProperty("alfcmis:nodeRef");
@@ -670,12 +718,12 @@ implements SecurityProvider {
             if (sourceCmisObject != null && targetCmisObject != null) {
                 ObjectType sourceType = sourceCmisObject.getType();
                 ObjectType targetType = targetCmisObject.getType();
-                if (FolderType.FOLDER_BASETYPE_ID.equals(targetType.getId())) {
+                if ("cmis:folder".equals(targetType.getId())) {
                     Folder targetFolder = (Folder)targetCmisObject;
-                    if (DocumentType.DOCUMENT_BASETYPE_ID.equals(sourceType.getId())) {
+                    if ("cmis:document".equals(sourceType.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
                         copyDocument(targetFolder, sourceDocument);
-                    } else if (FolderType.FOLDER_BASETYPE_ID.equals(sourceType.getId())) {
+                    } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         copyFolder(targetFolder, sourceFolder);
                     }
@@ -725,6 +773,10 @@ implements SecurityProvider {
     }
 
     protected Session getCMISSession() {
+        return getCMISSession(true);
+    }
+
+    protected Session getCMISSession(boolean alfrescoCMIS) {
         // Create a SessionFactory and set up the SessionParameter map
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
@@ -737,12 +789,15 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        //parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8888/alfresco/api/-default-/public/cmis/versions/1.1/atom/");
-        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
+        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.0/atom/");
+        //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
         // set the alfresco object factory
-        parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
+
+        if (alfrescoCMIS) {
+            parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
+        }
 
         // find all the repositories at this URL - there should only be one.
         List<Repository> repositories = new ArrayList<Repository>();
@@ -802,7 +857,6 @@ implements SecurityProvider {
                 properties.put("cm:lockOwner", null);
                 properties.put("cm:lockType", null);
                 document.updateProperties(properties);
-                document.removeAspect("P:cm:lockable");
                 logger.debug("Removing lockable aspect for content at path " + cleanPath);
             } else {
                 logger.debug("Lockable aspect was already removed for content at path " + cleanPath);

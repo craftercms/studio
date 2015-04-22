@@ -48,7 +48,7 @@
     <cache/>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ObjectMetadataMap">
-        SELECT * FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+        SELECT * FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </select>
 
     <update id="setProperties" parameterType="java.util.Map">
@@ -86,14 +86,14 @@
     </update>
 
     <insert id="insertEntry" parameterType="java.util.Map">
-        INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path});
+        INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path})
     </insert>
 
     <select id="countEntries" resultType="int" parameterType="java.util.Map">
-        SELECT count(1) FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+        SELECT count(1) FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </select>
 
     <delete id="deleteEntry" parameterType="java.util.Map">
-        DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path};
+        DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </delete>
 </mapper>
