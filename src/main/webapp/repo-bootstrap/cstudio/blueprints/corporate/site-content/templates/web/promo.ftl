@@ -1,4 +1,4 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
 <#include "/templates/web/navigation/navigation.ftl">
 <!DOCTYPE html>
 <html lang="en">
@@ -98,6 +98,6 @@
 <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
 <script src="/static-assets/js/bootstrap.js"></script>
 <script src="/static-assets/js/main.js"></script>
-    <@cstudioOverlaySupport/>
+<@studio.toolSupport/>
 </body>
 </html>
