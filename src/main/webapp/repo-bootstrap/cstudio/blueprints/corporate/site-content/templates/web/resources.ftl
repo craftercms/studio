@@ -1,4 +1,4 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
 <#include "/templates/web/common/google-map.ftl" />
 <#include "/templates/web/navigation/navigation.ftl">
 
@@ -38,8 +38,8 @@
             <#include "/templates/web/common/search.ftl" />
 
                 <div class="museo300 header-slogan">
-                <@ice id='title' />
-                    <div class="title-small mb5">RESOURCES</div>
+                 
+                    <div  <@studio.iceAttr iceGroup="title" />  class="title-small mb5">RESOURCES</div>
                     <span class="title-large lh1-2">${model.title}</span>
                 </div>
 
@@ -162,6 +162,6 @@
 <script src="/static-assets/js/bootstrap.min.js"></script>
 <script src="/static-assets/js/main.js"></script>
 
-<@cstudioOverlaySupport/>
+<@studio.toolSupport/>
 </body>
 </html>

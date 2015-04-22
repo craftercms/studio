@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="SampleTarget"
+		class="org.craftercms.cstudio.publishing.target.PublishingTarget"
+		init-method="register">
+		<property name="name">
+			<value>sample</value>
+		</property>
+		<property name="manager" ref="TargetManager" />
+		<property name="postProcessors">
+			<list>
+				<ref bean="sampleCacheInvalidate" />
+			</list>
+		</property>
+		<property name="params">
+			<map>
+				<entry key="root">
+					<value>target/sample</value>
+				</entry>
+				<entry key="contentFolder">
+					<value>content</value>
+				</entry>
+				<entry key="metadataFolder">
+					<value>meta-data</value>
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="sampleCacheInvalidate"
+		class="org.craftercms.cstudio.publishing.processor.CacheInvalidatePostProcessor">
+		<property name="cacheInvalidateUrl" value="http://localhost:9292/api/1/cache/clear_all" />
+	</bean>
+
+	<bean id="searchProcessor"
+		class="org.craftercms.cstudio.publishing.processor.SearchUpdateProcessor">
+		<property name="searchService" ref="SearchService" />
+		<property name="siteName">
+			<value>sample</value>
+		</property>
+		<property name="charEncoding" value="UTF-8" />
+        <property name="tokenizeAttribute" value="tokenized"/>
+        <property name="tokenizeSubstitutionMap">
+            <map>
+                <entry key="_s" value="_t"/>
+                <entry key="_smv" value="_tmv"/>
+            </map>
+        </property>
+	</bean>
+
+	<bean id="searchFlattenXmlProcessor"
+		class="org.craftercms.cstudio.publishing.processor.SearchUpdateFlattenXmlProcessor">
+		<property name="searchService" ref="SearchService" />
+		<property name="siteName">
+			<value>sample</value>
+		</property>
+		<property name="includeElementXPathQuery" value="//include" />
+		<property name="charEncoding" value="UTF-8" />
+        <property name="disableFlatteningElement" value="disableFlattening" />
+        <property name="tokenizeAttribute" value="tokenized"/>
+        <property name="tokenizeSubstitutionMap">
+            <map>
+                <entry key="_s" value="_t"/>
+                <entry key="_smv" value="_tmv"/>
+            </map>
+        </property>
+	</bean>
+
+	<bean id="searchAttachmentProcessor"
+		class="org.craftercms.cstudio.publishing.processor.SearchAttachmentProcessor">
+		<property name="searchService" ref="SearchService" />
+		<property name="siteName">
+			<value>preview</value>
+		</property>
+		<property name="supportedMimeTypes">
+			<list>
+				<value>application/pdf</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.craftercms.cstudio.publishing.processor.ShellProcessor"
+		id="copyFilesTo">
+		<property name="command" value="cp  " />
+		<property name="arguments">
+			<map>
+				<entry key="includeFilter" value=".*" />
+				<!-- This value will be override by the result of includeFilter -->
+				<entry key="files" value=""/>
+				<entry key="location" value="/tmp/tmp"/>
+			</map>
+		</property>
+	</bean>
+
+	<bean class="org.craftercms.cstudio.publishing.processor.ShellProcessor"
+		id="md5Checksum">
+		<!--  Command to Run -->
+		<!--  IF asSingleCommand=true can be all in one line   -->
+		<!--  Else only the actual command to execute all the args  -->
+		<!-- should be in the  arguments map-->
+		<property name="command" value="md5 %{files} > %{outputFile}" />
+		<!-- Note This should be only set true on *nix systems -->
+		<!-- where /bin/bash exist -->
+		<!-- This will make  -->
+		<property name="asSingleCommand" value="true"/>
+		<!--  This will filter all files  -->
+		<!--  If not set use all created,updated and deleted -->
+		<!-- "UPDATED" only updated files -->
+		<!-- "NEW" only created files -->
+	    <!-- "EXISTENT" created and updated files -->
+		<!-- "DELETED" only delete files -->
+		<property name="sourceFiles" value="EXISTENT" />
+		<!--  Arguments to be append to the command -->
+		<!--  the Key will be assume to be a variable in command value (value of %{}) -->
+		<property name="arguments">
+			<map>
+				<!--  Special Argument -->
+				<!--  This will create a files variable that will be use in the command %{files} -->
+				<!-- includeFilter uses java regex to match files in the changeset depending on sourceFiles value-->
+				<!-- Will generate a list (using spaces) of files -->
+				<entry key="includeFilter" value=".*" />
+				<entry key="outputFile" value="/tmp/md5sums.txt"/>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="SearchService"
+		class="org.craftercms.search.service.impl.RestClientSearchService">
+		<property name="serverUrl" value="http://localhost:8080/crafter-search" />
+	</bean>
+	
+
+	<bean id="SamplePostProcessor"
+		class="org.craftercms.cstudio.publishing.processor.SamplePostProcessor" />
+
+    <bean id="SearchAttachmentWithExternalMetadataPostProcessor"
+          class="org.craftercms.cstudio.publishing.processor.SearchAttachmentWithExternalMetadataPostProcessor">
+        <property name="searchService" ref="SearchService"/>
+        <property name="siteName">
+            <value>sample</value>
+        </property>
+        <property name="excludeProperties">
+            <list>
+                <value>binary</value>
+            </list>
+        </property>
+        <property name="attachmentPathPatterns">
+            <list>
+                <value>/static-assets/attachment/([^&lt;"'\)]+)</value>
+            </list>
+        </property>
+        <property name="metadataPathPatterns">
+            <list>
+                <value>/site/components/attachment/([^&lt;]+).xml</value>
+            </list>
+        </property>
+        <property name="referenceXpathList">
+            <list>
+                <value>//binary/item/value</value>
+            </list>
+        </property>
+        <property name="multivalueSeparator" value=","/>
+        <property name="tokenizeAttribute" value="tokenized"/>
+        <property name="tokenizeSubstitutionMap">
+            <map>
+                <entry key="_s" value="_t"/>
+                <entry key="_smv" value="_tmv"/>
+            </map>
+        </property>
+    </bean>
+
+</beans>
