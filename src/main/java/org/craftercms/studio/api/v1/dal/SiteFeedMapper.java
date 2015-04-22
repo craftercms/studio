@@ -26,4 +26,8 @@ import java.util.List;
 public interface SiteFeedMapper {
 
     List<SiteFeed> getSites();
+
+	boolean createSite(String blueprintName, String siteName, String siteId, String desc);
+
+    boolean deleteSite(String siteId);
 }

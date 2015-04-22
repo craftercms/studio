@@ -55,4 +55,15 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getUserSites(user);
     }
+
+    def createSiteFromBlueprint(blueprintName, siteName, siteId, desc) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
+    }
+
+    def deleteSite(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.deleteSite(siteId)
+    }
+
 }

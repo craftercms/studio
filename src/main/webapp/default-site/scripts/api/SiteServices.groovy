@@ -58,7 +58,18 @@ class SiteServices {
     }
 
     static getUserSites(context, user) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context);
-        return siteServicesImpl.getUserSites(user);
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getUserSites(user)
     }
+
+    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
+    }    
+
+    static deleteSite(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.deleteSite(siteId)
+    }
+
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/jeans</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e0e8</objectGroupId>
+	<objectId>e0e8d5eb-ce7d-cd83-6f16-423255256970</objectId>
+	<fit>	<item>	<fitNote/>
+	</item></fit>
+	<file-name>womens-hipster.xml</file-name>
+	<internal-name>Women's Hipster</internal-name>
+	<category>jeans</category>
+	<gender>	<item>	<key>female</key>
+	<value>Female</value>
+	</item></gender>
+	<collection>	<item>	<key>skinny</key>
+	<value>Skinny</value>
+	</item></collection>
+	<folder-name/>
+	<productTitle>Women's Hipster</productTitle>
+	<measurementDetails/>
+	<frontRise/>
+	<backRise/>
+	<inseam/>
+	<legOpening/>
+	<frontImage>/static-assets/images/product/jeans/cart-img-1.png</frontImage>
+	<backImage/>
+	<zoomImage/>
+	<skus/>
+	<description/>
+	<price_d>500.00</price_d>
+	<arrivalDate_dt>02/14/2013 05:00:00</arrivalDate_dt>
+	<createdDate>02/14/2013 03:20:45</createdDate>
+	<lastModifiedDate>02/14/2013 05:11:02</lastModifiedDate>
+	<size>	<item>	<key>Womans 24</key>
+	<value>Womans 24</value>
+	</item>	<item>	<key>Womans 26</key>
+	<value>Womans 26</value>
+	</item>	<item>	<key>Womans 30</key>
+	<value>Womans 30</value>
+	</item></size>
+	<color>black</color>
+</component>

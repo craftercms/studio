@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>93eb</objectGroupId>
+	<objectId>93ebe8a0-6ef2-77bd-0f13-102d85fa4b6b</objectId>
+	<file-name>93ebe8a0-6ef2-77bd-0f13-102d85fa4b6b.xml</file-name>
+	<folder-name/>
+	<image>/static-assets/page/images/{groupid}/{objectid}/cms-saleupto50off.png</image>
+	<alttext>Up to 50% off!</alttext>
+	<createdDate>02/09/2013 10:57:53</createdDate>
+	<lastModifiedDate>02/09/2013 10:57:53</lastModifiedDate>
+</component>

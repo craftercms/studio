@@ -1,0 +1,12 @@
+.container-fluid {
+ padding: 0;
+}
+
+.row-fluid .span9 {
+    margin: 5px;
+    width: 74.3094%;
+}
+
+.btn {
+	padding: 10px !important;
+}

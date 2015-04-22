@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/category</content-type>
+	<display-template>/templates/web/category.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>73b92d9a</objectGroupId>
+	<objectId>73b92d9a-96e8-42ff-9f94-9601ee8a6b11</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>skinny</folder-name>
+	<internal-name>Skinny Collection</internal-name>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>0.0</orderDefault_f>
+	<headerTitle>Skinny</headerTitle>
+	<createdDate>02/14/2013 14:57:50</createdDate>
+	<lastModifiedDate>04/19/2013 04:49:39</lastModifiedDate>
+	<itemsPerPage>10</itemsPerPage>
+</page>

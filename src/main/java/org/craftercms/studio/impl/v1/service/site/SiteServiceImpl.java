@@ -418,6 +418,64 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         }
     }
 
+   	@Override
+   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
+ 		boolean success = true;
+ 		try {
+ 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+	 			"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+
+	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
+	 			siteConfigFolder);
+
+	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_NAME", siteName);
+	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
+	 		
+	 		// permissions
+	 		// environment overrides
+	 		// deployment
+
+	 		// insert database records
+	 	}
+	 	catch(Exception err) {
+	 		success = false;
+	 	}
+
+	 	return success;
+    }
+
+    protected void replaceFileContent(String path, String find, String replace) throws Exception {
+    	InputStream content = contentRepository.getContent(path);
+    	String contentAsString = "";
+
+    	contentAsString = contentAsString.replaceAll(find, replace);
+
+    	InputStream contentToWrite = null;
+
+		contentRepository.writeContent(path, contentToWrite);    	
+    }
+
+   	@Override
+   	public boolean deleteSite(String siteId) {
+ 		boolean success = true;
+ 		try {
+ 			contentRepository.deleteContent("/wem-projects/"+siteId);
+ 			contentRepository.deleteContent("/cstudio/config/sites/"+siteId);	 
+
+	 		// delete database records
+	 	}
+	 	catch(Exception err) {
+	 		success = false;
+	 	}
+
+	 	return success;
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
