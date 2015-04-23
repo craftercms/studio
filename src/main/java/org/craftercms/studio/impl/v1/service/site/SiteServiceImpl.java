@@ -490,8 +490,8 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 		blueprints[1] = new SiteBlueprintTO();
 		blueprints[1].id = "corporate";
-		blueprints[1].name = "Corporate Brochure Site";
-		blueprints[1].label = "Blueprint is a example corporate brochureware site.";
+		blueprints[1].label = "Corporate Brochure Site";
+		blueprints[1].description = "Blueprint is a example corporate brochureware site.";
 		blueprints[1].screenshots = new String[] { "entry.jpg", "section.jpg", "contact.jpg" };
 		
 		return blueprints;
