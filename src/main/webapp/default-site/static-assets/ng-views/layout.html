@@ -1,0 +1,38 @@
+<header>
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="container-fluid">
+
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" ui-sref="home.sites">
+                    <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio"/>
+                </a>
+            </div>
+
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li ui-sref-active="active"><a ui-sref="home.sites">Sites</a></li>
+                    <li><a href="https://craftersoftware.zendesk.com/home" target="_blank">Help</a></li>
+                    <li class="dropdown" dropdown>
+                        <a class="dropdown-toggle" dropdown-toggle>Account <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li class="user-display">
+                                <div class="name">{{user.name}} {{user.surname}}</div>
+                                <div class="email">{{user.email}}</div>
+                            </li>
+                            <li><a ui-sref-active="active" ui-sref="home.settings">Settings</a></li>
+                            <li><a ng-click="logout()">Sign out</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<section id="container" ui-view="content"></section>

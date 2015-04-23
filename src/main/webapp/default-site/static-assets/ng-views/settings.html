@@ -1,0 +1,43 @@
+<div class="settings-view">
+    <div class="row"
+         ng-init="data.action = '/api/1/services/change-password'">
+
+        <div class="col-sm-12">
+            <h1>Account Management</h1>
+        </div>
+        <div class="col-sm-6">
+            <h2>Profile</h2>
+            <div class="well">
+                <div class="user-display">
+                    <div class="name">{{user.name}} {{user.surname}}</div>
+                    <div class="email">{{user.email}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <h2>Change Password</h2>
+            <div class="form">
+                <div class="form-group">
+                    <label for="current">Current Password</label>
+                    <input class="form-control" type="password" id="current" ng-model="data.original"/>
+                </div>
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input class="form-control" type="password" id="password" ng-model="data.password"/>
+                </div>
+                <div class="form-group">
+                    <label for="confirm">Confirm Password</label>
+                    <input class="form-control" type="password" id="confirm" ng-model="data.confirmation"/>
+                </div>
+                <div class="form-group">
+                    <div ng-if="error" class="alert alert-danger">{{error}}</div>
+                    <div ng-if="message" class="alert alert-success">{{message}}</div>
+                    <button class="btn btn-primary btn-lg" ng-click="changePassword()">
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

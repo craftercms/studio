@@ -39,28 +39,33 @@
                 .state('home', {
                     url: '/',
                     abstract: true,
-                    templateUrl: 'templates/home',
+                    templateUrl: '/studio/static-assets/ng-views/layout.html',
                     controller: 'AppCtrl'
                 })
                 .state('home.sites', {
                     url: 'sites',
                     views: {
                         content: {
-                            templateUrl: 'templates/sites',
+                            templateUrl: '/studio/static-assets/ng-views/sites.html',
                             controller: 'SitesCtrl'
                         }
                     }
                 })
+                .state('home.sites.create', {
+                    url: '/create',
+                    templateUrl: '/studio/static-assets/ng-views/create-site.html',
+                     controller: 'SiteCtrl'
+                })
                 .state('home.sites.site', {
                     url: '/:siteId',
-                    templateUrl: 'templates/site',
+                    templateUrl: '/studio/static-assets/ng-views/site.html',
                     controller: 'SiteCtrl'
                 })
                 .state('home.settings', {
                     url: 'settings',
                     views: {
                         content: {
-                            templateUrl: 'templates/settings',
+                            templateUrl: '/studio/static-assets/ng-views/settings.html',
                             controller: 'AppCtrl'
                         }
                     }
@@ -72,7 +77,7 @@
                         function ($rootScope, $state, $modal) {
 
                             $rootScope.loginModal = $modal.open({
-                                templateUrl: 'templates/login',
+                                templateUrl: '/studio/static-assets/ng-views/login.html',
                                 controller: 'LoginCtrl',
                                 backdrop: 'static',
                                 keyboard: false,
@@ -102,7 +107,7 @@
                         function ($rootScope, $state, $modal) {
 
                             $rootScope.recoverModal = $modal.open({
-                                templateUrl: 'templates/login/recover',
+                                templateUrl: '/studio/static-assets/ng-views/recover.html',
                                 controller: 'RecoverCtrl',
                                 backdrop: 'static',
                                 keyboard: false,
@@ -128,7 +133,7 @@
                 .state('preview', {
                     url: '/preview?site&url',
                     cssClass: 'studio-preview',
-                    templateUrl: 'templates/preview',
+                    templateUrl: '/studio/static-assets/ng-views/preview.html',
                     controller: 'PreviewCtrl'
                 });
 
@@ -138,7 +143,7 @@
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
         PATH_IMG: '/images/',
-        SERVICE: '/studio/api/1/services/api/1/user/'
+        SERVICE: '/studio/api/1/services/api/1/'
     });
 
     app.service('authService', [
@@ -201,7 +206,7 @@
             };
 
             function api(action) {
-                return Constants.SERVICE + action + '.json';
+                return Constants.SERVICE + 'user/' + action + '.json';
             }
 
             return this;
@@ -242,8 +247,26 @@
                 }, 0, false);
             };
 
+            this.goToDashboard = function (site) {
+
+                me.setCookie(site);
+                $timeout(function () {
+                    $window.location.href = '/studio/site-dashboard';
+                }, 0, false);
+            };
+
+            this.create = function (site) {
+                return $http.get(api('create-site'), {
+                    params: site
+                });
+            };
+
+            function api(action) {
+                return Constants.SERVICE + 'site/' + action + '.json';
+            }
+
             function json(action) {
-                return Constants.SERVICE + action + '.json';
+                return Constants.SERVICE + 'user/' + action + '.json';
             }
 
             return this;
@@ -297,6 +320,8 @@
 
             $scope.editSite = sitesService.editSite;
 
+            $scope.goToDashboard = sitesService.goToDashboard;
+
             function getSites () {
                 sitesService.getSites()
                     .success(function (data) {
@@ -316,6 +341,22 @@
         '$scope', '$state', 'sitesService',
         function ($scope, $state, sitesService) {
 
+            $scope.blueprints = [
+                {id:'empty',label:'Empty'},
+                {id:'corporate',label:'Corporate'}
+            ];
+
+            // View models
+            $scope.site = { siteId: Date.now(), siteName: 'New Site', description: 'My new site', blueprint: $scope.blueprints[0] };
+
+            // View methods
+            $scope.editSite = sitesService.editSite;
+            $scope.percent = percent;
+            $scope.select = select;
+            $scope.create = create;
+
+            $scope.$watch('sites', getSite);
+
             function percent(data) {
                 (!data) && (data = {});
                 return Math.ceil((data.used * 100) / (data.total));
@@ -324,16 +365,6 @@
             function select($event) {
                 $event.target.select();
             }
-
-            // View models
-            $scope.site = null;
-
-            // View methods
-            $scope.editSite = sitesService.editSite;
-            $scope.percent = percent;
-            $scope.select = select;
-
-            $scope.$watch('sites', getSite);
 
             function getSite() {
 
@@ -355,6 +386,15 @@
                     }
                 }
 
+            }
+
+            function create() {
+                sitesService.create({
+                    siteId: $scope.site.siteId,
+                    siteName: $scope.site.siteName,
+                    blueprintName: $scope.site.blueprint.id,
+                    description: $scope.site.description
+                });
             }
 
         }
