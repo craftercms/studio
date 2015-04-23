@@ -1,0 +1,54 @@
+<div class="sites-view">
+
+    <header class="screen-title">
+        <h1>Sites</h1>
+    </header>
+
+    <div ng-if="sites">
+        <div class="nav-panel">
+
+            <div class="m10">
+                <button class="btn btn-default btn-pill btn-block"
+                        ui-sref="home.sites.create"
+                        ng-class="{ active: $state.includes('create') }">
+                    <i class="glyphicon glyphicon-plus"></i> <span>Create Site</span>
+                </button>
+            </div>
+
+            <div class="list-group">
+                <a class="list-group-item" ui-sref="home.sites"
+                   ng-class="{ 'active': $state.$current.name === 'home.sites' }">
+                    All
+                </a>
+                <a class="list-group-item"
+                   ui-sref="home.sites.site({ siteId: {{site.id}} })"
+                   ui-sref-active="active"
+                   ng-repeat="site in sites">
+                    {{site.name}}
+                </a>
+            </div>
+
+        </div>
+        <div class="action-area" ui-view>
+            <table class="site-list table table-hover">
+                <thead>
+                <tr>
+                    <th>Site Name</th>
+                    <th><span class="sr-only">Site Dashboard Link</span></th>
+                    <th><span class="sr-only">Preview Link</span></th>
+                    <th><span class="sr-only">Live Site Link</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="site in sites">
+                    <td>{{site.name}}</td>
+                    <td><a ng-click="goToDashboard(site)">Dashboard &raquo;</a></td>
+                    <td><a ng-click="editSite(site)">Preview &raquo;</a></td>
+                    <td><a href="{{site.url}}" target="_blank">Live site &raquo;</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

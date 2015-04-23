@@ -1,0 +1,35 @@
+<div class="recover-view">
+    <div class="pad">
+
+        <button class="close" ui-sref="login" ng-show="!success">&laquo; back</button>
+        <h2>Recover</h2>
+
+        <div ng-if="success">
+            <div class="alert alert-success" ng-if="success">{{success}}</div>
+            <button type="submit"
+                    class="btn btn-info btn-block"
+                    ui-sref="login">
+                &laquo; Back to login
+            </button>
+        </div>
+
+        <div class="row" ng-if="!success">
+            <div class="col-lg-12 columns">
+                <div class="form-group">
+                    <label for="username">Email/Username</label>
+                    <input type="email" id="username"
+                           class="form-control" placeholder="john@domain.com"
+                           ng-model="credentials.username"/>
+                </div>
+            </div>
+            <div class="col-lg-12 columns">
+                <div class="alert alert-danger" ng-if="error">{{error}}</div>
+                <button type="submit" class="btn btn-primary"
+                        ng-click="recover()">
+                    Submit
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
