@@ -1,13 +1,14 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
 
 <html>
   <head>
   </head>
   
   <body>
-	<h1>PAGE</h1>
+	<h1>Empty Site</h1>
 	${model.body}
 	
-	<@cstudioOverlaySupport/>	
+
+		<@studio.toolSupport/>	
 	</body>
 </html>

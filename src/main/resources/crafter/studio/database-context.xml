@@ -8,6 +8,10 @@
               <jdbc:script location="classpath:crafter/studio/database/createDDL.sql" />
        </jdbc:initialize-database>
 
+       <jdbc:initialize-database data-source="derbyDataSource" ignore-failures="ALL">
+              <jdbc:script location="classpath:crafter/studio/database/createDDL-derby.sql" />
+       </jdbc:initialize-database>
+
        <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
               <property name="properties">
                      <props>
@@ -16,6 +20,7 @@
                             <prop key="Oracle">oracle</prop>
                             <prop key="MySQL">mysql</prop>
                             <prop key="Postgres">postgres</prop>
+                            <prop key="Derby">derby</prop>
                      </props>
               </property>
        </bean>
@@ -31,6 +36,12 @@
               <property name="password" value="${studio.db.password}"/>
        </bean>
 
+       <bean id="derbyDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+              <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+              <property name="url" value="jdbc:derby:${studio.db.derby.path};databaseName=${studio.db.name};create=true;user=${studio.db.username};password=${studio.db.password}"/>
+              <property name="username" value="${studio.db.username}"/>
+              <property name="password" value="${studio.db.password}"/>
+       </bean>
 
        <!-- define the SqlSessionFactory -->
        <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">

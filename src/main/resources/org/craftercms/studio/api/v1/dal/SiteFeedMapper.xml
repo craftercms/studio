@@ -31,6 +31,6 @@
     </resultMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
-        SELECT * FROM cstudio_site;
+        SELECT * FROM cstudio_site
     </select>
 </mapper>

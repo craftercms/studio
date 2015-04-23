@@ -79,6 +79,6 @@
 
     <delete id="deleteDeploymentDataForSite" parameterType="java.util.Map">
         DELETE FROM cstudio_copytoenvironment
-        WHERE site = #{site};
+        WHERE site = #{site}
     </delete>
 </mapper>
