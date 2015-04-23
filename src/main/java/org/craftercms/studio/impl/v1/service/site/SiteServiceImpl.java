@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
+import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -475,6 +477,25 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 	 	return success;
     }
+
+    @Override
+	public SiteBlueprintTO[] getAvailableBlueprints() {
+		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[2];
+
+		blueprints[0] = new SiteBlueprintTO();
+		blueprints[0].id = "empty";
+		blueprints[0].label = "Empty";
+		blueprints[0].description = "Blueprint has no pages, styles, content types";
+		blueprints[0].screenshots = new String[] { "entry.jpg" };
+
+		blueprints[1] = new SiteBlueprintTO();
+		blueprints[1].id = "corporate";
+		blueprints[1].name = "Corporate Brochure Site";
+		blueprints[1].label = "Blueprint is a example corporate brochureware site.";
+		blueprints[1].screenshots = new String[] { "entry.jpg", "section.jpg", "contact.jpg" };
+		
+		return blueprints;
+	}
 
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
