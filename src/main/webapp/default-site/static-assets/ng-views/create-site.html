@@ -1,0 +1,38 @@
+<div class="create-site-view">
+    <div class="p20" ui-view>
+
+        <h2 class="page-header">Create Site</h2>
+
+        <input type="hidden" ng-model="site.siteId"/>
+
+        <div class="form-group">
+            <label for="name">Site Name</label>
+            <input id="name" name="name" type="text" class="form-control"  ng-model="site.siteName"/>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" id="description" name="desc"  ng-model="site.description"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="blueprint">Blueprint</label>
+            <select id="blueprint"
+                    name="blueprint"
+                    class="form-control"
+                    ng-model="site.blueprint"
+                    ng-options="opt as opt.label for opt in blueprints">
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button class="btn btn-primary"
+                    ng-click="create()">
+                Create
+            </button>
+            <button class="btn btn-default">
+                Cancel
+            </button>
+        </div>
+
+    </div>
+</div>

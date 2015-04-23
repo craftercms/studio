@@ -1,0 +1,18 @@
+
+body, html {
+  height: 100%;
+}
+
+body {
+  padding: 0;
+  position: relative;
+}
+
+a[ui-sref],
+a[ng-click] {
+  cursor: pointer;
+}
+
+.btn-pill {
+  border-radius: 50px;
+}
