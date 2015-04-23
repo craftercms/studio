@@ -347,7 +347,7 @@
             ];
 
             // View models
-            $scope.site = { siteId: Date.now(), siteName: 'New Site', description: 'My new site', blueprint: $scope.blueprints[0] };
+            $scope.site = { siteId: Date.now(), siteName: '', description: '', blueprint: $scope.blueprints[0] };
 
             // View methods
             $scope.editSite = sitesService.editSite;
