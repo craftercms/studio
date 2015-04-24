@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Set;
 import java.io.InputStream;
 
+import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+
 /**
  * Note: consider renaming
  * A site in Crafter Studio is currently the name for a WEM project being managed.  
@@ -107,4 +109,9 @@ public interface SiteService {
      * remove a site from the system
      */
    	boolean deleteSite(String siteId);
+
+   	/**
+   	 * get a list of available blueprints
+   	 */
+   	SiteBlueprintTO[] getAvailableBlueprints();
 }

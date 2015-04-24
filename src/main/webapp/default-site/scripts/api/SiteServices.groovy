@@ -72,4 +72,9 @@ class SiteServices {
         return siteServicesImpl.deleteSite(siteId)
     }
 
+    static getAvailableBlueprints(context) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getAvailableBlueprints()
+    }
+
 }

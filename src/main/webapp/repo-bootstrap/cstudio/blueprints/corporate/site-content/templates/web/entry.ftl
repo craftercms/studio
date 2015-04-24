@@ -1,5 +1,5 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
-<#include "/templates/web/navigation/navigation.ftl">
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
+<#include "/templates/web/navigation/navigation.ftl"  />
 
 <!DOCTYPE html>
 <html lang="en">
@@ -32,11 +32,11 @@
             </div>
         </div>
     </header>
-    <div class="content" data-studio-ice="heroImage" style="overflow: hidden; background: url(${model.heroImage!''}) no-repeat scroll center transparent;">
+    <div class="content" <@studio.iceAttr iceGroup="heroImage" /> style="overflow: hidden; background: url(${model.heroImage!''}) no-repeat scroll center transparent;">
 
         <@ice id="heroImage" />
         <span id="test" class="arial"
-              data-studio-ice="pageNote"
+              <@studio.iceAttr iceGroup="heroText" />
               style="position:absolute; left:28px; bottom:16px; color:#fff;">
             This is a Crafter CMS Demo Site
         </span>
@@ -93,8 +93,7 @@
 <script src="/static-assets/js/bootstrap.min.js"></script>
 <script src="/static-assets/js/main.js"></script>
 
-<script src="/studio/static-assets/libs/requirejs/require.js"
-        data-main="/studio/overlayhook?site=foo&page=/&foo.js"></script>
+<@studio.toolSupport/>
 
 </body>
 </html>

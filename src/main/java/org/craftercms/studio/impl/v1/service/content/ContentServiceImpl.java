@@ -142,9 +142,9 @@ public class ContentServiceImpl implements ContentService {
 
        boolean writeSuccess = false;
 
-        writeSuccess = _contentRepository.writeContent(path, content);
         _contentRepository.createVersion(path, false);
- 
+        writeSuccess = _contentRepository.writeContent(path, content);
+
        return writeSuccess;
     }
 
@@ -351,7 +351,8 @@ public class ContentServiceImpl implements ContentService {
         item.children = new ArrayList<ContentItemTO>();
         item.numOfChildren = 0;
 
-        if (contentPath.indexOf("/index.xml") != -1 || contentPath.indexOf(".xml") == -1 ) { // item.isFolder?
+        if(contentPath.indexOf("/index.xml") != -1 
+        || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
                 fullContentPath = fullContentPath.replace("/index.xml", "");
@@ -416,6 +417,8 @@ public class ContentServiceImpl implements ContentService {
             item.container = false;   
         }
 
+        if(item.internalName == null) item.internalName = item.name;
+        
         return item;
     }
 
@@ -472,11 +475,13 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
-        ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
-        if (config != null) {
-            item.setForm(config.getForm());
-            item.setFormPagePath(config.getFormPath());
-            item.setPreviewable(config.isPreviewable());
+        if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset")) {
+            ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
+            if (config != null) {
+                item.setForm(config.getForm());
+                item.setFormPagePath(config.getFormPath());
+                item.setPreviewable(config.isPreviewable());
+            }
         }
         // TODO CodeRev:but what if the config is null?
     }

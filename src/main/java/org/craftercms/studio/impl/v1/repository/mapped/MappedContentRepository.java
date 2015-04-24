@@ -139,7 +139,7 @@ public class MappedContentRepository extends AbstractContentRepository {
 
     @Override
     public String createVersion(String path, boolean majorVersion) {
-       ContentRepository repo = lookupRepo(repositoryType);
+        ContentRepository repo = lookupRepo(repositoryType);
         return repo.createVersion(path, majorVersion);
     }
 

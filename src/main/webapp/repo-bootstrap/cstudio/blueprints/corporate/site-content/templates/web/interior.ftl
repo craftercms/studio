@@ -1,4 +1,4 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
 <#include "/templates/web/navigation/navigation.ftl">
 
 <!DOCTYPE html>
@@ -33,8 +33,8 @@
                     <#include "/templates/web/common/search.ftl" />
   					
   					<div class="museo300 header-slogan">
-						<@ice id='title' />
-                        <div class="title-small mb5">ARTICLES</div>
+						 
+                        <div c<@studio.iceAttr iceGroup="title" />lass="title-small mb5">ARTICLES</div>
   						<span class="title-larger lh1-2 weight-normal">
 	  						${model.title}
   						</span>
@@ -46,8 +46,8 @@
 
         <div class="content arial">	
 			<div class="row-fluid mt20 mb20">
-				<div class="span8">
-                  <@ice id='body' />
+				<div <@studio.iceAttr iceGroup="body" /> class="span8">
+                  
                   ${model.body_html!""}
 				</div>
 				<div class="span4">
@@ -133,7 +133,7 @@
     <script src="/static-assets/js/bootstrap.js"></script>
     <script src="/static-assets/js/main.js"></script>
 
-    <@cstudioOverlaySupport/>
+  <@studio.toolSupport/>
 
   </body>
 </html>

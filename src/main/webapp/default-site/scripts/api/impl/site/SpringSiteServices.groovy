@@ -66,4 +66,10 @@ class SpringSiteServices {
         return springBackedService.deleteSite(siteId)
     }
 
+    def getAvailableBlueprints() {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getAvailableBlueprints()
+    }
+
+
 }
