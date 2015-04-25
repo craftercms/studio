@@ -2153,7 +2153,11 @@ var YEvent = YAHOO.util.Event;
              * add the appropriate base to the service
              */
             createServiceUri: function(service) {
-                return CStudioAuthoringContext.baseUri + service;
+                var uri = CStudioAuthoringContext.baseUri + service;
+                uri += (uri.indexOf("?") == -1) ? "?" : "&";
+                uri += "nocache=" + new Date();
+
+                return uri;
             },
 
             createEngineServiceUri: function(service) {
