@@ -45,6 +45,10 @@ public class TestSecurityProvider implements SecurityProvider {
     	return profile;
     }
 
+    public boolean validateTicket(String ticket){
+        return ("FAKETICKET".equals(ticket));
+    }
+
     public String authenticate(String username, String password) {
     	return "FAKETICKET";
     }

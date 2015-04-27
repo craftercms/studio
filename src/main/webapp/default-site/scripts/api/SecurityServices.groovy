@@ -44,7 +44,8 @@ class SecurityServices {
 	 * @param token - token to be validated
 	 */
 	def validateToken(site, token) {
-
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.validateToken(site, token)
 	}
 
 	/** 

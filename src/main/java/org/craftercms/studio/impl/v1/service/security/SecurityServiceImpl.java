@@ -53,6 +53,10 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         return securityProvider.authenticate(username, password);
     }
 
+    @Override
+    public boolean validateToken(String site, String token) {
+        return securityProvider.validateTicket(token);
+    }
 
     @Override
     public String getCurrentUser() {

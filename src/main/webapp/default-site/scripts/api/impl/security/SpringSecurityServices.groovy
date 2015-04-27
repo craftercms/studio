@@ -8,7 +8,7 @@
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -33,22 +33,28 @@ class SpringSecurityServices {
 
     def getUserPermissions(site, path, user, groups) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserPermissions(site, path, user, groups);
+        return springBackedService.getUserPermissions(site, path, user, groups)
     }
 
     def getUserProfile(user) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserProfile(user);
+        return springBackedService.getUserProfile(user)
     }
 
     def getUserRoles(site, user) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUserRoles(site, user);
+        return springBackedService.getUserRoles(site, user)
     }
 
     def authenticate(username, password) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.authenticate(username, password);
+        return springBackedService.authenticate(username, password)
     }
+
+    def validateToken(site, token) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.validateToken(site, token)
+    }
+
 
 }
