@@ -20,10 +20,12 @@
 import scripts.api.SecurityServices
 
 def result = [:]
-def site = params.site
-def token = params.token
+def site = "NOTUSED"
+
+def session = request.getSession()
+def token = session.getValue("alf_ticket")
 
 def context = SecurityServices.createContext(applicationContext, request)
 result = SecurityServices.validateToken(context, site, token)
 
-return result;
+return result
