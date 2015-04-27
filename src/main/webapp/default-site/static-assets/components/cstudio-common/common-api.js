@@ -6759,27 +6759,7 @@ CStudioAuthoring.InContextEdit = {
              success: function(config){
 
                 function authRedirect(authConfig) {
-                    var redirectStr, redirectUrl,
-                        placeholder = '{currentUrl}';
-
-                    if (YAHOO.lang.isObject(authConfig)) {
-                        redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
-                            authConfig.ticketExpireRedirectUrl : '';
-
-                        if (redirectStr) {
-                            // Redirect to the authentication url specified in config
-                            redirectUrl = redirectStr.replace(placeholder, window.location.href);
-                            window.location.assign(redirectUrl);
-                        } else {
-                            // If authConfig's redirectUrl value is undefined, then 
-                            // use login authentication
-                            location.reload();
-                        }
-                    } else {
-                        // If authConfig is not an object or it's null, then 
-                        // use login authentication
-                        location.reload();
-                    }
+                       location = "/studio#/login";
                 }
 
                 function authLoop(configObj) {
@@ -6788,16 +6768,17 @@ CStudioAuthoring.InContextEdit = {
                         serviceCallback,
                         delay = 60000;  // poll once every minute
 
-                    if (document.hasFocus()) {
+                    //if (document.hasFocus()) {
                         serviceUri = CStudioAuthoring.Service.verifyAuthTicketUrl;
 
                         serviceCallback = {
                             success: function(response) {
                                 var resObj = response.responseText
-
-                                if (resObj.indexOf("true" != -1)) {
+ 
+                                if (resObj.indexOf("true") != -1) {
                                     setTimeout(function() { authLoop(configObj); }, delay);
-                                } else {
+                                } 
+                                else {
                                     // Ticket is invalid
                                     authRedirect(configObj);
                                 }
@@ -6808,11 +6789,11 @@ CStudioAuthoring.InContextEdit = {
                         };
 
                         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-                    } else {
+                    //} else {
                         setTimeout(function() {
                             authLoop(configObj);
                         }, delay);
-                    }
+                    //}
                 }
 
                 // Start the authentication loop
