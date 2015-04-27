@@ -19,11 +19,11 @@
 
 import scripts.api.SecurityServices
 
-def result = [:]
+def result = [:] 
 def site = "NOTUSED"
-
 def session = request.getSession()
 def token = session.getValue("alf_ticket")
+token = (token!=null) ? token : "UNSET"
 
 def context = SecurityServices.createContext(applicationContext, request)
 result = SecurityServices.validateToken(context, site, token)
