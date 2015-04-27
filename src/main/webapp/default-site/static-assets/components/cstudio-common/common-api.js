@@ -2058,6 +2058,7 @@ var YEvent = YAHOO.util.Event;
             // Security Services
             getPermissionsServiceUrl: "/api/1/services/api/1/security/get-user-permissions.json",
             lookupAuthoringRoleServiceUrl : "/api/1/services/api/1/security/get-user-roles.json",
+            verifyAuthTicketUrl: "/api/1/services/api/1/user/validate-token.json",
 
             // Configuration Services
             getConfigurationUrl: "/api/1/services/api/1/site/get-configuration.json",
@@ -2080,34 +2081,33 @@ var YEvent = YAHOO.util.Event;
             lookupContentDependenciesServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json?deletedep=true&",
 
             // not ported yet
-            writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
-            lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
-            getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
-            getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
-            reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
+            // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
+            // deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
+            // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
+            // getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
+            // getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
+            // reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
 
-            wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-            allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
-            lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-            getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
-            getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
-            getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
-            cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
-            updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
-            createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
-            allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-            retrieveSitesUrl: "/proxy/alfresco/api/sites",
-            getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
-            updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
-            getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
-            previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
-            setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
-            getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
-            createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
-            //verifyAlfrescoTicketUrl: "MIGRATEME/proxy/alfresco/api/login/ticket",
+            // wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
+            // allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
+            // lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
+            // getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
+            // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
+            // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
+            // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
+            // changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
+            // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
+            // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
+            // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
+            // allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
+            // retrieveSitesUrl: "/proxy/alfresco/api/sites",
+            // getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
+            // updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
+            // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
+            // previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
+            // setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
+            // getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
+            // createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
 
             /**
              * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
@@ -2153,7 +2153,11 @@ var YEvent = YAHOO.util.Event;
              * add the appropriate base to the service
              */
             createServiceUri: function(service) {
-                return CStudioAuthoringContext.baseUri + service;
+                var uri = CStudioAuthoringContext.baseUri + service;
+                uri += (uri.indexOf("?") == -1) ? "?" : "&";
+                uri += "nocache=" + new Date();
+
+                return uri;
             },
 
             createEngineServiceUri: function(service) {
@@ -6747,89 +6751,88 @@ CStudioAuthoring.InContextEdit = {
 
 }) (window);
 
-// (function startAuthLoop() {
+ (function startAuthLoop() {
 
-//     if (typeof CStudioAuthoringContext != 'undefined') {
+     if (typeof CStudioAuthoringContext != 'undefined') {
 
-//         var authLoopCb = {
-//             success: function(config){
+         var authLoopCb = {
+             success: function(config){
 
-//                 function authRedirect(authConfig) {
-//                     var redirectStr, redirectUrl,
-//                         placeholder = '{currentUrl}';
+                function authRedirect(authConfig) {
+                    var redirectStr, redirectUrl,
+                        placeholder = '{currentUrl}';
 
-//                     if (YAHOO.lang.isObject(authConfig)) {
-//                         redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
-//                             authConfig.ticketExpireRedirectUrl : '';
+                    if (YAHOO.lang.isObject(authConfig)) {
+                        redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
+                            authConfig.ticketExpireRedirectUrl : '';
 
-//                         if (redirectStr) {
-//                             // Redirect to the authentication url specified in config
-//                             redirectUrl = redirectStr.replace(placeholder, window.location.href);
-//                             window.location.assign(redirectUrl);
-//                         } else {
-//                             // If authConfig's redirectUrl value is undefined, then 
-//                             // use login authentication
-//                             location.reload();
-//                         }
-//                     } else {
-//                         // If authConfig is not an object or it's null, then 
-//                         // use login authentication
-//                         location.reload();
-//                     }
-//                 }
+                        if (redirectStr) {
+                            // Redirect to the authentication url specified in config
+                            redirectUrl = redirectStr.replace(placeholder, window.location.href);
+                            window.location.assign(redirectUrl);
+                        } else {
+                            // If authConfig's redirectUrl value is undefined, then 
+                            // use login authentication
+                            location.reload();
+                        }
+                    } else {
+                        // If authConfig is not an object or it's null, then 
+                        // use login authentication
+                        location.reload();
+                    }
+                }
 
-//                 function authLoop(configObj) {
-//                 //     var alfrescoTicket,
-//                 //         serviceUri,
-//                 //         serviceCallback,
-//                 //         delay = 60000;  // poll once every minute
+                function authLoop(configObj) {
+                    var alfrescoTicket,
+                        serviceUri,
+                        serviceCallback,
+                        delay = 60000;  // poll once every minute
 
-//                 //     if (document.hasFocus()) {
-//                 //         alfrescoTicket = CStudioAuthoring.Utils.Cookies.readCookie("alf_ticket");
-//                 //         serviceUri = CStudioAuthoring.Service.verifyAlfrescoTicketUrl + "/" + alfrescoTicket;
+                    if (document.hasFocus()) {
+                        serviceUri = CStudioAuthoring.Service.verifyAuthTicketUrl;
 
-//                 //         serviceCallback = {
-//                 //             success: function(response) {
-//                 //                 var resObj = response.responseText
+                        serviceCallback = {
+                            success: function(response) {
+                                var resObj = response.responseText
 
-//                 //                 if (resObj.indexOf("TICKET" != -1)) {
-//                 //                     setTimeout(function() { authLoop(configObj); }, delay);
-//                 //                 } else {
-//                 //                     // Ticket is invalid
-//                 //                     authRedirect(configObj);
-//                 //                 }
-//                 //             },
-//                 //             failure: function(response) {
-//                 //                 throw new Error('Unable to read session ticket');
-//                 //             }
-//                 //         };
+                                if (resObj.indexOf("true" != -1)) {
+                                    setTimeout(function() { authLoop(configObj); }, delay);
+                                } else {
+                                    // Ticket is invalid
+                                    authRedirect(configObj);
+                                }
+                            },
+                            failure: function(response) {
+                                throw new Error('Unable to read session ticket');
+                            }
+                        };
 
-//                 //         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-//                 //     } else {
-//                 //         setTimeout(function() {
-//                 //             authLoop(configObj);
-//                 //         }, delay);
-//                 //     }
-//                 // }
+                        YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
+                    } else {
+                        setTimeout(function() {
+                            authLoop(configObj);
+                        }, delay);
+                    }
+                }
 
-//                 // // Start the authentication loop
-//                 // if (config.authentication) {
-//                 //     authLoop(config.authentication);
-//                 // } else {
-//                 //     authLoop(null);
-//                 // }
-//             },
+                // Start the authentication loop
+                if (config.authentication) {
+                    authLoop(config.authentication);
+                } else {
+                    authLoop(null);
+                }
+            },
 
-//             failure: function(){
-//                 throw new Error('Unable to read site configuration');
-//             }
-//         }
+            failure: function(){
+                throw new Error('Unable to read site configuration');
+            }
+        }
 
-//         CStudioAuthoring.Service.lookupConfigurtion(
-//             CStudioAuthoringContext.site, "/site-config.xml", authLoopCb);
+        CStudioAuthoring.Service.lookupConfigurtion(
+            CStudioAuthoringContext.site, "/site-config.xml", authLoopCb);
 
-//     } else {
-//         // The authentication loop cannot be started until CStudioAuthoringContext exists
-//         setTimeout(startAuthLoop, 1000);
-//     }
-// })();
+    } else {
+        // The authentication loop cannot be started until CStudioAuthoringContext exists
+        setTimeout(startAuthLoop, 1000);
+    }
+})();

@@ -43,8 +43,9 @@ class SecurityServices {
 	 * @param site - the project ID
 	 * @param token - token to be validated
 	 */
-	def validateToken(site, token) {
-
+	static validateToken(context, site, token) {
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.validateToken(site, token)
 	}
 
 	/** 

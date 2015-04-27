@@ -91,4 +91,9 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(providerType);
         return provider.authenticate(username, password); 
     }
+
+    public boolean validateTicket(String ticket){
+        SecurityProvider provider = lookupProvider(providerType);
+        return provider.validateTicket(ticket); 
+     }
 }
