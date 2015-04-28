@@ -95,10 +95,10 @@ CStudioAuthoring.Module.requireModule(
 					CStudioAuthoringContext.site, 
 					"/administration/config-list.xml", {
 						success: function(config) {
-							if (config.files && config.files.length) {
+							if (config.files.file && config.files.file.length) {
 								var index = 1;
-								for (var fileIndex in config.files) {
-									var fileConfig = config.files[fileIndex];
+								for (var fileIndex in config.files.file) {
+									var fileConfig = config.files.file[fileIndex];
 									var option = new Option(fileConfig.title, fileConfig.path, false, false);
 									option.setAttribute("description", fileConfig.description);
 									option.setAttribute("sample", fileConfig.samplePath);
@@ -224,12 +224,18 @@ CStudioAuthoring.Module.requireModule(
 					var xml = editor.getValue();
 					var savePath = itemSelectEl[selectedIndex].value;
 					if (savePath != 'undefined' && savePath != '') {
-						var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
-							CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
+						
+						var defPath =  '/cstudio/config/sites/' + 
+							CStudioAuthoringContext.site + 
+							itemSelectEl[selectedIndex].value;
+
+						var url = "/api/1/services/api/1/site/write-configuration.json" +
+                        "?path=" + defPath;
+
 
 						YAHOO.util.Connect.setDefaultPostHeader(false);
 						YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-						YAHOO.util.Connect.asyncRequest('POST', url, saveCb, xml);
+						YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), saveCb, xml);
 					} else {
 						alert("No configuration path is defined.");
 					}

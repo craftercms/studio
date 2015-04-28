@@ -407,6 +407,12 @@ implements SecurityProvider {
         return toRet;
     }
 
+    @Override
+    public boolean validateTicket(String ticket) {
+        //make me do something
+        return false;
+    }
+
     private void addDebugStack() {
         if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
             Thread thread = Thread.currentThread();

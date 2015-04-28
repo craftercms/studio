@@ -37,7 +37,16 @@ public class TestSecurityProvider implements SecurityProvider {
 
     public Map<String, String> getUserProfile(String user) {
     	Map<String, String> profile = new HashMap<String, String>();
+        profile.put("username", "admin");
+        profile.put("email", "joe.blogs@craftersoftware.com");
+        profile.put("firstName", "Joe");
+        profile.put("lastName", "Blogs");
+
     	return profile;
+    }
+
+    public boolean validateTicket(String ticket){
+        return ("FAKETICKET".equals(ticket));
     }
 
     public String authenticate(String username, String password) {
