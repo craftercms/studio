@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -405,7 +406,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         List<SiteFeed> sites = siteFeedMapper.getSites();
         Set<String> toRet = new HashSet<>();
         for (SiteFeed site : sites) {
-            toRet.add(site.getName());
+            toRet.add(site.getSiteId());
         }
         return toRet;
     }
@@ -424,17 +425,22 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
  		boolean success = true;
  		try {
- 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
-	 			"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+ 			contentRepository.createFolder("/wem-projects/" + siteId + "/" + siteId, "work-area");
+            RepositoryItem[] blueprintContent = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-content");
+            for (RepositoryItem item : blueprintContent) {
+                contentRepository.copyContent(item.path + "/" + item.name,
+                        "/wem-projects/" + siteId + "/" + siteId + "/work-area");
+            }
 
-	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
-	 			siteConfigFolder);
+	 		String siteConfigFolder = "/cstudio/config/sites/" + siteId;
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
+            RepositoryItem[] blueprintConfig = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-config");
+            for (RepositoryItem item : blueprintConfig) {
+                contentRepository.copyContent(item.path + "/"+ item.name, siteConfigFolder);
+            }
 
-	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_ID", siteId);
-	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_NAME", siteName);
+			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/site-config.xml", "SITE_NAME", siteName);
 	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
 	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
 	 		
@@ -443,9 +449,15 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 		// deployment
 
 	 		// insert database records
+			SiteFeed siteFeed = new SiteFeed();
+			siteFeed.setName(siteName);
+			siteFeed.setSiteId(siteId);
+			siteFeed.setDescription(desc);
+			siteFeedMapper.createSite(siteFeed);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
+            logger.error("Error while creating site", err);
 	 	}
 
 	 	return success;
@@ -453,11 +465,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
     	InputStream content = contentRepository.getContent(path);
-    	String contentAsString = "";
+    	String contentAsString = IOUtils.toString(content);
 
     	contentAsString = contentAsString.replaceAll(find, replace);
 
-    	InputStream contentToWrite = null;
+    	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
 		contentRepository.writeContent(path, contentToWrite);    	
     }

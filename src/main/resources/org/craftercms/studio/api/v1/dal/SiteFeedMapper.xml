@@ -33,4 +33,9 @@
     <select id="getSites" resultMap="SiteFeedMap">
         SELECT * FROM cstudio_site
     </select>
+
+    <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
+        insert into cstudio_site (site_id, name, description, status)
+        values (#{siteId}, #{name}, #{description}, #{status})
+    </insert>
 </mapper>
