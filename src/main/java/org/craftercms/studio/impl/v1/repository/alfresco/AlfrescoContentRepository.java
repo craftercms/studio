@@ -42,7 +42,9 @@ import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
@@ -430,6 +432,20 @@ implements SecurityProvider {
     @Override
     public boolean validateTicket(String ticket) {
         //make me do something
+        Map<String, String> params = new HashMap<>();
+        params.put("ticket", ticket);
+        String serviceURL = null;
+        try {
+            serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
+            GetMethod getMethod = new GetMethod(serviceURL);
+            HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+            int status = httpClient.executeMethod(getMethod);
+            if (status == HttpStatus.SC_OK) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Error while validating authentication token", e);
+        }
         return false;
     }
 
