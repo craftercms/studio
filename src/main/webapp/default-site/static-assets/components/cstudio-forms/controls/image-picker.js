@@ -352,7 +352,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadImageEl = document.createElement("img");
-        downloadImageEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
+        downloadImageEl.src = "/studio/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadImageEl);
         YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');
         downloadEl.style.display = "none";
