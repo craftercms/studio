@@ -27,8 +27,18 @@
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
-        <result property="status" column="status"/>
+        <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
     </resultMap>
+
+    <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
+        <parameter property="id" jdbcType="BIGINT" />
+        <parameter property="siteId" jdbcType="VARCHAR"/>
+        <parameter property="name" jdbcType="VARCHAR"/>
+        <parameter property="description" jdbcType="VARCHAR"/>
+        <parameter property="status" jdbcType="VARCHAR"/>
+    </parameterMap>
+
+
 
     <select id="getSites" resultMap="SiteFeedMap">
         SELECT * FROM cstudio_site

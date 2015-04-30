@@ -22,8 +22,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
@@ -31,6 +34,9 @@ import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConf
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
@@ -44,6 +50,8 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Note: consider renaming
@@ -443,7 +451,21 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 		replaceFileContent(siteConfigFolder+"/site-config.xml", "SITE_NAME", siteName);
 	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
 	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
-	 		
+
+			// Add user groups
+			securityService.addUserGroup("crafter_" + siteId);
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
+
+			// Set object states
+			createObjectStatesforNewSite(siteId);
+
+			// Extract dependencies
+			extractDependenciesForNewSite(siteId);
+
+			// Extract metadata ?
+
 	 		// permissions
 	 		// environment overrides
 	 		// deployment
@@ -474,7 +496,85 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		contentRepository.writeContent(path, contentToWrite);    	
     }
 
-   	@Override
+	protected void createObjectStatesforNewSite(String site) {
+		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
+		for (ContentItemTO child : root.getChildren()) {
+			createObjectStateNewSiteObjectItem(site, child);
+		}
+	}
+
+	protected void createObjectStateNewSiteObjectItem(String site, ContentItemTO item) {
+		if (item.isFolder()) {
+			item = contentService.getContentItemTree(site, item.getUri(), 1);
+			for (ContentItemTO child : item.getChildren()) {
+				createObjectStateNewSiteObjectItem(site, child);
+			}
+		} else {
+			objectStateService.insertNewEntry(site, item);
+		}
+	}
+
+	protected void extractDependenciesForNewSite(String site) {
+		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
+		Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+		for (ContentItemTO child : root.getChildren()) {
+			extractDependenciesItemForNewSite(site, child, globalDeps);
+		}
+	}
+
+	protected void extractDependenciesItemForNewSite(String site, ContentItemTO item, Map<String, Set<String>> globalDeps) {
+		if (item.isFolder()) {
+			item = contentService.getContentItemTree(site, item.getUri(), 1);
+			for (ContentItemTO child : item.getChildren()) {
+				extractDependenciesItemForNewSite(site, child, globalDeps);
+			}
+		} else {
+			String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
+			DmPathTO dmPathTO = new DmPathTO(fullPath);
+			String relativePath = dmPathTO.getRelativePath();
+			if (fullPath.endsWith(DmConstants.XML_PATTERN)) {
+				try {
+					Document doc = contentService.getContentAsDocument(fullPath);
+					dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
+				} catch (ContentNotFoundException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				} catch (ServiceException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				} catch (DocumentException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				}
+			} else {
+
+				boolean isCss = fullPath.endsWith(DmConstants.CSS_PATTERN);
+				boolean isJs = fullPath.endsWith(DmConstants.JS_PATTERN);
+				List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
+				boolean isTemplate = false;
+				for (String templatePattern : templatePatterns) {
+					Pattern pattern = Pattern.compile(templatePattern);
+					Matcher matcher = pattern.matcher(relativePath);
+					if (matcher.matches()) {
+						isTemplate = true;
+						break;
+					}
+				}
+				try {
+					if (isCss || isJs || isTemplate) {
+						StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+						if (isCss) {
+							dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
+						} else if (isJs) {
+							dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
+						} else if (isTemplate) {
+							dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
+						}
+					}
+				} catch (ServiceException e) {
+					logger.error("Failed to extract dependencies for: " + fullPath, e);
+				}
+			}
+		}
+	}
+	@Override
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
  		try {
@@ -538,6 +638,18 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	public String getEnvironmentConfigPath() { return environmentConfigPath; }
 	public void setEnvironmentConfigPath(String environmentConfigPath) { this.environmentConfigPath = environmentConfigPath; }
 
+	public ContentRepository getContenetRepository() { return contentRepository; }
+	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
+
+	public ObjectStateService getObjectStateService() { return objectStateService; }
+	public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
+	public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+	public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+
+	public SecurityService getSecurityService() { return securityService; }
+	public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
 	protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -547,10 +659,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
-
 	protected ContentRepository contentRepository;
-	public ContentRepository getContenetRepository() { return contentRepository; }
-	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
+	protected ObjectStateService objectStateService;
+	protected DmDependencyService dmDependencyService;
+	protected SecurityService securityService;
+
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 

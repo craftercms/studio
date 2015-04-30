@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.sf.json.JSONObject;
 import org.alfresco.cmis.client.AlfrescoDocument;
 import org.alfresco.cmis.client.AlfrescoFolder;
 import org.apache.chemistry.opencmis.client.api.*;
@@ -40,6 +41,11 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -268,6 +274,20 @@ implements SecurityProvider {
         retResponse = serviceURI.toURL().openStream();
 
         return retResponse;
+    }
+
+    /**
+     * fire POST request to Alfresco with propert security
+     */
+    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, params);
+        PostMethod postMethod = new PostMethod(serviceURL);
+        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        int status = httpClient.executeMethod(postMethod);
+
+        return postMethod.getResponseBodyAsString();
     }
 
     /**
@@ -897,6 +917,31 @@ implements SecurityProvider {
         }
     }
 
+    @Override
+    public void addUserGroup(String groupName) {
+        String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
+
+        try {
+            InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
+            String result = alfrescoPostRequest("/api/rootgroups/" + groupName, null, bodyStream, "application/json");
+        }
+        catch(Exception err) {
+            logger.error("err adding root group: " + groupName, err);
+        }
+    }
+
+    @Override
+    public void addUserGroup(String parentGroup, String groupName) {
+        String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
+
+        try {
+            InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
+            String result = alfrescoPostRequest("/api/groups/" + parentGroup + "/children/GROUP_" + groupName, null, bodyStream, "application/json");
+        }
+        catch(Exception err) {
+            logger.error("err adding group: " + groupName + " to parent group: " + parentGroup, err);
+        }
+    }
 
     protected String alfrescoUrl;
     public String getAlfrescoUrl() { return alfrescoUrl; }
