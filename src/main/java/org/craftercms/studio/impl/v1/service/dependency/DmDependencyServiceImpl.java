@@ -790,20 +790,26 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 }
                 if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
                     String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
-                    try {
-                        extractDependenciesStyle(site, assetPath, sb, globalDeps);
-                    } catch (ServiceException e) {
-                        logger.error("Failed to get style dependencies", e);
+                    String content = contentService.getContentAsString(fullPath);
+                    if (StringUtils.isNotEmpty(content)) {
+                        StringBuffer sb = new StringBuffer(content);
+                        try {
+                            extractDependenciesStyle(site, assetPath, sb, globalDeps);
+                        } catch (ServiceException e) {
+                            logger.error("Failed to get style dependencies", e);
+                        }
                     }
 
                 } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
                     String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
-                    try {
-                        extractDependenciesJavascript(site, assetPath, sb, globalDeps);
-                    } catch (ServiceException e) {
-                        logger.error("Failed to get javascript dependencies", e);
+                    String content = contentService.getContentAsString(fullPath);
+                    if (StringUtils.isNotEmpty(content)) {
+                        StringBuffer sb = new StringBuffer(content);
+                        try {
+                            extractDependenciesJavascript(site, assetPath, sb, globalDeps);
+                        } catch (ServiceException e) {
+                            logger.error("Failed to get javascript dependencies", e);
+                        }
                     }
                 }
             }
@@ -816,11 +822,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     continue;
                 }
                 String fullPath = contentService.expandRelativeSitePath(site, templatePath);
-                StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
-                try {
-                    extractDependenciesTemplate(site, templatePath, sb, globalDeps);
-                } catch (ServiceException e) {
-                    logger.error("Failed to get template dependencies", e);
+                String content = contentService.getContentAsString(fullPath);
+                if (StringUtils.isNotEmpty(content)) {
+                    StringBuffer sb = new StringBuffer(content);
+                    try {
+                        extractDependenciesTemplate(site, templatePath, sb, globalDeps);
+                    } catch (ServiceException e) {
+                        logger.error("Failed to get template dependencies", e);
+                    }
                 }
             }
             return dependency;

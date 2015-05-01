@@ -1,3 +1,4 @@
+
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -15,15 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import scripts.api.SiteServices;
 
-def result = [:]
-def blueprintName = params.blueprintName
-def siteName = params.siteName
-def siteId = params.siteId
-def desc = params.desc
+import scripts.api.SecurityServices
 
-def context = SiteServices.createContext(applicationContext, request)
-result = SiteServices.createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc)
- 
+def result = [:] 
+def site = "NOTUSED"
+def session = request.getSession()
+def token = session.getValue("alf_ticket")
+token = (token!=null) ? token : "UNSET"
+
+def context = SecurityServices.createContext(applicationContext, request)
+result = SecurityServices.validateToken(context, site, token)
+
 return result

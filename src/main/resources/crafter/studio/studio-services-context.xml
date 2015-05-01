@@ -88,6 +88,9 @@
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
         <property name="configRoot"><value>${siteService.configPath}</value></property>
         <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">

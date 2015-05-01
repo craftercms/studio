@@ -22,6 +22,7 @@ CStudioForms.Controls.NodeSelector = CStudioForms.Controls.NodeSelector ||
         this.readonly = readonly;
         this.defaultValue = "";
         this.disableFlattening = false;
+        this.useSingleValueFilename = false;
         amplify.subscribe("/datasource/loaded", this, this.onDatasourceLoaded);
 
         return this;
@@ -122,13 +123,16 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             if(prop.name == "readonly" && prop.value == "true"){
                 this.readonly = true;
             }
+            if(prop.name == "useSingleValueFilename" && prop.value == "true"){
+                this.useSingleValueFilename = true;
+            }
             if(prop.name == "disableFlattening" && prop.value == "true"){
                 this.disableFlattening = true;
             }
         }
 
         var titleEl = document.createElement("span");
-
+        YAHOO.util.Dom.addClass(titleEl, 'label');
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -378,14 +382,34 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
         if(successful){
             var item = {};
-            if (fileType && fileSize) {
-                item = { key: key, value: value, fileType_s: fileType, fileSize_s: fileSize };
-            } else if (fileType && !fileSize) {
-                item = { key: key, value: value, fileType_s: fileType };
-            } else if (!fileType && fileSize) {
-                item = { key: key, value: value, fileSize_s: fileSize };
-            } else {
-                item = { key: key, value: value};
+
+            if(this.useSingleValueFilename == true) {
+            /* the initial assumption was that a node selector would be used to pick a single file. _s tells
+             * the search index that the value is a single value.  If the node selector is used to pick multiple files
+             * the indexing operation will fail. Because the node selctor is inheriently multi-valued in nature the 
+             * default going forward is to treat these values as multi-valued.  For backward compatibility we will support
+             * _s if the form definition specifies that we do so
+             */
+                if (fileType && fileSize) {
+                    item = { key: key, value: value, fileType_s: fileType, fileSize_s: fileSize };
+                } else if (fileType && !fileSize) {
+                    item = { key: key, value: value, fileType_s: fileType };
+                } else if (!fileType && fileSize) {
+                    item = { key: key, value: value, fileSize_s: fileSize };
+                } else {
+                    item = { key: key, value: value};
+                }
+            }
+            else {
+                if (fileType && fileSize) {
+                    item = { key: key, value: value, fileType_mvs: fileType, fileSize_s: fileSize };
+                } else if (fileType && !fileSize) {
+                    item = { key: key, value: value, fileType_mvs: fileType };
+                } else if (!fileType && fileSize) {
+                    item = { key: key, value: value, fileSize_mvs: fileSize };
+                } else {
+                    item = { key: key, value: value};
+                }
             }
 
             this.items[this.items.length] = item
@@ -476,7 +500,8 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             { label: "Max Size", name: "maxSize", type: "int" },
             { label: "Item Manager", name: "itemManager", type: "datasource:item" },
             { label: "Readonly", name: "readonly", type: "boolean" },
-            { label: "Disable Flattening for Search", name: "disableFlattening", type: "boolean" }
+            { label: "Disable Flattening for Search", name: "disableFlattening", type: "boolean" },
+            { label: "Use single value filename (backward compat)", name: "useSingleValueFilename", type: "boolean" }           
         ];
     },
 

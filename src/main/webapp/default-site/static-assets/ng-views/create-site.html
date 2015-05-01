@@ -3,7 +3,10 @@
 
         <h2 class="page-header">Create Site</h2>
 
-        <input type="hidden" ng-model="site.siteId"/>
+        <div class="form-group">
+            <label for="name">Site Id</label>
+            <input id="siteId" name="siteId" type="text" class="form-control"  ng-model="site.siteId"/>
+        </div>
 
         <div class="form-group">
             <label for="name">Site Name</label>

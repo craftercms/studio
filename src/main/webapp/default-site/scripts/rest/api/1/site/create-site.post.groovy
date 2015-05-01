@@ -15,20 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.SiteServices;
+import groovy.json.JsonSlurper
 
-package org.craftercms.studio.api.v1.dal;
+def result = [:]
+def requestJson = request.reader.text
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestJson)
 
-import java.util.List;
-import java.util.Map;
+def blueprintName = parsedReq.blueprintName
+def siteName = parsedReq.siteName
+def siteId = parsedReq.siteId
+def desc = parsedReq.desc
 
-/**
- * Created by dejanbrkic on 1/19/15.
- */
-public interface SiteFeedMapper {
+def context = SiteServices.createContext(applicationContext, request)
+result = SiteServices.createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc)
 
-    List<SiteFeed> getSites();
-
-	boolean createSite(SiteFeed siteFeed);
-
-    boolean deleteSite(String siteId);
-}
+return result

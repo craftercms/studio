@@ -44,4 +44,10 @@ public interface SecurityService {
     Map<String, String> getUserProfile(String user);
     
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
+
+    boolean validateToken(String site, String token);
+
+    void addUserGroup(String groupName);
+
+    void addUserGroup(String parentGroup, String groupName);
 }
