@@ -256,9 +256,7 @@
             };
 
             this.create = function (site) {
-                return $http.get(api('create-site'), {
-                    params: site
-                });
+                return $http.post(api('create-site'),site);
             };
 
             function api(action) {

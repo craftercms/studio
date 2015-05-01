@@ -16,14 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import scripts.api.SiteServices;
+import groovy.json.JsonSlurper
 
 def result = [:]
-def blueprintName = params.blueprintName
-def siteName = params.siteName
-def siteId = params.siteId
-def desc = params.desc
+def requestJson = request.reader.text
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestJson)
+
+def blueprintName = parsedReq.blueprintName
+def siteName = parsedReq.siteName
+def siteId = parsedReq.siteId
+def desc = parsedReq.desc
 
 def context = SiteServices.createContext(applicationContext, request)
 result = SiteServices.createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc)
- 
+
 return result

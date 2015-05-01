@@ -46,4 +46,8 @@ public interface SecurityService {
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
     boolean validateToken(String site, String token);
+
+    void addUserGroup(String groupName);
+
+    void addUserGroup(String parentGroup, String groupName);
 }

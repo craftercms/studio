@@ -35,5 +35,8 @@ public interface SecurityProvider {
     String authenticate(String username, String password);
 
     boolean validateTicket(String ticket);
-    
+
+    void addUserGroup(String groupName);
+
+    void addUserGroup(String parentGroup, String groupName);
 }

@@ -18,12 +18,15 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.sf.json.JSONObject;
 import org.alfresco.cmis.client.AlfrescoDocument;
+import org.alfresco.cmis.client.AlfrescoFolder;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
@@ -37,6 +40,15 @@ import java.util.HashMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
@@ -267,6 +279,20 @@ implements SecurityProvider {
     }
 
     /**
+     * fire POST request to Alfresco with propert security
+     */
+    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, params);
+        PostMethod postMethod = new PostMethod(serviceURL);
+        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        int status = httpClient.executeMethod(postMethod);
+
+        return postMethod.getResponseBodyAsString();
+    }
+
+    /**
      * build request URLs 
      */
     protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
@@ -381,7 +407,6 @@ implements SecurityProvider {
 
     @Override
     public String authenticate(String username, String password) {
-        addDebugStack();
         InputStream retStream = null;
         String toRet = null;
         try {
@@ -407,6 +432,20 @@ implements SecurityProvider {
     @Override
     public boolean validateTicket(String ticket) {
         //make me do something
+        Map<String, String> params = new HashMap<>();
+        params.put("ticket", ticket);
+        String serviceURL = null;
+        try {
+            serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
+            GetMethod getMethod = new GetMethod(serviceURL);
+            HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+            int status = httpClient.executeMethod(getMethod);
+            if (status == HttpStatus.SC_OK) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Error while validating authentication token", e);
+        }
         return false;
     }
 
@@ -511,7 +550,7 @@ implements SecurityProvider {
                     } else {
                         item.path = fullPath;
                     }
-                    item.path = item.path.replace("/" + item.name, "");
+                    item.path = StringUtils.removeEnd(item.path,"/" + item.name);
                     item.isFolder = isFolder;
 
                     tempList.add(item);
@@ -684,11 +723,28 @@ implements SecurityProvider {
         }
         try {
             Session session = getCMISSession();
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            if (cmisObject != null) {
-                ObjectType type = cmisObject.getType();
+            CmisObject parentCmisOBject = null;
+            try {
+                parentCmisOBject = session.getObjectByPath(cleanPath);
+            } catch (CmisObjectNotFoundException ex) {
+                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                int idx = cleanPath.lastIndexOf("/");
+                if (idx > 0) {
+                    String ancestorPath = cleanPath.substring(0, idx);
+                    String parentName = cleanPath.substring(idx + 1);
+                    String nodeRef = createFolderInternalCMIS(ancestorPath, parentName);
+                    if (StringUtils.isEmpty(nodeRef)) {
+                        logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
+                        return newFolderRef;
+                    } else {
+                        parentCmisOBject = session.getObjectByPath(cleanPath);
+                    }
+                }
+            }
+            if (parentCmisOBject != null) {
+                ObjectType type = parentCmisOBject.getType();
                 if ("cmis:folder".equals(type.getId())) {
-                    Folder folder = (Folder)cmisObject;
+                    Folder folder = (Folder)parentCmisOBject;
                     Map<String, String> newFolderProps = new HashMap<String, String>();
                     newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
                     newFolderProps.put(PropertyIds.NAME, name);
@@ -724,13 +780,15 @@ implements SecurityProvider {
             if (sourceCmisObject != null && targetCmisObject != null) {
                 ObjectType sourceType = sourceCmisObject.getType();
                 ObjectType targetType = targetCmisObject.getType();
-                if ("cmis:folder".equals(targetType.getId())) {
-                    Folder targetFolder = (Folder)targetCmisObject;
+                if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
+                    AlfrescoFolder targetFolder = (AlfrescoFolder)targetCmisObject;
                     if ("cmis:document".equals(sourceType.getId())) {
-                        org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                        AlfrescoDocument sourceDocument = (AlfrescoDocument)sourceCmisObject;
+                        logger.debug("Coping document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                         copyDocument(targetFolder, sourceDocument);
                     } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
+                        logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyFolder(targetFolder, sourceFolder);
                     }
                     return true;
@@ -763,19 +821,20 @@ implements SecurityProvider {
     private void copyChildren(Folder parentFolder, Folder toCopyFolder) {
         ItemIterable<CmisObject> immediateChildren = toCopyFolder.getChildren();
         for (CmisObject child : immediateChildren) {
-            if (child instanceof Document) {
-                copyDocument(parentFolder, (org.apache.chemistry.opencmis.client.api.Document) child);
-            } else if (child instanceof Folder) {
+            if (BaseTypeId.CMIS_DOCUMENT.value().equals(child.getBaseTypeId().value())) {
+                copyDocument(parentFolder, (AlfrescoDocument) child);
+            } else if (BaseTypeId.CMIS_FOLDER.value().equals(child.getBaseTypeId().value())) {
                 copyFolder(parentFolder, (Folder) child);
             }
         }
     }
 
-    private void copyDocument(Folder parentFolder, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
+    private void copyDocument(Folder parentFolder, AlfrescoDocument sourceDocument) {
         Map<String, Object> documentProperties = new HashMap<String, Object>(2);
         documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
-        sourceDocument.copy(parentFolder, documentProperties, null, null, null, null, null);
+        //sourceDocument.copy(parentFolder);//.copy(parentFolder, documentProperties, null, null, null, null, null);
+        parentFolder.createDocument(documentProperties, sourceDocument.getContentStream(), VersioningState.MINOR);
     }
 
     protected Session getCMISSession() {
@@ -874,6 +933,31 @@ implements SecurityProvider {
         }
     }
 
+    @Override
+    public void addUserGroup(String groupName) {
+        String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
+
+        try {
+            InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
+            String result = alfrescoPostRequest("/api/rootgroups/" + groupName, null, bodyStream, "application/json");
+        }
+        catch(Exception err) {
+            logger.error("err adding root group: " + groupName, err);
+        }
+    }
+
+    @Override
+    public void addUserGroup(String parentGroup, String groupName) {
+        String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
+
+        try {
+            InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
+            String result = alfrescoPostRequest("/api/groups/" + parentGroup + "/children/GROUP_" + groupName, null, bodyStream, "application/json");
+        }
+        catch(Exception err) {
+            logger.error("err adding group: " + groupName + " to parent group: " + parentGroup, err);
+        }
+    }
 
     protected String alfrescoUrl;
     public String getAlfrescoUrl() { return alfrescoUrl; }
