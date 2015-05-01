@@ -6784,7 +6784,8 @@ CStudioAuthoring.InContextEdit = {
                                 }
                             },
                             failure: function(response) {
-                                throw new Error('Unable to read session ticket');
+                                authRedirect(configObj);
+                                //throw new Error('Unable to read session ticket');
                             }
                         };
 

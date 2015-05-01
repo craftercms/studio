@@ -6,7 +6,7 @@
 
     <script src="/studio/static-assets/scripts/crafter.js"></script>
 
-
+    <link rel="stylesheet" href="/studio/static-assets/themes/cstudioTheme/css/forms-default.css"/>
     <link rel="stylesheet" href="/studio/static-assets/styles/forms-engine.css"/>
 
     <#include "/templates/web/common/page-fragments/head.ftl" />
