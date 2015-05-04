@@ -29,6 +29,7 @@ import org.craftercms.commons.ebus.annotations.EventSelectorType;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -137,14 +138,16 @@ public class PreviewDeployer implements Deployer {
             ebus = EBusConstants.REPOSITORY_REACTOR,
             type = EventSelectorType.REGEX)
     public void onUpdateContent(final Event<RepositoryEventMessage> event) {
+        RepositoryEventMessage message = event.getData();
         try {
-            RepositoryEventMessage message = event.getData();
             String site = message.getSite();
             String path = message.getPath();
-            RequestContext.setCurrent(message.getRequestContext());
+            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
             deployFile(site, path);
+        } catch (Exception t) {
+            logger.error("Error while deploying preview content for: " + message.getSite() + " - " + message.getPath(), t);
         } finally {
-            RequestContext.setCurrent(null);
+            RepositoryEventContext.setCurrent(null);
         }
     }
 
