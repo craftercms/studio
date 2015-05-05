@@ -2052,6 +2052,9 @@ var YEvent = YAHOO.util.Event;
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
             getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
 
+            // Preview Services
+            previewSyncAllServiceUrl: "/api/1/services/api/1/preview/sync-site.json",
+
             // Activity Services
             getUserActivitiesServiceUrl: "/api/1/services/api/1/activity/get-user-activities.json",
 

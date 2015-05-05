@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -919,7 +920,7 @@ public class ContentServiceImpl implements ContentService {
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
     protected DmRenameService dmRenameService;
@@ -936,11 +937,11 @@ public class ContentServiceImpl implements ContentService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() {
+    public ObjectStateService getObjectStateService() {
         return objectStateService;
     }
 
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) {
+    public void setObjectStateService(ObjectStateService objectStateService) {
         this.objectStateService = objectStateService;
     }
 

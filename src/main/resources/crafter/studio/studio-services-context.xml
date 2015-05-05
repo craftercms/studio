@@ -122,6 +122,9 @@
          <property name="siteService" ref="cstudioSiteServiceSimple" />
          <property name="objectStateService" ref="cstudioObjectStateService" />
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+         <property name="contentRepository" ref="cstudioContentRepository"/>
+         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+         <property name="repositoryReactor" ref="repositoryReactor"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
@@ -775,6 +778,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="studioPreviewDeployer" factory-bean="cstudioDeployerFactory" factory-method="createPreviewDeployer"/>
