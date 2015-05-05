@@ -68,4 +68,6 @@ public interface DeploymentService {
     List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
 
     void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate);
+
+    void syncAllContentToPreview(String site) throws ServiceException;
 }

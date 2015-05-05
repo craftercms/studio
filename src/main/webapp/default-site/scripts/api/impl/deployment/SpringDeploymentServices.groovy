@@ -39,4 +39,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
         return springBackedService.getAvailablePublishingChannelGroups(site, path);
     }
+
+    def syncAllContentToPreview(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.syncAllContentToPreview(site);
+    }
 }
