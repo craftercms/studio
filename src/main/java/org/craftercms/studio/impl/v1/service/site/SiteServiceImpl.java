@@ -507,25 +507,17 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     }
 
 	protected void createObjectStatesforNewSite(String site) {
-		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
-		for (ContentItemTO child : root.getChildren()) {
-			try {
-				createObjectStateNewSiteObjectItem(site, child);
-			}
-			catch(Exception err) {
-				logger.error("Error while creating object state for object " + child.uri, err);
-			}
-		}
+		createObjectStateNewSiteObjectFolder(site, contentService.expandRelativeSitePath(site, "/"));
 	}
 
-	protected void createObjectStateNewSiteObjectItem(String site, ContentItemTO item) {
-		if (item.isFolder()) {
-			item = contentService.getContentItemTree(site, item.getUri(), 1);
-			for (ContentItemTO child : item.getChildren()) {
-				createObjectStateNewSiteObjectItem(site, child);
+	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
+		RepositoryItem[] children = contentRepository.getContentChildren(path);
+		for (RepositoryItem child : children) {
+			if (child.isFolder) {
+				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
+			} else {
+				objectStateService.insertNewEntry(site, child.path + "/" + child.name);
 			}
-		} else {
-			objectStateService.insertNewEntry(site, item);
 		}
 	}
 
@@ -672,6 +664,8 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 	public SecurityService getSecurityService() { return securityService; }
 	public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+
 
 	protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
