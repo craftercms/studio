@@ -242,9 +242,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 										overlayHtml += "<table>";
 									 
 									if(persona.settings) {
-										if(persona.settings.property || persona.settings.length) {	
+										if(persona.settings.property || Array.isArray(persona.settings)) {	
 											if(!persona.settings.length) {
-												persona.settings = [persona.settings.property];
+												persona.settings = persona.settings.property;
 											}							
 											
 											for(var j=0; j<persona.settings.length; j++){
