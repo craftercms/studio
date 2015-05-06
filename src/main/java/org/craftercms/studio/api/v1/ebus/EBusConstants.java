@@ -40,5 +40,10 @@ public final class EBusConstants {
      */
     public static final String REPOSITORY_DELETE_EVENT = "repository.delete";
 
+    /**
+     * Repository preview sync event name.
+     */
+    public static final String REPOSITORY_PREVIEW_SYNC_EVENT = "repository.previewSync";
+
     private EBusConstants() {}
 }

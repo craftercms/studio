@@ -433,19 +433,29 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
  		boolean success = true;
  		try {
- 			contentRepository.createFolder("/wem-projects/" + siteId + "/" + siteId, "work-area");
-            RepositoryItem[] blueprintContent = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-content");
-            for (RepositoryItem item : blueprintContent) {
-                contentRepository.copyContent(item.path + "/" + item.name,
-                        "/wem-projects/" + siteId + "/" + siteId + "/work-area");
-            }
+			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
+			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
 
-	 		String siteConfigFolder = "/cstudio/config/sites/" + siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
-            RepositoryItem[] blueprintConfig = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-config");
-            for (RepositoryItem item : blueprintConfig) {
-                contentRepository.copyContent(item.path + "/"+ item.name, siteConfigFolder);
-            }
+	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
+	 			siteConfigFolder);
+
+
+ 	// contentRepository.createFolder("/wem-projects/" + siteId + "/" + siteId, "work-area");
+    //         RepositoryItem[] blueprintContent = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-content");
+    //         for (RepositoryItem item : blueprintContent) {
+    //             contentRepository.copyContent(item.path + "/" + item.name,
+    //                     "/wem-projects/" + siteId + "/" + siteId + "/work-area");
+    //         }
+
+	 // String siteConfigFolder = "/cstudio/config/sites/" + siteId;
+ 	// contentRepository.createFolder("/cstudio/config/sites/", siteId);
+    //         RepositoryItem[] blueprintConfig = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-config");
+    //         for (RepositoryItem item : blueprintConfig) {
+    //             contentRepository.copyContent(item.path + "/"+ item.name, siteConfigFolder);
+    //         }
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITE_ID", siteId);
 	 		replaceFileContent(siteConfigFolder+"/site-config.xml", "SITE_NAME", siteName);
@@ -499,7 +509,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected void createObjectStatesforNewSite(String site) {
 		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
 		for (ContentItemTO child : root.getChildren()) {
-			createObjectStateNewSiteObjectItem(site, child);
+			try {
+				createObjectStateNewSiteObjectItem(site, child);
+			}
+			catch(Exception err) {
+				logger.error("Error while creating object state for object " + child.uri, err);
+			}
 		}
 	}
 
@@ -518,7 +533,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
 		Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
 		for (ContentItemTO child : root.getChildren()) {
-			extractDependenciesItemForNewSite(site, child, globalDeps);
+			try {
+				extractDependenciesItemForNewSite(site, child, globalDeps);
+			} catch (Exception e) {
+				logger.error("Failed to extract dependencies for site child: "+child.uri, e);
+			}
 		}
 	}
 
@@ -526,7 +545,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		if (item.isFolder()) {
 			item = contentService.getContentItemTree(site, item.getUri(), 1);
 			for (ContentItemTO child : item.getChildren()) {
-				extractDependenciesItemForNewSite(site, child, globalDeps);
+				try {
+					extractDependenciesItemForNewSite(site, child, globalDeps);
+				} catch (Exception e) {
+					logger.error("Failed to extract dependencies for site child: "+child.uri, e);
+				}
 			}
 		} else {
 			String fullPath = contentService.expandRelativeSitePath(site, item.getUri());

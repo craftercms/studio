@@ -18,26 +18,28 @@
 
 package org.craftercms.studio.api.v1.ebus;
 
+public class RepositoryEventContext {
 
-import org.craftercms.commons.http.RequestContext;
+    private static ThreadLocal<RepositoryEventContext> threadLocal = new ThreadLocal<>();
 
-/**
- * Repository event message.
- *
- * @author Dejan Brkic
- */
-public class RepositoryEventMessage {
+    public static RepositoryEventContext getCurrent() {
+        return threadLocal.get();
+    }
 
-    private String site;
-    private String path;
-    private RepositoryEventContext repositoryEventContext;
+    public static void setCurrent(RepositoryEventContext repositoryEventContext) {
+        threadLocal.set(repositoryEventContext);
+    }
 
-    public String getSite() { return site; }
-    public void setSite(final String site) { this.site = site; }
+    public static void clear() {
+        threadLocal.remove();
+    }
 
-    public String getPath() { return path; }
-    public void setPath(final String path) { this.path = path; }
+    public RepositoryEventContext(String authenticationToken) {
+        this.authenticationToken = authenticationToken;
+    }
 
-    public RepositoryEventContext getRepositoryEventContext() { return repositoryEventContext; }
-    public void setRepositoryEventContext(RepositoryEventContext repositoryEventContext) { this.repositoryEventContext = repositoryEventContext; }
+    public String getAuthenticationToken() { return authenticationToken; }
+    public void setAuthenticationToken(String authenticationToken) { this.authenticationToken = authenticationToken; }
+
+    private String authenticationToken;
 }

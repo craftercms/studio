@@ -27,9 +27,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
@@ -43,6 +47,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -54,6 +59,10 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import reactor.core.Reactor;
+import reactor.event.Event;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * Content Services that other services may use
@@ -215,6 +224,18 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.insertNewEntry(site, itemTo);
             }
             objectStateService.setSystemProcessing(site, relativePath, false);
+            RepositoryEventMessage message = new RepositoryEventMessage();
+            message.setSite(site);
+            message.setPath(relativePath);
+            RequestContext context = RequestContext.getCurrent();
+            String sessionTicket = null;
+            if (context != null) {
+                HttpSession httpSession = context.getRequest().getSession();
+                sessionTicket = (String) httpSession.getValue("alf_ticket");
+            }
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            message.setRepositoryEventContext(repositoryEventContext);
+            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             throw e;
@@ -899,12 +920,13 @@ public class ContentServiceImpl implements ContentService {
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
     protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
+    protected Reactor repositoryReactor;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -915,11 +937,11 @@ public class ContentServiceImpl implements ContentService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() {
+    public ObjectStateService getObjectStateService() {
         return objectStateService;
     }
 
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) {
+    public void setObjectStateService(ObjectStateService objectStateService) {
         this.objectStateService = objectStateService;
     }
 
@@ -937,4 +959,7 @@ public class ContentServiceImpl implements ContentService {
 
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    public Reactor getRepositoryReactor() { return repositoryReactor; }
+    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 }

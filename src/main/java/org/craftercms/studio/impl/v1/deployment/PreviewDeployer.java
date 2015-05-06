@@ -23,15 +23,20 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.ebus.annotations.EListener;
 import org.craftercms.commons.ebus.annotations.EventHandler;
 import org.craftercms.commons.ebus.annotations.EventSelectorType;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -137,20 +142,58 @@ public class PreviewDeployer implements Deployer {
             ebus = EBusConstants.REPOSITORY_REACTOR,
             type = EventSelectorType.REGEX)
     public void onUpdateContent(final Event<RepositoryEventMessage> event) {
+        RepositoryEventMessage message = event.getData();
         try {
-            RepositoryEventMessage message = event.getData();
             String site = message.getSite();
             String path = message.getPath();
-            RequestContext.setCurrent(message.getRequestContext());
+            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
             deployFile(site, path);
+        } catch (Exception t) {
+            logger.error("Error while deploying preview content for: " + message.getSite() + " - " + message.getPath(), t);
         } finally {
-            RequestContext.setCurrent(null);
+            RepositoryEventContext.setCurrent(null);
         }
     }
 
     @Override
     public void deployFiles(String site, List<String> paths, List<String> deletedFiles) {
 
+    }
+
+    @EventHandler(
+            event = EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT,
+            ebus = EBusConstants.REPOSITORY_REACTOR,
+            type = EventSelectorType.REGEX)
+    public void syncAllContentToPreview(final Event<RepositoryEventMessage> event) throws ServiceException {
+
+        RepositoryEventMessage message = event.getData();
+        String site = message.getSite();
+        logger.info("Received preview sync event for site: " + site);
+        RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
+        String siteRootPath = contentService.expandRelativeSitePath(site, "/");
+        if (StringUtils.isNotEmpty(siteRootPath)) {
+            try {
+                syncFolder(site, siteRootPath);
+            } catch (Exception e) {
+                logger.error("Site '" + site + "' synchronization failed", e);
+                throw new ServiceException("Unable to execute sync for " + site, e);
+            }
+            logger.info("Synchronization of site '" + site + "' completed successfully");
+        } else {
+            logger.error("Site '" + site + "' synchronization failed. Repository root path empty");
+        }
+    }
+
+    protected void syncFolder(String site, String path) {
+        RepositoryItem[] children = contentRepository.getContentChildren(path);
+
+        for (RepositoryItem item : children) {
+            if (item.isFolder) {
+                syncFolder(site, item.path + "/" + item.name);
+            } else {
+                deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+            }
+        }
     }
 
     public String getDefaultServer() { return defaultServer; }
@@ -171,10 +214,14 @@ public class PreviewDeployer implements Deployer {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
     protected String defaultServer;
     protected int defaultPort;
     protected String defaultPassword;
     protected String defaultTarget;
     protected SiteService siteService;
     protected ContentService contentService;
+    protected ContentRepository contentRepository;
 }

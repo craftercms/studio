@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import org.craftercms.studio.api.v1.deployment.Deployer;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -28,6 +29,7 @@ public class DeployerFactory {
     public Deployer createPreviewDeployer() {
         PreviewDeployer previewDeployer = new PreviewDeployer();
         previewDeployer.setContentService(contentService);
+        previewDeployer.setContentRepository(contentRepository);
         previewDeployer.setSiteService(siteService);
         previewDeployer.setDefaultServer(defaultServer);
         previewDeployer.setDefaultPort(defaultPort);
@@ -73,6 +75,9 @@ public class DeployerFactory {
     public String getEnvironmentsStoreRootPath() { return environmentsStoreRootPath; }
     public void setEnvironmentsStoreRootPath(String environmentsStoreRootPath) { this.environmentsStoreRootPath = environmentsStoreRootPath; }
 
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
     protected String environmentsStoreRootPath;
     protected String defaultServer;
     protected int defaultPort;
@@ -80,4 +85,5 @@ public class DeployerFactory {
     protected String defaultTarget;
     protected SiteService siteService;
     protected ContentService contentService;
+    protected ContentRepository contentRepository;
 }
