@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import reactor.core.Reactor;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -490,6 +491,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			siteFeed.setSiteId(siteId);
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
+            deploymentService.syncAllContentToPreview(siteId);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -687,6 +689,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
+    public Reactor getRepositoryRector() { return repositoryRector; }
+    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -704,6 +709,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected DeploymentService deploymentService;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected Reactor repositoryRector;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
