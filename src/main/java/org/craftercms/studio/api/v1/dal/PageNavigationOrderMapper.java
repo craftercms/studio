@@ -26,5 +26,7 @@ public interface PageNavigationOrderMapper {
 
     void update(PageNavigationOrder pageNavigationOrder);
 
-    PageNavigationOrder getPageNavigationOrderForSiteAndPath(Map<String, String> params);
+    PageNavigationOrder getPageNavigationOrderForSiteAndPath(Map params);
+
+    void deleteSequencesForSite(Map params);
 }

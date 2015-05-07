@@ -33,4 +33,6 @@ public interface ObjectMetadataMapper {
     void deleteEntry(Map params);
 
     void setLockOwner(Map params);
+
+    void deleteObjectMetadataForSite(Map params);
 }

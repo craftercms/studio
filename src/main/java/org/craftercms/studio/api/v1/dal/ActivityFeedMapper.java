@@ -17,5 +17,7 @@ public interface ActivityFeedMapper {
 
     void updateActivityFeed(ActivityFeed feed);
 
-    void renameContent(Map<String, Object> params);
+    void renameContent(Map params);
+
+    void deleteActivitiesForSite(Map params);
 }

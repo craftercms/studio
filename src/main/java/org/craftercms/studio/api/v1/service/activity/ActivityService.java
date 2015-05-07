@@ -93,4 +93,6 @@ public interface ActivityService {
 	 */
 
 	public ActivityFeed getDeletedActivity(String site, String path);
+
+	void deleteActivitiesForSite(String site);
 }

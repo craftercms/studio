@@ -103,4 +103,8 @@
         AND path = #{oldPath}
     </update>
 
+    <delete id="deleteObjectStatesForSite" parameterType="java.util.Map">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #{site}
+    </delete>
 </mapper>
