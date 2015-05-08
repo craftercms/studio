@@ -94,7 +94,7 @@
 			</div>
 
 			<div class="span2 text-right">
-				<span>&copy; Copyright 2007-2014 Crafter Software Corporation. All rights reserved.</span>
+				<span>&copy; Copyright 2007-2015 Crafter Software Corporation. All rights reserved.</span>
 			</div>
 
 		</div>
