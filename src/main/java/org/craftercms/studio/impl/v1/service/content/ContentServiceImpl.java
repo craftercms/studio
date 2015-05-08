@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
@@ -48,11 +49,13 @@ import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -357,12 +360,56 @@ public class ContentServiceImpl implements ContentService {
             item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
             item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
             item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
+            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
         }
         else {
              logger.error("no xml document could be loaded for path {0}", fullContentPath);
         }
 
         return item;
+    }
+
+    /**
+     * add order value to the list of orders
+     *
+     * @param orders
+     * @param orderName
+     * @param orderStr
+     */
+    protected void addOrderValue(List<DmOrderTO> orders, String orderName, String orderStr) {
+        Double orderValue = null;
+        try {
+            orderValue = Double.parseDouble(orderStr);
+        } catch (NumberFormatException e) {
+            logger.debug(orderName + ", " + orderStr + " is not a valid order value pair.");
+        }
+        if (!StringUtils.isEmpty(orderName) && orderValue != null) {
+            DmOrderTO order = new DmOrderTO();
+            order.setId(orderName);
+            order.setOrder(orderValue);
+            orders.add(order);
+        }
+    }
+
+    /**
+     * get WCM content item order metadata
+     *
+     * @param nodes
+     * @return
+     */
+    protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
+        if (nodes != null) {
+            List<DmOrderTO> orders = new ArrayList<DmOrderTO>(nodes.size());
+            for (Node node : nodes) {
+
+                String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
+                String orderStr = node.getText();
+                addOrderValue(orders, orderName, orderStr);
+            }
+            return orders;
+        } else {
+            return null;
+        }
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
@@ -913,6 +960,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public void unLockContent(String site, String path) {
+        ContentItemTO item = getContentItem(site, path, 0);
+        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
     }
