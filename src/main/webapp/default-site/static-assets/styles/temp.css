@@ -14252,9 +14252,13 @@ body.masked {
   margin: 6px 0 0 10px;
   color: #000; }
 
+.site-dropdown-open .studio-preview {
+  margin-left: 265px
+}
+
 .studio-preview {
   top: 50px;
-  transition: padding .5s, transform .5s; }
+  transition: margin .5s, transform .5s; }
   .studio-preview, .studio-preview iframe {
     left: 0;
     right: 0;

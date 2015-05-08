@@ -3,15 +3,31 @@
 
         <h2 class="page-header">Create Site</h2>
 
+        <form name="createNameForm" novalidate class="ng-dirty ng-invalid ng-invalid-required" >
         <div class="form-group">
-            <label for="name">Site Id</label>
-            <input id="siteId" name="siteId" type="text" class="form-control"  ng-model="site.siteId"/>
+            <label for="name">Site Name</label>
+           <input id="name" name="name" type="text" class="form-control"  ng-model="site.siteName" ng-change="setSiteId()" required/>
+            <div class="error-container"
+                 ng-show="(createNameForm.name.$dirty && createNameForm.name.$invalid) || (createNameForm.name.$touched && createNameForm.name.$invalid)">
+                <small class="error"
+                       ng-show="createNameForm.name.$error.required">
+                    Site name is required.
+                </small>
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="name">Site Name</label>
-            <input id="name" name="name" type="text" class="form-control"  ng-model="site.siteName"/>
+            <label for="name">Site Id</label>
+            <input id="siteId" name="siteId" type="text" class="form-control"  ng-model="site.siteId" required/>
+            <div class="error-container"
+                 ng-show="(createNameForm.name.$dirty && createNameForm.name.$invalid) || (createNameForm.name.$touched && createNameForm.name.$invalid)">
+                <small class="error"
+                       ng-show="createNameForm.name.$error.required">
+                    Site Id is required.
+                </small>
+            </div>
         </div>
+
         <div class="form-group">
             <label for="description">Description</label>
             <textarea class="form-control" id="description" name="desc"  ng-model="site.description"></textarea>
@@ -29,13 +45,15 @@
 
         <div class="form-group">
             <button class="btn btn-primary"
-                    ng-click="create()">
+                    ng-click="create(); editSite(site);" ng-disabled="createNameForm.$invalid">
                 Create
             </button>
             <button class="btn btn-default">
                 Cancel
             </button>
         </div>
+
+            </form>
 
     </div>
 </div>
