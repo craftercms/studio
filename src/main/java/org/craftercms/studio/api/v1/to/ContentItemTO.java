@@ -119,6 +119,7 @@ public class ContentItemTO implements Serializable {
     protected boolean isNewFile = false;
     protected boolean isReference = false;
     protected String parentPath = null;
+	protected List<DmOrderTO> orders;
 
     public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
@@ -352,7 +353,10 @@ public class ContentItemTO implements Serializable {
     public String getParentPath() { return parentPath; }
     public void setParentPath(String parentPath) { this.parentPath = parentPath; }
 
-    // /** the name of item specified by the creator **/
+	public List<DmOrderTO> getOrders() { return orders; }
+	public void setOrders(List<DmOrderTO> orders) { this.orders = orders; }
+
+	// /** the name of item specified by the creator **/
 	// private String _internalName;
 	
 	// /** wcm content type for associating this content with a form **/
