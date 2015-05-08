@@ -112,6 +112,13 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         objectMetadataMapper.setLockOwner(params);
     }
 
+    @Override
+    public void deleteObjectMetadataForSite(String site) {
+        Map<String, String> params = new HashMap<>();
+        params.put("site", site);
+        objectMetadataMapper.deleteObjectMetadataForSite(params);
+    }
+
     @Autowired
     protected ObjectMetadataMapper objectMetadataMapper;
 }

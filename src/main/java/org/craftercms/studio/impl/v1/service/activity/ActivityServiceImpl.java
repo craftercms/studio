@@ -404,6 +404,13 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		return activityFeedMapper.getDeletedActivity(params);
 	}
 
+	@Override
+	public void deleteActivitiesForSite(String site) {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("site", site);
+		activityFeedMapper.deleteActivitiesForSite(params);
+	}
+
 	@Autowired
 	protected ActivityFeedMapper activityFeedMapper;
 	protected boolean userNamesAreCaseSensitive = false;

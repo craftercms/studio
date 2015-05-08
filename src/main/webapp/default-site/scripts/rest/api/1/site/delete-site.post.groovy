@@ -15,10 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import groovy.json.JsonSlurper
 import scripts.api.SiteServices;
 
 def result = [:]
-def siteId = params.siteId
+def requestJson = request.reader.text
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestJson)
+
+def siteId = parsedReq.siteId
 
 def context = SiteServices.createContext(applicationContext, request)
 result = SiteServices.deleteSite(context, siteId)

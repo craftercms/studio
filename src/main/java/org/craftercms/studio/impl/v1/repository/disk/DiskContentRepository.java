@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
@@ -129,8 +130,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
         
         try {
-            //DeleteOption options[] = { StandardDeleteOption.DELETE_NON_EMPTY };
-            Files.delete(constructRepoPath(path));//, options);
+            FileUtils.deleteDirectory(constructRepoPath(path).toFile());
         }
         catch(Exception err) {
             // log this error

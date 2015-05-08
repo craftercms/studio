@@ -123,6 +123,13 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return docUpdated;
     }
 
+    @Override
+    public void deleteSequencesForSite(String site) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        pageNavigationOrderMapper.deleteSequencesForSite(params);
+    }
+
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
