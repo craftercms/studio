@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -959,6 +960,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public void unLockContent(String site, String path) {
+        ContentItemTO item = getContentItem(site, path, 0);
+        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
     }
