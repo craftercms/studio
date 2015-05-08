@@ -167,6 +167,8 @@ class SpringContentServices {
 	 * @param path - the path of the item to unlock
 	 */
 	def unlockContentItem(site, path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+		return springBackedService.unLockContent(site, path)
 	}
 
 	/** 
