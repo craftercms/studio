@@ -37,6 +37,7 @@
                     <th><span class="sr-only">Site Dashboard Link</span></th>
                     <th><span class="sr-only">Preview Link</span></th>
                     <th><span class="sr-only">Live Site Link</span></th>
+                    <th><span class="sr-only">Remove</span></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -45,6 +46,7 @@
                     <td><a ng-click="goToDashboard(site)">Dashboard &raquo;</a></td>
                     <td><a ng-click="editSite(site)">Preview &raquo;</a></td>
                     <td><a href="{{site.url}}" target="_blank">Live site &raquo;</a></td>
+                    <td><a ng-click="removeSiteSites(site)"><i class="glyphicon glyphicon-trash"></i></a></td>
                 </tr>
                 </tbody>
             </table>
