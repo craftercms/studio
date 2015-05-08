@@ -261,7 +261,7 @@
 
             this.removeSite = function(site) {
                 console.log(site.siteId);
-                return $http.get(api('delete-site'), {
+                return $http.post(api('delete-site'), {
                     params: { siteId: site.siteId }
                 });
             };
