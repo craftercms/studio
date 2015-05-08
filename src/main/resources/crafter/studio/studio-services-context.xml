@@ -92,6 +92,10 @@
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">

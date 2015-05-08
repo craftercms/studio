@@ -48,4 +48,8 @@
         insert into cstudio_site (site_id, name, description, status)
         values (#{siteId}, #{name}, #{description}, #{status})
     </insert>
+
+    <delete id="deleteSite" parameterType="java.util.Map" >
+        DELETE FROM cstudio_site WHERE  site_id = #{site_id}
+    </delete>
 </mapper>
