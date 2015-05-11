@@ -371,7 +371,6 @@
             $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
 
             // View methods
-            $scope.editSite = sitesService.editSite;
             $scope.percent = percent;
             $scope.select = select;
             $scope.create = create;
@@ -424,6 +423,8 @@
                     siteName: $scope.site.siteName,
                     blueprintName: $scope.site.blueprint.id,
                     description: $scope.site.description
+                }).success(function (data) {
+                    sitesService.editSite($scope.site);
                 });
 
             }
