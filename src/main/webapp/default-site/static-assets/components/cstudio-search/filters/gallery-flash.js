@@ -22,3 +22,4 @@ CStudioSearch.FilterRenderer.GalleryFlash = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["gallery-flash"] = new CStudioSearch.FilterRenderer.GalleryFlash();
+CStudioAuthoring.Module.moduleLoaded("search-filter-gallery-flash", CStudioSearch.filterRenderers["gallery-flash"]);

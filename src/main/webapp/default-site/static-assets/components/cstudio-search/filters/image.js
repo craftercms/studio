@@ -22,3 +22,5 @@ CStudioSearch.FilterRenderer.Image = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["image"] = new CStudioSearch.FilterRenderer.Image();
+CStudioAuthoring.Module.moduleLoaded("search-filter-image", CStudioSearch.filterRenderers["image"]);
+

@@ -21,3 +21,4 @@ CStudioSearch.FilterRenderer.Default = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["default"] = new CStudioSearch.FilterRenderer.Default();
+CStudioAuthoring.Module.moduleLoaded("search-filter-default", CStudioSearch.filterRenderers["default"]);
