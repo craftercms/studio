@@ -2038,6 +2038,7 @@ var YEvent = YAHOO.util.Event;
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
+            retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
             
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
 
@@ -2101,7 +2102,6 @@ var YEvent = YAHOO.util.Event;
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
             // allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-            // retrieveSitesUrl: "/proxy/alfresco/api/sites",
             // getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             // updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
@@ -3267,7 +3267,7 @@ var YEvent = YAHOO.util.Event;
              */
             retrieveSitesList: function(callback) {
                 var retSites = null;
-                var serviceUrl = "/api/1/user/get-sites-3.json";
+                var serviceUrl = this.retrieveSitesUrl;
 
                 var serviceCallback = {
                     success : function(response) {
@@ -3276,7 +3276,7 @@ var YEvent = YAHOO.util.Event;
 
                         if(sitesModel.length) {
                             for(var i=0; i<sitesModel.length; i++) {
-                                menuModel.push({label: sitesModel[i].title, shortName: sitesModel[i].shortName, link: "/site-dashboard?site="+ sitesModel[i].shortName});
+                                menuModel.push({name: sitesModel[i].name, siteId: sitesModel[i].siteId, link: "/preview#/?page=/&site="+ sitesModel[i].shortId});
                             }
                         }
 
