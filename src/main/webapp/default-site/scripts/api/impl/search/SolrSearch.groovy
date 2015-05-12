@@ -24,7 +24,9 @@ class SolrSearch {
 
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
-		queryStatement    += "AND " + keywords + " "
+		if(keywords && keywords != "") {
+			queryStatement    += "AND " + keywords + " "
+		}
 
 		// can't support filters for images at this time because images are not indexed
 		//[Object { qname="cm:content.mimetype", value="image/*", useWildCard="true"}]
@@ -61,27 +63,20 @@ class SolrSearch {
 			results.searchFailed = false
 
 			for(int i = 0; i < queryResults.size; i++) {
+				try {
 				def result = [:]
 				def item = queryResults[i] // use the baseline object
-
+				item.path = item["localId"]
+				item.name = item["localId"]
 				// map known properties from solr index
-				item.name = item["file-name"]
+//				item.name = item["file-name"]
 				item.internalName = item["internal-name"]
 				item.contentType = item["content-type"]
 				item.path = item["localId"]
 				item.lastEditDate = item.lastModifiedDate 
 				//item.lastEditDateAsString = "2014-11-04T09:36:03"
 				//item.eventDate = item.lastModifiedDate  
-			/*	item.lastEditDate = [:]
-					item.lastEditDate.date = 3
-					item.lastEditDate.day = 1
-					item.lastEditDate.hours = 10
-					item.lastEditDate.minutes = 19
-					item.lastEditDate.month = 10
-					item.lastEditDate.seconds = 42
-					item.lastEditDate.time = 1415027982411
-					item.lastEditDate.timezoneOffset = 300
-					item.lastEditDate.year = 114*/
+/*			
 
 				item.floating = (item["placeInNav"]!=null           ? (item["placeInNav"] == "true") : true)
 				item.previewable = (item["content-type"]!=null      ? (item["content-type"].indexOf("page") != -1) : false)
@@ -113,9 +108,13 @@ class SolrSearch {
 				item.userLastName = ""
 				item.nodeRef = ""
 				item.metaDescription = "" //oneweb
-
+*/
 				result.item = item
 				results.objectList[i] = result
+				}
+				catch(err) {
+					// item could not be built
+				}
 			}
 		}
 		catch(err) {

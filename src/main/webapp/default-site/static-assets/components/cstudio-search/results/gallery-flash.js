@@ -65,4 +65,5 @@ CStudioSearch.ResultRenderer.GalleryFlash = {
 
 // register renderer
 CStudioSearch.resultRenderers["swf"] = CStudioSearch.ResultRenderer.GalleryFlash;
-
+CStudioAuthoring.Module.moduleLoaded("search-result-gallery-flash", CStudioSearch.resultRenderers["swf"]);
+

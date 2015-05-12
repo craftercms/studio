@@ -46,3 +46,4 @@ CStudioSearch.ResultRenderer.Default = {
 
 // register renderer
 CStudioSearch.resultRenderers["default"] = CStudioSearch.ResultRenderer.Default;
+CStudioAuthoring.Module.moduleLoaded("search-result-default", CStudioSearch.resultRenderers["default"]);

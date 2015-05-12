@@ -65,4 +65,4 @@ CStudioSearch.ResultRenderer.Flash = {
 
 // register renderer
 CStudioSearch.resultRenderers["swf"] = CStudioSearch.ResultRenderer.Flash;
-
+CStudioAuthoring.Module.moduleLoaded("search-result-flash", CStudioSearch.resultRenderers["swf"]);
