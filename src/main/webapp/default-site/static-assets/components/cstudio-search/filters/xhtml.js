@@ -23,3 +23,5 @@ CStudioSearch.FilterRenderer.XHTML = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["xhtml"] = new CStudioSearch.FilterRenderer.XHTML();
+CStudioAuthoring.Module.moduleLoaded("search-filter-xhtml", CStudioSearch.filterRenderers["xhtml"]);
+

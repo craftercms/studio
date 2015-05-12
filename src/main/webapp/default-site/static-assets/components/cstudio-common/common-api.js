@@ -1079,20 +1079,18 @@ var YEvent = YAHOO.util.Event;
                 if(!auxParams) {
                     auxParams = [];
                 }
-                CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, {
-                    success: function(contentType) {
-                        if(contentType.formPath == "simple") {
-                            // use the simple form server
-                            CStudioAuthoring.Operations.openContentWebFormSimpleEngine(contentType, path, edit, readOnly, callback, auxParams,includeMetaData);
-                        }
-                        else {
-                            // use the legacy form server
-                            CStudioAuthoring.Operations.openContentWebFormLegacyFormServer(formId, id, noderef, path, edit, asPopup, callback, readOnly,auxParams,includeMetaData);
-                        }
+
+                var getContentItemsCb = {
+                    success: function (contentTO) {
+                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
                     },
-                    failure: function() {
+
+                    failure: function () {
+                        callback.failure();
                     }
-                });
+                };
+
+                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
             },
 
             /**
@@ -2051,6 +2049,9 @@ var YEvent = YAHOO.util.Event;
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
             getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
+
+            // Preview Services
+            previewSyncAllServiceUrl: "/api/1/services/api/1/preview/sync-site.json",
 
             // Activity Services
             getUserActivitiesServiceUrl: "/api/1/services/api/1/activity/get-user-activities.json",

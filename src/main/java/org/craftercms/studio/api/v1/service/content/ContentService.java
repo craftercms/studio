@@ -38,12 +38,12 @@ public interface ContentService {
     /**
      * @return true if site has content object at path
      */
-    public boolean contentExists(String site, String path);
+    boolean contentExists(String site, String path);
 
     /**
      * @return true if site has content object at path
      */
-    public boolean contentExists(String fullPath);
+    boolean contentExists(String fullPath);
 
     /**
      * get document from wcm content
@@ -60,7 +60,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    public InputStream getContent(String path) throws ContentNotFoundException;
+    InputStream getContent(String path) throws ContentNotFoundException;
 
     /**
      * get from wcm content
@@ -68,7 +68,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    public String getContentAsString(String path);
+    String getContentAsString(String path);
 
     /**
      * get document from wcm content
@@ -125,7 +125,7 @@ public interface ContentService {
      * @param toPath   the target path to copy content to
      * @return true if successful
      */
-    public boolean copyContent(String site, String fromPath, String toPath);
+    boolean copyContent(String site, String fromPath, String toPath);
 
     /**
      * move content fromPath to toPath
@@ -135,7 +135,7 @@ public interface ContentService {
      * @param toPath   the target path to copy content to
      * @return true if successful
      */
-    public boolean moveContent(String site, String fromPath, String toPath);
+    boolean moveContent(String site, String fromPath, String toPath);
 
     /**
      * get the tree of content items (metadata) beginning at a root
@@ -143,14 +143,14 @@ public interface ContentService {
      * @param site - the project ID
      * @param path - the path to root at
      */
-    public ContentItemTO getContentItemTree(String site, String path, int depth);
+    ContentItemTO getContentItemTree(String site, String path, int depth);
 
     /**
      * get the tree of content items (metadata) beginning at a root
      *
      * @param fullPath - the full path to root at
      */
-    public ContentItemTO getContentItemTree(String fullPath, int depth);
+    ContentItemTO getContentItemTree(String fullPath, int depth);
 
     /**
      * get the content item (metadata) at a specific path
@@ -174,7 +174,7 @@ public interface ContentService {
      *
      * @param fullPath - the path of the content item
      */
-    public ContentItemTO getContentItem(String fullPath);
+    ContentItemTO getContentItem(String fullPath);
 
     /**
      * get the version history for an item

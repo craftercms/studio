@@ -23,3 +23,4 @@ CStudioSearch.FilterRenderer.ContentType = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["content-type"] = new CStudioSearch.FilterRenderer.ContentType();
+CStudioAuthoring.Module.moduleLoaded("search-filter-content-type", CStudioSearch.filterRenderers["content-type"]);

@@ -77,3 +77,5 @@ CStudioSearch.resultRenderers["gif"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["png"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["ico"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["jpeg"] = CStudioSearch.ResultRenderer.Banner;
+CStudioAuthoring.Module.moduleLoaded("search-result-image", CStudioSearch.resultRenderers["jpg"]);
+

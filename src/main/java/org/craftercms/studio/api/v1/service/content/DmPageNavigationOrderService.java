@@ -51,4 +51,6 @@ public interface DmPageNavigationOrderService {
      * @return
      */
     public boolean updateNavOrder(String site, String path, Document document);
+
+    void deleteSequencesForSite(String site);
 }

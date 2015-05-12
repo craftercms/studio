@@ -96,4 +96,9 @@
     <delete id="deleteEntry" parameterType="java.util.Map">
         DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </delete>
+
+    <delete id="deleteObjectMetadataForSite" parameterType="java.util.Map">
+        DELETE FROM cstudio_objectmetadata
+        WHERE site = #{site}
+    </delete>
 </mapper>

@@ -114,45 +114,49 @@ CStudioSearch.determineSearchContextFromUrl = function() {
  * alfresco service for search purpose, as alfresco services need these info.  
  * It will also initialise the sort dropdown getting data from the filter pagelet
  */
-CStudioSearch.init = function(){
-	
-	// initialize seach context	
-	CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
+CStudioSearch.init = function() {
 
-	// initialize filter
-	CStudioSearch.initializeSearchFilter(); // moved to content-type-map-load
-	//CStudioSearch.loadContentTypeMap();
+	CStudioSearch.loadFiltersAndResultTemplates({
+		success: function() {
+			
+			// initialize seach context	
+			CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
 
-    var searchCallback = function() {
-		
-		CStudioSearch.updateSearchContextWithBaseOptions();
-		CStudioSearch.searchContext = CStudioSearch.augmentContextWithActiveFilter(CStudioSearch.searchContext);
-		CStudioSearch.searchContext.page = null;
-		
- 		CStudioAuthoring.Operations.openSearch(
- 			CStudioSearch.searchContext.contextName,
- 			CStudioSearch.searchContext, 
- 			CStudioSearch.searchContext.selectLimit, 
- 			CStudioSearch.searchContext.interactMode,
- 			false,
-			null,
-			CStudioSearch.searchContext.searchId);
-    };
+			// initialize filter
+			CStudioSearch.initializeSearchFilter(); // moved to content-type-map-load
+			//CStudioSearch.loadContentTypeMap();
 
-    var keywordTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-keyword-textbox");
-    var keywordEnterKeyListener = new YAHOO.util.KeyListener(keywordTextBox , { keys:13 }, searchCallback , "keydown"  ); 
-    keywordEnterKeyListener.enable();
-    
-    var paginationTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-item-per-page-textbox");    
-    var paginationEnterKeyListener = new YAHOO.util.KeyListener(paginationTextBox , { keys:13 }, searchCallback , "keydown"  ); 
-    paginationEnterKeyListener.enable();
-    paginationTextBox.onkeyup = function() {
-    	CStudioSearch.checkIfNumeric();
-	};
-	
-    YAHOO.util.Event.addListener("cstudio-wcm-search-button", "click", searchCallback);
-    YAHOO.util.Event.addListener("cstudio-wcm-search-sort-dropdown", "change", searchCallback);
+		    var searchCallback = function() {
+				
+				CStudioSearch.updateSearchContextWithBaseOptions();
+				CStudioSearch.searchContext = CStudioSearch.augmentContextWithActiveFilter(CStudioSearch.searchContext);
+				CStudioSearch.searchContext.page = null;
+				
+		 		CStudioAuthoring.Operations.openSearch(
+		 			CStudioSearch.searchContext.contextName,
+		 			CStudioSearch.searchContext, 
+		 			CStudioSearch.searchContext.selectLimit, 
+		 			CStudioSearch.searchContext.interactMode,
+		 			false,
+					null,
+					CStudioSearch.searchContext.searchId);
+		    };
 
+		    var keywordTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-keyword-textbox");
+		    var keywordEnterKeyListener = new YAHOO.util.KeyListener(keywordTextBox , { keys:13 }, searchCallback , "keydown"  ); 
+		    keywordEnterKeyListener.enable();
+		    
+		    var paginationTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-item-per-page-textbox");    
+		    var paginationEnterKeyListener = new YAHOO.util.KeyListener(paginationTextBox , { keys:13 }, searchCallback , "keydown"  ); 
+		    paginationEnterKeyListener.enable();
+		    paginationTextBox.onkeyup = function() {
+		    	CStudioSearch.checkIfNumeric();
+			};
+			
+		    YAHOO.util.Event.addListener("cstudio-wcm-search-button", "click", searchCallback);
+		    YAHOO.util.Event.addListener("cstudio-wcm-search-sort-dropdown", "change", searchCallback);
+		}
+	});
 }
 
 CStudioSearch.checkIfNumeric = function() {
@@ -176,9 +180,9 @@ CStudioSearch.determineFilterRendererFromUrl = function() {
 	var paramContext = unescape(CStudioAuthoring.Utils.getQueryVariable(queryString, "context"));
 	var paramSearchId = unescape(CStudioAuthoring.Utils.getQueryVariable(queryString, "searchId"));
 
-	CStudioSearch.searchContext.contextName = paramContext;
+	CStudioSearch.searchContext.contextName = (paramContext=="") ? "default" :  paramContext;
 
-	var filterRenderer = CStudioSearch.filterRenderers[paramContext];
+	var filterRenderer = CStudioSearch.filterRenderers[CStudioSearch.searchContext.contextName];
 	
 	if(!filterRenderer) {
 		//CStudioSearch.searchContext.contextName = "default";
@@ -1064,6 +1068,110 @@ CStudioSearch.loadContentTypeMap = function() {
 		CStudioSearch.initializeSearchFilter();
 	}
 }
+
+CStudioSearch.loadFiltersAndResultTemplates = function(callback) {
+	var triggerOnCompleteCb = {
+		onCompleteCb: callback,
+		templatesFlag: false,
+		filtersFlag: false,
+
+		templatesComplete: function() {
+			this.templatesFlag = true;
+			if(this.templatesFlag == true && this.filtersFlag == true) {
+				this.onCompleteCb.success();
+			}
+		},
+
+		filtersComplete: function() {
+			this.filtersFlag = true;
+			if(this.templatesFlag == true && this.filtersFlag == true) {
+				this.onCompleteCb.success();
+			}
+		}
+	};
+
+	CStudioAuthoring.Service.lookupConfigurtion(
+		CStudioAuthoringContext.site, 
+		"/search/config.xml", {
+			success: function(config) {
+				this.context.loadFilters(config.filters.filter, triggerOnCompleteCb);
+				this.context.loadResultTemplates(config.resultTemplates.template, triggerOnCompleteCb);
+			},
+			
+			failure: function() {
+			},
+			
+			context: this
+	});		
+}
+
+CStudioSearch.loadFilters = function(filters, callback) {
+	var filterWaitList = [];
+	for(var i=0; i<filters.length; i++) {
+		filterWaitList[i] = "search-filter-"+filters[i].name;
+	}
+
+	var cb = {
+		moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
+			var i = this.filterWaitList.indexOf(moduleName);
+			if(i != -1) {
+				this.filterWaitList.splice(i, 1);
+			}
+
+			if(this.filterWaitList.length == 0) {
+				this.callback.filtersComplete();
+			}
+		},
+
+		filterWaitList: filterWaitList,
+		callback: callback,
+		context: this
+	};
+
+	for(var j=0; j<filters.length; j++) {
+	CStudioAuthoring.Module.requireModule(
+		"search-filter-"+filters[j].name,
+		'/static-assets/components/cstudio-search/filters/' + filters[j].name + ".js",
+		{ config: filters[j] },
+		cb);
+
+	}
+};
+
+
+CStudioSearch.loadResultTemplates = function(templates, callback) {
+	var templateWaitList = [];
+	for(var i=0; i<templates.length; i++) {
+		templateWaitList[i] = "search-result-"+templates[i].name;
+	}
+
+	var cb = {
+		moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
+			var i = this.templateWaitList.indexOf(moduleName);
+			if(i != -1) {
+				this.templateWaitList.splice(i, 1);
+			}
+
+			if(this.templateWaitList.length == 0) {
+				this.callback.templatesComplete();
+			}
+		},
+
+		templateWaitList: templateWaitList,
+		callback: callback,
+		context: this
+	};
+
+	for(var j=0; j<templates.length; j++) {
+	CStudioAuthoring.Module.requireModule(
+		"search-result-"+templates[j].name,
+		'/static-assets/components/cstudio-search/results/' + templates[j].name + ".js",
+		{ config: templates[j] },
+		cb);
+
+	}
+};
+
 
 CStudioSearch.getContentTypeName = function(ctype) {
 	if (CStudioAuthoring.Utils.isEmpty(ctype)) 

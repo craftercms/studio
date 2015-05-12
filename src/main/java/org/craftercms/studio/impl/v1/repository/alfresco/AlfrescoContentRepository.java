@@ -50,6 +50,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -331,6 +332,11 @@ implements SecurityProvider {
             CronJobContext cronJobContext = CronJobContext.getCurrent();
             if (cronJobContext != null) {
                 ticket = cronJobContext.getAuthenticationToken();
+            } else {
+                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+                if (repositoryEventContext != null) {
+                    ticket = repositoryEventContext.getAuthenticationToken();
+                }
             }
         }
 
@@ -963,8 +969,4 @@ implements SecurityProvider {
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
-
-    protected Reactor repositoryReactor;
 }

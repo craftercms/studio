@@ -23,3 +23,5 @@ CStudioSearch.FilterRenderer.JS = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["js"] = new CStudioSearch.FilterRenderer.JS();
+CStudioAuthoring.Module.moduleLoaded("search-filter-javascript", CStudioSearch.filterRenderers["js"]);
+
