@@ -47,6 +47,7 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
@@ -143,6 +144,61 @@ implements SecurityProvider {
      * @return the created version ID or null on failure
      */
     public String createVersion(String path, boolean majorVersion) {
+
+        try {
+            String nodeRef = getNodeRefForPathCMIS(path);
+            // add versionable aspect
+            int lastidx = nodeRef.lastIndexOf("/");
+            String nodeUUID = nodeRef.substring(lastidx + 1);
+            String requestBody = "{ \"added\":[\"cm:versionable\"], \"removed\":[] }";
+            InputStream bodyStream = IOUtils.toInputStream(requestBody);
+            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+
+            // set aspect properties
+            requestBody = "{ \"properties\" : { \"autoVersion\" : false, \"autoVersionOnUpdateProps\" : false }}";
+            bodyStream = IOUtils.toInputStream(requestBody);
+            result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+
+            if (majorVersion) {
+                // Upload new version
+                InputStream content = getContentStreamCMIS(path);
+                String contentType = "cm:content";
+                int splitIndex = path.lastIndexOf("/");
+                String name = path.substring(splitIndex + 1);
+                // find the target folder node by its path
+                String folderPath = path.substring(0, splitIndex);
+                String folderRef = getNodeRefForPathCMIS(folderPath);
+                if (folderRef == null) {
+                    // if not, create the folder first
+                    int folderSplitIndex = folderPath.lastIndexOf("/");
+                    String parentFolderPath = folderPath.substring(0, folderSplitIndex);
+                    String folderName = folderPath.substring(folderSplitIndex + 1);
+                    folderRef = this.createFolderInternal(parentFolderPath, folderName);
+                }
+                // TODO: might still need to check if the folderRef still exists
+
+                // add parameters
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("filename", name);
+                // if it's a new content, check if the folder exists
+                params.put("destination", folderRef);
+                if (nodeRef != null) {
+                    params.put("updateNodeRef", nodeRef);
+                }
+                //params.put("uploaddirectory", folderRef);
+                // TODO: add description for version update - do we need this?
+                params.put("contenttype", contentType);
+                params.put("majorversion", Boolean.toString(majorVersion));
+                params.put("overwrite", "true");
+                result = alfrescoMultipartPostRequest("/api/upload", params, content, "application/xml", "UTF-8");
+            }
+        } catch (ContentNotFoundException e) {
+            logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, e);
+        } catch (Exception e) {
+            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, e);
+        }
+        return "";
+        /*
         String versionLabel = null;
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -173,7 +229,7 @@ implements SecurityProvider {
                         session.removeObjectFromCache(alfDoc.getId());
                         alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
                     }*/
-
+/*
                     Property lockOwner = alfDoc.getProperty("cm:lockOwner");
                     Property lockType = alfDoc.getProperty("cm:lockType");
                     if (lockOwner != null && lockType != null) {
@@ -215,6 +271,7 @@ implements SecurityProvider {
             logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, err);
         }
         return versionLabel;
+        */
     }
 
     /** 
@@ -290,6 +347,48 @@ implements SecurityProvider {
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         int status = httpClient.executeMethod(postMethod);
 
+        return postMethod.getResponseBodyAsString();
+    }
+
+    /**
+     * create a multipart post request and fire to Alfresco
+     *
+     * @param uri
+     *          the target service URI
+     * @param params
+     *          request parameters
+     * @param body
+     *          post data
+     * @param bodyMimeType
+     *          post data mime type
+     * @param charSet
+     *          post data char set
+     * @return response body
+     * @throws Exception
+     */
+    protected String alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet) throws Exception {
+        String serviceURL = buildAlfrescoRequestURL(uri, new HashMap<String, String>(0));
+        PostMethod postMethod = new PostMethod(serviceURL);
+        // create multipart request parts
+        int partSize = params.size() + 1;
+        Part[] parts = new Part[partSize];
+        int index = 0;
+        for (String key : params.keySet()) {
+            parts[index] = new StringPart(key, params.get(key));
+            index++;
+        }
+        byte[] bytes = IOUtils.toByteArray(body);
+        String name = params.get("filename");
+        PartSource partSource = new ByteArrayPartSource(name, bytes);
+        parts[index] = new FilePart("filedata", partSource, bodyMimeType, charSet);
+
+        postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+
+        // connect to alfresco and get response
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        logger.debug("Executing multipart post request to " + uri);
+        int status = httpClient.executeMethod(postMethod);
+        logger.debug("Response status back from the server: " + status);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -884,6 +983,28 @@ implements SecurityProvider {
 
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        try {
+            String nodeRef = getNodeRefForPathCMIS(cleanPath);
+            // add lockable aspect
+            int lastidx = nodeRef.lastIndexOf("/");
+            String nodeUUID = nodeRef.substring(lastidx + 1);
+            String requestBody = "{ \"added\":[\"cm:lockable\"], \"removed\":[] }";
+            InputStream bodyStream = IOUtils.toInputStream(requestBody);
+            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+
+            // set aspect properties
+            requestBody = "{ \"properties\" : { \"lockOwner\" : " + getCurrentUser() + ", \"lockType\" : WRITE_LOCK }}";
+            bodyStream = IOUtils.toInputStream(requestBody);
+            result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+        } catch (ContentNotFoundException err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        } catch (Exception err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        }
+
+/*
+        String fullPath = expandRelativeSitePath(site, path);
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -893,7 +1014,7 @@ implements SecurityProvider {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             AlfrescoDocument document = (AlfrescoDocument)cmisObject;
             if (!document.hasAspect("P:cm:lockable")) {
-                document.addAspect("P:cm:lockable");
+                //document.addAspect("P:cm:lockable");
                 logger.debug("Added lockable aspect for content at path " + cleanPath);
             } else {
                 logger.debug("Already has lockable aspect for content at path " + cleanPath);
@@ -901,12 +1022,12 @@ implements SecurityProvider {
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put("cm:lockOwner", getCurrentUser());
             properties.put("cm:lockType", "WRITE_LOCK");
-            document.updateProperties(properties);
+            //document.updateProperties(properties);
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }
+        }*/
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
@@ -914,6 +1035,32 @@ implements SecurityProvider {
     }
 
     public void unLockItem(String site, String path) {
+        String fullPath = expandRelativeSitePath(site, path);
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        try {
+            /*
+            String nodeRef = getNodeRefForPathCMIS(cleanPath);
+            int lastidx = nodeRef.lastIndexOf("/");
+            String nodeUUID = nodeRef.substring(lastidx + 1);
+
+            // set aspect properties
+            String requestBody = "{ \"properties\" : { \"lockOwner\" : \"\", \"lockType\" : \"\"}}";
+            InputStream bodyStream = IOUtils.toInputStream(requestBody);
+            String result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+            */
+            String nodeRef = getNodeRefForPathCMIS(cleanPath);
+            // add lockable aspect
+            int lastidx = nodeRef.lastIndexOf("/");
+            String nodeUUID = nodeRef.substring(lastidx + 1);
+            String requestBody = "{ \"added\":[], \"removed\":[\"cm:lockable\"] }";
+            InputStream bodyStream = IOUtils.toInputStream(requestBody);
+            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+        } catch (ContentNotFoundException err) {
+            logger.error("Error while unlocking content at path " + cleanPath, err);
+        } catch (Exception err) {
+            logger.error("Error while unlocking content at path " + cleanPath, err);
+        }
+        /*
         String fullPath = expandRelativeSitePath(site, path);
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -927,7 +1074,7 @@ implements SecurityProvider {
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put("cm:lockOwner", null);
                 properties.put("cm:lockType", null);
-                document.updateProperties(properties);
+                //document.updateProperties(properties);
                 logger.debug("Removing lockable aspect for content at path " + cleanPath);
             } else {
                 logger.debug("Lockable aspect was already removed for content at path " + cleanPath);
@@ -936,7 +1083,7 @@ implements SecurityProvider {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }
+        }*/
     }
 
     @Override
