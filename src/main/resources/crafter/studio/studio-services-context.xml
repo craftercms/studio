@@ -800,6 +800,7 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
 </beans>
