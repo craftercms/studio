@@ -5,11 +5,7 @@
 
 
        <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
-              <jdbc:script location="classpath:crafter/studio/database/createDDL.sql" />
-       </jdbc:initialize-database>
-
-       <jdbc:initialize-database data-source="derbyDataSource" ignore-failures="ALL">
-              <jdbc:script location="classpath:crafter/studio/database/createDDL-derby.sql" />
+              <jdbc:script location="classpath:crafter/studio/database/createDDL-${studio.db.platform}.sql" />
        </jdbc:initialize-database>
 
        <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
@@ -32,13 +28,6 @@
        <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
               <property name="driverClassName" value="${studio.db.driver}"/>
               <property name="url" value="${studio.db.url}"/>
-              <property name="username" value="${studio.db.username}"/>
-              <property name="password" value="${studio.db.password}"/>
-       </bean>
-
-       <bean id="derbyDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-              <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-              <property name="url" value="jdbc:derby:${studio.db.derby.path};databaseName=${studio.db.name};create=true;user=${studio.db.username};password=${studio.db.password}"/>
               <property name="username" value="${studio.db.username}"/>
               <property name="password" value="${studio.db.password}"/>
        </bean>
