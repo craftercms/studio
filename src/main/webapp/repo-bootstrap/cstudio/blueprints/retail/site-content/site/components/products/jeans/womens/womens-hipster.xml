@@ -17,7 +17,7 @@
 	</item></collection>
 	<folder-name/>
 	<productTitle>Women's Hipster</productTitle>
-	<measurementDetails/>
+	<measurementDetails>123</measurementDetails>
 	<frontRise/>
 	<backRise/>
 	<inseam/>
@@ -30,7 +30,7 @@
 	<price_d>500.00</price_d>
 	<arrivalDate_dt>02/14/2013 05:00:00</arrivalDate_dt>
 	<createdDate>02/14/2013 03:20:45</createdDate>
-	<lastModifiedDate>02/14/2013 05:11:02</lastModifiedDate>
+	<lastModifiedDate>5/15/2014 3:2:53</lastModifiedDate>
 	<size>	<item>	<key>Womans 24</key>
 	<value>Womans 24</value>
 	</item>	<item>	<key>Womans 26</key>
@@ -39,4 +39,5 @@
 	<value>Womans 30</value>
 	</item></size>
 	<color>black</color>
+	<cpw/>
 </component>

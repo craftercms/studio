@@ -47,6 +47,13 @@
 	}
 	/* ]]> */
 </style>
+	<script>
+	  var setCookie = function(name, value) {
+	  	document.cookie = name + "=" + value + "; path=/;"; 
+	  	return false;
+	  }
+	</script>
+
 </head>
 <body>
 <div id="main-container" class="product-page">
@@ -85,10 +92,10 @@
 					<div  class="product-img mb20">
 					
 					<div id='MainImageRegion'>	
-						<img id='ContentPlaceHolder1_ProductImage' class="img-big"  onmouseover="javascript:window.status=&#39;&#39;;return true;" src="${product.frontImage?replace(".png", "-small.png")!''}"  data-zoomsrc=""/>
+						<img id='ContentPlaceHolder1_ProductImage' class="img-big"  onmouseover="javascript:window.status=&#39;&#39;;return true;" src="${product.frontImage!''}"  data-zoomsrc=""/>
 						</div>
 						
-						<img class="img-sml" src="${product.frontImage?replace(".png", "-small.png")!''}" />
+						<img class="img-sml" src="${product.frontImageThumb!''}" />
 						
 						<img class="img-sml" src="${product.backImage?replace(".png", "-small.png")!''}" />
 						
@@ -107,7 +114,7 @@
 				<div id="zoom"></div>
                     
 					<@ice componentPath=productPath/>
-					
+					<script>setCookie('lastViewedProduct', '${productPath}')</script>
 					<h2 class="amaranth mt0">${product.productTitle}</h2>
 					<div class="price mt5">${product.price_d?string.currency}</div>
 					
@@ -191,7 +198,7 @@
 				</div>
 			</div>
 			<div class="row-fluid">
-				<div class="span6">
+				<!--div class="span6">
 				
 					<div class="dark-box pad">
 						<h5>We also recommend</h5>
@@ -222,7 +229,7 @@
 					</div>
 				
 				</div>
-			</div>
+			</div-->
             
         </div>
     </div>

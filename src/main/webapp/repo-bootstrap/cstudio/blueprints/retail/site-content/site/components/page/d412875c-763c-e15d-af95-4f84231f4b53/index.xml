@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>d412</objectGroupId>
+	<objectId>d412875c-763c-e15d-af95-4f84231f4b53</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>d412875c-763c-e15d-af95-4f84231f4b53</folder-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/malewinter.jpeg</image>
+	<alttext>hiker</alttext>
+	<createdDate>10/04/2013 03:26:44</createdDate>
+	<lastModifiedDate>10/04/2013 03:26:44</lastModifiedDate>
+</component>

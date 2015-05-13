@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>23e9</objectGroupId>
+	<objectId>23e94454-8fec-814a-c911-97c2b94c3104</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>23e94454-8fec-814a-c911-97c2b94c3104</folder-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/7keys-thumb.png</image>
+	<alttext/>
+	<createdDate>10/22/2013 05:46:03</createdDate>
+	<lastModifiedDate>10/22/2013 05:46:03</lastModifiedDate>
+</component>
