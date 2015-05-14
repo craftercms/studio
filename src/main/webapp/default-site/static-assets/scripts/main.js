@@ -370,6 +370,7 @@
             function getBlueprints() {
                 sitesService.getAvailableBlueprints().success(function (data) {
                     $scope.blueprints = data;
+                    $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
                 }).error(function () {
                     $scope.blueprints = [];
                 });
