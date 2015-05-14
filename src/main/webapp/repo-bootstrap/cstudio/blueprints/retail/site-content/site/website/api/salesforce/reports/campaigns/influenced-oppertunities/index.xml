@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/article</content-type>	<display-template>/templates/web/salesforce/api/reports/campaigns/influenced-oppertunities.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e93b</objectGroupId>
+	<objectId>e93b691f-096a-bf72-7b32-dd36d1e2113e</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>policy</folder-name>
+	<internal-name>Policy</internal-name>
+	<title>Policy</title>
+	<author>policy</author>
+	<pageTitle/>
+	<description/>
+	<placeInNav>true</placeInNav>
+	<authorImage/>
+	<keywords/>
+	<body_html>&lt;p&gt;Policy&lt;/p&gt;</body_html>
+	<createdDate>12/10/2013 15:30:53</createdDate>
+	<lastModifiedDate>12/10/2013 15:30:53</lastModifiedDate>
+	<publishDate_dt>12/10/2013 05:00:00</publishDate_dt>
+</page>

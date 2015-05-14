@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/leadform</content-type>	<display-template>/templates/web/leadform.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>98a8</objectGroupId>
+	<objectId>98a8adf4-d430-5d84-35ed-ff07c14fee01</objectId>
+	<file-name>98a8adf4-d430-5d84-35ed-ff07c14fee01.xml</file-name>
+	<leadFormId>935955e1-04db-4f77-96a0-86c114b4f436</leadFormId>
+	<createdDate>10/24/2014 18:32:18</createdDate>
+	<lastModifiedDate>10/24/2014 21:8:1</lastModifiedDate>
+</component>

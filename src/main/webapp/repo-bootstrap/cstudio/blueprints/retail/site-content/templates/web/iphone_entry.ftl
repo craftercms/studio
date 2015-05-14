@@ -1,11 +1,19 @@
 <#include "/templates/system/common/cstudio-support.ftl" />
 <#include "/templates/web/navigation/navigation.ftl">
+<#import "/templates/system/common/craftercms-geo-lib.ftl" as crafter />
+
+<#assign ctao = RequestParameters["c1v1"]!"none">
+<#if ctao != "none">
+  <#assign ctao = "background-color:#0088CC; background-image:none;">
+<#else>
+  <#assign ctao = "">
+</#if>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Rosie's Rivet - Crafter Demo Site</title>
+    <title>Rosie Rivet - Crafter Rivet Demo Site</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Rivet Logic Corporation">
@@ -18,7 +26,6 @@
 
 </head>
 <body>
-
 <div id="main-container">
 
     <!-- #include "/templates/web/fragments/iphone_header.ftl"/ -->
@@ -32,22 +39,34 @@
 
                 <div style="position: relative; height: 355px; margin-top: 10px;">
 
-                <#assign query = searchService.createQuery()>
-                <#if profile??>
-                    <#assign season = profile.season!'none'>
-                <#else>
-                    <#assign season = 'none'>
-                </#if>
 
-                <#assign query = query.setQuery("content-type:/component/home-page-scenario AND (season.item.key:${season})^10 ") />
-                <#assign query = query.setQuery(queryStatement) />
+<#assign query = searchService.createQuery()>
+<#assign season = crafter.calculateSeason()/> 
 
-                <#assign query = query.setRows(1)>
-                <#assign scenario = searchService.search(query).response>
 
-                <#if scenario?? && (scenario.numFound > 0)>
+<#assign queryStatement = "crafterSite:"+siteName + " " />
+<#assign queryStatement = queryStatement + "AND content-type:/component/home-page-scenario " />
+<#assign queryStatement = queryStatement + "AND (season.item.key:\""+season+"\")^10 " />
 
-                    <#assign scenario = scenario.documents[0] />
+
+<#assign query = query.setQuery(queryStatement) />
+
+<#assign query = query.setRows(1)>
+<#assign results = searchService.search(query) />
+
+<#if results?? && results.response.documents[0]??>
+    <#assign scenario = searchService.search(query).response.documents[0]>
+</#if>
+
+
+
+
+
+
+
+
+
+                <#if scenario?? >
                     <#assign scenarioId = scenario.localId />
                 <#else>
                     <#assign scenarioId = "/site/components/home-page-scenarios/default.xml" />
@@ -61,19 +80,19 @@
                             <div class="box-caption">${scenarioItem.mobileMainTileText}</div>
                         <#if scenarioItem.mainTileCta1ButtonText??>
                             <div class="box-cts">
-                                <a href="${scenarioItem.mainTileCta1ButtonUrl}"><button id="btn-shop-women" class="btn btn-danger uppercase"
-                                        style="padding: 14px 15px; top: ${scenarioItem.mobileMainTileCta1ButtonTop}px; left: ${scenarioItem.mobileMainTileCta1ButtonLeft}%;">
+                                <button id="btn-shop-women" class="btn btn-danger uppercase"
+                                        style="padding: 14px 15px; top: ${scenarioItem.mobileMainTileCta1ButtonTop}px; left: ${scenarioItem.mobileMainTileCta1ButtonLeft}%; ${ctao}">
                                 ${scenarioItem.mainTileCta1ButtonText}
-                                </button></a>
+                                </button>
                             </div>
                         </#if>
 
                         <#if scenarioItem.mobileMainTileCta2ButtonText?? && scenarioItem.mobileMainTileCta2ButtonText !="">
                             <div class="box-cts">
-                                <a href="${scenarioItem.mainTileCta2ButtonUrl}"><button id="btn-shop-men" class="btn btn-danger uppercase"
-                                        style="padding: 14px 15px; position: relative; top: ${scenarioItem.mobileMainTileCta2ButtonTop}px; left: ${scenarioItem.mobileMainTileCta2ButtonLeft}%;">
+                                <button id="btn-shop-men" class="btn btn-danger uppercase"
+                                        style="padding: 14px 15px; position: relative; top: ${scenarioItem.mobileMainTileCta2ButtonTop}px; left: ${scenarioItem.mobileMainTileCta2ButtonLeft}%; ${ctao}">
                                 ${scenarioItem.mainTileCta2ButtonText}
-                                </button></a>
+                                </button>
                             </div>
                         </#if>
                         </div>

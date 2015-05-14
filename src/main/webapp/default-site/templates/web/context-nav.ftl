@@ -25,11 +25,11 @@
 
                 <a class="navbar-text navbar-right" href="/studio/logout" style="margin-left: 0">Log Out</a>
                 <div id="acn-persona" class="navbar-right"></div>
-                <form class="navbar-form navbar-right" role="search">
+                <div class="navbar-form navbar-right" role="search">
                     <div class="form-group">
                         <input type="text" class="form-control" id="acn-searchtext" value="" maxlength="256" />
                     </div>
-                </form>
+                </div>
                 <div id="acn-preview-tools" class="navbar-right"></div>
                 <div id="acn-ice-tools" class="navbar-right"></div>
 

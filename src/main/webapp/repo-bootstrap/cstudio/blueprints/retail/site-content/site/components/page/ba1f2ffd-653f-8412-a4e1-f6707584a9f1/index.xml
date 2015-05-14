@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>ba1f</objectGroupId>
+	<objectId>ba1f2ffd-653f-8412-a4e1-f6707584a9f1</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>ba1f2ffd-653f-8412-a4e1-f6707584a9f1</folder-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/cs3-gui-ice.png</image>
+	<alttext/>
+	<createdDate>10/10/2013 03:25:32</createdDate>
+	<lastModifiedDate>10/10/2013 03:25:32</lastModifiedDate>
+</component>

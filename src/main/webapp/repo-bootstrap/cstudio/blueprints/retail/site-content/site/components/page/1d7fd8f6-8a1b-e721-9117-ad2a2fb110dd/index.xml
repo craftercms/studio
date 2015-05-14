@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>1d7f</objectGroupId>
+	<objectId>1d7fd8f6-8a1b-e721-9117-ad2a2fb110dd</objectId>
+	<image>/static-assets/page/images/{groupid}/{objectid}/promo2.png</image>
+	<alttext/>
+	<file-name>index.xml</file-name>
+	<folder-name>1d7fd8f6-8a1b-e721-9117-ad2a2fb110dd</folder-name>
+	<createdDate>11/06/2013 07:15:49</createdDate>
+	<lastModifiedDate>11/06/2013 07:15:49</lastModifiedDate>
+</component>
