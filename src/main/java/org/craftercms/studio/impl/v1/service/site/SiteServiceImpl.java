@@ -604,7 +604,19 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[2];
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("/cstudio/blueprints");
+		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
+		int idx = 0;
+		for (RepositoryItem folder : blueprintsFolders) {
+			SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
+			blueprintTO.id = folder.name;
+			blueprintTO.label = StringUtils.capitalize(folder.name);
+			blueprintTO.description = ""; // How do we populate this dynamicly
+			blueprintTO.screenshots = null;
+			blueprints[idx++] = blueprintTO;
+		}
+
+		/*
 
 		blueprints[0] = new SiteBlueprintTO();
 		blueprints[0].id = "empty";
@@ -617,7 +629,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		blueprints[1].label = "Corporate Brochure Site";
 		blueprints[1].description = "Blueprint is a example corporate brochureware site.";
 		blueprints[1].screenshots = new String[] { "entry.jpg", "section.jpg", "contact.jpg" };
-		
+		*/
 		return blueprints;
 	}
 
