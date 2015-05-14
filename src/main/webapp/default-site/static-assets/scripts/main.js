@@ -266,6 +266,10 @@
                 });
             };
 
+            this.getAvailableBlueprints = function() {
+                return $http.get(api('get-available-blueprints'));
+            };
+
             function api(action) {
                 return Constants.SERVICE + 'site/' + action + '.json';
             }
@@ -362,11 +366,17 @@
         '$scope', '$state', 'sitesService', '$timeout', '$window',
         function ($scope, $state, sitesService,$timeout, $window) {
 
-            $scope.blueprints = [
-                {id:'empty',label:'Empty'},
-                {id:'corporate',label:'Corporate'}
-            ];
+            $scope.blueprints = [];
+            function getBlueprints() {
+                sitesService.getAvailableBlueprints().success(function (data) {
+                    $scope.blueprints = data;
+                    $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
+                }).error(function () {
+                    $scope.blueprints = [];
+                });
+            };
 
+            getBlueprints();
             // View models
             $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
 
