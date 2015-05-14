@@ -1,6 +1,6 @@
     <footer>
     
-        <p class="mobile-hide">&copy; Rivet Logic Corporation 2012</p>
+        <p class="mobile-hide">&copy; Rosie's Rivets | Jeans and Jackets</p>
 
         
     </footer>

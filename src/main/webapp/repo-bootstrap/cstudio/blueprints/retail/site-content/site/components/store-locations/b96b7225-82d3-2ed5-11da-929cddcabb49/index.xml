@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/store-location</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>b96b</objectGroupId>
+	<objectId>b96b7225-82d3-2ed5-11da-929cddcabb49</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>b96b7225-82d3-2ed5-11da-929cddcabb49</folder-name>
+	<internal-name>New York City</internal-name>
+	<storeName>New York City</storeName>
+	<storeFrontImage>/static-assets/images/stores/store_thumbnail_4090ff9c23a04b766ec6408824f767e3.jpg</storeFrontImage>
+	<address>New York, NY</address>
+	<geo_p>40.7143528,-74.0059731</geo_p>
+	<createdDate>11/21/2013 08:17:43</createdDate>
+	<lastModifiedDate>11/21/2013 08:17:43</lastModifiedDate>
+</component>

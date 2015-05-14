@@ -5,7 +5,7 @@
 <head>
 
     <meta charset="utf-8">
-    <title>Rosie's Rivets - Crafter Demo Site</title>
+    <title>Rosie Rivet - Crafter Rivet Demo Site</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Rivet Logic Corporation">

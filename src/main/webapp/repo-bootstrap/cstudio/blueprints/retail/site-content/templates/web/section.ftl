@@ -1,20 +1,35 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
+<#import "/templates/system/common/cstudio-support.ftl" as studio/>
 <#include "/templates/web/navigation/navigation.ftl">
+<#include "/templates/web/google-map.ftl" />
+
+<#macro simpleDragDrop componentList name>
+	<@studio.componentZone id="${name}">
+		<#if componentList?? && componentList.item??>
+			<#list componentList.item as module>
+				<@studio.draggableComponent component=module >
+					<@studio.renderComponent component=module />
+				</@studio.draggableComponent>
+			</#list>
+		</#if>
+	</@studio.componentZone>
+</#macro>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Rosie Rivet - Crafter Rivet Demo Site</title>
+    <title>Rosie Rivet - Crafter Demo Site</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
-    <meta name="author" content="Rivet Logic Corporation">
+    <meta name="author" content="Crafter Software">
 
     <link href="/static-assets/css/main.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
+    <@googleMapSupport />
 </head>
 <body>
 
@@ -40,61 +55,20 @@
             
         </div>
         <div class="span9" id="content">
-            
-            <div class="relative mb10" id="landing-banner">
-	            
-	            <a href="/womens/jeans/skinny"><button class="btn btn-danger uppercase" id="btn-shop-women">
-	            	Skinny Collection
-	            </button></a>
-	            
-            </div>
-            
-            <div class="desktop-hide tac">
-	            
-	            <button class="btn btn-danger uppercase">
-	            	Shop Womens
-	            </button>
-	            
-	            <button class="btn btn-danger uppercase">
-	            	Shop Mens
-	            </button>
-	            
-            </div>
-            
-            <div class="row-fluid adverts mobile-hide">
+          
+            <@simpleDragDrop model.area1 "area1" />
+            <br/>
+
+           <div class="row-fluid adverts mobile-hide">
 			<div class="span4 mb10">
-				<@componentZone id="bottomPromos1">
-					<#if model.bottomPromos1?? && model.bottomPromos1.item??>
-	       				<#list model.bottomPromos1.item as module>
-	        				    <@draggableComponent component=module  >
-		        					<@renderComponent component=module />
-		        				</@draggableComponent>
-	       				</#list>
-	       			</#if>
-				</@componentZone>
+				<@simpleDragDrop model.bottomPromos1 "bottomPromos1" />
 			</div>
 			<div class="span4 mb10">
-				<@componentZone id="bottomPromos2">
-					<#if model.bottomPromos2?? && model.bottomPromos2.item??>
-	       				<#list model.bottomPromos2.item as module>
-	        				    <@draggableComponent component=module  >
-		        					<@renderComponent component=module />
-		        				</@draggableComponent>
-	       				</#list>
-	       			</#if>
-				</@componentZone>
+					<@simpleDragDrop model.bottomPromos2 "bottomPromos2" />
 				</div>
 				<div class="span4 mb10">
             
-				<@componentZone id="bottomPromos3">
-					<#if model.bottomPromos3?? && model.bottomPromos3.item??>
-	       				<#list model.bottomPromos3.item as module>
-	        				    <@draggableComponent component=module  >
-		        					<@renderComponent component=module />
-		        				</@draggableComponent>
-	       				</#list>
-	       			</#if>
-				</@componentZone>
+				<@simpleDragDrop model.bottomPromos3 "bottomPromos3" />
             </div>            
             </div>
             
@@ -114,7 +88,7 @@
 <script src="/static-assets/js/jquery.min.js"></script>
 <script src="/static-assets/js/bootstrap.min.js"></script>
 <script src="/static-assets/js/main.js"></script>
-<@cstudioOverlaySupport/>
+<@studio.toolSupport />
 </body>
 </html>
 

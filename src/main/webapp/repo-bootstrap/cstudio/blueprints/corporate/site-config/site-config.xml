@@ -1,7 +1,7 @@
 <!-- Example site configuration -->
 <site-config>
-    <wem-project>global1</wem-project>
-    <name>global1</name>
+    <wem-project>SITENAME</wem-project>
+    <name>SITENAME</name>
     <display-name>Global Integrity</display-name>
     <default-timezone>EST5EDT</default-timezone>
     <default-content-type/>

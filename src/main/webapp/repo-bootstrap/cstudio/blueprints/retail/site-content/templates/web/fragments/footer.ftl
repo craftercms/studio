@@ -1,6 +1,6 @@
     <footer>
     
-        <p class="mobile-hide">&copy; Rivet Logic Corporation 2012</p>
+        <p class="mobile-hide">Rosie's Rivets | Jeans and Jackets   |  <a href="/static-assets/documents/Return%20Policy.pdf">Return Policy</a></p>
         
     	<ul class="nav share desktop-hide">
     		<li class="pull-left">

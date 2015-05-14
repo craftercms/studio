@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-	<content-type>/component/home-page-scenario</content-type>
+	<content-type>/component/home-page-scenario</content-type>	<content-type>/component/home-page-scenario</content-type>
 	<display-template/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<content-type>/component/home-page-scenario</content-type>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>5ca5</objectGroupId>
 	<objectId>5ca5b3a1-f6de-9d54-094e-a13f787dbdc2</objectId>
@@ -53,7 +51,7 @@
 	<mainTileText>Relaxed</mainTileText>
 	<mainTileHeight>333</mainTileHeight>
 	<mainTileWidth>500</mainTileWidth>
-	<mainTileCta1ButtonText>Shop Womans</mainTileCta1ButtonText>
+	<mainTileCta1ButtonText>Shop Womens</mainTileCta1ButtonText>
 	<mainTileCta1ButtonUrl>/womens</mainTileCta1ButtonUrl>
 	<mainTileCta2ButtonText>Shop Mens</mainTileCta2ButtonText>
 	<mainTileCta2ButtonUrl>/mens</mainTileCta2ButtonUrl>
@@ -102,4 +100,6 @@
 	<folder-name/>
 	<mobileMainTileCta1ButtonUrl/>
 	<mobileMainTileCta2ButtonUrl/>
+	<createdDate>06/14/2013 01:35:37</createdDate>
+	<lastModifiedDate>2/10/2015 22:34:12</lastModifiedDate>
 </component>
