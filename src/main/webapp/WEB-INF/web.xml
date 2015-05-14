@@ -30,6 +30,11 @@
         <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
     </listener>
 
+    <listener>
+        <listener-class>org.craftercms.studio.impl.v1.db.EmbededDbContextListener</listener-class>
+    </listener>
+
+
     <filter>
         <filter-name>crafter.requestContextBindingFilter</filter-name>
         <filter-class>org.craftercms.commons.http.RequestContextBindingFilter</filter-class>

@@ -256,8 +256,13 @@
             };
 
             this.create = function (site) {
-                return $http.get(api('create-site'), {
-                    params: site
+                return $http.post(api('create-site'),site);
+            };
+
+            this.removeSite = function(site) {
+                console.log(site.siteId);
+                return $http.post(api('delete-site'), {
+                    siteId: site.siteId
                 });
             };
 
@@ -322,7 +327,9 @@
 
             $scope.goToDashboard = sitesService.goToDashboard;
 
+
             function getSites () {
+                console.log("getsites");
                 sitesService.getSites()
                     .success(function (data) {
                         $scope.sites = data;
@@ -334,12 +341,26 @@
 
             getSites();
 
+            $scope.removeSiteSites = function (site){
+                sitesService.removeSite(site)
+                    .success(function (data) {
+                        getSites();
+                    })
+                    .error(function () {
+                        $scope.sites = null;
+                    });
+
+
+            }
+
         }
+
+
     ]);
 
     app.controller('SiteCtrl', [
-        '$scope', '$state', 'sitesService',
-        function ($scope, $state, sitesService) {
+        '$scope', '$state', 'sitesService', '$timeout', '$window',
+        function ($scope, $state, sitesService,$timeout, $window) {
 
             $scope.blueprints = [
                 {id:'empty',label:'Empty'},
@@ -347,15 +368,23 @@
             ];
 
             // View models
-            $scope.site = { siteId: Date.now(), siteName: '', description: '', blueprint: $scope.blueprints[0] };
+            $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
 
             // View methods
-            $scope.editSite = sitesService.editSite;
             $scope.percent = percent;
             $scope.select = select;
             $scope.create = create;
+            $scope.setSiteId = setSiteId;
 
             $scope.$watch('sites', getSite);
+
+            function setSiteId() {
+                if ($scope.site.siteName != undefined){
+                    $scope.site.siteId = $scope.site.siteName.replace(/\s+/g, '');
+                }else{
+                    $scope.site.siteId = '';
+                }
+            }
 
             function percent(data) {
                 (!data) && (data = {});
@@ -380,12 +409,12 @@
                          l = sites.length;
                      i < l;
                      site = sites[++i]) {
-                    if ((site.id+'') === (siteId+'')) {
+                    if ((site.id + '') === (siteId + '')) {
                         $scope.site = site;
                         break;
                     }
-                }
 
+                }
             }
 
             function create() {
@@ -394,7 +423,10 @@
                     siteName: $scope.site.siteName,
                     blueprintName: $scope.site.blueprint.id,
                     description: $scope.site.description
+                }).success(function (data) {
+                    sitesService.editSite($scope.site);
                 });
+
             }
 
         }

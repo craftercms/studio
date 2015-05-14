@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
@@ -338,7 +339,7 @@ public class PublishingManagerImpl implements PublishingManager {
             objectStateService.setSystemProcessing(item.getSite(), item.getPath(), true);
             if (isLive) {
                 if (!importModeEnabled) {
-                    //contentRepository.createNewVersion(item.getSite(), item.getPath(), item.getSubmissionComment(), true);
+                    contentRepository.createVersion(contentService.expandRelativeSitePath(item.getSite(), item.getPath()), true);
                 } else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", item.getPath(), item.getSite());
                 }
@@ -351,7 +352,6 @@ public class PublishingManagerImpl implements PublishingManager {
                     }
                 }
             }
-            //contentRepository.copyToEnvironment(item.getSite(), item.getEnvironment(), item.getPath());
             LOGGER.debug("Getting deployer for environment store.");
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             deployer.deployFile(item.getSite(), item.getPath());
@@ -496,6 +496,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public DeployerFactory getDeployerFactory() { return deployerFactory; }
     public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
 
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -505,6 +508,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DeploymentService deploymentService;
     protected String environmentsStoreRootPath;
     protected DeployerFactory deployerFactory;
+    protected ContentRepository contentRepository;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

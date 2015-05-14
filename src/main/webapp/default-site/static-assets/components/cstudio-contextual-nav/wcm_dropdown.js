@@ -224,7 +224,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
 						this.setVisible(true);
 					}
 
-					this.setVisible(CStudioAuthoringContext.openSiteDropdown);
+					//this.setVisible(CStudioAuthoringContext.openSiteDropdown);
 
 					return this;
 				},
@@ -286,7 +286,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                             animator.slideOut();
                         }
 						cfg.visible = visible;
-						YEvent[visible ? "addListener" : "removeListener"](window, 'click', auth.ContextualNav.WcmSiteDropdown.windowClickCloseFn, null, this);
+						//YEvent[visible ? "addListener" : "removeListener"](window, 'click', auth.ContextualNav.WcmSiteDropdown.windowClickCloseFn, null, this);
 						this.save();
 					}
 

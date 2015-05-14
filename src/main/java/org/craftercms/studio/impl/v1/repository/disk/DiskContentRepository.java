@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import java.io.File;
@@ -112,7 +114,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
         
         try {
-            Files.createDirectories(constructRepoPath(path,name));
+            Files.createDirectories(constructRepoPath(path, name));
         }
         catch(Exception err) {
             // log this error
@@ -128,8 +130,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
         
         try {
-            //DeleteOption options[] = { StandardDeleteOption.DELETE_NON_EMPTY };
-            Files.delete(constructRepoPath(path));//, options);
+            FileUtils.deleteDirectory(constructRepoPath(path).toFile());
         }
         catch(Exception err) {
             // log this error
@@ -186,31 +187,34 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         try {
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-
-            Files.walkFileTree(constructRepoPath(path), opts, 1, new SimpleFileVisitor<Path>() { 
+            final String finalPath = path;
+            Files.walkFileTree(constructRepoPath(finalPath), opts, 1, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
-                throws IOException {
+                        throws IOException {
 
                     RepositoryItem item = new RepositoryItem();
                     item.name = visitPath.toFile().getName();
 
 
-                    String visitFolderPath = visitPath.toString().replace("/index.xml", "");
+                    String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
                     //Path visitFolder = constructRepoPath(visitFolderPath);
                     item.isFolder = (item.name.indexOf(".") == -1); // lies Files.isDirectory(visitFolder);
-
-                    item.path = visitFolderPath.replace("/"+item.name, "");
+                    int lastIdx = visitFolderPath.lastIndexOf("/"+item.name);
+                    if (lastIdx > 0) {
+                        item.path = visitFolderPath.substring(0, lastIdx);
+                    }
+                    //item.path = visitFolderPath.replace("/" + item.name, "");
                     item.path = item.path.replace(getRootPath(), "");
                     item.path = item.path.replace("/.xml", "");
 
-                    if(!".DS_Store".equals(item.name)){
+                    if (!".DS_Store".equals(item.name)) {
                         logger.info("ITEM NAME: " + item.name);
                         logger.info("ITEM PATH: " + item.path);
-                        logger.info("ITEM FOLDER: ("+visitFolderPath+"): " + item.isFolder);
+                        logger.info("ITEM FOLDER: (" + visitFolderPath + "): " + item.isFolder);
                         retItems.add(item);
                     }
-                    
+
                     return FileVisitResult.CONTINUE;
                 }
             });

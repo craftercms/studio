@@ -97,4 +97,6 @@ public interface ObjectStateService {
 /*
     public boolean isInWorkflow(NodeRef nodeRef);
     */
+
+    void deleteObjectStatesForSite(String site);
 }

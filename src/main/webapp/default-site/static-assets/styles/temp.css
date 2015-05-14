@@ -2646,7 +2646,7 @@ div#acn-active-content {
 .acn-dropdown-wrapper .acn-dropdown-menu {
   padding: 15px 20px;
   overflow-y: scroll;
-  overflow-x: hidden;
+  overflow-x: scroll;
   text-align: left;
   top: 0;
   left: 0;
@@ -5297,6 +5297,16 @@ ol {
     display: inline-block;
     padding-left: 5px;
     padding-right: 5px; }
+      .site-dashboard .panel .panel-heading .widget-controls > li#loading-MyRecentActivity, #loading-GoLiveQueue, #loading-approvedScheduledItems,#loading-recentlyMadeLive{
+        position: absolute;
+        left: 47%;
+        top: 238px;
+      }
+      @media (max-width: 768px) {
+        .site-dashboard .panel .panel-heading .widget-controls > li#loading-MyRecentActivity, #loading-GoLiveQueue, #loading-approvedScheduledItems,#loading-recentlyMadeLive{
+          top: 294px;
+        }
+      }
 
 dl {
   margin-top: 0;
@@ -14254,8 +14264,8 @@ body.masked {
 
 .studio-preview {
   top: 50px;
-  transition: padding .5s, transform .5s; }
-  .studio-preview, .studio-preview iframe {
+  transition: padding .5s, transform .5s;}
+  .studio-preview/*, .studio-preview iframe */{
     left: 0;
     right: 0;
     bottom: 0;
@@ -14267,7 +14277,11 @@ body.masked {
   .studio-preview iframe {
     top: 0;
     border: 0;
-    height: 100%; }
+    height: 100%;
+    width: 100%}
+.site-dropdown-open .studio-preview {
+  padding-left: 265px;
+}
 
 .navbar .navbar-brand {
   padding: 2px 15px; }

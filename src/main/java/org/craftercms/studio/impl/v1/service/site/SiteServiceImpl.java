@@ -19,17 +19,28 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
@@ -39,10 +50,13 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import reactor.core.Reactor;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Note: consider renaming
@@ -405,7 +419,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         List<SiteFeed> sites = siteFeedMapper.getSites();
         Set<String> toRet = new HashSet<>();
         for (SiteFeed site : sites) {
-            toRet.add(site.getName());
+            toRet.add(site.getSiteId());
         }
         return toRet;
     }
@@ -424,28 +438,64 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
  		boolean success = true;
  		try {
- 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
-	 			"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
+			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
 
 	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
  			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
 	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
 	 			siteConfigFolder);
 
-	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_ID", siteId);
-	 		replaceFileContent(siteConfigFolder+"/site.xml", "SITE_NAME", siteName);
+
+ 	// contentRepository.createFolder("/wem-projects/" + siteId + "/" + siteId, "work-area");
+    //         RepositoryItem[] blueprintContent = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-content");
+    //         for (RepositoryItem item : blueprintContent) {
+    //             contentRepository.copyContent(item.path + "/" + item.name,
+    //                     "/wem-projects/" + siteId + "/" + siteId + "/work-area");
+    //         }
+
+	 // String siteConfigFolder = "/cstudio/config/sites/" + siteId;
+ 	// contentRepository.createFolder("/cstudio/config/sites/", siteId);
+    //         RepositoryItem[] blueprintConfig = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-config");
+    //         for (RepositoryItem item : blueprintConfig) {
+    //             contentRepository.copyContent(item.path + "/"+ item.name, siteConfigFolder);
+    //         }
+
+			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITE_ID", siteId);
+	 		replaceFileContent(siteConfigFolder+"/site-config.xml", "SITE_NAME", siteName);
 	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
 	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
-	 		
+
+			// Add user groups
+			securityService.addUserGroup("crafter_" + siteId);
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
+			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
+
+			// Set object states
+			createObjectStatesforNewSite(siteId);
+
+			// Extract dependencies
+			extractDependenciesForNewSite(siteId);
+
+			// Extract metadata ?
+
 	 		// permissions
 	 		// environment overrides
 	 		// deployment
 
 	 		// insert database records
+			SiteFeed siteFeed = new SiteFeed();
+			siteFeed.setName(siteName);
+			siteFeed.setSiteId(siteId);
+			siteFeed.setDescription(desc);
+			siteFeedMapper.createSite(siteFeed);
+            deploymentService.syncAllContentToPreview(siteId);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
+            logger.error("Error while creating site", err);
 	 	}
 
 	 	return success;
@@ -453,23 +503,112 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
     	InputStream content = contentRepository.getContent(path);
-    	String contentAsString = "";
+    	String contentAsString = IOUtils.toString(content);
 
     	contentAsString = contentAsString.replaceAll(find, replace);
 
-    	InputStream contentToWrite = null;
+    	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
 		contentRepository.writeContent(path, contentToWrite);    	
     }
 
-   	@Override
+	protected void createObjectStatesforNewSite(String site) {
+		createObjectStateNewSiteObjectFolder(site, contentService.expandRelativeSitePath(site, "/"));
+	}
+
+	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
+		RepositoryItem[] children = contentRepository.getContentChildren(path);
+		for (RepositoryItem child : children) {
+			if (child.isFolder) {
+				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
+			} else {
+				objectStateService.insertNewEntry(site, child.path + "/" + child.name);
+			}
+		}
+	}
+
+	protected void extractDependenciesForNewSite(String site) {
+		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
+		Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+		for (ContentItemTO child : root.getChildren()) {
+			try {
+				extractDependenciesItemForNewSite(site, child, globalDeps);
+			} catch (Exception e) {
+				logger.error("Failed to extract dependencies for site child: "+child.uri, e);
+			}
+		}
+	}
+
+	protected void extractDependenciesItemForNewSite(String site, ContentItemTO item, Map<String, Set<String>> globalDeps) {
+		if (item.isFolder()) {
+			item = contentService.getContentItemTree(site, item.getUri(), 1);
+			for (ContentItemTO child : item.getChildren()) {
+				try {
+					extractDependenciesItemForNewSite(site, child, globalDeps);
+				} catch (Exception e) {
+					logger.error("Failed to extract dependencies for site child: "+child.uri, e);
+				}
+			}
+		} else {
+			String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
+			DmPathTO dmPathTO = new DmPathTO(fullPath);
+			String relativePath = dmPathTO.getRelativePath();
+			if (fullPath.endsWith(DmConstants.XML_PATTERN)) {
+				try {
+					Document doc = contentService.getContentAsDocument(fullPath);
+					dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
+				} catch (ContentNotFoundException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				} catch (ServiceException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				} catch (DocumentException e) {
+					logger.error("Failed to extract dependencies for document: " + fullPath, e);
+				}
+			} else {
+
+				boolean isCss = fullPath.endsWith(DmConstants.CSS_PATTERN);
+				boolean isJs = fullPath.endsWith(DmConstants.JS_PATTERN);
+				List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
+				boolean isTemplate = false;
+				for (String templatePattern : templatePatterns) {
+					Pattern pattern = Pattern.compile(templatePattern);
+					Matcher matcher = pattern.matcher(relativePath);
+					if (matcher.matches()) {
+						isTemplate = true;
+						break;
+					}
+				}
+				try {
+					if (isCss || isJs || isTemplate) {
+						StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+						if (isCss) {
+							dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
+						} else if (isJs) {
+							dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
+						} else if (isTemplate) {
+							dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
+						}
+					}
+				} catch (ServiceException e) {
+					logger.error("Failed to extract dependencies for: " + fullPath, e);
+				}
+			}
+		}
+	}
+	@Override
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
  		try {
  			contentRepository.deleteContent("/wem-projects/"+siteId);
- 			contentRepository.deleteContent("/cstudio/config/sites/"+siteId);	 
+ 			contentRepository.deleteContent("/cstudio/config/sites/" + siteId);
 
 	 		// delete database records
+			siteFeedMapper.deleteSite(siteId);
+			activityService.deleteActivitiesForSite(siteId);
+			dmDependencyService.deleteDependenciesForSite(siteId);
+            deploymentService.deleteDeploymentDataForSite(siteId);
+            objectStateService.deleteObjectStatesForSite(siteId);
+            dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -526,7 +665,34 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	public String getEnvironmentConfigPath() { return environmentConfigPath; }
 	public void setEnvironmentConfigPath(String environmentConfigPath) { this.environmentConfigPath = environmentConfigPath; }
 
-	protected SiteServiceDAL _siteServiceDAL;
+	public ContentRepository getContenetRepository() { return contentRepository; }
+	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
+
+	public ObjectStateService getObjectStateService() { return objectStateService; }
+	public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
+	public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+	public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+
+	public SecurityService getSecurityService() { return securityService; }
+	public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+	public ActivityService getActivityService() { return activityService; }
+	public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
+
+	public DeploymentService getDeploymentService() { return deploymentService; }
+	public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
+    public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
+
+    public Reactor getRepositoryRector() { return repositoryRector; }
+    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
+
+    protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
 	protected String sitesConfigPath;
@@ -535,10 +701,16 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
 	protected String configRoot = null;
 	protected String environmentConfigPath = null;
-
 	protected ContentRepository contentRepository;
-	public ContentRepository getContenetRepository() { return contentRepository; }
-	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
+	protected ObjectStateService objectStateService;
+	protected DmDependencyService dmDependencyService;
+	protected SecurityService securityService;
+	protected ActivityService activityService;
+	protected DeploymentService deploymentService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected Reactor repositoryRector;
+
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 

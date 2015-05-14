@@ -1,10 +1,9 @@
 
-
 <header class="navbar mb10">
     <div class="navbar-inner navbar-inverse">
         <div class="container relative">
         
-            <a class="brand text-off" href="/">Rosie Rivets Jeans</a>
+            <a  <@studio.iceAttr iceGroup="logo"/> class="brand text-off" href="/">Rosie Rivets Jeans</a>
 
             <div class="uppercase mobile-hide">
                 <ul class="nav background">
@@ -36,7 +35,8 @@
                             	<a href="#us">
                             		<span class="flag flag-us" lang="en"></span>
                             		United States
-                            	</a>
+                            	</a><br/>
+                               
                             </li>
                         </ul>
                     </li>
@@ -66,7 +66,7 @@
             			</a>
             		</li>
             	</ul>
-            	
+            	<br/>  
             </div>
             <!--/.nav-collapse -->
             
@@ -74,7 +74,7 @@
         		<a href="#">home</a> / <a href="#">shopping cart</a>
         	</div>
         	
-            <@ice id="headerTitle"/><h1 class="amaranth pull-left page-title">${model.headerTitle!""}</h1>
+            <h1 class="amaranth pull-left page-title">${model.headerTitle!""}</h1>
             
         </div>
     </div>

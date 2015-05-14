@@ -52,4 +52,14 @@ public class TestSecurityProvider implements SecurityProvider {
     public String authenticate(String username, String password) {
     	return "FAKETICKET";
     }
+
+    @Override
+    public void addUserGroup(String groupName) {
+
+    }
+
+    @Override
+    public void addUserGroup(String parentGroup, String groupName) {
+
+    }
 }

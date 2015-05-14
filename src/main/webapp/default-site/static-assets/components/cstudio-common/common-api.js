@@ -1079,20 +1079,18 @@ var YEvent = YAHOO.util.Event;
                 if(!auxParams) {
                     auxParams = [];
                 }
-                CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, {
-                    success: function(contentType) {
-                        if(contentType.formPath == "simple") {
-                            // use the simple form server
-                            CStudioAuthoring.Operations.openContentWebFormSimpleEngine(contentType, path, edit, readOnly, callback, auxParams,includeMetaData);
-                        }
-                        else {
-                            // use the legacy form server
-                            CStudioAuthoring.Operations.openContentWebFormLegacyFormServer(formId, id, noderef, path, edit, asPopup, callback, readOnly,auxParams,includeMetaData);
-                        }
+
+                var getContentItemsCb = {
+                    success: function (contentTO) {
+                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
                     },
-                    failure: function() {
+
+                    failure: function () {
+                        callback.failure();
                     }
-                });
+                };
+
+                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
             },
 
             /**
@@ -2040,6 +2038,7 @@ var YEvent = YAHOO.util.Event;
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
+            retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
             
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
 
@@ -2051,6 +2050,9 @@ var YEvent = YAHOO.util.Event;
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
             getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
+
+            // Preview Services
+            previewSyncAllServiceUrl: "/api/1/services/api/1/preview/sync-site.json",
 
             // Activity Services
             getUserActivitiesServiceUrl: "/api/1/services/api/1/activity/get-user-activities.json",
@@ -2100,7 +2102,6 @@ var YEvent = YAHOO.util.Event;
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
             // allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-            // retrieveSitesUrl: "/proxy/alfresco/api/sites",
             // getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
             // updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
             // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
@@ -3266,7 +3267,7 @@ var YEvent = YAHOO.util.Event;
              */
             retrieveSitesList: function(callback) {
                 var retSites = null;
-                var serviceUrl = "/api/1/user/get-sites-3.json";
+                var serviceUrl = this.retrieveSitesUrl;
 
                 var serviceCallback = {
                     success : function(response) {
@@ -3275,7 +3276,7 @@ var YEvent = YAHOO.util.Event;
 
                         if(sitesModel.length) {
                             for(var i=0; i<sitesModel.length; i++) {
-                                menuModel.push({label: sitesModel[i].title, shortName: sitesModel[i].shortName, link: "/site-dashboard?site="+ sitesModel[i].shortName});
+                                menuModel.push({name: sitesModel[i].name, siteId: sitesModel[i].siteId, link: "/preview#/?page=/&site="+ sitesModel[i].shortId});
                             }
                         }
 
@@ -6759,27 +6760,7 @@ CStudioAuthoring.InContextEdit = {
              success: function(config){
 
                 function authRedirect(authConfig) {
-                    var redirectStr, redirectUrl,
-                        placeholder = '{currentUrl}';
-
-                    if (YAHOO.lang.isObject(authConfig)) {
-                        redirectStr = typeof authConfig.ticketExpireRedirectUrl == 'string' ?
-                            authConfig.ticketExpireRedirectUrl : '';
-
-                        if (redirectStr) {
-                            // Redirect to the authentication url specified in config
-                            redirectUrl = redirectStr.replace(placeholder, window.location.href);
-                            window.location.assign(redirectUrl);
-                        } else {
-                            // If authConfig's redirectUrl value is undefined, then 
-                            // use login authentication
-                            location.reload();
-                        }
-                    } else {
-                        // If authConfig is not an object or it's null, then 
-                        // use login authentication
-                        location.reload();
-                    }
+                       location = "/studio#/login";
                 }
 
                 function authLoop(configObj) {
@@ -6788,31 +6769,33 @@ CStudioAuthoring.InContextEdit = {
                         serviceCallback,
                         delay = 60000;  // poll once every minute
 
-                    if (document.hasFocus()) {
+                    //if (document.hasFocus()) {
                         serviceUri = CStudioAuthoring.Service.verifyAuthTicketUrl;
 
                         serviceCallback = {
                             success: function(response) {
                                 var resObj = response.responseText
-
-                                if (resObj.indexOf("true" != -1)) {
+ 
+                                if (resObj.indexOf("true") != -1) {
                                     setTimeout(function() { authLoop(configObj); }, delay);
-                                } else {
+                                } 
+                                else {
                                     // Ticket is invalid
                                     authRedirect(configObj);
                                 }
                             },
                             failure: function(response) {
-                                throw new Error('Unable to read session ticket');
+                                authRedirect(configObj);
+                                //throw new Error('Unable to read session ticket');
                             }
                         };
 
                         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-                    } else {
+                    //} else {
                         setTimeout(function() {
                             authLoop(configObj);
                         }, delay);
-                    }
+                    //}
                 }
 
                 // Start the authentication loop

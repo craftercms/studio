@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cae1</objectGroupId>
+	<objectId>cae18374-4e21-f784-8ac2-4f1a65ab11a3</objectId>
+	<file-name>cae18374-4e21-f784-8ac2-4f1a65ab11a3.xml</file-name>
+	<alttext/>
+	<image>/static-assets/page/images/{groupid}/{objectid}/promo2.png</image>
+	<createdDate>5/30/2014 14:31:7</createdDate>
+	<lastModifiedDate>5/30/2014 14:31:7</lastModifiedDate>
+</component>

@@ -20,12 +20,19 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
+import org.craftercms.studio.api.v1.deployment.Deployer;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -34,16 +41,21 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.Reactor;
+import reactor.event.Event;
 
+import javax.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -630,6 +642,127 @@ public class DeploymentServiceImpl implements DeploymentService {
         return items;
     }
 
+    @Override
+    public void syncAllContentToPreview(String site) throws ServiceException {
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        RequestContext context = RequestContext.getCurrent();
+        String sessionTicket = null;
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            sessionTicket = (String) httpSession.getValue("alf_ticket");
+        }
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT, Event.wrap(message));
+    }
+
+    protected void syncFolder(String site, String path, Deployer deployer) {
+        RepositoryItem[] children = contentRepository.getContentChildren(path);
+
+        for (RepositoryItem item : children) {
+            if (item.isFolder) {
+                syncFolder(site, item.path + "/" + item.name, deployer);
+            } else {
+                deployer.deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+            }
+        }
+    }
+/*
+    protected void synchronize(String path, FileInfo dmFileInfo, DeployedPreviewFile deployedFile) throws IOException {
+        boolean nodeExists = dmFileInfo != null;
+        boolean fileExists = deployedFile != null;
+
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        SiteService siteService = getServicesManager().getService(SiteService.class);
+        if (nodeExists && !fileExists) {
+            if (!dmFileInfo.isFolder()) {
+                DmPathTO dmPathTO = new DmPathTO(path);
+                String site = dmPathTO.getSiteName();
+                DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+                PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
+            } else {
+                deployDir(path, dmFileInfo);
+            }
+        } else if (nodeExists && fileExists) {
+            if (!dmFileInfo.isFolder() && deployedFile.isFile()) {
+                if (PreviewDeployUtils.isUpdated(path, dmFileInfo, deployedFile)) {
+                    DmPathTO dmPathTO = new DmPathTO(path);
+                    String site = dmPathTO.getSiteName();
+                    DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+                    PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
+                }
+            } else if (dmFileInfo.isFolder() && deployedFile.isDirectory()) {
+                synchronizeDir(path, dmFileInfo);
+            } else {
+                // This could mean that someone deleted a dir and created a file with the same name, or vice versa.
+                DmPathTO dmPathTO = new DmPathTO(path);
+                String site = dmPathTO.getSiteName();
+                DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+                PreviewDeployUtils.deleteFileOrDir(site, path, deployer, deploymentConfigTO);
+                if (!dmFileInfo.isFolder()) {
+                    PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
+                } else {
+                    deployDir(path, dmFileInfo);
+                }
+            }
+        } else if (!nodeExists && fileExists) {
+            DmPathTO dmPathTO = new DmPathTO(path);
+            String site = dmPathTO.getSiteName();
+            DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+            PreviewDeployUtils.deleteFileOrDir(site, path, deployer, deploymentConfigTO);
+        }
+    }
+
+    protected void deployDir(String path, FileInfo dmFileInfo) throws IOException {
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        SiteService siteService = getServicesManager().getService(SiteService.class);
+        List<FileInfo> childrenFileInfo = persistenceManagerService.list(dmFileInfo.getNodeRef());
+        if (CollectionUtils.isNotEmpty(childrenFileInfo)) {
+            for (FileInfo childFileInfo : childrenFileInfo) {
+                String childPath = path + "/" + childFileInfo.getName();
+                if (!childFileInfo.isFolder()) {
+                    DmPathTO dmPathTO = new DmPathTO(path);
+                    String site = dmPathTO.getSiteName();
+                    DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+                    PreviewDeployUtils.deployFile(site, childPath, childFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
+                } else {
+                    deployDir(childPath, childFileInfo);
+                }
+            }
+        }
+    }
+
+    protected void synchronizeDir(String path, FileInfo dmFileInfo) throws IOException {
+        List<FileInfo> childrenFileInfo = getService(PersistenceManagerService.class).list(dmFileInfo.getNodeRef());
+        List<DeployedPreviewFile> deployedChildren = new LinkedList<DeployedPreviewFile>(deployer.getChildren(path));
+        if (CollectionUtils.isNotEmpty(childrenFileInfo)) {
+            for (FileInfo childFileInfo : childrenFileInfo) {
+                boolean deployedChildFound = false;
+
+                for (Iterator<DeployedPreviewFile> i = deployedChildren.iterator(); i.hasNext() && !deployedChildFound;) {
+                    DeployedPreviewFile deployedChild = i.next();
+                    if (deployedChild.getName().equals(childFileInfo.getName())) {
+                        synchronize(path + "/" + deployedChild.getName(), childFileInfo, deployedChild);
+
+                        deployedChildFound = true;
+                        i.remove();
+                    }
+                }
+
+                if (!deployedChildFound) {
+                    synchronize(path + "/" + childFileInfo.getName(), childFileInfo, null);
+                }
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(deployedChildren)) {
+            for (DeployedPreviewFile deployedChild : deployedChildren) {
+                synchronize(path + "/" + deployedChild.getName(), null, deployedChild);
+            }
+        }
+    }*/
+
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
@@ -659,14 +792,26 @@ public class DeploymentServiceImpl implements DeploymentService {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public DeployerFactory getDeployerFactory() { return deployerFactory; }
+    public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
+
+    public Reactor getRepositoryReactor() { return repositoryReactor; }
+    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
     protected DmDependencyService dmDependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
+    protected DeployerFactory deployerFactory;
+    protected Reactor repositoryReactor;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

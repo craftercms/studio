@@ -75,3 +75,4 @@ CStudioSearch.resultRenderers["gif"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["png"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["ico"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["jpeg"] = CStudioSearch.ResultRenderer.Gallery;
+CStudioAuthoring.Module.moduleLoaded("search-result-gallery", CStudioSearch.resultRenderers["jpg"]);

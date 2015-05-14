@@ -416,3 +416,5 @@ CStudioSearch.FilterRenderer.Common.PathReadOnlyCol = function(defaultPath) {
 	
 	return column;
 }
+
+CStudioAuthoring.Module.moduleLoaded("search-filter-common", CStudioSearch.FilterRenderer.Common);

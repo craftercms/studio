@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5507</objectGroupId>
+	<objectId>55073ea4-a2d0-e6c9-8538-e47eed97dfa1</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>55073ea4-a2d0-e6c9-8538-e47eed97dfa1</folder-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/inlove1.jpg</image>
+	<alttext/>
+	<section>	<item>	<content>&lt;p&gt;Foo&lt;/p&gt;</content>
+	</item>	<item>	<content>&lt;p&gt;Bar&lt;/p&gt;</content>
+	</item></section>
+	<createdDate>07/12/2013 06:32:04</createdDate>
+	<lastModifiedDate>07/12/2013 06:32:04</lastModifiedDate>
+</component>

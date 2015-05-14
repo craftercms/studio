@@ -717,7 +717,7 @@ var CStudioForms = CStudioForms || function() {
                     pathStr = pathStr.replace(/^\/site\//,"");// Remove string "/site/" from path (Component)
                 pathStr = pathStr.replace(/\/index\.xml$/,"");// Remove string /index.xml from path
                 pathStr = pathStr.replace(/\.xml$/,""); // Remove string .xml
-                return pathStr.replace(/\//g," &raquo; ");   // Replace forward slash (/) with " >> "
+                return pathStr.replace(/\//g," » ");   // Replace forward slash (/) with " >> "
             },
 
             _renderFormWithContent: function(content, formId, formDef, style, customControllerClass, readOnly) {

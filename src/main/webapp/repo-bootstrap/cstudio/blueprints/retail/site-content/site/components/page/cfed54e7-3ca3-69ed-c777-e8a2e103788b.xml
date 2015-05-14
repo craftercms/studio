@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cfed</objectGroupId>
+	<objectId>cfed54e7-3ca3-69ed-c777-e8a2e103788b</objectId>
+	<file-name>cfed54e7-3ca3-69ed-c777-e8a2e103788b.xml</file-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/big-banner.png</image>
+	<alttext>Alt text</alttext>
+	<createdDate>5/29/2014 0:8:3</createdDate>
+	<lastModifiedDate>5/29/2014 0:8:3</lastModifiedDate>
+</component>

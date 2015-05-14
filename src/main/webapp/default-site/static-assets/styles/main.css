@@ -253,8 +253,8 @@ th {
     border: 1px solid #ddd !important; } }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.eot");
-  src: url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.woff2") format("woff2"), url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.woff") format("woff"), url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.ttf") format("truetype"), url("../libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg"); }
+  src: url("../libs/fonts/glyphicons-halflings-regular.eot");
+  src: url("../libs/fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../libs/fonts/glyphicons-halflings-regular.woff2") format("woff2"), url("../libs/fonts/glyphicons-halflings-regular.woff") format("woff"), url("../libs/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("../libs/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg"); }
 .glyphicon {
   position: relative;
   top: 1px;
@@ -2754,13 +2754,13 @@ select[multiple].input-lg,
 .has-error .radio,
 .has-error .checkbox,
 .has-error .radio-inline,
-.has-error .checkbox-inline, .has-error.radio label, .has-error.checkbox label, .has-error.radio-inline label, .has-error.checkbox-inline label {
+.has-error .checkbox-inline, .has-error.radio label, .has-error.checkbox label, .has-error.radio-inline label, .has-error.checkbox-inline label, small.error {
   color: #a94442; }
-.has-error .form-control {
+.has-error .form-control, .form-control.ng-invalid.ng-dirty, .form-control.ng-touched.ng-invalid{
   border-color: #a94442;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075); }
-  .has-error .form-control:focus {
+  .has-error .form-control:focus, .form-control.ng-invalid.ng-dirty:focus {
     border-color: #843534;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483; }

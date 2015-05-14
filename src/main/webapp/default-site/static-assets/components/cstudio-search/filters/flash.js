@@ -23,3 +23,5 @@ CStudioSearch.FilterRenderer.Flash = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["flash"] = new CStudioSearch.FilterRenderer.Flash();
+CStudioAuthoring.Module.moduleLoaded("search-filter-flash", CStudioSearch.filterRenderers["flash"]);
+

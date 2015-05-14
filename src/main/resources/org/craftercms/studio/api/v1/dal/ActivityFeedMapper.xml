@@ -128,4 +128,9 @@
         and content_id = #{oldPath}
     </update>
 
+    <delete id="deleteActivitiesForSite" parameterType="java.util.Map">
+        DELETE FROM cstudio_activity
+        WHERE site_network = #{site}
+    </delete>
+
 </mapper>

@@ -7,7 +7,6 @@
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="alfrescoUrl" value="${alfrescoUrl}" />
     </bean>
 

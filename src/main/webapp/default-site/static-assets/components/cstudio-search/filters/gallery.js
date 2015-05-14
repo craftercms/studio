@@ -23,3 +23,4 @@ CStudioSearch.FilterRenderer.Gallery = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["gallery"] = new CStudioSearch.FilterRenderer.Gallery();
+CStudioAuthoring.Module.moduleLoaded("search-filter-gallery", CStudioSearch.filterRenderers["gallery"]);

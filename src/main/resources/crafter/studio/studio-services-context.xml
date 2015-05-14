@@ -63,6 +63,7 @@
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="repositoryReactor" ref="repositoryReactor"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -88,6 +89,13 @@
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
         <property name="configRoot"><value>${siteService.configPath}</value></property>
         <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -118,6 +126,9 @@
          <property name="siteService" ref="cstudioSiteServiceSimple" />
          <property name="objectStateService" ref="cstudioObjectStateService" />
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+         <property name="contentRepository" ref="cstudioContentRepository"/>
+         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+         <property name="repositoryReactor" ref="repositoryReactor"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
@@ -771,6 +782,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="studioPreviewDeployer" factory-bean="cstudioDeployerFactory" factory-method="createPreviewDeployer"/>
@@ -788,6 +800,7 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
 </beans>

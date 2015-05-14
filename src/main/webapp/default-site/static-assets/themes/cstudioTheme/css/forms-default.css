@@ -727,7 +727,7 @@
 }
 
 .cstudio-form-control-asset-picker-zoom-button {
-	background: url("../images/magnify.png") no-repeat scroll 0 0;
+	background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
 	top: -7px;
 	width: 21px;
 	margin-left: -39px;
