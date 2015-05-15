@@ -64,6 +64,10 @@
         });
     });
 
+    amplify.subscribe(cstopic('CHANGE_GUEST_REQUEST'), function (url){
+       //console.log(arguments);
+    });
+
     function setHashPage(url) {
         window.location.hash = '#/?page=' + url;
     }
