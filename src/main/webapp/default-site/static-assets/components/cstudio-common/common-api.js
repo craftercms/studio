@@ -4087,7 +4087,8 @@ var YEvent = YAHOO.util.Event;
                 if (permission instanceof CStudioConstant) {
                     var has = false;
                     CSA.Utils.each(permssions, function (index, value) {
-                        if (value.permission === permission.toString()) {
+                        if (value === permission.toString()
+                        || value === permission.getValue()) {
                             has = true;
                             return false; // exit the loop
                         }
