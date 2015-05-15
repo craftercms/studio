@@ -260,7 +260,6 @@
             };
 
             this.removeSite = function(site) {
-                console.log(site.siteId);
                 return $http.post(api('delete-site'), {
                     siteId: site.siteId
                 });
@@ -270,12 +269,22 @@
                 return $http.get(api('get-available-blueprints'));
             };
 
+            this.getPermissions = function(siteId, path, user){
+                return $http.get(security('get-user-permissions'), {
+                    params: { site: siteId,  path: path, user: user}
+                });
+            }
+
             function api(action) {
                 return Constants.SERVICE + 'site/' + action + '.json';
             }
 
             function json(action) {
                 return Constants.SERVICE + 'user/' + action + '.json';
+            }
+
+            function security(action) {
+                return Constants.SERVICE + 'security/' + action + '.json';
             }
 
             return this;
@@ -322,8 +331,8 @@
     ]);
 
     app.controller('SitesCtrl', [
-        '$scope', '$state', 'sitesService',
-        function ($scope, $state, sitesService) {
+        '$scope', '$state', 'sitesService', '$modal',
+        function ($scope, $state, sitesService, $modal) {
 
             $scope.sites = null;
 
@@ -333,10 +342,10 @@
 
 
             function getSites () {
-                console.log("getsites");
                 sitesService.getSites()
                     .success(function (data) {
                         $scope.sites = data;
+                        isRemove();
                     })
                     .error(function () {
                         $scope.sites = null;
@@ -346,19 +355,84 @@
             getSites();
 
             $scope.removeSiteSites = function (site){
-                sitesService.removeSite(site)
+
+                var modalInstance = $modal.open({
+                    templateUrl: 'removeConfirmation.html',
+                    controller: 'RemoveSiteCtrl',
+                    backdrop: 'static',
+                    keyboard: false,
+                    size: 'sm',
+                    resolve: {
+                        siteToRemove: function () {
+                            return site;
+                        }
+                    }
+                });
+
+                modalInstance.result.then(function () {
+                    getSites();
+                });
+
+            }
+
+            function addingRemoveProperty(siteId){
+                for(var j=0; j<$scope.sites.length;j++){
+                    if($scope.sites[j].siteId == siteId){
+                        $scope.sites[j].remove = true;
+                    }
+                }
+            }
+
+            function gettingPermissions(siteId){
+                sitesService.getPermissions(siteId, '/', $scope.user)
                     .success(function (data) {
-                        getSites();
+                        for(var i=0; i<data.permissions.length;i++){
+                            if(data.permissions[i]=='delete'){
+                                addingRemoveProperty(siteId);
+                            }
+                        }
                     })
                     .error(function () {
-                        $scope.sites = null;
                     });
+            }
 
-
+            function isRemove(){
+                for(var j=0; j<$scope.sites.length;j++){
+                    gettingPermissions($scope.sites[j].siteId);
+                }
             }
 
         }
 
+
+    ]);
+
+    app.controller('RemoveSiteCtrl', [
+        '$scope', '$state', 'sitesService', '$modalInstance', 'siteToRemove',
+        function ($scope, $state, sitesService, $modalInstance, siteToRemove) {
+
+
+            function removeSiteSitesModal (site){
+
+                sitesService.removeSite(site)
+                 .success(function (data) {
+                 $modalInstance.close();
+                 })
+                 .error(function () {
+                 //$scope.sites = null;
+                 });
+
+            }
+
+            $scope.ok = function () {
+                removeSiteSitesModal(siteToRemove);
+            };
+
+            $scope.cancel = function () {
+                $modalInstance.dismiss('cancel');
+            };
+
+        }
 
     ]);
 
