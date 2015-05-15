@@ -1009,9 +1009,7 @@ var YEvent = YAHOO.util.Event;
                     // CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window", new Date() + "|" + url + "|" + soundTone + "|" + targetWindowId);
 
                     var Topics = crafter.studio.preview.Topics;
-                    // amplify.publish(Topics.GUEST_CHECKOUT);
-                    amplify.publish(Topics.GUEST_CHECKIN, url || '/'); // TODO home page URL is blank, why?
-
+                    window.location = '/studio/preview/#/?page='+url+'/&site='+CStudioAuthoringContext.site;
                 }
 
             },

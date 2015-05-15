@@ -447,25 +447,10 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
 	 			siteConfigFolder);
 
-
- 	// contentRepository.createFolder("/wem-projects/" + siteId + "/" + siteId, "work-area");
-    //         RepositoryItem[] blueprintContent = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-content");
-    //         for (RepositoryItem item : blueprintContent) {
-    //             contentRepository.copyContent(item.path + "/" + item.name,
-    //                     "/wem-projects/" + siteId + "/" + siteId + "/work-area");
-    //         }
-
-	 // String siteConfigFolder = "/cstudio/config/sites/" + siteId;
- 	// contentRepository.createFolder("/cstudio/config/sites/", siteId);
-    //         RepositoryItem[] blueprintConfig = contentRepository.getContentChildren("/cstudio/blueprints/" + blueprintName + "/site-config");
-    //         for (RepositoryItem item : blueprintConfig) {
-    //             contentRepository.copyContent(item.path + "/"+ item.name, siteConfigFolder);
-    //         }
-
-			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITE_ID", siteId);
-	 		replaceFileContent(siteConfigFolder+"/site-config.xml", "SITE_NAME", siteName);
-	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITE_ID", siteId);
-	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITE_ID", siteId);
+			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
+	 		//replaceFileContent(siteConfigFolder+"/site-config.xml", "SITENAME", siteName);
+	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITENAME", siteId);
+	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITENAME", siteId);
 
 			// Add user groups
 			securityService.addUserGroup("crafter_" + siteId);
@@ -619,7 +604,19 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[2];
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("/cstudio/blueprints");
+		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
+		int idx = 0;
+		for (RepositoryItem folder : blueprintsFolders) {
+			SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
+			blueprintTO.id = folder.name;
+			blueprintTO.label = StringUtils.capitalize(folder.name);
+			blueprintTO.description = ""; // How do we populate this dynamicly
+			blueprintTO.screenshots = null;
+			blueprints[idx++] = blueprintTO;
+		}
+
+		/*
 
 		blueprints[0] = new SiteBlueprintTO();
 		blueprints[0].id = "empty";
@@ -632,7 +629,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		blueprints[1].label = "Corporate Brochure Site";
 		blueprints[1].description = "Blueprint is a example corporate brochureware site.";
 		blueprints[1].screenshots = new String[] { "entry.jpg", "section.jpg", "contact.jpg" };
-		
+		*/
 		return blueprints;
 	}
 
