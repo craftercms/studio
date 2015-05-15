@@ -1,10 +1,10 @@
-import scripts.api.ContentServices;
-import org.apache.commons.io.IOUtils;
+import scripts.api.ContentServices
+import org.apache.commons.io.IOUtils
 import java.util.List
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.apache.commons.fileupload.FileItem
+import org.apache.commons.fileupload.FileUploadException
+import org.apache.commons.fileupload.disk.DiskFileItemFactory
 
 def result = [:]
 def site = ""
@@ -20,8 +20,7 @@ def content = null
 
 def context = ContentServices.createContext(applicationContext, request)
 
-
-if(true) {
+if(ServletFileUpload.isMultipartContent(request)) {
     DiskFileItemFactory factory = new DiskFileItemFactory()
     //factory.setSizeThreshold(yourMaxMemorySize)
     //factory.setRepository(yourTempDirectory)
@@ -48,8 +47,6 @@ if(true) {
             content = item.getInputStream()
         }
     }
-
-
 }
 else {
     site = params.site;
@@ -63,8 +60,6 @@ else {
     unlock = params.unlock;
     content = request.getInputStream()
 }
-
-
 
 if (!site || site == '') {
     result.code = 400;
