@@ -173,6 +173,7 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_UNLOCK, unlock);
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String fullPath = expandRelativeSitePath(site, path);
+        String relativePath = path;
         ContentItemTO item = getContentItem(site, path);
         String lockKey = id;
         if (item != null) {
@@ -215,7 +216,7 @@ public class ContentServiceImpl implements ContentService {
                 fullPath = fullPath + "/" + savedFileName;
             }
             fullPath = fullPath.replace("//", "/");
-            String relativePath = getRelativeSitePath(site, fullPath);
+            relativePath = getRelativeSitePath(site, fullPath);
             ContentItemTO itemTo = getContentItem(site, relativePath);
             if (itemTo != null) {
                 if (savaAndClose) {
@@ -241,6 +242,8 @@ public class ContentServiceImpl implements ContentService {
             repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
+            objectStateService.setSystemProcessing(site, relativePath, false);
+            objectStateService.setSystemProcessing(site, path, false);
             throw e;
         } finally {
             generalLockService.unlock(lockKey);
