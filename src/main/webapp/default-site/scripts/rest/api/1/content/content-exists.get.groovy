@@ -6,6 +6,6 @@ def path = params.path
 
 def context = ContentServices.createContext(applicationContext, request)
 
-result.content = ContentServices.getContent(site, path, context)
+result.content = ContentServices.doesContentItemExist(site, path, context)
 
 return result 

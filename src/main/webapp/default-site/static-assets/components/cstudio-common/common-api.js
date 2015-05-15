@@ -1862,7 +1862,7 @@ var YEvent = YAHOO.util.Event;
              */
             openUploadDialog: function(site, path, isUploadOverwrite, callback) {
 
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/upload-content-asset";
+                var serviceUri = CStudioAuthoring.Service.writeContentServicecUrl;
 
                 var openUploadDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
@@ -2018,8 +2018,7 @@ var YEvent = YAHOO.util.Event;
 
             // constants
             defaultNavContext: "default",
-            ALFRESCO_PROXY: "/proxy/alfresco",
-
+            
             // UI (legacy pattern)
             contextServiceUri: "/context-nav",
             getComponentPreviewServiceUrl: "/crafter-controller/component",
@@ -2721,9 +2720,9 @@ var YEvent = YAHOO.util.Event;
                         callback.failure(response);
                     }
                 };
-                var serviceUri = this.createServiceUri(this.contentExistsUrl) + "?site=" + CStudioAuthoringContext.site + "&path=" + path;
+                var serviceUri = this.contentExistsUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + path;
 
-                YConnect.asyncRequest('GET',serviceUri, serviceCallback);
+                YConnect.asyncRequest('GET',this.createServiceUri(serviceUri), serviceCallback);
             },
 
             /**
@@ -6753,7 +6752,7 @@ CStudioAuthoring.InContextEdit = {
 }) (window);
 
  (function startAuthLoop() {
-
+  
      if (typeof CStudioAuthoringContext != 'undefined') {
 
          var authLoopCb = {
@@ -6769,7 +6768,6 @@ CStudioAuthoring.InContextEdit = {
                         serviceCallback,
                         delay = 60000;  // poll once every minute
 
-                    //if (document.hasFocus()) {
                         serviceUri = CStudioAuthoring.Service.verifyAuthTicketUrl;
 
                         serviceCallback = {
@@ -6777,6 +6775,7 @@ CStudioAuthoring.InContextEdit = {
                                 var resObj = response.responseText
  
                                 if (resObj.indexOf("true") != -1) {
+
                                     setTimeout(function() { authLoop(configObj); }, delay);
                                 } 
                                 else {
@@ -6791,11 +6790,7 @@ CStudioAuthoring.InContextEdit = {
                         };
 
                         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-                    //} else {
-                        setTimeout(function() {
-                            authLoop(configObj);
-                        }, delay);
-                    //}
+
                 }
 
                 // Start the authentication loop
