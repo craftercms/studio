@@ -27,7 +27,7 @@ public class TestSecurityProvider implements SecurityProvider {
 
     public Set<String> getUserGroups(String user) {
     	HashSet<String> groups = new HashSet<String>();
-    	groups.add("site_global1_SiteManager");
+    	groups.add("crafter-admin");
     	return groups;
     };
 
