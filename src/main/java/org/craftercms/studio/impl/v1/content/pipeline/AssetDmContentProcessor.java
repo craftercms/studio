@@ -96,7 +96,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 result.setItem(assetInfo);
             }
         } catch (ServiceException e) {
-            throw new ContentProcessException("Failed to write " + content.getId(), e);
+            throw new ContentProcessException("Failed to write " + content.getId()+", "+e, e);
         } finally {
             content.closeContentStream();
         }
