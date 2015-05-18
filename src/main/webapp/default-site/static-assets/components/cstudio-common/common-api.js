@@ -1860,7 +1860,7 @@ var YEvent = YAHOO.util.Event;
              */
             openUploadDialog: function(site, path, isUploadOverwrite, callback) {
 
-                var serviceUri = CStudioAuthoring.Service.writeContentServicecUrl;
+                var serviceUri = CStudioAuthoring.Service.writeContentServiceUrl;
 
                 var openUploadDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
@@ -2031,7 +2031,7 @@ var YEvent = YAHOO.util.Event;
             getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
             lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
-            writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
+            writeContentServiceUrl: "/api/1/services/api/1/content/write-content.json",
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
@@ -2394,9 +2394,7 @@ var YEvent = YAHOO.util.Event;
 
                     failure: function(response) {
                         callback.failure(response);
-                    },
-
-                    originalMarkup: markup
+                    }
                 };
 
                 YConnect.setDefaultPostHeader(false);
@@ -4339,7 +4337,7 @@ var YEvent = YAHOO.util.Event;
                     }
 
                     script = (script.indexOf("?")==-1) ? 
-                        script + "?nocache="+new Date() : script + "&nocache="+new Date();
+                      script + "?nocache="+new Date() : script + "&nocache="+new Date();
 
                     var headID = document.getElementsByTagName("head")[0];
                     var newScript = document.createElement('script');
