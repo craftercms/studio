@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
+import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -223,6 +224,9 @@ public interface ContentService {
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
                                final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException;
 
+    void writeContentAsset(String site, String path, String assetName, InputStream in,
+                           String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException;
+
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
      *
@@ -232,7 +236,7 @@ public interface ContentService {
      */
     String getNextAvailableName(String site, String path);
 
-    void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
+    ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
 

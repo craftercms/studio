@@ -169,7 +169,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			activityPost.setSummaryFormat("json");
 			activityPost.setContentId(contentId);
 			activityPost.setContentType(contentType);
-			activityFeedMapper.updateActivityFeed(activityPost);
+			//activityFeedMapper.updateActivityFeed(activityPost);
 			try {
 				long postId = postFeedEntry(activityPost);
 				activityPost.setId(postId);

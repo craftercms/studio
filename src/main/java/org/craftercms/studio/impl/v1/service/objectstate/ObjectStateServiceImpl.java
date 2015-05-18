@@ -191,7 +191,11 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             }
             if (currentState == null) {
                 ObjectState newEntry = new ObjectState();
-                newEntry.setObjectId(item.getNodeRef());
+                if (item.getNodeRef() == null) {
+                    newEntry.setObjectId(UUID.randomUUID().toString());
+                } else {
+                    newEntry.setObjectId(item.getNodeRef());
+                }
                 newEntry.setSite(site);
                 newEntry.setPath(item.getUri());
                 newEntry.setSystemProcessing(0);
