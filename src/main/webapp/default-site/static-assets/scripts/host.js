@@ -1,4 +1,4 @@
-(function (window, amplify, CStudioAuthoring) {
+(function ($, window, amplify, CStudioAuthoring) {
     'use strict';
 
     var cstopic = crafter.studio.preview.cstopic;
@@ -59,9 +59,22 @@
 
     amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
+
+        var data = config.components.category;
+        var categories = [];
+
+        if ($.isArray(data)) {
+            $.each(data, function(i, c) {
+                categories.push({ label: c.label, components: c.component });
+            });
+        } else {
+            categories.push({ label: data.label, components: data.component });
+        }
+
         communicator.publish(Topics.START_DRAG_AND_DROP, {
-            components: config.components.category.component
+            components: categories
         });
+
     });
 
     amplify.subscribe(cstopic('CHANGE_GUEST_REQUEST'), function (url){
@@ -153,4 +166,4 @@
 
     }, false);
 
-}) (window, amplify, CStudioAuthoring);
+}) (jQuery, window, amplify, CStudioAuthoring);
