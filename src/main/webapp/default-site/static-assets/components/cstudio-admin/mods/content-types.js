@@ -1,3 +1,18 @@
+var isDirty = function() { return true; }
+
+
+    window.addEventListener("beforeunload", function (e) {
+        confirmationMessage = 'If you leave before saving, your changes will be lost.';
+
+        if (!isDirty()) {
+            return undefined;
+        }
+
+        (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+    });
+
+
 CStudioAuthoring.Module.requireModule(
 	"cstudio-forms-engine",
 	'/static-assets/components/cstudio-forms/forms-engine.js',
@@ -55,7 +70,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 				// render save bar
 				CStudioAdminConsole.CommandBar.render([{label:this.CMgs.format(this.langBundle, "save"), fn: function() {
 							var xml = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.serializeDefinitionToXml(formDef);
-							var cb = { success: function() { alert(this.CMgs.format(this.langBundle, "saved")); }, 
+							var cb = { success: function() { isDirty = false; alert(this.CMgs.format(this.langBundle, "saved")); }, 
 							           failure: function() { alert(this.CMgs.format(this.langBundle, "saveFailed")); } 
 							};
 							
@@ -73,6 +88,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 						}	
 					},
 					{label:"Cancel", fn: function() {
+						isDirty = false;
 						  _self.renderWorkarea();
 					} }]);
 					amplify.publish("/content-type/loaded");

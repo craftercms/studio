@@ -4338,6 +4338,9 @@ var YEvent = YAHOO.util.Event;
                         script = CStudioAuthoringContext.baseUri + script;
                     }
 
+                    script = (script.indexOf("?")==-1) ? 
+                        script + "?nocache="+new Date() : script + "&nocache="+new Date();
+
                     var headID = document.getElementsByTagName("head")[0];
                     var newScript = document.createElement('script');
                     newScript.type = 'text/javascript';
@@ -4377,6 +4380,9 @@ var YEvent = YAHOO.util.Event;
                     this.addedCss.push(css);
 
                     css = CStudioAuthoringContext.baseUri + css;
+
+                    css = (css.indexOf("?")==-1) ? 
+                        css + "?nocache="+new Date() : css + "&nocache="+new Date();
 
                     var headID = document.getElementsByTagName("head")[0];
                     var cssNode = document.createElement('link');
