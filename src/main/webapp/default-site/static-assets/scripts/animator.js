@@ -11,7 +11,8 @@
     var BOUNCE = { enter: 'bounceIn', exit: 'bounceOut'},
         FADE = { enter: 'fadeIn', exit: 'fadeOut'},
         ZOOM = { enter: 'zoomIn', exit: 'zoomOut'},
-        SLIDE_IN_LEFT = { enter: 'slideInLeft', exit: 'slideOutLeft'},
+        SLIDE_LEFT = { enter: 'slideInLeft', exit: 'slideOutLeft'},
+        SLIDE_RIGHT = { enter: 'slideInRight', exit: 'slideOutRight'},
         SLIDE_UP = { enter: 'slideInUp', exit: 'slideOutUp'},
         SLIDE_DOWN = { enter: 'slideInDown', exit: 'slideOutDown'};
 
@@ -43,10 +44,16 @@
             exit.call(this, ZOOM, callback);
         },
         slideIn: function (callback) {
-            enter.call(this, SLIDE_IN_LEFT, callback);
+            enter.call(this, SLIDE_LEFT, callback);
         },
         slideOut: function (callback) {
-            exit.call(this, SLIDE_IN_LEFT, callback);
+            exit.call(this, SLIDE_LEFT, callback);
+        },
+        slideInRight: function (callback) {
+            enter.call(this, SLIDE_RIGHT, callback);
+        },
+        slideOutRight: function (callback) {
+            exit.call(this, SLIDE_RIGHT, callback);
         },
         slideInUp: function (callback) {
             enter.call(this, SLIDE_UP, callback);

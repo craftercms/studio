@@ -1,9 +1,11 @@
 
+@import url(http://fonts.googleapis.com/css?family=Raleway:400,500,700);
+
 @import "../variables";
 @import "../util/animate";
 
 @import "elements";
-@import "foundation";
+// @import "foundation";
 
 /* Structural & Behavioural Styles */
 
@@ -58,27 +60,36 @@
   }
 }
 
-body.studio-dnd-enabled {
-  padding-bottom: 100px !important;
-  [data-studio-components-target] {
-    z-index: 2 !important;
-    background-color: #fff;
-    position: relative !important;
-    border-color: $crimson !important;
-    border-radius: $border-radius-base !important;
-    box-shadow: inset 0 0 5px 5px rgba($crimson, .4) !important;
-  }
-  [data-studio-component] {
+body {
+  transition: padding .5s, transform .5s;
+  &.studio-dnd-enabled {
+    padding-right: 265px !important;
+    .affix,
+    .navbar-fixed-bottom,
+    .navbar-fixed-top {
+      right: 265px;
+    }
+    [data-studio-components-target] {
+      z-index: 2 !important;
+      background-color: #fff;
+      position: relative !important;
+      border-color: $crimson !important;
+      border-radius: $border-radius-base !important;
+      box-shadow: inset 0 0 5px 5px rgba($crimson, .4) !important;
+    }
+    [data-studio-component] {
 
-  }
-  .#{$class-prefix}-component-drag-target {
-    &.ui-draggable-dragging {
-      padding: 10px;
-      background: #fff;
-      text-align: center;
-      border-radius: $alert-border-radius;
-      border: 1px solid $brand-primary;
+    }
+    .#{$class-prefix}-component-drag-target {
+      &.ui-draggable-dragging {
+        color: #fff;
+        padding: 5px 10px;
+        text-align: center;
+        background: $brand-primary;
+        border-radius: $border-radius-base;
+      }
     }
   }
 }
 
+@import "components-panel";

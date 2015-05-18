@@ -1,33 +1,27 @@
 
-std-block {
-  display: block;
+sa,
+sbutton {
+  cursor: pointer;
 }
 
-std-inline {
+sdiv,
+sblock {
+  display: block;
+  position: relative;
+}
+
+sa,
+sbutton,
+sinline {
   display: inline-block;
 }
 
-std-h1,
-std-h2,
-std-h3,
-std-h4,
-std-h5,
-std-h6,
-std-heading {
+sh1,
+sh2,
+sh3,
+sh4,
+sh5,
+sh6 {
   display: block;
 }
 
-studio-components {
-  display: block;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: auto;
-  background: #f8f8f8;
-  box-shadow: 0 0 10px 0 rgba(#fff, .5);
-  border-top: 1px solid #ccc;
-  height: auto;
-  width: 100%;
-  z-index: 3;
-}

@@ -1,0 +1,107 @@
+
+.#{$class-prefix}-components-panel {
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 265px;
+  display: block;
+  position: fixed;
+  background: #f8f8f8;
+  box-shadow: 0 0 10px 0 rgba(#fff, .5);
+  border-top: 1px solid #ccc;
+  height: auto;
+  z-index: 3;
+
+  &, * {
+    font-style: normal;
+    font-weight: normal;
+    font-family: Raleway, sans-serif;
+    padding: 0;
+    margin: 0;
+  }
+
+  .#{$class-prefix}-panel-title {
+    font-size: 1.3em;
+    padding: 10px;
+  }
+
+  [data-action="done"] {
+    top: 0;
+    right: 0;
+    border: none;
+    padding: 10px;
+    line-height: 27px;
+    position: absolute;
+  }
+
+  .#{$class-prefix}-component-search {
+    padding: 0 10px;
+    input[type="search"] {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 50px;
+      padding: 5px 10px;
+      outline: none;
+    }
+  }
+
+  .#{$class-prefix}-components-container {
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 80px;
+    padding: 10px;
+    position: absolute;
+    overflow: auto;
+
+    .#{$class-prefix}-category {
+
+      margin-bottom: 5px;
+      box-shadow: 1px 0 2px rgba(0,0,0,.1);
+      border-radius: $border-radius-base;
+
+      .#{$class-prefix}-category-name {
+        padding: 5px 10px;
+        font-size: 1.1em;
+        border-bottom: 1px solid $gray-lighter;
+        border-top-left-radius: $border-radius-base;
+        border-top-right-radius: $border-radius-base;
+        background: #fff;
+      }
+
+      > sul {
+        display: block;
+        list-style: none;
+        background: #fff;
+        border-top: none;
+        padding: 0;
+        margin: 0;
+        border-bottom-left-radius: $border-radius-base;
+        border-bottom-right-radius: $border-radius-base;
+        > sli {
+          > sa {
+            display: block;
+            padding: 5px 10px;
+          }
+        }
+      }
+
+      &.#{$class-prefix}-collapse {
+        .#{$class-prefix}-category-name {
+          border-bottom-left-radius: $border-radius-base;
+          border-bottom-right-radius: $border-radius-base;
+        }
+        sul {
+          display: none;
+        }
+      }
+
+
+    }
+
+  }
+
+}
