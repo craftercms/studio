@@ -46,7 +46,7 @@
   background-color: rgba(#fff, .7);
 }
 
-.studio-dnd-controller-overlay {
+.#{$class-prefix}-dnd-controller-overlay {
   z-index: 1;
   display: none;
   position: absolute;
@@ -61,35 +61,13 @@
 }
 
 body {
-  transition: padding .5s, transform .5s;
-  &.studio-dnd-enabled {
-    padding-right: 265px !important;
-    .affix,
-    .navbar-fixed-bottom,
-    .navbar-fixed-top {
-      right: 265px;
-    }
-    [data-studio-components-target] {
-      z-index: 2 !important;
-      background-color: #fff;
-      position: relative !important;
-      border-color: $crimson !important;
-      border-radius: $border-radius-base !important;
-      box-shadow: inset 0 0 5px 5px rgba($crimson, .4) !important;
-    }
-    [data-studio-component] {
 
-    }
-    .#{$class-prefix}-component-drag-target {
-      &.ui-draggable-dragging {
-        color: #fff;
-        padding: 5px 10px;
-        text-align: center;
-        background: $brand-primary;
-        border-radius: $border-radius-base;
-      }
-    }
+  transition: padding .5s, transform .5s;
+
+  &.#{$class-prefix}-dnd-enabled {
+    padding-right: 265px !important;
   }
+
 }
 
 @import "components-panel";

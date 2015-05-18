@@ -1,4 +1,4 @@
-(function (window, amplify, CStudioAuthoring) {
+(function ($, window, amplify, CStudioAuthoring) {
     'use strict';
 
     var cstopic = crafter.studio.preview.cstopic;
@@ -162,4 +162,4 @@
 
     }, false);
 
-}) (window, amplify, CStudioAuthoring);
+}) (jQuery, window, amplify, CStudioAuthoring);

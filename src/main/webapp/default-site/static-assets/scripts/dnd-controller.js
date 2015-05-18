@@ -143,6 +143,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             appendTo: 'body',
             zIndex: 1030
         });
+
         $(DROPPABLE_SELECTION).droppable({
             connectWithSortable: true,
             drop: function (e, ui) {
@@ -161,7 +162,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                     type = $component.attr('data-studio-component');
                 }
                 publish.call(me, Topics.COMPONENT_DROPPED, {
-                    type: type, path: path
+                    type: type,
+                    path: path
                 });
             }
         }).sortable({

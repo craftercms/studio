@@ -2449,23 +2449,24 @@ body {
   transition: padding .5s, transform .5s; }
   body.studio-dnd-enabled {
     padding-right: 265px !important; }
-    body.studio-dnd-enabled .affix,
-    body.studio-dnd-enabled .navbar-fixed-bottom,
-    body.studio-dnd-enabled .navbar-fixed-top {
-      right: 265px; }
-    body.studio-dnd-enabled [data-studio-components-target] {
-      z-index: 2 !important;
-      background-color: #fff;
-      position: relative !important;
-      border-color: #ed1c24 !important;
-      border-radius: 4px !important;
-      box-shadow: inset 0 0 5px 5px rgba(237, 28, 36, 0.4) !important; }
-    body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
-      color: #fff;
-      padding: 5px 10px;
-      text-align: center;
-      background: #7e9dbb;
-      border-radius: 4px; }
+
+body.studio-dnd-enabled .affix,
+body.studio-dnd-enabled .navbar-fixed-bottom,
+body.studio-dnd-enabled .navbar-fixed-top {
+  right: 265px; }
+body.studio-dnd-enabled [data-studio-components-target] {
+  z-index: 2 !important;
+  background-color: #fff;
+  position: relative !important;
+  border-color: #ed1c24 !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 5px 5px rgba(237, 28, 36, 0.4) !important; }
+body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
+  color: #fff;
+  padding: 5px 10px;
+  text-align: center;
+  background: #7e9dbb;
+  border-radius: 4px; }
 
 .studio-components-panel {
   top: 0;
