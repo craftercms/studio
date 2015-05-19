@@ -161,7 +161,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
             } catch(Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
-                tx.rollback();
+                //tx.rollback();
             }
         }
         catch(Exception err) {
