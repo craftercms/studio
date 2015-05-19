@@ -297,7 +297,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 		}
 	}
 
-	public String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
+	public Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
 		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
 		List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
 		JSONObject jsonObject = new JSONObject();
@@ -306,12 +306,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 			for (ContentItemTO item : items) {
 				total += item.getNumOfChildren();
 			}
-		}
+		}/*
 		jsonObject.put(CStudioConstants.PROPERTY_TOTAL, total);
 		jsonObject.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
 		jsonObject.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
 		jsonObject.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
-		return jsonObject.toString();
+		*/
+		Map<String, Object> result = new HashMap<>();
+		result.put(CStudioConstants.PROPERTY_TOTAL, total);
+		result.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
+		result.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
+		result.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
+		return result;
+		//return jsonObject.toString();
 	}
 
 	protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator, final boolean inProgressOnly) throws ServiceException {

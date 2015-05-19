@@ -20,6 +20,7 @@
     <script src="${path}icon-guide.js"></script>
     <script src="${path}approved-scheduled-items.js"></script>
 
+
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
 
@@ -29,6 +30,7 @@
                 langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
     </script>
 
+    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
     <script src="/studio/static-assets/libs/jquery/dist/jquery.js"></script>
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>

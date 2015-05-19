@@ -681,6 +681,7 @@ var CStudioForms = CStudioForms || function() {
                                         success: function (typeInfoJson) {
                                             formDef.contentAsFolder = typeInfoJson.contentAsFolder;
                                             var emptyContentModel = {
+                                                children: [],
                                                 responseXML: {
                                                     documentElement: {
                                                         children: []
@@ -736,7 +737,6 @@ var CStudioForms = CStudioForms || function() {
                         YDom.replaceClass(ajaxOverlayEl, "visible", "invisible");
                     }
                 };
-
                 var readonly = readOnly || (CStudioAuthoring.Utils.getQueryVariable(location.search, "readonly") == "true")? true: false;
                 var contentType = CStudioAuthoring.Utils.getQueryVariable(location.search, "form");
                 var path = CStudioAuthoring.Utils.getQueryVariable(location.search, "path");

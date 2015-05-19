@@ -55,7 +55,8 @@
                     });
 
                     amplify.subscribe('/page-model/loaded', function (data) {
-                        dom = ( new window.DOMParser()).parseFromString(data.model.responseText, "text/xml");
+
+                        dom = ( new window.DOMParser()).parseFromString(data.model, "text/xml");
                         dom = dom.children[0];
 
                         var contentMap = CStudioForms.Util.xmlModelToMap(dom);
@@ -132,7 +133,7 @@
                 CStudioAuthoring.Operations.performSimpleIceEdit({
                     contentType: componentType,
                     uri: componentPath
-                }, null, false, {
+                }, null, true, {
                     failure: CStudioAuthoring.Utils.noop,
                     success: function (contentTO) {
                         // Use the information from the newly created component entry and use it to load the model data for the
@@ -151,11 +152,11 @@
                             value: value,
                             include: contentTO.item.uri
                         };*/
+alert("this path is hardcoded now. needs update due to iframe and nested components");
 
-                        CStudioAuthoring.ComponentsPanel.getPageModel(
-                            CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                                CStudioAuthoringContext.previewCurrentPath),
-                            "save-components-new", true, false);
+                       CStudioAuthoring.ComponentsPanel.getPageModel(
+                            "/site/website/womens/index.xml",
+                       "save-components-new", true, false);
 
                     }
                 });
@@ -205,12 +206,6 @@
                     amplify.publish('/operation/started');
                 }
 
-                // this code should move to common api
-                var serviceUrl = CStudioAuthoring.Service.getContentUri
-                    + "?site=" + CStudioAuthoringContext.site
-                    + "&path=" + pagePath
-                    + "&edit=false";
-
                 var callback = {
                     success: function (model) {
                         amplify.publish('/page-model/loaded', {
@@ -228,8 +223,8 @@
                         alert("failed to load model");
                     }
                 }
-
-                YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUrl), callback);
+                
+                CStudioAuthoring.Service.getContent(pagePath, "false", callback);
             },
 
             copyObj: function (srcObj, destObj) {
@@ -276,7 +271,7 @@
             },
 
             updateComponentsInModel: function (contentMap) {
-
+alert("this is where markup change has impact, also need to factor nesting");
                 var containerEls = YDom.getElementsByClassName(dcContainerClass);
 
                 if (contentMap) {
@@ -306,15 +301,6 @@
                 var form = {definition: formDefinition, model: contentMap},
                     xml = CStudioForms.Util.serializeModelToXml(form);
 
-                var saveServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content" +
-                    "?site=" + CStudioAuthoringContext.site +
-                    "&phase=onSave" +
-                    "&path=" + pagePath +
-                    "&fileName=" + pagePath.substring(pagePath.lastIndexOf('/') + 1) +
-                    "&user=" + CStudioAuthoringContext.user +
-                    "&contentType=" + contentMap["content-type"] +
-                    "&unlock=true";
-
                 var saveCb = {
                     success: function () {
                         // console.log("Model saved!");
@@ -328,9 +314,17 @@
                     }
                 };
 
-                YAHOO.util.Connect.setDefaultPostHeader(false);
-                YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-                YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(saveServiceUrl), saveCb, xml);
+                CStudioAuthoring.Service.writeContent(pagePath, 
+                        pagePath.substring(pagePath.lastIndexOf('/') + 1), 
+                        null, 
+                        xml, 
+                        contentMap["content-type"], 
+                        CStudioAuthoringContext.site, 
+                        false, 
+                        false, 
+                        false, 
+                        true, 
+                        saveCb);
             },
 
             expand: function (containerEl, config) {

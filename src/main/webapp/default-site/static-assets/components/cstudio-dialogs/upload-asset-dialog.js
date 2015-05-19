@@ -99,7 +99,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		var eventParams = {
 			self: this
 		};
-		
+
 		if (isUploadOverwrite == "upload") {
 			YAHOO.util.Event.addListener("uploadButton", "click", this.uploadPopupSubmit, eventParams);
 		} else {
@@ -118,8 +118,13 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 	 */
 	uploadPopupSubmit: function(event, args) {
 		var path = args.self.path;
-		
+		var filename = document.getElementById("uploadFileNameId").value.replace('C:\\fakepath\\',"");
+		var basePath = path;
+			path=basePath+filename;
+
 		var serviceCallback = {
+			path: path,
+			basePath: basePath,
 			exists: function(jsonResponse) {
 				//Get user permissions to get read write operations
 				
@@ -137,7 +142,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 					failure: function() { }
 	        	};
 				
-				CStudioAuthoring.Clipboard.getPermissions(path, checkPermissionsCb);
+				CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, this.basePath, checkPermissionsCb);
 			},
 			failure: function(response) {		
 				CStudioAuthoring.Dialogs.UploadDialog.uploadFile(args);
@@ -145,7 +150,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		};
 
 		YAHOO.util.Dom.setStyle('indicator', 'visibility', 'visible');
-		CStudioAuthoring.Service.contentExists(args.self.path, serviceCallback);
+		CStudioAuthoring.Service.contentExists(path, serviceCallback);
 	},
 	
    /**

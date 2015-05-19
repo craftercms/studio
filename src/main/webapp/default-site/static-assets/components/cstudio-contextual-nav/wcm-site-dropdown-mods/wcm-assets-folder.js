@@ -728,7 +728,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                     view.id),
                 progress: '.progress .bar',
                 target: fmt(
-                    '{0}/proxy/alfresco/cstudio/wcm/content/upload-content-asset?site={1}&path={2}',
+                    '{0}'+CStudioAuthoring.Service.writeContentServicecUrl+'?site={1}&path={2}',
                     CSAC.baseUri, CSAC.site, treeNode.data.uri),
                 uploadPostKey: 'file',
                 formData: {

@@ -116,7 +116,7 @@ public interface WorkflowService {
 
 	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
 
-	String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
+	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
 
 	/**
 	 * cancel the workflow pending on the given item.

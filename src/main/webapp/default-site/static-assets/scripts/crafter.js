@@ -37,7 +37,7 @@
                 "GUEST_CHECKIN": "GUEST_CHECKIN",
                 "GUEST_CHECKOUT": "GUEST_CHECKOUT",
                 "GUEST_SITE_LOAD": "GUEST_SITE_LOAD",
-
+                "CHANGE_GUEST_REQUEST": "CHANGE_GUEST_REQUEST",
                 "ICE_ZONE_ON": "ICE_ZONE_ON",
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
                 "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
