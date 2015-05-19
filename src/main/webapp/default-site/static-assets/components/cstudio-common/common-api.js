@@ -2362,6 +2362,22 @@ var YEvent = YAHOO.util.Event;
             },
 
             /**
+             * this method exists for legacy reasons.  Do not call it, use the actual service instead
+             */
+            createWriteServiceUrl: function(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock) {
+                return this.writeContentServiceUrl;
+                serviceUri += "?site=" + site +
+                "&path=" + path +
+                "&fileName=" + filename +
+                "&contentType=" + contentType +
+                "&createFolders=" + createFolders +
+                "&old=" + oldPath +
+                "&draft=" + draft +
+                "&duplicate=" + duplicate +
+                "&unlock=" + unlock;
+            },
+
+            /**
              * write content (XML)
              * Path is where you want the content to go
              * filename is the name of the file specifically
@@ -2375,16 +2391,7 @@ var YEvent = YAHOO.util.Event;
              * unlock TRUE if item should be unlocked after the write
              */
             writeContent: function(path, filename, oldPath, content, contentType, site, createFolders, draft, duplicate, unlock, callback) {
-                var serviceUri = this.writeContentServiceUrl;
-                serviceUri += "?site=" + site +
-                "&path=" + path +
-                "&fileName=" + filename +
-                "&contentType=" + contentType +
-                "&createFolders=" + createFolders +
-                "&old=" + oldPath +
-                "&draft=" + draft +
-                "&duplicate=" + duplicate +
-                "&unlock=" + unlock;
+                var serviceUri = this.createWriteServiceUrl(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock);
 
                 var serviceCallback = {
                     success: function(response) {
