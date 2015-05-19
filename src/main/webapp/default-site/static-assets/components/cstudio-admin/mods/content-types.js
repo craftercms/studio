@@ -133,10 +133,12 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			YDom.removeClass(targetIcon,"ttClose");
 			YDom.addClass(targetIcon,"ttOpen");
 			targetBody.style.display = "none";
+            targetBody.parentNode.style.paddingBottom =  '0';
 		}else{
 			YDom.removeClass(targetIcon,"ttOpen");			
 			YDom.addClass(targetIcon,"ttClose");
 			targetBody.style.display = "block";
+            targetBody.parentNode.style.paddingBottom =  '8px';
 		}
 		
 	},
