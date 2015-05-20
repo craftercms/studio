@@ -24,6 +24,7 @@ import java.util.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -659,11 +660,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 String stringItem = items.optString(index);
                 JSONObject item = items.optJSONObject(index);
                 DmDependencyTO submittedItem = null;
+				/*
                 if (StringUtils.isNotEmpty(stringItem)) {
                     submittedItem = dmDependencyService.getDependencies(site, stringItem, false, true);
                 } else {
                     submittedItem = getSubmittedItem(site, item, format, scheduledDate);
-                }
+                }*/
+				submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate);
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
@@ -898,6 +901,80 @@ public class WorkflowServiceImpl implements WorkflowService {
 
         return submittedItem;
     }
+
+	protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
+		DmDependencyTO submittedItem = dmDependencyService.getDependencies(site, itemPath, false, true);
+		// TODO: check scheduled date to make sure it is not null when isNow =
+		// true and also it is not past
+		Date scheduledDate = null;
+		if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
+			scheduledDate = getScheduledDate(site, format, globalSchDate);
+		} else {
+			scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+		}
+		if (scheduledDate == null) {
+			submittedItem.setNow(true);
+		}
+		submittedItem.setScheduledDate(scheduledDate);
+        if (CollectionUtils.isNotEmpty(submittedItem.getComponents())) {
+            for (DmDependencyTO component : submittedItem.getComponents()) {
+                component = getSubmittedItem(site, component.getUri(), format, globalSchDate);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(submittedItem.getDocuments())) {
+            for (DmDependencyTO document : submittedItem.getDocuments()) {
+                document = getSubmittedItem(site, document.getUri(), format, globalSchDate);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(submittedItem.getAssets())) {
+            for (DmDependencyTO asset : submittedItem.getAssets()) {
+                asset = getSubmittedItem(site, asset.getUri(), format, globalSchDate);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(submittedItem.getRenderingTemplates())) {
+            for (DmDependencyTO template : submittedItem.getRenderingTemplates()) {
+                template = getSubmittedItem(site, template.getUri(), format, globalSchDate);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(submittedItem.getDeletedItems())) {
+            for (DmDependencyTO deletedItem : submittedItem.getDeletedItems()) {
+                deletedItem = getSubmittedItem(site, deletedItem.getUri(), format, globalSchDate);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(submittedItem.getChildren())) {
+            for (DmDependencyTO child : submittedItem.getChildren()) {
+                child = getSubmittedItem(site, child.getUri(), format, globalSchDate);
+            }
+        }
+
+		if (submittedItem.getUri().endsWith(DmConstants.XML_PATTERN)) {
+
+			/**
+			 * get sendEmail property if it is there
+			 */
+        /* TODO: implement send email
+            try {
+                String fullPath = contentService.expandRelativeSitePath(site, submittedItem.getUri());
+                Serializable sendEmailValue = persistenceManagerService.getProperty(persistenceManagerService.getNodeRef(fullPath), CStudioContentModel.PROP_WEB_WF_SEND_EMAIL);
+                boolean sendEmail = (sendEmailValue != null) ? Boolean.parseBoolean(sendEmailValue.toString()) : false;
+                submittedItem.setSendEmail(sendEmail);
+
+                String user = item.getString(JSON_KEY_USER);
+                submittedItem.setSubmittedBy(user);
+            } catch (Exception e) {
+                e.printStackTrace(); // To change body of catch statement use
+                // File | Settings | File Templates.
+            }
+            */
+		}
+
+		return submittedItem;
+	}
 
     /**
      * get submitted items from JSON request

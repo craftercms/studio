@@ -80,7 +80,7 @@
     function submit() {
 
         var data = {
-            scheduledDate: this.getComponent('[name="schedulingMode"]:checked').value,
+            schedule: this.getComponent('[name="schedulingMode"]:checked').value,
             submissionComment: this.getComponent('.submission-comment').value,
             publishOptionComment: this.getComponent('.publish-option-comment').value,
             publishChannel: this.getComponent('.publish-option').value,
@@ -93,9 +93,12 @@
         });
 
         if (data.schedule === 'custom') {
-            data.scheduleDate = this.getComponent('[name="scheduleDate"]');
-            data.scheduleTime = this.getComponent('[name="scheduleTime"]');
+            data.scheduleDate = this.getComponent('[name="scheduleDate"]').value;
+            data.scheduleTime = this.getComponent('[name="scheduleTime"]').value;
+            data.scheduledDate = getScheduledDateTimeForJson(data.scheduleDate, data.scheduleTime);
         }
+
+
 
         //this.showProcessingOverlay(true);
         this.disableActions();
@@ -224,6 +227,16 @@
             option = new Option(items[i].name, items[i].name);
             select.options[i] = option;
         }
+    }
+
+    function getScheduledDateTimeForJson(dateValue, timeValue) {
+        var schedDate = new Date(dateValue + " " + timeValue);
+        var schedDateMonth = schedDate.getMonth() + 1;
+        var scheduledDate = schedDate.getFullYear() + '-' + schedDateMonth + '-'
+            + schedDate.getDate() + 'T' + schedDate.getHours() + ':'
+            + schedDate.getMinutes() + ':' + schedDate.getSeconds();
+
+        return scheduledDate;
     }
 
 }) (CStudioAuthoring);
