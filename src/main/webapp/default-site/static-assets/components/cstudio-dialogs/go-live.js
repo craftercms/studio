@@ -600,6 +600,14 @@ CStudioAuthoring.Module.requireModule("publish-dialog", "/static-assets/componen
 
                             dialog.show();
                             me.dialog = dialog;
+                            
+                            for(var i=0; i<contentItems.length; i++) {
+                                if(contentItems[i].submittedForDeletion==true) {
+                                    document.getElementById("globalSetToDateTime").disabled = true;
+                                    document.getElementById("schedulingSelection").style.display = "none";
+                                    break;
+                                }
+                            }
 
                             YDom.get('acnScrollBoxDiv').innerHTML = CSA.StringUtils.format(
                                 '<div class="spinner"><img src="{0}/static-assets/themes/cstudioTheme/images/wait.gif"> <span class="warn">{1}</span></div>',
