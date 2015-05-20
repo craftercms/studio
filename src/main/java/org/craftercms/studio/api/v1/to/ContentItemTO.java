@@ -1416,7 +1416,7 @@ public class ContentItemTO implements Serializable {
 							// new item
 							// add the item to the new item add replace it with the
 							// new item
-							if (childUri.startsWith(itemToAddUri + "/")) {
+							if (StringUtils.isNotEmpty(childUri) && childUri.startsWith(itemToAddUri + "/")) {
 								if (childPositions.size() == 0) {
 									// add the itemToAdd to the first child location
 									// and add the first child to itemToAdd

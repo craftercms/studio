@@ -1860,7 +1860,7 @@ var YEvent = YAHOO.util.Event;
              */
             openUploadDialog: function(site, path, isUploadOverwrite, callback) {
 
-                var serviceUri = CStudioAuthoring.Service.writeContentServicecUrl;
+                var serviceUri = CStudioAuthoring.Service.writeContentServiceUrl;
 
                 var openUploadDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
@@ -2031,7 +2031,7 @@ var YEvent = YAHOO.util.Event;
             getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
             lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
-            writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
+            writeContentServiceUrl: "/api/1/services/api/1/content/write-content.json",
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
@@ -2362,6 +2362,22 @@ var YEvent = YAHOO.util.Event;
             },
 
             /**
+             * this method exists for legacy reasons.  Do not call it, use the actual service instead
+             */
+            createWriteServiceUrl: function(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock) {
+                return this.writeContentServiceUrl;
+                serviceUri += "?site=" + site +
+                "&path=" + path +
+                "&fileName=" + filename +
+                "&contentType=" + contentType +
+                "&createFolders=" + createFolders +
+                "&old=" + oldPath +
+                "&draft=" + draft +
+                "&duplicate=" + duplicate +
+                "&unlock=" + unlock;
+            },
+
+            /**
              * write content (XML)
              * Path is where you want the content to go
              * filename is the name of the file specifically
@@ -2375,16 +2391,7 @@ var YEvent = YAHOO.util.Event;
              * unlock TRUE if item should be unlocked after the write
              */
             writeContent: function(path, filename, oldPath, content, contentType, site, createFolders, draft, duplicate, unlock, callback) {
-                var serviceUri = this.writeContentServiceUrl;
-                serviceUri += "?site=" + site +
-                "&path=" + path +
-                "&fileName=" + filename +
-                "&contentType=" + contentType +
-                "&createFolders=" + createFolders +
-                "&old=" + oldPath +
-                "&draft=" + draft +
-                "&duplicate=" + duplicate +
-                "&unlock=" + unlock;
+                var serviceUri = this.createWriteServiceUrl(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock);
 
                 var serviceCallback = {
                     success: function(response) {
@@ -2394,9 +2401,7 @@ var YEvent = YAHOO.util.Event;
 
                     failure: function(response) {
                         callback.failure(response);
-                    },
-
-                    originalMarkup: markup
+                    }
                 };
 
                 YConnect.setDefaultPostHeader(false);
@@ -4338,6 +4343,9 @@ var YEvent = YAHOO.util.Event;
                         script = CStudioAuthoringContext.baseUri + script;
                     }
 
+                    script = (script.indexOf("?")==-1) ? 
+                      script + "?nocache="+new Date() : script + "&nocache="+new Date();
+
                     var headID = document.getElementsByTagName("head")[0];
                     var newScript = document.createElement('script');
                     newScript.type = 'text/javascript';
@@ -4377,6 +4385,9 @@ var YEvent = YAHOO.util.Event;
                     this.addedCss.push(css);
 
                     css = CStudioAuthoringContext.baseUri + css;
+
+                    css = (css.indexOf("?")==-1) ? 
+                        css + "?nocache="+new Date() : css + "&nocache="+new Date();
 
                     var headID = document.getElementsByTagName("head")[0];
                     var cssNode = document.createElement('link');

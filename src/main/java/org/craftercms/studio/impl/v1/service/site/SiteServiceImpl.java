@@ -507,7 +507,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			if (child.isFolder) {
 				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
 			} else {
-				objectStateService.insertNewEntry(site, child.path + "/" + child.name);
+				objectStateService.insertNewEntry(site, contentService.getRelativeSitePath(site, child.path) + "/" + child.name);
 			}
 		}
 	}

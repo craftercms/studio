@@ -1,10 +1,10 @@
-import scripts.api.ContentServices;
-import org.apache.commons.io.IOUtils;
+import scripts.api.ContentServices
+import org.apache.commons.io.IOUtils
 import java.util.List
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.apache.commons.fileupload.FileItem
+import org.apache.commons.fileupload.FileUploadException
+import org.apache.commons.fileupload.disk.DiskFileItemFactory
 
 def result = [:]
 def site = ""
@@ -12,16 +12,22 @@ def path = ""
 def oldPath = ""
 def fileName = ""
 def contentType = ""
-def draft = false
+def draft = "false"
 def createFolders = "true"
 def edit = "false"
 def unlock = "true"
 def content = null
 
+def isImage = "false";
+def allowedWidth = "";
+def allowedHeight = "";
+def allowLessSize = "";
+def changeCase = "";
+def systemAsset = null;
+
 def context = ContentServices.createContext(applicationContext, request)
 
-
-if(true) {
+if(ServletFileUpload.isMultipartContent(request)) {
     DiskFileItemFactory factory = new DiskFileItemFactory()
     //factory.setSizeThreshold(yourMaxMemorySize)
     //factory.setRepository(yourTempDirectory)
@@ -40,6 +46,18 @@ if(true) {
             }
             else if(item.getFieldName()=="path") {
                 path = item.getString()
+            } else if (item.getFieldName() == "fileName") {
+                fileName = item.getString();
+            } else if (item.getFieldName() == "isImage") {
+                isImage = item.getString();
+            } else if (item.getFieldName() == "allowedWith") {
+                allowedWidth = item.getString();
+            } else if (item.getFieldName() == "allowedHeight") {
+                allowedHeight = item.getString();
+            } else if (item.getFieldName() == "allowLessSize") {
+                allowLessSize = item.getString();
+            } else if (item.getFieldName() == "changeCase") {
+                changeCase = item.getString();
             }
         } 
         else {
@@ -49,7 +67,8 @@ if(true) {
         }
     }
 
-
+    result = ContentServices.writeContentAsset(context, site, path, fileName, content,
+            isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
 }
 else {
     site = params.site;
@@ -62,31 +81,29 @@ else {
     draft = params.draft;
     unlock = params.unlock;
     content = request.getInputStream()
-}
 
-
-
-if (!site || site == '') {
-    result.code = 400;
-    result.message = "Site must be provided."+site 
-    return result
-}
-else if (!path || path == '') {
+    if (!site || site == '') {
+        result.code = 400;
+        result.message = "Site must be provided."+site
+        return result
+    }
+    else if (!path || path == '') {
         result.code = 400
         result.message = "Path must be provided."
         return result
-} 
-else if (!fileName || fileName == '') {
+    }
+    else if (!fileName || fileName == '') {
         result.code = 400;
         result.message = "fileName must be provided."
         return result
-} 
+    }
 
-if (oldPath != null && oldPath != "" && (draft==null || draft!=true)) {
-    fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length());
-    result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true);
+    if (oldPath != null && oldPath != "" && (draft==null || draft!=true)) {
+        fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length());
+        result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true);
 
-} else {
-    result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock);
+    } else {
+        result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock);
+    }
 }
-return result
+return result;

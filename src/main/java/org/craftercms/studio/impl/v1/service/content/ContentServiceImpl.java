@@ -173,6 +173,7 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_UNLOCK, unlock);
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String fullPath = expandRelativeSitePath(site, path);
+        String relativePath = path;
         ContentItemTO item = getContentItem(site, path);
         String lockKey = id;
         if (item != null) {
@@ -215,7 +216,7 @@ public class ContentServiceImpl implements ContentService {
                 fullPath = fullPath + "/" + savedFileName;
             }
             fullPath = fullPath.replace("//", "/");
-            String relativePath = getRelativeSitePath(site, fullPath);
+            relativePath = getRelativeSitePath(site, fullPath);
             ContentItemTO itemTo = getContentItem(site, relativePath);
             if (itemTo != null) {
                 if (savaAndClose) {
@@ -241,6 +242,8 @@ public class ContentServiceImpl implements ContentService {
             repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
+            objectStateService.setSystemProcessing(site, relativePath, false);
+            objectStateService.setSystemProcessing(site, path, false);
             throw e;
         } finally {
             generalLockService.unlock(lockKey);
@@ -263,6 +266,85 @@ public class ContentServiceImpl implements ContentService {
             logger.error("Error while executing write and rename: ", t);
         } finally {
             generalLockService.unlock(id);
+        }
+    }
+
+    /**
+     * write content asset
+     *
+     * @param site
+     * @param path
+     * @param assetName
+     * @param in
+     * @param isImage
+     * 			is this asset an image?
+     * @param allowedWidth
+     * 			specifies the allowed image width in pixel if the asset is an image
+     * @param allowedHeight
+     * 			specifies the allowed image height in pixel if the asset is an image
+     * @param unlock
+     * 			unlock the content upon edit?
+     * @return content asset info
+     * @throws ServiceException
+     */
+    @Override
+    public void writeContentAsset(String site, String path, String assetName, InputStream in,
+                                      String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
+        if(assetName != null) {
+            assetName = assetName.replace(" ","_");
+        }
+
+        boolean isSystemAsset = Boolean.valueOf(systemAsset);
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(DmConstants.KEY_SITE, site);
+        params.put(DmConstants.KEY_PATH, path);
+        params.put(DmConstants.KEY_FILE_NAME, assetName);
+        params.put(DmConstants.KEY_IS_IMAGE, isImage);
+        params.put(DmConstants.KEY_ALLOW_LESS_SIZE, allowLessSize);
+        params.put(DmConstants.KEY_ALLOWED_WIDTH, allowedWidth);
+        params.put(DmConstants.KEY_ALLOWED_HEIGHT, allowedHeight);
+        params.put(DmConstants.KEY_CONTENT_TYPE, "");
+        params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+
+        params.put(DmConstants.KEY_UNLOCK, unlock);
+        params.put(DmConstants.KEY_SYSTEM_ASSET, String.valueOf(isSystemAsset));
+
+        String id = site + ":" + path + ":" + assetName + ":" + "";
+        // processContent will close the input stream
+        String fullPath = null;
+        ContentItemTO item = null;
+        try {
+            fullPath = expandRelativeSitePath(site, path + "/" + assetName);
+            item = getContentItem(site, path + "/" + assetName);
+
+            if (item != null) {
+                ObjectState itemState = objectStateService.getObjectState(site, path + "/" + assetName);
+                if (itemState != null) {
+                    if (itemState.getSystemProcessing() != 0) {
+                        logger.error(String.format("Error Content %s is being processed (Object State is SYSTEM_PROCESSING);", assetName));
+                        throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
+                    }
+                    objectStateService.setSystemProcessing(site, path + "/" + assetName, true);
+                }
+            }
+            ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+            if (isSystemAsset) {
+                ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
+                fullPath = fullPath.replace(assetName, assetInfoTO.getFileName());
+            }
+            item = getContentItem(site, getRelativeSitePath(site, fullPath));
+            if (item != null) {
+                objectStateService.transition(site, item, TransitionEvent.SAVE);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing content", e);
+            throw new ServiceException(e);
+        } finally {
+            if (item != null) {
+                objectStateService.setSystemProcessing(site, getRelativeSitePath(site, fullPath), false);
+            }
         }
     }
 
@@ -846,7 +928,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
         // get sandbox if not provided
         long start = System.currentTimeMillis();
         try {
@@ -855,7 +937,7 @@ public class ContentServiceImpl implements ContentService {
             final String path = strings[1];
             final String site = strings[0];
             ResultTO to = doSave(id, input, isXml, params, contentChainForm, path, site);
-
+            return to;
         } finally {
             long end = System.currentTimeMillis();
             logger.debug("Write complete for [" + id + "] in time [" + (end - start) + "]");

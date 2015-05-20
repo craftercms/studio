@@ -105,11 +105,6 @@
         modified_date, site_network,content_id,content_type)
         values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
         #{siteNetwork},#{contentId},#{contentType})
-
-        <!-- optionally return auto-generated primary key - only required for debug (can be commented out) -->
-        <selectKey resultType="long" keyProperty="id" >
-            select LAST_INSERT_ID() AS value
-        </selectKey>
     </insert>
 
     <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
