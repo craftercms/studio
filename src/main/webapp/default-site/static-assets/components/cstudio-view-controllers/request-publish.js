@@ -32,7 +32,47 @@
     }
 
     function submit() {
+        var data = {
+            schedule: this.getComponent('[name="schedulingMode"]:checked').value,
+            submissionComment: this.getComponent('.submission-comment').value,
+            items: []
+        };
 
+        var checked = this.getComponents('tbody input[type="checkbox"]:checked');
+        each(checked, function (i, check) {
+            data.items.push(check.getAttribute('data-item-id'));
+        });
+
+        if (data.schedule === 'custom') {
+            data.scheduledDate = this.getComponent('[name="scheduleDate"]').value;
+        }
+
+
+
+        //this.showProcessingOverlay(true);
+        this.disableActions();
+        this.fire("submitStart");
+        //var data = this.getData(),
+        var _this = this;
+        CStudioAuthoring.Service.request({
+            method: "POST",
+            data: JSON.stringify(data),
+            resetFormState: true,
+            url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/submit-to-go-live.json?site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
+            callback: {
+                success: function(oResponse) {
+                    _this.enableActions();
+                    var oResp = JSON.parse(oResponse.responseText);
+                    _this.fire("submitComplete", oResp);
+                    _this.fire("submitEnd", oResp);
+                },
+                failure: function(oResponse) {
+                    var oResp = JSON.parse(oResponse.responseText);
+                    _this.fire("submitEnd", oResp);
+                    _this.enableActions();
+                }
+            }
+        });
     }
 
     function renderItems(items) {

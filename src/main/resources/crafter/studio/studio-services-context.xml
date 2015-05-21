@@ -115,6 +115,7 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
         <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
+        <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
