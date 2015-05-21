@@ -107,6 +107,8 @@ public interface WorkflowService {
 	 */
 	void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter);
 
+	ResultTO submitToGoLive(String site, String username, String request) throws ServiceException;
+
     void preGoLive(Set<String> uris, GoLiveContext context, Set<String> rescheduledUris);
 
     /**

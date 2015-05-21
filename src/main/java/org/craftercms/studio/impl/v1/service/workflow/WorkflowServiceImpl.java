@@ -28,7 +28,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -37,6 +39,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -44,6 +47,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
@@ -51,6 +55,8 @@ import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
+import org.craftercms.studio.api.v1.service.workflow.context.RequestContext;
+import org.craftercms.studio.api.v1.service.workflow.context.RequestContextBuilder;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -92,6 +98,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_RENDERING_TEMPLATES = "renderingTemplates";
     protected String JSON_KEY_DELETED_ITEMS = "deletedItems";
     protected String JSON_KEY_CHILDREN = "children";
+    protected String JSON_KEY_SEND_EMAIL = "sendEmail";
+    protected String JSON_KEY_USER = "user";
+
 
 	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
 		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths,  processName, properties);
@@ -139,6 +148,158 @@ public class WorkflowServiceImpl implements WorkflowService {
 	public boolean endJob(String jobId) {
 		return false;
 	}
+
+	@Override
+	public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
+		return submitForApproval(site, username, request, false);
+	}
+
+	protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
+        RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
+        ResultTO result = new ResultTO();
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            JSONObject requestObject = JSONObject.fromObject(request);
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            Date scheduledDate = null;
+            if (!isNow) {
+                scheduledDate = (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) ? getScheduledDate(site, format, requestObject.getString(JSON_KEY_SCHEDULED_DATE)) : null;
+            }
+            boolean sendEmail = (requestObject.containsKey(JSON_KEY_SEND_EMAIL)) ? requestObject.getBoolean(JSON_KEY_SEND_EMAIL) : false;
+
+            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : null;
+            // TODO: check scheduled date to make sure it is not null when isNow
+            // = true and also it is not past
+            JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
+            int length = items.size();
+            String schDate = null;
+            if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
+                schDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
+            }
+            List<String> itemsToDelete = new ArrayList<String>(length);
+            if (length > 0) {
+                List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
+                for (int index = 0; index < length; index++) {
+                    JSONObject item = items.getJSONObject(index);
+                    DmDependencyTO submittedItem = getSubmittedItem(site, item, format, schDate);
+                    String user = item.getString(JSON_KEY_USER);
+                    submittedItems.add(submittedItem);
+                    if (delete) {
+                        submittedItem.setSubmittedForDeletion(true);
+                    }
+                }
+                List<String> submittedPaths = new ArrayList<String>();
+                for (DmDependencyTO goLiveItem : submittedItems) {
+                    String fullPath = contentService.expandRelativeSitePath(site, goLiveItem.getUri());
+                    submittedPaths.add(fullPath);
+                    objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
+                    DependencyRules rule = new DependencyRules(site);
+                    Set<DmDependencyTO> depSet = rule.applySubmitRule(goLiveItem);
+                    for (DmDependencyTO dep : depSet) {
+                        String depPath = contentService.expandRelativeSitePath(site, dep.getUri());
+                        submittedPaths.add(depPath);
+                        objectStateService.setSystemProcessing(site, dep.getUri(), true);
+                    }
+                }
+                List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
+                result.setSuccess(true);
+                result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
+                for (String fullPath : submittedPaths) {
+                    objectStateService.setSystemProcessing(site, contentService.getRelativeSitePath(site, fullPath), false);
+                }
+            }
+        } catch (Exception e) {
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+            logger.error(e.getMessage(), e);
+        }
+        return result;
+
+	}
+
+    protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, RequestContext requestContext, String submissionComment) throws ServiceException {
+        List<DmError> errors = new ArrayList<DmError>();
+        String site = requestContext.getSite();
+        String submittedBy = requestContext.getUser();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            try {
+                DependencyRules rule = new DependencyRules(site);
+                submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
+                List<DmDependencyTO> children = submittedItem.getChildren();
+                if (children != null && !submitForDeletion) {
+                    for (DmDependencyTO child : children) {
+                        if (!child.isReference()) {
+                            submitThisAndReferredComponents(child, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
+                        }
+                    }
+                }
+            } catch (ContentNotFoundException e) {
+                errors.add(new DmError(site, submittedItem.getUri(), e));
+            }
+        }
+        return errors;
+    }
+
+    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
+        doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true, submissionComment);
+        Set<DmDependencyTO> stringSet;
+        if (submitForDeletion) {
+            stringSet = rule.applyDeleteDependencyRule(submittedItem);
+        } else {
+            stringSet = rule.applySubmitRule(submittedItem);
+        }
+        for (DmDependencyTO s : stringSet) {
+            String fullPath = contentService.expandRelativeSitePath(site, s.getUri());
+            ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
+            boolean lsendEmail = true;
+            boolean lnotifyAdmin = true;
+            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || customContentTypeNotification);
+            lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
+            // notify admin will always be true, unless for dependent document/banner/other-files
+            doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin, submissionComment);
+        }
+    }
+
+    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final Date scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) {
+        //first remove from workflow
+        removeFromWorkflow(site, dependencyTO.getUri(), true);
+        String fullPath = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
+        DmPathTO path = new DmPathTO(fullPath);
+        ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
+
+        // TODO: check if item is locked
+        //if (!persistenceManagerService.getLockStatus(node).equals(LockStatus.NO_LOCK)) {
+//                	persistenceManagerService.unlock(node);
+        //}
+        /****** end ******/
+		Map<String, Object> properties = new HashMap<>();
+        ObjectMetadata itemProperties = objectMetadataManager.getProperties(site, dependencyTO.getUri());
+		properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
+		properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail ? 1 : 0);
+		properties.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion ? 1 : 0);
+		properties.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
+
+        if (null == scheduledDate) {
+			properties.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
+        } else {
+			itemProperties.setLaunchDate(scheduledDate);
+        }
+		if (!objectMetadataManager.metadataExist(site, dependencyTO.getUri())) {
+			objectMetadataManager.insertNewObjectMetadata(site, dependencyTO.getUri());
+		}
+		objectMetadataManager.setObjectMetadata(site, dependencyTO.getUri(), properties);
+        if (scheduledDate != null) {
+            objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_SCHEDULED);
+        } else {
+			objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
+        }
+        dmWorkflowListener.postSubmitToGolive(site, dependencyTO);
+        if (notifyAdmin) {
+            boolean isPreviewable = item.isPreviewable();
+            notificationService.sendContentSubmissionNotification(site, "admin", dependencyTO.getUri(), user, scheduledDate, isPreviewable, submitForDeletion);
+        }
+
+    }
 
 	@Override
 	public void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter) {
@@ -1910,6 +2071,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     public String getCustomContentTypeNotificationPattern() { return customContentTypeNotificationPattern; }
     public void setCustomContentTypeNotificationPattern(String customContentTypeNotificationPattern) { this.customContentTypeNotificationPattern = customContentTypeNotificationPattern; }
 
+    public boolean isCustomContentTypeNotification() { return customContentTypeNotification; }
+    public void setCustomContentTypeNotification(boolean customContentTypeNotification) { this.customContentTypeNotification = customContentTypeNotification; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
     private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
 	protected ServicesConfig servicesConfig;
@@ -1926,6 +2093,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected WorkflowProcessor workflowProcessor;
     protected DmWorkflowListener dmWorkflowListener;
     protected String customContentTypeNotificationPattern;
+    protected boolean customContentTypeNotification;
+    protected ObjectMetadataManager objectMetadataManager;
 
     public static class SubmitPackage {
         protected String pathPrefix;

@@ -42,9 +42,11 @@ public class ObjectMetadata implements Serializable {
     public static final String PROP_IMAGE_WIDTH = "imageWidth";
     public static final String PROP_IMAGE_HEIGHT = "imageHeight";
     public static final String PROP_APPROVED_BY = "approvedBy";
-    public static final String PROP_SUBMITTER_BY = "submittedBy";
-    public static final String PROP_SUBMITTED_BY = "submittedForDeletion";
+    public static final String PROP_SUBMITTED_BY = "submittedBy";
+    public static final String PROP_SUBMITTED_FOR_DELETION = "submittedForDeletion";
     public static final String PROP_SEND_EMAIL = "sendEmail";
+    public static final String PROP_SUBMISSION_COMMENT = "submissionComment";
+    public static final String PROP_LAUNCH_DATE = "launchDate";
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -109,6 +111,12 @@ public class ObjectMetadata implements Serializable {
     public int getSendEmail() { return sendEmail; }
     public void setSendEmail(int sendEmail) { this.sendEmail = sendEmail; }
 
+    public String getSubmissionComment() { return submissionComment; }
+    public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
+
+    public Date getLaunchDate() { return launchDate; }
+    public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
+
     protected int id;
     protected String site;
     protected String path;
@@ -130,4 +138,6 @@ public class ObjectMetadata implements Serializable {
     protected String submittedBy;
     protected int submittedForDeletion;
     protected int sendEmail;
+    protected String submissionComment;
+    protected Date launchDate;
 }
