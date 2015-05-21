@@ -204,34 +204,41 @@ body,tbody {
     border-bottom: 1px solid #dddddd;
     min-height: 20px;
     text-align: left;
-    left: 1px;
     position: relative;
     padding:5px 0 8px 10px;
 }
 
 .content-type-visual-field-container:hover {
-  background: none repeat scroll 0 0 #D5E6F2;
+  background: none repeat scroll 0 0 #D5E2F2;
 }
 
 .content-type-visual-field-container-selected {
-    background: none repeat scroll 0 0 #D5E6F2;
+    background: none repeat scroll 0 0 #D5E2F2;
 }
 
 .content-type-visual-repeat-container {
-    background: none repeat scroll 0 0 lightSteelBlue;
-    border: 1px solid steelBlue;
+    background: none repeat scroll 0 0 #F2F8FC;
+    border: 1px solid #dddddd;
     margin: 10px;
     min-height: 30px;
     text-align: left;
     left: 1px;
     position: relative;
-    padding-left: 10px;
-    padding-top: 5px;
+    padding: 0;
+    border-radius: 4px;
+}
+
+.content-type-visual-repeat-container .content-field-name{
+    padding: 10px 0 10px 10px;
 }
 
 .content-type-visual-repeat-container-selected {
-	background: #7a9cc7;
+	background: #E5EDF7;
 	border: 1px solid #0000000;
+}
+
+.content-type-visual-repeat-container-selected .content-type-visual-field-container:hover{
+  //background-color: #D5E2F2;
 }
 
 .content-field-name{
