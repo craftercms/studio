@@ -183,10 +183,10 @@ public class ContentServiceImpl implements ContentService {
         try {
             boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
             if (item != null) {
-                ObjectState objectState = objectStateService.getObjectState(site, path);
+                ObjectState objectState = objectStateService.getObjectState(site, item.getUri());
                 if (objectState == null) {
                     objectStateService.insertNewEntry(site, item);
-                    objectState = objectStateService.getObjectState(site, path);
+                    objectState = objectStateService.getObjectState(site, item.getUri());
                 }
 
                 if(objectState != null) {
@@ -196,7 +196,7 @@ public class ContentServiceImpl implements ContentService {
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
                     }
 
-                    objectStateService.setSystemProcessing(site, path, true);
+                    objectStateService.setSystemProcessing(site, item.getUri(), true);
                 }
                 else {
                     logger.error("the object state is still null.");
@@ -215,7 +215,11 @@ public class ContentServiceImpl implements ContentService {
             }
 
             processContent(id, input, true, params, chainID);
-            objectStateService.setSystemProcessing(site, path, false);
+            if (item != null) {
+                objectStateService.setSystemProcessing(site, item.getUri(), false);
+            } else {
+                objectStateService.setSystemProcessing(site, path, false);
+            }
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
             fullPath = expandRelativeSitePath(site, savedPath);
@@ -231,10 +235,10 @@ public class ContentServiceImpl implements ContentService {
                 } else {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
                 }
+                objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 objectStateService.insertNewEntry(site, itemTo);
             }
-            objectStateService.setSystemProcessing(site, relativePath, false);
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(relativePath);
