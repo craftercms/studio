@@ -2365,8 +2365,8 @@ var YEvent = YAHOO.util.Event;
              * this method exists for legacy reasons.  Do not call it, use the actual service instead
              */
             createWriteServiceUrl: function(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock) {
-                return this.writeContentServiceUrl;
-                serviceUri += "?site=" + site +
+                return this.writeContentServiceUrl +
+                "?site=" + site +
                 "&path=" + path +
                 "&fileName=" + filename +
                 "&contentType=" + contentType +
@@ -2393,20 +2393,17 @@ var YEvent = YAHOO.util.Event;
             writeContent: function(path, filename, oldPath, content, contentType, site, createFolders, draft, duplicate, unlock, callback) {
                 var serviceUri = this.createWriteServiceUrl(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock);
 
-                var serviceCallback = {
+                YConnect.setDefaultPostHeader(false);
+                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), {
                     success: function(response) {
                         var content = response.responseText;
                         callback.success(content);
                     },
-
                     failure: function(response) {
                         callback.failure(response);
                     }
-                };
-
-                YConnect.setDefaultPostHeader(false);
-                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
-                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, content);
+                }, content);
             },
 
             /**
@@ -4343,8 +4340,9 @@ var YEvent = YAHOO.util.Event;
                         script = CStudioAuthoringContext.baseUri + script;
                     }
 
-                    script = (script.indexOf("?")==-1) ? 
-                      script + "?nocache="+new Date() : script + "&nocache="+new Date();
+                    /*script = (script.indexOf("?")==-1)
+                        ? script + "?nocache="+new Date()
+                        : script + "&nocache="+new Date();*/
 
                     var headID = document.getElementsByTagName("head")[0];
                     var newScript = document.createElement('script');
