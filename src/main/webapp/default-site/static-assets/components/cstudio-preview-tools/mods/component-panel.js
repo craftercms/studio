@@ -131,6 +131,14 @@
                         include: contentTO.item.uri
                     };
 
+                    $.each(zones, function (key, array) {
+                        $.each(array, function (i, item) {
+                            if (item === tracking) {
+                                zones[key][i] = modelData;
+                            }
+                        });
+                    });
+
                     ComponentsPanel.zones = zones;
                     ComponentsPanel.contentModelMap[tracking] = modelData;
                     
