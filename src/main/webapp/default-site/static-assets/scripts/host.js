@@ -54,9 +54,15 @@
     });
 
     communicator.subscribe(Topics.COMPONENT_DROPPED, function (message) {
-        amplify.publish(cstopic('COMPONENT_DROPPED'), message.type, message.path);
+        amplify.publish(cstopic('COMPONENT_DROPPED'),
+            message.type,
+            message.path,
+            message.isNew,
+            message.trackingNumber,
+            message.zones);
     });
 
+    var initialContentModel;
     amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
 
@@ -72,13 +78,23 @@
         }
 
         communicator.publish(Topics.START_DRAG_AND_DROP, {
-            components: categories
+            components: categories,
+            contentModel: initialContentModel
         });
 
     });
 
-    amplify.subscribe(cstopic('CHANGE_GUEST_REQUEST'), function (url){
-       //console.log(arguments);
+    amplify.subscribe(cstopic('CHANGE_GUEST_REQUEST'), function (url) {
+       // console.log(arguments);
+    });
+
+    amplify.subscribe(cstopic('DND_COMPONENT_MODEL_LOAD'), function (data) {
+        communicator.publish(Topics.DND_COMPONENT_MODEL_LOAD, data);
+    });
+
+    amplify.subscribe(cstopic('DND_COMPONENTS_MODEL_LOAD'), function (data) {
+        initialContentModel = data;
+        communicator.publish(Topics.DND_COMPONENTS_MODEL_LOAD, data);
     });
 
     function setHashPage(url) {
@@ -90,6 +106,7 @@
         for (var key in params) {
             hash.push(key + '=' + params[key]);
         }
+        CStudioAuthoringContext && (CStudioAuthoringContext.previewCurrentPath = params.page);
         window.location.hash = '#/?' + hash.join('&');
     }
 

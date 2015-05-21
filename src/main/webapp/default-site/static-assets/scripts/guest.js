@@ -29,10 +29,13 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.START_DRAG_AND_DROP, function (message) {
         require(['dnd-controller'], function (DnDController) {
+
             (typeof dndController === 'undefined') && (dndController = new DnDController({
                 communicator: communicator
             }));
-            dndController.start(message.components);
+
+            dndController.start(message.components, message.contentModel);
+
         });
     });
 
