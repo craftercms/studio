@@ -635,10 +635,23 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                         CStudioAuthoringContext.site,
                                         CStudioAuthoring.SelectedContent.getSelectedContent());
                                 };
+                                
+                                var renderFlag = true;
+                                if(option.name == "Schedule") {
+                                    var items = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                    for(var i=0; i<items.length; i++) {
+                                        if(items[i].submittedForDeletion==true) {
+                                            renderFlag = false;
+                                            break;
+                                        }
+                                    }
+                                }
 
-                                _this.createNavItem(option, isBulk, isAdmin, isRelevant, false);
+                                if(renderFlag == true) {
+                                    _this.createNavItem(option, isBulk, isAdmin, isRelevant, false);
+                                }
+
                             }
-
                         }
                     },
 

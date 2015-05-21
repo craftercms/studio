@@ -23,6 +23,15 @@
         return ('crafter.' + packageName);
     };
 
+
+    crafter.guid = function () {
+        return (
+            (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + '-' +
+            (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + '-' +
+            (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + '-' +
+            (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1));
+    };
+
     crafter.String = CrafterString;
 
     crafter.studio = {
@@ -38,10 +47,15 @@
                 "GUEST_CHECKOUT": "GUEST_CHECKOUT",
                 "GUEST_SITE_LOAD": "GUEST_SITE_LOAD",
                 "CHANGE_GUEST_REQUEST": "CHANGE_GUEST_REQUEST",
+
                 "ICE_ZONE_ON": "ICE_ZONE_ON",
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
                 "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
                 "COMPONENT_DROPPED": "COMPONENT_DROPPED",
+                "COMPONENT_MOVED": "COMPONENT_MOVED",
+                "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",
+                "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
+
                 "": ""
             },
             cstopic: function (topic) {

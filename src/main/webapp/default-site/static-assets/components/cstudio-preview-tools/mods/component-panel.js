@@ -1,24 +1,725 @@
-(function (CStudioAuthoring, CStudioAuthoringContext) {
+(function (CStudioAuthoring, CStudioAuthoringContext, amplify, $) {
 
-    var cstopic = crafter.studio.preview.cstopic;
+    var ComponentsPanel,
+        cstopic = crafter.studio.preview.cstopic,
+        moduleName = 'component-panel', // ties css file to the js file
+        YDom = YAHOO.util.Dom,
+        YElement = YAHOO.util.Element,
+        dcNewComponentClass = 'new-component',
+        dcComponentClass = 'cstudio-draggable-component',
+        dcWrapperClass = 'cstudio-component-ice',
+        dcContainerClass = 'cstudio-component-zone',
+        componentsUpdated = false,
+        copyStyles = [
+            'border-collapse', 'border-spacing', 'caption-side', 'color', 'direction', 'empty-cells',
+            'font-family', 'font-size', 'font-style', 'font-weight', 'letter-spacing', 'line-height',
+            'list-style-image', 'list-style-position', 'list-style-type', 'quotes', 'text-align',
+            'text-indent', 'text-transform', 'visibility', 'white-space', 'word-spacing'
+        ];
+
+    ComponentsPanel = {
+
+        initialized: false,
+        componentsOn: false,
+        dcOverlay: null,
+        ajaxOverlay: null,
+        rollbackContentMap: null, // use this content map to restore the app in case of any errors
+        contentModelMap: {},
+        zones: null,
+
+        initialize: function (config) {
+            // this.componentsOn = !!(sessionStorage.getItem('components-on'));
+            var self = this;
+
+            if (this.initialized == false) {
+                this.initialized = true;
+
+                this.ajaxOverlay = this.createAjaxOverlay("ajax-overlay", "preview-tools-panel-container_c", -5);
+
+                amplify.subscribe('/operation/started', function () {
+                    self.ajaxOverlay.show();
+                });
+                
+                amplify.subscribe('/operation/completed', function () {
+                    self.ajaxOverlay.hide();
+                });
+                
+                amplify.subscribe('/operation/failed', function () {
+                    self.ajaxOverlay.hide();
+                });
+                
+                amplify.subscribe('/page-model/loaded', function (data) { 
+
+                    var dom = (new window.DOMParser())
+                        .parseFromString(data.model, "text/xml").children[0];
+
+                    var contentMap = CStudioForms.Util.xmlModelToMap(dom);
+
+                    switch (data.operation) {
+
+                        case "init-components":
+                            self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
+                            // TODO is it requried to send component model to host > guest?
+                            // self.linkComponentsToModel(contentMap);
+                            amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
+                            amplify.publish('/operation/completed');
+                            return;
+
+                        case "save-components":
+                        case "save-components-new":
+                            CStudioForms.Util.loadFormDefinition(contentMap['content-type'], {
+                                success: function (formDefinition) {
+                                    $.extend(contentMap, self.zones);
+                                    amplify.publish('components/form-def/loaded', {
+                                        contentMap: contentMap,
+                                        pagePath: data.pagePath,
+                                        formDefinition: formDefinition,
+                                        isNew: (data.operation === 'save-components-new') ? true : false
+                                    });
+                                },
+                                failure: function () {
+                                    amplify.publish('/operation/failed');
+                                    alert("failed to load form definition");
+                                }
+                            });
+                            return;
+
+                    }
+                    
+                });
+
+                amplify.subscribe('components/form-def/loaded', function (data) {
+                    if (data.isNew && data.isNew == true) {
+                        amplify.subscribe('/operation/completed', function (data) {
+                            window.location.reload();
+                        });
+                    }
+                    self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true);
+                });
+
+                amplify.subscribe(cstopic('COMPONENT_DROPPED'), function () {
+                    self.ondrop.apply(self, arguments);
+                });
+
+                var interval = setInterval(function () {
+                    if (CStudioAuthoringContext.previewCurrentPath) {
+                        self.getPageModel(
+                            self.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
+                            'init-components', true, false);
+                        clearInterval(interval);
+                    }
+                }, 100);
+
+            }
+        },
+
+        ondrop: function (type, path, isNew, tracking, zones) {
+            CStudioAuthoring.Operations.performSimpleIceEdit({
+                uri: path,
+                contentType: type
+            }, null, true, {
+                failure: CStudioAuthoring.Utils.noop,
+                success: function (contentTO) {
+
+                    // Use the information from the newly created component entry and use it to load the model data for the
+                    // component placeholder in the UI. After this update, we can then proceed to save all the components
+                    var value = (!!contentTO.item.internalName) ? contentTO.item.internalName : contentTO.item.uri;
+
+                    var modelData = {
+                        value: value,
+                        key: contentTO.item.uri,
+                        include: contentTO.item.uri
+                    };
+
+                    $.each(zones, function (key, array) {
+                        $.each(array, function (i, item) {
+                            if (item === tracking) {
+                                zones[key][i] = modelData;
+                            }
+                        });
+                    });
+
+                    ComponentsPanel.zones = zones;
+                    ComponentsPanel.contentModelMap[tracking] = modelData;
+                    
+                    amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
+                        model: modelData,
+                        trackingNumber: tracking 
+                    });
+
+                    CStudioAuthoring.ComponentsPanel.getPageModel(
+                        CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                            CStudioAuthoringContext.previewCurrentPath),
+                        isNew ? 'save-components-new' : 'save-components', true, false);
+
+                }
+            });
+        },
+
+        render: function (containerEl, config) {
+            // this.componentsOn = !!(sessionStorage.getItem('components-on'));
+
+            // if(this.componentsOn == true) {
+            // 	this.expand(containerEl, config);
+            // }
+        },
+
+        getPreviewPagePath: function (previewPath) {
+            var pagePath = previewPath.replace(".html", ".xml");
+            if (pagePath.indexOf(".xml") == -1) {
+                if (pagePath.substring(pagePath.length - 1) != "/") {
+                    pagePath += "/";
+                }
+                pagePath += "index.xml";
+            }
+            return '/site/website' + pagePath;
+        },
+
+        /*
+         * Load the model of a page and publish it
+         * @param pagePath -path to the page
+         * @param operation -operation performed (e.g. init, save, etc)
+         * @param start - true (starting an operation) | false (in the middle of an operation)
+         * @param complete - true (the operation is completed in this function) | false (the operation doesn't
+         complete in this function -ie. the operation continues in another function)
+         * @publish event: /components/model/loaded
+         */
+        getPageModel: function (pagePath, operation, start, complete) {
+
+            if (start) {
+                amplify.publish('/operation/started');
+            }
+
+            CStudioAuthoring.Service.getContent(pagePath, "false", {
+                success: function (model) {
+                    amplify.publish('/page-model/loaded', {
+                        model: model,
+                        pagePath: pagePath,
+                        operation: operation
+                    });
+                    if (complete) {
+                        amplify.publish('/operation/completed');
+                    }
+                },
+                failure: function (err) {
+                    // The operation must be completed if there was a failure
+                    amplify.publish('/operation/failed');
+                    alert("failed to load model");
+                }
+            });
+        },
+
+        copyObj: function (srcObj, destObj) {
+            if (srcObj && typeof srcObj == "object" && !(srcObj instanceof Array) &&
+                destObj && typeof destObj == "object" && !(destObj instanceof Array)) {
+                for (var prop in srcObj) {
+                    if (srcObj.hasOwnProperty(prop)) {
+                        destObj[prop] = srcObj[prop];
+                    }
+                }
+            }
+        },
+
+        /*
+         * This step would be unnecessary if the model were brought to the front-end from the beginning .. and the DOM elements
+         * loaded from this model (right now the model is being used by the ftl, but it isn't bounded to the DOM elements at all).
+         *
+         */
+        linkComponentsToModel: function (contentMap) {
+
+            var containerEls = YDom.getElementsByClassName(dcContainerClass),
+                dcEls;
+
+            if (contentMap) {
+
+                containerEls.forEach(function (el) {
+                    var containerName = el.id.replace("zone-", "");
+
+                    dcEls = YDom.getElementsByClassName(dcComponentClass, "div", el);
+
+                    for (var i = 0; i < dcEls.length; i++) {
+                        // link each DOM element to its corresponding model data
+                        // we could also create pointers from dcEls[i].modelData to contentMap[containerName][i], but then
+                        // we would make the model stay in memory. Instead, we will copy what we need off the model
+                        // and let the model be garbage collected.
+                        dcEls[i].modelData = {};
+                        this.copyObj(contentMap[containerName][i], dcEls[i].modelData);
+                    }
+                }, this);
+            }
+            // console.log("initial model ", contentMap);
+        },
+
+        saveModel: function (pagePath, formDefinition, contentMap, start, complete) {
+
+            if (start) {
+                amplify.publish('/operation/started');
+            }
+
+            var form = {definition: formDefinition, model: contentMap},
+                xml = CStudioForms.Util.serializeModelToXml(form);
+
+            CStudioAuthoring.Service.writeContent(pagePath,
+                pagePath.substring(pagePath.lastIndexOf('/') + 1),
+                null, xml, contentMap["content-type"], CStudioAuthoringContext.site,
+                false, false, false, true, {
+                    success: function () {
+                        if (complete) {
+                            amplify.publish('/operation/completed');
+                        }
+                    },
+                    failure: function () {
+                        amplify.publish('/operation/failed');
+                    }
+                });
+        },
+
+        expand: function (containerEl, config) {
+            sessionStorage.setItem('components-on', 'on');
+            CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
+                failure: CStudioAuthoring.Utils.noop,
+                success: function (config) {
+                    amplify.publish(cstopic('START_DRAG_AND_DROP'), {
+                        components: config
+                    });
+                }
+            });
+        },
+
+        collapse: function (containerEl, config) {
+            amplify.publish(cstopic('STOP_DRAG_AND_DROP'), {
+                components: config
+            });
+        },
+
+        /*
+         * Create a DOM element to serve as a delete control
+         * @param className -class name to distinguish this type of element
+         * @return the new DOM element
+         */
+        createDeleteControl: function (className) {
+            var deleteEl = document.createElement("a"),
+                btnEl = document.createElement("img");
+
+            YDom.addClass(deleteEl, className);
+
+            btnEl.src = CStudioAuthoringContext.authoringAppBaseUri
+            + "/themes/cstudioTheme/images/icons/delete.png";
+            btnEl.style.width = "16px";
+            btnEl.style.height = "16px";
+
+            deleteEl.appendChild(btnEl);
+            return deleteEl;
+        },
+
+        /*
+         * Create a new component to be inserted into the Preview Tools panel
+         * @param component -object with at least 3 properties: path, type and label
+         * @param tipText -text to display when the component is dragged from the Preview Tools panel
+         * @return the new DOM element
+         */
+        createMenuComponent: function (component, tipText) {
+
+            var menuComponent = document.createElement("div");
+
+            if (component && component.path && component.type && component.label) {
+                YDom.addClass(menuComponent, "acn-panel-component");
+                menuComponent.innerHTML = '<div class="' + dcNewComponentClass + ' ' + dcComponentClass +
+                '" data-path="' + component.path + '" data-type="' + component.type +
+                '"><div><span class="tipText">' + tipText + '</span><b>' + component.label + '</b></div></div>';
+            }
+            return menuComponent;
+        },
+
+        renderComponents: function (containerEl, config) {
+            containerEl.innerHTML = "";
+
+            if (!config.category.length) {
+                config.category = [config.category];
+            }
+
+            for (var i = 0; i < config.category.length; i++) {
+                var category = config.category[i];
+
+                if (!category.component.length) {
+                    category.component = [category.component];
+                }
+
+                for (var j = 0; j < category.component.length; j++) {
+                    var component = category.component[j];
+
+                    var componentEl = this.createMenuComponent(component, "Adding new component:");
+                    containerEl.appendChild(componentEl);
+                }
+            }
+        },
+
+        /*
+         * Initializes an overlay to go over the content. The overlay z-index value will be relative to a another reference element's z-index.
+         * @param overlayId -ID of the overlay
+         * @param refElementId -ID of HTML element to use as reference (optional)
+         * @param zIndexDiff -Number difference between the overlay z-index value and the reference element (optional)
+         */
+        createOverlay: function (overlayId, refElementId, zIndexDiff, showCallback, hideCallback) {
+
+            var overlayElement,
+                overlayEl = document.getElementById(overlayId),
+                zIndexDiff = zIndexDiff || 0,
+                refElement = null,
+                zIndexOverlay;
+
+            if (!overlayEl) {
+
+                overlayElement = document.createElement("div");
+
+                // If there's no content overlay element then create it
+                overlayEl = new YElement(overlayElement);
+                overlayEl.set("id", overlayId);
+
+                refElement = document.getElementById(refElementId);
+                if (refElement) {
+                    zIndexOverlay = YDom.getStyle(refElement, "z-index");
+                    zIndexOverlay = zIndexOverlay > zIndexDiff ? zIndexOverlay - zIndexDiff : 1;
+                } else {
+                    zIndexOverlay = 1;
+                }
+                overlayEl.appendTo(document.body);
+                YDom.setStyle(overlayElement, "z-index", zIndexOverlay);
+
+                return (function () {
+
+                    var el = overlayElement,
+                        zIndex = zIndexOverlay,
+                        callbackOnShow = showCallback,		// Default callback on show
+                        callbackOnHide = hideCallback;		// Default callback on hide
+
+                    var transitionEndEvent = (function () {
+                        var el = document.createElement('telement');
+                        var transitions = {
+                            'transition': 'transitionend',		// Should be 'transitionEnd'; changed to be compatible with FF
+                            'OTransition': 'oTransitionEnd',
+                            'MSTransition': 'msTransitionEnd',
+                            'MozTransition': 'transitionend',
+                            'WebkitTransition': 'webkitTransitionEnd'
+                        };
+                        for (var t in transitions) {
+                            if (el.style[t] !== undefined) {
+                                return transitions[t];
+                            }
+                        }
+                    })();
+
+                    // Define callbacks after css transitions
+                    YAHOO.util.Event.on(el, transitionEndEvent, function () {
+                        if (YDom.hasClass(el, "visible") && typeof callbackOnShow == "function") {
+                            callbackOnShow();
+                        } else if (typeof callbackOnHide == "function") {
+                            callbackOnHide();
+                        }
+                    });
+
+                    return {
+                        getOverlayElement: function () {
+                            return el;
+                        },
+                        show: function (callback) {
+                            // Override callback if one is provided
+                            callbackOnShow = callback ? callback : callbackOnShow;
+                            YDom.replaceClass(el, "invisible", "visible");
+                        },
+                        hide: function (callback) {
+                            // Override callback if one is provided
+                            callbackOnHide = callback ? callback : callbackOnHide;
+                            YDom.replaceClass(el, "visible", "invisible");
+                        },
+                        getzIndex: function () {
+                            return zIndex;
+                        }
+                    }
+                })();
+
+            } else {
+                return this.dcOverlay;
+            }
+        },
+
+        /*
+         * Wrapper function around createOverlay that creates a special type of overlay (overlay to be used while there are ajax transactions ocurring
+         * blocks access to the UI)
+         * @param -same as createOverlay function
+         * @return -reference to the newly created overlay
+         */
+        createAjaxOverlay: function (overlayId, refElementId, zIndexDiff, showCallback, hideCallback) {
+            var loaderImg = document.createElement("div"),
+                overlayObj = this.createOverlay(overlayId, refElementId, zIndexDiff, showCallback, hideCallback);
+
+            YDom.addClass(loaderImg, "ajax-loader");
+            overlayObj.getOverlayElement().appendChild(loaderImg);
+            return overlayObj;
+        },
+
+        /*
+         * Copies background styles inherited by an element and returns them in a string.
+         * We stop copying when we find a backgroundColor rule or a backgroundRepeat in the nearest ancestor.
+         * @param el -the element for which we want to find the inherited background styles
+         * @return string with the inherited background styles by the element
+         *
+         * TO-DO : This function will be more complex if we also consider multiple background images or background images or styles that show partly in the element.
+         */
+        getInheritedBackground: function (el) {
+
+            var stylesArr;
+
+            /* FF bug fix: http://siderite.blogspot.com/2009/07/jquery-firexof-error-could-not-convert.html */
+            if (YAHOO.env.ua.gecko && el == document) {
+                return "#FFFFFF";
+            }
+
+            stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
+                (el.currentStyle) ? el.currentStyle : null;
+            // el.currentStyle applies to IE v9 and below
+
+            if (stylesArr) {
+                if ((stylesArr.getPropertyValue('background-color') != "transparent" && stylesArr.getPropertyValue('background-color') != "rgba(0, 0, 0, 0)") ||
+                    (stylesArr.getPropertyValue('background-repeat').match(/^repeat/) && stylesArr.getPropertyValue('background-image') != "none")) {
+                    // stop condition: element has a background color or a background image that is set to repeat
+                    return stylesArr.getPropertyValue('background-color') + " " + stylesArr.getPropertyValue('background-image') + " " +
+                        stylesArr.getPropertyValue('background-repeat') + " " + stylesArr.getPropertyValue('background-position');
+                } else {
+                    if (el.parentNode) {
+                        return this.getInheritedBackground(el.parentNode);
+                    }
+                    return "";
+                }
+            } else {
+                return "#FFFFFF";	// Don't have access to the styles so set default background
+            }
+        },
+
+        /*
+         * Get the z-index inherited by an element.
+         * @param el -the element for which we want to find the inherited z-index
+         * @return integer that is the z-index value
+         */
+        getMaxzIndex: function (el, zIndex) {
+
+            var stylesArr;
+
+            /* FF bug fix: http://siderite.blogspot.com/2009/07/jquery-firexof-error-could-not-convert.html */
+            if (YAHOO.env.ua.gecko && el == document) {
+                return zIndex;
+            }
+
+            stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
+                (el.currentStyle) ? el.currentStyle : null;
+            // el.currentStyle applies to IE v9 and below
+
+            if (stylesArr) {
+                if (stylesArr.getPropertyValue('z-index') != "auto" && +stylesArr.getPropertyValue('z-index') > zIndex) {
+                    // save the zIndex value if it's greater than what we already have
+                    return this.getMaxzIndex(el.parentNode, +stylesArr.getPropertyValue('z-index'));
+                } else {
+                    if (el.parentNode && el.parentNode.nodeName != "BODY") {
+                        return this.getMaxzIndex(el.parentNode, zIndex);
+                    } else {
+                        return zIndex;
+                    }
+                }
+            } else {
+                return zIndex;
+            }
+        },
+
+        /*
+         * Creates a placeholder (duplicate) of an element copying its dimensions, class names and its ID (adding a prefix to it)
+         * @param el -the element we are creating a placeholder for
+         */
+        createPlaceholder: function (el) {
+            var pId = "placeholder-" + el.id,
+                pEl = document.createElement("div");
+
+            pEl.id = pId;
+            pEl.style.height = el.clientHeight + "px";
+            pEl.style.width = el.clientWidth + "px";
+            YAHOO.util.Dom.insertBefore(pEl, el);
+        },
+
+        /*
+         * Create a placeholder of a component by wrapping it with the necessary wrappers (to manipulate the component in the drag drop UI)
+         * @param component -the component we are creating a placeholder for
+         * @return placeholder (ie. a copy of the component with wrappers)
+         */
+        createNewComponentPlaceholder: function (component) {
+            var cpl = document.createElement("div");
+            YDom.addClass(cpl, dcWrapperClass);
+            cpl.innerHTML = "<div>" + component.parentNode.innerHTML + "</div>";
+            // It shouldn't be necessary to create a DD proxy out of the component placeholder because the user will see the form for
+            // the component when the drag drop completes. The component placeholder will then be replaced by the component with the
+            // real data.
+            // var ddproxy = new DragAndDropDecorator(cpl, null, { resizeFrame: false });
+            return cpl;
+        },
+
+        clearActive: function () {
+            var bodyEl = document.getElementsByTagName("body")[0];
+            var activeContainer = YDom.getFirstChildBy(bodyEl, function (el) {
+                return YDom.hasClass(el, dcContainerClass + "-active");
+            });
+            YDom.removeClass(activeContainer, dcContainerClass + "-active");
+        },
+
+        /*
+         * Return an object will all the styles an element has inline (e.g. { 'color': '#333', 'font-weight': 'bold'})
+         */
+        getInlineStyles: function (el) {
+            var cssArr, len, res = {};
+
+            // split the cssText value into an array of values
+            // e.g: "display: none; cursor: pointer;" becomes ["display", "none", "cursor", "pointer", ""]
+            cssArr = el.style.cssText.split(/:\s*|;\s*/);
+
+            // If the length is an odd number, that's because the last value of the array is an empty string => discard it
+            len = (cssArr.length % 2) ? cssArr.length - 1 : cssArr.length;
+            for (var i = 0; i < len; i += 2) {
+                res[cssArr[i]] = cssArr[i + 1];
+            }
+            return res;
+        },
+
+        /*
+         * Absolutely position an element. Set the element's position to absolute, copy its X and Y coordinates and set them as inline styles,
+         * and set its z-index to one number higher than the reference z-index value provided. Save the original inlines values in the element.
+         * @param zIndex -integer z-index reference value (optional). If "auto" or not set, the element's z-index will be set to 1
+         */
+        absolutePosition: function (el, zIndex) {
+            zIndex = zIndex || "auto";
+
+            el.style.width = (el.clientWidth - (+(el.style.paddingLeft.split("px")[0]) - (el.style.paddingRight.split("px")[0]))) + "px";
+            el.style.left = YDom.getX(el) + "px";
+            el.style.top = YDom.getY(el) + "px";
+            el.style.position = "absolute";
+            el.style.zIndex = (typeof zIndex == "number") ? zIndex + 1 : 1;
+        },
+
+        /*
+         * Copy a list of styles inline from the computed styles collection of an element
+         * @param el : element
+         * @param computedStyles : computed styles collection
+         * @param stylesArr : array of styles that will be copied inline from the computed styles collection
+         */
+        copyComputedStylesInline: function (el, computedStyles, stylesArr) {
+            stylesArr.forEach(function (style) {
+                var styleVal = computedStyles.getPropertyValue(style);
+                YDom.setStyle(el, style, styleVal);
+            });
+        },
+
+        /*
+         * Set all styles in a style object inline on an element. Remove any other inline styles the element may have.
+         */
+        restoreInlineStyles: function (el, stylesObj) {
+            var cssPropertiesArr = el.style.cssText.split(/:.+?;\s*/);
+            cssPropertiesArr.forEach(function (cssProperty) {
+                if (!cssProperty) {
+                    // Discard any empty strings (if any)
+                    return;
+                }
+                if (stylesObj.hasOwnProperty(cssProperty)) {
+                    YDom.setStyle(el, cssProperty, stylesObj[cssProperty]);
+                } else {
+                    el.style.removeProperty(cssProperty);
+                }
+            });
+        },
+
+        /*
+         * Take all the elements that match a cssSelector and place them absolutely in the page. The elements will be moved from their original
+         * position in the DOM tree and will be placed after a reference element. Their z-index will also be one integer higher than that of
+         * the reference element. After elements have been moved, they will be identifiable by a special class.
+         * @param cssSelector -match the elements that we want to move against this CSS selector
+         * @param refElement -element to use as reference point for moving the selected elements
+         * @param frontClass -special class that all elements moved will have
+         * @return an array with all the elements that were moved
+         */
+        moveElementsToFront: function (cssSelector, refElement, frontClass) {
+
+            var zoneEls = YAHOO.util.Selector.query(cssSelector);
+            zIndexRef = +YDom.getStyle(refElement, "z-index");
+
+            zoneEls.forEach(function (el) {
+                // Save the element's inline styles
+                el.origInlineStyles = this.getInlineStyles(el);
+
+                // Save the original height value
+                var heightVal = el.parentNode.style.height;
+                var stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
+                    (el.currentStyle) ? el.currentStyle : null;
+                // el.currentStyle applies to IE v9 and below
+
+                // Force height value into parent element to avoid scroll bug
+                el.parentNode.style.height = stylesArr.getPropertyValue('height');
+                this.absolutePosition(el, zIndexRef);
+                this.createPlaceholder(el);
+                // Restore height value in parent element
+                el.parentNode.style.height = heightVal;
+                this.copyComputedStylesInline(el, stylesArr, copyStyles);
+                YDom.insertAfter(el, refElement);
+                YDom.addClass(el, frontClass);
+            }, this);
+
+            return zoneEls;
+        },
+
+        /*
+         * Move an element back to its original location.
+         * @param el -element that is being moved
+         * @param frontClass -special class that identifies the element as having moved to the front. This class will need to be removed.
+         */
+        moveBackToSource: function (el, frontClass) {
+
+            var pEl = document.getElementById("placeholder-" + el.id);
+
+            YDom.setStyle(pEl, "visibility", "hidden");  // Set placeholder visibility to hidden
+
+            // Restore element's original inline styles
+            this.restoreInlineStyles(el, el.origInlineStyles);
+
+            // Move element after the placeholder
+            YDom.insertAfter(el, pEl);
+            YDom.removeClass(el, frontClass);
+
+            // Remove the placeholder element
+            el.parentNode.removeChild(pEl);
+        },
+
+        /*
+         * Counter function for moveElementsToFront.
+         * Move all elements that are siblings of a reference element and have a special class back to where they were originally
+         * located and remove their placeholders.
+         * @param refElement -sibling element of all the elements that have been moved front
+         * @param frontClass -special class that identifies all elements that have been moved to the front.
+         * @return an array with all the elements that were moved
+         */
+        moveElementsBack: function (refElement, frontClass) {
+            var ancestor = refElement.parentNode;
+            var zoneEls = YDom.getChildrenBy(ancestor, function (el) {
+                return YDom.hasClass(el, frontClass);
+            });
+            zoneEls.forEach(function (el) {
+                this.moveBackToSource(el, frontClass);
+            }, this);
+
+            return zoneEls;
+        }
+
+    };
+
+    CStudioAuthoring.ComponentsPanel = ComponentsPanel;
 
     function moduleLoaded() {
 
-        var moduleName = 'component-panel',		// ties css file to the js file
-            modulePath = CStudioAuthoring.Utils.getScriptPath(moduleName + ".js").split(CStudioAuthoringContext.baseUri)[1],
-            YDom = YAHOO.util.Dom,
-            YElement = YAHOO.util.Element,
-            dcNewComponentClass = 'new-component',
-            dcComponentClass = 'cstudio-draggable-component',
-            dcWrapperClass = 'cstudio-component-ice',
-            dcContainerClass = 'cstudio-component-zone',
-            componentsUpdated = false,
-            copyStyles = [
-                'border-collapse', 'border-spacing', 'caption-side', 'color', 'direction', 'empty-cells',
-                'font-family', 'font-size', 'font-style', 'font-weight', 'letter-spacing', 'line-height',
-                'list-style-image', 'list-style-position', 'list-style-type', 'quotes', 'text-align',
-                'text-indent', 'text-transform', 'visibility', 'white-space', 'word-spacing'
-            ];
+        var modulePath = CStudioAuthoring.Utils.getScriptPath(moduleName + ".js")
+            .split(CStudioAuthoringContext.baseUri)[1];
 
         // Load the component's css
         // We need to remove CStudioAuthoringContext.baseUri from the path to be able to use the addCss function
@@ -26,746 +727,6 @@
             // console.log("Loading css file: " + modulePath + moduleName + ".css");
             CStudioAuthoring.Utils.addCss(modulePath + moduleName + ".css");
         }
-
-        CStudioAuthoring.ComponentsPanel = {
-
-            initialized: false,
-            componentsOn: false,
-            dcOverlay: null,
-            ajaxOverlay: null,
-            rollbackContentMap: null, 	// use this content map to restore the app in case of any errors
-
-            initialize: function (config) {
-                // this.componentsOn = !!(sessionStorage.getItem('components-on'));
-                var self = this;
-
-                if (this.initialized == false) {
-                    this.initialized = true;
-
-                    this.ajaxOverlay = this.createAjaxOverlay("ajax-overlay", "preview-tools-panel-container_c", -5);
-
-                    amplify.subscribe('/operation/started', function () {
-                        self.ajaxOverlay.show();
-                    });
-                    amplify.subscribe('/operation/completed', function () {
-                        self.ajaxOverlay.hide();
-                    });
-                    amplify.subscribe('/operation/failed', function () {
-                        self.ajaxOverlay.hide();
-                    });
-
-                    amplify.subscribe('/page-model/loaded', function (data) {
-
-                        dom = ( new window.DOMParser()).parseFromString(data.model, "text/xml");
-                        dom = dom.children[0];
-
-                        var contentMap = CStudioForms.Util.xmlModelToMap(dom);
-
-                        switch (data.operation) {
-
-                            case "init-components":
-                                // console.log('linking model to components');
-                                self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
-                                self.linkComponentsToModel(contentMap);
-                                amplify.publish('/operation/completed');
-                                return;
-
-                            case "save-components-new":
-                                self.updateComponentsInModel(contentMap);
-                                CStudioForms.Util.loadFormDefinition(contentMap["content-type"], {
-                                    success: function (formDefinition) {
-                                        amplify.publish('components/form-def/loaded', {
-                                            "pagePath": data.pagePath,
-                                            "formDefinition": formDefinition,
-                                            "contentMap": contentMap,
-                                            "isNew": true
-                                        });
-
-                                    },
-                                    failure: function () {
-                                        amplify.publish('/operation/failed');
-                                        alert("failed to load form definition");
-                                    }
-                                });
-                                return;
-
-                            case "save-components":
-                                // console.log('saving model ... ');
-                                self.updateComponentsInModel(contentMap);
-                                CStudioForms.Util.loadFormDefinition(contentMap["content-type"], {
-                                    success: function (formDefinition) {
-                                        amplify.publish('components/form-def/loaded', {
-                                            "pagePath": data.pagePath,
-                                            "formDefinition": formDefinition,
-                                            "contentMap": contentMap
-                                        });
-                                    },
-                                    failure: function () {
-                                        amplify.publish('/operation/failed');
-                                        alert("failed to load form definition");
-                                    }
-                                });
-                                return;
-                        }
-                    });
-
-                    amplify.subscribe('components/form-def/loaded', function (data) {
-                        if (data.isNew && data.isNew == true) {
-                            amplify.subscribe('/operation/completed', function (data) {
-                                document.location = document.location;
-                            });
-                        }
-
-                        self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true);
-                    });
-
-                    amplify.subscribe(cstopic('COMPONENT_DROPPED'), function (type, path) {
-                        self.ondrop(type, path);
-                    });
-
-                    // Load page model
-                    this.getPageModel(this.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "init-components", true, false);
-                }
-            },
-
-            ondrop: function (componentType, componentPath) {
-
-                CStudioAuthoring.Operations.performSimpleIceEdit({
-                    contentType: componentType,
-                    uri: componentPath
-                }, null, true, {
-                    failure: CStudioAuthoring.Utils.noop,
-                    success: function (contentTO) {
-                        // Use the information from the newly created component entry and use it to load the model data for the
-                        // component placeholder in the UI. After this update, we can then proceed to save all the components
-                        var value = (!!contentTO.item.internalName) ? contentTO.item.internalName : contentTO.item.uri;
-
-                        // TO-DO: Create a process for storing the model data instead of doing it manually. We should not need
-                        // to know what properties a new component has.
-                        /*srcEl.componentPlaceholder.modelData = {
-                            key: contentTO.item.uri,
-                            value: value,
-                            include: contentTO.item.uri,
-                        };
-                        cpl.modelData = {
-                            key: contentTO.item.uri,
-                            value: value,
-                            include: contentTO.item.uri
-                        };*/
-alert("this path is hardcoded now. needs update due to iframe and nested components");
-
-                       CStudioAuthoring.ComponentsPanel.getPageModel(
-                            "/site/website/womens/index.xml",
-                       "save-components-new", true, false);
-
-                    }
-                });
-
-                /*if (YDom.hasClass(srcEl, dcNewComponentClass)) {
-                    var cpl;
-                } else {
-                    CStudioAuthoring.ComponentsPanel.getPageModel(
-                        CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                            CStudioAuthoringContext.previewCurrentPath),
-                        "save-components", true, false);
-                }*/
-            },
-
-            render: function (containerEl, config) {
-                // this.componentsOn = !!(sessionStorage.getItem('components-on'));
-
-                // if(this.componentsOn == true) {
-                // 	this.expand(containerEl, config);
-                // }
-            },
-
-            getPreviewPagePath: function (previewPath) {
-                var pagePath = previewPath.replace(".html", ".xml");
-
-                if (pagePath.indexOf(".xml") == -1) {
-                    if (pagePath.substring(pagePath.length - 1) != "/") {
-                        pagePath += "/";
-                    }
-                    pagePath += "index.xml";
-                }
-                return pagePath;
-            },
-
-            /*
-             * Load the model of a page and publish it
-             * @param pagePath -path to the page
-             * @param operation -operation performed (e.g. init, save, etc)
-             * @param start - true (starting an operation) | false (in the middle of an operation)
-             * @param complete - true (the operation is completed in this function) | false (the operation doesn't
-             complete in this function -ie. the operation continues in another function)
-             * @publish event: /components/model/loaded
-             */
-            getPageModel: function (pagePath, operation, start, complete) {
-
-                if (start) {
-                    amplify.publish('/operation/started');
-                }
-
-                var callback = {
-                    success: function (model) {
-                        amplify.publish('/page-model/loaded', {
-                            "pagePath": pagePath,
-                            "model": model,
-                            "operation": operation
-                        });
-                        if (complete) {
-                            amplify.publish('/operation/completed');
-                        }
-                    },
-                    failure: function (err) {
-                        // The operation must be completed if there was a failure
-                        amplify.publish('/operation/failed');
-                        alert("failed to load model");
-                    }
-                }
-                
-                CStudioAuthoring.Service.getContent(pagePath, "false", callback);
-            },
-
-            copyObj: function (srcObj, destObj) {
-
-                if (srcObj && typeof srcObj == "object" && !(srcObj instanceof Array) &&
-                    destObj && typeof destObj == "object" && !(destObj instanceof Array)) {
-
-                    for (var prop in srcObj) {
-                        if (srcObj.hasOwnProperty(prop)) {
-                            destObj[prop] = srcObj[prop];
-                        }
-                    }
-                }
-            },
-
-            /*
-             * This step would be unnecessary if the model were brought to the front-end from the beginning .. and the DOM elements
-             * loaded from this model (right now the model is being used by the ftl, but it isn't bounded to the DOM elements at all).
-             *
-             */
-            linkComponentsToModel: function (contentMap) {
-
-                var containerEls = YDom.getElementsByClassName(dcContainerClass),
-                    dcEls;
-
-                if (contentMap) {
-
-                    containerEls.forEach(function (el) {
-                        var containerName = el.id.replace("zone-", "");
-
-                        dcEls = YDom.getElementsByClassName(dcComponentClass, "div", el);
-
-                        for (var i = 0; i < dcEls.length; i++) {
-                            // link each DOM element to its corresponding model data
-                            // we could also create pointers from dcEls[i].modelData to contentMap[containerName][i], but then
-                            // we would make the model stay in memory. Instead, we will copy what we need off the model
-                            // and let the model be garbage collected.
-                            dcEls[i].modelData = {};
-                            this.copyObj(contentMap[containerName][i], dcEls[i].modelData);
-                        }
-                    }, this);
-                }
-                // console.log("initial model ", contentMap);
-            },
-
-            updateComponentsInModel: function (contentMap) {
-alert("this is where markup change has impact, also need to factor nesting");
-                var containerEls = YDom.getElementsByClassName(dcContainerClass);
-
-                if (contentMap) {
-
-                    containerEls.forEach(function (el) {
-
-                        var containerName = el.id.replace("zone-", ""),
-                            dcEls = YDom.getElementsByClassName(dcComponentClass, "div", el);
-
-                        contentMap[containerName] = []; 	// Clean previous component content in model
-
-                        for (var i = 0; i < dcEls.length; i++) {
-                            contentMap[containerName][i] = {};
-                            this.copyObj(dcEls[i].modelData, contentMap[containerName][i]);
-                        }
-                    }, this);
-                }
-                // console.log("model updated ", contentMap);
-            },
-
-            saveModel: function (pagePath, formDefinition, contentMap, start, complete) {
-
-                if (start) {
-                    amplify.publish('/operation/started');
-                }
-
-                var form = {definition: formDefinition, model: contentMap},
-                    xml = CStudioForms.Util.serializeModelToXml(form);
-
-                var saveCb = {
-                    success: function () {
-                        // console.log("Model saved!");
-                        if (complete) {
-                            amplify.publish('/operation/completed');
-                        }
-                    },
-                    failure: function () {
-                        amplify.publish('/operation/failed');
-                        // console.log("Model not saved ... roll back");
-                    }
-                };
-
-                CStudioAuthoring.Service.writeContent(pagePath, 
-                        pagePath.substring(pagePath.lastIndexOf('/') + 1), 
-                        null, 
-                        xml, 
-                        contentMap["content-type"], 
-                        CStudioAuthoringContext.site, 
-                        false, 
-                        false, 
-                        false, 
-                        true, 
-                        saveCb);
-            },
-
-            expand: function (containerEl, config) {
-                sessionStorage.setItem('components-on', 'on');
-                CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
-                    failure: CStudioAuthoring.Utils.noop,
-                    success: function (config) {
-                        amplify.publish(cstopic('START_DRAG_AND_DROP'), {
-                            components: config
-                        });
-                    }
-                });
-            },
-
-            collapse: function (containerEl, config) {
-                amplify.publish(cstopic('STOP_DRAG_AND_DROP'), {
-                    components: config
-                });
-            },
-
-            /*
-             * Create a DOM element to serve as a delete control
-             * @param className -class name to distinguish this type of element
-             * @return the new DOM element
-             */
-            createDeleteControl: function (className) {
-                var deleteEl = document.createElement("a"),
-                    btnEl = document.createElement("img");
-
-                YDom.addClass(deleteEl, className);
-
-                btnEl.src = CStudioAuthoringContext.authoringAppBaseUri
-                + "/themes/cstudioTheme/images/icons/delete.png";
-                btnEl.style.width = "16px";
-                btnEl.style.height = "16px";
-
-                deleteEl.appendChild(btnEl);
-                return deleteEl;
-            },
-
-            /*
-             * Create a new component to be inserted into the Preview Tools panel
-             * @param component -object with at least 3 properties: path, type and label
-             * @param tipText -text to display when the component is dragged from the Preview Tools panel
-             * @return the new DOM element
-             */
-            createMenuComponent: function (component, tipText) {
-
-                var menuComponent = document.createElement("div");
-
-                if (component && component.path && component.type && component.label) {
-                    YDom.addClass(menuComponent, "acn-panel-component");
-                    menuComponent.innerHTML = '<div class="' + dcNewComponentClass + ' ' + dcComponentClass +
-                    '" data-path="' + component.path + '" data-type="' + component.type +
-                    '"><div><span class="tipText">' + tipText + '</span><b>' + component.label + '</b></div></div>';
-                }
-                return menuComponent;
-            },
-
-            renderComponents: function (containerEl, config) {
-                containerEl.innerHTML = "";
-
-                if (!config.category.length) {
-                    config.category = [config.category];
-                }
-
-                for (var i = 0; i < config.category.length; i++) {
-                    var category = config.category[i];
-
-                    if (!category.component.length) {
-                        category.component = [category.component];
-                    }
-
-                    for (var j = 0; j < category.component.length; j++) {
-                        var component = category.component[j];
-
-                        var componentEl = this.createMenuComponent(component, "Adding new component:");
-                        containerEl.appendChild(componentEl);
-                    }
-                }
-            },
-
-            /*
-             * Initializes an overlay to go over the content. The overlay z-index value will be relative to a another reference element's z-index.
-             * @param overlayId -ID of the overlay
-             * @param refElementId -ID of HTML element to use as reference (optional)
-             * @param zIndexDiff -Number difference between the overlay z-index value and the reference element (optional)
-             */
-            createOverlay: function (overlayId, refElementId, zIndexDiff, showCallback, hideCallback) {
-
-                var overlayElement,
-                    overlayEl = document.getElementById(overlayId),
-                    zIndexDiff = zIndexDiff || 0,
-                    refElement = null,
-                    zIndexOverlay;
-
-                if (!overlayEl) {
-
-                    overlayElement = document.createElement("div");
-
-                    // If there's no content overlay element then create it
-                    overlayEl = new YElement(overlayElement);
-                    overlayEl.set("id", overlayId);
-
-                    refElement = document.getElementById(refElementId);
-                    if (refElement) {
-                        zIndexOverlay = YDom.getStyle(refElement, "z-index");
-                        zIndexOverlay = zIndexOverlay > zIndexDiff ? zIndexOverlay - zIndexDiff : 1;
-                    } else {
-                        zIndexOverlay = 1;
-                    }
-                    overlayEl.appendTo(document.body);
-                    YDom.setStyle(overlayElement, "z-index", zIndexOverlay);
-
-                    return (function () {
-
-                        var el = overlayElement,
-                            zIndex = zIndexOverlay,
-                            callbackOnShow = showCallback,		// Default callback on show
-                            callbackOnHide = hideCallback;		// Default callback on hide
-
-                        var transitionEndEvent = (function () {
-                            var el = document.createElement('telement');
-                            var transitions = {
-                                'transition': 'transitionend',		// Should be 'transitionEnd'; changed to be compatible with FF
-                                'OTransition': 'oTransitionEnd',
-                                'MSTransition': 'msTransitionEnd',
-                                'MozTransition': 'transitionend',
-                                'WebkitTransition': 'webkitTransitionEnd'
-                            };
-                            for (var t in transitions) {
-                                if (el.style[t] !== undefined) {
-                                    return transitions[t];
-                                }
-                            }
-                        })();
-
-                        // Define callbacks after css transitions
-                        YAHOO.util.Event.on(el, transitionEndEvent, function () {
-                            if (YDom.hasClass(el, "visible") && typeof callbackOnShow == "function") {
-                                callbackOnShow();
-                            } else if (typeof callbackOnHide == "function") {
-                                callbackOnHide();
-                            }
-                        });
-
-                        return {
-                            getOverlayElement: function () {
-                                return el;
-                            },
-                            show: function (callback) {
-                                // Override callback if one is provided
-                                callbackOnShow = callback ? callback : callbackOnShow;
-                                YDom.replaceClass(el, "invisible", "visible");
-                            },
-                            hide: function (callback) {
-                                // Override callback if one is provided
-                                callbackOnHide = callback ? callback : callbackOnHide;
-                                YDom.replaceClass(el, "visible", "invisible");
-                            },
-                            getzIndex: function () {
-                                return zIndex;
-                            }
-                        }
-                    })();
-
-                } else {
-                    return this.dcOverlay;
-                }
-            },
-
-            /*
-             * Wrapper function around createOverlay that creates a special type of overlay (overlay to be used while there are ajax transactions ocurring
-             * blocks access to the UI)
-             * @param -same as createOverlay function
-             * @return -reference to the newly created overlay
-             */
-            createAjaxOverlay: function (overlayId, refElementId, zIndexDiff, showCallback, hideCallback) {
-                var loaderImg = document.createElement("div"),
-                    overlayObj = this.createOverlay(overlayId, refElementId, zIndexDiff, showCallback, hideCallback);
-
-                YDom.addClass(loaderImg, "ajax-loader");
-                overlayObj.getOverlayElement().appendChild(loaderImg);
-                return overlayObj;
-            },
-
-            /*
-             * Copies background styles inherited by an element and returns them in a string.
-             * We stop copying when we find a backgroundColor rule or a backgroundRepeat in the nearest ancestor.
-             * @param el -the element for which we want to find the inherited background styles
-             * @return string with the inherited background styles by the element
-             *
-             * TO-DO : This function will be more complex if we also consider multiple background images or background images or styles that show partly in the element.
-             */
-            getInheritedBackground: function (el) {
-
-                var stylesArr;
-
-                /* FF bug fix: http://siderite.blogspot.com/2009/07/jquery-firexof-error-could-not-convert.html */
-                if (YAHOO.env.ua.gecko && el == document) {
-                    return "#FFFFFF";
-                }
-
-                stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
-                    (el.currentStyle) ? el.currentStyle : null;
-                // el.currentStyle applies to IE v9 and below
-
-                if (stylesArr) {
-                    if ((stylesArr.getPropertyValue('background-color') != "transparent" && stylesArr.getPropertyValue('background-color') != "rgba(0, 0, 0, 0)") ||
-                        (stylesArr.getPropertyValue('background-repeat').match(/^repeat/) && stylesArr.getPropertyValue('background-image') != "none")) {
-                        // stop condition: element has a background color or a background image that is set to repeat
-                        return stylesArr.getPropertyValue('background-color') + " " + stylesArr.getPropertyValue('background-image') + " " +
-                            stylesArr.getPropertyValue('background-repeat') + " " + stylesArr.getPropertyValue('background-position');
-                    } else {
-                        if (el.parentNode) {
-                            return this.getInheritedBackground(el.parentNode);
-                        }
-                        return "";
-                    }
-                } else {
-                    return "#FFFFFF";	// Don't have access to the styles so set default background
-                }
-            },
-
-            /*
-             * Get the z-index inherited by an element.
-             * @param el -the element for which we want to find the inherited z-index
-             * @return integer that is the z-index value
-             */
-            getMaxzIndex: function (el, zIndex) {
-
-                var stylesArr;
-
-                /* FF bug fix: http://siderite.blogspot.com/2009/07/jquery-firexof-error-could-not-convert.html */
-                if (YAHOO.env.ua.gecko && el == document) {
-                    return zIndex;
-                }
-
-                stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
-                    (el.currentStyle) ? el.currentStyle : null;
-                // el.currentStyle applies to IE v9 and below
-
-                if (stylesArr) {
-                    if (stylesArr.getPropertyValue('z-index') != "auto" && +stylesArr.getPropertyValue('z-index') > zIndex) {
-                        // save the zIndex value if it's greater than what we already have
-                        return this.getMaxzIndex(el.parentNode, +stylesArr.getPropertyValue('z-index'));
-                    } else {
-                        if (el.parentNode && el.parentNode.nodeName != "BODY") {
-                            return this.getMaxzIndex(el.parentNode, zIndex);
-                        } else {
-                            return zIndex;
-                        }
-                    }
-                } else {
-                    return zIndex;
-                }
-            },
-
-            /*
-             * Creates a placeholder (duplicate) of an element copying its dimensions, class names and its ID (adding a prefix to it)
-             * @param el -the element we are creating a placeholder for
-             */
-            createPlaceholder: function (el) {
-                var pId = "placeholder-" + el.id,
-                    pEl = document.createElement("div");
-
-                pEl.id = pId;
-                pEl.style.height = el.clientHeight + "px";
-                pEl.style.width = el.clientWidth + "px";
-                YAHOO.util.Dom.insertBefore(pEl, el);
-            },
-
-            /*
-             * Create a placeholder of a component by wrapping it with the necessary wrappers (to manipulate the component in the drag drop UI)
-             * @param component -the component we are creating a placeholder for
-             * @return placeholder (ie. a copy of the component with wrappers)
-             */
-            createNewComponentPlaceholder: function (component) {
-                var cpl = document.createElement("div");
-                YDom.addClass(cpl, dcWrapperClass);
-                cpl.innerHTML = "<div>" + component.parentNode.innerHTML + "</div>";
-                // It shouldn't be necessary to create a DD proxy out of the component placeholder because the user will see the form for
-                // the component when the drag drop completes. The component placeholder will then be replaced by the component with the
-                // real data.
-                // var ddproxy = new DragAndDropDecorator(cpl, null, { resizeFrame: false });
-                return cpl;
-            },
-
-            clearActive: function () {
-                var bodyEl = document.getElementsByTagName("body")[0];
-                var activeContainer = YDom.getFirstChildBy(bodyEl, function (el) {
-                    return YDom.hasClass(el, dcContainerClass + "-active");
-                });
-                YDom.removeClass(activeContainer, dcContainerClass + "-active");
-            },
-
-            /*
-             * Return an object will all the styles an element has inline (e.g. { 'color': '#333', 'font-weight': 'bold'})
-             */
-            getInlineStyles: function (el) {
-                var cssArr, len, res = {};
-
-                // split the cssText value into an array of values
-                // e.g: "display: none; cursor: pointer;" becomes ["display", "none", "cursor", "pointer", ""]
-                cssArr = el.style.cssText.split(/:\s*|;\s*/);
-
-                // If the length is an odd number, that's because the last value of the array is an empty string => discard it
-                len = (cssArr.length % 2) ? cssArr.length - 1 : cssArr.length;
-                for (var i = 0; i < len; i += 2) {
-                    res[cssArr[i]] = cssArr[i + 1];
-                }
-                return res;
-            },
-
-            /*
-             * Absolutely position an element. Set the element's position to absolute, copy its X and Y coordinates and set them as inline styles,
-             * and set its z-index to one number higher than the reference z-index value provided. Save the original inlines values in the element.
-             * @param zIndex -integer z-index reference value (optional). If "auto" or not set, the element's z-index will be set to 1
-             */
-            absolutePosition: function (el, zIndex) {
-                zIndex = zIndex || "auto";
-
-                el.style.width = (el.clientWidth - (+(el.style.paddingLeft.split("px")[0]) - (el.style.paddingRight.split("px")[0]))) + "px";
-                el.style.left = YDom.getX(el) + "px";
-                el.style.top = YDom.getY(el) + "px";
-                el.style.position = "absolute";
-                el.style.zIndex = (typeof zIndex == "number") ? zIndex + 1 : 1;
-            },
-
-            /*
-             * Copy a list of styles inline from the computed styles collection of an element
-             * @param el : element
-             * @param computedStyles : computed styles collection
-             * @param stylesArr : array of styles that will be copied inline from the computed styles collection
-             */
-            copyComputedStylesInline: function (el, computedStyles, stylesArr) {
-                stylesArr.forEach(function (style) {
-                    var styleVal = computedStyles.getPropertyValue(style);
-                    YDom.setStyle(el, style, styleVal);
-                });
-            },
-
-            /*
-             * Set all styles in a style object inline on an element. Remove any other inline styles the element may have.
-             */
-            restoreInlineStyles: function (el, stylesObj) {
-                var cssPropertiesArr = el.style.cssText.split(/:.+?;\s*/);
-                cssPropertiesArr.forEach(function (cssProperty) {
-                    if (!cssProperty) {
-                        // Discard any empty strings (if any)
-                        return;
-                    }
-                    if (stylesObj.hasOwnProperty(cssProperty)) {
-                        YDom.setStyle(el, cssProperty, stylesObj[cssProperty]);
-                    } else {
-                        el.style.removeProperty(cssProperty);
-                    }
-                });
-            },
-
-            /*
-             * Take all the elements that match a cssSelector and place them absolutely in the page. The elements will be moved from their original
-             * position in the DOM tree and will be placed after a reference element. Their z-index will also be one integer higher than that of
-             * the reference element. After elements have been moved, they will be identifiable by a special class.
-             * @param cssSelector -match the elements that we want to move against this CSS selector
-             * @param refElement -element to use as reference point for moving the selected elements
-             * @param frontClass -special class that all elements moved will have
-             * @return an array with all the elements that were moved
-             */
-            moveElementsToFront: function (cssSelector, refElement, frontClass) {
-
-                var zoneEls = YAHOO.util.Selector.query(cssSelector);
-                zIndexRef = +YDom.getStyle(refElement, "z-index");
-
-                zoneEls.forEach(function (el) {
-                    // Save the element's inline styles
-                    el.origInlineStyles = this.getInlineStyles(el);
-
-                    // Save the original height value
-                    var heightVal = el.parentNode.style.height;
-                    var stylesArr = (window.getComputedStyle) ? window.getComputedStyle(el) :
-                        (el.currentStyle) ? el.currentStyle : null;
-                    // el.currentStyle applies to IE v9 and below
-
-                    // Force height value into parent element to avoid scroll bug
-                    el.parentNode.style.height = stylesArr.getPropertyValue('height');
-                    this.absolutePosition(el, zIndexRef);
-                    this.createPlaceholder(el);
-                    // Restore height value in parent element
-                    el.parentNode.style.height = heightVal;
-                    this.copyComputedStylesInline(el, stylesArr, copyStyles);
-                    YDom.insertAfter(el, refElement);
-                    YDom.addClass(el, frontClass);
-                }, this);
-
-                return zoneEls;
-            },
-
-            /*
-             * Move an element back to its original location.
-             * @param el -element that is being moved
-             * @param frontClass -special class that identifies the element as having moved to the front. This class will need to be removed.
-             */
-            moveBackToSource: function (el, frontClass) {
-
-                var pEl = document.getElementById("placeholder-" + el.id);
-
-                YDom.setStyle(pEl, "visibility", "hidden");  // Set placeholder visibility to hidden
-
-                // Restore element's original inline styles
-                this.restoreInlineStyles(el, el.origInlineStyles);
-
-                // Move element after the placeholder
-                YDom.insertAfter(el, pEl);
-                YDom.removeClass(el, frontClass);
-
-                // Remove the placeholder element
-                el.parentNode.removeChild(pEl);
-            },
-
-            /*
-             * Counter function for moveElementsToFront.
-             * Move all elements that are siblings of a reference element and have a special class back to where they were originally
-             * located and remove their placeholders.
-             * @param refElement -sibling element of all the elements that have been moved front
-             * @param frontClass -special class that identifies all elements that have been moved to the front.
-             * @return an array with all the elements that were moved
-             */
-            moveElementsBack: function (refElement, frontClass) {
-                var ancestor = refElement.parentNode;
-                var zoneEls = YDom.getChildrenBy(ancestor, function (el) {
-                    return YDom.hasClass(el, frontClass);
-                });
-                zoneEls.forEach(function (el) {
-                    this.moveBackToSource(el, frontClass);
-                }, this);
-
-                return zoneEls;
-            }
-
-        };
 
         var Utility = {
 
@@ -971,7 +932,11 @@ alert("this is where markup change has impact, also need to factor nesting");
 
                 if (componentsUpdated) {
                     componentsUpdated = false;	// reset flag
-                    CStudioAuthoring.ComponentsPanel.getPageModel(CStudioAuthoring.ComponentsPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
+                    CStudioAuthoring.ComponentsPanel.getPageModel(
+                        CStudioAuthoring.ComponentsPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
+                        "save-components",
+                        true,
+                        false);
                 }
             },
 
@@ -1126,10 +1091,10 @@ alert("this is where markup change has impact, also need to factor nesting");
 
     }
 
-    CStudioAuthoring.Utils.addJavascript("/static-assets/yui/dragdrop/dragdrop-min.js");
     CStudioAuthoring.Module.requireModule(
-        'cstudio-forms-engine', '/static-assets/components/cstudio-forms/forms-engine.js', {},
-        { moduleLoaded: moduleLoaded });
+        'cstudio-forms-engine',
+        '/static-assets/components/cstudio-forms/forms-engine.js',
+        {}, { moduleLoaded: moduleLoaded });
 
-})(CStudioAuthoring, CStudioAuthoringContext);
+})(CStudioAuthoring, CStudioAuthoringContext, amplify, jQuery);
 

@@ -188,12 +188,19 @@ public class ContentServiceImpl implements ContentService {
                     objectStateService.insertNewEntry(site, item);
                     objectState = objectStateService.getObjectState(site, path);
                 }
-                if (objectState.getSystemProcessing() != 0){
-                    logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
-                    throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
-                }
 
-                objectStateService.setSystemProcessing(site, path, true);
+                if(objectState != null) {
+
+                    if (objectState.getSystemProcessing() != 0){
+                        logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
+                        throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                    }
+
+                    objectStateService.setSystemProcessing(site, path, true);
+                }
+                else {
+                    logger.error("the object state is still null.");
+                }
             }
 
             // default chain is asset type
