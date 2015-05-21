@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>f2b8</objectGroupId>
+	<objectId>f2b8c335-5a98-975d-e29f-1080906c4559</objectId>
+	<file-name>f2b8c335-5a98-975d-e29f-1080906c4559.xml</file-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/big-banner.png</image>
+	<alttext/>
+	<createdDate>7/11/2014 16:8:52</createdDate>
+	<lastModifiedDate>7/11/2014 16:8:52</lastModifiedDate>
+</component>

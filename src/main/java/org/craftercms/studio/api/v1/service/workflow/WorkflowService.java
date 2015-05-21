@@ -107,6 +107,8 @@ public interface WorkflowService {
 	 */
 	void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter);
 
+	ResultTO submitToGoLive(String site, String username, String request) throws ServiceException;
+
     void preGoLive(Set<String> uris, GoLiveContext context, Set<String> rescheduledUris);
 
     /**
@@ -116,7 +118,7 @@ public interface WorkflowService {
 
 	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
 
-	String getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
+	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
 
 	/**
 	 * cancel the workflow pending on the given item.

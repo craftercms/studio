@@ -1,5 +1,5 @@
 <div>
-  <img src="${model.image}" />
+  <img src="${model.image}"  />
 </div>
 
 

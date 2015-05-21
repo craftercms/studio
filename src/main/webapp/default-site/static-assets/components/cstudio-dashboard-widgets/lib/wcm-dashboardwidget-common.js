@@ -615,13 +615,13 @@ WcmDashboardWidgetCommon.toggleHeaderLink = function (widget, linkEl, showCollap
     if (showCollapsed) {
         linkEl.setAttribute("href", "javascript:void(0);");
         linkEl.innerHTML = "Expand All";
-        linkEl.className = "widget-collapse-state";
+        linkEl.className = "btn btn-default btn-sm widget-collapse-state";
         widget.instance.expanded = false;
     }
     else {
         linkEl.setAttribute("href", "javascript:void(0);");
         linkEl.innerHTML = "Collapse All";
-        linkEl.className = "widget-expand-state";
+        linkEl.className = "btn btn-default btn-sm widget-expand-state";
         widget.instance.expanded = true;
     }
 }

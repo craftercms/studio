@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-	<content-type>/component/home-page-scenario</content-type>
+	<content-type>/component/home-page-scenario</content-type>	<content-type>/component/home-page-scenario</content-type>
 	<display-template/>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<content-type>/component/home-page-scenario</content-type>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>c673</objectGroupId>
 	<objectId>c6737550-3c26-61f3-4502-e099b1db01a9</objectId>
@@ -55,16 +53,10 @@
 	<mainTileWidth>330</mainTileWidth>
 	<mainTileCta1ButtonText>Shop Fall Fashions</mainTileCta1ButtonText>
 	<mainTileImage>/static-assets/images/home/titles/fallscene.jpg</mainTileImage>
-	<gender>	<item>	<key>female</key>
-	<value>Female</value>
-	</item>	<item>	<key>Female</key>
+	<gender>	<item>	<key>Female</key>
 	<value>Female</value>
 	</item></gender>
-	<season>	<item>	<key>fall</key>
-	<value>Fall</value>
-	</item>	<item>	<key>Fall</key>
-	<value>Fall</value>
-	</item></season>
+	<season/>
 	<mainTileCta1ButtonTop>80</mainTileCta1ButtonTop>
 	<mainTileCta1ButtonLeft>0</mainTileCta1ButtonLeft>
 	<mobileMainTileText>Fall In Love</mobileMainTileText>
@@ -84,4 +76,6 @@
 	<mobileMainTileCta2ButtonUrl/>
 	<mobileMainTileCta2ButtonTop/>
 	<mobileMainTileCta2ButtonLeft/>
+	<createdDate>05/30/2013 08:00:18</createdDate>
+	<lastModifiedDate>4/15/2015 12:9:2</lastModifiedDate>
 </component>

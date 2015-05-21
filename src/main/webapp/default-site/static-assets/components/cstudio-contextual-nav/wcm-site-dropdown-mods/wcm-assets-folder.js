@@ -720,6 +720,17 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                 treeNode = oCurrentTextNode;
 
             document.body.appendChild(view.element);
+            var serviceUrl = CStudioAuthoring.Service.createServiceUri(
+                CStudioAuthoring.Service.createWriteServiceUrl(
+                    treeNode.data.uri, 
+                    treeNode.data.filename, 
+                    null,
+                    treeNode.data.contentType, 
+                    CSAC.site, 
+                    true, 
+                    false, 
+                    false, 
+                    true));
 
             var dropbox = new Dropbox({
                 element: view.element,
@@ -727,9 +738,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                     '#{0} .file-display-container .pad',
                     view.id),
                 progress: '.progress .bar',
-                target: fmt(
-                    '{0}/proxy/alfresco/cstudio/wcm/content/upload-content-asset?site={1}&path={2}',
-                    CSAC.baseUri, CSAC.site, treeNode.data.uri),
+                target: serviceUrl,
                 uploadPostKey: 'file',
                 formData: {
                     site: CSAC.site,

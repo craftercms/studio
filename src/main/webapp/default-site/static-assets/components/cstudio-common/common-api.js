@@ -1009,9 +1009,7 @@ var YEvent = YAHOO.util.Event;
                     // CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window", new Date() + "|" + url + "|" + soundTone + "|" + targetWindowId);
 
                     var Topics = crafter.studio.preview.Topics;
-                    // amplify.publish(Topics.GUEST_CHECKOUT);
-                    amplify.publish(Topics.GUEST_CHECKIN, url || '/'); // TODO home page URL is blank, why?
-
+                    window.location = '/studio/preview/#/?page='+url+'/&site='+CStudioAuthoringContext.site;
                 }
 
             },
@@ -1862,7 +1860,7 @@ var YEvent = YAHOO.util.Event;
              */
             openUploadDialog: function(site, path, isUploadOverwrite, callback) {
 
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/upload-content-asset";
+                var serviceUri = CStudioAuthoring.Service.writeContentServiceUrl;
 
                 var openUploadDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
@@ -2018,8 +2016,7 @@ var YEvent = YAHOO.util.Event;
 
             // constants
             defaultNavContext: "default",
-            ALFRESCO_PROXY: "/proxy/alfresco",
-
+            
             // UI (legacy pattern)
             contextServiceUri: "/context-nav",
             getComponentPreviewServiceUrl: "/crafter-controller/component",
@@ -2034,7 +2031,7 @@ var YEvent = YAHOO.util.Event;
             getVersionHistoryServiceUrl: "/api/1/services/api/1/content/get-item-versions.json",
             lookupContentServiceUri: "/api/1/services/api/1/content/get-items-tree.json",
             searchServiceUrl: "/api/1/services/api/1/content/search.json",
-            writeContentServicecUrl: "/api/1/services/api/1/content/write-content.json",
+            writeContentServiceUrl: "/api/1/services/api/1/content/write-content.json",
             lookupContentTypeServiceUri: "/api/1/services/api/1/content/get-content-type.json",
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
@@ -2365,6 +2362,34 @@ var YEvent = YAHOO.util.Event;
             },
 
             /**
+             * this method exists for legacy reasons.  Do not call it, use the actual service instead
+             */
+            createWriteServiceUrl: function(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock) {
+
+                if (path.indexOf('.') !== -1) {
+                    filename = path.substring(path.lastIndexOf('/') + 1);
+                    path = path.substring(0, path.lastIndexOf('/'));
+                }
+
+                var url =
+                    this.writeContentServiceUrl +
+                    '?site=' + site +
+                    '&path=' + path +
+                    '&fileName=' + filename +
+                    '&contentType=' + contentType +
+                    '&createFolders=' + createFolders +
+                    '&draft=' + draft +
+                    '&duplicate=' + duplicate +
+                    '&unlock=' + unlock;
+
+                if (oldPath && oldPath != null) {
+                    url += '&old=' + oldPath;
+                }
+
+                return url;
+            },
+
+            /**
              * write content (XML)
              * Path is where you want the content to go
              * filename is the name of the file specifically
@@ -2378,33 +2403,19 @@ var YEvent = YAHOO.util.Event;
              * unlock TRUE if item should be unlocked after the write
              */
             writeContent: function(path, filename, oldPath, content, contentType, site, createFolders, draft, duplicate, unlock, callback) {
-                var serviceUri = this.writeContentServiceUrl;
-                serviceUri += "?site=" + site +
-                "&path=" + path +
-                "&fileName=" + filename +
-                "&contentType=" + contentType +
-                "&createFolders=" + createFolders +
-                "&old=" + oldPath +
-                "&draft=" + draft +
-                "&duplicate=" + duplicate +
-                "&unlock=" + unlock;
+                var serviceUri = this.createWriteServiceUrl(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock);
 
-                var serviceCallback = {
+                YConnect.setDefaultPostHeader(false);
+                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), {
                     success: function(response) {
                         var content = response.responseText;
                         callback.success(content);
                     },
-
                     failure: function(response) {
                         callback.failure(response);
-                    },
-
-                    originalMarkup: markup
-                };
-
-                YConnect.setDefaultPostHeader(false);
-                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
-                YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, content);
+                    }
+                }, content);
             },
 
             /**
@@ -2721,9 +2732,9 @@ var YEvent = YAHOO.util.Event;
                         callback.failure(response);
                     }
                 };
-                var serviceUri = this.createServiceUri(this.contentExistsUrl) + "?site=" + CStudioAuthoringContext.site + "&path=" + path;
+                var serviceUri = this.contentExistsUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + path;
 
-                YConnect.asyncRequest('GET',serviceUri, serviceCallback);
+                YConnect.asyncRequest('GET',this.createServiceUri(serviceUri), serviceCallback);
             },
 
             /**
@@ -4090,7 +4101,8 @@ var YEvent = YAHOO.util.Event;
                 if (permission instanceof CStudioConstant) {
                     var has = false;
                     CSA.Utils.each(permssions, function (index, value) {
-                        if (value.permission === permission.toString()) {
+                        if (value === permission.toString()
+                        || value === permission.getValue()) {
                             has = true;
                             return false; // exit the loop
                         }
@@ -4340,6 +4352,10 @@ var YEvent = YAHOO.util.Event;
                         script = CStudioAuthoringContext.baseUri + script;
                     }
 
+                    /*script = (script.indexOf("?")==-1)
+                        ? script + "?nocache="+new Date()
+                        : script + "&nocache="+new Date();*/
+
                     var headID = document.getElementsByTagName("head")[0];
                     var newScript = document.createElement('script');
                     newScript.type = 'text/javascript';
@@ -4379,6 +4395,9 @@ var YEvent = YAHOO.util.Event;
                     this.addedCss.push(css);
 
                     css = CStudioAuthoringContext.baseUri + css;
+
+                    css = (css.indexOf("?")==-1) ? 
+                        css + "?nocache="+new Date() : css + "&nocache="+new Date();
 
                     var headID = document.getElementsByTagName("head")[0];
                     var cssNode = document.createElement('link');
@@ -6753,7 +6772,7 @@ CStudioAuthoring.InContextEdit = {
 }) (window);
 
  (function startAuthLoop() {
-
+  
      if (typeof CStudioAuthoringContext != 'undefined') {
 
          var authLoopCb = {
@@ -6769,7 +6788,6 @@ CStudioAuthoring.InContextEdit = {
                         serviceCallback,
                         delay = 60000;  // poll once every minute
 
-                    //if (document.hasFocus()) {
                         serviceUri = CStudioAuthoring.Service.verifyAuthTicketUrl;
 
                         serviceCallback = {
@@ -6777,6 +6795,7 @@ CStudioAuthoring.InContextEdit = {
                                 var resObj = response.responseText
  
                                 if (resObj.indexOf("true") != -1) {
+
                                     setTimeout(function() { authLoop(configObj); }, delay);
                                 } 
                                 else {
@@ -6791,11 +6810,7 @@ CStudioAuthoring.InContextEdit = {
                         };
 
                         YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), serviceCallback);
-                    //} else {
-                        setTimeout(function() {
-                            authLoop(configObj);
-                        }, delay);
-                    //}
+
                 }
 
                 // Start the authentication loop

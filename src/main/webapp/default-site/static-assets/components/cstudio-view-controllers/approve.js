@@ -93,8 +93,8 @@
         });
 
         if (data.schedule === 'custom') {
-            data.scheduleDate = this.getComponent('[name="scheduleDate"]');
-            data.scheduleTime = this.getComponent('[name="scheduleTime"]');
+            data.scheduleDate = this.getComponent('[name="scheduleDate"]').value;
+            data.scheduleTime = this.getComponent('[name="scheduleTime"]').value;
         }
 
         //this.showProcessingOverlay(true);

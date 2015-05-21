@@ -267,4 +267,9 @@ class ContentServices {
 		def contentServicesImpl = ServiceFactory.getContentServices(context);
 		return contentServicesImpl.getContentItemTree(site, path, depth);//.getPages(site, path, depth, order, checkChildren)
 	}
+
+	static writeContentAsset(context, site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+	}
 }	
