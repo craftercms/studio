@@ -2365,16 +2365,26 @@ var YEvent = YAHOO.util.Event;
              * this method exists for legacy reasons.  Do not call it, use the actual service instead
              */
             createWriteServiceUrl: function(path, filename, oldPath, contentType, site, createFolders, draft, duplicate, unlock) {
-                return this.writeContentServiceUrl +
+                if(path.indexOf(".") != -1) {
+                    filename = path.substring(path.lastIndexOf("/")+1);
+                    path = path.substring(0, path.lastIndexOf("/"));
+                }
+
+                var url = this.writeContentServiceUrl +
                 "?site=" + site +
                 "&path=" + path +
                 "&fileName=" + filename +
                 "&contentType=" + contentType +
                 "&createFolders=" + createFolders +
-                "&old=" + oldPath +
                 "&draft=" + draft +
                 "&duplicate=" + duplicate +
                 "&unlock=" + unlock;
+
+                if(oldPath && oldPath!=null) {
+                    url += "&old=" + oldPath;
+                }
+
+                return url;
             },
 
             /**
