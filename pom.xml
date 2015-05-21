@@ -2,46 +2,54 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-	<groupId>org.craftercms</groupId>
-	<artifactId>crafter-studio-2</artifactId>
-	<name>Crafter Studio</name>
-	<packaging>war</packaging>
-	<version>2.5.0-SNAPSHOT</version>
-	<url>http://www.craftercms.org</url>
+    <groupId>org.craftercms</groupId>
+    <artifactId>crafter-studio-2</artifactId>
+    <name>Crafter Studio</name>
+    <packaging>war</packaging>
+    <version>2.5.0-SNAPSHOT</version>
+    <url>http://www.craftercms.org</url>
 
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
 
-	<organization>
-		<name>CrafterCMS</name>
-		<url>http://craftercms.org</url>
-	</organization>
+    <organization>
+        <name>CrafterCMS</name>
+        <url>http://craftercms.org</url>
+    </organization>
 
-	<properties>
+    <properties>
         <java.version>1.7</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<tika.version>1.5</tika.version>
-		<junit.version>4.11</junit.version>
-		<mockito.version>1.9.5</mockito.version>
-	</properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <tika.version>1.5</tika.version>
+        <mockito.version>1.9.5</mockito.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
+        <testng.version>6.9.4</testng.version>
+        <selenium.version>2.45.0</selenium.version>
+        <ghostdriver.version>1.2.0</ghostdriver.version>
+        <phantomjs.version>1.9.8</phantomjs.version>
+        <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
+        <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
 
-	<licenses>
-		<license>
-			<name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	
-	<developers>
-		<developer>
-			<id>sumerjabri</id>
-			<name>Sumer Jabri</name>
-			<email>sumer.jabri@craftercms.org</email>
-		</developer>
+    </properties>
+
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>sumerjabri</id>
+            <name>Sumer Jabri</name>
+            <email>sumer.jabri@craftercms.org</email>
+        </developer>
         <developer>
             <name>Russ Danner</name>
             <email>russ.danner@craftercms.org</email>
@@ -51,12 +59,12 @@
             <name>Dejan Brkic</name>
             <email>dejan.brkic@craftercms.org</email>
         </developer>
-	</developers>
-	<scm>
-		<connection>scm:git:git://github.com/craftercms/studio</connection>
-		<developerConnection>scm:git:git://github.com/craftercms/studio2</developerConnection>
-		<url>scm:git:git://github.com/craftercms/engine</url>
-	</scm>
+    </developers>
+    <scm>
+        <connection>scm:git:git://github.com/craftercms/studio</connection>
+        <developerConnection>scm:git:git://github.com/craftercms/studio2</developerConnection>
+        <url>scm:git:git://github.com/craftercms/engine</url>
+    </scm>
 
 
     <repositories>
@@ -148,7 +156,7 @@
             <groupId>xml-apis</groupId>
             <artifactId>xml-apis</artifactId>
             <version>1.3.04</version>
-        </dependency>        
+        </dependency>
 
         <!-- Database DALs -->
         <dependency>
@@ -167,7 +175,7 @@
             <artifactId>mybatis</artifactId>
             <version>3.2.8</version>
         </dependency>
-        <dependency>  
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
             <version>4.0.3.RELEASE</version>
@@ -183,7 +191,7 @@
             <artifactId>json-lib</artifactId>
             <version>2.4</version>
             <classifier>jdk15</classifier>
-        
+
         </dependency>
 
         <!-- collections -->
@@ -216,6 +224,37 @@
             <artifactId>derby</artifactId>
             <version>10.11.1.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.detro</groupId>
+            <artifactId>phantomjsdriver</artifactId>
+            <version>${ghostdriver.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-server</artifactId>
+            <version>2.45.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -230,19 +269,7 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.17</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -257,47 +284,166 @@
                             <excludes>
                                 <!-- when udpdating ROOT base check here to see if these need to be updated -->
                                 <exclude>WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-                                
+
                             </excludes>
                         </overlay>
                     </overlays>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.github.klieber</groupId>
+                <artifactId>phantomjs-maven-plugin</artifactId>
+                <version>${phantomjs.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <version>${phantomjs.version}</version>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.18</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+
+
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>
+                                ${project.build.outputDirectory}/application.properties
+                            </outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 
-	<profiles>
-		<profile>
-		<id>release-sign-artifacts</id>
-		<activation>
-			<property>
-				<name>performRelease</name>
-				<value>true</value>
-			</property>
-		</activation>
-		<build>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>2.7</version>
-					</plugin>
-					<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-gpg-plugin</artifactId>
-					<version>1.4</version>
-					<executions>
-					<execution>
-					<id>sign-artifacts</id>
-					<phase>verify</phase>
-					<goals>
-					<goal>sign</goal>
-					</goals>
-					</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</build>
-		</profile>
-	</profiles>    
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.7</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <id>standalone</id>
+            <properties>
+                <selenium.baseUrl>http://standalone.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
+            </properties>
+        </profile>
+        <profile>
+            <id>alfresco</id>
+            <properties>
+                <selenium.baseUrl>http://studio.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
+            </properties>
+        </profile>
+        <profile>
+            <id>local</id>
+            <properties>
+                <selenium.baseUrl>http://localhost:9080/studio/</selenium.baseUrl>
+            </properties>
+        </profile>
+
+        <profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <id>phantom</id>
+            <properties>
+                <selenium.browser>phantom</selenium.browser>
+                <selenium.componentTimeOut>30</selenium.componentTimeOut>
+            </properties>
+        </profile>
+        <profile>
+            <id>safari</id>
+            <properties>
+                <selenium.browser>safari</selenium.browser>
+                <selenium.componentTimeOut>30</selenium.componentTimeOut>
+            </properties>
+        </profile>
+        <profile>
+            <id>firefox</id>
+            <properties>
+                <selenium.browser>firefox</selenium.browser>
+                <selenium.componentTimeOut>30</selenium.componentTimeOut>
+            </properties>
+        </profile>
+        <profile>
+            <id>chrome</id>
+            <properties>
+                <selenium.browser>chrome</selenium.browser>
+                <selenium.componentTimeOut>30</selenium.componentTimeOut>
+            </properties>
+        </profile>
+        <profile>
+            <id>ie</id>
+            <properties>
+                <selenium.browser>ie</selenium.browser>
+                <selenium.componentTimeOut>30</selenium.componentTimeOut>
+            </properties>
+        </profile>
+    </profiles>
 </project>

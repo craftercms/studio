@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Selenium Create site" verbose="1">
+
+    <test name="Selenium Integrity">
+        <packages>
+            <package name="org.sample.ui"/>
+        </packages>
+    </test>
+
+    <test name="Selenium Create site">
+        <packages>
+            <package name="org.sample.ui.site"/>
+        </packages>
+    </test>
+
+</suite>
