@@ -7,10 +7,12 @@
         <group name="site_SITENAME_SiteManager">
             <role>admin</role>
         </group>
+        <group name="crafter-author">
+            <role>author</role>
+        </group>
         <group name="site_SITENAME_SiteCollaborator">
             <role>author</role>
         </group>
-
         <group name="site_SITENAME_SiteContributor">
             <role>approver</role>
         </group>
