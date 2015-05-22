@@ -1,4 +1,4 @@
-package org.craftercms.studio.testing.base.rest;
+package org.craftercms.studio.testing.it.base.rest;
 
 
 import java.io.InputStream;

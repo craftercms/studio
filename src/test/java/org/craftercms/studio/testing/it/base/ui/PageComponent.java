@@ -1,4 +1,4 @@
-package org.craftercms.studio.testing.base.ui;
+package org.craftercms.studio.testing.it.base.ui;
 import org.openqa.selenium.WebDriver;
 
 public class PageComponent {

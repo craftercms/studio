@@ -1,6 +1,6 @@
-package org.craftercms.studio.testing.ui;
+package org.craftercms.studio.testing.it.ui;
 
-import org.craftercms.studio.testing.base.ui.BaseSeleniumTest;
+import org.craftercms.studio.testing.it.base.ui.BaseSeleniumTest;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;

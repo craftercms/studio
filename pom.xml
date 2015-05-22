@@ -225,11 +225,11 @@
             <version>10.11.1.1</version>
         </dependency>
 
-	<dependency>
-		<groupId>commons-fileupload</groupId>
-		<artifactId>commons-fileupload</artifactId>
-		<version>1.3</version>
-	</dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.3</version>
+        </dependency>
 
         <!-- testing -->
         <dependency>
@@ -297,66 +297,79 @@
                     </overlays>
                 </configuration>
             </plugin>
-
-            <!--plugin>
-                <groupId>com.github.klieber</groupId>
-                <artifactId>phantomjs-maven-plugin</artifactId>
-                <version>${phantomjs.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>install</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <version>${phantomjs.version}</version>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
-                    </suiteXmlFiles>
+                    <skip>true</skip>
                 </configuration>
-            </plugin-->
-
-            <!--plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0-alpha-2</version>
-                <executions>
-                    <execution>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>write-project-properties</goal>
-                        </goals>
-                        <configuration>
-                            <outputFile>
-                                ${project.build.outputDirectory}/application.properties
-                            </outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin-->
-
-
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <id>test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.klieber</groupId>
+                        <artifactId>phantomjs-maven-plugin</artifactId>
+                        <version>${phantomjs.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>install</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <version>${phantomjs.version}</version>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.18</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <version>1.0-alpha-2</version>
+                        <executions>
+                            <execution>
+                                <phase>test-compile</phase>
+                                <goals>
+                                    <goal>write-project-properties</goal>
+                                </goals>
+                                <configuration>
+                                    <outputFile>
+                                        ${project.build.outputDirectory}/application.properties
+                                    </outputFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>release-sign-artifacts</id>
             <activation>
