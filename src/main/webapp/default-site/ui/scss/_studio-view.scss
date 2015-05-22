@@ -8,6 +8,8 @@
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/scaffolding";
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/type";
 
+@import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
+
 .text-center {
   text-align: center !important;
 }
@@ -59,8 +61,6 @@
 .studio-view,
 .studio-dialog,
 .site-dashboard {
-
-  @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
   // Core CSS
   @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/code";

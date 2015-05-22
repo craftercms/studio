@@ -2511,10 +2511,17 @@ span.acn-canned-search {
 }
 
 /* --- Preview Tools Overlay --- */
+
 #preview-tools-panel-container {
 
   border: none;
   border-radius: $border-radius-base;
+
+  .channel-width,
+  .channel-height {
+    width: 60px;
+    display: inline-block;
+  }
 
   .acn-accordion-header {
     margin: 0;
@@ -2847,6 +2854,7 @@ span.acn-canned-search {
   transition: width 0.6s ease;
 }
 
+@import "util/util";
 @import "studio-view";
 @import "cstudio-view";
 @import "preview";
