@@ -116,7 +116,7 @@ class WorkflowServices {
         def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
         return workflowServicesImpl.goLive(site, requestBody);
     }
-	static SubmitToGoLive(context, site, user, requestBody) {
+	static submitToGoLive(context, site, user, requestBody) {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
 		return workflowServicesImpl.submitToGoLive(site, user, requestBody);
 	}

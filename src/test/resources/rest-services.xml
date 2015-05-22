@@ -2,7 +2,7 @@
 <suite name="Rest Services Create" verbose="1">
     <test name="Rest Services Create Site">
         <packages>
-            <package name="org.sample.rest.site"/>
+            <package name="org.craftercms.studio.testing.it.rest.site"/>
         </packages>
     </test>
 </suite>

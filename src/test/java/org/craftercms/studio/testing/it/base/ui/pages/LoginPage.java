@@ -1,7 +1,7 @@
-package org.craftercms.studio.testing.base.ui.pages;
+package org.craftercms.studio.testing.it.base.ui.pages;
 
-import org.craftercms.studio.testing.base.ui.BaseSeleniumTest;
-import org.craftercms.studio.testing.base.ui.Page;
+import org.craftercms.studio.testing.it.base.ui.BaseSeleniumTest;
+import org.craftercms.studio.testing.it.base.ui.Page;
 
 /**
  * Created by cortiz on 5/20/15.

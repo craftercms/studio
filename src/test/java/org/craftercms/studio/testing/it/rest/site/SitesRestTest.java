@@ -1,11 +1,11 @@
-package org.craftercms.studio.testing.rest.site;
+package org.craftercms.studio.testing.it.rest.site;
 
 
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.craftercms.studio.testing.base.rest.BaseRestTest;
+import org.craftercms.studio.testing.it.base.rest.BaseRestTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import com.jayway.restassured.http.ContentType;
