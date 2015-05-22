@@ -1,9 +1,9 @@
-package org.craftercms.studio.testing.ui.site;
+package org.craftercms.studio.testing.it.ui.site;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.craftercms.studio.testing.base.ui.BaseSeleniumTest;
-import org.craftercms.studio.testing.base.ui.pages.HomePage;
-import org.craftercms.studio.testing.base.ui.pages.LoginPage;
+import org.craftercms.studio.testing.it.base.ui.BaseSeleniumTest;
+import org.craftercms.studio.testing.it.base.ui.pages.HomePage;
+import org.craftercms.studio.testing.it.base.ui.pages.LoginPage;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

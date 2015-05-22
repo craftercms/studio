@@ -1,4 +1,4 @@
-package org.craftercms.studio.testing.base.ui;
+package org.craftercms.studio.testing.it.base.ui;
 
 
 import org.apache.commons.io.IOUtils;
