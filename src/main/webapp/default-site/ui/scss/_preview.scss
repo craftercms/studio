@@ -1,6 +1,8 @@
 .studio-preview {
 
   top: 50px;
+  overflow: auto;
+  background: #f8f8f8;
   transition:padding .5s, transform .5s;
 
   &, iframe {
@@ -15,11 +17,35 @@
   }
 
   iframe {
+
     top: 0;
     border: 0;
     height: 100%;
+    margin: auto;
+    transition: width .3s, height .3s, border .3s;
+
   }
 
+}
+
+.studio-device-preview-portrait,
+.studio-device-preview-landscape {
+
+  #engineWindow {
+    border-color: #555;
+    border-style: solid;
+    border-radius: 20px;
+    box-shadow: 1px 1px 5px rgba(0,0,0,.4);
+  }
+
+}
+
+.studio-device-preview-landscape #engineWindow {
+    border-width: 10px 50px;
+}
+
+.studio-device-preview-portrait #engineWindow {
+  border-width: 50px 10px;
 }
 
 .site-dropdown-open {
