@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Rest Services Create" verbose="1">
+    <test name="Rest Services Create Site">
+        <packages>
+            <package name="org.sample.rest.site"/>
+        </packages>
+    </test>
+</suite>
