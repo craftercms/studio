@@ -117,7 +117,7 @@
             CStudioAuthoring.Operations.performSimpleIceEdit({
                 uri: path,
                 contentType: type
-            }, null, true, {
+            }, null, false, {
                 failure: CStudioAuthoring.Utils.noop,
                 success: function (contentTO) {
 
