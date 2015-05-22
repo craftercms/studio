@@ -212,7 +212,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 					return "repeat";
 				},
 				getSupportedProperties: function() {
-					return [ { label: this.CMgs.format(this.langBundle, "minOccurs"), name: "minOccurs", type: "string", defaultValue: "0" },
+                    this.CMgs = CStudioAuthoring.Messages;
+                    this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
+                    return [ { label: this.CMgs.format(this.langBundle, "minOccurs"), name: "minOccurs", type: "string", defaultValue: "0" },
 					         { label: this.CMgs.format(this.langBundle, "maxOccurs"), name: "maxOccurs", type: "string", defaultValue: "*" }  ];
 				},
 				getSupportedConstraints: function() {
@@ -681,8 +683,8 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 	 * render a field
 	 */
 	renderRepeat: function(section, field) {
-		this.CMgs = CStudioAdminConsole.Tool.ContentTypes.CMgs;
-		this.langBundle = CStudioAdminConsole.Tool.ContentTypes.langBundle;
+        this.CMgs = CStudioAuthoring.Messages;
+        this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 		var fieldContainerEl = document.createElement("div");
 		
