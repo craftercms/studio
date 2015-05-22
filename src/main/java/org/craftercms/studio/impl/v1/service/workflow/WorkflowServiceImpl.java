@@ -180,9 +180,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (length > 0) {
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
-                    JSONObject item = items.getJSONObject(index);
-                    DmDependencyTO submittedItem = getSubmittedItem(site, item, format, schDate);
-                    String user = item.getString(JSON_KEY_USER);
+					String stringItem = items.optString(index);
+                    //JSONObject item = items.getJSONObject(index);
+                    DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate);
+                    String user = submittedBy; //item.getString(JSON_KEY_USER);
                     submittedItems.add(submittedItem);
                     if (delete) {
                         submittedItem.setSubmittedForDeletion(true);
@@ -194,6 +195,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedPaths.add(fullPath);
                     objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
                     DependencyRules rule = new DependencyRules(site);
+					rule.setObjectStateService(objectStateService);
+					rule.setContentService(contentService);
                     Set<DmDependencyTO> depSet = rule.applySubmitRule(goLiveItem);
                     for (DmDependencyTO dep : depSet) {
                         String depPath = contentService.expandRelativeSitePath(site, dep.getUri());
@@ -211,7 +214,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         } catch (Exception e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-            logger.error(e.getMessage(), e);
+            logger.error("Error while submitting content for approval.", e);
         }
         return result;
 
@@ -224,6 +227,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         for (DmDependencyTO submittedItem : submittedItems) {
             try {
                 DependencyRules rule = new DependencyRules(site);
+				rule.setContentService(contentService);
+				rule.setObjectStateService(objectStateService);
                 submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
                 List<DmDependencyTO> children = submittedItem.getChildren();
                 if (children != null && !submitForDeletion) {

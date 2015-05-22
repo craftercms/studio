@@ -39,12 +39,12 @@
         };
 
         var checked = this.getComponents('tbody input[type="checkbox"]:checked');
-        each(checked, function (i, check) {
+        $.each(checked, function (i, check) {
             data.items.push(check.getAttribute('data-item-id'));
         });
 
         if (data.schedule === 'custom') {
-            data.scheduledDate = this.getComponent('[name="scheduleDate"]').value;
+            data.scheduledDate =  getScheduledDateTimeForJson(this.getComponent('[name="scheduleDate"]').value);
         }
 
 
@@ -79,7 +79,7 @@
         var html = [],
             tpl = [
                 '<tr>',
-                '<td><input type="checkbox" class="select-all-check"/></td>',
+                '<td><input type="checkbox" class="select-all-check" data-item-id="_URI_"/></td>',
                 '<td>_NAME_</td>',
                 '<td>_SCHEDULE_</td>',
                 '</tr>'
@@ -87,7 +87,8 @@
         $.each(items, function (i, item) {
             html.push(tpl
                 .replace('_NAME_', item.internalName)
-                .replace('_SCHEDULE_', item.browserUri));
+                .replace('_SCHEDULE_', item.browserUri)
+                .replace('_URI_', item.uri));
         });
         this.$('.item-listing tbody').html(html.join(''));
     }
@@ -109,6 +110,16 @@
 
         me.$('.date-picker').datetimepicker();
 
+    }
+
+    function getScheduledDateTimeForJson(dateTimeValue) {
+        var schedDate = new Date(dateTimeValue);
+        var schedDateMonth = schedDate.getMonth() + 1;
+        var scheduledDate = schedDate.getFullYear() + '-' + schedDateMonth + '-'
+            + schedDate.getDate() + 'T' + schedDate.getHours() + ':'
+            + schedDate.getMinutes() + ':' + schedDate.getSeconds();
+
+        return scheduledDate;
     }
 
 }) (CStudioAuthoring);
