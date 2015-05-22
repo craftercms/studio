@@ -3,13 +3,16 @@
   top: 50px;
   overflow: auto;
   background: #f8f8f8;
-  transition:padding .5s, transform .5s;
+  transition: left .5s;
+
+  .site-dropdown-open & {
+    left: 265px;
+  }
 
   &, iframe {
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100%;
     position: absolute;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -17,13 +20,12 @@
   }
 
   iframe {
-
     top: 0;
     border: 0;
+    width: 100%;
     height: 100%;
     margin: auto;
     transition: width .3s, height .3s, border .3s;
-
   }
 
 }
@@ -46,8 +48,4 @@
 
 .studio-device-preview-portrait #engineWindow {
   border-width: 50px 10px;
-}
-
-.site-dropdown-open {
-
 }
