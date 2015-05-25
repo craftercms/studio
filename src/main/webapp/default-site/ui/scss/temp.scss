@@ -328,7 +328,7 @@ div#acn-active-content {
   .acn-dropdown-menu {
     padding: 15px 20px;
     overflow-y: scroll;
-    overflow-x: hidden;
+    overflow-x: scroll;
     text-align: left;
     top: 0;
     left: 0;
@@ -785,22 +785,27 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
 #acn-context-tooltipWrapper,
 #acn-context-tooltipWrapper-search,
 #acn-context-tooltipWrapper-widgets {
-  background: #f0f0f0;
-  border: 1px #444 solid;
+  background: #f8f8f8;
+  border: none;
   margin: 0;
   padding: 0;
   width: 290px;
+  border-radius: 6px;
+  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+  box-shadow: 0 5px 10px rgba(0,0,0,.2);
 }
 
 #acn-context-tooltipWrapper .bd,
 #acn-context-tooltipWrapper-search .bd,
 #acn-context-tooltipWrapper-widgets .bd {
-  background-color: #f0f0f0;
-  border: 1px #444 solid;
+  background-color: #f8f8f8;
+  border: 1px solid rgba(0,0,0,.2);
   margin: 0;
   padding: 0;
   width: 290px;
   height: auto !important;
+  border-radius: 6px;
+  font-family: Raleway, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .acn-tooltip {
