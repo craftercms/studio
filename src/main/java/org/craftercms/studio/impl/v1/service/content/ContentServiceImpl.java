@@ -299,8 +299,8 @@ public class ContentServiceImpl implements ContentService {
      * @throws ServiceException
      */
     @Override
-    public void writeContentAsset(String site, String path, String assetName, InputStream in,
-                                      String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
+    public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+                                                 String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
         if(assetName != null) {
             assetName = assetName.replace(" ","_");
         }
@@ -348,10 +348,17 @@ public class ContentServiceImpl implements ContentService {
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
-
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", item);
+            return toRet;
         } catch (Exception e) {
             logger.error("Error processing content", e);
-            throw new ServiceException(e);
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", e.getMessage());
+            toRet.put("error", e);
+            return toRet;
         } finally {
             if (item != null) {
                 objectStateService.setSystemProcessing(site, getRelativeSitePath(site, fullPath), false);
