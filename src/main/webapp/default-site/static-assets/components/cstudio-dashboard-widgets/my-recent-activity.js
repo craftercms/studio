@@ -158,9 +158,15 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 	 */
 	this.renderLineItem = function(item) {
 
+			var itemName = item.internalName;
+			if (!itemName || itemName == "") {
+				itemName = item.title;
+			}
+			if (!itemName || itemName == "") {
+				itemName = item.name;
+			}
             var browserUri = item.browserUri,
                 fullUri = item.uri,
-                itemName = item.internalName,
                 editLinkId = 'editLink_' + this.widgetId + '_' + WcmDashboardWidgetCommon.encodePathToNumbers(item.uri),
 
                 fmt = CStudioAuthoring.Utils.formatDateFromString;
