@@ -154,8 +154,8 @@ public class ContentServiceImpl implements ContentService {
 
        boolean writeSuccess = false;
 
-        _contentRepository.createVersion(path, false);
         writeSuccess = _contentRepository.writeContent(path, content);
+        _contentRepository.createVersion(path, false);
 
        return writeSuccess;
     }
