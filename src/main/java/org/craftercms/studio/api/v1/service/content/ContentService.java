@@ -224,8 +224,8 @@ public interface ContentService {
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
                                final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException;
 
-    void writeContentAsset(String site, String path, String assetName, InputStream in,
-                           String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException;
+    Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+                                          String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException;
 
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
