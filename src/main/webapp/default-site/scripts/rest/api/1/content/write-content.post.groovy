@@ -103,7 +103,14 @@ else {
         result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true);
 
     } else {
-        result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock);
+        if(path.startsWith("/site")){
+            result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock);
+        }
+        else {
+            result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
+                isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
+
+        }
     }
 }
 return result;

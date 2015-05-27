@@ -60,19 +60,28 @@ public class ContentFormatUtils {
 	 * @return timeZone
 	 */
 	public static Date parseDate(SimpleDateFormat format, String dateStr, String timeZone) {
-		if (StringUtils.isEmpty(timeZone)) {
-			format.setTimeZone(TimeZone.getTimeZone(DATE_PATTERN_TIMEZONE_GMT));
-		} else {
-			format.setTimeZone(TimeZone.getTimeZone(timeZone));
-		}
-		try {
-			return format.parse(dateStr);
-		} catch (ParseException e) {
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Failed to parse date: " + dateStr + " using format: " + DATE_FORMAT_MODEL.toPattern());
+		Date retDate = null;
+
+		if(format != null && dateStr != null) {
+			if (StringUtils.isEmpty(timeZone)) {
+				format.setTimeZone(TimeZone.getTimeZone(DATE_PATTERN_TIMEZONE_GMT));
+			} else {
+				format.setTimeZone(TimeZone.getTimeZone(timeZone));
 			}
-			return null;
+
+			try {
+				retDate = format.parse(dateStr);
+			} catch (ParseException e) {
+				if (LOGGER.isErrorEnabled()) {
+					LOGGER.error("Failed to parse date: " + dateStr + " using format: " + DATE_FORMAT_MODEL); //would be null.toPattern());
+				}
+			}
 		}
+		else {
+			LOGGER.error("Requested date format with null args dateStr: " + dateStr + " using format: " + format);
+		}
+
+		return retDate;
 	}
 	
 	/**

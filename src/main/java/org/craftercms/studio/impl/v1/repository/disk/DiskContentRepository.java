@@ -199,7 +199,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                     String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
                     //Path visitFolder = constructRepoPath(visitFolderPath);
-                    item.isFolder = (item.name.indexOf(".") == -1); // lies Files.isDirectory(visitFolder);
+                    item.isFolder = visitPath.toFile().isDirectory();
                     int lastIdx = visitFolderPath.lastIndexOf("/"+item.name);
                     if (lastIdx > 0) {
                         item.path = visitFolderPath.substring(0, lastIdx);
@@ -209,9 +209,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     item.path = item.path.replace("/.xml", "");
 
                     if (!".DS_Store".equals(item.name)) {
-                        logger.info("ITEM NAME: " + item.name);
-                        logger.info("ITEM PATH: " + item.path);
-                        logger.info("ITEM FOLDER: (" + visitFolderPath + "): " + item.isFolder);
+                        logger.debug("ITEM NAME: {0}", item.name);
+                        logger.debug("ITEM PATH: {0}", item.path);
+                        logger.debug("ITEM FOLDER: ({0}): {1}", visitFolderPath, item.isFolder);
                         retItems.add(item);
                     }
 
@@ -423,7 +423,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
             bootstrapFolderPath = bootstrapFolderPath.replace("/bootstrap.xml", "");
 
-            System.out.println("Bootstrapping with baseline @ "+bootstrapFolderPath);
+            logger.info("Bootstrapping with baseline @ "+bootstrapFolderPath);
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
             Path target = constructRepoPath();
 
@@ -436,7 +436,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     private ServletContext ctx;
 
     public void setServletContext(ServletContext ctx) {
-    logger.info("ServletContext: " + ctx);
+    logger.debug("ServletContext: {0} ", ctx);
     this.ctx = ctx;
     }
 
@@ -486,7 +486,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 try {
                     Files.copy(source, target, options);
                 } catch (IOException x) {
-                    System.err.format("Unable to copy: %s: %s%n", source, x);
+                    logger.error("Unable to copy: %s: %s%n", source, x);
                 }
             
         }
@@ -511,7 +511,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             } catch (FileAlreadyExistsException x) {
                 // ignore
             } catch (IOException x) {
-                System.err.format("Unable to create: %s: %s%n", newdir, x);
+                logger.error("Unable to create: %s: %s%n", newdir, x);
                 return FileVisitResult.SKIP_SUBTREE;
             }
             return FileVisitResult.CONTINUE;
@@ -533,7 +533,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     FileTime time = Files.getLastModifiedTime(dir);
                     Files.setLastModifiedTime(newdir, time);
                 } catch (IOException x) {
-                    System.err.format("Unable to copy all attributes to: %s: %s%n", newdir, x);
+                    logger.error("Unable to copy all attributes to: %s: %s%n", newdir, x);
                 }
             }
             return FileVisitResult.CONTINUE;
@@ -542,9 +542,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             if (exc instanceof FileSystemLoopException) {
-                System.err.println("cycle detected: " + file);
+                logger.error("cycle detected: " + file);
             } else {
-                System.err.format("Unable to copy: %s: %s%n", file, exc);
+                logger.error("Unable to copy: %s: %s%n", file, exc);
             }
             return FileVisitResult.CONTINUE;
         }

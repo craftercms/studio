@@ -1078,17 +1078,25 @@ var YEvent = YAHOO.util.Event;
                     auxParams = [];
                 }
 
-                var getContentItemsCb = {
-                    success: function (contentTO) {
-                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
-                    },
+                if(id) {
+                    var getContentItemsCb = {
+                        success: function (contentTO) {
+                            CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
+                        },
 
-                    failure: function () {
-                        callback.failure();
-                    }
-                };
+                        failure: function () {
+                            callback.failure();
+                        }
+                    };
+                    
+                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                }
+                else {
+                    // new item
+                    CStudioAuthoring.Operations.performSimpleIceEdit({ contentType: formId, uri:path },null, false);
 
-                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                }
+
             },
 
             /**
@@ -1401,6 +1409,29 @@ var YEvent = YAHOO.util.Event;
                 };
 
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
+            },
+
+            /**
+             * create content for a given site, at a given path
+             * opens a dialog if needed or goes directly to the form if no
+             * template selection is require (only one option
+             */
+            createNewContentForType: function(site, path, type, asPopup, formSaveCb, childForm) {
+                var auxParams = [];
+                if(childForm && childForm == true) {
+                    auxParams = [ { name: "childForm", value: "true" }];
+                }
+
+                CStudioAuthoring.Operations.openContentWebForm(
+                    type,
+                    null,
+                    null,
+                    path,
+                    false,
+                    asPopup,
+                    formSaveCb,
+                    auxParams);
+
             },
             /**
              * create content for a given site, at a given path
@@ -1893,7 +1924,7 @@ var YEvent = YAHOO.util.Event;
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/create-folder";
+                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
@@ -2042,6 +2073,7 @@ var YEvent = YAHOO.util.Event;
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
             unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
+            changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
 
             // DEPLOYMENT SERVICES
             // READ OPS
@@ -2094,7 +2126,6 @@ var YEvent = YAHOO.util.Event;
             // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
             // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
             // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
             // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
@@ -2655,7 +2686,7 @@ var YEvent = YAHOO.util.Event;
                         changeContentTypeCb.failure();
                     }
                 };
-                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
             },
             /**
              * Constructs get-content service url with the given path as a parameter

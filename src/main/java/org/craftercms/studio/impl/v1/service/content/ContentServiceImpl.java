@@ -155,7 +155,14 @@ public class ContentServiceImpl implements ContentService {
        boolean writeSuccess = false;
 
         writeSuccess = _contentRepository.writeContent(path, content);
-        _contentRepository.createVersion(path, false);
+
+        try {
+            _contentRepository.createVersion(path, false);
+        }
+        catch(Exception err) {
+            // configurable weather or not to blow up the entire write?
+            logger.error("Failed to create version for object at path: "+path, err);
+        }
 
        return writeSuccess;
     }
@@ -299,8 +306,8 @@ public class ContentServiceImpl implements ContentService {
      * @throws ServiceException
      */
     @Override
-    public void writeContentAsset(String site, String path, String assetName, InputStream in,
-                                      String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
+    public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+                                                 String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
         if(assetName != null) {
             assetName = assetName.replace(" ","_");
         }
@@ -348,10 +355,17 @@ public class ContentServiceImpl implements ContentService {
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
-
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", item);
+            return toRet;
         } catch (Exception e) {
             logger.error("Error processing content", e);
-            throw new ServiceException(e);
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", e.getMessage());
+            toRet.put("error", e);
+            return toRet;
         } finally {
             if (item != null) {
                 objectStateService.setSystemProcessing(site, getRelativeSitePath(site, fullPath), false);
@@ -427,7 +441,7 @@ public class ContentServiceImpl implements ContentService {
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
-        logger.info("Pupulating page props {0}", contentPath);
+        logger.debug("Pupulating page props {0}", contentPath);
         boolean itemIsPage = false;
 
         if((contentPath.startsWith("/site/website"))
@@ -530,7 +544,7 @@ public class ContentServiceImpl implements ContentService {
                     item.container = true;
                 }
 
-                logger.info("Checking if {0} has index", contentPath);
+                logger.debug("Checking if {0} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
                         if (item.uri.indexOf("/index.xml") == -1) {
@@ -593,7 +607,7 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;
-        logger.info("Getting content item for {0}", contentPath);
+        logger.debug("Getting content item for {0}", contentPath);
 
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();

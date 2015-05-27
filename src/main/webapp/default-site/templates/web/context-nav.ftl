@@ -20,6 +20,8 @@
                 <ul class="nav navbar-nav">
                     <li id="acn-dropdown-wrapper" class="acn-dropdown-wrapper"></li>
                 </ul>
+ 
+                <ul class="nav navbar-nav" id="acn-quick-content"></ul>
 
                 <ul class="nav navbar-nav" id="activeContentActions"></ul>
 
@@ -51,6 +53,8 @@
                     </a>
                 </div>
                 <div id="_acn-dropdown-wrapper" class="acn-dropdown-wrapper"></div>
+
+                
                 <div id="acn-active-content"></div>
                 <div id="acn-admin-console" style="float: left"></div>
                 <div id="contextual_nav_menu_items"></div>

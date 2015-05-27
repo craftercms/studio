@@ -448,25 +448,49 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 
                             content = content[0];
                             option.onclick = function() {
-                                if (isWrite == false) {
-                                    CStudioAuthoring.Operations.viewContent(
-                                        content.form,
-                                        CStudioAuthoringContext.siteId,
-                                        content.uri,
-                                        content.nodeRef,
-                                        content.uri,
-                                        false,
-                                        viewCb);
-                                } else {
-                                    CStudioAuthoring.Operations.editContent(
-                                        content.form,
-                                        CStudioAuthoringContext.siteId,
-                                        content.uri,
-                                        content.nodeRef,
-                                        content.uri,
-                                        false,
-                                        editCallback);
+
+                                if(content.uri.indexOf("/site") == 0) {
+                                    if (isWrite == false) {
+                                        CStudioAuthoring.Operations.viewContent(
+                                            content.form,
+                                            CStudioAuthoringContext.siteId,
+                                            content.uri,
+                                            content.nodeRef,
+                                            content.uri,
+                                            false,
+                                            viewCb);
+                                    } else {
+                                        CStudioAuthoring.Operations.editContent(
+                                            content.form,
+                                            CStudioAuthoringContext.siteId,
+                                            content.uri,
+                                            content.nodeRef,
+                                            content.uri,
+                                            false,
+                                            editCallback);
+                                    }
                                 }
+                                else if(content.uri.indexOf(".ftl") != -1
+                                || content.uri.indexOf(".css")  != -1
+                                || content.uri.indexOf(".js") != -1
+                                || content.uri.indexOf(".groovy") != -1
+                                || content.uri.indexOf(".txt") != -1
+                                || content.uri.indexOf(".html") != -1
+                                || content.uri.indexOf(".hbs") != -1
+                                || content.uri.indexOf(".xml") != -1
+                                ) {
+                                    var editCb = {
+                                        success: function() {
+                                            this.callingWindow.location.reload(true);
+                                        },
+
+                                        failure: function() {
+                                        },
+
+                                        callingWindow: window
+                                    };
+
+                                    CStudioAuthoring.Operations.openTemplateEditor(content.uri, "default", editCb);                                }
                             }; 
 
                             // relevant flag, allowing document & banner to be editable from Search result

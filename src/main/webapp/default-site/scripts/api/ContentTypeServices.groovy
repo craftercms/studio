@@ -19,8 +19,9 @@ class ContentTypeServices {
 	 * @param item - the item ID
 	 * @param template - the new type
 	 */
-	def changeTemplate(site, item, template){
-
+	static changeContentType(context, site, path, type){
+		def contentTypeServiceImpl = ServiceFactory.getContentTypeServices(context)
+        return contentTypeServiceImpl.changeContentType(site, path, type)
 	}
 	
 	/**

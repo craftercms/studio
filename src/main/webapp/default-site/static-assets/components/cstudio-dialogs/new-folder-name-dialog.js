@@ -110,8 +110,8 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
 	createPopupSubmit: function(event, args) {
 		var contentType = "folder";
 		var newFolderName = document.getElementById("folderNameId").value;
-		var serviceUri = CStudioAuthoring.Service.createServiceUri(args.self.serviceUri)
-				+ "?site=" + args.self.site + "&path=" + args.self.path + "&name=" + newFolderName;
+		var serviceUri = CStudioAuthoring.Service.createServiceUri(args.self.serviceUri
+				+ "?site=" + args.self.site + "&path=" + args.self.path + "&name=" + newFolderName);
 		
         var serviceCallback = {
             success: function(oResponse) {
@@ -130,7 +130,7 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
             callback: args.self.callback
         };
 		YAHOO.util.Dom.setStyle('indicator', 'visibility', 'visible');
-		YConnect.asyncRequest('GET', serviceUri, serviceCallback);
+		YConnect.asyncRequest('POST', serviceUri, serviceCallback);
 	},
 
 	/**
