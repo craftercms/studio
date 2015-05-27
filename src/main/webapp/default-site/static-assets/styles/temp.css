@@ -6467,7 +6467,11 @@ address {
       top: 294px; } }
 
 .site-dashboard-footer {
-  padding: 20px 0; }
+  padding: 20px 0;
+  transition: padding .5s, transform .5s; }
+
+.site-dropdown-open .site-dashboard-footer {
+  padding-left: 265px; }
 
 .studio-view code,
 .studio-view kbd,
