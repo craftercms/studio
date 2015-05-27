@@ -5,7 +5,7 @@ def result = [:]
 def ticket = request.getSession().getValue("alf_ticket");
 def username = request.getSession().getValue("username");
 
-def context = SecurityServices.createContext(applicationContext, request, response);
+def context = SecurityServices.createContext(applicationContext, request);
 def profile = SecurityServices.getUserProfile(context, username);
 
 //model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
