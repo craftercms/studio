@@ -1,7 +1,7 @@
 
 CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
     { dashboardTitle: "{0} Dashboard",
-    approvedScheduledCollapseAll: "FOO!",
+      approvedScheduledCollapseAll: "Collapse All",
       dashletFilterPages: "Pages",
       dashletFilterComponents: "Components",
       dashletFilterDocuments: "Documents",
@@ -32,7 +32,11 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletApprovedSchedColEdit: "Edit",
       dashletApprovedSchedColURL: "URL",
       dashletApprovedSchedColLastEdited: "Last Edited",
-
+      dashletApprovedSchedFilterPages: "Pages",
+      dashletApprovedSchedFilterComponents: "Components",
+      dashletApprovedSchedFilterDocuments: "Documents",
+      dashletApprovedSchedFilterAll: "All",
+      
       dashletRecentDeployTitle: "Recently Published",
       dashletRecentDeployCollapseAll: "Collapse All",
       dashletRecentDeployExpandAll: "Expand All",

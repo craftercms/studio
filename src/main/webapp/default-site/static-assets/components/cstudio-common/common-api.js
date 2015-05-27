@@ -1924,7 +1924,7 @@ var YEvent = YAHOO.util.Event;
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/create-folder";
+                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
@@ -2073,7 +2073,10 @@ var YEvent = YAHOO.util.Event;
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
             unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
-
+            changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
+            submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
+            deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
+            
             // DEPLOYMENT SERVICES
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
@@ -2112,7 +2115,7 @@ var YEvent = YAHOO.util.Event;
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            // deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
+            
             // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
             // getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
             // getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
@@ -2125,7 +2128,6 @@ var YEvent = YAHOO.util.Event;
             // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
             // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
             // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
             // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
@@ -2686,7 +2688,7 @@ var YEvent = YAHOO.util.Event;
                         changeContentTypeCb.failure();
                     }
                 };
-                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
             },
             /**
              * Constructs get-content service url with the given path as a parameter
@@ -3122,7 +3124,7 @@ var YEvent = YAHOO.util.Event;
              * given a site id and a path look up the available content types
              */
             deleteContentForPathService: function(site, path, callback) {
-                var serviceUrl = this.deleteContentForPath;
+                var serviceUrl = this.deleteContentForPathUrl;
                 serviceUrl += "?site=" + site;
                 serviceUrl += "&path=" + path;
                 var serviceCallback = {

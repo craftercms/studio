@@ -153,7 +153,8 @@
          * @see _actionEnable
          */
         enableActions: function(which) {
-            this._actionEnable(true, which);
+            if(which)
+                this._actionEnable(true, which);
         },
         /**
          * Internal private method to enable/disable one, various or

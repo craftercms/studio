@@ -199,7 +199,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                     String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
                     //Path visitFolder = constructRepoPath(visitFolderPath);
-                    item.isFolder = (item.name.indexOf(".") == -1); // lies Files.isDirectory(visitFolder);
+                    item.isFolder = visitPath.toFile().isDirectory();
                     int lastIdx = visitFolderPath.lastIndexOf("/"+item.name);
                     if (lastIdx > 0) {
                         item.path = visitFolderPath.substring(0, lastIdx);
@@ -209,9 +209,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     item.path = item.path.replace("/.xml", "");
 
                     if (!".DS_Store".equals(item.name)) {
-                        logger.info("ITEM NAME: " + item.name);
-                        logger.info("ITEM PATH: " + item.path);
-                        logger.info("ITEM FOLDER: (" + visitFolderPath + "): " + item.isFolder);
+                        logger.debug("ITEM NAME: {0}", item.name);
+                        logger.debug("ITEM PATH: {0}", item.path);
+                        logger.debug("ITEM FOLDER: ({0}): {1}", visitFolderPath, item.isFolder);
                         retItems.add(item);
                     }
 
@@ -286,9 +286,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         synchronized(path) {
             versionId = determineNextVersionLabel(path, majorVersion);
+            InputStream content = null;
 
             try {
-                InputStream content = getContent(path);
+                content = getContent(path);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -301,6 +302,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             catch(Exception err) {
                 logger.error("error versionign file: "+path, err);
                 versionId = null;
+            }
+            finally {
+                closeInputStreamQuietly(content);
             }
         }
 
@@ -317,9 +321,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         synchronized(path) {
             String versionId = determineNextVersionLabel(path, major);
-
+            InputStream versionContent = null;
+            InputStream wipContent = null;
+            
             try {
-                InputStream versionContent = getVersionedContent(path, label);
+                versionContent = getVersionedContent(path, label);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -328,13 +334,18 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 Files.copy(versionContent, constructVersionRepoPath(versionPath), options);
 
                 // write the repo content
-                InputStream wipContent = getVersionedContent(path, label);
+                wipContent = getVersionedContent(path, label);
                 Files.copy(wipContent, constructRepoPath(path), options);
             }
             catch(Exception err) {
                 logger.error("error versionign file: "+path, err);
                 versionId = null;
             }
+            finally {
+                closeInputStreamQuietly(versionContent);
+                closeInputStreamQuietly(wipContent);
+            }
+
         }
 
         return success;
@@ -423,7 +434,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
             bootstrapFolderPath = bootstrapFolderPath.replace("/bootstrap.xml", "");
 
-            System.out.println("Bootstrapping with baseline @ "+bootstrapFolderPath);
+            logger.info("Bootstrapping with baseline @ "+bootstrapFolderPath);
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
             Path target = constructRepoPath();
 
@@ -436,7 +447,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     private ServletContext ctx;
 
     public void setServletContext(ServletContext ctx) {
-    logger.info("ServletContext: " + ctx);
+    logger.debug("ServletContext: {0} ", ctx);
     this.ctx = ctx;
     }
 
@@ -458,7 +469,25 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     }
 
+    protected boolean closeInputStreamQuietly(InputStream is) {
+        boolean success = true;
 
+        if(is != null) { 
+            try { 
+                is.close(); 
+            } 
+            catch(Exception ioErr) { 
+                success = false;
+
+                /* eat error */
+                if(Logger.LEVEL_DEBUG.equals(logger.getLevel())) {
+                    logger.error("Error while closing InputStream quietly", ioErr);
+                } 
+            } 
+        } 
+
+        return success;     
+    }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
@@ -486,7 +515,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 try {
                     Files.copy(source, target, options);
                 } catch (IOException x) {
-                    System.err.format("Unable to copy: %s: %s%n", source, x);
+                    logger.error("Unable to copy: %s: %s%n", source, x);
                 }
             
         }
@@ -511,7 +540,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             } catch (FileAlreadyExistsException x) {
                 // ignore
             } catch (IOException x) {
-                System.err.format("Unable to create: %s: %s%n", newdir, x);
+                logger.error("Unable to create: %s: %s%n", newdir, x);
                 return FileVisitResult.SKIP_SUBTREE;
             }
             return FileVisitResult.CONTINUE;
@@ -533,7 +562,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     FileTime time = Files.getLastModifiedTime(dir);
                     Files.setLastModifiedTime(newdir, time);
                 } catch (IOException x) {
-                    System.err.format("Unable to copy all attributes to: %s: %s%n", newdir, x);
+                    logger.error("Unable to copy all attributes to: %s: %s%n", newdir, x);
                 }
             }
             return FileVisitResult.CONTINUE;
@@ -542,9 +571,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             if (exc instanceof FileSystemLoopException) {
-                System.err.println("cycle detected: " + file);
+                logger.error("cycle detected: " + file);
             } else {
-                System.err.format("Unable to copy: %s: %s%n", file, exc);
+                logger.error("Unable to copy: %s: %s%n", file, exc);
             }
             return FileVisitResult.CONTINUE;
         }
