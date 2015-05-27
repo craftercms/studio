@@ -13,7 +13,7 @@ class EnvironmentOverrides {
 		result.environment = serverProperties["environment"]  
 		result.alfrescoUrl = serverProperties["alfrescoUrl"]  
 		 
-		result.role = "author" // default
+		result.role = "admin" // default
 
   
 		try {		

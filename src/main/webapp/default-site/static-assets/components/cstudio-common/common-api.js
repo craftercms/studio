@@ -2074,7 +2074,9 @@ var YEvent = YAHOO.util.Event;
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
             unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
             changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
-
+            submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
+            deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
+            
             // DEPLOYMENT SERVICES
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
@@ -2113,7 +2115,7 @@ var YEvent = YAHOO.util.Event;
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            // deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
+            
             // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
             // getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
             // getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
@@ -3122,7 +3124,7 @@ var YEvent = YAHOO.util.Event;
              * given a site id and a path look up the available content types
              */
             deleteContentForPathService: function(site, path, callback) {
-                var serviceUrl = this.deleteContentForPath;
+                var serviceUrl = this.deleteContentForPathUrl;
                 serviceUrl += "?site=" + site;
                 serviceUrl += "&path=" + path;
                 var serviceCallback = {
