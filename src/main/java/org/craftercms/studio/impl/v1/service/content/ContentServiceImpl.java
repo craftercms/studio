@@ -441,7 +441,7 @@ public class ContentServiceImpl implements ContentService {
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
-        logger.info("Pupulating page props {0}", contentPath);
+        logger.debug("Pupulating page props {0}", contentPath);
         boolean itemIsPage = false;
 
         if((contentPath.startsWith("/site/website"))
@@ -544,7 +544,7 @@ public class ContentServiceImpl implements ContentService {
                     item.container = true;
                 }
 
-                logger.info("Checking if {0} has index", contentPath);
+                logger.debug("Checking if {0} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
                         if (item.uri.indexOf("/index.xml") == -1) {
@@ -607,7 +607,7 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;
-        logger.info("Getting content item for {0}", contentPath);
+        logger.debug("Getting content item for {0}", contentPath);
 
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();

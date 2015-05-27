@@ -82,18 +82,22 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         // resolve the permission
         Set<String> permissions = populateUserPermissions(site, path, roles, permissionsConfig);
         // check if the user is allowed to edit the content
-        try {
-            ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
-            boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
-            if (!isAllowed) {
-                logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-                // If no default role is set
-                permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-                return permissions;
+
+        if(path.indexOf("/site") == 0) { // If it's content a file 
+            try {
+                ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
+                boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
+                if (!isAllowed) {
+                    logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                    // If no default role is set
+                    permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                    return permissions;
+                }
+            } catch (ServiceException e) {
+                logger.debug("Error while getting the content type of " + path + ". skipping user role checking on the content.");
             }
-        } catch (ServiceException e) {
-            logger.debug("Error while getting the content type of " + path + ". skipping user role checking on the content.");
         }
+
         return permissions;
     }
 
