@@ -199,7 +199,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                     String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
                     //Path visitFolder = constructRepoPath(visitFolderPath);
-                    item.isFolder = (item.name.indexOf(".") == -1); // lies Files.isDirectory(visitFolder);
+                    item.isFolder = visitPath.toFile().isDirectory();
                     int lastIdx = visitFolderPath.lastIndexOf("/"+item.name);
                     if (lastIdx > 0) {
                         item.path = visitFolderPath.substring(0, lastIdx);
