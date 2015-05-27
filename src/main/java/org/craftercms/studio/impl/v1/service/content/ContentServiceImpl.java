@@ -155,7 +155,14 @@ public class ContentServiceImpl implements ContentService {
        boolean writeSuccess = false;
 
         writeSuccess = _contentRepository.writeContent(path, content);
-        _contentRepository.createVersion(path, false);
+
+        try {
+            _contentRepository.createVersion(path, false);
+        }
+        catch(Exception err) {
+            // configurable weather or not to blow up the entire write?
+            logger.error("Failed to create version for object at path: "+path, err);
+        }
 
        return writeSuccess;
     }
