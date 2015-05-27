@@ -513,73 +513,62 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	}
 
 	protected void extractDependenciesForNewSite(String site) {
-		ContentItemTO root = contentService.getContentItemTree(site, "/", 1);
-		Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-		for (ContentItemTO child : root.getChildren()) {
-			try {
-				extractDependenciesItemForNewSite(site, child, globalDeps);
-			} catch (Exception e) {
-				logger.error("Failed to extract dependencies for site child: "+child.uri, e);
-			}
-		}
+        Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+        extractDependenciesItemForNewSite(site, contentService.expandRelativeSitePath(site, "/"), globalDeps);
 	}
 
-	protected void extractDependenciesItemForNewSite(String site, ContentItemTO item, Map<String, Set<String>> globalDeps) {
-		if (item.isFolder()) {
-			item = contentService.getContentItemTree(site, item.getUri(), 1);
-			for (ContentItemTO child : item.getChildren()) {
-				try {
-					extractDependenciesItemForNewSite(site, child, globalDeps);
-				} catch (Exception e) {
-					logger.error("Failed to extract dependencies for site child: "+child.uri, e);
-				}
-			}
-		} else {
-			String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
-			DmPathTO dmPathTO = new DmPathTO(fullPath);
-			String relativePath = dmPathTO.getRelativePath();
-			if (fullPath.endsWith(DmConstants.XML_PATTERN)) {
-				try {
-					Document doc = contentService.getContentAsDocument(fullPath);
-					dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
-				} catch (ContentNotFoundException e) {
-					logger.error("Failed to extract dependencies for document: " + fullPath, e);
-				} catch (ServiceException e) {
-					logger.error("Failed to extract dependencies for document: " + fullPath, e);
-				} catch (DocumentException e) {
-					logger.error("Failed to extract dependencies for document: " + fullPath, e);
-				}
-			} else {
+    private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
+        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+        for (RepositoryItem child : children) {
+            if (child.isFolder) {
+                extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
+            } else {
+                DmPathTO dmPathTO = new DmPathTO(fullPath);
+                String relativePath = dmPathTO.getRelativePath();
+                if (fullPath.endsWith(DmConstants.XML_PATTERN)) {
+                    try {
+                        Document doc = contentService.getContentAsDocument(fullPath);
+                        dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
+                    } catch (ContentNotFoundException e) {
+                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                    } catch (ServiceException e) {
+                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                    } catch (DocumentException e) {
+                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                    }
+                } else {
 
-				boolean isCss = fullPath.endsWith(DmConstants.CSS_PATTERN);
-				boolean isJs = fullPath.endsWith(DmConstants.JS_PATTERN);
-				List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-				boolean isTemplate = false;
-				for (String templatePattern : templatePatterns) {
-					Pattern pattern = Pattern.compile(templatePattern);
-					Matcher matcher = pattern.matcher(relativePath);
-					if (matcher.matches()) {
-						isTemplate = true;
-						break;
-					}
-				}
-				try {
-					if (isCss || isJs || isTemplate) {
-						StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
-						if (isCss) {
-							dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
-						} else if (isJs) {
-							dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
-						} else if (isTemplate) {
-							dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
-						}
-					}
-				} catch (ServiceException e) {
-					logger.error("Failed to extract dependencies for: " + fullPath, e);
-				}
-			}
-		}
-	}
+                    boolean isCss = fullPath.endsWith(DmConstants.CSS_PATTERN);
+                    boolean isJs = fullPath.endsWith(DmConstants.JS_PATTERN);
+                    List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
+                    boolean isTemplate = false;
+                    for (String templatePattern : templatePatterns) {
+                        Pattern pattern = Pattern.compile(templatePattern);
+                        Matcher matcher = pattern.matcher(relativePath);
+                        if (matcher.matches()) {
+                            isTemplate = true;
+                            break;
+                        }
+                    }
+                    try {
+                        if (isCss || isJs || isTemplate) {
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+                            if (isCss) {
+                                dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
+                            } else if (isJs) {
+                                dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
+                            } else if (isTemplate) {
+                                dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
+                            }
+                        }
+                    } catch (ServiceException e) {
+                        logger.error("Failed to extract dependencies for: " + fullPath, e);
+                    }
+                }
+            }
+        }
+    }
+
 	@Override
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
