@@ -16,23 +16,21 @@ CStudioAuthoring.ContextualNav.QuickContentMod = CStudioAuthoring.ContextualNav.
 	render: function() {
 		var el, containerEl, imageEl, ptoOn;
 
-		el = YDom.get("acn-quick-article");	
+		el = YDom.get("acn-quick-content");	
 		containerEl = document.createElement("div");
 		containerEl.id = "acn-quick-content-button";
 
 					
 		el.appendChild(containerEl);
 		containerEl.innerHTML = "<div id='acn-qc-wrapper' class='acn-dropdown-wrapper'>" +
-								"<div class='acn-qc-inner' id='acn-dropdown-inner' style='width:60px; padding-left: 30px; background: url(/proxy/authoring/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat scroll 70px -43px rgba(0, 0, 0, 0); margin: 6px;'>" +
-			                      "<a class='acn-qc-toggler acn-drop-arrow' href='#' id='acn-qc-toggler'>New</a>" +
-		                        "</div>" +
+								"<a class='acn-qc-toggler acn-drop-arrow' href='#' id='acn-qc-toggler'>New</a>" +
 		                        "<div id='acn-qc-dropdown' style='background: none repeat scroll 0 0 white; "+
 		                                    "border: 1px solid black; color: #0176b1; display: none; "+
 		                                    "font-weight: bold; list-style: none outside none; position: relative; "+
-		                                    "text-align: start; top: 4px; width: 100px;'>"+
-          "<ul style='list-style:none;'>" +
-             "<li style='cursor:pointer; margin:10px; padding: 2px;' id='qc-article'>Article</li>"+
-             "<li style='cursor:pointer; margin:10px; padding: 2px;'  id='qc-movie'>Movie</li>" +
+		                                    "text-align: start; top: 4px; width: 100px; z-index: 100; position: fixed; margin-top: 46px;'>"+
+          "<ul id='quick-content-options' style='list-style:none;'>" +
+             //"<li style='cursor:pointer; margin:10px; padding: 2px;' id='qc-article'>Article</li>"+
+             //"<li style='cursor:pointer; margin:10px; padding: 2px;'  id='qc-movie'>Movie</li>" +
           "</ul>"+
         "</div>"+
         "</div>";
@@ -41,14 +39,41 @@ CStudioAuthoring.ContextualNav.QuickContentMod = CStudioAuthoring.ContextualNav.
         buttonEl.control = this;
         buttonEl.onclick = function() { this.control.toggle(); }
 
-        var qcMovieEl = document.getElementById("qc-movie");
-        qcMovieEl.control = this;
-        qcMovieEl.onclick = function() { this.control.newContent("/components/movies", "/site/quick-content/movie"); }
+        CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/context-nav/quick-content.xml", {
+            success: function (config) {
+                this.context.buildModules(config);
+            },
+            failure: CStudioAuthoring.Utils.noop,
+            context: this
+        });
 
-        var qcArticleEl = document.getElementById("qc-article");
-        qcArticleEl.control = this;
-        qcArticleEl.onclick = function() { this.control.newContent("/components/article", "/site/quick-content/article"); }
 
+	},
+
+	buildModules: function(config) {
+		var listEl = document.getElementById("quick-content-options");
+
+		if (config.quickContent && !config.quickContent.length) {
+            config.quickContent= [config.quickContent];
+        }
+
+        if (config.quickContent.length) {
+            var containersEls = [];
+
+            for (var j = 0; j < config.quickContent.length; j++) {
+                var optionEl = document.createElement("li");
+                optionEl.style.cursor= "pointer";
+                optionEl.style.margin = "10px"; 
+                optionEl.style.padding = "2px";
+                optionEl.id = config.quickContent[j].name;
+                optionEl.innerHTML =  config.quickContent[j].name;
+                optionEl.control = this;
+                optionEl.contentData = config.quickContent[j]
+				optionEl.onclick = function() { this.control.newContent(this.contentData.contentType, this.contentData.contentPath); }
+
+                listEl.appendChild(optionEl);
+            }
+		}
 	},
 
 	newContent: function(contentType, path) {
@@ -58,15 +83,12 @@ CStudioAuthoring.ContextualNav.QuickContentMod = CStudioAuthoring.ContextualNav.
 			}
 		};
 
-		CStudioAuthoring.Operations.openContentWebForm(
-			contentType,
-			null,
-			null,
-			path,
-			false,
-			true,
-			formSaveCb,
-			[]);
+		CStudioAuthoring.Operations.createNewContentForType(
+                        CStudioAuthoringContext.site,
+                        path,
+                        contentType,
+                        false,
+                        formSaveCb);
 	},
 
 	toggle: function() {

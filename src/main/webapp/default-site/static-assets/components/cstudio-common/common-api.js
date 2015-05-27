@@ -1078,17 +1078,25 @@ var YEvent = YAHOO.util.Event;
                     auxParams = [];
                 }
 
-                var getContentItemsCb = {
-                    success: function (contentTO) {
-                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
-                    },
+                if(id) {
+                    var getContentItemsCb = {
+                        success: function (contentTO) {
+                            CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
+                        },
 
-                    failure: function () {
-                        callback.failure();
-                    }
-                };
+                        failure: function () {
+                            callback.failure();
+                        }
+                    };
+                    
+                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                }
+                else {
+                    // new item
+                    CStudioAuthoring.Operations.performSimpleIceEdit({ contentType: formId, uri:path },null, false);
 
-                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                }
+
             },
 
             /**
@@ -1401,6 +1409,29 @@ var YEvent = YAHOO.util.Event;
                 };
 
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
+            },
+
+            /**
+             * create content for a given site, at a given path
+             * opens a dialog if needed or goes directly to the form if no
+             * template selection is require (only one option
+             */
+            createNewContentForType: function(site, path, type, asPopup, formSaveCb, childForm) {
+                var auxParams = [];
+                if(childForm && childForm == true) {
+                    auxParams = [ { name: "childForm", value: "true" }];
+                }
+
+                CStudioAuthoring.Operations.openContentWebForm(
+                    type,
+                    null,
+                    null,
+                    path,
+                    false,
+                    asPopup,
+                    formSaveCb,
+                    auxParams);
+
             },
             /**
              * create content for a given site, at a given path
