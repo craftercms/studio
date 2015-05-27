@@ -2073,6 +2073,7 @@ var YEvent = YAHOO.util.Event;
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
             unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
+            changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
 
             // DEPLOYMENT SERVICES
             // READ OPS
@@ -2125,7 +2126,6 @@ var YEvent = YAHOO.util.Event;
             // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
             // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
             // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
             // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
@@ -2686,7 +2686,7 @@ var YEvent = YAHOO.util.Event;
                         changeContentTypeCb.failure();
                     }
                 };
-                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
             },
             /**
              * Constructs get-content service url with the given path as a parameter
