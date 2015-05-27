@@ -1924,7 +1924,7 @@ var YEvent = YAHOO.util.Event;
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/create-folder";
+                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
