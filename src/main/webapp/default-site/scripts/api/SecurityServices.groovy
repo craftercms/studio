@@ -30,15 +30,6 @@ class SecurityServices {
 	}
 
 	/**
-	 * get roles for a user within a site
-	 * @param site - the project ID
-	 * @param userId - id of user
-	 */
-	def getRoles(site, userId) {
-
-	}
-
-	/**
 	 * validate a security token
 	 * @param site - the project ID
 	 * @param token - token to be validated
@@ -72,7 +63,7 @@ class SecurityServices {
 		return securityServicesImpl.getUserPermissions(site, path, user, groups)
 	}
 
-	static getUserRoles(context, site, user) {
+	static getUserRoles(context, site, user) {  
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getUserRoles(site, user)
 	}
