@@ -56,8 +56,12 @@ public class ActivityFeed implements Serializable {
 
         jo.put("id", id);
         jo.put("postUserId", userId);
-        jo.put("postDate", (new ISO8601DateFormat()).format(modifiedDate));
-        if (userId != null) { jo.put("feedUserId", userId); } // eg. site feed
+        if (modifiedDate != null) {
+            jo.put("postDate", (new ISO8601DateFormat()).format(modifiedDate));
+        }
+        if (userId != null) {
+            jo.put("feedUserId", userId);
+        } // eg. site feed
         jo.put("siteNetwork", siteNetwork);
         jo.put("activityType", type);
         jo.put("activitySummary", summary);

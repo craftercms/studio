@@ -59,5 +59,10 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         springBackedService.goLive (site, requestBody);
     }
+
+    def submitToGoLive(site, user, requestBody) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        springBackedService.submitToGoLive (site, user, requestBody);
+    }
 }
 

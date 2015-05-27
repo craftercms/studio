@@ -37,7 +37,8 @@ CREATE TABLE `cstudio_objectstate` (
   `state`             VARCHAR(255)  NOT NULL,
   `system_processing` BIT(1)        NOT NULL,
   PRIMARY KEY (`object_id`),
-  KEY `cstudio_objectstate_object_idx` (`object_id`)
+  KEY `cstudio_objectstate_object_idx` (`object_id`),
+  UNIQUE `uq_os_site_path` (`site`, `path`)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8;
@@ -123,7 +124,7 @@ CREATE TABLE `cstudio_site` (
 CREATE TABLE `cstudio_objectmetadata` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `site` VARCHAR(50) NOT NULL,
-  `path` TEXT NOT NULL,
+  `path` VARCHAR(2000) NOT NULL,
   `name` VARCHAR(45) NULL,
   `modified` DATETIME NULL,
   `modifier` VARCHAR(255) NULL,
@@ -142,4 +143,8 @@ CREATE TABLE `cstudio_objectmetadata` (
   `submittedby` VARCHAR(255) NULL,
   `submittedfordeletion` INT NULL,
   `sendemail` INT NULL,
-  PRIMARY KEY (`id`));
+  `submissioncomment` TEXT NULL,
+  `launchdate` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE `uq__om_site_path` (`site`, `path`)
+);

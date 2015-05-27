@@ -178,7 +178,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // update the content
                 // look up the path content first
                 if (parentItem.getName().equals(fileName)) {
-                    InputStream existingContent = contentService.getContent(site, path);
+                    InputStream existingContent = contentService.getContent(site, parentItem.getUri());
                     String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
                     String newMd5 = ContentUtils.getMd5ForFile(input);
                     if (!existingMd5.equals(newMd5)) {

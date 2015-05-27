@@ -12,7 +12,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         '<sdiv class="studio-component-search"><input type="search" placeholder="search components..." /></sdiv>',
         '<sdiv class="studio-components-container"></sdiv>',
         '</sdiv>'].join('');
-    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component-path="%@" data-studio-component-type="%@">%@</sa></sli>';
+    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@">%@</sa></sli>';
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';
@@ -27,6 +27,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $palette = $(PALETTE_TPL),
             animator = new Animator(),
             config = config || {},
+            communicator = config.communicator,
             active = false,
             me = this,
             timeout;
@@ -65,6 +66,18 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         $palette.on('click', '.studio-category-name', function () {
             $(this).parent().toggleClass('studio-collapse');
         });
+
+        // TODO currently not in use.
+        // component-panel.js loads from page load rather than when enabling dnd
+        // hence the page model loads from page load too.
+        if (communicator) {
+            communicator.on(Topics.DND_COMPONENT_MODEL_LOAD, function (tracking, data) {
+                componentModelLoad.call(me, tracking, data);
+            });
+            communicator.on(Topics.DND_COMPONENTS_MODEL_LOAD, function (data) {
+                componentsModelLoad.call(me, data);
+            });
+        }
 
         function onresize() {
             clearTimeout(timeout);
@@ -117,7 +130,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         publish.call(this, Topics.STOP_DRAG_AND_DROP);
     }
 
-    function enableDnD(components) {
+    function enableDnD(components, initialComponentModel) {
 
         if (this.active()) return;
         this.active(true);
@@ -148,28 +161,77 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             connectWithSortable: true,
             drop: function (e, ui) {
                 var $dropZone = $(this),
-                    $component = ui.draggable,
-                    path, type, name;
-                if ($component.hasClass('studio-component-drag-target')) {
-                    path = $component.attr('data-studio-component-path');
-                    type = $component.attr('data-studio-component-type');
-                    name = $component.html();
-                    $dropZone.append(
-                        string('<div data-studio-component="%@" data-studio-component-path="%@">%@</div>')
-                            .fmt(type, path, name));
-                } else {
-                    path = $component.attr('data-studio-component-path');
-                    type = $component.attr('data-studio-component');
-                }
-                publish.call(me, Topics.COMPONENT_DROPPED, {
-                    type: type,
-                    path: path
-                });
+                    $component = ui.draggable;
+                componentDropped.call(me, $dropZone, $component);
             }
         }).sortable({
             items: '[data-studio-component]'
         });
 
+        $('[data-studio-component]').each(function () {
+            $(this).attr('data-studio-tracking-number', crafter.guid());
+        });
+
+        componentsModelLoad(initialComponentModel);
+
+    }
+
+    function componentDropped($dropZone, $component) {
+
+        var me = this,
+            isNew = $component.hasClass('studio-component-drag-target'),
+            tracking, path, type, name, zones = {};
+
+        if (isNew) {
+            path = $component.attr('data-studio-component-path');
+            type = $component.attr('data-studio-component-type');
+            name = $component.text();
+            tracking = crafter.guid();
+            $dropZone.append(
+                string('<div data-studio-component="%@" data-studio-component-path="%@" data-studio-tracking-number="%@">%@</div>')
+                    .fmt(type, path, tracking, name));
+        } else {
+            tracking = $component.attr('data-studio-tracking-number');
+            path = $component.attr('data-studio-component-path');
+            type = $component.attr('data-studio-component');
+        }
+
+        // DOM Reorganization hasn't happened at this point,
+        // need a timeout to grab out the updated DOM structure
+        setTimeout(function () {
+
+            $('[data-studio-components-target]').each(function () {
+                var $el = $(this),
+                    zoneName = $el.attr('data-studio-components-target');
+                zones[zoneName] = [];
+                $el.find('[data-studio-component]').each(function (i, el) {
+                    var $comp = $(this);
+                    zones[zoneName].push($comp.data('model') || tracking);
+                });
+            });
+
+            publish.call(me, Topics.COMPONENT_DROPPED, {
+                path: path,
+                type: type,
+                isNew: isNew,
+                zones: zones,
+                trackingNumber: tracking
+            });
+
+        });
+    }
+
+    function componentModelLoad(tracking, data) {
+        $('[data-studio-tracking-number="'+tracking+'"]').data('model', data);
+    }
+
+    function componentsModelLoad(data) {
+        $('[data-studio-components-target]').each(function () {
+            var $el = $(this), name = $el.attr('data-studio-components-target');
+            $el.find('[data-studio-component]').each(function (i, el) {
+                $(this).data('model', data[name][i]);
+            });
+        });
     }
 
     function publish(topic, message, com) {
@@ -193,7 +255,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             html.push('<sh2 class="studio-category-name">'+category.label+'</sh2>');
             html.push('<sul>');
             $.each(category.components, function (j, component) {
-                html.push(crafter.String(COMPONENT_TPL).fmt(component.path, component.type, component.label));
+                html.push(crafter.String(COMPONENT_TPL)
+                    .fmt(component.path, component.type, component.label));
             });
             html.push('</sul>');
             html.push('</sdiv>');

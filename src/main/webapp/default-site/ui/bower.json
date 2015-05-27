@@ -13,7 +13,7 @@
     "requirejs": "~2.1.16",
     "jquery-ui": "~1.11.3",
     "foundation": "~5.5.1",
-    "datetimepicker": "https://github.com/xdan/datetimepicker#1.0.1"
+    "datetimepicker": "https://github.com/xdan/datetimepicker"
   },
   "resolutions": {
     "angular": "1.3.5"

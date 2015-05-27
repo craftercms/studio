@@ -154,8 +154,15 @@ public class ContentServiceImpl implements ContentService {
 
        boolean writeSuccess = false;
 
-        _contentRepository.createVersion(path, false);
         writeSuccess = _contentRepository.writeContent(path, content);
+
+        try {
+            _contentRepository.createVersion(path, false);
+        }
+        catch(Exception err) {
+            // configurable weather or not to blow up the entire write?
+            logger.error("Failed to create version for object at path: "+path, err);
+        }
 
        return writeSuccess;
     }
@@ -183,17 +190,24 @@ public class ContentServiceImpl implements ContentService {
         try {
             boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
             if (item != null) {
-                ObjectState objectState = objectStateService.getObjectState(site, path);
+                ObjectState objectState = objectStateService.getObjectState(site, item.getUri());
                 if (objectState == null) {
                     objectStateService.insertNewEntry(site, item);
-                    objectState = objectStateService.getObjectState(site, path);
-                }
-                if (objectState.getSystemProcessing() != 0){
-                    logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
-                    throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                    objectState = objectStateService.getObjectState(site, item.getUri());
                 }
 
-                objectStateService.setSystemProcessing(site, path, true);
+                if(objectState != null) {
+
+                    if (objectState.getSystemProcessing() != 0){
+                        logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
+                        throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                    }
+
+                    objectStateService.setSystemProcessing(site, item.getUri(), true);
+                }
+                else {
+                    logger.error("the object state is still null.");
+                }
             }
 
             // default chain is asset type
@@ -208,7 +222,11 @@ public class ContentServiceImpl implements ContentService {
             }
 
             processContent(id, input, true, params, chainID);
-            objectStateService.setSystemProcessing(site, path, false);
+            if (item != null) {
+                objectStateService.setSystemProcessing(site, item.getUri(), false);
+            } else {
+                objectStateService.setSystemProcessing(site, path, false);
+            }
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
             fullPath = expandRelativeSitePath(site, savedPath);
@@ -224,10 +242,10 @@ public class ContentServiceImpl implements ContentService {
                 } else {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
                 }
+                objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
                 objectStateService.insertNewEntry(site, itemTo);
             }
-            objectStateService.setSystemProcessing(site, relativePath, false);
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(relativePath);
@@ -288,8 +306,8 @@ public class ContentServiceImpl implements ContentService {
      * @throws ServiceException
      */
     @Override
-    public void writeContentAsset(String site, String path, String assetName, InputStream in,
-                                      String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
+    public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+                                                 String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
         if(assetName != null) {
             assetName = assetName.replace(" ","_");
         }
@@ -337,10 +355,17 @@ public class ContentServiceImpl implements ContentService {
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
-
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", item);
+            return toRet;
         } catch (Exception e) {
             logger.error("Error processing content", e);
-            throw new ServiceException(e);
+            Map<String, Object> toRet = new HashMap<String, Object>();
+            toRet.put("success", true);
+            toRet.put("message", e.getMessage());
+            toRet.put("error", e);
+            return toRet;
         } finally {
             if (item != null) {
                 objectStateService.setSystemProcessing(site, getRelativeSitePath(site, fullPath), false);

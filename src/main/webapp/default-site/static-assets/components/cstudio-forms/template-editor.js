@@ -148,12 +148,15 @@ CStudioAuthoring.Module.requireModule(
 											var path = templatePath.substring(0, templatePath.lastIndexOf("/"));
 											var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
 
-										    var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
-										                        "?site=" + CStudioAuthoringContext.site +
-										                        "&phase=onSave" +
-										                        "&path=" + path +
-										                        "&fileName=" + filename;
-											                    
+                    var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+                        "?site=" + CStudioAuthoringContext.site +
+                        "&phase=onSave" +
+                        "&path=" + path +
+                        "&fileName=" + filename +
+                        "&user=" + CStudioAuthoringContext.user +
+                        "&unlock=true";
+
+					                    
 											YAHOO.util.Connect.setDefaultPostHeader(false);
 											YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
 											YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), saveSvcCb, value);

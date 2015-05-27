@@ -161,17 +161,17 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 
 		var uploadHandler = {
 			upload: function(o) {
-				//console.log(o.responseText);
+				//console.log('responseText '+o.responseText);
 				YAHOO.util.Dom.setStyle('indicator', 'visibility', 'hidden');
 				var r = eval('(' + o.responseText + ')');
-				if(r.hasError){
+				if(r && r.hasError){
 					var errorString = '';
 					for(var i=0; i < r.errors.length; i++){
 						errorString += r.errors[i];
 					}
 					alert(errorString);
 				}else{
-					CStudioAuthoring.Dialogs.UploadDialog.closeDialog();				
+					CStudioAuthoring.Dialogs.UploadDialog.closeDialog();
 					args.self.callback.success(r);
 				}
 			}
@@ -196,12 +196,8 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 						//console.log(o.responseText);
 						YAHOO.util.Dom.setStyle('indicator', 'visibility', 'hidden');
 						var r = eval('(' + o.responseText + ')');
-						if(r.hasError){
-							var errorString = '';
-							for(var i=0; i < r.errors.length; i++){
-								errorString += r.errors[i];
-							}
-							alert(errorString);
+						if(r.success){
+							alert(r.message);
 						}else{
 							CStudioAuthoring.Dialogs.UploadDialog.closeDialog();				
 						    args.self.callback.success(r);
