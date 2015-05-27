@@ -864,7 +864,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                         var itemRowStart = "<tr class='" + parentClass + "'>";
                         var itemRowEnd = "</tr>";
 
-                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input class='dashlet-item-check'  type='checkbox'/></span><span class='wcm-widget-margin'></span>";
+                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input class='dashlet-item-check1' id=tableName + 'CheckAll'  type='checkbox' /></span><span class='wcm-widget-margin'></span>";
 
                         //create table row for this item
                         var itemRow = WcmDashboardWidgetCommon.buildItemTableRow(item, instance, false, i, 0);
@@ -1086,7 +1086,7 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
 
             var tableContentStart = '<table id="' + tableName + '-table" class="table" border="0">';
             var theadContent = '<thead class="ttThead" id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
-            var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody"><tr><td colspan="6"><span class="all-check"><input class="dashlet-item-check" id="' + tableName + '"CheckAll" name="check-all" type="checkbox"/><label for="check-all">All</label></span></td></tr>' + newtable + '</tbody>';
+            var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody"><tr><td colspan="6"><span class="all-check"><input class="dashlet-item-check" id="' + tableName + 'CheckAll" name="check-all" type="checkbox"/><label for="check-all">All</label></span></td></tr>' + newtable + '</tbody>';
             var tableContentEnd = '</table>';
 
             //Check for already checked items,
