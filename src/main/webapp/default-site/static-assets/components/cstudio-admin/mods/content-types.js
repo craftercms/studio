@@ -1208,6 +1208,8 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	},
 
 	renderDatasourcePropertySheet: function(item, sheetEl) {
+		this.CMgs = CStudioAuthoring.Messages;
+	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 		function getSelectedOption(valueArray) {
 			var val = null;
