@@ -25,6 +25,17 @@ WcmDashboardWidgetCommon.encodePathToNumbers = function (path) {
 };
 
 WcmDashboardWidgetCommon.insertEditLink = function (item, editLinkId) {
+    if(item.uri.indexOf(".ftl") == -1
+    && item.uri.indexOf(".css")  == -1
+    && item.uri.indexOf(".js") == -1
+    && item.uri.indexOf(".groovy") == -1
+    && item.uri.indexOf(".txt") == -1
+    && item.uri.indexOf(".html") == -1
+    && item.uri.indexOf(".hbs") == -1
+    && item.uri.indexOf(".xml") == -1) {
+        return 0; // dont render if not these types
+    }
+
     CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, item.uri, {
         success: function (results) {
 
@@ -654,6 +665,7 @@ WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
  */
 WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
+
     var editCallback = {
         success: function () {
             this.callingWindow.location.reload(true);
@@ -666,14 +678,21 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
     var getContentCallback = {
         success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
-            CStudioAuthoring.Operations.editContent(
-                contentTO.form,
-                CStudioAuthoringContext.siteId,
-                contentTO.uri,
-                contentTO.nodeRef,
-                contentTO.uri,
-                false,
-                editCallback);
+            
+
+            if(contentTO.uri.indexOf("/site") == 0) {
+                CStudioAuthoring.Operations.editContent(
+                    contentTO.form,
+                    CStudioAuthoringContext.siteId,
+                    contentTO.uri,
+                    contentTO.nodeRef,
+                    contentTO.uri,
+                    false,
+                    editCallback);
+            }
+            else {
+                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);      
+            }
         },
 
         failure: function () {

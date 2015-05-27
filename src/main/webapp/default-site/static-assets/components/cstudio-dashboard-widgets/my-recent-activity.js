@@ -196,10 +196,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
         // to resolve page display issue
         itemNameForDisplay = CStudioAuthoring.Utils.replaceWithASCIICharacter(itemNameForDisplay);
 
-        // TODO Use TemplateAgent + TemplateHolder
-       	if(!item.deleted && item.uri.indexOf(".xml") != -1) {
-            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-       	}
+        WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
        	
         var itemRow = [
 			'<td>',

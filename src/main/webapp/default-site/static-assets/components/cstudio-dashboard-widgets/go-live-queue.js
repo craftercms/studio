@@ -190,9 +190,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
             // to resolve page display issue
             displayName = CStudioAuthoring.Utils.replaceWithASCIICharacter(displayName);
             
-            if(item.uri.indexOf(".xml") != -1) {
-                WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-            }
+            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
             
             html = html.concat([
                 '<td>',
