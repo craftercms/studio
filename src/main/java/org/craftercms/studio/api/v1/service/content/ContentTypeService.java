@@ -61,4 +61,6 @@ public interface ContentTypeService {
     List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
 
     List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException;
+
+    boolean changeContentType(String site, String path, String contentType) throws ServiceException;
 }
