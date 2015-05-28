@@ -65,10 +65,12 @@ public class TestSecurityProvider implements SecurityProvider {
         return USER_GROUPS.get(user);
     }
 
+    Map<String, String> activeUser = new HashMap<String, String>();
+
     public String getCurrentUser() {
-        RequestContext context = RequestContext.getCurrent();
-        HttpSession httpSession = context.getRequest().getSession();
-        String username = (String)httpSession.getValue("username");
+        //RequestContext context = RequestContext.getCurrent();
+        //HttpSession httpSession = context.getRequest().getSession();
+        String username = activeUser.get("username"); //(String)httpSession.getValue("username");
         return username;
     }
 
@@ -81,13 +83,14 @@ public class TestSecurityProvider implements SecurityProvider {
         RequestContext context = RequestContext.getCurrent();
        
         if(theTicket == null) {
-            if(context != null) {
-                HttpSession httpSession = context.getRequest().getSession();
+           // if(context != null) {
+                theTicket = activeUser.get("ticket");
+                //HttpSession httpSession = context.getRequest().getSession();
 
-                if(httpSession != null) {
-                    theTicket = (String)httpSession.getValue("ticket");
-                }
-            }
+                //if(httpSession != null) {
+                    //theTicket = (String)httpSession.getValue("ticket");
+                //}
+            //}
         }
 
         return USER_FAKETICKETS.contains(theTicket);
@@ -100,14 +103,16 @@ public class TestSecurityProvider implements SecurityProvider {
         if(getUserProfile(username) != null) {
             ticket = username + "_FAKETICKET";
 
-            if(context != null) {
-                HttpSession httpSession = context.getRequest().getSession();
+            activeUser.put("username", username);
+            activeUser.put("ticket", ticket);
+            // if(context != null) {
+            //     HttpSession httpSession = context.getRequest().getSession();
 
-                if(httpSession != null) {
-                    httpSession.putValue("username", username);
-                    httpSession.putValue("ticket", ticket);
-                }
-            }
+            //     if(httpSession != null) {
+            //         httpSession.putValue("username", username);
+            //         httpSession.putValue("ticket", ticket);
+            //     }
+            // }
         }
 
     	return ticket;
