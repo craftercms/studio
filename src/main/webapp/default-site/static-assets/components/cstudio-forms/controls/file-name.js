@@ -169,7 +169,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
         var checkCb = {
             exists: function(exists) {
-                if(exists == 'true') {
+                if(exists == true) {
                     this.obj.setError("exists", "Path exists already");
                     this.obj.renderValidation(true, false);
                     YAHOO.util.Dom.addClass(this.obj.urlErrEl, 'on');

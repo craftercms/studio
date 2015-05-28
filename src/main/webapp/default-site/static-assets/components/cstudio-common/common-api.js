@@ -2780,7 +2780,8 @@ var YEvent = YAHOO.util.Event;
             contentExists : function(path,callback) {
                 var serviceCallback = {
                     success : function(response) {
-                        callback.exists(YAHOO.lang.JSON.parse(response.responseText).result);
+                        var result = YAHOO.lang.JSON.parse(response.responseText).content;
+                        callback.exists(result);
                     },
                     failure : function(response) {
                         callback.failure(response);
