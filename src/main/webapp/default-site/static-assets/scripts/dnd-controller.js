@@ -165,7 +165,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                 componentDropped.call(me, $dropZone, $component);
             }
         }).sortable({
-            items: '[data-studio-component]'
+            items: '[data-studio-component]',
+            connectWith: DROPPABLE_SELECTION
         });
 
         $('[data-studio-component]').each(function () {
