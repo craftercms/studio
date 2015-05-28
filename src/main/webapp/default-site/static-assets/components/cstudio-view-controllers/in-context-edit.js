@@ -119,8 +119,10 @@
                 windowUrl += "&readonly=true";
             }
 
-            windowUrl += "&edit="+isEdit;
-
+            if(isEdit == true || isEdit == "true"){
+                windowUrl += "&edit="+isEdit;
+            }
+            
             return windowUrl;
         },
 

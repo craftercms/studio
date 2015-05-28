@@ -2104,6 +2104,14 @@ var YEvent = YAHOO.util.Event;
             submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
             deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
             
+            // ORDER SERVICES
+            // READ
+            getServiceOrderUrl: "/api/1/services/api/1/content/get-item-orders.json",
+            getNextOrderSequenceUrl: "/api/1/services/api/1/content/get-next-item.json",
+            
+            //WRITE
+            reorderServiceSubmitUrl: "/api/1/services/api/1/content/reorder-items.json",
+            
             // DEPLOYMENT SERVICES
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
@@ -2143,10 +2151,7 @@ var YEvent = YAHOO.util.Event;
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
             
-            // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
-            // getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
-            // getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
-            // reorderServiceSubmitUrl: "/proxy/alfresco/cstudio/wcm/content/re-order",
+            // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folr",
 
             // wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
             // allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
