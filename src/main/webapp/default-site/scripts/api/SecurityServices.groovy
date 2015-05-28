@@ -31,12 +31,11 @@ class SecurityServices {
 
 	/**
 	 * validate a security token
-	 * @param site - the project ID
 	 * @param token - token to be validated
 	 */
-	static validateToken(context, site, token) {
+	static validateTicket(context, token) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-		return securityServicesImpl.validateToken(site, token)
+		return securityServicesImpl.validateTicket(token)
 	}
 
 	/** 
@@ -61,6 +60,11 @@ class SecurityServices {
 	static getUserPermissions(context, site, path, user, groups) {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getUserPermissions(site, path, user, groups)
+	}
+
+	static getCurrentUser(context) {  
+		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+		return securityServicesImpl.getCurrentUser()
 	}
 
 	static getUserRoles(context, site, user) {  

@@ -54,7 +54,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     @Override
-    public boolean validateToken(String site, String token) {
+    public boolean validateTicket(String token) {
         return securityProvider.validateTicket(token);
     }
 

@@ -1,13 +1,16 @@
 <panel>
-   <modules>
-      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
-      <module>
+    <modules>
+        <module>
+            <moduleName>ice-tools-panel</moduleName>
+            <title>In-Context Editing</title>
+        </module>
+        <module>
             <moduleName>medium-panel</moduleName>
-            <title>Publishing Channel</title>
+            <title>Responsive Preview</title>
             <config>
                 <channels>
                     <channel>
-                        <title>Web</title>
+                        <title>Desktop</title>
                         <value>browser</value>
                         <width></width>
                         <height></height>
@@ -27,15 +30,22 @@
                 </channels>
             </config>
         </module>
-     <module><moduleName>analytics-panel</moduleName><title>Analytics</title></module>
-     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+        <module>
+            <moduleName>analytics-panel</moduleName>
+            <title>Analytics</title>
+        </module>
+        <module>
+            <moduleName>targeting-panel</moduleName>
+            <title>Targeting</title>
+        </module>
 
- 
-      <!-- write your own features -->
-    
-    <!--   
-<module><moduleName>ice-tools-panel</moduleName><title>NEW SECTION (Same feature)</title></module>    
-     
- -->
-   </modules>
+        <!-- write your own features -->
+        <!--
+        <module>
+            <moduleName>ice-tools-panel</moduleName>
+            <title>NEW SECTION (Same feature)</title>
+        </module>
+        -->
+
+    </modules>
 </panel>
