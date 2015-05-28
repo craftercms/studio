@@ -1344,6 +1344,17 @@ public class ContentItemTO implements Serializable {
 	// 	this._height = height;
 	// }
 
+	public Double getOrder(String orderName) {
+		if (orderName != null && orders != null) {
+			for (DmOrderTO order : orders) {
+				if (orderName.equalsIgnoreCase(order.getId())) {
+					return order.getOrder();
+				}
+			}
+		}
+		return -1.0;
+	}
+
 	public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
 
 		if (uri != null && uri.equals(itemToAdd.uri)) {

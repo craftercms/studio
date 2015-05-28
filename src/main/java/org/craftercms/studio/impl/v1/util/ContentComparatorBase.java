@@ -17,9 +17,10 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
+import javolution.util.FastComparator;
+
 import java.util.Date;
 
-import javolution.util.FastComparator;
 
 /**
  * content comparater base class
