@@ -45,7 +45,8 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 
         var widgetId = this._self.widgetId;
 
-        var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
+        var header = WcmDashboardWidgetCommon.getSimpleRow("checkAll", widgetId, '<input title="All" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize")+
+            WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEdit"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletRecentDeployColURL"),"maximize")+
             WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+

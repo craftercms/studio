@@ -14113,6 +14113,14 @@ table.scroll-body {
     outline: none;
     position: absolute; }
 
+#checkAll-MyRecentActivity,
+#checkAll-recentlyMadeLive,
+#checkAll-approvedScheduledItems,
+#checkAll-GoLiveQueue {
+  padding-left: 26px;
+  position: relative;
+  bottom: 3px; }
+
 .cstudio-view {
   font-size: 12px; }
   .cstudio-view .view-square-wrp {

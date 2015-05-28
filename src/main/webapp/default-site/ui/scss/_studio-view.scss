@@ -270,3 +270,12 @@ table.scroll-body {
     }
   }
 }
+
+#checkAll-MyRecentActivity,
+#checkAll-recentlyMadeLive,
+#checkAll-approvedScheduledItems,
+#checkAll-GoLiveQueue{
+  padding-left: 26px;
+  position: relative;
+  bottom: 3px;
+}
