@@ -141,7 +141,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             Common = WcmDashboardWidgetCommon;
 
         var header = [
-            Common.getSimpleRow("checkAll", widgetId, '<input title="All" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize"),
+            Common.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize"),
             Common.getSortableRow("internalName", widgetId,  CMgs.format(langBundle, "dashletMyRecentActivityColPageName"), "minimize"),
             Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColEdit"), "minimize"),
             Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColURL"), "maximize"),
@@ -200,9 +200,9 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
         WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
        	
         var itemRow = [
-			'<td>',
+			'<td colspan="2">',
 				'<div class="dashlet-cell-wrp">',
-                    '<div class="dashlet-ident dashlet-recent">',
+                    '<div class="dashlet-ident">',
                         '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
                         '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
                             '<a href="#" class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
