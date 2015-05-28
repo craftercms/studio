@@ -18,18 +18,14 @@
 package org.craftercms.studio.impl.v1.repository.disk;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.String;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
-import javax.servlet.http.*;
 import javax.servlet.ServletContext;
 
 import org.craftercms.commons.http.*;
@@ -43,16 +39,11 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 
 import reactor.core.Reactor;
-import reactor.event.Event;
 
 import java.nio.file.*;
 import java.nio.file.attribute.*;
-import java.nio.file.*;
 import static java.nio.file.StandardCopyOption.*;
-import java.nio.file.attribute.*;
-import static java.nio.file.FileVisitResult.*;
 import java.io.IOException;
-import java.util.*;
 /**
  * Disk repository implementation. 
  * @author russdanner
@@ -68,8 +59,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         InputStream retStream = null;
 
         try {
-            OpenOption options[] = { StandardOpenOption.READ };
-            retStream = Files.newInputStream(constructRepoPath(path));
+            File file = constructRepoPath(path).toFile();
+            retStream = new BufferedInputStream(FileUtils.openInputStream(file));
         }
 
         catch(Exception err) {
@@ -167,7 +158,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            Files.move(constructRepoPath(fromPath), constructRepoPath(toPath));
+            FileUtils.moveFileToDirectory(constructRepoPath(fromPath).toFile(), constructRepoPath(toPath).toFile(), true);
         }
         catch(Exception err) {
             // log this error
@@ -434,7 +425,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
             bootstrapFolderPath = bootstrapFolderPath.replace("/bootstrap.xml", "");
 
-            logger.info("Bootstrapping with baseline @ "+bootstrapFolderPath);
+            logger.info("Bootstrapping with baseline @ " + bootstrapFolderPath);
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
             Path target = constructRepoPath();
 
