@@ -114,46 +114,59 @@
         },
 
         ondrop: function (type, path, isNew, tracking, zones) {
-            CStudioAuthoring.Operations.performSimpleIceEdit({
-                uri: path,
-                contentType: type
-            }, null, false, {
-                failure: CStudioAuthoring.Utils.noop,
-                success: function (contentTO) {
 
-                    // Use the information from the newly created component entry and use it to load the model data for the
-                    // component placeholder in the UI. After this update, we can then proceed to save all the components
-                    var value = (!!contentTO.item.internalName) ? contentTO.item.internalName : contentTO.item.uri;
+            function operate() {
+                CStudioAuthoring.ComponentsPanel.getPageModel(
+                    CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                        CStudioAuthoringContext.previewCurrentPath),
+                    (isNew ? 'save-components-new' : 'save-components'), true, false);
+            }
 
-                    var modelData = {
-                        value: value,
-                        key: contentTO.item.uri,
-                        include: contentTO.item.uri
-                    };
+            if (isNew) {
+                CStudioAuthoring.Operations.performSimpleIceEdit({
+                    uri: path,
+                    contentType: type
+                }, null, false, {
+                    failure: CStudioAuthoring.Utils.noop,
+                    success: function (contentTO) {
 
-                    $.each(zones, function (key, array) {
-                        $.each(array, function (i, item) {
-                            if (item === tracking) {
-                                zones[key][i] = modelData;
-                            }
+                        // Use the information from the newly created component entry and use it to load the model data for the
+                        // component placeholder in the UI. After this update, we can then proceed to save all the components
+                        var value = (!!contentTO.item.internalName)
+                            ? contentTO.item.internalName
+                            : contentTO.item.uri;
+
+                        var modelData = {
+                            value: value,
+                            key: contentTO.item.uri,
+                            include: contentTO.item.uri
+                        };
+
+                        $.each(zones, function (key, array) {
+                            $.each(array, function (i, item) {
+                                if (item === tracking) {
+                                    zones[key][i] = modelData;
+                                }
+                            });
                         });
-                    });
 
-                    ComponentsPanel.zones = zones;
-                    ComponentsPanel.contentModelMap[tracking] = modelData;
-                    
-                    amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
-                        model: modelData,
-                        trackingNumber: tracking 
-                    });
+                        ComponentsPanel.zones = zones;
+                        ComponentsPanel.contentModelMap[tracking] = modelData;
 
-                    CStudioAuthoring.ComponentsPanel.getPageModel(
-                        CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                            CStudioAuthoringContext.previewCurrentPath),
-                        isNew ? 'save-components-new' : 'save-components', true, false);
+                        amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
+                            model: modelData,
+                            trackingNumber: tracking
+                        });
 
-                }
-            });
+                        operate();
+
+                    }
+                });
+            } else {
+                ComponentsPanel.zones = zones;
+                operate();
+            }
+
         },
 
         render: function (containerEl, config) {
@@ -990,7 +1003,9 @@
                                 failure: CStudioAuthoring.Utils.noop
                             });
                     } else {
-                        CStudioAuthoring.ComponentsPanel.getPageModel(CStudioAuthoring.ComponentsPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
+                        CStudioAuthoring.ComponentsPanel.getPageModel(
+                            CStudioAuthoring.ComponentsPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
+                            "save-components", true, false);
                     }
                 }
             },

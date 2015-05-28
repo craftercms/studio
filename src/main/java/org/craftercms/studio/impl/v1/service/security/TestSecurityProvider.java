@@ -44,6 +44,7 @@ public class TestSecurityProvider implements SecurityProvider {
         adminProfile.put("email", "joe.admin@craftersoftware.com");
         adminProfile.put("firstName", "Joe");
         adminProfile.put("lastName", "Admin");
+        
         Map<String, String> authorProfile = new HashMap<String, String>();
         authorProfile.put("username", "author");
         authorProfile.put("email", "joe.author@craftersoftware.com");
@@ -75,12 +76,41 @@ public class TestSecurityProvider implements SecurityProvider {
         return USER_PROFILES.get(user);
     }
 
-    public boolean validateTicket(String ticket){
-        return USER_FAKETICKETS.contains(ticket);
+    public boolean validateTicket(String ticket) {
+        String theTicket = ticket;
+        RequestContext context = RequestContext.getCurrent();
+       
+        if(theTicket == null) {
+            if(context != null) {
+                HttpSession httpSession = context.getRequest().getSession();
+
+                if(httpSession != null) {
+                    theTicket = (String)httpSession.getValue("ticket");
+                }
+            }
+        }
+
+        return USER_FAKETICKETS.contains(theTicket);
     }
 
     public String authenticate(String username, String password) {
-    	return username + "_FAKETICKET";
+        RequestContext context = RequestContext.getCurrent();
+        String ticket = null;
+        
+        if(getUserProfile(username) != null) {
+            ticket = username + "_FAKETICKET";
+
+            if(context != null) {
+                HttpSession httpSession = context.getRequest().getSession();
+
+                if(httpSession != null) {
+                    httpSession.putValue("username", username);
+                    httpSession.putValue("ticket", ticket);
+                }
+            }
+        }
+
+    	return ticket;
     }
 
     @Override

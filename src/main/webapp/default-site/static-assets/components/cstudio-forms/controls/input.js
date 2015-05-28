@@ -36,28 +36,31 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 			}
 			else {
 				obj.clearError("required");
-				validationExist = true;
+				//validationExist = true;
 			}
 		}
 
-        if (!validationExist || validationExist && validationResult) {
+        if ((!validationExist &&  obj.inputEl.value != "") || validationExist && validationResult) {
             for(var i=0; i<obj.constraints.length; i++) {
                 var constraint = obj.constraints[i];
                 if(constraint.name == 'pattern') {
                    var regex = constraint.value;
-                   if (obj.inputEl.value.match(regex)) {
-                      // only when there is no other validation mark it as passed
-                      obj.clearError("pattern");
-                      YAHOO.util.Dom.removeClass(obj.patternErrEl, 'on');
-                      validationExist = true;
-                   } else {
-                        if (obj.inputEl.value != '') {
-                            YAHOO.util.Dom.addClass(obj.patternErrEl, 'on');
-                        }
-                        obj.setError("pattern", "The value entered is not allowed in this field.");
-                        validationExist = true;
-                        validationResult = false;
-                   }
+                   if(regex != "") {
+	                   if (obj.inputEl.value.match(regex)) {
+	                      // only when there is no other validation mark it as passed
+	                      obj.clearError("pattern");
+	                      YAHOO.util.Dom.removeClass(obj.patternErrEl, 'on');
+	                      validationExist = true;
+	                   } else {
+	                        if (obj.inputEl.value != '') {
+	                            YAHOO.util.Dom.addClass(obj.patternErrEl, 'on');
+	                        }
+	                        obj.setError("pattern", "The value entered is not allowed in this field.");
+	                        validationExist = true;
+	                        validationResult = false;
+	                   }
+	               }
+	               
                    break;
                 }
             }

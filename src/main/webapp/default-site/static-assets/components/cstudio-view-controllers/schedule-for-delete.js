@@ -25,12 +25,17 @@
     Delete = CStudioAuthoring.ViewController.ScheduleForDelete;
     YAHOO.extend(Delete, CStudioAuthoring.ViewController.BaseDelete, {
 
-        actions: [".schedule-for-delete", ".scheduling-policy"],
+        actions: [".schedule-for-delete"],//, ".scheduling-policy"],
         events: ["hideRequest","showRequest"],
 
         initialise: function(usrCfg) {
 
-            var _this = this,
+            var _this = this;
+            var oDelDialog = this.getComponent("div.cstudio-dialogue-body");
+            if (oDelDialog && oDelDialog.style.height) {
+                oDelDialog.style.height = "";
+            }
+ /* not supported 
                 datepickerfield = this.getComponent("input.date-picker"),
                 timepickerfield = this.getComponent("input.time-picker"),
                 focus = function(){
@@ -49,11 +54,6 @@
             CStudioAuthoring.Utils.textFieldTimeDecrementHelper('timeDecrementButton', 'click', 'timeDecrementButton');
 
             this.createCalendar();
-
-            var oDelDialog = this.getComponent("div.cstudio-dialogue-body");
-            if (oDelDialog && oDelDialog.style.height) {
-                oDelDialog.style.height = "";
-            }
 
             var toggleTimeSetting = function() {
                 var oatReqTime = _this.getComponent("input.at-requested-time");
@@ -78,6 +78,7 @@
             if (oatReqTime) {
                 Event.addListener(oatReqTime, "click", toggleTimeSetting);
             }
+            */
         },
 
         renderItems: function(items) {
@@ -165,7 +166,7 @@
             var asapChecked = this.getComponent("input.asap").checked;
             return JSON.stringify({
                 now: asapChecked,
-                scheduledDate: asapChecked ? "1900-01-01T00:00:00" : this._getScheduledDateData(),
+                //scheduledDate: asapChecked ? "1900-01-01T00:00:00" : this._getScheduledDateData(),
                 sendEmail: this.getComponent("input.email-notify").checked,
                 items: this._getItemsData()
             });
@@ -186,25 +187,24 @@
         },
 
         scheduleForDeleteActionClicked: function(btn, evt) {
-            if (this.getComponent("input.at-requested-time").checked) {
-                var dateValue = this.getComponent("input.date-picker").value;
-                var timeValue = this.getComponent("input.time-picker").value;
-                if (dateValue == 'Date...' || timeValue == 'Time...' || timeValue == '') {
-                    alert('Please provide a date and/or time');
-                    return false;
-                }
-            }
+            //not supported
+            // if (this.getComponent("input.at-requested-time").checked) {
+            //     var dateValue = this.getComponent("input.date-picker").value;
+            //     var timeValue = this.getComponent("input.time-picker").value;
+            //     if (dateValue == 'Date...' || timeValue == 'Time...' || timeValue == '') {
+            //         alert('Please provide a date and/or time');
+            //         return false;
+            //     }
+            // }
 
             CStudioAuthoring.Utils.showLoadingImage("schedulefordelete");			
 			this.disableActions();
             this.fire("submitStart");
             var data = this.getData(),
                 _this = this;
-            CStudioAuthoring.Service.request({
-                method: "POST",
-                data: data,
-                resetFormState: true,
-                url: CStudioAuthoringContext.baseUri + "/proxy/alfresco/cstudio/wcm/workflow/submit-to-delete?deletedep=true&site="+CStudioAuthoringContext.site,
+
+            
+            CStudioAuthoring.Service.deleteContentForPathService(CStudioAuthoringContext.site,
                 callback: {
                     success: function(oResponse) {
 						CStudioAuthoring.Utils.hideLoadingImage("schedulefordelete");

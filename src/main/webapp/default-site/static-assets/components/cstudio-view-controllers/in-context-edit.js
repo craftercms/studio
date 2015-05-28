@@ -28,10 +28,11 @@
          *
          * on error, display the issue and then close the dialog
          */
-        initializeContent: function(item, field, site, isEdit, callback, $modal) {
+        initializeContent: function(item, field, site, isEdit, callback, $modal, aux) {
             var iframeEl = document.getElementById("in-context-edit-editor");
             var dialogEl = document.getElementById("viewcontroller-in-context-edit_0_c");
             var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit_0");
+            aux = (aux) ? aux : {};
 
             CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, {
                 context: this,
@@ -41,14 +42,7 @@
                 dialogBodyEl: dialogBodyEl,
                 success: function(contentType) {
                     var windowUrl = "";
-
-                    if(contentType.formPath == "simple") {
-                        // use the simple form server
-                        windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit);
-                    } else {
-                        // use the legacy form server
-                        windowUrl = this.context.constructUrlWebFormLegacyFormServer(item, field, site);
-                    }
+                    windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit, aux);
 
                     this.iframeEl.src = windowUrl;
                     window.iceCallback = callback;
@@ -107,9 +101,9 @@
         /**
          * construct URL for simple form server
          */
-        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit) {
+        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, aux) {
             var windowUrl = "";
-
+            
             windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
             "/form?site=" + site + "&form=" +
             contentType.form +
@@ -121,8 +115,14 @@
                 windowUrl += "&iceComponent=true";
             }
 
-            windowUrl += "&edit="+isEdit;
+            if(aux.readOnly && aux.readOnly == true ||  aux.readOnly == "true") {
+                windowUrl += "&readonly=true";
+            }
 
+            if(isEdit == true || isEdit == "true"){
+                windowUrl += "&edit="+isEdit;
+            }
+            
             return windowUrl;
         },
 
