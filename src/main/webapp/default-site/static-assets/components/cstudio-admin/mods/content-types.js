@@ -1,10 +1,9 @@
-var isDirty = function() { return true; }
-
+CStudioAdminConsole.isDirty = false;
 
     window.addEventListener("beforeunload", function (e) {
         confirmationMessage = 'If you leave before saving, your changes will be lost.';
 
-        if (!isDirty()) {
+        if (!CStudioAdminConsole.isDirty) {
             return undefined;
         }
 
@@ -70,9 +69,19 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 				// render save bar
 				CStudioAdminConsole.CommandBar.render([{label:this.CMgs.format(this.langBundle, "save"), fn: function() {
 							var xml = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.serializeDefinitionToXml(formDef);
-							var cb = { success: function() { isDirty = false; alert(this.CMgs.format(this.langBundle, "saved")); }, 
-							           failure: function() { alert(this.CMgs.format(this.langBundle, "saveFailed")); } 
-							};
+							var langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang)
+							var CMgs =  CStudioAuthoring.Messages;
+
+							var cb = { success: function() { 
+											CStudioAdminConsole.isDirty = false; 
+											alert(this.CMgs.format(this.langBundle, "saved")); 
+									  }, 
+							           failure: function() { 
+							           		alert(this.CMgs.format(this.langBundle, "saveFailed")); 
+							           },
+							           CMgs: CMgs,
+							           langBundle: langBundle
+									};
 							
 	   				var defPath = '/cstudio/config/sites/' + 
 							          CStudioAuthoringContext.site +
@@ -88,7 +97,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 						}	
 					},
 					{label:"Cancel", fn: function() {
-						isDirty = false;
+						CStudioAdminConsole.isDirty = false;
 						  _self.renderWorkarea();
 					} }]);
 					amplify.publish("/content-type/loaded");
@@ -640,6 +649,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 						listeningEl.insertBefore(deleteEl, listeningEl.children[0]);
 
 						var deleteFieldFn = function(evt) {	
+							CStudioAdminConsole.isDirty = true;
 							CStudioAdminConsole.Tool.ContentTypes.FormDefMain.deleteSection(this.parentNode.section);
 							CStudioAdminConsole.Tool.ContentTypes.visualization.render();
 							CStudioAdminConsole.Tool.ContentTypes.propertySheet.renderEmpty();
@@ -743,7 +753,8 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 					YDom.addClass(deleteEl, "delete-control-repeat");
 					listeningEl.insertBefore(deleteEl, listeningEl.children[0]);
 				
-					var deleteFieldFn = function(evt) {	
+					var deleteFieldFn = function(evt) {
+						CStudioAdminConsole.isDirty = true;	
 						CStudioAdminConsole.Tool.ContentTypes.FormDefMain.deleteField(this.parentNode.field);
 						CStudioAdminConsole.Tool.ContentTypes.visualization.render();
 						CStudioAdminConsole.Tool.ContentTypes.propertySheet.renderEmpty();
@@ -830,6 +841,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormVisualization.prototype = {
 					listeningEl.appendChild(deleteEl);
 				
 					var deleteFieldFn = function(evt) {	
+						CStudioAdminConsole.isDirty = true;
 						CStudioAdminConsole.Tool.ContentTypes.FormDefMain.deleteField(this.parentNode.field);
 						CStudioAdminConsole.Tool.ContentTypes.visualization.render();
 						CStudioAdminConsole.Tool.ContentTypes.propertySheet.renderEmpty();
@@ -1191,6 +1203,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 					if(item.properties[l].name === name) {
 						propFound = true;
 						item.properties[l].value = value;
+						CStudioAdminConsole.isDirty = true;
 						break;
 					}
 				}
@@ -1208,6 +1221,8 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	},
 
 	renderDatasourcePropertySheet: function(item, sheetEl) {
+		this.CMgs = CStudioAuthoring.Messages;
+	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 		function getSelectedOption(valueArray) {
 			var val = null;
@@ -1295,6 +1310,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				var propFound = false;
 				for(var l=0; l<item.properties.length; l++) {
 					if(item.properties[l].name === name) {
+						CStudioAdminConsole.isDirty = true;
 						propFound = true;
 						item.properties[l].value = value;
 						break;
@@ -1397,6 +1413,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 			var updatePropertyFn = function(name, value) {
 				for(var l = item.properties.length - 1; l >= 0; l--) {
 					if(item.properties[l].name === name) {
+						CStudioAdminConsole.isDirty = true;
 						item.properties[l].value = (typeof value == "object" && !Array.isArray(value)) ? JSON.stringify(value) : value;
 						break;
 					}
@@ -1439,6 +1456,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				for(l=0; l<item.constraints.length; l++) {
 					if(item.constraints[l].name === name) {
 						constraintFound = true;
+						CStudioAdminConsole.isDirty = true;
 						item.constraints[l].value = value;
 						break;
 					}
@@ -1558,6 +1576,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
         },    
 	
 	insertNewDatasource: function(form, datasourcePrototype) {
+		CStudioAdminConsole.isDirty = true;
 		var newDataSource  =  {
 			id: "",
 			title: "",
@@ -1584,6 +1603,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * delete a datasource
 	 */
 	deleteDatasource: function(datasource) {
+		CStudioAdminConsole.isDirty = true;
 		var index = this.findDatasourceIndex(datasource);
 		
 		datasource.form.datasources.splice(index, 1); 
@@ -1593,7 +1613,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * insert a field
 	 */
 	insertNewField: function(section, fieldPrototype) {
-		
+		CStudioAdminConsole.isDirty = true;
 		if(section.type && section.type == "repeat" && fieldPrototype.getName() == "repeat") {
 			// you cannot add repeats to repeats at this time
 			return;
@@ -1636,7 +1656,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	},
 	
 	moveField: function (srcEl, destEl, goingUp, callback) {
-	    
+	    CStudioAdminConsole.isDirty = true;
 	    var src = (srcEl.field) ? srcEl.field : (srcEl.section) ? srcEl.section : null;
 	    var dest = (destEl.field) ? destEl.field : (destEl.section) ? destEl.section : null;
             
@@ -1659,7 +1679,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * move a field before or after another field
 	 */
 	moveFieldLogic: function(srcEl, destEl, before) {
-	    
+	    CStudioAdminConsole.isDirty = true;
 		if (srcEl.form) {
 			// Moving sections; only section containers have the form attribute
 			var srcElIndex = this.findSectionIndex(srcEl);
@@ -1689,7 +1709,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	},
 	
 	moveInside: function(srcEl, destEl, goingUp, callback) {
-	    
+	    CStudioAdminConsole.isDirty = true;
 	    if (goingUp) {
 			var lastChild = YDom.getLastChildBy(destEl, function(el) {
 					return el.nodeName == "DIV";    
@@ -1721,6 +1741,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * move a field inside a container (repeat or section)
 	 */
 	moveInsideLogic: function(srcEl, container, insertFirst) {
+		CStudioAdminConsole.isDirty = true;
 		// Get the source item and remove it from it's section
 		var srcElIndex = this.findFieldIndex(srcEl);
 		srcEl.section.fields.splice(srcElIndex, 1);
@@ -1735,7 +1756,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	},
 	
 	moveOutside: function(srcEl, destEl, goingUp, callback) {
-	    
+	    CStudioAdminConsole.isDirty = true;
 	    if (goingUp) {
                 YDom.insertBefore(srcEl, destEl);
                 this.moveOutsideLogic(srcEl.field, destEl.section, true);    
@@ -1753,6 +1774,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * move a field outside its container (into the container's parent)
 	 */
 	moveOutsideLogic: function(srcEl, container, insertFirst) {
+		CStudioAdminConsole.isDirty = true;
 		var srcElIndex = this.findFieldIndex(srcEl),
 			containerIndex = this.findFieldIndex(container);
 		
@@ -1774,6 +1796,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * insert new section
 	 */
 	insertNewSection: function(form) {
+		CStudioAdminConsole.isDirty = true;
 		var section = {
 			description: "",
 			title: "",
@@ -1791,8 +1814,8 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * delete a section
 	 */
 	deleteField: function(field) {
+		CStudioAdminConsole.isDirty = true;
 		var index = this.findFieldIndex(field);
-		
 		field.section.fields.splice(index, 1); 
 	},
 
@@ -1800,6 +1823,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	 * delete a section
 	 */
 	deleteSection: function(section) {
+		CStudioAdminConsole.isDirty = true;
 		var index = this.findSectionIndex(section);
 		
 		section.form.sections.splice(index, 1); 

@@ -141,6 +141,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             Common = WcmDashboardWidgetCommon;
 
         var header = [
+            Common.getSimpleRow("checkAll", widgetId, '<input title="All" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize"),
             Common.getSortableRow("internalName", widgetId,  CMgs.format(langBundle, "dashletMyRecentActivityColPageName"), "minimize"),
             Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColEdit"), "minimize"),
             Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColURL"), "maximize"),

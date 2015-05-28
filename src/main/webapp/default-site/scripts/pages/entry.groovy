@@ -1,18 +1,13 @@
-import scripts.libs.EnvironmentOverrides
 import scripts.api.SecurityServices
 
+def context = SecurityServices.createContext(applicationContext, request)
+
 def result = [:]
-def ticket = request.getSession().getValue("alf_ticket");
-def username = request.getSession().getValue("username");
+def currentUser = SecurityServices.getCurrentUser(context)
+def profile = SecurityServices.getUserProfile(context, currentUser)
 
-def context = SecurityServices.createContext(applicationContext, request);
-def profile = SecurityServices.getUserProfile(context, username);
-
-//model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request)
-model.userEmail = profile.email
+model.username = currentUser
+model.userEmail = profile.email 
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName
 model.cookieDomain = request.getServerName();
-
-model.username = username
-model.ticket = ticket

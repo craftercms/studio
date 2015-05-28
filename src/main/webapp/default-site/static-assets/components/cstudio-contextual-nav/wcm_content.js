@@ -449,6 +449,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             content = content[0];
                             option.onclick = function() {
 
+                                content.uri = content.uri.replace("//", "/");
                                 if(content.uri.indexOf("/site") == 0) {
                                     if (isWrite == false) {
                                         CStudioAuthoring.Operations.viewContent(

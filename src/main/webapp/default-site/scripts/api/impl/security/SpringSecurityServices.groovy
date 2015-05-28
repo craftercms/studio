@@ -36,6 +36,11 @@ class SpringSecurityServices {
         return springBackedService.getUserPermissions(site, path, user, groups)
     }
 
+    def getCurrentUser(user) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getCurrentUser()
+    }
+
     def getUserProfile(user) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.getUserProfile(user)
@@ -51,9 +56,9 @@ class SpringSecurityServices {
         return springBackedService.authenticate(username, password)
     }
 
-    def validateToken(site, token) {
+    def validateTicket(token) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.validateToken(site, token)
+        return springBackedService.validateTicket(token)
     }
 
 

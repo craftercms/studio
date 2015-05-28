@@ -40,7 +40,8 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 	this.renderItemsHeading = function() {
 	
 		var widgetId = this._self.widgetId;
-		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColGoLiveDate"),"minimize")+
+		var header = WcmDashboardWidgetCommon.getSimpleRow("checkAll", widgetId, '<input title="All" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize")+
+                     WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColGoLiveDate"),"minimize")+
                      WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColEdit"),"minimize")+
 		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColURL"),"maximize")+
 		             "<th id='fullUri' class='width0'></th>"+

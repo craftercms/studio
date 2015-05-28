@@ -353,8 +353,9 @@ WcmDashboardWidgetCommon.init = function (instance) {
                     }
 
 
-                    YEvent.delegate(widgetId, "click", checkboxClick, "input");
+                    YEvent.delegate(widgetId, "click", checkboxClick, "input:not(#"+widgetId+"CheckAll)");
                     YEvent.delegate(widgetId, "click", dispatchLinkClick, "a");
+
 
                     var searchLimitInput = YDom.get("widget-showitems-" + widgetId);
                     var filterByCount = null;
@@ -863,7 +864,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                         var itemRowStart = "<tr class='" + parentClass + "'>";
                         var itemRowEnd = "</tr>";
 
-                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input type='checkbox'/></span><span class='wcm-widget-margin'></span>";
+                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input title='All' class='dashlet-item-check1' id=tableName + 'CheckAll'  type='checkbox' /></span><span class='wcm-widget-margin'></span>";
 
                         //create table row for this item
                         var itemRow = WcmDashboardWidgetCommon.buildItemTableRow(item, instance, false, i, 0);
@@ -974,6 +975,11 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+;
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                WcmDashboardWidgetCommon.checkAll(tableName, e);
+            }, this, true);
+
         },
 
         failure: function () {
@@ -1168,6 +1174,11 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                WcmDashboardWidgetCommon.checkAll(tableName, e);
+            }, this, true);
+
         },
 
         failure: function () {
@@ -1337,4 +1348,25 @@ WcmDashboardWidgetCommon.clearItem = function (matchedElement, dashBoardData) {
         }
         WcmDashboardWidgetCommon.selectItem(matchedElement, false);
     }
+};
+
+/**
+ * clear selected item in the dashboard widget
+ */
+WcmDashboardWidgetCommon.checkAll = function (idElt, e) {
+
+    var checkAllElt = YDom.get(idElt+'CheckAll');
+    var inputsElt = YDom.get(idElt).getElementsByTagName("input");
+
+    if(checkAllElt.checked == true){
+        for(var i=1; i<inputsElt.length;i++){
+            inputsElt[i].checked = true;
+        }
+    }else{
+        for(var i=1; i<inputsElt.length;i++){
+            inputsElt[i].checked = false;
+        }
+    }
+
+
 };

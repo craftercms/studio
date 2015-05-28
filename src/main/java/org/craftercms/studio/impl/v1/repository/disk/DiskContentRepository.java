@@ -277,9 +277,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         synchronized(path) {
             versionId = determineNextVersionLabel(path, majorVersion);
+            InputStream content = null;
 
             try {
-                InputStream content = getContent(path);
+                content = getContent(path);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -292,6 +293,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             catch(Exception err) {
                 logger.error("error versionign file: "+path, err);
                 versionId = null;
+            }
+            finally {
+                closeInputStreamQuietly(content);
             }
         }
 
@@ -308,9 +312,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         synchronized(path) {
             String versionId = determineNextVersionLabel(path, major);
-
+            InputStream versionContent = null;
+            InputStream wipContent = null;
+            
             try {
-                InputStream versionContent = getVersionedContent(path, label);
+                versionContent = getVersionedContent(path, label);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -319,13 +325,18 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 Files.copy(versionContent, constructVersionRepoPath(versionPath), options);
 
                 // write the repo content
-                InputStream wipContent = getVersionedContent(path, label);
+                wipContent = getVersionedContent(path, label);
                 Files.copy(wipContent, constructRepoPath(path), options);
             }
             catch(Exception err) {
                 logger.error("error versionign file: "+path, err);
                 versionId = null;
             }
+            finally {
+                closeInputStreamQuietly(versionContent);
+                closeInputStreamQuietly(wipContent);
+            }
+
         }
 
         return success;
@@ -449,7 +460,25 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     }
 
+    protected boolean closeInputStreamQuietly(InputStream is) {
+        boolean success = true;
 
+        if(is != null) { 
+            try { 
+                is.close(); 
+            } 
+            catch(Exception ioErr) { 
+                success = false;
+
+                /* eat error */
+                if(Logger.LEVEL_DEBUG.equals(logger.getLevel())) {
+                    logger.error("Error while closing InputStream quietly", ioErr);
+                } 
+            } 
+        } 
+
+        return success;     
+    }
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
