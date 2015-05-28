@@ -19,10 +19,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +51,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
@@ -579,6 +577,8 @@ public class ContentServiceImpl implements ContentService {
                     // level descriptors first
                     // nav pages by order
                     // floating pages via Alpha
+                Comparator<ContentItemTO> comparator = new ContentItemOrderComparator("default", true, true, true);
+                Collections.sort(item.children, comparator);
 
             } else {
                 // ITEM HAS NO CHILDREN
