@@ -166,9 +166,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
             // to resolve page display issue
             displayName = CStudioAuthoring.Utils.replaceWithASCIICharacter(displayName);
 
-            if(!item.deleted && item.uri.indexOf(".xml") != -1) {
-                WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-            }
+            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
 
             html = html.concat([
                 '<td>',

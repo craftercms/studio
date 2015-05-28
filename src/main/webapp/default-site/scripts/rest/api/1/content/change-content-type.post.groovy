@@ -16,13 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.ContentTypeServices;
 
-import scripts.api.SecurityServices
+def result = [:]
+def site = params.site
+def path = params.path
+def type = params.contentType
 
-def result = [:] 
-def token = null
+def context = ContentTypeServices.createContext(applicationContext, request)
 
-def context = SecurityServices.createContext(applicationContext, request)
-result = SecurityServices.validateTicket(context, token)
+result = ContentTypeServices.changeContentType(context, site, path, type)
 
 return result

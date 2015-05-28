@@ -25,6 +25,17 @@ WcmDashboardWidgetCommon.encodePathToNumbers = function (path) {
 };
 
 WcmDashboardWidgetCommon.insertEditLink = function (item, editLinkId) {
+    if(item.uri.indexOf(".ftl") == -1
+    && item.uri.indexOf(".css")  == -1
+    && item.uri.indexOf(".js") == -1
+    && item.uri.indexOf(".groovy") == -1
+    && item.uri.indexOf(".txt") == -1
+    && item.uri.indexOf(".html") == -1
+    && item.uri.indexOf(".hbs") == -1
+    && item.uri.indexOf(".xml") == -1) {
+        return 0; // dont render if not these types
+    }
+
     CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, item.uri, {
         success: function (results) {
 
@@ -342,8 +353,9 @@ WcmDashboardWidgetCommon.init = function (instance) {
                     }
 
 
-                    YEvent.delegate(widgetId, "click", checkboxClick, "input");
+                    YEvent.delegate(widgetId, "click", checkboxClick, "input:not(#"+widgetId+"CheckAll)");
                     YEvent.delegate(widgetId, "click", dispatchLinkClick, "a");
+
 
                     var searchLimitInput = YDom.get("widget-showitems-" + widgetId);
                     var filterByCount = null;
@@ -654,6 +666,7 @@ WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
  */
 WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
+
     var editCallback = {
         success: function () {
             this.callingWindow.location.reload(true);
@@ -666,14 +679,21 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
     var getContentCallback = {
         success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
-            CStudioAuthoring.Operations.editContent(
-                contentTO.form,
-                CStudioAuthoringContext.siteId,
-                contentTO.uri,
-                contentTO.nodeRef,
-                contentTO.uri,
-                false,
-                editCallback);
+            
+
+            if(contentTO.uri.indexOf("/site") == 0) {
+                CStudioAuthoring.Operations.editContent(
+                    contentTO.form,
+                    CStudioAuthoringContext.siteId,
+                    contentTO.uri,
+                    contentTO.nodeRef,
+                    contentTO.uri,
+                    false,
+                    editCallback);
+            }
+            else {
+                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);      
+            }
         },
 
         failure: function () {
@@ -844,7 +864,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                         var itemRowStart = "<tr class='" + parentClass + "'>";
                         var itemRowEnd = "</tr>";
 
-                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input type='checkbox'/></span><span class='wcm-widget-margin'></span>";
+                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input class='dashlet-item-check1' id=tableName + 'CheckAll'  type='checkbox' /></span><span class='wcm-widget-margin'></span>";
 
                         //create table row for this item
                         var itemRow = WcmDashboardWidgetCommon.buildItemTableRow(item, instance, false, i, 0);
@@ -868,7 +888,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
 
             var tableContentStart = '<table id="' + tableName + '-table" class="table">';
             var theadContent = '<thead id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
-            var tbodyContent = '<tbody id="' + tableName + '-tbody">' + newtable + '</tbody>';
+            var tbodyContent = '<tbody id="' + tableName + '-tbody"><tr><td colspan="6"><span class="all-check"><input class="dashlet-item-check" id="' + tableName + 'CheckAll" name="check-all" type="checkbox"/><label for="check-all">All</label></span></td></tr>' + newtable + '</tbody>';
             var tableContentEnd = '</table>';
 
             //Check for already checked items,
@@ -955,6 +975,11 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+;
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                WcmDashboardWidgetCommon.checkAll(tableName, e);
+            }, this, true);
+
         },
 
         failure: function () {
@@ -1061,7 +1086,7 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
 
             var tableContentStart = '<table id="' + tableName + '-table" class="table" border="0">';
             var theadContent = '<thead class="ttThead" id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
-            var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody">' + newtable + '</tbody>';
+            var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody"><tr><td colspan="6"><span class="all-check"><input class="dashlet-item-check" id="' + tableName + 'CheckAll" name="check-all" type="checkbox"/><label for="check-all">All</label></span></td></tr>' + newtable + '</tbody>';
             var tableContentEnd = '</table>';
 
             //Check for already checked items,
@@ -1149,6 +1174,11 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                WcmDashboardWidgetCommon.checkAll(tableName, e);
+            }, this, true);
+
         },
 
         failure: function () {
@@ -1318,4 +1348,25 @@ WcmDashboardWidgetCommon.clearItem = function (matchedElement, dashBoardData) {
         }
         WcmDashboardWidgetCommon.selectItem(matchedElement, false);
     }
+};
+
+/**
+ * clear selected item in the dashboard widget
+ */
+WcmDashboardWidgetCommon.checkAll = function (idElt, e) {
+
+    var checkAllElt = YDom.get(idElt+'CheckAll');
+    var inputsElt = YDom.get(idElt).getElementsByTagName("input");
+
+    if(checkAllElt.checked == true){
+        for(var i=1; i<inputsElt.length;i++){
+            inputsElt[i].checked = true;
+        }
+    }else{
+        for(var i=1; i<inputsElt.length;i++){
+            inputsElt[i].checked = false;
+        }
+    }
+
+
 };

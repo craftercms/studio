@@ -1028,35 +1028,48 @@ var YEvent = YAHOO.util.Event;
              * @param newly added includeMetaData
              */
             openContentWebForm: function(formId, id, noderef, path, edit, asPopup, callback, auxParams,includeMetaData) {
-
-                var readOnly = "false";
-                var checkPermissionsCb = {
-                    success: function(results) {
-                        var isWrite = CStudioAuthoring.Service.isWrite(results.permissions);
-                        if (isWrite == true) {
-
-                            readOnly = "false";
-                        } else {
-                            readOnly = "true";
-                        }
-
-                        CStudioAuthoring.Operations.openContentWebFormWithPermission(
-                            formId, id, noderef, path, edit, asPopup, callback, readOnly,auxParams,includeMetaData);
-                    },
-                    failure: function() {
-
-                        CStudioAuthoring.Operations.openContentWebFormWithPermission(formId, id, noderef, path, edit, asPopup,
-                            callback, "true", auxParams,includeMetaData);
+                var readOnly = false
+                auxParams = (auxParams) ? auxParams : [];
+                
+                for(var j=0; j<auxParams.length; j++) {
+                    if(auxParams[j].name=="readonly") {
+                        readOnly = true;
                     }
-                };
-                var permissionPath = "";
-                if (!CStudioAuthoring.Utils.isEmpty(id)) {
-                    permissionPath = id;
-                } else {
-                    permissionPath = path;
                 }
-                CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, permissionPath, checkPermissionsCb);
 
+                if(readOnly == true) {
+                    CStudioAuthoring.Operations.openContentWebFormWithPermission(formId, id, noderef, path, edit, asPopup,
+                    callback, "true", auxParams,includeMetaData);
+                }
+                else {
+                    //check permissions etc
+                    var checkPermissionsCb = {
+                        success: function(results) {
+                            var isWrite = CStudioAuthoring.Service.isWrite(results.permissions);
+                            if (isWrite == true) {
+                                readOnly = "false";
+                            } else {
+                                readOnly = "true";
+                            }
+
+                            CStudioAuthoring.Operations.openContentWebFormWithPermission(
+                                formId, id, noderef, path, edit, asPopup, callback, readOnly,auxParams,includeMetaData);
+                        },
+                        failure: function() {
+
+                            CStudioAuthoring.Operations.openContentWebFormWithPermission(formId, id, noderef, path, edit, asPopup,
+                                callback, "true", auxParams,includeMetaData);
+                        }
+                    };
+                    var permissionPath = "";
+                    if (!CStudioAuthoring.Utils.isEmpty(id)) {
+                        permissionPath = id;
+                    } else {
+                        permissionPath = path;
+                    }
+                    CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, permissionPath, checkPermissionsCb);
+
+                }
             },
 
             /**
@@ -1078,87 +1091,109 @@ var YEvent = YAHOO.util.Event;
                     auxParams = [];
                 }
 
-                var getContentItemsCb = {
-                    success: function (contentTO) {
-                        CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
-                    },
+                if(id) {
+                    var getContentItemsCb = {
+                        success: function (contentTO) {
+                            CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item,
+                                null, //field
+                                this.isEdit,
+                                this.callback,
+                                { readOnly: readOnly }
 
-                    failure: function () {
-                        callback.failure();
-                    }
-                };
+                            );
+                        },
 
-                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                        failure: function () {
+                            callback.failure();
+                        },
+                        isEdit: edit,
+                        callback: callback
+                    };
+                    
+                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
+                }
+                else {
+                    // new item
+                    CStudioAuthoring.Operations.performSimpleIceEdit({ contentType: formId, uri:path },
+                            null, //field
+                            false //isEdit
+                            //callback
+                            //aux
+                            );
+
+                }
+
             },
 
             /**
              * open form with simple form engine
              */
             openContentWebFormSimpleEngine: function(contentType, path, edit, readOnly, callback, auxParams,includeMetaData) {
-                if(includeMetaData){
-                    auxParams = CStudioAuthoring.Operations.addMetadata(auxParams);
-                }
+                alert("USED?")
+                // if(includeMetaData){
+                //     auxParams = CStudioAuthoring.Operations.addMetadata(auxParams);
+                // }
 
-                var childForm = CStudioAuthoring.ChildFormManager.createChildFormConfig();
+                // var childForm = CStudioAuthoring.ChildFormManager.createChildFormConfig();
 
-                childForm.formId = CStudioAuthoring.Utils.generateUUID();
-                childForm.formName = contentType.form ;
-                childForm.windowName = path;
+                // childForm.formId = CStudioAuthoring.Utils.generateUUID();
+                // childForm.formName = contentType.form ;
+                // childForm.windowName = path;
 
-                childForm.formUrl = CStudioAuthoringContext.authoringAppBaseUri +
-                "/form?site=" + CStudioAuthoringContext.site + "&form=" +
-                contentType.form +
-                "&path=" + path;
+                // childForm.formUrl = CStudioAuthoringContext.authoringAppBaseUri +
+                // "/form?site=" + CStudioAuthoringContext.site + "&form=" +
+                // contentType.form +
+                // "&path=" + path;
 
-                if(contentType.type){
-                    if(contentType.type=="component"){
-                        childForm.formUrl += "&childForm=true";
-                    }
-                }
+                // if(contentType.type){
+                //     if(contentType.type=="component"){
+                //         childForm.formUrl += "&childForm=true";
+                //     }
+                // }
 
-                var readOnlySetByAux = false
-                for(var j=0; j<auxParams.length; j++) {
-                    if(auxParams[j].name=="readonly") {
-                        readOnlySetByAux = true;
-                        readOnly = true;
-                    }
+                // var readOnlySetByAux = false
+                // for(var j=0; j<auxParams.length; j++) {
+                //     if(auxParams[j].name=="readonly") {
+                //         readOnlySetByAux = true;
+                //         readOnly = true;
+                //     }
 
-                    childForm.formUrl += "&" + auxParams[j].name +"="+auxParams[j].value;
-                }
+                //     childForm.formUrl += "&" + auxParams[j].name +"="+auxParams[j].value;
+                // }
 
-                childForm.formSaveCallback = callback;
+                // childForm.formSaveCallback = callback;
 
-                lookupItemCb = {
-                    success: function(itemTO) {
-                        if(itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
-                            readOnly = true;
-                        }
+                // lookupItemCb = {
+                //     success: function(itemTO) {
+                //         if(itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
+                //             readOnly = true;
+                //         }
 
-                        if(readOnly && (readOnly=="true" || readOnly==true) && readOnlySetByAux == false ) {
-                            childForm.formUrl += "&readonly=true";
-                        }
+                //         if(readOnly && (readOnly=="true" || readOnly==true) && readOnlySetByAux == false ) {
+                //             childForm.formUrl += "&readonly=true";
+                //         }
 
-                        if(edit && (edit == true || edit == "true") && (!readOnly || readOnly == false || readOnly == "false")) {
-                            childForm.formUrl += "&edit=" + edit;
-                        }
+                //         if(edit && (edit == true || edit == "true") && (!readOnly || readOnly == false || readOnly == "false")) {
+                //             childForm.formUrl += "&edit=" + edit;
+                //         }
 
-                        childForm.formUrl += "&wid=" + childForm.formId;
+                //         childForm.formUrl += "&wid=" + childForm.formId;
 
-                        CStudioAuthoring.ChildFormManager.openChildForm(childForm);
-                    },
+                //         CStudioAuthoring.ChildFormManager.openChildForm(childForm);
+                //     },
 
-                    failure: function() {
-                    }
-                };
+                //     failure: function() {
+                //     }
+                // };
 
-                if(path.indexOf(".xml") != -1) {
-                    // item is existing content
-                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, lookupItemCb, false);
-                }
-                else {
-                    // item is new
-                    lookupItemCb.success({ item: { lockOwner: CStudioAuthoringContext.user } });
-                }
+                // if(path.indexOf(".xml") != -1) {
+                //     // item is existing content
+                //     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, lookupItemCb, false);
+                // }
+                // else {
+                //     // item is new
+                //     lookupItemCb.success({ item: { lockOwner: CStudioAuthoringContext.user } });
+                // }
             },
 
             /**
@@ -1239,7 +1274,7 @@ var YEvent = YAHOO.util.Event;
                     openDialogCb);
             },
 
-            performSimpleIceEdit: function(item, field, isEdit, callback) {
+            performSimpleIceEdit: function(item, field, isEdit, callback, aux) {
 
                 var id = CSA.Utils.getScopedId(),
                     controller = 'viewcontroller-in-context-edit',
@@ -1271,7 +1306,7 @@ var YEvent = YAHOO.util.Event;
 
                             view = new Controller({ context: id });
 
-                            view.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback, $modal.find('.studio-ice-dialog'));
+                            view.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback, $modal.find('.studio-ice-dialog'), aux);
 
                             view.on("end", function () {
                                 $modal.remove();
@@ -1401,6 +1436,29 @@ var YEvent = YAHOO.util.Event;
                 };
 
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
+            },
+
+            /**
+             * create content for a given site, at a given path
+             * opens a dialog if needed or goes directly to the form if no
+             * template selection is require (only one option
+             */
+            createNewContentForType: function(site, path, type, asPopup, formSaveCb, childForm) {
+                var auxParams = [];
+                if(childForm && childForm == true) {
+                    auxParams = [ { name: "childForm", value: "true" }];
+                }
+
+                CStudioAuthoring.Operations.openContentWebForm(
+                    type,
+                    null,
+                    null,
+                    path,
+                    false,
+                    asPopup,
+                    formSaveCb,
+                    auxParams);
+
             },
             /**
              * create content for a given site, at a given path
@@ -1893,7 +1951,7 @@ var YEvent = YAHOO.util.Event;
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/create-folder";
+                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
@@ -2042,7 +2100,10 @@ var YEvent = YAHOO.util.Event;
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
             unlockContentItemUrl: "/api/1/services/api/1/content/unlock-content.json",
-
+            changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
+            submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
+            deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
+            
             // DEPLOYMENT SERVICES
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
@@ -2081,7 +2142,7 @@ var YEvent = YAHOO.util.Event;
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            // deleteContentForPath: "/proxy/alfresco/cstudio/wcm/content/delete-content",
+            
             // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folders",
             // getServiceOrderUrl: "/proxy/alfresco/cstudio/wcm/content/get-orders",
             // getNextOrderSequenceUrl: "/proxy/alfresco/cstudio/pagenavorder/next",
@@ -2094,7 +2155,6 @@ var YEvent = YAHOO.util.Event;
             // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
             // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
             // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // changeContentTypeUrl: "/proxy/alfresco/cstudio/wcm/contenttype/change-content-type",
             // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
             // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
             // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
@@ -2655,7 +2715,7 @@ var YEvent = YAHOO.util.Event;
                         changeContentTypeCb.failure();
                     }
                 };
-                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
             },
             /**
              * Constructs get-content service url with the given path as a parameter
@@ -3091,7 +3151,7 @@ var YEvent = YAHOO.util.Event;
              * given a site id and a path look up the available content types
              */
             deleteContentForPathService: function(site, path, callback) {
-                var serviceUrl = this.deleteContentForPath;
+                var serviceUrl = this.deleteContentForPathUrl;
                 serviceUrl += "?site=" + site;
                 serviceUrl += "&path=" + path;
                 var serviceCallback = {
@@ -6474,12 +6534,24 @@ CStudioAuthoring.InContextEdit = {
 
     editControlClicked: function() {
         if(this.content.itemIsLoaded == true) {
-            CStudioAuthoring.Operations.performSimpleIceEdit(CStudioAuthoring.SelectedContent.getSelectedContent()[0], this.content.field);
+            CStudioAuthoring.Operations.performSimpleIceEdit(
+                    CStudioAuthoring.SelectedContent.getSelectedContent()[0], 
+                    this.content.field
+                    //isEdit
+                    //callback
+                    //aux
+                    );
         } else {
 
             var lookupContentCb = {
                 success: function(contentTO) {
-                    CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item, this.field);
+                    CStudioAuthoring.Operations.performSimpleIceEdit(
+                        contentTO.item, 
+                        this.field
+                        //isEdit
+                        //callback
+                        //aux
+                        );
                 },
                 failure: crafter.noop,
                 field: this.content.field
@@ -6544,7 +6616,12 @@ CStudioAuthoring.InContextEdit = {
                 };
 
                 editControlEl.onclick = function() {
-                    CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item);
+                    CStudioAuthoring.Operations.performSimpleIceEdit(contentTO.item
+                            // field
+                            // isEdit
+                            // callback
+                            // aux
+                        );
                 };
 
                 editTemplateControlEl.onclick = function() {

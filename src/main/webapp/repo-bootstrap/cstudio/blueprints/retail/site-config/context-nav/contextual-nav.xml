@@ -4,7 +4,9 @@
         <left>
             <menuItem>
                 <item><modulehook>wcm_logo</modulehook></item>
+
                 <item><modulehook>wcm_dropdown</modulehook></item>
+                <item><modulehook>quick-content</modulehook></item>
                 <item><modulehook>wcm_content</modulehook></item>
                 <item><modulehook>admin_console</modulehook></item>
             </menuItem>
@@ -22,10 +24,11 @@
 
         <modules>
             <module><moduleName>wcm_logo</moduleName><value>wcm_logo</value></module>
+            <module><moduleName>quick-content</moduleName><value>quick-content</value></module>
             <module><moduleName>wcm_dropdown</moduleName><value>wcm_dropdown</value></module>
             <module><moduleName>wcm_content</moduleName><value>wcm_content</value></module>
             <module><moduleName>admin_console</moduleName><value>admin_console</value></module>
-
+ 
             <module><moduleName>preview_tools</moduleName><value>preview_tools</value></module>
             <module><moduleName>ice_tools</moduleName><value>ice_tools</value></module>
             <module><moduleName>persona</moduleName><value>persona</value></module>

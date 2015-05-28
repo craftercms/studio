@@ -24,106 +24,106 @@
     Delete = CStudioAuthoring.ViewController.Delete;
     YAHOO.extend(Delete, CStudioAuthoring.ViewController.BaseDelete, {
 
-        // actions: [".do-delete", ".set-all-now", ".overlay-close"],
         actions: [".do-delete", ".overlay-close"],
 
         initialise: function(usrCfg) {
 
             this.createSchedulingOverlay();
-            this.initItemIndividualScheduling();
+//            this.initItemIndividualScheduling();
 
             Dom.setStyle(this.cfg.getProperty("context"), "overflow", "visible");
 
         },
 
-        initItemIndividualScheduling: function() {
-            var itemsbody = this.getComponent("table.item-listing tbody");
-            Event.addListener(itemsbody, "click", function(evt){
-                var e = evt.target;
-                if (Dom.hasClass(e, "when")) {
-                    var overlay = this.overlay,
-                        schedule = Dom.get(e.getAttribute("checkid")).getAttribute("scheduleddate"),
-                        whichRadio;
-                    if (schedule != "-") {
-                        whichRadio = "input[type=radio].scheduled-delete";
-                        this.setTimeConfiguration(schedule);
-                    } else {
-                        whichRadio = "input[type=radio].now";
-                    }
-                    this.getComponent(whichRadio).checked = true;
-                    var oatReqTime = this.getComponent("input.scheduled-delete");
-                    if (oatReqTime && oatReqTime.checked) {
-                        Dom.removeClass(this.getComponent("input.date-picker"), "water-marked");
-                        Dom.removeClass(this.getComponent("input.time-picker"), "water-marked");
-                    } else {
-                        Dom.addClass(this.getComponent("input.date-picker"), "water-marked");
-                        Dom.addClass(this.getComponent("input.time-picker"), "water-marked");
-                        this.getComponent("input.date-picker").style.border = "";
-                        this.getComponent("input.date-picker").style.color = "";
-                        this.getComponent("input.time-picker").style.border = "";
-                        this.getComponent("input.time-picker").style.color = "";
-                    }
-                    overlay.cfg.setProperty("context", [e, "tr", "br"], null, [0,-10]);
-                    overlay.show();
-                }
-            }, null, this);
-        },
+        // initItemIndividualScheduling: function() {
+        //     var itemsbody = this.getComponent("table.item-listing tbody");
+        //     Event.addListener(itemsbody, "click", function(evt){
+        //         var e = evt.target;
+        //         if (Dom.hasClass(e, "when")) {
+        //             var overlay = this.overlay,
+        //                 schedule = Dom.get(e.getAttribute("checkid")).getAttribute("scheduleddate"),
+        //                 whichRadio;
+        //             if (schedule != "-") {
+        //                 whichRadio = "input[type=radio].scheduled-delete";
+        //                 this.setTimeConfiguration(schedule);
+        //             } else {
+        //                 whichRadio = "input[type=radio].now";
+        //             }
+        //             this.getComponent(whichRadio).checked = true;
+        //             var oatReqTime = this.getComponent("input.scheduled-delete");
+        //             if (oatReqTime && oatReqTime.checked) {
+        //                 Dom.removeClass(this.getComponent("input.date-picker"), "water-marked");
+        //                 Dom.removeClass(this.getComponent("input.time-picker"), "water-marked");
+        //             } else {
+        //                 Dom.addClass(this.getComponent("input.date-picker"), "water-marked");
+        //                 Dom.addClass(this.getComponent("input.time-picker"), "water-marked");
+        //                 this.getComponent("input.date-picker").style.border = "";
+        //                 this.getComponent("input.date-picker").style.color = "";
+        //                 this.getComponent("input.time-picker").style.border = "";
+        //                 this.getComponent("input.time-picker").style.color = "";
+        //             }
+        //             overlay.cfg.setProperty("context", [e, "tr", "br"], null, [0,-10]);
+        //             overlay.show();
+        //         }
+        //     }, null, this);
+        // },
+
         createSchedulingOverlay: function(){
-            var overlayel = this.getComponent(".schedule-overlay"),
-                overlay;
-            overlayel.style.display = "";
-            overlay = this.overlay = new YAHOO.widget.Overlay(overlayel, {
-                visible: false,
-                width: "270px"
-            });
-            overlay.render();
-            overlay.showEvent.subscribe(function(){
-                overlay.hideMacGeckoScrollbars();
-            });
+            // var overlayel = this.getComponent(".schedule-overlay"),
+            // var overlay;
+            // overlayel.style.display = "";
+            // overlay = this.overlay = new YAHOO.widget.Overlay(overlayel, {
+            //     visible: false,
+            //     width: "270px"
+            // });
+            // overlay.render();
+            // overlay.showEvent.subscribe(function(){
+            //     overlay.hideMacGeckoScrollbars();
+            // });
 
             // Initialise the timepicker
-            var _this = this,
-                datepickerfield = this.getComponent("input.date-picker"),
-                timepickerfield = this.getComponent("input.time-picker"),
-                focusFn = function(){
-                    // Check the schedule radio
-                    _this.getComponent("input.scheduled-delete").checked = true;
-                    // Remove the grayed-style text
-                    Dom.removeClass(_this.getComponent("input.date-picker"), "water-marked");
-                    Dom.removeClass(_this.getComponent("input.time-picker"), "water-marked");
-                };
+            // var _this = this,
+            //     datepickerfield = this.getComponent("input.date-picker"),
+            //     timepickerfield = this.getComponent("input.time-picker"),
+            //     focusFn = function(){
+            //         // Check the schedule radio
+            //         _this.getComponent("input.scheduled-delete").checked = true;
+            //         // Remove the grayed-style text
+            //         Dom.removeClass(_this.getComponent("input.date-picker"), "water-marked");
+            //         Dom.removeClass(_this.getComponent("input.time-picker"), "water-marked");
+            //     };
 
-            Event.addListener(datepickerfield, "focus", focusFn);
-            Event.addListener(timepickerfield, "focus", focusFn);
+            // Event.addListener(datepickerfield, "focus", focusFn);
+            // Event.addListener(timepickerfield, "focus", focusFn);
 
-            // TODO use more usable timepicker
-            CStudioAuthoring.Utils.textFieldTimeHelper('timepicker', 'blur', 'timepicker');
-            CStudioAuthoring.Utils.textFieldTimeIncrementHelper('timeIncrementButton', 'click', 'timeIncrementButton');
-            CStudioAuthoring.Utils.textFieldTimeDecrementHelper('timeDecrementButton', 'click', 'timeDecrementButton');
+            // // TODO use more usable timepicker
+            // CStudioAuthoring.Utils.textFieldTimeHelper('timepicker', 'blur', 'timepicker');
+            // CStudioAuthoring.Utils.textFieldTimeIncrementHelper('timeIncrementButton', 'click', 'timeIncrementButton');
+            // CStudioAuthoring.Utils.textFieldTimeDecrementHelper('timeDecrementButton', 'click', 'timeDecrementButton');
 
-            var toggleTimeSetting = function() {
-                var oatReqTime = _this.getComponent("input.scheduled-delete");
-                if (oatReqTime && oatReqTime.checked) {
-                    Dom.removeClass(_this.getComponent("input.date-picker"), "water-marked");
-                    Dom.removeClass(_this.getComponent("input.time-picker"), "water-marked");
-                } else {
-                    Dom.addClass(_this.getComponent("input.date-picker"), "water-marked");
-                    Dom.addClass(_this.getComponent("input.time-picker"), "water-marked");
-                    _this.getComponent("input.date-picker").style.border = "";
-                    _this.getComponent("input.date-picker").style.color = "";
-                    _this.getComponent("input.time-picker").style.border = "";
-                    _this.getComponent("input.time-picker").style.color = "";
-                }
-            };
+            // var toggleTimeSetting = function() {
+            //     var oatReqTime = _this.getComponent("input.scheduled-delete");
+            //     if (oatReqTime && oatReqTime.checked) {
+            //         Dom.removeClass(_this.getComponent("input.date-picker"), "water-marked");
+            //         Dom.removeClass(_this.getComponent("input.time-picker"), "water-marked");
+            //     } else {
+            //         Dom.addClass(_this.getComponent("input.date-picker"), "water-marked");
+            //         Dom.addClass(_this.getComponent("input.time-picker"), "water-marked");
+            //         _this.getComponent("input.date-picker").style.border = "";
+            //         _this.getComponent("input.date-picker").style.color = "";
+            //         _this.getComponent("input.time-picker").style.border = "";
+            //         _this.getComponent("input.time-picker").style.color = "";
+            //     }
+            // };
 
-            var oAsap = this.getComponent("input.now");
-            var oatReqTime = this.getComponent("input.scheduled-delete");
-            if (oAsap) {
-                Event.addListener(oAsap, "click", toggleTimeSetting);
-            }
-            if (oatReqTime) {
-                Event.addListener(oatReqTime, "click", toggleTimeSetting);
-            }
+            // var oAsap = this.getComponent("input.now");
+            // var oatReqTime = this.getComponent("input.scheduled-delete");
+            // if (oAsap) {
+            //     Event.addListener(oAsap, "click", toggleTimeSetting);
+            // }
+            // if (oatReqTime) {
+            //     Event.addListener(oatReqTime, "click", toggleTimeSetting);
+            // }
         },
 
         renderItems: function(items) {
@@ -201,20 +201,20 @@
         },
 
         updateItemSchedule: function(element){
-            var nowChecked = this.getComponent("input[type=radio].now").checked,
-                check = Dom.get(element.getAttribute("checkid")),
-                scheduledDate = "-";
-            if (nowChecked ) {
-                element.innerHTML = "Now";
-            } else {
-                var time = this.getComponent("input.time-picker").value,
-                    dateStr = this.getComponent("input.date-picker").value + " " + time,
-                    date;
-                var dateValue = this.getComponent("input.date-picker").value;
-                element.innerHTML = CStudioAuthoring.Utils.getScheduledDateTimeUI(dateValue, time);
-                scheduledDate = this.getScheduledDateTimeForJson(dateValue, time);
-            }
-            check.setAttribute( "scheduleddate", scheduledDate );
+            // var nowChecked = this.getComponent("input[type=radio].now").checked,
+            //     check = Dom.get(element.getAttribute("checkid")),
+            //     scheduledDate = "-";
+            // if (nowChecked ) {
+            //     element.innerHTML = "Now";
+            // } else {
+            //     var time = this.getComponent("input.time-picker").value,
+            //         dateStr = this.getComponent("input.date-picker").value + " " + time,
+            //         date;
+            //     var dateValue = this.getComponent("input.date-picker").value;
+            //     element.innerHTML = CStudioAuthoring.Utils.getScheduledDateTimeUI(dateValue, time);
+            //     scheduledDate = this.getScheduledDateTimeForJson(dateValue, time);
+            // }
+            // check.setAttribute( "scheduleddate", scheduledDate );
         },
 
         afterSubmit: function(message){
@@ -233,7 +233,7 @@
 
         doDeleteActionClicked: function(){
 			this.showProcessingOverlay(true);
-            this.disableActions();
+            //this.disableActions();
             this.fire("submitStart");
             var data = this.getData(),
                 _this = this;
@@ -241,7 +241,10 @@
                 method: "POST",
                 data: data,
                 resetFormState: true,
-                url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-delete.json?deletedep=true&site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
+                url: CStudioAuthoring.Service.createServiceUri(
+                    CStudioAuthoring.Service.deleteContentUrl + 
+                        "?deletedep=true&site=" +CStudioAuthoringContext.site+
+                        "&user="+CStudioAuthoringContext.user),
                 callback: {
                     success: function(oResponse) {
                         _this.showProcessingOverlay(false);
@@ -261,19 +264,19 @@
             });
         },
         overlayCloseActionClicked: function() {
-            var fields = [this.getComponent("input.time-picker"), this.getComponent("input.date-picker")];
-            var timeValue = fields[0].value;
-            var dateValue = fields[1].value;
-            if (((dateValue == 'Date...') || (timeValue == 'Time...') || (timeValue == '')) && this.getComponent('input.scheduled-delete').checked) {
-                alert('Please provide a date and/or time');
-                return false;
-            }
+            //var fields = [this.getComponent("input.time-picker"), this.getComponent("input.date-picker")];
+            //var timeValue = fields[0].value;
+            //var dateValue = fields[1].value;
+            // if (((dateValue == 'Date...') || (timeValue == 'Time...') || (timeValue == '')) && this.getComponent('input.scheduled-delete').checked) {
+            //     alert('Please provide a date and/or time');
+            //     return false;
+            // }
             var o = this.overlay;
             o.hide();
-            this.updateItemSchedule(o.cfg.getProperty("context")[0]);
+//            this.updateItemSchedule(o.cfg.getProperty("context")[0]);
 
-            fields[0].value = fields[0].getAttribute("default");
-            fields[1].value = fields[1].getAttribute("default");
+            // fields[0].value = fields[0].getAttribute("default");
+            // fields[1].value = fields[1].getAttribute("default");
         },
         setAllNowActionClicked: function(){
             eachfn(this.getComponents("a.when"), function(i, e){
@@ -284,27 +287,27 @@
             });
         },
         getScheduledDateTimeForJson: function (dateValue, timeValue) {
-            var dateValueArray = dateValue.split("/");
-            var timeValueArray = timeValue.split(" ");
-            var timeSplit = timeValueArray[0].split(":");
+            // var dateValueArray = dateValue.split("/");
+            // var timeValueArray = timeValue.split(" ");
+            // var timeSplit = timeValueArray[0].split(":");
 
-            //converting am/pm to 12 hour time.
-            var hr = parseInt(timeSplit[0], 10);
-            if(timeValueArray[1] == "p.m." || timeValueArray[1] == "PM"){
-                if(hr != 12) hr = hr + 12;
-            }else {
-                if(hr == 12) hr = hr + 12;
-            }
-            timeSplit[0] = hr;
+            // //converting am/pm to 12 hour time.
+            // var hr = parseInt(timeSplit[0], 10);
+            // if(timeValueArray[1] == "p.m." || timeValueArray[1] == "PM"){
+            //     if(hr != 12) hr = hr + 12;
+            // }else {
+            //     if(hr == 12) hr = hr + 12;
+            // }
+            // timeSplit[0] = hr;
 
-            var schedDate = new Date(dateValueArray[2], dateValueArray[0] - 1, dateValueArray[1], timeSplit[0], timeSplit[1], timeSplit[2], "");
+            // var schedDate = new Date(dateValueArray[2], dateValueArray[0] - 1, dateValueArray[1], timeSplit[0], timeSplit[1], timeSplit[2], "");
 
-            var schedDateMonth = schedDate.getMonth() + 1;
-            var scheduledDate = schedDate.getFullYear() + '-' + schedDateMonth + '-'
-                                + schedDate.getDate() + 'T' + schedDate.getHours() + ':'
-                                + schedDate.getMinutes() + ':' + schedDate.getSeconds();
+            // var schedDateMonth = schedDate.getMonth() + 1;
+            // var scheduledDate = schedDate.getFullYear() + '-' + schedDateMonth + '-'
+            //                     + schedDate.getDate() + 'T' + schedDate.getHours() + ':'
+            //                     + schedDate.getMinutes() + ':' + schedDate.getSeconds();
 
-            return scheduledDate;
+            // return scheduledDate;
         },
         setTimeConfiguration: function (scheduledDate) {
             if (scheduledDate) {

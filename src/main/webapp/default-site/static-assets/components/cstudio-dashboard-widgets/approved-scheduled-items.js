@@ -165,10 +165,9 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
                 lastEditTime = CStudioAuthoring.Utils.formatDateFromString(item.lastEditDateAsString);
             }
             
-            if(item.uri.indexOf(".xml") != -1) {
-                WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-            }
-
+  
+            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
+  
             html = html.concat([
                 '<td>',
                     '<div class="dashlet-cell-wrp">',

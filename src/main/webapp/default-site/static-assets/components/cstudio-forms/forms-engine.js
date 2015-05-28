@@ -1705,7 +1705,8 @@ var CStudioForms = CStudioForms || function() {
                 $('#cstudio-form-expand-all').text(CMgs.format(formsLangBundle, "expandAll"));
                 $('#cstudio-form-collapse-all').text(CMgs.format(formsLangBundle, "collapseAll"));
 
-                html =
+                html ="<div id='cstudio-form-readonly-banner' class='hidden'>READ ONLY</div>"+
+
                     '<div class="container">' +
                     '<div class="panel-group">';
 
