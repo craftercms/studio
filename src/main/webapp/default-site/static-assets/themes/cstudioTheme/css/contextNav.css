@@ -85,7 +85,7 @@
 /* Modal */
 
 body .mask{
-  background-color: rgb(68, 68, 68)!important;;
+  background-color: rgb(68, 68, 68)!important;
   opacity: 0.5!important;;
   z-index: 1031!important;
 }
