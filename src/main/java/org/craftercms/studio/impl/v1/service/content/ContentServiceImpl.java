@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
@@ -463,7 +464,8 @@ public class ContentServiceImpl implements ContentService {
             item.internalName = rootElement.valueOf("internal-name");
             item.contentType = rootElement.valueOf("content-type");
             item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
-            item.floating = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
+            item.floating = ( (rootElement.valueOf("placeInNav") != null) && !rootElement.valueOf("placeInNav").equals("true") );
+            item.navigation = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
             item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
             item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
         }
@@ -1073,6 +1075,131 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.unLockContent(site, path);
     }
 
+    @Override
+    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
+        List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
+        for (DmOrderTO dmOrderTO : dmOrderTOs) {
+            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
+        }
+        return dmOrderTOs;
+    }
+
+    private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
+        // if the path ends with index.xml, remove index.xml and also remove the last folder
+        // otherwise remove the file name only
+        if (!StringUtils.isEmpty(relativePath)) {
+            if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
+                int index = relativePath.lastIndexOf("/");
+                if (index > 0) {
+                    String fileName = relativePath.substring(index + 1);
+                    String path = relativePath.substring(0, index);
+                    if (DmConstants.INDEX_FILE.equals(fileName)) {
+                        int secondIndex = path.lastIndexOf("/");
+                        if (secondIndex > 0) {
+                            path = path.substring(0, secondIndex);
+                        }
+                    }
+                    relativePath = path;
+                }
+            }
+        }
+        // get the root item and its children
+        ContentItemTO item = getContentItem(site, relativePath);
+        if (item.getChildren() != null) {
+            List<DmOrderTO> orders = new ArrayList<DmOrderTO>(item.getChildren().size());
+            String pathIndex = relativePath + "/" + DmConstants.INDEX_FILE;
+            for (ContentItemTO child : item.getChildren()) {
+                // exclude index.xml, the level descriptor and floating pages at the path
+                if (!(pathIndex.equals(child.getUri()) || child.isLevelDescriptor() || child.isDeleted()) && (!child.isFloating() || includeFloating)) {
+                    DmOrderTO order = new DmOrderTO();
+                    order.setId(child.getUri());
+                    Double orderNumber = child.getOrder(orderName);
+                    // add only if the page contains order information
+                    if (orderNumber != null && orderNumber > 0) {
+                        order.setOrder(child.getOrder(orderName));
+                        order.setName(child.getInternalName());
+                        if (child.isDisabled())
+                            order.setDisabled("true");
+                        else
+                            order.setDisabled("false");
+
+                        if (child.isNavigation())
+                            order.setPlaceInNav("true");
+                        else
+                            order.setPlaceInNav("false");
+
+                        orders.add(order);
+                    }
+                }
+            }
+            return orders;
+        }
+        return null;
+    }
+
+    @Override
+    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
+        Double beforeOrder = null;
+        Double afterOrder = null;
+        DmOrderTO beforeOrderTO = null;
+        DmOrderTO afterOrderTO = null;
+        String fullPath = expandRelativeSitePath(site, relativePath);
+        // get the order of the content before
+        // if the path is not provided, the order is 0
+        if (!StringUtils.isEmpty(before)) {
+            ContentItemTO beforeItem = getContentItem(site, before, 0);
+            beforeOrder = beforeItem.getOrder(orderName);
+            beforeOrderTO = new DmOrderTO();
+            beforeOrderTO.setId(before);
+            if (beforeOrder != null && beforeOrder > 0) {
+                beforeOrderTO.setOrder(beforeOrder);
+            }
+        }
+        // get the order of the content after
+        // if the path is not provided, the order is the order of before +
+        // ORDER_INCREMENT
+        if (!StringUtils.isEmpty(after)) {
+            ContentItemTO afterItem = getContentItem(site, after, 0);
+            afterOrder = afterItem.getOrder(orderName);
+            afterOrderTO = new DmOrderTO();
+            afterOrderTO.setId(after);
+            if (afterOrder != null && afterOrder > 0) {
+                afterOrderTO.setOrder(afterOrder);
+            }
+        }
+
+        // if no after and before provided, the initial value is ORDER_INCREMENT
+        if (afterOrder == null && beforeOrder == null) {
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else if (beforeOrder == null) {
+            return (0 + afterOrder) / 2;
+        } else if (afterOrder == null) {
+            logger.info("afterOrder == null");
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else {
+            //return (beforeOrder + afterOrder) / 2;
+            return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
+        }
+    }
+
+    /**
+     * Will need to include the floating pages as well for orderValue computation
+     * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
+     */
+    protected double computeReorder(String site, String relativePath, DmOrderTO beforeOrderTO, DmOrderTO afterOrderTO, String orderName) throws ContentNotFoundException {
+
+        List<DmOrderTO> orderTO = getOrders(site, relativePath, orderName, true);
+        Collections.sort(orderTO);
+
+        int beforeIndex = orderTO.indexOf(beforeOrderTO);
+        int afterIndex = orderTO.indexOf(afterOrderTO);
+
+        if (!(beforeIndex + 1 == afterIndex)) {
+            beforeOrderTO = orderTO.get(afterIndex - 1);
+        }
+        return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
+    }
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
@@ -1083,6 +1210,7 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected Reactor repositoryReactor;
+    protected DmPageNavigationOrderService dmPageNavigationOrderService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1118,4 +1246,7 @@ public class ContentServiceImpl implements ContentService {
 
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
+
+    public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
+    public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 }
