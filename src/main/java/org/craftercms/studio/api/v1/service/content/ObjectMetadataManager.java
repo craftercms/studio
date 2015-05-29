@@ -41,4 +41,6 @@ public interface ObjectMetadataManager {
     void unLockContent(String site, String path);
 
     void deleteObjectMetadataForSite(String site);
+
+    void deleteObjectMetadata(String site, String path);
 }

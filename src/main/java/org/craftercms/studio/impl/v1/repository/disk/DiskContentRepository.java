@@ -121,7 +121,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
         
         try {
-            FileUtils.deleteDirectory(constructRepoPath(path).toFile());
+            File file = constructRepoPath(path).toFile();
+            FileUtils.deleteQuietly(file);
+
         }
         catch(Exception err) {
             // log this error

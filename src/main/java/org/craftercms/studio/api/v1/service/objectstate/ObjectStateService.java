@@ -79,9 +79,9 @@ public interface ObjectStateService {
     public List<ObjectState> getChangeSet(String site);
 
     public void deleteObjectState(String objectId);
-/*
-    public void deleteObjectStateForPath(String site, String path);
 
+    public void deleteObjectStateForPath(String site, String path);
+/*
     public void deleteObjectStateForPaths(String site, List<String> paths);
 */
     void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
@@ -99,4 +99,5 @@ public interface ObjectStateService {
     */
 
     void deleteObjectStatesForSite(String site);
+
 }
