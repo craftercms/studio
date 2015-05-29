@@ -52,17 +52,20 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
 		var divIdName = "cstudio-wcm-popup-div";
 		newdiv.setAttribute("id",divIdName);
 		newdiv.className= "yui-pe-content";
-        newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
+        newdiv.innerHTML = '<div class="contentTypePopupInner create-new-folder-dialog" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Create a New Folder</div> ' +
-                           '<div style="margin-bottom:10px;font-style:italic;">Please enter a folder name</div> ' +
-						   '<div>' +
-						   '<div><table><tr><td><div style="margin-right:10px;">Folder Name:</div></td><td><input type="text" name="folderName" id="folderNameId" style="width:210px" /></td></tr></table></div>' +
+                           '<div class="contentTypeOuter">'+
+                           		'<div style="margin-bottom:10px;font-style:italic;">Please enter a folder name</div> ' +
+						   		'<div>' +
+						   			'<div><table><tr><td><div style="margin-right:10px;">Folder Name:</div></td><td><input type="text" name="folderName" id="folderNameId" style="width:210px" /></td></tr></table></div>' +
+						   		'</div>' +
+						   '</div>' +
 						   '<div class="contentTypePopupBtn"> ' +
-						        '<input type="button" class="cstudio-xform-button ok" id="createButton" value="Create" />' +
+						    	'<input type="button" class="cstudio-xform-button ok" id="createButton" value="Create" />' +
                                 '<input type="button" class="cstudio-xform-button" id="createCancelButton" value="Cancel" /></div>' +
 						   '</div>' +
-						   '<div><div  style="visibility:hidden; margin:10px 0;" id="indicator">Creating a folder...</div>' +
+						   '<div class="contentTypePopupBtn" style="overflow: hidden"><div  style="visibility:hidden; margin:10px 0;" id="indicator">Creating a folder...</div>' +
                            '</div> ' +
                            '</div>';
 
@@ -73,6 +76,10 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
 		create_folder_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", {
             width: "360px",
             height: "auto",
+            effect:{
+		        effect: YAHOO.widget.ContainerEffect.FADE,
+		        duration: 0.25
+		    }, 
             fixedcenter: true,
             visible: false,
             modal: true,

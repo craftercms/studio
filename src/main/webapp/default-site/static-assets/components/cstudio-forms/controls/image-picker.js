@@ -138,7 +138,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 this.addContainerEl = null;
                 this.ctrlOptionsEl.removeChild(addContainerEl);
             }
-            else {
+//            else {
                 addContainerEl = document.createElement("div")
                 this.ctrlOptionsEl.appendChild(addContainerEl);
                 YAHOO.util.Dom.addClass(addContainerEl, 'cstudio-form-control-image-picker-add-container');
@@ -158,7 +158,8 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                     var regexpr = new RegExp("(" + el.id + ")[\\s,]|(" + el.id + ")$"),
                         mapDatasource;
 
-                    if (imageManagerNames.search(regexpr) > -1) {
+                    //if (imageManagerNames.search(regexpr) > -1) {
+                        if (imageManagerNames.indexOf(el.id) != -1) {
                         mapDatasource = datasourceMap[el.id];
 
                         var itemEl = document.createElement("div");
@@ -176,9 +177,10 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                     }
                 }
                 datasourceDef.forEach(addMenuOption);
-            }
+            //}
         }
         else if(imageManagerNames != ""){
+            imageManagerNames = imageManagerNames.replace("[\"","").replace("\"]","");
             this._addImage(datasourceMap[imageManagerNames]);
         }
     },

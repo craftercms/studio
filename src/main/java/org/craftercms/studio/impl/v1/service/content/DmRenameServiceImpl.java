@@ -449,10 +449,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
             if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
                 ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
-                if (srcItem != null && /*srcItem.isFolder() &&*/ dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     contentService.moveContent(site, sourcePath, targetPath);
-                        //persistenceManagerService.deleteNode(srcFullPath);
-                } else if (srcItem != null /*&& !srcItem.isFolder()*/
+                } else if (srcItem != null && !srcItem.isFolder()
                                 && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     contentService.createFolder(site, dstNodeParentPath, dstNodeName);
                     contentService.moveContent(site, sourcePath, dstPath);
@@ -462,6 +461,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             } else {
                 contentService.moveContent(site, sourcePath, dstPath);
             }
+            contentService.deleteContent(site, ContentUtils.getParentUrl(sourcePath));
 
             ContentItemTO item = contentService.getContentItem(dstFullPath);
             if (item == null) {

@@ -60,7 +60,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		var divIdName = "cstudio-wcm-popup-div";
 		newdiv.setAttribute("id",divIdName);
 		newdiv.className= "yui-pe-content";
-		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:440px;">'+
+		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:501px;">'+
 								'<div class="contentTypePopupContent" id="ct_contentTypePopupContent"> '+
 									'<form name="contentFromWCM" action=""> '+
 									'<div class="contentTypePopupHeader">Choose Content Type</div> '+
@@ -87,7 +87,11 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		 // Instantiate the Dialog
 		content_type_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div",
 								{ width : "610px",
-								  height : "450px",
+								  height : "501px",
+								  effect:{
+							        effect: YAHOO.widget.ContainerEffect.FADE,
+							        duration: 0.25
+							      }, 
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,

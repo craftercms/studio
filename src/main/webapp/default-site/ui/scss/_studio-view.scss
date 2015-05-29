@@ -231,7 +231,7 @@ table.scroll-body {
 }
 
 .ice-mask {
-  z-index: 2;
+  z-index: 1034;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -243,7 +243,7 @@ table.scroll-body {
 }
 
 .studio-ice-dialog {
-  z-index: 2;
+  z-index: 1035;
   bottom: auto;
   left: 50%;
   top: 50px;
@@ -275,7 +275,9 @@ table.scroll-body {
 #checkAll-recentlyMadeLive,
 #checkAll-approvedScheduledItems,
 #checkAll-GoLiveQueue{
-  padding-left: 26px;
+  padding-left: 23px;
   position: relative;
   bottom: 3px;
+  padding-right: 2px;
+  width: 23px;
 }
