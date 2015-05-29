@@ -734,7 +734,6 @@
     background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
     width: 21px;
     margin-left: -43px;
-    position: relative;
     cursor: pointer;
     border: none;
     margin-right: 4px;
