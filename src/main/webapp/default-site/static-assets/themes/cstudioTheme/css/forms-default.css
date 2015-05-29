@@ -731,17 +731,21 @@
 }
 
 .cstudio-form-control-asset-picker-zoom-button {
-	background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
-	top: -7px;
-	width: 21px;
-	margin-left: -39px;
-	position: relative;
-	cursor: pointer;
+    background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
+    width: 21px;
+    margin-left: -43px;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    margin-right: 4px;
+    position: absolute;
+    top: 43px;
 }
 
 .cstudio-form-control-asset-picker-download-button {
-	position: relative;
-	top: -3px;
+	position: absolute;
+	top: 43px;
+    right: 0;
 }
 
 .cstudio-form-control-asset-picker-zoom-cancel-button {
