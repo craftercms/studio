@@ -14092,7 +14092,7 @@ table.scroll-body {
   z-index: 1035;
   bottom: auto;
   left: 50%;
-  top: 50px;
+  top: 0;
   height: 200px;
   width: 90%;
   position: fixed;
