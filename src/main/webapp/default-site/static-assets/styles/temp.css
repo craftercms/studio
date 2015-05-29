@@ -14079,7 +14079,7 @@ table.scroll-body {
 
 .ice-mask {
   z-index: 1034;
-  position: absolute;
+  position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
@@ -14092,7 +14092,7 @@ table.scroll-body {
   z-index: 1035;
   bottom: auto;
   left: 50%;
-  top: 50px;
+  top: 0;
   height: 200px;
   width: 90%;
   position: fixed;
