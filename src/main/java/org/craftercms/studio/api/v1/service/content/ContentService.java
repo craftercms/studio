@@ -18,14 +18,12 @@
 package org.craftercms.studio.api.v1.service.content;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
-import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 
@@ -243,4 +241,8 @@ public interface ContentService {
     void lockContent(String site, String path);
 
     void unLockContent(String site, String path);
+
+    List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
+
+    double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException;
 }

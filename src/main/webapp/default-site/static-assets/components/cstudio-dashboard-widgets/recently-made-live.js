@@ -45,7 +45,8 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 
         var widgetId = this._self.widgetId;
 
-        var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
+        var header = WcmDashboardWidgetCommon.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize")+
+            WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEdit"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletRecentDeployColURL"),"maximize")+
             WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+
@@ -118,7 +119,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 
         if (isFirst) {
 
-            html.push('<td>');
+            html.push('<td colspan="5">');
 
             if (item.numOfChildren > 0) {
                 var parentClass = ['wcm-table-parent-', name, '-', count].join("");
@@ -135,7 +136,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
                 displayName, ' (', item.numOfChildren, ')',
                 '</span>',
                 '</td>',
-                '<td colspan="4">&nbsp;</td>'
+                '<td colspan="1">&nbsp;</td>'
             ]);
 
         } else {
@@ -169,7 +170,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
             WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
 
             html = html.concat([
-                '<td>',
+                '<td colspan=2>',
                 '<div class="dashlet-cell-wrp">',
                 '<div class="dashlet-ident">',
                 '<input type="checkbox" class="dashlet-item-check" id="', uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',

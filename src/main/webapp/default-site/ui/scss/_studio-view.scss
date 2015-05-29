@@ -231,8 +231,8 @@ table.scroll-body {
 }
 
 .ice-mask {
-  z-index: 2;
-  position: absolute;
+  z-index: 1034;
+  position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
@@ -243,10 +243,10 @@ table.scroll-body {
 }
 
 .studio-ice-dialog {
-  z-index: 2;
+  z-index: 1035;
   bottom: auto;
   left: 50%;
-  top: 50px;
+  top: 0;
   height: 200px;
   width: 90%;
   position: fixed;
@@ -269,4 +269,15 @@ table.scroll-body {
       position: absolute;
     }
   }
+}
+
+#checkAll-MyRecentActivity,
+#checkAll-recentlyMadeLive,
+#checkAll-approvedScheduledItems,
+#checkAll-GoLiveQueue{
+  padding-left: 23px;
+  position: relative;
+  bottom: 3px;
+  padding-right: 2px;
+  width: 23px;
 }

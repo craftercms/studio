@@ -2107,7 +2107,7 @@ var YEvent = YAHOO.util.Event;
             // ORDER SERVICES
             // READ
             getServiceOrderUrl: "/api/1/services/api/1/content/get-item-orders.json",
-            getNextOrderSequenceUrl: "/api/1/services/api/1/content/get-next-item.json",
+            getNextOrderSequenceUrl: "/api/1/services/api/1/content/get-next-item-order.json",
             
             //WRITE
             reorderServiceSubmitUrl: "/api/1/services/api/1/content/reorder-items.json",
@@ -3884,10 +3884,10 @@ var YEvent = YAHOO.util.Event;
 
                 var serviceCallback = {
                     success: function(oResponse) {
-                        var nextValue = oResponse.responseText;
-
+                        var nextValueJson = oResponse.responseText;
+                        var nextValue = eval("(" + nextValueJson + ")")
                         try {
-                            callback.success(parseFloat(nextValue));
+                            callback.success(parseFloat(nextValue.nextValue));
                         }
                         catch(err) {
                             callback.failure(err);

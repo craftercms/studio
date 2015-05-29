@@ -106,6 +106,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
             Common = WcmDashboardWidgetCommon;
 
         var header = [
+            Common.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize"),
             Common.getSortableRow("internalName", widgetId, CMgs.format(langBundle, "dashletGoLiveColPageName"), "minimize"),
             Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletGoLiveColEdit"), "minimize"),
             Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletGoLiveColURL"), "maximize"),
@@ -140,7 +141,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
 
         if (isFirst) {
 
-            html.push('<td>');
+            html.push('<td colspan="4">');
 
             if (item.numOfChildren > 0) {
                 var parentClass = ['wcm-table-parent-', name, '-', count].join("");
@@ -157,7 +158,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
                     displayName, ' (', item.numOfChildren, ')',
                 '</span>',
                 '</td>',
-                '<td colspan="4">&nbsp;</td>'
+                '<td colspan="3">&nbsp;</td>'
             ]);
 
         } else {
@@ -193,7 +194,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
             WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
             
             html = html.concat([
-                '<td>',
+                '<td colspan=2>',
                     '<div class="dashlet-cell-wrp">', depth ?
                         '<div class="dashlet-ident">' : '',
                             '<div class="dashlet-ident">',

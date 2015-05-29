@@ -158,6 +158,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         });
 
         $(DROPPABLE_SELECTION).droppable({
+            hoverClass: 'studio-draggable-over',
             connectWithSortable: true,
             drop: function (e, ui) {
                 var $dropZone = $(this),

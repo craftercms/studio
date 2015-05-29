@@ -155,6 +155,10 @@
     width: 600px;
 }
 
+.cstudio-form-control-file-name-container input.cstudio-form-control-file-name{
+  width: 301px;
+}
+
 .cstudio-form-container {
     margin: 20px auto 0 auto;
     padding-bottom: 90px;
@@ -727,17 +731,20 @@
 }
 
 .cstudio-form-control-asset-picker-zoom-button {
-	background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
-	top: -7px;
-	width: 21px;
-	margin-left: -39px;
-	position: relative;
-	cursor: pointer;
+    background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
+    width: 21px;
+    margin-left: -43px;
+    cursor: pointer;
+    border: none;
+    margin-right: 4px;
+    position: absolute;
+    top: 43px;
 }
 
 .cstudio-form-control-asset-picker-download-button {
-	position: relative;
-	top: -3px;
+	position: absolute;
+	top: 43px;
+    right: 0;
 }
 
 .cstudio-form-control-asset-picker-zoom-cancel-button {
@@ -811,7 +818,7 @@
 .checkbox-group > .select-all span { color: #888888; }
 
 .cstudio-form-field-container .date-time-container { display: inline-block; position: relative; }
-.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 94px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
+.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 103px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
 .date-time-container > .date-link,
 .date-time-container > .clear-link { display: inline-block; margin-left: 6px; text-decoration: underline; }
 .date-time-container > .date-link:hover,
@@ -823,3 +830,4 @@
 .date-time-container .warning { font-size: 11px; color: #D50; width: 100%; }
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
+input[disabled]{background-color: whitesmoke;}

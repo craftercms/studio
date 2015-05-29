@@ -1827,11 +1827,13 @@ treeNode.getHtml = function() {
                     dialog.destroy();
                 }
 
-                modalBody.innerHTML = '<div class="contentTypePopupInner" style="width:460px;height:140px;">' +
+                modalBody.innerHTML = '<div class="contentTypePopupInner changeContent-type-dialog" style="width:460px;height:140px;">' +
                                         '<div class="contentTypePopupContent">' +
                                             '<form name="contentFromWCM">' +
                                             '<div class="contentTypePopupHeader">Warning: Change Content Type</div> ' +
-                                            '<div>The following operation may result in data loss. Would you like to proceed?</div>' +
+                                            '<div class="contentTypeOuter">'+
+                                                '<div>The following operation may result in data loss. Would you like to proceed?</div>' +
+                                            '</div>' +    
                                             '<div class="contentTypePopupBtn">' +
                                                 '<input type="submit" class="ok" id="acceptCTChange" value="Yes" />' +
                                                 '<input type="submit" class="cancel" id="cancelCTChange" value="No" />' +
@@ -1842,8 +1844,12 @@ treeNode.getHtml = function() {
 
                 var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
                                 { fixedcenter : true,
+                                  effect:{
+                                    effect: YAHOO.widget.ContainerEffect.FADE,
+                                    duration: 0.25
+                                  }, 
                                   visible : false,
-                                  modal:false,
+                                  modal:true,
                                   close:false,
                                   constraintoviewport : true,
                                   underlay:"none",

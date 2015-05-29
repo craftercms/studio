@@ -11,14 +11,13 @@ class EnvironmentOverrides {
 		def serverProperties = appContext.get("studio.crafter.properties")
 		def cookies = request.getCookies();
 
+    	def context = SiteServices.createContext(appContext, request)
 		result.environment = serverProperties["environment"]  
 
 		try {		
-			result.user = request.getSession().getValue("username")
-			result.ticket = request.getSession().getValue("ticket")
+			result.user = SecurityServices.getCurrentUser(context)
 			result.site = Cookies.getCookieValue("crafterSite", request)
    
-    		def context = SiteServices.createContext(appContext, request)
 			def roles = SecurityServices.getUserRoles(context, result.site, result.user)
 			  
 			if(roles!=null && roles.size() > 0) {
