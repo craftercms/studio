@@ -163,8 +163,9 @@ class ContentServices {
   	 * @param path - the parent path containing the ordered objects
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
   	 */
-	static getContentItemOrders(site, path, context) {
-
+	static getItemOrders(context, site, path) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.getItemOrders(site, path)
 	}
 
 	/**
@@ -272,4 +273,9 @@ class ContentServices {
 		def contentServicesImpl = ServiceFactory.getContentServices(context);
 		return contentServicesImpl.writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
 	}
+
+	static reorderItems(context, site, path, before, after) {
+        def contentServicesImpl = ServiceFactory.getContentServices(context);
+        return contentServicesImpl.reorderItems(site, path, before, after);
+    }
 }	

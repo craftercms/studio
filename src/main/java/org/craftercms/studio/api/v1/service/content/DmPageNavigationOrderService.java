@@ -33,7 +33,7 @@ public interface DmPageNavigationOrderService {
     /**
      * Return new navigation order
      */
-    public float getNewNavOrder(String site, String path);
+    float getNewNavOrder(String site, String path);
 
 
     /**
@@ -42,7 +42,7 @@ public interface DmPageNavigationOrderService {
      * @param doc
      * @return
      */
-    public boolean addNavOrder(String site, String path, Document doc);
+    boolean addNavOrder(String site, String path, Document doc);
 
     /**
      * Updates the Document element with new unique nav order if one does not exist
@@ -50,7 +50,7 @@ public interface DmPageNavigationOrderService {
      * @param document
      * @return
      */
-    public boolean updateNavOrder(String site, String path, Document document);
+    boolean updateNavOrder(String site, String path, Document document);
 
     void deleteSequencesForSite(String site);
 }

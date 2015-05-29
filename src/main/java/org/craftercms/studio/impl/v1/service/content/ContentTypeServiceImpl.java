@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -33,6 +34,8 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 
 import java.io.Serializable;
 import java.util.*;
@@ -223,6 +226,40 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         boolean isAllowed = this.isUserAllowed(userRoles, config);
         if (isAllowed) {
             contentTypes.add(config);
+        }
+    }
+
+    public boolean changeContentType(String site, String path, String contentType) throws ServiceException {
+        ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
+        if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){
+            // Simple form engine is not using templates - skip copying template and merging content
+            return true;
+        }
+        String fullPath = contentService.expandRelativeSitePath(site, path);
+        // get new template and the current data and merge data
+        ContentItemTO item = contentService.getContentItem(site, path, 0);
+        if (item != null) {
+            contentService.lockContent(site, path);
+            Document original = null;
+            try {
+                original = contentService.getContentAsDocument(fullPath);
+            } catch (DocumentException e) {
+                logger.error("Error while getting document for " + fullPath, e);
+                return false;
+            }
+            throw new RuntimeException("Is it getting here?");
+            /*
+            ModelService modelService = getService(ModelService.class);
+            Document template = modelService.getModelTemplate(site, contentType, false, false);
+            String templateVersion = modelService.getTemplateVersion(site, contentType);
+            copyContent(site, original, template, contentType, templateVersion);
+            //cleanAspects(node);
+            // write the content
+            // TODO fix this part as write content is hanging.
+            writeContent(site, path, contentType, node, template);
+            return true;*/
+        } else {
+            throw new ContentNotFoundException(path + " is not a valid content path.");
         }
     }
 
