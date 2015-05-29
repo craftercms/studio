@@ -3,6 +3,7 @@ package scripts.api
 import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices;
 import scripts.api.impl.content.SpringContentTypeServices;
+import scripts.api.impl.content.SpringPageNavigationOrderServices;
 import scripts.api.impl.clipboard.SpringClipboardServices;
 import scripts.api.impl.deployment.SpringDeploymentServices;
 import scripts.api.impl.activity.SpringActivityServices;
@@ -114,4 +115,8 @@ class ServiceFactory {
     static getObjectStateServices(context) {
         return new SpringObjectStateServices(context);
     }
+
+	static getPageNavigationOrderServices(context) {
+		return new SpringPageNavigationOrderServices(context);
+	}
 }

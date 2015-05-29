@@ -138,8 +138,9 @@ class SpringContentServices {
   	 * @param site - the project ID
   	 * @param path - the parent path containing the ordered objects
   	 */
-	def getContentItemOrders(site, path) {
-
+	def getItemOrders(site, path) {
+		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+		return springBackedService.getItemOrders(site, path);
 	}
 
 	/**
@@ -229,4 +230,9 @@ class SpringContentServices {
 		def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
 		return springBackendService.writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
 	}
+
+    def reorderItems(site, path, before, after) {
+        def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
+        return springBackendService.reorderItems(site, path, before, after, "default");
+    }
 }
