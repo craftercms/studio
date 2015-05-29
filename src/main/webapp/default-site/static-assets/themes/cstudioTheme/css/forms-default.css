@@ -811,7 +811,7 @@
 .checkbox-group > .select-all span { color: #888888; }
 
 .cstudio-form-field-container .date-time-container { display: inline-block; position: relative; }
-.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 94px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
+.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 103px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
 .date-time-container > .date-link,
 .date-time-container > .clear-link { display: inline-block; margin-left: 6px; text-decoration: underline; }
 .date-time-container > .date-link:hover,
