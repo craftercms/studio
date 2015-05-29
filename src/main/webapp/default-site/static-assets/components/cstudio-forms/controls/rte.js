@@ -411,6 +411,10 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
                     break;
 				case "height" : 
 					var height = (prop.value === undefined) ? 140 : (Array.isArray(prop.value)) ? 140 : Math.max(+(prop.value), 50);
+					if (isNaN(height)) {
+						height = 140;
+					}
+					
 					break;
 				case "maxlength" :
 					inputEl.maxlength = prop.value;
