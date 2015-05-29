@@ -66,15 +66,26 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     Map<String, String> activeUser = new HashMap<String, String>();
+    Map<String, String> activeProcess = new HashMap<String, String>();
 
     public String getCurrentUser() {
-        //RequestContext context = RequestContext.getCurrent();
-        //HttpSession httpSession = context.getRequest().getSession();
-        String username = activeUser.get("username"); //(String)httpSession.getValue("username");
+        RequestContext context = RequestContext.getCurrent();
+        String username = null;
+
+        if(context!=null) {
+            username = activeUser.get("username"); 
+            //HttpSession httpSession = context.getRequest().getSession();
+            //(String)httpSession.getValue("username");
+        }
+        else {
+             username = activeProcess.get("username"); 
+        }
+
         return username;
     }
 
     public Map<String, String> getUserProfile(String user) {
+       
         return USER_PROFILES.get(user);
     }
 
@@ -83,14 +94,17 @@ public class TestSecurityProvider implements SecurityProvider {
         RequestContext context = RequestContext.getCurrent();
        
         if(theTicket == null) {
-           // if(context != null) {
+            if(context != null) {
                 theTicket = activeUser.get("ticket");
                 //HttpSession httpSession = context.getRequest().getSession();
-
                 //if(httpSession != null) {
                     //theTicket = (String)httpSession.getValue("ticket");
                 //}
-            //}
+                //}
+            }
+            else {
+                theTicket = activeProcess.get("ticket");    
+            }
         }
 
         return USER_FAKETICKETS.contains(theTicket);
@@ -103,16 +117,20 @@ public class TestSecurityProvider implements SecurityProvider {
         if(getUserProfile(username) != null) {
             ticket = username + "_FAKETICKET";
 
-            activeUser.put("username", username);
-            activeUser.put("ticket", ticket);
-            // if(context != null) {
-            //     HttpSession httpSession = context.getRequest().getSession();
-
-            //     if(httpSession != null) {
-            //         httpSession.putValue("username", username);
-            //         httpSession.putValue("ticket", ticket);
-            //     }
-            // }
+            if(context != null) {
+                //     HttpSession httpSession = context.getRequest().getSession();
+                //     if(httpSession != null) {
+                //         httpSession.putValue("username", username);
+                //         httpSession.putValue("ticket", ticket);
+                //     }
+                activeUser.put("username", username);
+                activeUser.put("ticket", ticket);
+       
+             }
+             else {
+                activeProcess.put("username", username);
+                activeProcess.put("ticket", ticket);
+             }
         }
 
     	return ticket;
