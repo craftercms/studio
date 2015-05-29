@@ -82,6 +82,129 @@
     width: 250px;
 }
 
+/* Modal */
+
+body .mask{
+  background-color: rgb(68, 68, 68)!important;
+  opacity: 0.5!important;;
+  z-index: 1031!important;
+}
+
+.yui-dialog {
+  z-index: 100102!important;
+}
+
+.yui-dialog .yui-overlay.yui-panel{
+  border-radius: 6px;
+
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner {
+  background: #fff;
+  background-color: #fff;
+  border: 1px solid #808080;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  transition: opacity 0.15s linear;
+  width: 100%!important;
+  height: 100%!important;
+  overflow: hidden;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupContent{
+  margin:15px 0;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupContent form > div{
+  padding-left: 20px;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupHeader{
+  border-bottom: solid 1px #ccc;
+  padding: 10px 15px 20px!important;
+  margin-bottom: 8px!important;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypeOuter{
+  border-bottom: solid 1px #ccc;
+  padding: 0 20px 20px;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupBtn{
+  float: right;
+  margin: 0 17px!important;
+}
+
+.yui-dialog .yui-panel .create-new-folder-dialog .contentTypePopupBtn,
+.yui-dialog .yui-panel .changeContent-type-dialog .contentTypePopupBtn{
+  margin-bottom: 20px!important;
+}
+
+.yui-module.yui-overlay.yui-panel button,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #submitWCMPopup,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #closeWCMPopup,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #acceptCTChange,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #cancelCTChange,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #createButton,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #createCancelButton{
+  display: inline-block;
+  margin: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: white;
+  background-color: #7e9dbb;
+  border-color: #6d90b2;
+  font-family: verdana;
+}
+
+.yui-module.yui-overlay.yui-panel .yui-button.default button,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #closeWCMPopup,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #cancelCTChange,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #createCancelButton{
+  background-color: #f0ad4e;
+  border-color: #eea236;
+}
+
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #closeWCMPopup,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #cancelCTChange,
+.yui-panel .contentTypePopupInner .contentTypePopupBtn #createCancelButton{
+  margin-left: 10px;
+}
+
+.create-new-folder-dialog input[type="text"]{
+  display: block;
+  width: 100%;
+  height: 31px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  color: #555555;
+  background-color: white;
+  background-image: none;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+
 /* -- Preview Toolbar -- * /
 #controls-overlay { display: block; position: absolute; left:0; z-index: 99999; }
 #controls-overlay div, #controls-overlay span, #controls-overlay select, #controls-overlay option, #controls-overlay a, #controls-overlay table td {
