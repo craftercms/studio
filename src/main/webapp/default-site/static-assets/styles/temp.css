@@ -14078,7 +14078,7 @@ table.scroll-body {
   background-color: #f2f2f2; }
 
 .ice-mask {
-  z-index: 2;
+  z-index: 1034;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -14089,7 +14089,7 @@ table.scroll-body {
   background: rgba(0, 0, 0, 0.5); }
 
 .studio-ice-dialog {
-  z-index: 2;
+  z-index: 1035;
   bottom: auto;
   left: 50%;
   top: 50px;
