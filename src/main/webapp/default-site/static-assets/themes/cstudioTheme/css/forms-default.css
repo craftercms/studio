@@ -155,6 +155,10 @@
     width: 600px;
 }
 
+.cstudio-form-control-file-name-container input.cstudio-form-control-file-name{
+  width: 301px;
+}
+
 .cstudio-form-container {
     margin: 20px auto 0 auto;
     padding-bottom: 90px;
@@ -823,3 +827,4 @@
 .date-time-container .warning { font-size: 11px; color: #D50; width: 100%; }
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
+input[disabled]{background-color: whitesmoke;}
