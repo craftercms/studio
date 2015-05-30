@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -326,13 +327,15 @@ public class PublishingManagerImpl implements PublishingManager {
             isLive = true;
         }
         if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.DELETE)) {
+            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             if (item.getOldPath() != null && item.getOldPath().length() > 0) {
-                //contentRepository.deleteContent(item.getSite(), item.getEnvironment(), item.getOldPath());
+                contentService.deleteContent(item.getSite(), item.getOldPath());
+                deployer.deleteFile(item.getSite(), item.getOldPath());
                 //contentRepository.clearRenamed(item.getSite(), item.getPath());
             }
-            //contentRepository.deleteContent(item.getSite(), item.getEnvironment(), item.getPath());
+            deployer.deleteFile(item.getSite(), item.getPath());
             if (isLive) {
-                //contentRepository.deleteContent(item);
+                contentService.deleteContent(item.getSite(), item.getPath());
             }
         } else {
             LOGGER.debug("Setting system processing for {0}:{1}", item.getSite(), item.getPath());
@@ -502,7 +505,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected ContentService contentService;
     protected DmDependencyService dmDependencyService;
     protected DeploymentService deploymentService;

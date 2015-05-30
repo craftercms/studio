@@ -17,11 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.dependency;
 
-import org.craftercms.studio.api.v1.to.DependencyEntity;
-import org.craftercms.studio.impl.v1.service.dependency.DmDependencyDiffService;
-import org.craftercms.studio.api.v1.to.DmContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.dom4j.Document;
 
@@ -30,13 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by IntelliJ IDEA.
- * User: dejan
- * Date: 12/22/11
- * Time: 2:14 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface DmDependencyService {
 
     /** dependency types **/
@@ -69,7 +58,7 @@ public interface DmDependencyService {
      * 			get dependency recursively?
      * @return a request item that contains a list of dependent file names
      */
-    public DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive);
+    DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive);
 
     /**
      * get dependencies of all submitted items and present as a tree structure
@@ -116,7 +105,7 @@ public interface DmDependencyService {
      * @param document
      * @throws ServiceException
      */
-    public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException;
 
     /**
      *
@@ -124,7 +113,7 @@ public interface DmDependencyService {
      * @param path
      * @param dependencies map of type and targets. DB srcid|target id|type
      */
-    public void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
+    void setDependencies(String site, String path, Map<String,List<String>> dependencies) throws ServiceException;
 
     void updateDependencies(String site,String path,String state);
 
@@ -169,4 +158,6 @@ public interface DmDependencyService {
 	//Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
 
     void deleteDependenciesForSite(String site);
+
+    void deleteDependenciesForSiteAndPath(String site, String path);
 }

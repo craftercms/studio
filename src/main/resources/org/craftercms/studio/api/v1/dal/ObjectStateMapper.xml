@@ -107,4 +107,10 @@
         DELETE FROM cstudio_objectstate
         WHERE site = #{site}
     </delete>
+
+    <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #{site}
+        AND path = #{path}
+    </delete>
 </mapper>

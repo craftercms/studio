@@ -1358,6 +1358,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         dependencyMapper.deleteDependenciesForSite(params);
     }
 
+    @Override
+    public void deleteDependenciesForSiteAndPath(String site, String path) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", path);
+        dependencyMapper.deleteDependenciesForSiteAndPath(params);
+    }
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 

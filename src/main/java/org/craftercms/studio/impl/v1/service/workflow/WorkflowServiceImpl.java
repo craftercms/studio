@@ -1076,7 +1076,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 		if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
 			scheduledDate = getScheduledDate(site, format, globalSchDate);
 		} else {
-			scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+			if (submittedItem.getScheduledDate() != null) {
+                scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+            }
 		}
 		if (scheduledDate == null) {
 			submittedItem.setNow(true);

@@ -56,4 +56,9 @@
       WHERE site = #{site}
     </delete>
 
+    <delete id="deleteDependenciesForSiteAndPath" parameterType="java.util.Map">
+        DELETE FROM cstudio_DEPENDENCY
+        WHERE site = #{site}
+        AND (source_path = #{path} OR target_path = #{path})
+    </delete>
 </mapper>
