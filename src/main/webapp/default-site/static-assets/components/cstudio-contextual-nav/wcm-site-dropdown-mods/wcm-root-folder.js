@@ -1049,7 +1049,7 @@ treeNode.getHtml = function() {
                         isContainer = oCurrentTextNode.data.isContainer,
                         isComponent = oCurrentTextNode.data.isComponent,
                         isLevelDescriptor = oCurrentTextNode.data.isLevelDescriptor,
-                        isLocked = false, //(oCurrentTextNode.data.lockOwner != "" && oCurrentTextNode.data.lockOwner != CStudioAuthoringContext.user),
+                        isLocked = (oCurrentTextNode.data.lockOwner != "" && oCurrentTextNode.data.lockOwner != CStudioAuthoringContext.user),
                         isInProgress = oCurrentTextNode.data.inProgress,
                         isLevelDescriptor = oCurrentTextNode.data.isLevelDescriptor,
                         isFolder = (isContainer && oCurrentTextNode.data.fileName != 'index.xml') ? true : false,
