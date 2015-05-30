@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/asset-upload</content-type>	
+	<display-template>/templates/web/asset-upload.ftl</display-template>
+	<file-name>index.xml</file-name>
+</page>

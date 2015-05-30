@@ -93,7 +93,8 @@ CStudioForms.Controls.RTE.ImageInsert = CStudioForms.Controls.RTE.ImageInsert ||
                                 var regexpr = new RegExp("(" + el.id + ")[\\s,]|(" + el.id + ")$"),
                                     mapDatasource;
 
-                                if (imageManagerNames.search(regexpr) > -1) {
+                                if(imageManagerNames.indexOf(el.id) != -1) {
+                                    //(imageManagerNames.search(regexpr) > -1) {
                                     mapDatasource = datasourceMap[el.id];
 
                                     this.add({
