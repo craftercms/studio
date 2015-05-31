@@ -40,7 +40,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 	    createControl: function(n, cm) {
 	    	var editor = cm.editor,
 				model = editor.contextControl.form.model,
-				rteWidgets = editor.contextControl.rteConfig.rteWidgets,
+				rteWidgets = editor.contextControl.rteConfig.rteWidgets.widget,
 				_self = this;
 
 			if (n == 'insertComponent') {
