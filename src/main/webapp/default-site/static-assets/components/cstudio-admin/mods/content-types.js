@@ -2057,7 +2057,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	renderDatasourceToXml: function(datasource) {
 		var xml = "";
 		
-		if(datasource) {
+		if(datasource) {			
 			xml += "\t\t\t\t<datasource>\r\n" +
 			         "\t\t\t\t\t<type>" + datasource.type + "</type>\r\n" +
 			         "\t\t\t\t\t<id>" + datasource.id + "</id>\r\n" +

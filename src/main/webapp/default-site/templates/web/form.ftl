@@ -22,7 +22,12 @@
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-forms/forms-engine.js"></script>
 
     <script src="/studio/static-assets/scripts/communicator.js"></script>
-
+    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
+    <script src="/studio/static-assets/libs/jquery/dist/jquery.js"></script>
+    <script src="/studio/static-assets/scripts/crafter.js"></script>
+    <script src="/studio/static-assets/scripts/animator.js"></script>
+     <script src="/studio/static-assets/components/cstudio-components/loader.js"></script>
+    
 </head>
 
 <body class="yui-skin-cstudioTheme">
