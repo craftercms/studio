@@ -19,6 +19,11 @@ CStudioForms.Controls.AutoFilename = CStudioForms.Controls.AutoFilename ||
 
 YAHOO.extend(CStudioForms.Controls.AutoFilename, CStudioForms.CStudioFormField, {
 
+    getFixedId: function() {
+        return "file-name";
+    },
+
+
     getLabel: function() {
         return "Auto Filename";
     },

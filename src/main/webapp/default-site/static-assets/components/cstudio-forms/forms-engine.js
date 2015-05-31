@@ -161,6 +161,11 @@ var CStudioForms = CStudioForms || function() {
         };
 
         CStudioFormField.prototype = {
+            
+            getFixedId: function() {
+                return "";
+            },
+
             focusOut: function() {
             },
 

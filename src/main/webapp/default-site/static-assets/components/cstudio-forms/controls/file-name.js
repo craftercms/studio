@@ -20,6 +20,11 @@ CStudioForms.Controls.FileName = CStudioForms.Controls.FileName ||
     }
 
 YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
+    
+    getFixedId: function() {
+        return "file-name";
+    },
+
 
     getLabel: function() {
         return "File name";
