@@ -1791,7 +1791,8 @@ var CStudioForms = CStudioForms || function() {
 
                         // handle datasources
                         
-                        if(!def.datasources || typeof def.datasources === 'string') {
+                        if(!def.datasources.datasource 
+                        || typeof def.datasources.datasource === 'string') {
                             def.datasources = [];
                         }
                         else {

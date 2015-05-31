@@ -194,7 +194,7 @@
                             check.getAttribute("json"))),
                         scheduledDate = check.getAttribute("scheduleddate");
                     parsed.scheduledDate = scheduledDate == "-" ? "" : scheduledDate;
-                    checkedItems.push(parsed.uri);
+                    checkedItems.push(parsed);
                 }
             });
             return checkedItems;
@@ -222,10 +222,10 @@
                 body = agent.get("SUCCESS", {
                     msg: message
                 });
-            this.getComponent(".studio-view.admin-delete-view").innerHTML = body;
-            //Event.addListener(this.getComponent(".action-complete-close"), "click", function(){
-            //    this.end();
-            //}, null, this);
+            this.getComponent(".cstudio-view.admin-delete-view").innerHTML = body;
+            Event.addListener(this.getComponent(".action-complete-close"), "click", function(){
+                this.end();
+            }, null, this);
             if (this.getComponent(".action-complete-close1")) {
                 CStudioAuthoring.Utils.setDefaultFocusOn(this.getComponent(".action-complete-close1"));
             }

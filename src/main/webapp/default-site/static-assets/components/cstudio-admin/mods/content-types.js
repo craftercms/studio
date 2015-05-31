@@ -1972,6 +1972,9 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 			var property = field.properties[i];
 			if(property) {
 			    var value = property.value;
+			    if(value === "[]") {
+			    	value = "";
+			    }
 				
 				if((typeof value) != "string") {
 					value = JSON.stringify(value);

@@ -113,6 +113,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
             if(prop.name == "itemManager") {
                 this.datasourceName = (Array.isArray(prop.value))?prop.value[0]:prop.value;
+                this.datasourceName = this.datasourceName.replace("[\"","").replace("\"]","");
             }
             if(prop.name == "minSize" && prop.value != "") {
                 this.minSize = parseInt(prop.value, 10);
