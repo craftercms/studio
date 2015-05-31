@@ -770,8 +770,14 @@ treeNode.getHtml = function() {
 			node = tree.getNodeByProperty("path", treeNode.parent.data.path);
 			Self.copiedItem = null;
 		}
-		if (node.isLeaf) node.isLeaf = false;
-		tree.removeChildren(node);
+        if(node) {
+    		if (node.isLeaf) node.isLeaf = false;
+        }
+        else {
+           node = treeNode;
+        }
+        
+	   	tree.removeChildren(node);
 		var loadEl = $(".ygtvtp", node.getEl(), true);
 		loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
 		YDom.addClass(loadEl, "ygtvloading");
