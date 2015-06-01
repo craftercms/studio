@@ -508,7 +508,10 @@
                     blueprintName: $scope.site.blueprint.id,
                     description: $scope.site.description
                 }).success(function (data) {
-                    sitesService.editSite($scope.site);
+                    $timeout(function () {
+                        sitesService.editSite($scope.site);
+                    }, 15000, false);
+
                 });
 
             }
