@@ -690,3 +690,44 @@ body.yui-skin-cstudioTheme .mask{
   display:none;
 }
 
+.yui-module.yui-overlay.yui-panel button{
+  display: inline-block;
+  margin: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: white;
+  background-color: #7e9dbb;
+  border-color: #6d90b2;
+  font-family: verdana;
+}
+
+.yui-module.yui-overlay.yui-panel button:hover{
+  color: white;
+  background-color: #5d84a9;
+  border-color: #4e7294; }
+
+.yui-module.yui-overlay.yui-panel .yui-button.default button{
+  color: #333333;
+  background-color: white;
+  border-color: #cccccc;
+}
+
+.yui-module.yui-overlay.yui-panel .yui-button.default button:hover{
+  color: #333333;
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
