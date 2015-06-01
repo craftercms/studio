@@ -464,7 +464,7 @@
 
             function setSiteId() {
                 if ($scope.site.siteName != undefined){
-                    $scope.site.siteId = $scope.site.siteName.replace(/[^a-zA-Z0-9 ]/g, '').toLowerCase();
+                    $scope.site.siteId = $scope.site.siteName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                 }else{
                     $scope.site.siteId = '';
                 }
@@ -508,7 +508,10 @@
                     blueprintName: $scope.site.blueprint.id,
                     description: $scope.site.description
                 }).success(function (data) {
-                    sitesService.editSite($scope.site);
+                    $timeout(function () {
+                        sitesService.editSite($scope.site);
+                    }, 12000, false);
+
                 });
 
             }

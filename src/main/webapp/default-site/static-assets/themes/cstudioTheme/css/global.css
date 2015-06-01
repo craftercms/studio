@@ -3158,7 +3158,7 @@ li.list2 {
   text-align: center; }
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033199}}
-.contentTypePopupBtn .ok {
+.contentTypePopupBtn .ok, .contentTypePopupBtn .cancel{
   width: 72px; }
 
 /* yui calendar/datepicker global styles*/
