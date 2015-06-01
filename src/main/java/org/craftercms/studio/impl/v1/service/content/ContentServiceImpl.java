@@ -452,24 +452,23 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    protected ContentItemTO populateContentDrivenProperties(ContentItemTO item)
+    protected ContentItemTO populateContentDrivenProperties(String site,ContentItemTO item)
     throws Exception {
         
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
         logger.debug("Pupulating page props {0}", contentPath);
-        boolean itemIsPage = false;
-
-        if((contentPath.startsWith("/site/website"))
-        && contentPath.indexOf(".level.xml") == -1) {
-            itemIsPage = true;
-        }
-         
-        item.page = itemIsPage;
-        item.previewable = itemIsPage;
-        item.component = !itemIsPage;
-        item.asset = false;
+        item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
+        item.isPage = item.page;
+        item.previewable = item.page;
+        item.isPreviewable = item.previewable;
+        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site));
+        item.isComponent = item.component;
+        item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
+        item.isAsset = item.asset;
+        item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
+        item.isDocument = item.document;
 
         item.uri = contentPath;
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
@@ -640,7 +639,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if(item.uri.endsWith(".xml")) {
-                item = populateContentDrivenProperties(item);
+                item = populateContentDrivenProperties(site, item);
             }
 
             loadContentTypeProperties(site, item, item.contentType);
