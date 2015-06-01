@@ -464,7 +464,7 @@
 
             function setSiteId() {
                 if ($scope.site.siteName != undefined){
-                    $scope.site.siteId = $scope.site.siteName.replace(/\s+/g, '');
+                    $scope.site.siteId = $scope.site.siteName.replace(/[^a-zA-Z0-9 ]/g, '').toLowerCase();
                 }else{
                     $scope.site.siteId = '';
                 }
