@@ -210,6 +210,7 @@ var YEvent = YAHOO.util.Event;
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
                 CSA.Utils.addCss('/static-assets/styles/temp.css');
+                CSA.Utils.addCss('/static-assets/styles/forms-engine.css');
             },
 
             /**
@@ -1098,7 +1099,7 @@ var YEvent = YAHOO.util.Event;
                                 null, //field
                                 this.isEdit,
                                 this.callback,
-                                { readOnly: readOnly }
+                                this.aux
 
                             );
                         },
@@ -1107,7 +1108,8 @@ var YEvent = YAHOO.util.Event;
                             callback.failure();
                         },
                         isEdit: edit,
-                        callback: callback
+                        callback: callback,
+                        aux: auxParams
                     };
                     
                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);

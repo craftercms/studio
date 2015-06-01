@@ -710,6 +710,7 @@
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">

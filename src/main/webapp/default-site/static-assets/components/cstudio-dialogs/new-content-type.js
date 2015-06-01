@@ -65,8 +65,8 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
                              '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
                              '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
                              '<div class="contentTypePopupBtn"> ' +
-                               '<input type="button" class="cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
-                               '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
+                               '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
+                               '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="Cancel"/>' +
                              '</div>' +
                            '</div>';
 
