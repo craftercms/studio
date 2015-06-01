@@ -510,7 +510,7 @@
                 }).success(function (data) {
                     $timeout(function () {
                         sitesService.editSite($scope.site);
-                    }, 15000, false);
+                    }, 12000, false);
 
                 });
 
