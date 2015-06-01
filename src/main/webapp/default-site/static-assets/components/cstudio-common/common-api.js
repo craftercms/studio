@@ -210,6 +210,7 @@ var YEvent = YAHOO.util.Event;
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
                 CSA.Utils.addCss('/static-assets/styles/temp.css');
+                CSA.Utils.addCss('/static-assets/styles/forms-engine.css');
             },
 
             /**
