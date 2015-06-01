@@ -1082,11 +1082,6 @@ treeNode.getHtml = function() {
 								//p_aArgs.addItems([ menuItems.cutOption ]);
 	                        	p_aArgs.addItems([ menuItems.copyOption ]);
 
-	                            if(CStudioAuthoringContext.role === "admin") {
-                   		           p_aArgs.addItems([ menuItems.separator ]);
-	                            	p_aArgs.addItems([ menuItems.unlockOption ]);
-                   	            }                   	                   				
-
 								var checkClipboardCb = {
 			                        success: function(collection) {
 										var contextMenuItems = [];
@@ -1124,8 +1119,8 @@ treeNode.getHtml = function() {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
 			                        	if (isUserAllowed) { 
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
-					                        if (isDeleteAllowed) {
+					                        
+                                            if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
 			                        		}
@@ -1273,6 +1268,14 @@ treeNode.getHtml = function() {
 			                    CStudioAuthoring.Clipboard.getClipboardContent(checkClipboardCb);
 		                   	
 		                   	} // end of else
+
+                            if((oCurrentTextNode.data.lockOwner != ""
+                            && CStudioAuthoringContext.role === "admin") 
+                            || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
+                               p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.unlockOption ]);
+                            }                                                       
+
 		                   	
 	                 	},
                         failure: function() { }
