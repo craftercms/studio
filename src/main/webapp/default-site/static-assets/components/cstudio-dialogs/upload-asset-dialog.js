@@ -1,4 +1,7 @@
 var YDom = YAHOO.util.Dom;
+// YConnect.setDefaultPostHeader(false);
+//                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
+//                YConnect.
 var YEvent = YAHOO.util.Event;
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
@@ -157,7 +160,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 	 * upload file when upload pressed
 	 */
 	uploadFile: function(args) {
-		var serviceUri = CStudioAuthoring.Service.createServiceUri(args.self.serviceUri);
+		var serviceUri = CStudioAuthoring.Service.createServiceUri("/asset-upload");
 
 		var uploadHandler = {
 			upload: function(o) {

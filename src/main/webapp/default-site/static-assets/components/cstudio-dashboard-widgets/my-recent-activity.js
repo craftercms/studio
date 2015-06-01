@@ -64,8 +64,6 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
         YDom.addClass(itemFilterEl, "widget-expand-state btn btn-default btn-sm");
 
 		var filterBydiv = document.createElement("li");
-        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
-        filterBydiv.appendChild(filterByEl);
         // YDom.addClass(filterBydiv, "widget-FilterBy");
 
         var widgetFilterBy = CStudioAuthoring.Service.getWindowState(
@@ -73,6 +71,9 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             pageId,
             widgetId,
             "widgetFilterBy");
+
+        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
+        filterBydiv.appendChild(filterByEl);
 
         containerEl.appendChild(liLoadingEl);
         containerEl.appendChild(listItemEl);

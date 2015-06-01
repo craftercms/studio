@@ -28,6 +28,7 @@
 <script src="/studio/static-assets/yui/utilities/utilities.js"></script>
 <script src="/studio/static-assets/yui/calendar/calendar-min.js"></script>
 <script src="/studio/static-assets/yui/event-delegate/event-delegate-min.js"></script>
+<script src="/studio/static-assets/yui/resize/resize-min.js"></script>
 
 <script src="/studio/static-assets/components/cstudio-common/common-api.js"></script>
 <script src="/studio/static-assets/themes/cstudioTheme/js/global.js"></script>

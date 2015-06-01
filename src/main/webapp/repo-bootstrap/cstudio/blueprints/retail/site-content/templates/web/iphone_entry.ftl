@@ -1,4 +1,3 @@
-<#include "/templates/system/common/cstudio-support.ftl" />
 <#include "/templates/web/navigation/navigation.ftl">
 <#import "/templates/system/common/craftercms-geo-lib.ftl" as crafter />
 
@@ -41,7 +40,8 @@
 
 
 <#assign query = searchService.createQuery()>
-<#assign season = crafter.calculateSeason()/> 
+<#assign season = "FALL" />
+<#--crafter.calculateSeason()/> -->
 
 
 <#assign queryStatement = "crafterSite:"+siteName + " " />
@@ -75,7 +75,7 @@
                 <#assign scenarioItem = siteItemService.getSiteItem(scenarioId) />
                     <div id="mainTile"
                          style="width: ${scenarioItem.mobileMainTileWidth}px; height: ${scenarioItem.mobileMainTileHeight}px; background: url('${scenarioItem.mobileMainTileImage}') repeat scroll 0% 0% transparent; position: absolute; top: 0px; left: 5px; ">
-                    <@ice componentPath=scenarioId />
+                    
                         <div class="box-overlay">
                             <div class="box-caption">${scenarioItem.mobileMainTileText}</div>
                         <#if scenarioItem.mainTileCta1ButtonText??>
@@ -139,7 +139,6 @@
 
 
 
-    <@cstudioOverlaySupport/>
 
 </body>
 </html>

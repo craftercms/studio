@@ -119,6 +119,14 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         objectMetadataMapper.deleteObjectMetadataForSite(params);
     }
 
+    @Override
+    public void deleteObjectMetadata(String site, String path) {
+        Map<String, String> params = new HashMap<>();
+        params.put("site", site);
+        params.put("path", site);
+        objectMetadataMapper.deleteEntry(params);
+    }
+
     @Autowired
     protected ObjectMetadataMapper objectMetadataMapper;
 }

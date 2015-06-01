@@ -377,12 +377,15 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             nodeLockService.unlock(objectId);
         }
     }
-/*
+
     @Override
     public void deleteObjectStateForPath(String site, String path) {
-        objectStateDAOService.deleteObjectStatesForPath(site, path);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", path);
+        objectStateMapper.deleteObjectStateForSiteAndPath(params);
     }
-
+/*
     @Override
     public void deleteObjectStateForPaths(String site, List<String> paths) {
         if (paths == null || paths.isEmpty()) {
@@ -472,6 +475,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("site", site);
         objectStateMapper.deleteObjectStatesForSite(params);
     }
+
+
 
     private void initializeTransitionTable() {
         transitionTable = new State[][]{

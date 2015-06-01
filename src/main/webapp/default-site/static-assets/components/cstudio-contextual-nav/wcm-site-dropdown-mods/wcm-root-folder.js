@@ -770,8 +770,14 @@ treeNode.getHtml = function() {
 			node = tree.getNodeByProperty("path", treeNode.parent.data.path);
 			Self.copiedItem = null;
 		}
-		if (node.isLeaf) node.isLeaf = false;
-		tree.removeChildren(node);
+        if(node) {
+    		if (node.isLeaf) node.isLeaf = false;
+        }
+        else {
+           node = treeNode;
+        }
+        
+	   	tree.removeChildren(node);
 		var loadEl = $(".ygtvtp", node.getEl(), true);
 		loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
 		YDom.addClass(loadEl, "ygtvloading");
@@ -1049,7 +1055,7 @@ treeNode.getHtml = function() {
                         isContainer = oCurrentTextNode.data.isContainer,
                         isComponent = oCurrentTextNode.data.isComponent,
                         isLevelDescriptor = oCurrentTextNode.data.isLevelDescriptor,
-                        isLocked = false, //(oCurrentTextNode.data.lockOwner != "" && oCurrentTextNode.data.lockOwner != CStudioAuthoringContext.user),
+                        isLocked = (oCurrentTextNode.data.lockOwner != "" && oCurrentTextNode.data.lockOwner != CStudioAuthoringContext.user),
                         isInProgress = oCurrentTextNode.data.inProgress,
                         isLevelDescriptor = oCurrentTextNode.data.isLevelDescriptor,
                         isFolder = (isContainer && oCurrentTextNode.data.fileName != 'index.xml') ? true : false,
@@ -1075,11 +1081,6 @@ treeNode.getHtml = function() {
 	                        	//The item is locked 
 								//p_aArgs.addItems([ menuItems.cutOption ]);
 	                        	p_aArgs.addItems([ menuItems.copyOption ]);
-
-	                            if(CStudioAuthoringContext.role === "admin") {
-                   		           p_aArgs.addItems([ menuItems.separator ]);
-	                            	p_aArgs.addItems([ menuItems.unlockOption ]);
-                   	            }                   	                   				
 
 								var checkClipboardCb = {
 			                        success: function(collection) {
@@ -1118,8 +1119,8 @@ treeNode.getHtml = function() {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
 			                        	if (isUserAllowed) { 
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
-					                        if (isDeleteAllowed) {
+					                        
+                                            if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
 			                        		}
@@ -1267,6 +1268,14 @@ treeNode.getHtml = function() {
 			                    CStudioAuthoring.Clipboard.getClipboardContent(checkClipboardCb);
 		                   	
 		                   	} // end of else
+
+                            if((oCurrentTextNode.data.lockOwner != ""
+                            && CStudioAuthoringContext.role === "admin") 
+                            || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
+                               p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.unlockOption ]);
+                            }                                                       
+
 		                   	
 	                 	},
                         failure: function() { }

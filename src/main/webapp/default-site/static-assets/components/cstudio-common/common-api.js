@@ -5468,7 +5468,67 @@ var YEvent = YAHOO.util.Event;
              */
             getContentItemClassName: function(contentTO) {
 
-                var name = "acn";
+                var name = "status-icon ";
+                if (contentTO.component != true) {
+                    if (contentTO.document == true)
+                        name = name + " document ";
+                    else
+                        name = name + "page";
+
+                    if (contentTO.floating == true) {
+                        name = name + " floating ";
+                    }
+                    if (contentTO.deleted == true||contentTO.submittedForDeletion==true) {
+                        name = name + " deleted ";
+                    }
+                    if ( (contentTO.submitted == true || contentTO.scheduled == true) && contentTO.floating == false) {
+                        if (contentTO.submitted == true) {
+                            name = name + " submitted ";
+                        }
+                        if (contentTO.scheduled == true) {
+                            name = name + " scheduled ";
+                        }
+                    }
+                    else {
+                        if (contentTO.deleted != true && contentTO.inProgress == true) {
+                            name = name + " in-progress ";
+                        }
+                    }
+                }
+                else {
+                    if (contentTO.container == true) {
+                        name = " parentFolder ";
+                    }
+                    else {
+                        if (contentTO.component == true) {
+                            name = name + " component ";
+                            if (contentTO.deleted == true||contentTO.submittedForDeletion) {
+                                name = name + " deleted ";
+                            }
+                            if (contentTO.submitted == true || contentTO.scheduled == true) {
+                                if (contentTO.submitted == true) {
+                                    name = name + " submitted ";
+                                }
+
+                                if (contentTO.scheduled == true) {
+                                    name = name + " scheduled ";
+                                }
+                            }
+                            else {
+                                if (contentTO.deleted != true && contentTO.inProgress == true) {
+                                    name = name + " in-progress";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(contentTO.lockOwner != "") {
+                    name = name + "-lock";
+                }
+
+
+                name += " acn";
 
                 if (contentTO.component != true) {
                     if (contentTO.document == true)

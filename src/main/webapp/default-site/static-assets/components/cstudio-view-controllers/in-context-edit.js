@@ -104,6 +104,9 @@
         constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, aux) {
             var windowUrl = "";
             
+            // double / can cause issues in some stores
+            item.uri = item.uri.replace("//", "/");
+
             windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
             "/form?site=" + site + "&form=" +
             contentType.form +

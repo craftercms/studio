@@ -251,6 +251,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 								this.controlContainerEl.innerHTML = tool.getLabel();
 								
 								var dd = new DragAndDropDecorator(this.controlContainerEl);
+								tool.id = tool.getFixedId();
 								this.controlContainerEl.prototypeField = tool;
 								YDom.addClass(this.controlContainerEl, "new-control-type");
 							} 
@@ -1372,7 +1373,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 
 		this.createRowHeading(this.CMgs.format(this.langBundle, "fieldBasics"), sheetEl);
 		this.createRowFn(this.CMgs.format(this.langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn(this.CMgs.format(this.langBundle, "variableNamve"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "defaultValue"), "defaultValue", item.defaultValue, "", "string", sheetEl,  function(e, el) { item.defaultValue = el.value; });
@@ -1625,7 +1626,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 			description: "",
 			help: "",
 			iceId: "",
-			id: "",
+			id: fieldPrototype.id,
 			properties: [], 
 			title: "",
 			type: fieldPrototype.getName(),
@@ -1972,6 +1973,9 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 			var property = field.properties[i];
 			if(property) {
 			    var value = property.value;
+			    if(value === "[]") {
+			    	value = "";
+			    }
 				
 				if((typeof value) != "string") {
 					value = JSON.stringify(value);
@@ -2053,7 +2057,7 @@ CStudioAdminConsole.Tool.ContentTypes.FormDefMain = {
 	renderDatasourceToXml: function(datasource) {
 		var xml = "";
 		
-		if(datasource) {
+		if(datasource) {			
 			xml += "\t\t\t\t<datasource>\r\n" +
 			         "\t\t\t\t\t<type>" + datasource.type + "</type>\r\n" +
 			         "\t\t\t\t\t<id>" + datasource.id + "</id>\r\n" +

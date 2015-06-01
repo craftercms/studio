@@ -21,6 +21,10 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, {
 
+    getFixedId: function() {
+        return "pageNavOrder";
+    },
+
     getLabel: function() {
         return "Page Order";
     },

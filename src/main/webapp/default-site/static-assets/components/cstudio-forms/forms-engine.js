@@ -161,6 +161,11 @@ var CStudioForms = CStudioForms || function() {
         };
 
         CStudioFormField.prototype = {
+            
+            getFixedId: function() {
+                return "";
+            },
+
             focusOut: function() {
             },
 
@@ -1107,11 +1112,11 @@ var CStudioForms = CStudioForms || function() {
 
                                         var path = CStudioAuthoring.Utils.getQueryVariable(location.search, "path");
                                         if( path && path.indexOf(".xml") != -1) {
-                                            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, entityId, {
+                                            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
                                                 success: function (itemTO) {
                                                     //Unlock if the item is locked by the user
                                                     if (itemTO.item.lockOwner == CStudioAuthoringContext.user) {
-                                                        CStudioAuthoring.Service.unlockContentItem(CStudioAuthoringContext.site, entityId, {
+                                                        CStudioAuthoring.Service.unlockContentItem(CStudioAuthoringContext.site, path, {
                                                             success: function() {
                                                                 _notifyServer = false;
                                                                 if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
@@ -1791,7 +1796,8 @@ var CStudioForms = CStudioForms || function() {
 
                         // handle datasources
                         
-                        if(!def.datasources || typeof def.datasources === 'string') {
+                        if(!def.datasources.datasource 
+                        || typeof def.datasources.datasource === 'string') {
                             def.datasources = [];
                         }
                         else {

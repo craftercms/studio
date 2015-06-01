@@ -354,6 +354,20 @@ public class ContentServiceImpl implements ContentService {
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
+
+            RepositoryEventMessage message = new RepositoryEventMessage();
+            message.setSite(site);
+            message.setPath(getRelativeSitePath(site, fullPath));
+            RequestContext context = RequestContext.getCurrent();
+            String sessionTicket = null;
+            if (context != null) {
+                HttpSession httpSession = context.getRequest().getSession();
+                sessionTicket = (String) httpSession.getValue("alf_ticket");
+            }
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            message.setRepositoryEventContext(repositoryEventContext);
+            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
             toRet.put("message", item);
@@ -384,7 +398,11 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path) {
-        return _contentRepository.deleteContent(expandRelativeSitePath(site, path));
+        boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
+        objectStateService.deleteObjectStateForPath(site, path);
+        objectMetadataManager.deleteObjectMetadata(site, path);
+        dependencyService.deleteDependenciesForSiteAndPath(site, path);
+        return toRet;
     }
 
     @Override

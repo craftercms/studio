@@ -183,14 +183,17 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 
 		for(var k=0; k<contentTypes.length; k++) {
 			if(contentTypesSelect.value == contentTypes[k].form){
-				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
-					contentTypePreviewImg.src = 
+				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].imageThumbnail && contentTypes[k].imageThumbnail != "")){
+				
+				var imageName = (contentTypes[k].image && contentTypes[k].image != "") ? contentTypes[k].image : contentTypes[k].imageThumbnail;
+
+				contentTypePreviewImg.src = 
 						CStudioAuthoringContext.baseUri+
 						'/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
 						CStudioAuthoringContext.site + 
 						"/content-types" + 
 						contentTypesSelect.value + 
-						"/image.jpg";					
+						"/"+imageName;					
 				}
 				else{
 					contentTypePreviewImg.src = defaultSrc + defaultImg;
@@ -242,14 +245,17 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 
 			for(var k=0; k<contentTypes.length; k++) {
 				if(this.value == contentTypes[k].form){
-					if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
-						contentTypePreviewImg.src = 			 
-							CStudioAuthoringContext.baseUri +
-							'/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
-							CStudioAuthoringContext.site + 
-							"/content-types" + 
-							contentTypesSelect.value + 
-							"/image.jpg";
+					if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].imageThumbnail && contentTypes[k].imageThumbnail != "")){
+				
+						var imageName = (contentTypes[k].image && contentTypes[k].image != "") ? contentTypes[k].image : contentTypes[k].imageThumbnail;
+						
+						contentTypePreviewImg.src = 
+								CStudioAuthoringContext.baseUri+
+								'/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
+								CStudioAuthoringContext.site + 
+								"/content-types" + 
+								contentTypesSelect.value + 
+								"/"+imageName;
 					}
 					else{
 						contentTypePreviewImg.src = defaultSrc + defaultImg;

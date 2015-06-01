@@ -45,4 +45,6 @@ public interface ObjectStateMapper {
     void updateObjectPath(Map params);
 
     void deleteObjectStatesForSite(Map params);
+
+    void deleteObjectStateForSiteAndPath(Map params);
 }

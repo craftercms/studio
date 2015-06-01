@@ -1,4 +1,7 @@
-CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource = CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource ||  function(fieldName, containerEl, form, type)  {
+CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource = 
+    CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource 
+    ||  function(fieldName, containerEl, form, type)  {
+
     this.fieldName = fieldName;
     this.containerEl = containerEl;
     this.form = form;
@@ -15,6 +18,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
         var valuesEl, controlEl;
 
         var datasources = this.form.datasources;
+        value = value.replace("[\"","").replace("\"]","");
 
         if (datasources.length) {
             this.fieldValue = (!value) ? [] :
@@ -25,6 +29,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
             for(var i=0; i < datasources.length; i++) {
                 var datasource = datasources[i];
                 if (datasource["interface"] == type) {
+
                     controlEl = this.createControl(datasource, updateFn, type);
                     valuesEl.appendChild(controlEl);
                 }

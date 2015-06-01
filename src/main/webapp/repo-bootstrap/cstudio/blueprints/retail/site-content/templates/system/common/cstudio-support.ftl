@@ -1,16 +1,29 @@
 
 <#macro toolSupport>
+  <#if siteContext.overlayCallback??>
    <script src="/studio/static-assets/libs/requirejs/require.js"
            data-main="/studio/overlayhook?site=NOTUSED&page=NOTUSED&cs.js"></script>
+   </#if>
 </#macro>
 
 <#macro cstudioOverlaySupport>
-   <script src="/studio/static-assets/libs/requirejs/require.js"
-           data-main="/studio/overlayhook?site=NOTUSED&page=NOTUSED&cs.js"></script>
+  <@toolSupport />
 </#macro>
 
-<#macro iceAttr iceGroup="" componentPath="">
-   <#if siteContext.overlayCallback??> data-studio-ice="${iceGroup}" <#if componentPath!="">data-studio-ice-component="${componentPath}"</#if> </#if>
+<#macro componentAttr path="" ice=false>
+  <#if siteContext.overlayCallback??>data-studio-component-path="${path}" data-studio-component="${path}" 
+    <#if ice==true>
+      <@iceAttr path=path/>
+    </#if>
+  </#if> 
+</#macro>
+
+<#macro componentContainerAttr target>
+   <#if siteContext.overlayCallback??> data-studio-components-target="${target}" </#if>
+</#macro>
+
+<#macro iceAttr iceGroup="" path="">
+   <#if siteContext.overlayCallback??> data-studio-ice="${iceGroup}" <#if path!="">data-studio-ice-path="${path}"</#if> </#if>
 </#macro>
 
 <#macro ice id="" component="" componentPath="">
