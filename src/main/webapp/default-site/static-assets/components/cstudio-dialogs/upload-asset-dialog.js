@@ -74,8 +74,8 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 //						   '<tr><td>Description:</td><td><input type="text" name="desc" /></td></tr>' +
 						   '</table></div>' +
 						   '<div class="contentTypePopupBtn"> ' +
-						        '<input type="button" class="cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
-                                '<input type="button" class="cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
+						        '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
+                                '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
 						   '</form></div>' +
 						   '<div><div  style="visibility:hidden; margin-bottom:1.5em;" id="indicator">Uploading...</div>' + 
                            '</div> ' +

@@ -1844,8 +1844,8 @@ treeNode.getHtml = function() {
                                                 '<div>The following operation may result in data loss. Would you like to proceed?</div>' +
                                             '</div>' +    
                                             '<div class="contentTypePopupBtn">' +
-                                                '<input type="submit" class="ok" id="acceptCTChange" value="Yes" />' +
-                                                '<input type="submit" class="cancel" id="cancelCTChange" value="No" />' +
+                                                '<input type="submit" class="btn btn-primary ok" id="acceptCTChange" value="Yes" />' +
+                                                '<input type="submit" class="btn btn-default cancel" id="cancelCTChange" value="No" />' +
                                             '</div>' +
                                             '</form> ' +
                                         '</div>' +

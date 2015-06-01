@@ -62,8 +62,8 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
 						   		'</div>' +
 						   '</div>' +
 						   '<div class="contentTypePopupBtn"> ' +
-						    	'<input type="button" class="cstudio-xform-button ok" id="createButton" value="Create" />' +
-                                '<input type="button" class="cstudio-xform-button" id="createCancelButton" value="Cancel" /></div>' +
+						    	'<input type="button" class="btn btn-primary cstudio-xform-button ok" id="createButton" value="Create" />' +
+                                '<input type="button" class="btn btn-default cstudio-xform-button" id="createCancelButton" value="Cancel" /></div>' +
 						   '</div>' +
 						   '<div class="contentTypePopupBtn" style="overflow: hidden"><div  style="visibility:hidden; margin:10px 0;" id="indicator">Creating a folder...</div>' +
                            '</div> ' +
