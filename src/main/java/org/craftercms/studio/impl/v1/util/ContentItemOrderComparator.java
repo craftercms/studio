@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.util;
 
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 /**
@@ -31,6 +33,8 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 public class ContentItemOrderComparator extends ContentComparatorBase<ContentItemTO> {
 
     private static final long serialVersionUID = 1771650786602918784L;
+
+    private static final Logger logger = LoggerFactory.getLogger(ContentItemOrderComparator.class);
 
     /** if this is set to true, floating items will come last in the child list **/
     protected boolean _listFloatingPagesLast;
@@ -103,6 +107,7 @@ public class ContentItemOrderComparator extends ContentComparatorBase<ContentIte
 
     @Override
     public int compare(ContentItemTO item1, ContentItemTO item2) {
+
         // check for level descriptors
         if (_listLevelDescriptorsFirst) {
             if (item1.isLevelDescriptor() && !item2.isLevelDescriptor()) {
@@ -111,6 +116,16 @@ public class ContentItemOrderComparator extends ContentComparatorBase<ContentIte
                 return (_ascending) ? 1 : -1;
             }
         }
+
+        // check for folders
+        if ((item1.isFolder() && !item1.isPage()) && (!item2.isFolder() || (item2.isFolder() && item2.isPage()))) {
+            return (_ascending) ? 1 : -1;
+        } else if ((!item1.isFolder() || (item1.isFolder() && item1.isPage())) && (item2.isFolder() && !item2.isPage())) {
+            return (_ascending) ? -1 : 1;
+        } else if ((item1.isFolder() && !item1.isPage()) && (item2.isFolder() && !item2.isPage())) {
+            return this.compareStrings(item1.getName(), item2.getName(), _ascending);
+        }
+
         // check for floating pages
         if (_listFloatingPagesLast) {
             if (item1.isFloating() && !item2.isFloating()) {
@@ -119,6 +134,8 @@ public class ContentItemOrderComparator extends ContentComparatorBase<ContentIte
                 return (_ascending) ? -1 : 1;
             }
         }
+
+
         // if no checking for floating page & level descriptors
         // or both of them are the same type
         // compare them by their orders, Unless both are floating (if so, sort by internalName)
