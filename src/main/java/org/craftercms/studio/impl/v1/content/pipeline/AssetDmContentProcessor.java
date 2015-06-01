@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -32,6 +33,9 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -222,27 +226,29 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             ContentUtils.release(input);
         }
 
-        //TODO: make content lockable
-        /*
-        if (!persistenceManagerService.hasAspect(contentNode, ContentModel.ASPECT_LOCKABLE)) {
-            persistenceManagerService.addAspect(contentNode, ContentModel.ASPECT_LOCKABLE, null);
-        }*/
-        /*
-        Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(contentNode);
-        nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-        nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-        persistenceManagerService.setProperties(contentNode, nodeProperties);
-*/
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ObjectMetadata.PROP_MODIFIER, user);
+        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        if (unlock) {
+            properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+        } else {
+            properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+        }
+        String relativePath = contentService.getRelativeSitePath(site, fullPath);
+        if (!objectMetadataManager.metadataExist(site, relativePath)) {
+            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
+        }
+        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
+
+
         // TODO" create new minor version
         //dmVersionService.createNextMinorVersion(site, fullPath);
 
         if (unlock) {
-            // TODO: unlock content
-            //contentService.unlock(contentItem);
+            contentService.unLockContent(site, contentRelativePath);
             logger.debug("Unlocked the content " + fullPath);
         } else {
-            // TODO: lock content
-            //contentService.lock(contentNode, LockType.WRITE_LOCK);
+            contentService.lockContent(site, contentRelativePath);
         }
 
         // if there is anything pending and this is not a preview update, cancel workflow
