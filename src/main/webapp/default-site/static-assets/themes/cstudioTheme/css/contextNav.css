@@ -418,6 +418,12 @@ body .mask{
 #cstudio-wcm-popup-div_h {
 	display: block;
 }
+
+/* Up load dialog */
+#upload-popup-inner .formDesc{
+  margin-bottom: 10px;
+}
+
 /* -- END Upload Overlay -- */
 
 /* -- Channels Publishing Overlay : appears when no publishing channels have been set up -- */

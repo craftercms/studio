@@ -65,18 +65,20 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Upload</div> ' +
-                           '<div>Please select a file to upload</div> ' +
 						   '<div><form id="asset_upload_form">' +
-						   '<div><table><tr><td><input type="hidden" name="site" value="' + site + '"/></td>' +
-						   '<td><input type="hidden" name="path" value="' + path + '"/></td></tr>' +
-						   '<tr><td>File:</td><td><input type="file" name="file" id="uploadFileNameId"/></td></tr>' +
-//						   '<tr><td>Title:</td><td><input type="text" name="title" /></td></tr>' +
-//						   '<tr><td>Description:</td><td><input type="text" name="desc" /></td></tr>' +
-						   '</table></div>' +
-						   '<div class="contentTypePopupBtn"> ' +
-						        '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
-                                '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
-						   '</form></div>' +
+                                '<div class="contentTypeOuter">'+
+                                    '<div class="formDesc">Please select a file to upload</div> ' +
+                                    '<div><table><tr><td><input type="hidden" name="site" value="' + site + '"/></td>' +
+						            '<td><input type="hidden" name="path" value="' + path + '"/></td></tr>' +
+						            '<tr><td>File:</td><td><input type="file" name="file" id="uploadFileNameId"/></td></tr>' +
+//						            '<tr><td>Title:</td><td><input type="text" name="title" /></td></tr>' +
+//						            '<tr><td>Description:</td><td><input type="text" name="desc" /></td></tr>' +
+						            '</table></div>' +
+                                '</div>' +
+						        '<div class="contentTypePopupBtn"> ' +
+						            '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
+                                    '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
+						        '</form></div>' +
 						   '<div><div  style="visibility:hidden; margin-bottom:1.5em;" id="indicator">Uploading...</div>' + 
                            '</div> ' +
                            '</div>';
@@ -87,8 +89,12 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		 // Instantiate the Dialog
 		upload_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
-								  height : "175px",	
-								  fixedcenter : true,
+								  height : "227px",
+                                  effect:{
+                                      effect: YAHOO.widget.ContainerEffect.FADE,
+                                      duration: 0.25
+                                  },
+                                  fixedcenter : true,
 								  visible : false,
 								  modal:true,
 								  close:false,
