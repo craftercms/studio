@@ -1,18 +1,7 @@
 <#import "/templates/system/common/cstudio-support.ftl" as studio/>
+<#include "/templates/system/common/cstudio-support.ftl" />
 <#include "/templates/web/navigation/navigation.ftl">
 <#include "/templates/web/google-map.ftl" />
-
-<#macro simpleDragDrop componentList name>
-	<@studio.componentZone id="${name}">
-		<#if componentList?? && componentList.item??>
-			<#list componentList.item as module>
-				<@studio.draggableComponent component=module >
-					<@studio.renderComponent component=module />
-				</@studio.draggableComponent>
-			</#list>
-		</#if>
-	</@studio.componentZone>
-</#macro>
 
 
 <!DOCTYPE html>
@@ -34,7 +23,7 @@
 <body>
 
 <div id="main-container">
-            	
+                
 <#include "/templates/web/fragments/header.ftl"/>
 
 <div class="container-fluid" id="content-body">
@@ -42,33 +31,38 @@
     <div class="row-fluid">
         <div class="span3 mb10" id="site-nav">
         
-        	<div class="input-append" id="site-search">
-	        	<input type="text" class="wauto" placeholder="search" />
-	        	<a class="add-on">
-		        	<i class="icon icon-search"></i>
-	        	</a>
-        	</div>
+            <div class="input-append" id="site-search">
+                <input type="text" class="wauto" placeholder="search" />
+                <a class="add-on">
+                    <i class="icon icon-search"></i>
+                </a>
+            </div>
             
-			<ul class="nav nav-list amaranth uppercase">
-				<@renderNavigation "/site/website", 1 />
-			</ul>
+            <ul class="nav nav-list amaranth uppercase">
+                <@renderNavigation "/site/website", 1 />
+            </ul>
             
         </div>
         <div class="span9" id="content">
-          
-            <@simpleDragDrop model.area1 "area1" />
-            <br/>
 
            <div class="row-fluid adverts mobile-hide">
-			<div class="span4 mb10">
-				<@simpleDragDrop model.bottomPromos1 "bottomPromos1" />
-			</div>
-			<div class="span4 mb10">
-					<@simpleDragDrop model.bottomPromos2 "bottomPromos2" />
-				</div>
-				<div class="span4 mb10">
+            <div class="span4 mb10" <@studio.componentContainerAttr target="bottomPromos1" /> >
+                
+                    <#if model.bottomPromos1?? && model.bottomPromos1.item??>
+                        <#list model.bottomPromos1.item as module>
+                            <@renderComponent component=module />
+                        </#list>
+                    </#if>
+               
+            </div>
+         
+                <div class="span4 mb10" <@studio.componentContainerAttr target="bottomPromos3" /> >
             
-				<@simpleDragDrop model.bottomPromos3 "bottomPromos3" />
+                    <#if model.bottomPromos3?? && model.bottomPromos3.item??>
+                        <#list model.bottomPromos3.item as module>
+                            <@renderComponent component=module />
+                        </#list>
+                    </#if>
             </div>            
             </div>
             
@@ -88,7 +82,7 @@
 <script src="/static-assets/js/jquery.min.js"></script>
 <script src="/static-assets/js/bootstrap.min.js"></script>
 <script src="/static-assets/js/main.js"></script>
-<@studio.toolSupport />
+<@cstudioOverlaySupport/>
 </body>
 </html>
 
