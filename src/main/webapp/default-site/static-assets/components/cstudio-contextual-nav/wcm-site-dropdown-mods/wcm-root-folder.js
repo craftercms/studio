@@ -1810,7 +1810,7 @@ treeNode.getHtml = function() {
                             param1['value'] = "true";
                             var param2 = {};
                             param2['name'] = "changeTemplate";
-                            param2['value'] = "true";
+                            param2['value'] = selectedType;
                             auxParams.push(param1);
                             auxParams.push(param2);
                             CStudioAuthoring.Operations.editContent(

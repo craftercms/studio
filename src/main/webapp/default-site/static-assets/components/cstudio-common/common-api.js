@@ -1098,7 +1098,7 @@ var YEvent = YAHOO.util.Event;
                                 null, //field
                                 this.isEdit,
                                 this.callback,
-                                { readOnly: readOnly }
+                                this.aux
 
                             );
                         },
@@ -1107,7 +1107,8 @@ var YEvent = YAHOO.util.Event;
                             callback.failure();
                         },
                         isEdit: edit,
-                        callback: callback
+                        callback: callback,
+                        aux: auxParams
                     };
                     
                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
