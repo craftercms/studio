@@ -271,7 +271,7 @@
   bottom: 0;
     position: fixed;
     width: 100%;
-    z-index: 20;
+    z-index: 45;
   padding: 10px 0 0;
 }
 
@@ -584,7 +584,7 @@
 
 .rte-image-prop-altlink-container {
     margin-left: 30px;
-    margin-top: 10px;
+    margin-top: 0;
     padding: 10px;
     width: 125px;
     float: left;
@@ -592,8 +592,8 @@
 
 .rte-image-prop-layout-container {
     margin-left: 30px;
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 15px;
+    padding: 7px 10px 10px;
     width: 125px;
     float: left;
 }
@@ -639,8 +639,11 @@
 .rte-image-prop-size-container {
    	float: left;
     padding: 10px;
-    width: 170px;
+    width: 184px;
     float: left;
+}
+.rte-image-prop-size-container tr{
+  padding: 5px 0;
 }
 .rte-image-prop-size-container .img-flow > td:first-child {
     vertical-align: middle;
@@ -650,9 +653,11 @@
 
 .rte-image-prop-size-input {
     border: 1px solid #CCCCCC;
-    width: 30px;
+    width: 36px;
     margin-left: 10px;
     margin-top: 10px;
+    padding: 6px 3px;
+    text-align: center;
 }
 
 .rte-image-prop-layout-image {
@@ -663,33 +668,36 @@
 
 .rte-image-prop-layout-input {
     border: 1px solid #CCCCCC;
-    width: 30px;
+    width: 40px;
+    padding: 6px 3px;
+    text-align: center;
 }
 
 .rte-image-prop-layout-leftm {
 	margin-right: 5px;
     position: relative;
-    top: -18px;
+    top: 0;
 }
 
 .rte-image-prop-layout-rightm {
 	margin-left: 5px;
     position: relative;
-    top: -18px;
+    top: 0;
 }
 
 .rte-image-prop-layout-topm {
     margin-bottom: 5px;
-    margin-left: 10px;
+    margin-left: 5px;
 }
 
 .rte-image-prop-layout-bottomm {
-   margin-left: 10px;
+   margin-left: 5px;
+   margin-top: 6px;
 }
 
 .rte-panel {
     color: #CCCCCC;
-    height: 150px;
+    height: 100%;
     position: fixed;
     top: 0;
     width: 100%;
