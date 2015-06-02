@@ -85,14 +85,14 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 
 			imageSizeEl.innerHTML = imageSizetHtml;
 			var imageHeightEl = document.getElementById("rteImageHeight");
-			YAHOO.util.Dom.addClass(imageHeightEl, 'rte-image-prop-size-input'); 
+			YAHOO.util.Dom.addClass(imageHeightEl, 'rte-image-prop-size-input form-control');
 			imageHeightEl.value = imageElement.height;
 			YAHOO.util.Event.on(imageHeightEl, 'keyup', function() {
 				imageElement.height = imageHeightEl.value;
 			}); 		
 			
 			var imageWidthEl = document.getElementById("rteImageWidth");
-			YAHOO.util.Dom.addClass(imageWidthEl, 'rte-image-prop-size-input');
+			YAHOO.util.Dom.addClass(imageWidthEl, 'rte-image-prop-size-input form-control');
 			imageWidthEl.value = imageElement.width; 
 			YAHOO.util.Event.on(imageWidthEl, 'keyup', function() {
 				imageElement.width = imageWidthEl.value;
@@ -194,7 +194,7 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 			imageEl.innerHTML = "<img width='50px' height='50px' src='" + imageElement.src + "'>";
 
 			var imageMarginTopEl = document.getElementById("rteImageTopMargin");
-			YAHOO.util.Dom.addClass(imageMarginTopEl, 'rte-image-prop-layout-input');
+			YAHOO.util.Dom.addClass(imageMarginTopEl, 'rte-image-prop-layout-input form-control');
 			YAHOO.util.Dom.addClass(imageMarginTopEl, 'rte-image-prop-layout-topm'); 
 			imageMarginTopEl.value = imageElement.style.marginTop.replace("px","");
 			YAHOO.util.Event.on(imageMarginTopEl, 'keyup', function() {
@@ -203,7 +203,7 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 			}); 		
 
 			var imageMarginBottomEl = document.getElementById("rteImageBottomMargin");
-			YAHOO.util.Dom.addClass(imageMarginBottomEl, 'rte-image-prop-layout-input');
+			YAHOO.util.Dom.addClass(imageMarginBottomEl, 'rte-image-prop-layout-input form-control');
 			YAHOO.util.Dom.addClass(imageMarginBottomEl, 'rte-image-prop-layout-bottomm'); 
 			imageMarginBottomEl.value = imageElement.style.marginBottom.replace("px","");
 			YAHOO.util.Event.on(imageMarginBottomEl, 'keyup', function() {
@@ -212,7 +212,7 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 			}); 		
 							
 			var imageMarginLeftEl = document.getElementById("rteImageLeftMargin");
-			YAHOO.util.Dom.addClass(imageMarginLeftEl, 'rte-image-prop-layout-input');
+			YAHOO.util.Dom.addClass(imageMarginLeftEl, 'rte-image-prop-layout-input form-control');
 			YAHOO.util.Dom.addClass(imageMarginLeftEl, 'rte-image-prop-layout-leftm'); 
 			imageMarginLeftEl.value = imageElement.style.marginLeft.replace("px","");
 			YAHOO.util.Event.on(imageMarginLeftEl, 'keyup', function() {
@@ -221,7 +221,7 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 			}); 		
 			
 			var imageMarginRightEl = document.getElementById("rteImageRightMargin");
-			YAHOO.util.Dom.addClass(imageMarginRightEl, 'rte-image-prop-layout-input');
+			YAHOO.util.Dom.addClass(imageMarginRightEl, 'rte-image-prop-layout-input form-control');
 			YAHOO.util.Dom.addClass(imageMarginRightEl, 'rte-image-prop-layout-rightm'); 
 			imageMarginRightEl.value = imageElement.style.marginRight.replace("px","");
 			YAHOO.util.Event.on(imageMarginRightEl, 'keyup', function() {
@@ -243,7 +243,7 @@ CStudioForms.Controls.RTE.ImageEditor =  CStudioForms.Controls.RTE.ImageEditor |
 				
 			var AltTextEl  = document.getElementById("rteImageAltText");
 			AltTextEl.value = imageElement.alt;
-			YAHOO.util.Dom.addClass(AltTextEl, 'rte-image-prop-altlink-alttext');
+			YAHOO.util.Dom.addClass(AltTextEl, 'rte-image-prop-altlink-alttext form-control');
 			YAHOO.util.Event.on(AltTextEl, 'keyup', function() {
 				imageElement.alt = AltTextEl.value;
 			}); 		
