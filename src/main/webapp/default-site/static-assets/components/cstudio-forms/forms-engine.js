@@ -1150,8 +1150,8 @@ var CStudioForms = CStudioForms || function() {
                                                 window.close();
                                             }
                                         }
-                                    }, isDefault:true },
-                                        { text:"No",  handler:function(){this.hide();} } ]
+                                    }, isDefault:false },
+                                        { text:"No",  handler:function(){this.hide();}, isDefault:true } ]
                                 });
                             dialog.setHeader("CStudio WCM");
                             dialog.render(document.body);
