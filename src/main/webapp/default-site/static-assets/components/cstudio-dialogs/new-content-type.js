@@ -74,14 +74,22 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 
 		document.getElementById("upload-popup-inner").style.width = "350px";
 		document.getElementById("upload-popup-inner").style.height = "270px";
+
+        var objectTypes;
+
+        if(this.config.objectTypes.type != undefined){
+            objectTypes=this.config.objectTypes.type;
+        }else{
+            objectTypes=this.config.objectTypes[0];
+        }
 		
-		if(!this.config.objectTypes.type.length) {
-			this.config.objectTypes.type = [ this.config.objectTypes.type ];
+		if(!objectTypes.length) {
+            objectTypes = [ objectTypes ];
 		}
 		
 		var typeEl = document.getElementById("contentTypeObjectType");
-		for(var k=0; k<this.config.objectTypes.type.length; k++) {
-			var objectType = this.config.objectTypes.type[k];
+		for(var k=0; k<objectTypes.length; k++) {
+			var objectType = objectTypes[k];
 			typeEl.options[typeEl.options.length] = new Option(objectType.label, objectType.name);
 		}
 
