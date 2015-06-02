@@ -668,7 +668,7 @@
 
 .rte-image-prop-layout-input {
     border: 1px solid #CCCCCC;
-    width: 40px;
+    width: 36px;
     padding: 6px 3px;
     text-align: center;
 }
@@ -687,11 +687,11 @@
 
 .rte-image-prop-layout-topm {
     margin-bottom: 5px;
-    margin-left: 5px;
+    margin-left: 8px;
 }
 
 .rte-image-prop-layout-bottomm {
-   margin-left: 5px;
+   margin-left: 8px;
    margin-top: 6px;
 }
 
