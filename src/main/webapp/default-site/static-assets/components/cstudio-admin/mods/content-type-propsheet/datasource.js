@@ -18,7 +18,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
         var valuesEl, controlEl;
 
         var datasources = this.form.datasources;
-        value = value.replace("[\"","").replace("\"]","");
+        value = value.replace(/[^a-zA-Z0-9,]/g, '');
 
         if (datasources.length) {
             this.fieldValue = (!value) ? [] :
