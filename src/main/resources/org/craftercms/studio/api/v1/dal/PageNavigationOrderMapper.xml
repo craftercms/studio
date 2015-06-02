@@ -48,7 +48,7 @@
         UPDATE
         cstudio_pagenavigationordersequence
         SET site= #{site}, path = #{path}, max_count = #{maxCount}
-        WHERE fodler_id = #{folderId}
+        WHERE folder_id = #{folderId}
     </update>
 
     <delete id="deleteSequencesForSite" parameterType="java.util.Map">

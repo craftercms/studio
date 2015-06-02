@@ -433,12 +433,17 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             String destNodePath = destFullpath;
             if (!destItem.isFolder()) {
                 if (destItem.getName().equals(DmConstants.INDEX_FILE)) {
-                    destItem = contentService.getContentItem(site, destination.replace("/" + destItem.getName(), ""));
-                    destNodePath = destItem.getUri();
+                    //destItem = contentService.getContentItem(site, destItem.getPath());
+                    destNodePath = destItem.getPath();
                 } else {
                     String folderPath = writeProcessor.fileToFolder(site, destNodePath);
                     destItem = contentService.getContentItem(site, folderPath);
                     destNodePath = folderPath;
+                }
+            } else if (destItem.isPage()) {
+                if (destItem.getName().equals(DmConstants.INDEX_FILE)) {
+                    //destItem = contentService.getContentItem(site, destItem.getPath());
+                    destNodePath = destItem.getPath();
                 }
             }
             for (final Map<String, String> pasteItem : pasteItems) {
@@ -491,18 +496,18 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 }
 
             } else if (contentItem.getName().equals(DmConstants.INDEX_FILE)) {
+                String folderPath = contentItem.getPath();
+                if (folderPath.endsWith("/")) {
+                    folderPath = folderPath.substring(0, folderPath.length() - 1);
+                }
+                String folderName = folderPath.substring(folderPath.lastIndexOf("/") + 1);
+                //ContentItemTO parentItem = contentService.getContentItem(site, contentItem.getPath());
 
-                ContentItemTO parentItem = contentService.getContentItem(site, contentItem.getPath());
                 path = path.replace("/" + DmConstants.INDEX_FILE, "");
-
-                //FileInfo parentNodeInfo = persistenceManagerService.getFileInfo(parentNode);
-                copyChildren(site, user, path, parentItem, destination + "/" + parentItem.getName(), pasteItem, deep, false, copiedItems);
-                //destinationPath = new DmPathTO(destination + "/" + parentItem.getName());
+                copyChildren(site, user, path, contentItem, destination + "/" + folderName, pasteItem, deep, false, copiedItems);
 
                 // copy the index file
-                //DmPathTO dmPath = new DmPathTO(nodePath);
-                String copiedPath = copy(site, user, null, path, destination + "/" + parentItem.getName(), null, null,false, DmContentLifeCycleService.ContentLifeCycleOperation.COPY);
-                //ContentItemTO copiedItem = contentService.getContentItem(site, copiedPath);
+                String copiedPath = copy(site, user, null, contentItem.getUri(), destination + "/" + folderName, null, null,false, DmContentLifeCycleService.ContentLifeCycleOperation.COPY);
                 objectStateService.insertNewEntry(site, copiedPath);
                 copiedItems.add(copiedPath);
             } else {
