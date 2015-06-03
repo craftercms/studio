@@ -419,6 +419,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
+        contentPath = contentPath.replace("//", "/");
 
         item.asset = true;
         item.site = site;
@@ -485,7 +486,18 @@ public class ContentServiceImpl implements ContentService {
             item.floating = ( (rootElement.valueOf("placeInNav") != null) && !rootElement.valueOf("placeInNav").equals("true") );
             item.navigation = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
             item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
+            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
             item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
+
+            String displayTemplate = rootElement.valueOf("display-template");
+
+            if(displayTemplate != null) {
+                RenderingTemplateTO template = new RenderingTemplateTO();
+                template.uri = displayTemplate;
+                template.name = "DEFAULT";
+
+                item.renderingTemplates.add(template);
+            }
         }
         else {
              logger.error("no xml document could be loaded for path {0}", fullContentPath);

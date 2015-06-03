@@ -110,6 +110,8 @@ public class ContentItemTO implements Serializable {
 	public Date lastEditDate;
 	public String form;
 	public String formPagePath;
+	public List<RenderingTemplateTO> renderingTemplates = new ArrayList<RenderingTemplateTO>();
+
 	public boolean folder;
     protected String submissionComment;
     protected List<ContentItemTO> components;
@@ -448,7 +450,7 @@ public class ContentItemTO implements Serializable {
 	// private boolean _isDisabled = false;
 	// private boolean _isLevelDescriptor = false;
 	// private boolean _isInFlight;
- //    private boolean _renderingTemplate = false;
+ 
 	
 	// /**
 	//  * is this item deleted from repo
