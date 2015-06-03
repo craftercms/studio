@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.clipboard;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -354,17 +355,17 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     protected List<String> cutPaste(final String site, List<Map<String, String>> pasteItems, final String destination) throws ServiceException {
         for (final Map<String, String> pasteItem : pasteItems) {
             String path = pasteItem.get("uri");
+            path = FilenameUtils.normalize(path);
             String fullPath = contentService.expandRelativeSitePath(site, path);
             objectStateService.setSystemProcessing(site, path, true);
             String destinationUri = destination;
             if(destination.endsWith(DmConstants.INDEX_FILE)){
                 destinationUri = ContentUtils.getParentUrl(destinationUri);
             }
-
-            destinationUri = destinationUri+ "/" + ContentUtils.getPageName(path); //we will need to provide the destination folder name to the rename service
+            destinationUri = destinationUri + "/" + ContentUtils.getPageName(path.replace("/" + DmConstants.INDEX_FILE, ""));
 
             if(contentService.contentExists(site, destinationUri)){
-                throw new ServiceException("Content already exists [" + site + ":" + path +"]");
+                throw new ServiceException("Content already exists [" + site + ":" + destinationUri +"]");
             }else{
                 dmRenameService.rename(site, path, destinationUri, false);
                 updateFileWithNewNavOrder(site, destinationUri);//only for cut/paste will need to provide new navorder value right here since it doesnt go through FormContentProcessor
