@@ -39,7 +39,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         { name: CMgs.format(contextNavLangBundle, "wcmContentEdit"), allowAuthor: true, allowAdmin: true, allowBulk: false, renderId: "Edit" },
                         { name: CMgs.format(contextNavLangBundle, "wcmContentSubmit"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "SimpleSubmit"  },
                         { name: CMgs.format(contextNavLangBundle, "wcmContentDelete"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Delete"  },
-                        { name: CMgs.format(contextNavLangBundle, "wcmContentRequestDelete"), allowAuthor: true, allowAdmin: false, allowBulk: true, renderId: "ScheduleForDelete"  },
+                        { name: CMgs.format(contextNavLangBundle, "wcmContentRequestDelete"), allowAuthor: true, allowAdmin: false, allowBulk: true, renderId: "SubmitForDelete"  },
                         { name: CMgs.format(contextNavLangBundle, "wcmContentReject"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "Reject"  },
                         { name: CMgs.format(contextNavLangBundle, "wcmContentSchedule"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
                         { name: CMgs.format(contextNavLangBundle, "wcmContentApprove"), allowAuthor: true, allowAdmin: true, allowBulk: true, renderId: "ApproveCommon"  },
@@ -586,7 +586,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         }
                     },
 
-                    renderScheduleForDelete: {
+                    renderSubmitForDelete: {
                         render: function(option, isBulk, isAdmin, state, showFlag, isWrite) {
                             var isRelevant = false;
 

@@ -121,4 +121,8 @@ class WorkflowServices {
 		return workflowServicesImpl.submitToGoLive(site, user, requestBody);
 	}
 
+	static submitToDelete(context, user, site, requestBody) {
+		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
+		return workflowServicesImpl.submitToDelete(site, user, requestBody);
+	}
 }
