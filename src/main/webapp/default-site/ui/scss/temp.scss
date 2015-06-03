@@ -370,16 +370,24 @@ div#acn-active-content {
 }
 
 .acn-dropdown-menu-wrapper .yuimenu .yuimenuitemlabel-selected {
-  background-color: #D0D0D0 !important;
+  background-color: #ddd !important;
+  border-radius: 3px;
 }
 
 .acn-dropdown-menu-wrapper .yuimenu .yuimenuitemlabel-disabled {
   color: #aaa !important;
 }
 
+.yui-module.yui-overlay{
+  border-radius: 6px;
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
 .yuimenu .bd {
-  border: 1px #444 solid;
+  border: 1px #ddd solid;
   padding-top: 5px;
+  border-radius: 6px!important;
 }
 
 .yui-resize .yui-resize-handle-br {
@@ -401,6 +409,10 @@ div#acn-active-content {
 
 .yuimenuitem {
   margin: 0 0 5px;
+}
+
+.yuimenuitem#yui-gen2, .yuimenuitem#yui-gen1{
+  background-color: #fff;
 }
 
 .acn-dropdown-wrapper .acn-dropdown-menu div.acn-parent div.acn-parent {

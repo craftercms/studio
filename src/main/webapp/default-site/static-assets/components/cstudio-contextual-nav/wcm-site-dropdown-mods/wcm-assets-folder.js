@@ -496,7 +496,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
                     if (isWrite == true) {
                         if (this.isContainer) {
-                            this.menuWidth = "100px";
+                            this.menuWidth = "130px";
                             if (isDeleteAllowed) {
                                 if (isCreateFolder) {
                                     this.aMenuItems = this.menuItems["assetsFolderMenu"].slice();
@@ -511,7 +511,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                                 }
                             }
                         } else {
-                            this.menuWidth = "100px";
+                            this.menuWidth = "130px";
                             if (isDeleteAllowed) {
                                 this.aMenuItems = this.menuItems["assetsMenu"].slice();
                             } else {
