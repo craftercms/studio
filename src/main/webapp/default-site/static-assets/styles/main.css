@@ -6246,6 +6246,10 @@ a[ng-click] {
     width: 35%;
     margin: auto; } }
 
+.creatingSpinner {
+  display: block;
+  margin: 0 auto; }
+
 .modal-backdrop {
   height: 100%;
   background-color: #444; }

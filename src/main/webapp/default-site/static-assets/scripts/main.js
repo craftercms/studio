@@ -437,8 +437,8 @@
     ]);
 
     app.controller('SiteCtrl', [
-        '$scope', '$state', 'sitesService', '$timeout', '$window',
-        function ($scope, $state, sitesService,$timeout, $window) {
+        '$scope', '$state', 'sitesService', '$timeout', '$window', '$modal',
+        function ($scope, $state, sitesService,$timeout, $window, $modal) {
 
             $scope.blueprints = [];
             function getBlueprints() {
@@ -502,6 +502,12 @@
             }
 
             function create() {
+                var createModalInstance = $modal.open({
+                    templateUrl: 'creatingSiteConfirmation.html',
+                    backdrop: 'static',
+                    keyboard: false,
+                    size: 'sm'
+                });
                 sitesService.create({
                     siteId: $scope.site.siteId,
                     siteName: $scope.site.siteName,
@@ -510,6 +516,7 @@
                 }).success(function (data) {
                     $timeout(function () {
                         sitesService.editSite($scope.site);
+                        createModalInstance.close();
                     }, 12000, false);
 
                 });
