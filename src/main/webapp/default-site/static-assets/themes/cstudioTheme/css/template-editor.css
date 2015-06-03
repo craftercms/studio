@@ -19,10 +19,10 @@
 }
 
 #cstudio-template-editor-container {
-    height: 80%;
+    height: 100%;
     margin: auto;
     min-height: 80%;
-    width: 90%;
+    width: 100%;
 }
 
 #editor-container {
@@ -45,21 +45,14 @@
 }
 
 .cstudio-template-editor-button {
-    background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green-button.png");
     bottom: 0;
-    color: white;
     cursor: pointer;
     float: right;
-    font-family: Arial,Helvetica;
-    font-size: 16px;
-    font-weight: bold;
-    height: 30px;
-    line-height: 30px;
+    font-size: 14px;
     position: absolute;
     right: 0;
     text-align: center;
-    width: 120px;
 }
 
 .CodeMirror-scroll.cm-s-default > div { text-align: left; }
-.CodeMirror-lines { color: #111; }  /* default text color */
+.CodeMirror-lines { color: #111; font-size: 13px; line-height: 14px;}  /* default text color */
