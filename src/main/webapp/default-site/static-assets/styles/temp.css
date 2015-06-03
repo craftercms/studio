@@ -2414,14 +2414,26 @@ div#acn-active-content {
   color: #444 !important; }
 
 .acn-dropdown-menu-wrapper .yuimenu .yuimenuitemlabel-selected {
-  background-color: #D0D0D0 !important; }
+  background-color: #ddd !important; }
 
 .acn-dropdown-menu-wrapper .yuimenu .yuimenuitemlabel-disabled {
   color: #aaa !important; }
 
-.yuimenu .bd {
-  border: 1px #444 solid;
-  padding-top: 5px; }
+.yui-module.yui-overlay {
+  border-radius: 6px;
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
+
+.yui-skin-cstudioTheme .yui-menu-shadow-visible {
+  border-radius: 6px;
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  background-color: transparent; }
+
+.yuimenu .bd, .yui-skin-cstudioTheme .yuimenu .bd {
+  border: 1px #ddd solid;
+  padding-top: 5px;
+  border-radius: 6px !important; }
 
 .yui-resize .yui-resize-handle-br {
   height: 13px;
@@ -2438,6 +2450,9 @@ div#acn-active-content {
 
 .yuimenuitem {
   margin: 0 0 5px; }
+
+.yuimenuitem#yui-gen2, .yuimenuitem#yui-gen1 {
+  background-color: #fff; }
 
 .acn-dropdown-wrapper .acn-dropdown-menu div.acn-parent div.acn-parent {
   padding: 0; }
