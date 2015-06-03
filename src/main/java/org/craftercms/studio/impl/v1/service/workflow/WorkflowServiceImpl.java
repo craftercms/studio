@@ -2033,6 +2033,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         }*/
     }
 
+	public ResultTO submitToDelete(String site, String user, String requestBody) throws ServiceException {
+		return submitForApproval(site, user, requestBody, true);
+	}
+
 	public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 //	public void setDmWorkflowService(DmWorkflowService service) { _dmSimpleWfService = service; }

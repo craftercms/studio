@@ -481,8 +481,8 @@ var YEvent = YAHOO.util.Event;
                     view = CSA.Service.getDeleteView;
                 } else {
                     // scheduled delete not supported
-                    controller = "viewcontroller-schedulefordelete";
-                    view = CSA.Service.getScheduleForDeleteView;
+                    controller = "viewcontroller-submitfordelete";
+                    view = CSA.Service.getSubmitForDeleteView;
                     //controller = "viewcontroller-request-delete";
                     //view = CSA.Service.getRequestDeleteView;
                 }
@@ -2048,8 +2048,8 @@ var YEvent = YAHOO.util.Event;
                 CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/request-delete.html?site={site}', callback);
             },
 
-            getScheduleForDeleteView: function(callback) {
-                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}', callback);
+            getSubmitForDeleteView: function(callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/submit-for-delete.html?site={site}', callback);
             },
 
             getDeleteView: function(callback) {
