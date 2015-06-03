@@ -1,16 +1,20 @@
 <panel>
-    <modules>
-        <module>
-            <moduleName>ice-tools-panel</moduleName>
-            <title>In-Context Editing</title>
-        </module>
-        <module>
+   <modules>
+      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
+     <!--module><moduleName>content-schedule-panel</moduleName><title>Content Scheduling and Effectivity</title></module-->
+      <module><moduleName>component-panel</moduleName><title>Page Components</title></module>
+      <!--module><moduleName>dam-panel</moduleName><title>Images</title>
+        <config>
+             <location>/site/static-assets/images</location>
+         </config>
+      </module-->   
+      <module>
             <moduleName>medium-panel</moduleName>
-            <title>Responsive Preview</title>
+            <title>Publishing Channel</title>
             <config>
                 <channels>
                     <channel>
-                        <title>Desktop</title>
+                        <title>Web</title>
                         <value>browser</value>
                         <width></width>
                         <height></height>
@@ -30,22 +34,37 @@
                 </channels>
             </config>
         </module>
-        <module>
-            <moduleName>analytics-panel</moduleName>
-            <title>Analytics</title>
-        </module>
-        <module>
-            <moduleName>targeting-panel</moduleName>
-            <title>Targeting</title>
-        </module>
+     <module><moduleName>experiments-panel</moduleName><title>Multi-Variant Testing</title>
+     <config>
+           <experiments>
+              <experiment>
+                       <title>Home Page Red vs. Blue CTA Buttons</title>
+                          <variations>
+                           <variation><title>Red</title><url>/</url></variation>
+                          <variation><title>Blue</title><url>/?c1v1</url></variation>
+                      </variations>
+                </experiment>
 
-        <!-- write your own features -->
-        <!--
-        <module>
-            <moduleName>ice-tools-panel</moduleName>
-            <title>NEW SECTION (Same feature)</title>
-        </module>
-        -->
 
-    </modules>
+              <experiment>
+                       <title>Catalog Page Sorting</title>
+                          <variations>
+                           <variation><title>Arrival Date</title><url>/</url></variation>
+                          <variation><title>Price High to Low</title><url>/?c1v1</url></variation>
+                          <variation><title>Price Low to High</title><url>/?c1v1</url></variation>
+                      </variations>
+                </experiment>
+
+           </experiments>
+         </config>     
+     </module>
+     <!-- module><moduleName>analytics-panel</moduleName><title>Analytics</title></module-->
+     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+
+ <!-- module><moduleName>annotate-panel</moduleName><title>Annotation</title></module-->
+ <module><moduleName>translation-panel</moduleName><title>Translation</title></module>
+   
+<!-- module><moduleName>campaigns-panel</moduleName><title>Campaings</title></module-->    
+     
+   </modules>
 </panel>

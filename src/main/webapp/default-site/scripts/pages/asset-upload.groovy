@@ -116,4 +116,7 @@ else {
     }
 }
 
-model.fileName = fileName;
+model.fileName = fileName
+
+def dotPos = fileName.indexOf(".")
+model.fileExtension = (dotPos != -1) ? fileName.substring(dotPos+1) : ""
