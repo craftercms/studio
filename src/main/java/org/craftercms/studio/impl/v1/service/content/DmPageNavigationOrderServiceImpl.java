@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService implements DmPageNavigationOrderService {
@@ -65,7 +66,11 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                 if (itemTreeTO == null) {
                     pageNavigationOrder.setMaxCount(0F);
                 } else {
-                    pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
+                    if (StringUtils.isEmpty(itemTreeTO.getNodeRef())) {
+                        pageNavigationOrder.setFolderId(UUID.randomUUID().toString());
+                    } else {
+                        pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
+                    }
                     pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
                 }
                 pageNavigationOrderMapper.insert(pageNavigationOrder);

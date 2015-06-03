@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -333,7 +334,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentService.unLockContent(site, parentItem.getUri() + "/" + fileName);
+                contentRepository.unLockItem(site, parentItem.getUri() + "/" + fileName);
                 //persistenceManagerService.unlock(fileNode);
             } else {
             }
@@ -400,10 +401,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             */
             // unlock the content upon save if the flag is true
             if (unlock) {
-                contentService.unLockContent(site, relativePath);
+                contentRepository.unLockItem(site, relativePath);
                 logger.debug("Unlocked the content " + fullPath);
             } else {
-                contentService.lockContent(site, relativePath);
+                contentRepository.lockItem(site, relativePath);
             }
             // if there is anything pending and this is not a preview update, cancel workflow
             if (!isPreview) {
@@ -515,6 +516,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected DmDependencyService dmDependencyService;
     protected ServicesConfig servicesConfig;
     protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -530,4 +532,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 }
