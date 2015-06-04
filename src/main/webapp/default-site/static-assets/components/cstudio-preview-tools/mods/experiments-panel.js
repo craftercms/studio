@@ -13,7 +13,7 @@ CStudioAuthoring.ExperimentsPanel = CStudioAuthoring.ExperimentsPanel || {
     },
     
     render: function(containerEl, config) {
-        var experiments = (config.config.experiments.length) ? config.config.experiments : [ config.config.experiments.experiment ];
+        var experiments = (config.config.experiments.experiment.length) ? config.config.experiments.experiment : [ config.config.experiments.experiment ];
         var treeEl = document.createElement("div");
         treeEl.id = "acnAbtestPanel";
         containerEl.appendChild(treeEl);
@@ -23,7 +23,7 @@ CStudioAuthoring.ExperimentsPanel = CStudioAuthoring.ExperimentsPanel || {
         
         tree.subscribe("labelClick", function(node) { 
             if(node.variation) { 
-                document.location = node.variation.url; 
+                CStudioAuthoring.Operations.setPreview(node.variation.url); 
             }
         }); 
 
@@ -32,7 +32,7 @@ CStudioAuthoring.ExperimentsPanel = CStudioAuthoring.ExperimentsPanel || {
         
         for(var i=0, il=experiments.length; i<il; i++) {
             var experiment = experiments[i];
-            experiment.variations = (experiment.variations.length) ? experiment.variations : [ experiment.variations.variation ];
+            experiment.variations = (experiment.variations.variation.length) ? experiment.variations.variation : [ experiment.variations.variation ];
 
             var parentNode = new YAHOO.widget.TextNode(experiment.title, rootNode, false);
              
