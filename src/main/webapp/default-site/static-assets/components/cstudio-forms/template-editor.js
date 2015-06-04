@@ -130,7 +130,27 @@ CStudioAuthoring.Module.requireModule(
 										templateEditorToolbarVarElt.appendChild(variableLabel);
 
 										//Create array of options to be added
-										var variableOpts = [{label:"test1", value:"testone"},{label:"test2", value:"testtwo"},{label:"test3", value:"testtree"},{label:"test4", value:"testfour"}];
+										var variableOpts = [
+											{label:"Content variable", value:"${model.VARIABLENAME}"},
+										    {label:"Request parameter", value:"${RequestParameters[\"PARAMNAME\"]!\"DEFAULT\"}"},
+										    {label:"Studio support", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n\t...\r\n\t<@studio.toolSupport />"},
+										    {label:"Dynamic navigation", value:"<#include \"/templates/web/navigation/navigation.ftl\">\r\n\t...\r\n\t<@renderNavigation \"/site/website\", 1 />"},
+
+										    {label:"Incontext editing attribute (pencil)", value:"<@studio.iceAttr iceGroup=\"ICEGROUID\"/>"},
+										    {label:"Component DropZone attribute", value:"<@studio.iceAttr iceGroup=\"ICEGROUID\"/>"},
+										    {label:"Component attribute", value:"<@studio.componentAttr path=model.storeUrl ice=false />"},
+										    {label:"Render list of components", value:"<#list model.VARIABLENAME.item as module>\r\n\t<@renderComponent component=module />\r\n</#list>"},
+
+										    {label:"Freemarker value assignment", value:"<#assign imageSource = model.image!\"\" />"},
+										    {label:"Freemarker value IF", value:"<#if CONDITION>\r\n\t...\r\n</#if>"},
+										    {label:"Freemarker value LOOP", value:"<#list ARRAY as value>\r\n\t${value_idx}: ${value}\r\n</#list>"},
+										    {label:"Freemarker Fragment include", value:"<#include \"/templates/PATH\" />"},
+										    {label:"Freemarker Library import", value:"<#import \"/templates/PATH\" as NAMESPACE />"},
+
+											{label:"HTML Page", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n<html lang=\"en\">\r\n<head>\r\n\t</head>\r\n\t<body>\r\n\t\t<h1>CONTENT HERE</h1>\r\n\t<@studio.toolSupport/>\r\n\t</body>\r\n</html>"},
+											{label:"HTML Component", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n<div <@studio.componentAttr path=model.storeUrl ice=false /> >\r\nCOMPONENT MARKUP</div>"},
+
+										 ];
 
 										//Create and append select list
 										var selectList = document.createElement("select");
