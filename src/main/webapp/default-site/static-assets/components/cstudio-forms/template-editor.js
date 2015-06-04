@@ -130,7 +130,7 @@ CStudioAuthoring.Module.requireModule(
 										templateEditorToolbarVarElt.appendChild(variableLabel);
 
 										//Create array of options to be added
-										var variableOpts = ["test1","test2","test3","test4"];
+										var variableOpts = [{label:"test1", value:"testone"},{label:"test2", value:"testtwo"},{label:"test3", value:"testtree"},{label:"test4", value:"testfour"}];
 
 										//Create and append select list
 										var selectList = document.createElement("select");
@@ -140,8 +140,8 @@ CStudioAuthoring.Module.requireModule(
 										//Create and append the options
 										for (var i = 0; i < variableOpts.length; i++) {
 										    var option = document.createElement("option");
-										    option.value = variableOpts[i];
-										    option.text = variableOpts[i];
+										    option.value = variableOpts[i].value;
+										    option.text = variableOpts[i].label;
 										    selectList.appendChild(option);
 										}
 
