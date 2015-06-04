@@ -7,6 +7,8 @@
     <title>Crafter Studio</title>
 
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/console.css" />
+         <script src="/studio/static-assets/modules/editors/tiny_mce/tiny_mce.js"></script>
+
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
