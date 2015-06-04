@@ -186,7 +186,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         updateFile(site, parentItem, parentContentPath, input, user, isPreview, unlock);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                     } else {
-                        updateLastEditedProperties(parentItem,user);
+                        updateLastEditedProperties(site, parentItem.getUri(), user);
                         if (!isPreview) {
                             DmPathTO pathTO = new DmPathTO(parentContentPath);
                             if (cancelWorkflow(site, path)) {
@@ -224,7 +224,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                             updateFile(site, contentItem, fileFullPath, input, user, isPreview, unlock);
                             content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                         } else {
-                            updateLastEditedProperties(contentItem,user);
+                            updateLastEditedProperties(site, contentItem.getUri(), user);
                             if (!isPreview) {
                                 DmPathTO pathTO = new DmPathTO(fileFullPath);
                                 if (cancelWorkflow(site, pathTO.getRelativePath())) {
@@ -265,23 +265,16 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     }
 
-    private void updateLastEditedProperties(ContentItemTO content, String user) {
-        // TODO: port this code if needed
-        /*
-    	PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
-    	Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(content);
-        nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-        nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);		
-        nodeProperties.put(ContentModel.PROP_MODIFIED, new Date());
-        nodeProperties.put(CStudioContentModel.PROP_WEB_LAST_EDIT_DATE, new Date());
-        persistenceManagerService.setProperties(content, nodeProperties);
-        */
+    private void updateLastEditedProperties(String site, String relativePath, String user) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ObjectMetadata.PROP_MODIFIER, user);
+        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        if (!objectMetadataManager.metadataExist(site, relativePath)) {
+            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
+        }
+        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 	}
-    /*
-	protected NodeRef createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input, String user)
-    	throws ContentNotFoundException {
-    	return createNewFile(site, parentItem, fileName, contentType,  input, user, true);
-    }*/
+
 
     /**
      * create new file to the given path. If the path is a file name, it will
@@ -499,10 +492,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();
         String folderName = parentFileName.substring(0, parentFileName.indexOf("."));
-
-        //Map<QName, Serializable> nodeProperties = new FastMap<QName, Serializable>();
-        //nodeProperties.put(ContentModel.PROP_NAME, folderName);
-        //NodeRef newFolderNode = persistenceManagerService.createNewFolder(folderPath, folderName, nodeProperties);
         contentService.createFolder(site, folderPath, folderName);
         folderPath = folderPath + "/" + folderName;
         contentService.moveContent(site, path, folderPath + "/" + DmConstants.INDEX_FILE);
