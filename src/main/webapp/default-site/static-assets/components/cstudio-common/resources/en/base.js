@@ -101,6 +101,8 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
 
       logout: "Log Out",
 
+      variableLabel: "Variable",
+
 });
 
 CStudioAuthoring.Messages.registerBundle("forms", "en", { 

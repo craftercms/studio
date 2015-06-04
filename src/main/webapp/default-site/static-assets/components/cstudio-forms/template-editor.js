@@ -21,6 +21,10 @@ CStudioAuthoring.Module.requireModule(
 					return this;
 				}
 
+				
+				var CMgs = CStudioAuthoring.Messages;
+            	var contextNavLangBundle = CMgs.getBundle("contextnav", CStudioAuthoringContext.lang);
+
 				CStudioForms.TemplateEditor.prototype = {
 
 					render: function(templatePath, channel, onSaveCb) {
@@ -53,18 +57,21 @@ CStudioAuthoring.Module.requireModule(
 									modalEl.appendChild(containerEl);
 									
 									var formHTML = 
+										"<div id='template-editor-toolbar'><div id='template-editor-toolbar-variable'></div></div>" +
 										"<div id='editor-container'>"+
 										"</div>" + 
 										"<div id='template-editor-button-container'>";
 										
 									if(isWrite == true) {
 										formHTML += 
-				 						    "<div  id='template-editor-update-button' class='btn btn-primary cstudio-template-editor-button'>Update</div>" + 
-											"<div  id='template-editor-cancel-button' style='right: 95px;' class='btn btn-default cstudio-template-editor-button'>Cancel</div>";
+											"<div class='edit-buttons-container'>" +
+				 						    	"<div  id='template-editor-update-button' class='btn btn-primary cstudio-template-editor-button'>Update</div>" + 
+												"<div  id='template-editor-cancel-button' class='btn btn-default cstudio-template-editor-button'>Cancel</div>" +
+											"<div/>";
 									}
 									else {
 										formHTML +=
-											"<div  id='template-editor-cancel-button' style='right: 120px;' class='cstudio-template-editor-button'>Close</div>";							
+											"<div  id='template-editor-cancel-button' style='right: 120px;' class='btn btn-default cstudio-template-editor-button'>Close</div>";							
 									}
 
 									formHTML +=
@@ -78,6 +85,7 @@ CStudioAuthoring.Module.requireModule(
 									editorEl.style.backgroundColor= "white";
 									editorEl.value= content;
 									editorContainerEl.appendChild(editorEl);
+									
 									
 									var initEditorFn = function() {
 										if(typeof CodeMirror === "undefined" ) {
@@ -114,6 +122,33 @@ CStudioAuthoring.Module.requireModule(
 									};
 									
 									initEditorFn();
+
+									if(templatePath.indexOf(".ftl") != -1) {
+										var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
+										var variableLabel = document.createElement("label");
+										variableLabel.innerHTML = CMgs.format(contextNavLangBundle, "variableLabel");
+										templateEditorToolbarVarElt.appendChild(variableLabel);
+
+										//Create array of options to be added
+										var variableOpts = ["test1","test2","test3","test4"];
+
+										//Create and append select list
+										var selectList = document.createElement("select");
+										selectList.id = "variable";
+										templateEditorToolbarVarElt.appendChild(selectList);
+
+										//Create and append the options
+										for (var i = 0; i < variableOpts.length; i++) {
+										    var option = document.createElement("option");
+										    option.value = variableOpts[i];
+										    option.text = variableOpts[i];
+										    selectList.appendChild(option);
+										}
+
+										selectList.onchange = function() {
+									    	editorEl.codeMirrorEditor.replaceRange(this.options[this.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
+										};
+									}	
 
 									var cancelEl = document.getElementById('template-editor-cancel-button');
 									cancelEl.onclick = function() {
