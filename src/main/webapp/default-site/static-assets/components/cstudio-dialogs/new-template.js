@@ -103,15 +103,21 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web/"+name;
+		var templatePath = "/templates/web/";
 		
-		if(templatePath.indexOf(".ftl") == -1) {
-			templatePath += ".ftl";
+		if(name.indexOf(".ftl") == -1) {
+			name = name + ".ftl";
 		}
+
+		templatePath += name;
 		
-		var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-		+ "?site=" + CStudioAuthoringContext.site 
-		+ "&path=" + templatePath;
+	     var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+	            "?site=" + CStudioAuthoringContext.site +
+	            "&phase=onSave" +
+	            "&path=" + templatePath +
+	            "&fileName=" + name +
+	            "&user=" + CStudioAuthoringContext.user +
+	            "&unlock=true";
 
 		var saveSvcCb = {
 			success: function() {
