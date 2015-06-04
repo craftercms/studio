@@ -363,7 +363,8 @@ var YEvent = YAHOO.util.Event;
         Module: {
 
             loadedModules: new Array(),
-
+            waitingForModule: new Array(),
+             
             /**
              * either receive the Module Class or wait for it to be loaded
              */
@@ -410,6 +411,7 @@ var YEvent = YAHOO.util.Event;
                     }
                 }
                 catch(err) {
+                    alert("error while loading module :"+err);
                 }
             }
         },
