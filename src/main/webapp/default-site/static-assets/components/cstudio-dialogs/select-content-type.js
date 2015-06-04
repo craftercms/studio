@@ -76,8 +76,8 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 										'</div></div>'+
 									'</div> '+
 									'<div class="contentTypePopupBtn"> '+
-										'<input type="submit" class="cstudio-xform-button ok" id="submitWCMPopup" value="OK" />' +
-										'<input type="submit" class="cstudio-xform-button cancel" id="closeWCMPopup" value="Cancel" />' +
+										'<input type="submit" class="btn btn-primary cstudio-xform-button ok" id="submitWCMPopup" value="OK" />' +
+										'<input type="submit" class="btn btn-default cstudio-xform-button cancel" id="closeWCMPopup" value="Cancel" />' +
 									'</div>'+
 									'</form> '+
 								'</div> '+

@@ -437,8 +437,8 @@
     ]);
 
     app.controller('SiteCtrl', [
-        '$scope', '$state', 'sitesService', '$timeout', '$window',
-        function ($scope, $state, sitesService,$timeout, $window) {
+        '$scope', '$state', 'sitesService', '$timeout', '$window', '$modal',
+        function ($scope, $state, sitesService,$timeout, $window, $modal) {
 
             $scope.blueprints = [];
             function getBlueprints() {
@@ -464,7 +464,7 @@
 
             function setSiteId() {
                 if ($scope.site.siteName != undefined){
-                    $scope.site.siteId = $scope.site.siteName.replace(/[^a-zA-Z0-9 ]/g, '').toLowerCase();
+                    $scope.site.siteId = $scope.site.siteName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                 }else{
                     $scope.site.siteId = '';
                 }
@@ -502,13 +502,23 @@
             }
 
             function create() {
+                var createModalInstance = $modal.open({
+                    templateUrl: 'creatingSiteConfirmation.html',
+                    backdrop: 'static',
+                    keyboard: false,
+                    size: 'sm'
+                });
                 sitesService.create({
                     siteId: $scope.site.siteId,
                     siteName: $scope.site.siteName,
                     blueprintName: $scope.site.blueprint.id,
                     description: $scope.site.description
                 }).success(function (data) {
-                    sitesService.editSite($scope.site);
+                    $timeout(function () {
+                        sitesService.editSite($scope.site);
+                        createModalInstance.close();
+                    }, 12000, false);
+
                 });
 
             }

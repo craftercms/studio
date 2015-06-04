@@ -54,38 +54,53 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Create Content Type</div> ' +
                            '<div class="content">'+
-                             '<label for="contentTypeDisplayName"><span>Display Label:</span>'+
-                             '<input title="Provide a display label for this content type" id="contentTypeDisplayName" type="text"></label>' +
-                             '<label for="contentTypeName"><span>Content Type Name:</span>'+
-                             '<input style="disabled" title="Provide a system name for this content type" id="contentTypeName" type="text"></label>' +
-                             '<div class="selectInput">' +
-                             '<label for="contentTypeObjectType">Type:</label>'+
-                             '<select title="Select the type for this content type" id="contentTypeObjectType">' + 
-                             '</select></div>' +
-                             '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
-                             '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
+                             '<div class="contentTypeOuter">'+
+                                '<label for="contentTypeDisplayName"><span>Display Label:</span>'+
+                                '<input title="Provide a display label for this content type" id="contentTypeDisplayName" type="text"></label>' +
+                                '<label for="contentTypeName"><span>Content Type Name:</span>'+
+                                '<input style="disabled" title="Provide a system name for this content type" id="contentTypeName" type="text"></label>' +
+                                '<div class="selectInput">' +
+                                '<label for="contentTypeObjectType">Type:</label>'+
+                                '<select title="Select the type for this content type" id="contentTypeObjectType">' +
+                                '</select></div>' +
+                                '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
+                                '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
+                             '</div>' +
                              '<div class="contentTypePopupBtn"> ' +
-                               '<input type="button" class="cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
-                               '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
+                               '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
+                               '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="Cancel"/>' +
                              '</div>' +
                            '</div>';
 
 		document.getElementById("upload-popup-inner").style.width = "350px";
 		document.getElementById("upload-popup-inner").style.height = "270px";
+
+        var objectTypes;
+
+        if(this.config.objectTypes.type != undefined){
+            objectTypes=this.config.objectTypes.type;
+        }else{
+            objectTypes=this.config.objectTypes[0];
+        }
 		
-		if(!this.config.objectTypes.type.length) {
-			this.config.objectTypes.type = [ this.config.objectTypes.type ];
+		if(!objectTypes.length) {
+            objectTypes = [ objectTypes ];
 		}
 		
 		var typeEl = document.getElementById("contentTypeObjectType");
-		for(var k=0; k<this.config.objectTypes.type.length; k++) {
-			var objectType = this.config.objectTypes.type[k];
+		for(var k=0; k<objectTypes.length; k++) {
+			var objectType = objectTypes[k];
 			typeEl.options[typeEl.options.length] = new Option(objectType.label, objectType.name);
 		}
 
 		// Instantiate the Dialog
 		var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
+                                  height: "306px",
+                                  effect:{
+                                      effect: YAHOO.widget.ContainerEffect.FADE,
+                                      duration: 0.25
+                                  },
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,

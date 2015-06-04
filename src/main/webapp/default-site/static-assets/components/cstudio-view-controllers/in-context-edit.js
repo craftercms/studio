@@ -101,15 +101,27 @@
         /**
          * construct URL for simple form server
          */
-        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, aux) {
+        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, auxParams) {
             var windowUrl = "";
+            var formId = contentType.form;
+            var readOnly = false;
+
+            for(var j=0; j<auxParams.length; j++) {
+                if(auxParams[j].name=="changeTemplate") {
+                    formId = auxParams[j].value;
+                }
+
+                if(auxParams[j].name == "readonly") {
+                    readOnly = true;
+                }
+            }
             
             // double / can cause issues in some stores
             item.uri = item.uri.replace("//", "/");
 
             windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
-            "/form?site=" + site + "&form=" +
-            contentType.form +
+            "/form?site=" + site + 
+            "&form=" + formId +
             "&path=" + item.uri;
 
             if(field) {
@@ -118,14 +130,14 @@
                 windowUrl += "&iceComponent=true";
             }
 
-            if(aux.readOnly && aux.readOnly == true ||  aux.readOnly == "true") {
-                windowUrl += "&readonly=true";
-            }
-
             if(isEdit == true || isEdit == "true"){
                 windowUrl += "&edit="+isEdit;
             }
             
+            if(readOnly == true) {
+                windowUrl += "&readonly=true";
+            }
+
             return windowUrl;
         },
 

@@ -419,6 +419,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
+        contentPath = contentPath.replace("//", "/");
 
         item.asset = true;
         item.site = site;
@@ -452,24 +453,24 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    protected ContentItemTO populateContentDrivenProperties(ContentItemTO item)
+    protected ContentItemTO populateContentDrivenProperties(String site,ContentItemTO item)
     throws Exception {
         
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
         logger.debug("Pupulating page props {0}", contentPath);
-        boolean itemIsPage = false;
-
-        if((contentPath.startsWith("/site/website"))
-        && contentPath.indexOf(".level.xml") == -1) {
-            itemIsPage = true;
-        }
-         
-        item.page = itemIsPage;
-        item.previewable = itemIsPage;
-        item.component = !itemIsPage;
-        item.asset = false;
+        item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
+        item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
+        item.isPage = item.page;
+        item.previewable = item.page;
+        item.isPreviewable = item.previewable;
+        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site));
+        item.isComponent = item.component;
+        item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
+        item.isAsset = item.asset;
+        item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
+        item.isDocument = item.document;
 
         item.uri = contentPath;
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
@@ -485,7 +486,18 @@ public class ContentServiceImpl implements ContentService {
             item.floating = ( (rootElement.valueOf("placeInNav") != null) && !rootElement.valueOf("placeInNav").equals("true") );
             item.navigation = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
             item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
+            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
             item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
+
+            String displayTemplate = rootElement.valueOf("display-template");
+
+            if(displayTemplate != null) {
+                RenderingTemplateTO template = new RenderingTemplateTO();
+                template.uri = displayTemplate;
+                template.name = "DEFAULT";
+
+                item.renderingTemplates.add(template);
+            }
         }
         else {
              logger.error("no xml document could be loaded for path {0}", fullContentPath);
@@ -640,7 +652,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if(item.uri.endsWith(".xml")) {
-                item = populateContentDrivenProperties(item);
+                item = populateContentDrivenProperties(site, item);
             }
 
             loadContentTypeProperties(site, item, item.contentType);
@@ -808,70 +820,6 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    /**
-     * get the tree of content items (metadata) beginning at a root
-     *
-     * @param site
-     * @param path
-     * @param depth
-     * @param isPages
-     * @return return an array of child nodes
-     */
-    protected List<ContentItemTO> getContentItemTreeInternal(String site, String path, int depth, boolean isPages) {
-
-        List<ContentItemTO> children = new ArrayList<ContentItemTO>();
-
-        RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(expandRelativeSitePath(site, path));
-        if (childRepoItems != null) {
-            for (int i = 0; i < childRepoItems.length; i++) {
-                RepositoryItem repoItem = childRepoItems[i];
-                String relativePath = getRelativeSitePath(site, (repoItem.path + "/" + repoItem.name));
-
-                ContentItemTO contentItem = null;
-                if (repoItem.isFolder && isPages) {
-
-                    contentItem = getContentItem(site, relativePath);  
-                    // if (contentItem != null && depth > 0) {
-                    //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                    //     contentItem.numOfChildren = contentItem.children.size();
-                    //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
-                    // }
-                }
-
-                if (contentItem == null) {
-                    if (!StringUtils.endsWith(relativePath, "/index.xml")) {
-                        contentItem = getContentItem(site, relativePath);
-                        // if (depth > 0) {
-                        //     contentItem.children = getContentItemTreeInternal(site, relativePath, depth - 1, isPages);
-                        //     contentItem.numOfChildren = contentItem.children.size();
-                        //     if(contentItem.numOfChildren != 0) contentItem.isContainer = true;
-                        // }
-                    }
-                }
-
-                if (contentItem != null) {
-                    children.add(contentItem);
-                }
-            }
-        }
-
-        return children;
-    }
-
-    /**
-     * get the tree of content items (metadata) beginning at a root
-     *
-     * @param site
-     * @param path
-     * @param depth
-     * @param isPages
-     * @return return an array of child nodes
-     */
-    protected List<ContentItemTO> getContentItemTreeInternal(String fullPath, int depth, boolean isPages) {
-        String site = getSiteFromFullPath(fullPath);
-        String relativePath = getRelativeSitePath(site, fullPath);
-        return getContentItemTreeInternal(site, relativePath, depth, isPages);
-    }
 
     /**
      * take a path like /sites/website/index.xml and root it properly with a fully expanded repo path

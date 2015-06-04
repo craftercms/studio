@@ -1150,8 +1150,8 @@ var CStudioForms = CStudioForms || function() {
                                                 window.close();
                                             }
                                         }
-                                    }, isDefault:true },
-                                        { text:"No",  handler:function(){this.hide();} } ]
+                                    }, isDefault:false },
+                                        { text:"No",  handler:function(){this.hide();}, isDefault:true } ]
                                 });
                             dialog.setHeader("CStudio WCM");
                             dialog.render(document.body);
@@ -1796,8 +1796,8 @@ var CStudioForms = CStudioForms || function() {
 
                         // handle datasources
                         
-                        if(!def.datasources.datasource 
-                        || typeof def.datasources.datasource === 'string') {
+                        if(!def.datasources 
+                        || typeof def.datasources === 'string') {
                             def.datasources = [];
                         }
                         else {

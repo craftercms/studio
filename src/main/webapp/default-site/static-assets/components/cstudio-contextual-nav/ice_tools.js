@@ -23,7 +23,7 @@ CStudioAuthoring.ContextualNav.IceToolsMod = CStudioAuthoring.ContextualNav.IceT
 			"ContextualNav.EditorsToolsNav": {
 				init: function() {
 					if(CStudioAuthoringContext.isPreview == true) {
-						if(CStudioAuthoring.IceTools) {
+						if(true){ //CStudioAuthoring.IceTools) {
 							this.render();
 
 					       	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(

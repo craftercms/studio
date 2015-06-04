@@ -210,6 +210,7 @@ var YEvent = YAHOO.util.Event;
                 //CStudioAuthoring.Utils.addCss('/overlay-css?baseUrl=' +
                 //                           CStudioAuthoringContext.baseUri);
                 CSA.Utils.addCss('/static-assets/styles/temp.css');
+                CSA.Utils.addCss('/static-assets/styles/forms-engine.css');
             },
 
             /**
@@ -362,7 +363,8 @@ var YEvent = YAHOO.util.Event;
         Module: {
 
             loadedModules: new Array(),
-
+            waitingForModule: new Array(),
+             
             /**
              * either receive the Module Class or wait for it to be loaded
              */
@@ -409,6 +411,7 @@ var YEvent = YAHOO.util.Event;
                     }
                 }
                 catch(err) {
+                    alert("error while loading module :"+err);
                 }
             }
         },
@@ -480,8 +483,8 @@ var YEvent = YAHOO.util.Event;
                     view = CSA.Service.getDeleteView;
                 } else {
                     // scheduled delete not supported
-                    controller = "viewcontroller-schedulefordelete";
-                    view = CSA.Service.getScheduleForDeleteView;
+                    controller = "viewcontroller-submitfordelete";
+                    view = CSA.Service.getSubmitForDeleteView;
                     //controller = "viewcontroller-request-delete";
                     //view = CSA.Service.getRequestDeleteView;
                 }
@@ -971,6 +974,11 @@ var YEvent = YAHOO.util.Event;
                 }
             },
 
+            setPreview: function(url) {
+                var previewFrameEl = document.getElementById("engineWindow");
+                previewFrameEl.src = url;
+            },
+
             /**
              * given a transfer object, open a preview URL
              */
@@ -1098,7 +1106,7 @@ var YEvent = YAHOO.util.Event;
                                 null, //field
                                 this.isEdit,
                                 this.callback,
-                                { readOnly: readOnly }
+                                this.aux
 
                             );
                         },
@@ -1107,7 +1115,8 @@ var YEvent = YAHOO.util.Event;
                             callback.failure();
                         },
                         isEdit: edit,
-                        callback: callback
+                        callback: callback,
+                        aux: auxParams
                     };
                     
                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
@@ -2046,8 +2055,8 @@ var YEvent = YAHOO.util.Event;
                 CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/request-delete.html?site={site}', callback);
             },
 
-            getScheduleForDeleteView: function(callback) {
-                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/schedule-for-delete.html?site={site}', callback);
+            getSubmitForDeleteView: function(callback) {
+                CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/submit-for-delete.html?site={site}', callback);
             },
 
             getDeleteView: function(callback) {

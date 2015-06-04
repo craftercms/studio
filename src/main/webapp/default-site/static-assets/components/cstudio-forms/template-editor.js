@@ -59,8 +59,8 @@ CStudioAuthoring.Module.requireModule(
 										
 									if(isWrite == true) {
 										formHTML += 
-				 						    "<div  id='template-editor-update-button' class='cstudio-template-editor-button'>Update</div>" + 
-											"<div  id='template-editor-cancel-button' style='right: 120px;' class='cstudio-template-editor-button'>Cancel</div>";
+				 						    "<div  id='template-editor-update-button' class='btn btn-primary cstudio-template-editor-button'>Update</div>" + 
+											"<div  id='template-editor-cancel-button' style='right: 95px;' class='btn btn-default cstudio-template-editor-button'>Cancel</div>";
 									}
 									else {
 										formHTML +=

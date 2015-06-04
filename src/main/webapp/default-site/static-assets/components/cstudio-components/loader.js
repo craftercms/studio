@@ -114,8 +114,8 @@
 
     Loader.addModule({
         type: 'js',
-        name:'template-schedulefordelete',
-        path: 'components/cstudio-templates/schedule-for-delete.js',
+        name:'template-submitfordelete',
+        path: 'components/cstudio-templates/submit-for-delete.js',
         requires: emptyArray
     });
 
@@ -163,12 +163,12 @@
 
     Loader.addModule({
         type: 'js',
-        name:'viewcontroller-schedulefordelete',
-        path: 'components/cstudio-view-controllers/schedule-for-delete.js',
+        name:'viewcontroller-submitfordelete',
+        path: 'components/cstudio-view-controllers/submit-for-delete.js',
         requires: [
             'viewcontroller-basedelete',
             'component-templateagent',
-            'template-schedulefordelete'
+            'template-submitfordelete'
         ]
     });
 
