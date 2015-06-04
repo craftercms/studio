@@ -23,7 +23,7 @@ CStudioAuthoring.ExperimentsPanel = CStudioAuthoring.ExperimentsPanel || {
         
         tree.subscribe("labelClick", function(node) { 
             if(node.variation) { 
-                document.location = "/studio/preview/#/?page="+node.variation.url; 
+                CStudioAuthoring.Operations.setPreview(node.variation.url); 
             }
         }); 
 

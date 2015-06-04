@@ -972,6 +972,11 @@ var YEvent = YAHOO.util.Event;
                 }
             },
 
+            setPreview: function(url) {
+                var previewFrameEl = document.getElementById("engineWindow");
+                previewFrameEl.src = url;
+            },
+
             /**
              * given a transfer object, open a preview URL
              */
