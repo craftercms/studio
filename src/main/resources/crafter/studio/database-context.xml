@@ -6,7 +6,7 @@
 
        <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
               <jdbc:script location="classpath:crafter/studio/database/createDDL-${studio.db.platform}.sql" />
-              <jdbc:script location="classpath:crafter/studio/database/updateDDL-${studio.db.platform}.sql" />
+              <!--jdbc:script location="classpath:crafter/studio/database/updateDDL-${studio.db.platform}.sql" /-->
        </jdbc:initialize-database>
 
        <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">

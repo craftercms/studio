@@ -678,7 +678,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             throw new ServiceException("Error during extracting dependency of "+childUri,e);
         }*/
         updateGoLiveQueue(site,relativePath,oldUri);
-        updateActivity(site, relativePath, oldUri);
+        updateActivity(site, oldUri, relativePath);
     }
 
     protected void updateGoLiveQueue(String site,String newFullPath, String oldUri){
@@ -699,9 +699,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }*/
     }
 
-    protected void updateActivity(String newUrl, String oldUrl, String site){
+    protected void updateActivity(String site, String oldUrl, String newUrl){
         logger.debug("Updating activity url post rename:"+newUrl);
-        activityService.renameContentId(oldUrl, newUrl,site);
+        activityService.renameContentId(site, oldUrl, newUrl);
     }
 
     /**
