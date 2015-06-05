@@ -649,7 +649,12 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
         var editCb = {
             success: function() {
-                this.callingWindow.location.reload(true);
+                if(CStudioAuthoringContext.isPreview){
+                     CStudioAuthoring.Operations.refreshPreview(); 
+                }
+                else {
+                    this.callingWindow.location.reload(true);
+                }
             },
 
             failure: function() {

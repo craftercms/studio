@@ -987,6 +987,11 @@ var YEvent = YAHOO.util.Event;
                 }
             },
 
+            refreshPreview: function() {
+                var previewFrameEl = document.getElementById("engineWindow");
+                previewFrameEl.contentWindow.location.reload();
+            },
+
             setPreview: function(url) {
                 var previewFrameEl = document.getElementById("engineWindow");
                 previewFrameEl.src = url;
