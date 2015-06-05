@@ -131,19 +131,27 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                 }
             });
 		};
+        var contextNavImg = YDom.get("acn-ice-tools-image");
+        var cstopic = crafter.studio.preview.cstopic;
 
-       	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(
-       			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
-    				labelEl.innerHTML = "In-Context Edit Off";
-       			});
+        CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(function() {
+            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
+            contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
+            labelEl.innerHTML = "In-Context Edit Off";
 
-       	CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(
-       			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
-       				YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
-       				labelEl.innerHTML = "In-Context Edit On";
-       			});
+            amplify.publish(cstopic('ICE_TOOLS_OFF'));
+
+        });
+
+        CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(function() {
+            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
+            contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
+            YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
+            labelEl.innerHTML = "In-Context Edit On";
+
+            amplify.publish(cstopic('ICE_TOOLS_ON'));
+
+        });
 		
 		if(iceOn) {
 			CStudioAuthoring.IceTools.turnEditOn();

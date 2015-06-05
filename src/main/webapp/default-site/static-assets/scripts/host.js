@@ -97,6 +97,14 @@
         communicator.publish(Topics.DND_COMPONENTS_MODEL_LOAD, data);
     });
 
+    amplify.subscribe(cstopic('ICE_TOOLS_OFF'), function (){
+        communicator.publish(Topics.ICE_TOOLS_OFF);
+    });
+
+    amplify.subscribe(cstopic('ICE_TOOLS_ON'), function (){
+        communicator.publish(Topics.ICE_TOOLS_ON);
+    });
+
     function setHashPage(url) {
         window.location.hash = '#/?page=' + url;
     }

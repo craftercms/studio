@@ -55,6 +55,8 @@
                 "COMPONENT_MOVED": "COMPONENT_MOVED",
                 "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",
                 "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
+                "ICE_TOOLS_ON": "ICE_TOOLS_ON",
+                "ICE_TOOLS_OFF": "ICE_TOOLS_OFF",
 
                 "": ""
             },
