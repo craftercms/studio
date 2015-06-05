@@ -1,4 +1,4 @@
-.cs-loggerlist-heading {
+.cs-loglist-heading {
     background: none repeat scroll 0 0 black;
     border: 1px solid black;
     color: white;
@@ -8,13 +8,32 @@
     padding: 5px;
 }
 
-.cs-loggerlist {
+.cs-loglist {
    left: 10px;
    position: relative;
    right: auto;
    top: 5px;
    width: 90%;
   }
+
+.timestamp {
+ text-align:top;
+ min-width: 150px;
+ height: 30px;
+}
+
+.message {
+  padding-top:15px;
+  height: 30px;
+  overflow: scroll;
+}
+
+.exception {
+  padding-top:15px;
+  padding-left:40px;
+  height: 30px;
+  overflow: scroll;
+}
 
 #log-view {
    left: 250px;
@@ -29,9 +48,32 @@
     overflow:scroll;
 }
 
-.cs-loggerlist-detail {
+.cs-loglist-detail {
     font-size: 12px;
     border: 1px solid black;
     padding: 5px;
     text-align: left;
+}
+
+.INFO {
+  color: black;
+}
+
+.ERROR {
+  color: red;
+  font-weight: bolder;
+}
+
+.WARN {
+  color: orange;
+  font-weight: bold;
+}
+
+.DEBUG {
+  color: blue;
+
+}
+
+.TRACE {
+  color: purple;
 }

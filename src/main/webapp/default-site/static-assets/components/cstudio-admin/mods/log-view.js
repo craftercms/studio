@@ -11,62 +11,84 @@ CStudioAdminConsole.Tool.LogView = CStudioAdminConsole.Tool.LogView ||  function
  */
 YAHOO.extend(CStudioAdminConsole.Tool.LogView, CStudioAdminConsole.Tool, {
 	renderWorkarea: function() {
+		CStudioAdminConsole.Tool.LogView.pause = false;
+		CStudioAdminConsole.Tool.LogView.history = 
+		 	"<th class='cs-loglist-heading'>Timestamp</th>" +
+		 	"<th class='cs-loglist-heading'>Message</th>" +
+		 	"<th class='cs-loglist-heading'>Details</th>";
+
 		var workareaEl = document.getElementById("cstudio-admin-console-workarea");
 		
 		workareaEl.innerHTML = 
 			"<div id='log-view'>" +
-				"<table id='loggerTable' class='cs-loggerlist'>" +
+				"<table id='logTable' class='cs-loglist'>" +
 					"<tr>" +
-					 	"<th class='cs-loggerlist-heading'>Date</th>" +
-					 	"<th class='cs-loggerlist-heading'>Message</th>" +
 					"</tr>" +
 				 "</table>" +
 			"</div>";
 			
-			var actions = [];
+			var actions = [
+				{ name: "Play/Pause", context: this, method: this.playPauseToggleClick }
+			];
 
 			CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 			
 			this.renderLogView();
 	},
 	
+	playPauseToggleClick: function() {
+		CStudioAdminConsole.Tool.LogView.pause = (!CStudioAdminConsole.Tool.LogView.pause);
+	},
+
 	renderLogView: function() {
 		this.appendLogs();
 		window.setTimeout(function(console) { 
 			console.renderLogView();
-			var viewEl = document.getElementById("log-view")
-			viewEl.scrollTop = viewEl.scrollHeight;
 		 }, 1000, this);
 	},
 	
 	appendLogs: function() {
+		var tailEl = document.getElementById('logTable');
 
-			var tailEl = document.getElementById('loggerTable');
+		var cb = {
+			success:function(response) {
+				var entries = eval("(" + response.responseText + ")");
 
-			if(tailEl) {
-				tailEl.innerHTML += "<tr>"+
-										"<td>"+new Date()+"</td>"+
-										"<td>YAHYAHYAHYAHYAHYAHYAHYAHYAH</td>"+
-									"</tr>";
-			}
-			else {
-				if(CStudioAdminConsole.Tool.LogView.refreshFn) {
-					window.clearTimeout(CStudioAdminConsole.Tool.LogView.refreshFn);
+				for(var i=0; i<entries.length; i++) {
+					var entry = entries[i];
+
+					CStudioAdminConsole.Tool.LogView.history += "<tr class='entry "+entry.level+"' >"+
+							"<td class='timestamp'>"+entry.timestamp+"</td>"+
+							"<td class='message'>"+entry.message+"</td>"+
+							"<td class='exception'>"+entry.exception+"</td>"+
+						"</tr>";
+
+					if(CStudioAdminConsole.Tool.LogView.pause == false) {
+						this.el.innerHTML = CStudioAdminConsole.Tool.LogView.history;
+						var viewEl = document.getElementById("log-view")
+						viewEl.scrollTop = viewEl.scrollHeight;
+					}
+						
 				}
-			}
-/*			var serviceUri = "/api/1/services/api/1/server/set-logger-state.json";
-/			var cb = {
-				success:function() {
-					CStudioAdminConsole.Tool.Logging.prototype.refreshLoggingLevels();
-				},
-				failure: function() {
-				}
-			}
-			
-			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
-*/
+
+			},
+			failure: function() {
+			},
+
+			el: tailEl
 		}
-	});
+
+		if(tailEl) {
+			var serviceUri = "/api/1/services/api/1/server/get-log-entries.json";
+			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+		}
+		else {
+			if(CStudioAdminConsole.Tool.LogView.refreshFn) {
+				window.clearTimeout(CStudioAdminConsole.Tool.LogView.refreshFn);
+			}
+		}
+	}
+});
 
 
 	
