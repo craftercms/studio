@@ -1,68 +1,28 @@
 <config>
    <category>
-      <label>ABC</label>
+      <label>General</label>
       <component>
-                <label>Image</label>
-                <type>/component/image</type>
+                <label>Rich Text Section</label>
+                <type>/component/rich-text-section</type>
                 <path>/site/components/page</path>
       </component>
       <component>
-                <label>Lead Form</label>
-                <type>/component/leadform</type>
+                <label>Rich Text Section 2</label>
+                <type>/component/rich-text-section</type>
                 <path>/site/components/page</path>
-      </component>
-      <component>
-                <label>Nearest Store</label>
-                <type>/component/closest-store</type>
-                <path>/site/components/closest-store</path>
-      </component>
-      <component>
-                <label>Map</label>
-                <type>/component/component-map</type>
-                <path>/site/components/maps</path>
-      </component>
-      <component>
-                <label>User Form</label>
-                <type>/component/form</type>
-                <path>/site/components/forms</path>
-      </component>
-<component>
-                <label>Targeted Promotions</label>
-                <type>/component/targeted-promos</type>
-                <path>/site/components/targeted-promos</path>
       </component>
    </category>
    <category>
-      <label>General</label>
+      <label>Text</label>
       <component>
-                <label>Image</label>
-                <type>/component/image</type>
+                <label>Rich Text Section</label>
+                <type>/component/rich-text-section</type>
                 <path>/site/components/page</path>
       </component>
       <component>
-                <label>Lead Form</label>
-                <type>/component/leadform</type>
+                <label>RTE</label>
+                <type>/component/rich-text-section</type>
                 <path>/site/components/page</path>
-      </component>
-      <component>
-                <label>Nearest Store</label>
-                <type>/component/closest-store</type>
-                <path>/site/components/closest-store</path>
-      </component>
-      <component>
-                <label>Map</label>
-                <type>/component/component-map</type>
-                <path>/site/components/maps</path>
-      </component>
-      <component>
-                <label>User Form</label>
-                <type>/component/form</type>
-                <path>/site/components/forms</path>
-      </component>
-<component>
-                <label>Targeted Promotions</label>
-                <type>/component/targeted-promos</type>
-                <path>/site/components/targeted-promos</path>
-      </component>
+      </component>      
    </category>
 </config>
