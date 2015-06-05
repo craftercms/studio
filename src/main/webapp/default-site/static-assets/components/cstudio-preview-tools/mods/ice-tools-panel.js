@@ -118,36 +118,14 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		templateButtonEl.onclick = function() {
 			var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 			
-			if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
-					contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
-						"-" + CStudioAuthoringContext.channel + ".ftl"; 
-			}
+			// if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
+			// 		contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
+			// 			"-" + CStudioAuthoringContext.channel + ".ftl"; 
+			// }
 
 			CStudioAuthoring.Operations.openTemplateEditor(contentType, "default", {
                 success: function() {
-                    if(!CStudioAuthoringContext.channel || CStudioAuthoringContext.channel == "web") {
-                        document.location = document.location;
-                    } else {
-
-                        var cb = {
-                            moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
-                                try {
-                                    moduleClass.render();
-                                }
-                                catch (e) {
-                                }
-                            },
-
-                            self: this
-                        };
-
-                        CStudioAuthoring.Module.requireModule(
-                            "medium-panel-"+CStudioAuthoringContext.channel,
-                            '/static-assets/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+CStudioAuthoringContext.channel+'.js',
-                            0,
-                            cb);
-
-                    }
+                    CStudioAuthoring.Operations.refreshPreview();     
                 },
                 failure: function() {
                 }

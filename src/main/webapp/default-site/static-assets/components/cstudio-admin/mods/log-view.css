@@ -1,0 +1,37 @@
+.cs-loggerlist-heading {
+    background: none repeat scroll 0 0 black;
+    border: 1px solid black;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    border-color: black white black black;
+    padding: 5px;
+}
+
+.cs-loggerlist {
+   left: 10px;
+   position: relative;
+   right: auto;
+   top: 5px;
+   width: 90%;
+  }
+
+#log-view {
+   left: 250px;
+   position: relative;
+   right: auto;
+   top: 85px;
+
+    height:500px;
+    min-height:500px;
+    width: 70%;
+    border: 1px solid black;
+    overflow:scroll;
+}
+
+.cs-loggerlist-detail {
+    font-size: 12px;
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+}

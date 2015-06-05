@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/entry</content-type>	<placeInNav>true</placeInNav>
+	<display-template>/templates/web/entry.ftl</display-template>
+	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<placeInNav>false</placeInNav>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<title>A Page</title>
+	<meta-description>example</meta-description>
+	<meta-keywords>example</meta-keywords>
+	<orderDefault_f>-1</orderDefault_f>
+	<body>&lt;p&gt;Hello World!&lt;/p&gt;</body>
+	<objectGroupId>88ec</objectGroupId>
+	<objectId>88ec7583-75f5-cd9a-949f-8ee259ff8ce1</objectId>
+	<folder-name/>
+	<banners>	<item>	<headline>WELCOME TO PLUTON THEME!!</headline>
+	<subheadline>CLEAN &amp; RESPONSIVE</subheadline>
+	<explaination>When she reached the first hills of the Italic Mountains, she had a last view back on the skyline of her hometown Bookmarksgrove, the headline of Alphabet Village and the subline of her own road, the Line Lane.
+
+</explaination>
+	<image>/static-assets/images/Slider01.png</image>
+	</item>	<item>	<headline>Easy management</headline>
+	<subheadline>Easy to use</subheadline>
+	<explaination>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</explaination>
+	<image>/static-assets/images/Slider02.png</image>
+	</item>	<item>	<headline>Revolution</headline>
+	<subheadline>Customizable</subheadline>
+	<explaination>A small river named Duden flows by their place and supplies it with the necessary regelialia. It is a paradisematic country, in which roasted parts of sentences fly into your mouth.</explaination>
+	<image>/static-assets/images/Slider03.png</image>
+	</item></banners>
+	<createdDate>6/3/2015 1:6:26</createdDate>
+	<lastModifiedDate>6/3/2015 21:26:16</lastModifiedDate>
+</page>

@@ -647,3 +647,7 @@ body.yui-skin-cstudioTheme .mask{
 #closeUserWarning .ft{
   border-radius: 0 0 6px 6px;
 }
+
+.newTempText{
+  margin-bottom: 10px;
+}

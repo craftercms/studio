@@ -53,25 +53,30 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Create Template</div> ' +
-                           '<div>'+
-                             '<div>Provide a filename for the template</div>'+
-							 '<input id="templateName" size="50"><br/>' +
-                           '<div>' +
-
+                           '<div class="contentTypeOuter">'+
+                               '<div>'+
+                                 '<div class="newTempText">Provide a filename for the template</div>'+
+                                 '<input type="text" id="templateName" size="50"><br/>' +
+                               '</div>' +
+                           '</div> ' +
 						   '<div class="contentTypePopupBtn"> ' +
-						   '<input type="button" class="cstudio-button ok" id="createButton" value="Create" />' +
-                           '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
+						       '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="Create" />' +
+                               '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="Cancel"/>' +
                            '</div>' +
 
                            '</div> ' +
                            '</div>';
 		
 		document.getElementById("upload-popup-inner").style.width = "350px";
-		document.getElementById("upload-popup-inner").style.height = "150px";
+		document.getElementById("upload-popup-inner").style.height = "250px";
 
 		 var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
-								  height : "160px",	
+								  height : "250px",
+                                  effect:{
+                                     effect: YAHOO.widget.ContainerEffect.FADE,
+                                     duration: 0.25
+                                  },
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,
@@ -103,24 +108,28 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web/"+name;
+		var templatePath = "/templates/web";
 		
-		if(templatePath.indexOf(".ftl") == -1) {
-			templatePath += ".ftl";
+		if(name.indexOf(".ftl") == -1) {
+			name = name + ".ftl";
 		}
-		
-		var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-		+ "?site=" + CStudioAuthoringContext.site 
-		+ "&path=" + templatePath;
+
+	     var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+	            "?site=" + CStudioAuthoringContext.site +
+	            "&phase=onSave" +
+	            "&path=" + templatePath +
+	            "&fileName=" + name +
+	            "&user=" + CStudioAuthoringContext.user +
+	            "&unlock=true";
 
 		var saveSvcCb = {
 			success: function() {
 				CStudioAuthoring.Dialogs.NewTemplate.closeDialog();
 				
 				CStudioAuthoring.Operations.openTemplateEditor
-					(templatePath, "default", { 
+					(templatePath+"/"+name, "default", { 
 						success: function() { 
-							_self.cb.success(templatePath); 
+							_self.cb.success(templatePath+"/"+name); 
 						}, 
 						failure: function() {
 						}

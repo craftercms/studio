@@ -1,0 +1,68 @@
+<config>
+   <category>
+      <label>ABC</label>
+      <component>
+                <label>Image</label>
+                <type>/component/image</type>
+                <path>/site/components/page</path>
+      </component>
+      <component>
+                <label>Lead Form</label>
+                <type>/component/leadform</type>
+                <path>/site/components/page</path>
+      </component>
+      <component>
+                <label>Nearest Store</label>
+                <type>/component/closest-store</type>
+                <path>/site/components/closest-store</path>
+      </component>
+      <component>
+                <label>Map</label>
+                <type>/component/component-map</type>
+                <path>/site/components/maps</path>
+      </component>
+      <component>
+                <label>User Form</label>
+                <type>/component/form</type>
+                <path>/site/components/forms</path>
+      </component>
+<component>
+                <label>Targeted Promotions</label>
+                <type>/component/targeted-promos</type>
+                <path>/site/components/targeted-promos</path>
+      </component>
+   </category>
+   <category>
+      <label>General</label>
+      <component>
+                <label>Image</label>
+                <type>/component/image</type>
+                <path>/site/components/page</path>
+      </component>
+      <component>
+                <label>Lead Form</label>
+                <type>/component/leadform</type>
+                <path>/site/components/page</path>
+      </component>
+      <component>
+                <label>Nearest Store</label>
+                <type>/component/closest-store</type>
+                <path>/site/components/closest-store</path>
+      </component>
+      <component>
+                <label>Map</label>
+                <type>/component/component-map</type>
+                <path>/site/components/maps</path>
+      </component>
+      <component>
+                <label>User Form</label>
+                <type>/component/form</type>
+                <path>/site/components/forms</path>
+      </component>
+<component>
+                <label>Targeted Promotions</label>
+                <type>/component/targeted-promos</type>
+                <path>/site/components/targeted-promos</path>
+      </component>
+   </category>
+</config>

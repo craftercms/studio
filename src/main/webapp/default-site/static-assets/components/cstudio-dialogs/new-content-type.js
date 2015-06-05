@@ -216,19 +216,19 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 										"<type>string</type>\r\n"+					
 										"</property>\r\n";
 								
-								if(!this.context.config.objectTypes.length) {
-									this.context.config.objectTypes = [ this.context.config.objectTypes.type ];
+								if(!this.context.config.objectTypes.type.length) {
+									this.context.config.objectTypes.type = [ this.context.config.objectTypes.type ];
 								}
 								
-								for(var k=0; k<this.context.config.objectTypes.length; k++) {
-									var objectType = this.context.config.objectTypes[k];
+								for(var k=0; k<this.context.config.objectTypes.type.length; k++) {
+									var objectType = this.context.config.objectTypes.type[k];
 									
 									if(objectType.name == type) {
-										if(!objectType.properties.length) {
-											objectType.properties = [ objectType.properties.property ];
+										if(!objectType.properties.property.length) {
+											objectType.properties.property = [ objectType.properties.property];
 										}
 										
-										var typeProps = objectType.properties;
+										var typeProps = objectType.properties.property;
 										
 										for(var j=0; j<typeProps.length; j++) {
 											var typeProperty = typeProps[j];

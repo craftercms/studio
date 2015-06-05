@@ -1,0 +1,11 @@
+<content-type name="/page/entry" is-wcm-type="true">
+	<label>Entry</label>
+	<form>/page/entry</form>
+	<form-path>simple</form-path>
+	<model-instance-path>not-used</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>true</content-as-folder>
+	<previewable>true</previewable>
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail></image-thumbnail>
+</content-type>
