@@ -1,0 +1,7 @@
+<config>
+	<assetNodes>
+		<assetNode>/css-group/css</assetNode>
+		<assetNode>/display-template</assetNode>
+		<assetNode>/script-group/script</assetNode>
+	</assetNodes>
+</config>
