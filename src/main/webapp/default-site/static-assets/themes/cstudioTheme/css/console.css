@@ -244,35 +244,79 @@ body,tbody {
 .content-field-name{
 	color: #0290D6;
 	display: inline-block;
-	min-width: 125px
+	min-width: 145px;
+    margin-right: 16px;
+    padding: 0;
+}
+
+.content-type-visual-field-container .content-field-name{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 145px;
+  height: 16px;
+  padding-top: 1px;
+  position: relative;
+  top: 3px;
 }
 
 .content-datasource-name{
 	color: #993399;
 	display: inline-block;
-	min-width: 125px
+	min-width: 125px;
+    margin-right: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 145px;
+    height: 16px;
+    padding-top: 1px;
+    position: relative;
+    top: 3px;
 }
 
 .content-field-variable {
 	color: #A1A1A1;
 	padding-left: 20px;
     font-weight: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 185px;
+    height: 16px;
+    padding-top: 1px;
+    display: inline-block;
+    position: relative;
+    top: 3px;
 }
 
 .content-field-type{
 	color: #A1A1A1;
     font-weight: normal;
+    display: inline-block;
+    width: 93px;
 }
 
 .content-datasource-type{
 	color: #808080;
     font-weight: normal;
+    display: inline-block;
+    width: 160px;
 }
 
 .content-datasource-variable{
 	color: #808080;
 	padding-left: 20px;
     font-weight: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 185px;
+    height: 16px;
+    padding-top: 1px;
+    display: inline-block;
+    position: relative;
+    top: 3px;
 }
 
 .content-section-name {
@@ -321,7 +365,7 @@ body,tbody {
     color: #555555;
     padding: 4px 2%;
     float: left;
-    width: 54%;
+    width: 60%;
     text-overflow: ellipsis;
     background-color: #FFFFFF;
 }
