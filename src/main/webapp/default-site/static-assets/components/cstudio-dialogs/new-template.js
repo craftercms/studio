@@ -103,14 +103,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web/";
+		var templatePath = "/templates/web";
 		
 		if(name.indexOf(".ftl") == -1) {
 			name = name + ".ftl";
 		}
 
-		templatePath += name;
-		
 	     var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
 	            "?site=" + CStudioAuthoringContext.site +
 	            "&phase=onSave" +
@@ -124,9 +122,9 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 				CStudioAuthoring.Dialogs.NewTemplate.closeDialog();
 				
 				CStudioAuthoring.Operations.openTemplateEditor
-					(templatePath, "default", { 
+					(templatePath+"/"+name, "default", { 
 						success: function() { 
-							_self.cb.success(templatePath); 
+							_self.cb.success(templatePath+"/"+name); 
 						}, 
 						failure: function() {
 						}
