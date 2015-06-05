@@ -465,7 +465,7 @@ public class ContentServiceImpl implements ContentService {
         item.isPage = item.page;
         item.previewable = item.page;
         item.isPreviewable = item.previewable;
-        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site));
+        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor();
         item.isComponent = item.component;
         item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
         item.isAsset = item.asset;
