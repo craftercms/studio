@@ -1740,6 +1740,27 @@ var YEvent = YAHOO.util.Event;
             },
 
             /**
+             * create new script
+             */
+            createNewScript: function(path, scriptSaveCb) {
+                var createScriptDialogCb = {
+                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {                                                                     
+                        dialogClass.showDialog(scriptSaveCb, moduleConfig);
+                    }
+                };
+
+                var createModuleConfig = {
+                    createScriptDialogCb: scriptSaveCb,
+                    path: path
+                };
+
+                CStudioAuthoring.Module.requireModule("new-script-dialog",
+                    "/static-assets/components/cstudio-dialogs/new-script.js",
+                    createModuleConfig,
+                    createScriptDialogCb);
+            },
+
+            /**
              * open template
              */
             openTemplateEditor: function(contentType, channel, templateSaveCb) {
