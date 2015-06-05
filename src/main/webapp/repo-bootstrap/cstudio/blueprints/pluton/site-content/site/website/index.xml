@@ -6,11 +6,10 @@
 	<placeInNav>false</placeInNav>
 	<file-name>index.xml</file-name>
 	<internal-name>Home</internal-name>
-	<title>A Page</title>
-	<meta-description>example</meta-description>
-	<meta-keywords>example</meta-keywords>
+	<title>Home Page</title>
+	<meta-description>Home page</meta-description>
+	<meta-keywords>home page</meta-keywords>
 	<orderDefault_f>-1</orderDefault_f>
-	<body>&lt;p&gt;Hello World!&lt;/p&gt;</body>
 	<objectGroupId>88ec</objectGroupId>
 	<objectId>88ec7583-75f5-cd9a-949f-8ee259ff8ce1</objectId>
 	<folder-name/>
@@ -30,5 +29,34 @@
 	<image>/static-assets/images/Slider03.png</image>
 	</item></banners>
 	<createdDate>6/3/2015 1:6:26</createdDate>
-	<lastModifiedDate>6/3/2015 21:26:16</lastModifiedDate>
+	<lastModifiedDate>6/5/2015 20:42:1</lastModifiedDate>
+	<col1Modules>	<item>	<key>/site/components/page/entry/3d1d37e2-dfec-cec7-811c-5aeb767fbd95.xml</key>
+	<value>Portfolio</value>
+	<include>/site/components/page/entry/3d1d37e2-dfec-cec7-811c-5aeb767fbd95.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/4b34ce1b-064a-2880-68bb-2d7e1cf4355c.xml</key>
+	<value>About Us</value>
+	<include>/site/components/page/entry/4b34ce1b-064a-2880-68bb-2d7e1cf4355c.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/9cb08bc1-fe09-c450-8043-a4ccbaf166e4.xml</key>
+	<value>Purchase Now</value>
+	<include>/site/components/page/entry/9cb08bc1-fe09-c450-8043-a4ccbaf166e4.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/66794cb2-bcad-756f-039a-c87bc7d7df89.xml</key>
+	<value>Clients</value>
+	<include>/site/components/page/entry/66794cb2-bcad-756f-039a-c87bc7d7df89.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/87846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</key>
+	<value>Pricing</value>
+	<include>/site/components/page/entry/87846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/91257e32-0d6a-e244-d4e8-29ef9945c52f.xml</key>
+	<value>Newsletter</value>
+	<include>/site/components/page/entry/91257e32-0d6a-e244-d4e8-29ef9945c52f.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/page/entry/2da8cd26-96e3-1ffa-42ef-257ea28eb754.xml</key>
+	<value>Contact</value>
+	<include>/site/components/page/entry/2da8cd26-96e3-1ffa-42ef-257ea28eb754.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></col1Modules>
 </page>

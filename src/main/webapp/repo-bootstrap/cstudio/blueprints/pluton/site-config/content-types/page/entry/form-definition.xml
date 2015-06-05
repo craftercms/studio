@@ -25,7 +25,7 @@
 	<sections>		<section>
 			<title>Page Settings</title>
 			<description></description>
-			<defaultOpen>true</defaultOpen>
+			<defaultOpen>false</defaultOpen>
 			<fields>
 				<field>
 					<type>file-name</type>
@@ -295,63 +295,10 @@
 				</field>
 					</fields>
 				</field>
-				<field>
-					<type>rte</type>
-					<id>body</id>
-					<iceId>body</iceId>
-					<title>Body Copy</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>cols</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>rows</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>allowResize</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>imageManager</name>
-							<value>desktopImages</value>
-							<type>image</type>
-						</property>
-						<property>
-							<name>supportedChannels</name>
-							<value>iPhone:iphonev:300,iPad:ipadv:700</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>width</name>
-							<value>630</value>
-							<type>int</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
-							<type>int</type>
-						</constraint>
-					</constraints>
-				</field>
 			</fields>
 		</section>
 		<section>
-			<title>Metadata</title>
+			<title>Page Metadata</title>
 			<description></description>
 			<defaultOpen>false</defaultOpen>
 			<fields>
@@ -359,7 +306,7 @@
 					<type>input</type>
 					<id>title</id>
 					<iceId></iceId>
-					<title>Title</title>
+					<title>Page Title</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help>Field Help</help>
@@ -373,6 +320,11 @@
 							<name>maxlength</name>
 							<value>100</value>
 							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
 						</property>
 					</properties>
 					<constraints>
@@ -456,6 +408,61 @@
 				</field>
 			</fields>
 		</section>
+		<section>
+			<title>Page Components</title>
+			<description></description>
+			<defaultOpen>false</defaultOpen>
+			<fields>
+				<field>
+					<type>node-selector</type>
+					<id>col1Modules</id>
+					<iceId></iceId>
+					<title>Column 1 Modules</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>minSize</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxSize</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>itemManager</name>
+							<value>[&quot;col1components&quot;]</value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>disableFlattening</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>useSingleValueFilename</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>allowDuplicates</name>
+							<value><![CDATA[]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+			</fields>
+		</section>
 	</sections>
 	<datasources>				<datasource>
 					<type>img-desktop-upload</type>
@@ -466,6 +473,24 @@
 						<property>
 							<name>repoPath</name>
 							<value>/static-assets/images</value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+				<datasource>
+					<type>child-content</type>
+					<id>col1components</id>
+					<title>Col1 Components</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>repoPath</name>
+							<value>/site/components/page/entry</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>type</name>
+							<value></value>
 								<type>undefined</type>
 						</property>
 					</properties>

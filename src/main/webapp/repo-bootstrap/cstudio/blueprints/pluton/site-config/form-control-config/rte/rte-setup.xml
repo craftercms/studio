@@ -6,7 +6,12 @@
 			<loadFromPreview>true</loadFromPreview>
 			<url>/static-assets/css/style.css</url>         
          </link>
-         
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/pluton.css</url>         
+         </link>
+
+
          <link>
          	<appliesToChannel>iphonev,iphoneh</appliesToChannel>
 			<loadFromPreview>true</loadFromPreview>
@@ -25,7 +30,7 @@
 		 .layoutColumn4 { border: 1px solid gray; }
 	 </rteStyleOverride>
 
-    <toolbarItems1>formatselect,styleselect,|,bold,italic,subscript,superscript,|outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,insertLayout,channelSelect,insertComponent,|,code,|,undo,redo</toolbarItems1>
+    <toolbarItems1>formatselect,styleselect,|,bold,italic,subscript,superscript,|outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,insertLayout,channelSelect,insertComponent,|,|,edithtml,|,undo,redo</toolbarItems1>
 	<toolbarItems2></toolbarItems2>
 	<toolbarItems3></toolbarItems3>
 	<toolbarItems4></toolbarItems4>
@@ -215,6 +220,7 @@
                 <module>channel</module>
                 <module>insert-layout</module>
                 <module>insert-component</module>
+                <module>edit-html</module>
 	</rteModules>
        <rteLinkTargets>
 	         <target>

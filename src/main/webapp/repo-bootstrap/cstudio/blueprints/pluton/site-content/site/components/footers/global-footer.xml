@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/global-footer</content-type>	<display-template>/templates/web/component-global-footer.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5de7</objectGroupId>
+	<objectId>5de7b551-28a3-39ec-7696-0863cd2aa65a</objectId>
+	<file-name>global-footer.xml</file-name>
+	<folder-name/>
+	<internal-name>Global Footer</internal-name>
+	<createdDate>6/5/2015 19:37:7</createdDate>
+	<lastModifiedDate>6/5/2015 19:37:7</lastModifiedDate>
+</component>
