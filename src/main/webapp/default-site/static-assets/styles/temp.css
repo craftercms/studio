@@ -2291,10 +2291,9 @@ div#acn-active-content {
   width: auto; }
 
 #acn-ice-tools-container {
-  padding: 4px 8px 5px 0px;
-  cusor: pointer;
-  background: url("/studio/static-assets/themes/cstudioTheme/images/bg/bar_vertical_divider.gif") repeat-y scroll right center transparent;
-  cursor: pointer; }
+  padding: 13px 5px 19px;
+  cursor: pointer;
+  margin-right: 7px; }
 
 #acn-ice-tools-image {
   padding-top: 2px;
