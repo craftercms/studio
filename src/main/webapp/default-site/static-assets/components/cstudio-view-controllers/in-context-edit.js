@@ -28,10 +28,10 @@
          *
          * on error, display the issue and then close the dialog
          */
-        initializeContent: function(item, field, site, isEdit, callback, $modal, aux) {
-            var iframeEl = document.getElementById("in-context-edit-editor");
-            var dialogEl = document.getElementById("viewcontroller-in-context-edit_0_c");
-            var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit_0");
+        initializeContent: function(item, field, site, isEdit, callback, $modal, aux, editorId) {
+            var iframeEl = window.top.document.getElementById("in-context-edit-editor-"+editorId);
+            var dialogEl = document.getElementById("viewcontroller-in-context-edit-"+editorId+"_0_c");
+            var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit-"+editorId+"_0");
             aux = (aux) ? aux : {};
 
             CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, {

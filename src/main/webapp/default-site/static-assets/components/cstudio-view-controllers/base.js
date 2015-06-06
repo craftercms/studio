@@ -126,7 +126,7 @@
         getComponent: function(selector) {
             //return Selector.query(selector, this.cfg.getProperty("context"), true);
             var parent = document.querySelector("#" + this.cfg.getProperty("context"));
-			return parent.querySelector(selector);
+			return (parent) ? parent.querySelector(selector) : null;
         },
         /**
          * Gets a set of elements by a CSS selector. The selection is
