@@ -465,6 +465,16 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             "assetsFolderMenuRead" : [
                 { text: "No Actions&nbsp;Available", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
             ],
+
+            "assetsFolderTemplate" : [
+                { text: "Create&nbsp;Template", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewTemplate, obj:tree } }
+            ],
+
+
+            "assetsFolderScript" : [
+                { text: "Create&nbsp;Controller", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewScript, obj:tree } }
+            ],
+
             "assetsMenuRead" : [
                 { text: "Upload", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
                 { text: "Delete", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
@@ -517,6 +527,14 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                             } else {
                                 this.aMenuItems = this.menuItems["assetsMenuNoDelete"].slice();
                             }
+                        }
+
+                        if(oCurrentTextNode.data.uri.indexOf("/templates") != -1) {
+                            this.aMenuItems.push(this.menuItems["assetsFolderTemplate"]);
+                        }
+
+                        if(oCurrentTextNode.data.uri.indexOf("/scripts") != -1) {
+                            this.aMenuItems.push(this.menuItems["assetsFolderScript"]);
                         }
 
                         if(oCurrentTextNode.data.uri.indexOf(".ftl") != -1
@@ -649,7 +667,12 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
         var editCb = {
             success: function() {
-                this.callingWindow.location.reload(true);
+                if(CStudioAuthoringContext.isPreview){
+                     CStudioAuthoring.Operations.refreshPreview(); 
+                }
+                else {
+                    this.callingWindow.location.reload(true);
+                }
             },
 
             failure: function() {
@@ -659,6 +682,27 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         };
 
         CStudioAuthoring.Operations.openTemplateEditor(path, "default", editCb);
+    },
+
+    createNewTemplate: function() {
+        CStudioAuthoring.Operations.createNewTemplate({ 
+            success: function(templatePath) {
+                this.callingWindow.location.reload(true);   
+            }, 
+            failure: function() {}
+        }); 
+    },
+
+    createNewScript: function() {
+        CStudioAuthoring.Operations.createNewScript( oCurrentTextNode.data.uri, { 
+            success: function(templatePath) {
+                Self.refreshNodes(this.tree,false);  
+            }, 
+            failure: function() {
+
+            },
+            tree: oCurrentTextNode
+        }); 
     },
 
     /**

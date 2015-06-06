@@ -118,54 +118,40 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		templateButtonEl.onclick = function() {
 			var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 			
-			if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
-					contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
-						"-" + CStudioAuthoringContext.channel + ".ftl"; 
-			}
+			// if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
+			// 		contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
+			// 			"-" + CStudioAuthoringContext.channel + ".ftl"; 
+			// }
 
 			CStudioAuthoring.Operations.openTemplateEditor(contentType, "default", {
                 success: function() {
-                    if(!CStudioAuthoringContext.channel || CStudioAuthoringContext.channel == "web") {
-                        document.location = document.location;
-                    } else {
-
-                        var cb = {
-                            moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
-                                try {
-                                    moduleClass.render();
-                                }
-                                catch (e) {
-                                }
-                            },
-
-                            self: this
-                        };
-
-                        CStudioAuthoring.Module.requireModule(
-                            "medium-panel-"+CStudioAuthoringContext.channel,
-                            '/static-assets/components/cstudio-preview-tools/mods/agent-plugins/'+channel.value+'/'+CStudioAuthoringContext.channel+'.js',
-                            0,
-                            cb);
-
-                    }
+                    CStudioAuthoring.Operations.refreshPreview();     
                 },
                 failure: function() {
                 }
             });
 		};
+        var contextNavImg = YDom.get("acn-ice-tools-image");
+        var cstopic = crafter.studio.preview.cstopic;
 
-       	CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(
-       			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
-    				labelEl.innerHTML = "In-Context Edit Off";
-       			});
+        CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(function() {
+            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
+            contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
+            labelEl.innerHTML = "In-Context Edit Off";
 
-       	CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(
-       			function() {
-       				imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
-       				YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
-       				labelEl.innerHTML = "In-Context Edit On";
-       			});
+            amplify.publish(cstopic('ICE_TOOLS_OFF'));
+
+        });
+
+        CStudioAuthoring.IceTools.IceToolsOnEvent.subscribe(function() {
+            imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
+            contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
+            YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
+            labelEl.innerHTML = "In-Context Edit On";
+
+            amplify.publish(cstopic('ICE_TOOLS_ON'));
+
+        });
 		
 		if(iceOn) {
 			CStudioAuthoring.IceTools.turnEditOn();

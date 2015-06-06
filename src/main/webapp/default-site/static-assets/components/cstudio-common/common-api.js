@@ -401,17 +401,30 @@ var YEvent = YAHOO.util.Event;
 
                 try {
                     var waiting = this.waitingForModule[moduleName];
+                    var waiter;
 
                     if(waiting) {
                         for(var i=0; i<waiting.length; i++) {
-                            var waiter = waiting[i];
+                            waiter = waiting[i];
 
-                            waiter.callback.moduleLoaded(moduleName, moduleClass, waiter.moduleConfig);
+                            if(waiter.callback) {
+                                var config = (waiter.moduleConfig) ? waiter.moduleConfig : {};
+                                waiter.callback.moduleLoaded(moduleName, moduleClass, config);
+                            }
                         }
                     }
                 }
                 catch(err) {
-                    alert("error while loading module :"+err);
+                    var msg = "";
+                    msg += "Error while loading module: " + moduleName + "\r\n";
+                    msg += "Err:" + err +"\r\n";
+                    msg += "callback:" + ((waiter.callback) ? waiter.callback : "none") + "\r\n";
+                    msg += "moduleClass:" + ((waiter.moduleClass) ? moduleClass.moduleClass : "none") + "\r\n";
+                    msg += "moduleConfig:" + ((waiter.moduleConfig) ? moduleClass.moduleConfig : "none") + "\r\n";
+
+                    if( window.console && window.console.log) { 
+                        window.console.log(msg);
+                    }
                 }
             }
         },
@@ -972,6 +985,11 @@ var YEvent = YAHOO.util.Event;
                         CStudioAuthoring.ChildSearchManager.openChildSearch(childSearch);
                     }
                 }
+            },
+
+            refreshPreview: function() {
+                var previewFrameEl = document.getElementById("engineWindow");
+                previewFrameEl.contentWindow.location.reload();
             },
 
             setPreview: function(url) {
@@ -1719,6 +1737,27 @@ var YEvent = YAHOO.util.Event;
                     "/static-assets/components/cstudio-dialogs/new-template.js",
                     createModuleConfig,
                     createTemplateDialogCb);
+            },
+
+            /**
+             * create new script
+             */
+            createNewScript: function(path, scriptSaveCb) {
+                var createScriptDialogCb = {
+                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {                                                                     
+                        dialogClass.showDialog(scriptSaveCb, moduleConfig);
+                    }
+                };
+
+                var createModuleConfig = {
+                    createScriptDialogCb: scriptSaveCb,
+                    path: path
+                };
+
+                CStudioAuthoring.Module.requireModule("new-script-dialog",
+                    "/static-assets/components/cstudio-dialogs/new-script.js",
+                    createModuleConfig,
+                    createScriptDialogCb);
             },
 
             /**

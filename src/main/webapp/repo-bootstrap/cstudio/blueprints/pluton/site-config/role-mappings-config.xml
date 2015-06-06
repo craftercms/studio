@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role-mappings>
+    <groups>
+        <group name="crafter-admin">
+            <role>admin</role>
+        </group>
+        <group name="site_pluton_SiteManager">
+            <role>admin</role>
+        </group>
+        <group name="site_pluton_SiteCollaborator">
+            <role>author</role>
+        </group>
+        <group name="site_pluton_SiteContributor">
+            <role>author</role>
+        </group>
+        <group name="site_pluton_SiteConsumer">
+            <role>viewer</role>
+        </group>         
+    </groups>
+</role-mappings>

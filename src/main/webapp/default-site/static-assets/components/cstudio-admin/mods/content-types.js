@@ -1357,9 +1357,11 @@ CStudioAdminConsole.PropertySheet.prototype = {
  	 	this.CMgs = CStudioAuthoring.Messages;
  	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
+        if(item.id == undefined){item.id = "";}
+
 		this.createRowHeading("Repeat Group Basics", sheetEl);
 		this.createRowFn(this.CMgs.format(this.langBundle, "title"), "title", item.title, "",  "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn(this.CMgs.format(this.langBundle, "varibleName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(this.CMgs.format(this.langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
 		
 		this.createRowFn(this.CMgs.format(this.langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "", "string",  sheetEl,  function(e, el) { item.description = el.value; });
