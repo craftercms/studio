@@ -22,6 +22,12 @@
             Dom.setStyle(this.cfg.getProperty("context"), "overflow", "visible");
         },
 
+        close: function() {
+            var editorId = this.editorId;
+            var iframeEl = window.top.document.getElementById("in-context-edit-editor-"+editorId);
+            iframeEl.parentNode.parentNode.style.display = "none";
+        },
+
         /**
          * on initialization, go out and get the content and
          * populate the dialog.
@@ -42,10 +48,23 @@
                 dialogBodyEl: dialogBodyEl,
                 success: function(contentType) {
                     var windowUrl = "";
-                    windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit, aux);
+                    windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit, aux, editorId);
 
                     this.iframeEl.src = windowUrl;
-                    window.iceCallback = callback;
+                    
+                    if(!window.top.iceDialogs) {
+                        window.top.iceDialogs = [];
+                    }
+
+                    this.context.editorId = editorId;
+                    window.top.iceDialogs[editorId] = this.context;
+
+
+                    if(!window.top.iceCallback) {
+                        window.top.iceCallback = [];
+                    } 
+
+                    window.top.iceCallback[editorId] = callback;
 
                     this.iframeEl.onload = function () {
 
@@ -101,7 +120,7 @@
         /**
          * construct URL for simple form server
          */
-        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, auxParams) {
+        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, auxParams, editorId) {
             var windowUrl = "";
             var formId = contentType.form;
             var readOnly = false;
@@ -137,6 +156,8 @@
             if(readOnly == true) {
                 windowUrl += "&readonly=true";
             }
+
+            windowUrl += "&editorId="+editorId;
 
             return windowUrl;
         },
