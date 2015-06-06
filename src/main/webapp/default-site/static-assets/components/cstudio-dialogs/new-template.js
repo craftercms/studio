@@ -93,6 +93,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 			nameEl: document.getElementById('templateName')
 		};
 		
+		YAHOO.util.Event.addListener("templateName", "keypress", this.limitInput, eventParams);
 
 		YAHOO.util.Event.addListener("createButton", "click", this.createClick, eventParams);
 
@@ -100,6 +101,13 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 
 		
 		return dialog;
+	},
+
+	limitInput: function(event, params) {
+		var value = params.nameEl.value;
+		value = value.replace(" ", "-");
+		value = value.replace(/[^a-zA-Z0-9-\.]/g, '')
+		params.nameEl.value = value;
 	},
 
 	/** 

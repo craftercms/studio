@@ -96,12 +96,22 @@ CStudioAuthoring.Dialogs.NewScript = CStudioAuthoring.Dialogs.NewScript || {
 		};
 		
 
+
+		YAHOO.util.Event.addListener("templateName", "keypress", this.limitInput, eventParams);
+
 		YAHOO.util.Event.addListener("createButton", "click", this.createClick, eventParams);
 
 		YAHOO.util.Event.addListener("createCancelButton", "click", this.popupCancelClick);
 
 		
 		return dialog;
+	},
+
+	limitInput: function(event, params) {
+		var value = params.nameEl.value;
+		value = value.replace(" ", "-");
+		value = value.replace(/[^a-zA-Z0-9-\.]/g, '')
+		params.nameEl.value = value;
 	},
 
 	/** 
