@@ -923,7 +923,9 @@ var CStudioForms = CStudioForms || function() {
 
                 var saveFn = function(preview) {
                     showWarnMsg = false;
-                    var iceWindowCallback = window.parent.iceCallback;
+                    var queryString = document.location.search;
+                    var editorId = CStudioAuthoring.Utils.getQueryVariable(queryString, "editorId");
+                    var iceWindowCallback = window.top.iceCallback[editorId];
 
                     var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
                     var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
@@ -983,7 +985,11 @@ var CStudioForms = CStudioForms || function() {
 
                                     if((iceId && iceId!="") || (iceComponent && iceComponent!="")) {
                                         if(iceWindowCallback) {
-                                            iceWindowCallback.success(contentTO);
+                                            var value = form.model["internal-name"];
+                                            var name = entityId;
+                                            var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                            iceWindowCallback.success(contentTO, editorId, name, value);
+                                           
                                         }
                                         else {
                                             window.parent.location = window.parent.location;

@@ -10,10 +10,10 @@
   <@toolSupport />
 </#macro>
 
-<#macro componentAttr path="" ice=false>
+<#macro componentAttr path="" ice=false iceGroup="">
   <#if siteContext.overlayCallback??>data-studio-component-path="${path}" data-studio-component="${path}" 
     <#if ice==true>
-      <@iceAttr path=path/>
+      <@iceAttr path=path iceGroup=iceGroup/>
     </#if>
   </#if> 
 </#macro>

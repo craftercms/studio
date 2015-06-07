@@ -1302,7 +1302,7 @@ var YEvent = YAHOO.util.Event;
             },
 
             performSimpleIceEdit: function(item, field, isEdit, callback, aux) {
-
+                var editorId =  CStudioAuthoring.Utils.generateUUID();
                 var id = CSA.Utils.getScopedId(),
                     controller = 'viewcontroller-in-context-edit',
                     animator,
@@ -1310,30 +1310,45 @@ var YEvent = YAHOO.util.Event;
 
                 isEdit = (typeof(isEdit) == "undefined") ? true : isEdit;
 
-                var $modal = $('<div><div class="ice-mask"></div><div class="studio-ice-dialog" style="display:none"><div class="bd"></div></div></div>');
+                var $modal = $('<div><div class="no-ice-mask"></div><div class="studio-ice-dialog studio-ice-container-'+editorId+'" style="display:none"><div class="bd"></div></div></div>');
                 $modal.find('.bd').attr('id', id);
 
-                animator = new crafter.studio.Animator($modal.find('.studio-ice-dialog'));
+                animator = new crafter.studio.Animator($modal.find('.studio-ice-container-'+editorId));
 
                 (!callback) && (callback = {
                     success: function() {
-                        window.location.reload();
+                        if(CStudioAuthoringContext.isPreview) {
+                            CStudioAuthoringContext.Service.refreshPreview();
+                        }
+                        else{
+                            window.location.reload();
+                        }
                     }
                 });
 
                 CSA.Env.Loader.use(controller, function() {
                     CStudioAuthoring.Service.getInContextEditView({
                         success: function (response) {
-
+                            window.top.studioFormZorder= (window.top.studioFormZorder) ? window.top.studioFormZorder + 1 : 9999;
+                            var template = '<iframe id="in-context-edit-editor-'+editorId+'" frameborder="0" style="z-index:'+window.top.studioFormZorder+';" onload="CStudioAuthoring.InContextEdit.autoSizeIceDialog("'+editorId+'");"></iframe>"';
+                            var parentEl = window.top.document.body;
                             $modal
-                                .find('.bd').html(response.responseText).end()
-                                .appendTo(document.body);
+                                .find('.bd').html(template).end()
+                                .appendTo(parentEl);
 
                             var Controller = CSA.Env.ModuleMap.get(controller);
 
-                            view = new Controller({ context: id });
+                            view = new Controller({ context: id, editorId: editorId });
 
-                            view.initializeContent(item, field, CStudioAuthoringContext.site, isEdit, callback, $modal.find('.studio-ice-dialog'), aux);
+                            view.initializeContent(
+                                item, 
+                                field, 
+                                CStudioAuthoringContext.site, 
+                                isEdit, 
+                                callback, 
+                                $modal.find('.studio-ice-container-'+editorId), 
+                                aux,
+                                editorId);
 
                             view.on("end", function () {
                                 $modal.remove();
@@ -6812,9 +6827,9 @@ CStudioAuthoring.InContextEdit = {
 
     },
 
-    autoSizeIceDialog: function() {
-        var el = document.getElementById('in-context-edit-editor');
-        var containerEl = document.getElementById('viewcontroller-in-context-edit_0_c');
+    autoSizeIceDialog: function(editorId) {
+        var el = document.getElementById('in-context-edit-editor-'+editorId);
+        var containerEl = document.getElementById('viewcontroller-in-context-edit-'+editorId+'_0_c');
         if(!containerEl) return;
 
         var height = YAHOO.util.Dom.getViewportHeight() - 200;
