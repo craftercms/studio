@@ -472,7 +472,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
 
             "assetsFolderScript" : [
-                { text: "Create&nbsp;Controller", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewTemplate, obj:tree } }
+                { text: "Create&nbsp;Controller", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewScript, obj:tree } }
             ],
 
             "assetsMenuRead" : [
@@ -694,11 +694,14 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     },
 
     createNewScript: function() {
-        CStudioAuthoring.Operations.createNewScript({ 
+        CStudioAuthoring.Operations.createNewScript( oCurrentTextNode.data.uri, { 
             success: function(templatePath) {
-                this.callingWindow.location.reload(true);   
+                Self.refreshNodes(this.tree,false);  
             }, 
-            failure: function() {}
+            failure: function() {
+
+            },
+            tree: oCurrentTextNode
         }); 
     },
 

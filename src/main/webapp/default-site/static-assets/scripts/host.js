@@ -20,13 +20,50 @@
     });
 
     communicator.subscribe(Topics.ICE_ZONE_ON, function (message, scope) {
-        CStudioAuthoring.InContextEdit.editControlClicked.call({
-            content: {
-                itemIsLoaded: true,
-                field: message.iceId,
-                item: CStudioAuthoring.SelectedContent.getSelectedContent()[0]
-            }
-        });
+
+        var editCb = { 
+            success:function() {
+                CStudioAuthoring.Operations.refreshPreview(); 
+            }, 
+            failure: function() {
+            }  
+        };
+        
+        if(!message.itemId) {
+            // base page edit
+            CStudioAuthoring.Operations.performSimpleIceEdit(
+                CStudioAuthoring.SelectedContent.getSelectedContent()[0],
+                message.iceId, //field
+                true,
+                editCb, []);
+        }
+
+        else {
+            var getContentItemsCb = {
+                success: function (contentTO) {
+                    CStudioAuthoring.Operations.performSimpleIceEdit(
+                        contentTO.item,
+                        this.iceId, //field
+                        true,
+                        this.editCb,
+                        []);
+                },
+
+                failure: function () {
+                    callback.failure();
+                },
+                iceId: message.iceId,
+                editCb: editCb
+            };
+                    
+            CStudioAuthoring.Service.lookupContentItem(
+                CStudioAuthoringContext.site, 
+                message.itemId, 
+                getContentItemsCb, 
+                false, false);
+
+        }
+
     });
 
     // Listen to the guest site load
@@ -95,6 +132,14 @@
     amplify.subscribe(cstopic('DND_COMPONENTS_MODEL_LOAD'), function (data) {
         initialContentModel = data;
         communicator.publish(Topics.DND_COMPONENTS_MODEL_LOAD, data);
+    });
+
+    amplify.subscribe(cstopic('ICE_TOOLS_OFF'), function (){
+        communicator.publish(Topics.ICE_TOOLS_OFF);
+    });
+
+    amplify.subscribe(cstopic('ICE_TOOLS_ON'), function (){
+        communicator.publish(Topics.ICE_TOOLS_ON);
     });
 
     function setHashPage(url) {

@@ -6,7 +6,7 @@ CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
 /**
  * NewContentType
  */
-CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
+CStudioAuthoring.Dialogs.NewScript = CStudioAuthoring.Dialogs.NewScript || {
 
 	/**
 	 * initialize module
@@ -22,7 +22,8 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		this.config = config;
 		this._self = this;
 		this.cb = cb;
-		this.dialog = this.createDialog();
+		this.path = config.path;
+		this.dialog = this.createDialog(config.path);
 		this.dialog.show();
 		document.getElementById("cstudio-wcm-popup-div_h").style.display = "none";
 		
@@ -38,7 +39,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
     /**
 	 * create dialog
 	 */
-	createDialog: function() {
+	createDialog: function(path) {
 		YDom.removeClass("cstudio-wcm-popup-div", "yui-pe-content");
 
 		var newdiv = YDom.get("cstudio-wcm-popup-div");
@@ -52,10 +53,10 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		newdiv.className= "yui-pe-content";
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
-                           '<div class="contentTypePopupHeader">Create Template</div> ' +
+                           '<div class="contentTypePopupHeader">Create Controller</div> ' +
                            '<div class="contentTypeOuter">'+
                                '<div>'+
-                                 '<div class="newTempText">Provide a filename for the template</div>'+
+                                 '<div class="newTempText">Provide a filename for the script</div>'+
                                  '<input type="text" id="templateName" size="50"><br/>' +
                                '</div>' +
                            '</div> ' +
@@ -90,9 +91,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		
 		var eventParams = {
 			self: this,
+			path: path,
 			nameEl: document.getElementById('templateName')
 		};
 		
+
+
 		YAHOO.util.Event.addListener("templateName", "keypress", this.limitInput, eventParams);
 
 		YAHOO.util.Event.addListener("createButton", "click", this.createClick, eventParams);
@@ -114,12 +118,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	 * create clicked 
 	 */
 	createClick: function(event, params) {
-		var _self = CStudioAuthoring.Dialogs.NewTemplate;
+		var _self = CStudioAuthoring.Dialogs.NewScript;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web";
+		var templatePath = params.path;
 		
-		if(name.indexOf(".ftl") == -1) {
-			name = name + ".ftl";
+		if(name.indexOf(".groovy") == -1) {
+			name = name + ".groovy";
 		}
 
 	     var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
@@ -132,7 +136,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 
 		var saveSvcCb = {
 			success: function() {
-				CStudioAuthoring.Dialogs.NewTemplate.closeDialog();
+				CStudioAuthoring.Dialogs.NewScript.closeDialog();
 				
 				CStudioAuthoring.Operations.openTemplateEditor
 					(templatePath+"/"+name, "default", { 
@@ -157,10 +161,10 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	 * event fired when the ok is pressed
 	 */
 	popupCancelClick: function(event) {
-		CStudioAuthoring.Dialogs.NewTemplate.closeDialog();
+		CStudioAuthoring.Dialogs.NewScript.closeDialog();
 	}
 
 
 };
 
-CStudioAuthoring.Module.moduleLoaded("new-template-dialog", CStudioAuthoring.Dialogs.NewTemplate);
+CStudioAuthoring.Module.moduleLoaded("new-script-dialog", CStudioAuthoring.Dialogs.NewScript);

@@ -89,6 +89,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
             if(prop.name == "datasource") {
                 if(prop.value && prop.value != "") {
                     this.datasourceName = (Array.isArray(prop.value)) ? prop.value[0] : prop.value;
+                    this.datasourceName = this.datasourceName.replace("[\"","").replace("\"]","");
                 }
             }
 
@@ -226,6 +227,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
         }
 
         if(isValueSet) {
+
             var datasource = this.form.datasourceMap[this.datasourceName];
             // This render method is currently being called twice (on initialization and on the setValue).
             // We need the value to know which checkboxes should be checked or not so restrict the rendering to only

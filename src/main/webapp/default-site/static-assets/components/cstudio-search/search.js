@@ -1094,8 +1094,26 @@ CStudioSearch.loadFiltersAndResultTemplates = function(callback) {
 		CStudioAuthoringContext.site, 
 		"/search/config.xml", {
 			success: function(config) {
-				this.context.loadFilters(config.filters.filter, triggerOnCompleteCb);
-				this.context.loadResultTemplates(config.resultTemplates.template, triggerOnCompleteCb);
+				if(config){
+					if(config.filters && config.filters.filter) {
+						this.context.loadFilters(config.filters.filter, triggerOnCompleteCb);
+					}
+					else {
+						this.context.loadFilters([], triggerOnCompleteCb);
+					}
+
+					if(config.resultTemplates && config.resultTemplates.template) {
+						this.context.loadResultTemplates(config.resultTemplates.template, triggerOnCompleteCb);
+					}
+					else {
+						this.context.loadResultTemplates([], triggerOnCompleteCb);
+					}
+				}
+				else {
+					triggerOnCompleteCb.filtersComplete();
+					triggerOnCompleteCb.templatesComplete();
+
+				}
 			},
 			
 			failure: function() {

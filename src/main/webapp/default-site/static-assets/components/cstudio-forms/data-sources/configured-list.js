@@ -12,9 +12,9 @@ function(id, form, properties, constraints)  {
 		if(property.name == "listName") {
 			var cb = { 
 				success: function(config) {
-					var values = config.values;
-					if(!values.length) {
-						values = [ values.value ];
+					var values = config.values.item;
+			  		if(!values.length) {
+						values = [ values.item ];
 					}
 					
 					_self.list = values;
@@ -61,7 +61,8 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
         this.properties.forEach( function(prop) {
             if (prop.name == "dataType") {
                 // return the value of the option currently selected
-                prop.value.forEach( function(opt) {
+                var value = JSON.parse(prop.value); 
+                value.forEach( function(opt) {
                     if (opt.selected) {
                         val = opt.value;
                     }
