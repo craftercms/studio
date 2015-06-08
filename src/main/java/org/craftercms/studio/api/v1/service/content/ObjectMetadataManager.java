@@ -43,4 +43,8 @@ public interface ObjectMetadataManager {
     void deleteObjectMetadataForSite(String site);
 
     void deleteObjectMetadata(String site, String path);
+
+    void updateObjectPath(String site, String oldUri, String relativePath);
+
+    void clearRenamed(String site, String path);
 }

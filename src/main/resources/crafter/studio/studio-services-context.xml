@@ -273,7 +273,9 @@
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="dmPublishService" ref="cstudioDmPublishService" />
-        <property name="WorkflowProcessor" ref="cstudioWorkflowProcessor" />
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -807,6 +809,7 @@
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
 </beans>
