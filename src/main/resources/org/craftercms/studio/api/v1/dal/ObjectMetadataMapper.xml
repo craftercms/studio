@@ -101,4 +101,11 @@
         DELETE FROM cstudio_objectmetadata
         WHERE site = #{site}
     </delete>
+
+    <update id="updateObjectPath" parameterType="java.util.Map">
+        UPDATE cstudio_objectmetadata
+        SET path = #{newPath}
+        WHERE site = #{site}
+        AND path = #{oldPath}
+    </update>
 </mapper>
