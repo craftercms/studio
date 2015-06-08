@@ -40,6 +40,8 @@ body.#{$class-prefix}-dnd-enabled {
 
 .#{$class-prefix}-components-panel {
 
+  @extend .studio-view;
+
   top: 0;
   right: 0;
   bottom: 0;
@@ -59,6 +61,7 @@ body.#{$class-prefix}-dnd-enabled {
     font-family: Raleway, sans-serif;
     padding: 0;
     margin: 0;
+    color: #000 !important;
   }
 
   .#{$class-prefix}-panel-title {
@@ -83,6 +86,7 @@ body.#{$class-prefix}-dnd-enabled {
       border-radius: 50px;
       padding: 5px 10px;
       outline: none;
+      display: none;
     }
   }
 
@@ -91,7 +95,7 @@ body.#{$class-prefix}-dnd-enabled {
     left: 0;
     right: 0;
     bottom: 0;
-    top: 80px;
+    top: 38px;
     padding: 10px;
     position: absolute;
     overflow: auto;
@@ -108,7 +112,8 @@ body.#{$class-prefix}-dnd-enabled {
         border-bottom: 1px solid $gray-lighter;
         border-top-left-radius: $border-radius-base;
         border-top-right-radius: $border-radius-base;
-        background: #fff;
+        background: #F0F0F0;
+        font-weight: bold;
       }
 
       > sul {
