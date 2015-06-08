@@ -983,69 +983,15 @@ var CStudioForms = CStudioForms || function() {
                                     if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
 
-                                    if((iceId && iceId!="") || (iceComponent && iceComponent!="")) {
-                                        if(iceWindowCallback) {
-                                            var value = form.model["internal-name"];
-                                            var name = entityId;
-                                            var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                            iceWindowCallback.success(contentTO, editorId, name, value);
-                                           
-                                        }
-                                        else {
-                                            window.parent.location = window.parent.location;
-                                        }
-                                        // no point in re-init, window is closing
-                                        //form.onAfterSave();
+                                    if(iceWindowCallback) {
+                                        var value = form.model["internal-name"];
+                                        var name = entityId;
+                                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                        iceWindowCallback.success(contentTO, editorId, name, value);
                                     }
                                     else {
-                                        if(preview) {
-                                            edit = "true";
-                                            //This properties must be refreshed to be consistent
-                                            showWarnMsg = true;
-                                            form.path = path;
-                                            var internalName = form.model["internal-name"];
-                                            form.definition.pageName =  (internalName && internalName != "")? internalName: "";
-                                            form.definition.pageLocation = CStudioForms.engine._getPageLocation(path);
-                                            CStudioForms.engine._reRenderPageLocation(form.definition);
-
-                                            CStudioAuthoring.Utils.Cookies.createCookie("cstudio-preview-notify", "true");
-                                            CStudioAuthoring.Operations.openPreview
-                                            (contentTO.item, "preview", true, false, window.previewTargetWindowId);
-                                            parentWindowLocation = CStudioAuthoringContext.previewAppBaseUri + contentTO.item.browserUri;
-                                            form.onAfterSave();
-                                        }
-                                        else {
-                                            //Keep the parentWindowLocation updated
-                                            parentWindowLocation = (window.opener) ? window.opener.location.href : window.location.href;
-
-                                            var dashboardUrl,
-                                                childFormValue = CStudioAuthoring.Utils.getQueryVariable(location.search.substring(1), 'childForm'),
-                                                childForm = (childFormValue && childFormValue == "true") ? true : false;
-
-                                            if (!childForm) {
-                                                dashboardUrl = CStudioAuthoringContext.authoringAppBaseUri + CStudioAuthoringContext.homeUri;
-
-                                                if (parentWindowLocation.indexOf(dashboardUrl) == -1 && parentWindowLocation == previewUrl) {
-                                                    CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window",
-                                                        new Date() + "|" + parentWindowLocation + "|" + false + "|" + window.previewTargetWindowId);
-                                                }
-                                            }
-
-                                            if (window.opener) {
-                                                try {
-                                                    var internalName = form.model["internal-name"];
-                                                    internalName = (internalName && internalName != "")? internalName: entityId;
-
-                                                    // Let the parent window know that the form is closing
-                                                    window.opener.CStudioAuthoring.ChildFormManager.signalFormClose(formId, entityId, internalName);
-                                                }
-                                                catch(err) {
-                                                    alert(err);
-                                                }
-                                            }
-
-                                            window.close();
-                                        }
+                                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                        window.top.iceDialogs[editorId].close();
                                     }
                                 },
                                 failure: function (err) {
@@ -1125,23 +1071,16 @@ var CStudioForms = CStudioForms || function() {
                                                         CStudioAuthoring.Service.unlockContentItem(CStudioAuthoringContext.site, path, {
                                                             success: function() {
                                                                 _notifyServer = false;
-                                                                if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
-                                                                    reloadParentWindow();
-                                                                }
-                                                                else {
-                                                                    window.close();
-                                                                }
+                                                                var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                                                window.top.iceDialogs[editorId].close();
                                                             },
                                                             failure: function() {
                                                             }
                                                         });
                                                     } else {
                                                         _notifyServer = false;
-                                                        if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
-                                                            reloadParentWindow();
-                                                        } else {
-                                                            window.close();
-                                                        }
+                                                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                                        window.top.iceDialogs[editorId].close();
                                                     }
                                                 },
                                                 failure: function() {
@@ -1150,16 +1089,13 @@ var CStudioForms = CStudioForms || function() {
                                             });
                                         } else {
                                             _notifyServer = false;
-                                            if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
-                                                reloadParentWindow();
-                                            } else {
-                                                window.close();
-                                            }
+                                            var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                            window.top.iceDialogs[editorId].close();
                                         }
                                     }, isDefault:false },
                                         { text:"No",  handler:function(){this.hide();}, isDefault:true } ]
                                 });
-                            dialog.setHeader("CStudio WCM");
+                            dialog.setHeader("Crafter Studio WCM");
                             dialog.render(document.body);
                             dialogEl = document.getElementById("closeUserWarning");
                             dialogEl.dialog = dialog;
