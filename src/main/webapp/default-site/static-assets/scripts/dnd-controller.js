@@ -7,7 +7,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     var OVERLAY_TPL = '<sdiv class="studio-dnd-controller-overlay"></sdiv>';
     var PALETTE_TPL = [
         '<sdiv class="studio-components-panel">',
-        '<sbutton data-action="done">done</sbutton>',
+        '<sbutton class="btn btn-primary" data-action="done">Done</sbutton>',
         '<sh1 class="studio-panel-title">Components</sh1>',
         '<sdiv class="studio-component-search"><input type="search" placeholder="search components..." /></sdiv>',
         '<sdiv class="studio-components-container"></sdiv>',
