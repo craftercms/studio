@@ -770,6 +770,10 @@
 	background: url("../../../themes/cstudioTheme/images/icons/icon_strip_vertical.gif") no-repeat scroll 2px -980px !important;
 }
 
+.cstudio-rteSkin span.mce_insertStub {
+    background: url("../../../themes/cstudioTheme/images/icons/icon_strip_vertical.gif") no-repeat scroll 2px -521px !important;
+}
+
 .cstudio-rteSkin span.mce_csLink {
     background-position: -500px 0;
 }
