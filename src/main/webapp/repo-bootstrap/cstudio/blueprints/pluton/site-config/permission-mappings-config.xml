@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <permissions>
-    <site id="pluton">
+    <site id="SITENAME">
         <role name="admin">
             <rule regex="/.*">
                 <allowed-permissions>

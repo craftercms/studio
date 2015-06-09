@@ -1,0 +1,25 @@
+<list>
+	<values>
+		<item>
+			<key>all</key>
+			<value>All</value>
+		</item>
+		<item>
+			<key>marketing</key>
+			<value>Marketing</value>
+		</item>
+		<item>
+			<key>it</key>
+			<value>IT</value>
+		</item>
+		<item>
+			<key>designer</key>
+			<value>Designer</value>
+		</item>
+		<item>
+			<key>employee</key>
+			<value>Employee</value>
+		</item>
+
+	</values>
+</list>

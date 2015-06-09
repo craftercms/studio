@@ -27,7 +27,14 @@
 /*
 1. General
 **********************************************************************/
- body {
+blockquote {
+  padding: 0 0 0 15px;
+  margin: 30px 0 30px 30px;
+  border-left: 5px solid #EACB2B;
+  font-weight: bold !important;
+  }
+  
+body {
     font-family:'Roboto', sans-serif;
     color: #FFF;
     line-height:1.2em;
