@@ -2,6 +2,16 @@
   <setup>
    <id>generic</id>	 
      <rteStylesheets>
+
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/bootstrap.css</url>         
+         </link>
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/bootstrap-responsive.css</url>         
+         </link>
+
          <link>
 			<loadFromPreview>true</loadFromPreview>
 			<url>/static-assets/css/style.css</url>         
@@ -220,6 +230,7 @@
                 <module>channel</module>
                 <module>insert-layout</module>
                 <module>insert-component</module>
+                <module>insert-stub</module>
                 <module>edit-html</module>
 	</rteModules>
        <rteLinkTargets>
@@ -243,91 +254,57 @@
   </setup>
 
 
-  <setup>
-   <id>sidebar</id>
 
+
+  <setup>
+   <id>black</id>	 
      <rteStylesheets>
+
          <link>
 			<loadFromPreview>true</loadFromPreview>
-			<url>/static-assets/css/style1.css</url>         
+			<url>/static-assets/css/bootstrap.css</url>         
+         </link>
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/bootstrap-responsive.css</url>         
+         </link>
+
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/style.css</url>         
+         </link>
+         <link>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/css/pluton.css</url>         
+         </link>
+
+
+         <link>
+         	<appliesToChannel>iphonev,iphoneh</appliesToChannel>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/mobile/css/iphone.css</url>         
+         </link>
+         <link>
+         	<appliesToChannel>iphonev,iphoneh</appliesToChannel>
+			<loadFromPreview>true</loadFromPreview>
+			<url>/static-assets/mobile/css/libs/jquery.mobile-1.0.min.css</url>         
          </link>
      </rteStylesheets>
 
 	 <rteStyleOverride>
-		 body { background: none; background-color: white; padding-top: 10px; }
+	 	 .img-circle {}
+	 	 body { background: black; }
+	 	 h3 {  color: #FECE1A; }
 		 .layoutColumn { border: 1px solid gray; }
 		 .layoutColumn3 { border: 1px solid gray; }
 		 .layoutColumn4 { border: 1px solid gray; }
 	 </rteStyleOverride>
 
-	 <rteStyleTags>
-	   <tag>
-          <label>Body copy</label>
-		  <tagName>span</tagName>
-		  <className>bodyCopy</className>
-       </tag>	   
-	   <tag>
-          <label>Standard sub-headline</label>
-		  <tagName>h2</tagName>
-		  <className>subHead</className>
-       </tag>
-	</rteStyleTags>
-
-	<stockRteToolbarItems>
-	   <item>
-          <name>fonts</name>
-		  <className>yui-toolbar-group yui-toolbar-group-fontstyle</className>
-       </item>
-	   <item>
-          <name>fontsize</name>
-		  <className>yui-button yui-push-button yui-toolbar-fontsize yui-toolbar-spinbutton</className>
-       </item> 
-	   <item>
-          <name>underline</name>
-		  <className>yui-button yui-push-button yui-toolbar-underline</className>
-       </item>	 
-	   <item>
-          <name>alignment</name>
-		  <className>yui-toolbar-group yui-toolbar-group-alignment</className>
-       </item>	 
-	   <item>
-          <name>lists and indent</name>
-		  <className>yui-toolbar-group yui-toolbar-group-indentlist2</className>
-       </item>	 
-	   <!--item>
-          <name>inserts</name>
-		  <className>yui-toolbar-group yui-toolbar-group-insertitem</className>
-       </item-->	 
-	   <item>
-          <name>color</name>
-		  <className>yui-button-disabled yui-color-button-disabled yui-button yui-color-button yui-toolbar-forecolor</className>
-       </item>
-	   <item>
-          <name>color</name>
-		  <className>yui-button yui-color-button yui-toolbar-forecolor</className>
-       </item>
-	   <item>
-          <name>highlight</name>
-		  <className>yui-button-disabled yui-color-button-disabled yui-button yui-color-button yui-toolbar-backcolor</className>
-       </item>
-	   <item>
-          <name>highlight</name>
-		  <className>yui-button yui-color-button yui-toolbar-backcolor</className>
-       </item>
-	   <item>
-          <name>Remove Formatting</name>
-		  <className>yui-button-disabled yui-push-button-disabled yui-button yui-push-button yui-toolbar-removeformat</className>
-       </item>
-	   <item>
-          <name>show/hide elements</name>
-		  <className>yui-button yui-push-button yui-toolbar-hiddenelements</className>
-       </item>
-	   <item>
-          <name>Justify</name>
-		  <className>yui-button yui-push-button yui-toolbar-justifyfull</className>
-       </item>
-	</stockRteToolbarItems>
-
+    <toolbarItems1>formatselect,styleselect,|,bold,italic,subscript,superscript,|outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,insertLayout,channelSelect,insertComponent,|,insertStub,|,edithtml,|,undo,redo</toolbarItems1>
+	<toolbarItems2></toolbarItems2>
+	<toolbarItems3></toolbarItems3>
+	<toolbarItems4></toolbarItems4>
+	
 	<rteLinkStyles>
 		<style>
 			<!-- first row is the title -->	
@@ -338,10 +315,212 @@
 			<name>Standard</name>
 			<value>standard</value>
 		</style>
+		<style>
+			<name>Single</name>
+			<value>single</value>
+		</style>
+		<style>
+			<name>Hidden</name>
+			<value>hidden</value>
+		</style>
+	    <style>
+          <name>Title link</name>
+		  <value>titleLink</value>
+       </style>
+		<style>
+			<name>Button</name>
+			<value>mediumButton</value>			
+		</style>		
 	</rteLinkStyles>
 
+	<rteStubs>
+		<stub>
+			<name>Service Tout</name>
+			<description>Promo Tout</description>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet></stylesheet>
+			<prototype><![CDATA[<div class="centered service">
+<div class="circle-border zoom-in"><img class="img-circle" src="/static-assets/images/Service3.png" alt="service 3" /></div>
+<h3>HEADER</h3>
+<p>DESCRIPTION</p>
+</div>]]></prototype>
+		</stub>
+
+		<stub>
+			<name>Customer Quote</name>
+			<description>Quote</description>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet></stylesheet>
+			<prototype><![CDATA[<div class="testimonial" style="width: 400px; margin: 10px; color: white;">
+<p>"QUOTE"</p>
+<div class="whopic">
+<div class="arrow"><br /></div>
+<img class="centered" src="http://localhost:9090/static-assets/images/Client2.png" alt="client 2" /> <strong>PERSON QUOTED<br /><small>ORG NAME</small> </strong></div>
+</div>]]></prototype>
+		</stub>
+		
+
+	</rteStubs>
+
+	<!-- layouts -->
+	<rteLayouts>
+		<layout>
+			<name>Four Column Layout</name>
+			<description>Four column layout</description>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet>/table.css</stylesheet>
+			<prototype><![CDATA[
+			    <table  width="100%"><tr><td>
+				<div class="layoutWrapper4col">
+					<div class="layoutColumn4">Column 1</div>
+					<div class="layoutColumn4">Column 2</div>
+					<div class="layoutColumn4">Column 3</div>
+					<div class="layoutColumn4">Column 4</div>
+				</div>
+				</td></tr></table>]]></prototype>
+		</layout>
+		<layout>
+			<name>Three Column Layout</name>
+			<description>Three Column Layout</description>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet>/table.css</stylesheet>
+			<prototype><![CDATA[
+			    <table  width="100%"><tr><td>
+				<div class="layoutWrappe3ecol">
+					<div class="layoutColumn3">Column 1</div>
+					<div class="layoutColumn3">Column 2</div>
+					<div class="layoutColumn3">Column 3</div>
+				</div>
+				</td></tr></table>]]></prototype>
+		</layout>
+		<layout>
+			<name>Two Column Layout</name>
+			<description>Two Column Layout</description>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet>/table.css</stylesheet>
+			<prototype><![CDATA[
+			    <table  width="100%"><tr><td>
+				<div class="layoutWrapper2col">
+					<div class="layoutColumn">Column 1</div>
+					<div class="layoutColumn">Column 2</div>
+				</div>
+				</td></tr></table>]]></prototype>
+		</layout>
+	</rteLayouts>
+	<!-- tables -->
+	<rteTables>
+		<table>
+			<name>Alternating Rows Table</name>
+			<description>Alternating Styles</description>
+			<style>altrowstable</style>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet>/table.css</stylesheet>
+			<prototype><![CDATA[
+<div class="tableWrapper"><table class="tableContent"><tbody><tr class="evenrowcolor">
+	<th>Info Header 1</th><th>Info Header 2</th><th>Info Header 3</th>
+</tr>
+<tr class="oddrowcolor">
+	<td>Text 1A</td><td>Text 1B</td><td>Text 1C</td>
+</tr>
+<tr class="evenrowcolor">
+	<td>Text 2A</td><td>Text 2B</td><td>Text 2C</td>
+</tr>
+<tr class="oddrowcolor">
+	<td>Text 3A</td><td>Text 3B</td><td>Text 3C</td>
+</tr>
+<tr class="evenrowcolor">
+	<td>Text 4A</td><td>Text 4B</td><td>Text 4C</td>
+</tr>
+<tr class="oddrowcolor">
+	<td>Text 5A</td><td>Text 5B</td><td>Text 5C</td>
+</tr>
+</tbody></table>
+<div class="clear"></div><br/></div>
+			]]></prototype>
+		</table>
+		<table>
+			<name>Checkered table</name>
+			<description>Demonstrates that style function can handle all kinds of
+				presentations</description>
+			<style>checkered</style>
+			<thumbnail>pathgoes.gif</thumbnail>
+			<stylesheet>/table.css</stylesheet>
+			<prototype><![CDATA[
+<div class="tableWrapper">    <table class="tableContent">
+  <tbody>
+    <tr>
+      <td class="oddrowcolor">Heading A</td>
+      <td class="evenrowcolor">Heading B</td>
+      <td class="oddrowcolor">Heading C</td>
+    </tr>
+    <tr>
+      <td style="background-color: rgb(255, 204, 102);" class="oddrowcolor">Text 1A</td>
+      <td style="background-color: rgb(188, 230, 188);" class="oddrowcolor">Text 1B</td>
+      <td style="background-color: rgb(255, 204, 102);" class="oddrowcolor">Text 1C</td>
+    </tr>
+    <tr>
+      <td style="background-color: rgb(188, 230, 188);" class="evenrowcolor">Text 2A</td>
+      <td style="background-color: rgb(255, 204, 102);" class="evenrowcolor">Text 2B</td>
+      <td style="background-color: rgb(188, 230, 188);" class="evenrowcolor">Text 2C</td>
+    </tr>
+    <tr>
+      <td style="background-color: rgb(255, 204, 102);" class="oddrowcolor">Text 3A</td>
+      <td style="background-color: rgb(188, 230, 188);" class="oddrowcolor">Text 3B</td>
+      <td style="background-color: rgb(255, 204, 102);" class="oddrowcolor">Text 3C</td>
+    </tr>
+    <tr>
+      <td style="background-color: rgb(188, 230, 188);" class="evenrowcolor">Text 4A</td>
+      <td style="background-color: rgb(255, 204, 102);" class="evenrowcolor">Text 4B</td>
+      <td style="background-color: rgb(188, 230, 188);" class="evenrowcolor">Text 4C</td>
+    </tr>
+  </tbody>
+</table>
+<div class="clear"></div><br/></div>
+			]]></prototype>
+		</table>
+	</rteTables>
+	<!-- widgets -->
+	<rteWidgets>
+		<widget>
+			<name>Personal Quote</name>
+			<description>Quote</description>
+			<contentIdField>entityId</contentIdField>
+			<contentIdType>path</contentIdType>
+			<contentPath>/site/components</contentPath>
+			<contentType>/component/quote</contentType>
+			<includeJs />
+			<includeCss />
+		</widget>
+		<widget>
+			<name>Flash</name>
+			<description>Flash</description>
+			<contentIdField>entityId</contentIdField>
+			<contentIdType>path</contentIdType>
+			<contentPath>/site/components</contentPath>
+			<contentType>/component/flash</contentType>
+			<includeJs />
+			<includeCss />
+		</widget>
+		<widget>
+			<name>Video</name>
+			<description>Video</description>
+			<contentIdField>entityId</contentIdField>
+			<contentIdType>path</contentIdType>
+			<contentPath>/site/components</contentPath>
+			<contentType>/component/video</contentType>
+			<includeJs />
+			<includeCss />
+		</widget>
+
+	</rteWidgets>
 	<rteModules>
-		<module>insertdate</module>
+		<module>insert-image</module>
+		<module>edit-image</module>
+                <module>channel</module>
+                <module>insert-layout</module>
+                <module>insert-component</module>
+                <module>edit-html</module>
+                <module>insert-stub</module>
 	</rteModules>
        <rteLinkTargets>
 	         <target>
@@ -361,8 +540,10 @@
 		     <value>_top</value>
  	      </target>
         </rteLinkTargets>
-
   </setup>
+
+
+
 
 	<rteTablestyles>
 

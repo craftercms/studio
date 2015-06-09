@@ -30,7 +30,11 @@
 
 <#macro browserGeoLocationSupport cookie=true>
 	<#if siteContext.overlayCallback??>
-		<#assign browserCoords = profile.geo!"" />	
+		<#if profile??>
+			<#assign browserCoords = profile.geo!"" />	
+		<#else>
+			<#assign browserCoords = "" />
+		</#if>
 	<#else>
 		<script  type="text/javascript">
 		    var crafterCMS = (crafterCMS) ? crafterCMS : {};

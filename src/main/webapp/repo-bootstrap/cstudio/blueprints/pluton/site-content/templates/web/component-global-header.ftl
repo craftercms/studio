@@ -1,7 +1,7 @@
 <div class="navbar">
     <div class="navbar-inner">
         <div class="container">
-            <a href="#" class="brand">
+            <a href="/" class="brand">
                 <img src="/static-assets/images/logo.png" width="120" height="40" alt="Logo" />
                 <!-- This is website logo -->
             </a>
@@ -13,7 +13,7 @@
             <div class="nav-collapse collapse pull-right">
                 <ul class="nav" id="top-navigation">
                     <li class="active"><a href="#home">Home</a></li>
-                    <li><a href="#service">Services</a></li>
+                    <li><a href="/services">Services</a></li>
                     <li><a href="#portfolio">Portfolio</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#clients">Clients</a></li>

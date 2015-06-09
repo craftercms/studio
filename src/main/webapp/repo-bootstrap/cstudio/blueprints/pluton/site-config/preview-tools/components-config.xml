@@ -13,14 +13,14 @@
       </component>
    </category>
    <category>
-      <label>Text</label>
+      <label>Targeted</label>
       <component>
-                <label>Rich Text Section</label>
-                <type>/component/rich-text-section</type>
-                <path>/site/components/page</path>
+                <label>Nearest Office Location</label>
+                <type>/component/closest-store</type>
+                <path>/site/components/page/closest-store</path>
       </component>
       <component>
-                <label>RTE</label>
+                <label>Suggested Services</label>
                 <type>/component/rich-text-section</type>
                 <path>/site/components/page</path>
       </component>      

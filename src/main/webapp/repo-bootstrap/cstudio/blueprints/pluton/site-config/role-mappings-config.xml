@@ -4,6 +4,10 @@
         <group name="crafter-admin">
             <role>admin</role>
         </group>
+        <group name="crafter-author">
+            <role>author</role>
+        </group>
+
         <group name="site_pluton_SiteManager">
             <role>admin</role>
         </group>

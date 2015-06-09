@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/store-location</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5f75</objectGroupId>
+	<objectId>5f751231-3a38-5ef1-5d50-c737a02945fe</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>5f751231-3a38-5ef1-5d50-c737a02945fe</folder-name>
+	<internal-name>Reston Va</internal-name>
+	<storeName>Reston Va</storeName>
+	<storeFrontImage>/static-assets/images/stores/store_thumb1.jpg</storeFrontImage>
+	<address>2220 Springwood Dr, Reston Va 20191</address>
+	<createdDate>10/23/2013 08:14:17</createdDate>
+	<lastModifiedDate>10/29/2013 05:36:32</lastModifiedDate>
+	<geo_p>38.933812,-77.35114099999998</geo_p>
+</component>
