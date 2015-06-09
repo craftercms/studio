@@ -91,10 +91,10 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
                 carousel.render();
                 carousel.show();
 
-                var leftArrow = document.getElementById('yui-gen7');
+                var leftArrow = document.getElementById('container').getElementsByTagName('button')[0];
                 leftArrow.innerHTML = "<";
-                var leftArrow = document.getElementById('yui-gen8');
-                leftArrow.innerHTML = ">";
+                var rightArrow = document.getElementById('container').getElementsByTagName('button')[1];
+                rightArrow.innerHTML = ">";
 
 
 
