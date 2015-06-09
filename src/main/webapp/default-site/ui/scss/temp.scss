@@ -3,6 +3,7 @@
 @import "util/animate";
 @import url("/studio/static-assets/themes/cstudioTheme/css/icons.css");
 @import url(http://fonts.googleapis.com/css?family=Raleway:400,500,700);
+@import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
 #acnVersionWrapper, div.schedulePolicyWrapper {
   width: 554px;
@@ -2621,15 +2622,78 @@ span.acn-canned-search {
 
 }
 
+#maskDialog {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1031;
+  background-color: rgb(68, 68, 68);
+  opacity: 0.5!important;
+}
+
 #cstudioPreviewAnalyticsOverlay {
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(201, 201, 201, 1);
+  background: #efefef;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  -o-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow:  0 5px 15px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   z-index: 99999;
+
+  img{
+    position: static;
+    float: left;
+    border: 1px solid rgb(201, 201, 201);
+    margin-left: 15px;
+    margin-right: 15px;
+    border-radius: 6px;
+  }
+}
+
+#csupdatepersona, #cscancel{
+  width: 91px;
+  height: 30px;
+  float: right;
+  font-weight: bold;
+  cursor: pointer;
+  bottom: 21px;
+  position: absolute;
+  right: 33px;
+}
+
+#csupdatepersona{
+  right: 133px;
+}
+
+#targeting-panel-elem{
+
+  #container{
+    width: 229px!important;
+    padding: 21px 30px 30px 35px;
+  }
+
+  span{
+    button{
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 1px 6px;
+      font-family: Arial;
+      border: 3px solid #6d90b2;
+      position: absolute;
+      top: 51px;
+      z-index: 2;
+    }
+    #yui-gen7{
+      left: 0px;
+    }
+
+    #yui-gen8{
+      left: 203px;
+    }
+  }
 }
 
 #cstudio-emulate {
@@ -2637,7 +2701,12 @@ span.acn-canned-search {
 }
 
 .yui-carousel-content {
-  left: 30px;
+  left: 0;
+  width: 161px!important;
+
+  .yui-carousel-element li{
+    border-radius: 6px;
+  }
 }
 
 .yui-carousel {
@@ -2647,6 +2716,7 @@ span.acn-canned-search {
 
 .yui-carousel .yui-carousel-item-selected{
   border: none;
+  border-radius: 6px;
 }
 
 .yui-carousel-pager-item {
@@ -2671,10 +2741,15 @@ span.acn-canned-search {
 }
 
 #preview-tools-panel-persona-selected {
-  width: 100px;
-  height: 100px;
+  width: 102px;
+  height: 102px;
   margin-left: 70px;
-  border: 1px solid black;
+
+  img{
+    border: 1px solid rgb(201, 201, 201);
+    border-radius: 6px;
+  }
+
 }
 
 #preview-tools-panel-persona-selected-title {
