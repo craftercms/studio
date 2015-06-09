@@ -2686,14 +2686,17 @@ span.acn-canned-search {
       top: 51px;
       z-index: 2;
     }
-    #yui-gen7{
-      left: 0px;
-    }
 
-    #yui-gen8{
-      left: 203px;
-    }
   }
+
+  .yui-carousel-first-button button{
+    left: 0px;
+  }
+
+  .yui-carousel-next-button button{
+    left: 203px;
+  }
+
 }
 
 #cstudio-emulate {
