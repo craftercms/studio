@@ -15,6 +15,17 @@ body.#{$class-prefix}-dnd-enabled {
     border-radius: $border-radius-base !important;
     background-color: rgba(255,255,255,.7) !important;
     box-shadow: 0 0 10px 0 rgba($crimson, .4) !important;
+
+    .ui-sortable-helper{
+      *{
+        cursor: move!important;
+      }
+    }
+
+    *{
+      cursor: pointer;
+    }
+
   }
 
   [data-studio-component] {
@@ -53,7 +64,7 @@ body.#{$class-prefix}-dnd-enabled {
   box-shadow: 0 0 10px 0 rgba(#fff, .5);
   border-top: 1px solid #ccc;
   height: auto;
-  z-index: 3;
+  z-index: 1036;
 
   &, * {
     font-style: normal;
@@ -65,17 +76,19 @@ body.#{$class-prefix}-dnd-enabled {
   }
 
   .#{$class-prefix}-panel-title {
-    font-size: 1.3em;
+    font-size: 1.4em;
     padding: 10px;
+    font-weight: bold;
   }
 
   [data-action="done"] {
-    top: 0;
-    right: 0;
+    top: 9px;
+    right: 11px;
     border: none;
-    padding: 10px;
+    padding: 0px 11px;
     line-height: 27px;
     position: absolute;
+    color: #fff !important;
   }
 
   .#{$class-prefix}-component-search {
@@ -102,7 +115,7 @@ body.#{$class-prefix}-dnd-enabled {
 
     .#{$class-prefix}-category {
 
-      margin-bottom: 5px;
+      margin-bottom: 12px;
       box-shadow: 1px 0 2px rgba(0,0,0,.1);
       border-radius: $border-radius-base;
 
@@ -129,6 +142,15 @@ body.#{$class-prefix}-dnd-enabled {
           > sa {
             display: block;
             padding: 5px 10px;
+            border-bottom: 1px solid #F0F0F0;
+          }
+          > button {
+            border: none;
+            width: 100%;
+            padding: 4px 12px;
+            span{
+              font-size: 1.3em;
+            }
           }
         }
       }
@@ -146,6 +168,20 @@ body.#{$class-prefix}-dnd-enabled {
 
     }
 
+  }
+
+  .component {
+    background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+    background-position: 0 -501px;
+    display: inline-block;
+    padding-left: 20px;
+    float: left;
+    width: 20px;
+    height: 17px;
+  }
+
+  .ui-draggable-dragging{
+    cursor: move!important;
   }
 
 }

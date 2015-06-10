@@ -2709,6 +2709,183 @@ sh6 {
     clip: auto; }
   .studio-view [role="button"], .studio-components-panel [role="button"] {
     cursor: pointer; }
+  .studio-view .btn, .studio-components-panel .btn {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: normal;
+    text-align: center;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 12px;
+    line-height: 1.42857;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none; }
+    .studio-view .btn:focus, .studio-components-panel .btn:focus, .studio-view .btn.focus, .studio-components-panel .btn.focus, .studio-view .btn:active:focus, .studio-components-panel .btn:active:focus, .studio-view .btn:active.focus, .studio-components-panel .btn:active.focus, .studio-view .btn.active:focus, .studio-components-panel .btn.active:focus, .studio-view .btn.active.focus, .studio-components-panel .btn.active.focus {
+      outline: thin dotted;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px; }
+    .studio-view .btn:hover, .studio-components-panel .btn:hover, .studio-view .btn:focus, .studio-components-panel .btn:focus, .studio-view .btn.focus, .studio-components-panel .btn.focus {
+      color: #333;
+      text-decoration: none; }
+    .studio-view .btn:active, .studio-components-panel .btn:active, .studio-view .btn.active, .studio-components-panel .btn.active {
+      outline: 0;
+      background-image: none;
+      -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); }
+    .studio-view .btn.disabled, .studio-components-panel .btn.disabled, .studio-view .btn[disabled], .studio-components-panel .btn[disabled], fieldset[disabled] .studio-view .btn, fieldset[disabled] .studio-components-panel .btn {
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.65;
+      filter: alpha(opacity=65);
+      -webkit-box-shadow: none;
+      box-shadow: none; }
+  .studio-view .btn-default, .studio-components-panel .btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc; }
+    .studio-view .btn-default:hover, .studio-components-panel .btn-default:hover, .studio-view .btn-default:focus, .studio-components-panel .btn-default:focus, .studio-view .btn-default.focus, .studio-components-panel .btn-default.focus, .studio-view .btn-default:active, .studio-components-panel .btn-default:active, .studio-view .btn-default.active, .studio-components-panel .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle, .open > .studio-components-panel .btn-default.dropdown-toggle {
+      color: #333;
+      background-color: #e6e6e6;
+      border-color: #adadad; }
+    .studio-view .btn-default:active, .studio-components-panel .btn-default:active, .studio-view .btn-default.active, .studio-components-panel .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle, .open > .studio-components-panel .btn-default.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-default.disabled, .studio-components-panel .btn-default.disabled, .studio-view .btn-default.disabled:hover, .studio-components-panel .btn-default.disabled:hover, .studio-view .btn-default.disabled:focus, .studio-components-panel .btn-default.disabled:focus, .studio-view .btn-default.disabled.focus, .studio-components-panel .btn-default.disabled.focus, .studio-view .btn-default.disabled:active, .studio-components-panel .btn-default.disabled:active, .studio-view .btn-default.disabled.active, .studio-components-panel .btn-default.disabled.active, .studio-view .btn-default[disabled], .studio-components-panel .btn-default[disabled], .studio-view .btn-default[disabled]:hover, .studio-components-panel .btn-default[disabled]:hover, .studio-view .btn-default[disabled]:focus, .studio-components-panel .btn-default[disabled]:focus, .studio-view .btn-default[disabled].focus, .studio-components-panel .btn-default[disabled].focus, .studio-view .btn-default[disabled]:active, .studio-components-panel .btn-default[disabled]:active, .studio-view .btn-default[disabled].active, .studio-components-panel .btn-default[disabled].active, fieldset[disabled] .studio-view .btn-default, fieldset[disabled] .studio-components-panel .btn-default, fieldset[disabled] .studio-view .btn-default:hover, fieldset[disabled] .studio-components-panel .btn-default:hover, fieldset[disabled] .studio-view .btn-default:focus, fieldset[disabled] .studio-components-panel .btn-default:focus, fieldset[disabled] .studio-view .btn-default.focus, fieldset[disabled] .studio-components-panel .btn-default.focus, fieldset[disabled] .studio-view .btn-default:active, fieldset[disabled] .studio-components-panel .btn-default:active, fieldset[disabled] .studio-view .btn-default.active, fieldset[disabled] .studio-components-panel .btn-default.active {
+      background-color: #fff;
+      border-color: #ccc; }
+    .studio-view .btn-default .badge, .studio-components-panel .btn-default .badge {
+      color: #fff;
+      background-color: #333; }
+  .studio-view .btn-primary, .studio-components-panel .btn-primary {
+    color: #fff;
+    background-color: #7e9dbb;
+    border-color: #6d90b2; }
+    .studio-view .btn-primary:hover, .studio-components-panel .btn-primary:hover, .studio-view .btn-primary:focus, .studio-components-panel .btn-primary:focus, .studio-view .btn-primary.focus, .studio-components-panel .btn-primary.focus, .studio-view .btn-primary:active, .studio-components-panel .btn-primary:active, .studio-view .btn-primary.active, .studio-components-panel .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle, .open > .studio-components-panel .btn-primary.dropdown-toggle {
+      color: #fff;
+      background-color: #5d84a9;
+      border-color: #4e7294; }
+    .studio-view .btn-primary:active, .studio-components-panel .btn-primary:active, .studio-view .btn-primary.active, .studio-components-panel .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle, .open > .studio-components-panel .btn-primary.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-primary.disabled, .studio-components-panel .btn-primary.disabled, .studio-view .btn-primary.disabled:hover, .studio-components-panel .btn-primary.disabled:hover, .studio-view .btn-primary.disabled:focus, .studio-components-panel .btn-primary.disabled:focus, .studio-view .btn-primary.disabled.focus, .studio-components-panel .btn-primary.disabled.focus, .studio-view .btn-primary.disabled:active, .studio-components-panel .btn-primary.disabled:active, .studio-view .btn-primary.disabled.active, .studio-components-panel .btn-primary.disabled.active, .studio-view .btn-primary[disabled], .studio-components-panel .btn-primary[disabled], .studio-view .btn-primary[disabled]:hover, .studio-components-panel .btn-primary[disabled]:hover, .studio-view .btn-primary[disabled]:focus, .studio-components-panel .btn-primary[disabled]:focus, .studio-view .btn-primary[disabled].focus, .studio-components-panel .btn-primary[disabled].focus, .studio-view .btn-primary[disabled]:active, .studio-components-panel .btn-primary[disabled]:active, .studio-view .btn-primary[disabled].active, .studio-components-panel .btn-primary[disabled].active, fieldset[disabled] .studio-view .btn-primary, fieldset[disabled] .studio-components-panel .btn-primary, fieldset[disabled] .studio-view .btn-primary:hover, fieldset[disabled] .studio-components-panel .btn-primary:hover, fieldset[disabled] .studio-view .btn-primary:focus, fieldset[disabled] .studio-components-panel .btn-primary:focus, fieldset[disabled] .studio-view .btn-primary.focus, fieldset[disabled] .studio-components-panel .btn-primary.focus, fieldset[disabled] .studio-view .btn-primary:active, fieldset[disabled] .studio-components-panel .btn-primary:active, fieldset[disabled] .studio-view .btn-primary.active, fieldset[disabled] .studio-components-panel .btn-primary.active {
+      background-color: #7e9dbb;
+      border-color: #6d90b2; }
+    .studio-view .btn-primary .badge, .studio-components-panel .btn-primary .badge {
+      color: #7e9dbb;
+      background-color: #fff; }
+  .studio-view .btn-success, .studio-components-panel .btn-success {
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c; }
+    .studio-view .btn-success:hover, .studio-components-panel .btn-success:hover, .studio-view .btn-success:focus, .studio-components-panel .btn-success:focus, .studio-view .btn-success.focus, .studio-components-panel .btn-success.focus, .studio-view .btn-success:active, .studio-components-panel .btn-success:active, .studio-view .btn-success.active, .studio-components-panel .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle, .open > .studio-components-panel .btn-success.dropdown-toggle {
+      color: #fff;
+      background-color: #449d44;
+      border-color: #398439; }
+    .studio-view .btn-success:active, .studio-components-panel .btn-success:active, .studio-view .btn-success.active, .studio-components-panel .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle, .open > .studio-components-panel .btn-success.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-success.disabled, .studio-components-panel .btn-success.disabled, .studio-view .btn-success.disabled:hover, .studio-components-panel .btn-success.disabled:hover, .studio-view .btn-success.disabled:focus, .studio-components-panel .btn-success.disabled:focus, .studio-view .btn-success.disabled.focus, .studio-components-panel .btn-success.disabled.focus, .studio-view .btn-success.disabled:active, .studio-components-panel .btn-success.disabled:active, .studio-view .btn-success.disabled.active, .studio-components-panel .btn-success.disabled.active, .studio-view .btn-success[disabled], .studio-components-panel .btn-success[disabled], .studio-view .btn-success[disabled]:hover, .studio-components-panel .btn-success[disabled]:hover, .studio-view .btn-success[disabled]:focus, .studio-components-panel .btn-success[disabled]:focus, .studio-view .btn-success[disabled].focus, .studio-components-panel .btn-success[disabled].focus, .studio-view .btn-success[disabled]:active, .studio-components-panel .btn-success[disabled]:active, .studio-view .btn-success[disabled].active, .studio-components-panel .btn-success[disabled].active, fieldset[disabled] .studio-view .btn-success, fieldset[disabled] .studio-components-panel .btn-success, fieldset[disabled] .studio-view .btn-success:hover, fieldset[disabled] .studio-components-panel .btn-success:hover, fieldset[disabled] .studio-view .btn-success:focus, fieldset[disabled] .studio-components-panel .btn-success:focus, fieldset[disabled] .studio-view .btn-success.focus, fieldset[disabled] .studio-components-panel .btn-success.focus, fieldset[disabled] .studio-view .btn-success:active, fieldset[disabled] .studio-components-panel .btn-success:active, fieldset[disabled] .studio-view .btn-success.active, fieldset[disabled] .studio-components-panel .btn-success.active {
+      background-color: #5cb85c;
+      border-color: #4cae4c; }
+    .studio-view .btn-success .badge, .studio-components-panel .btn-success .badge {
+      color: #5cb85c;
+      background-color: #fff; }
+  .studio-view .btn-info, .studio-components-panel .btn-info {
+    color: #fff;
+    background-color: #5bc0de;
+    border-color: #46b8da; }
+    .studio-view .btn-info:hover, .studio-components-panel .btn-info:hover, .studio-view .btn-info:focus, .studio-components-panel .btn-info:focus, .studio-view .btn-info.focus, .studio-components-panel .btn-info.focus, .studio-view .btn-info:active, .studio-components-panel .btn-info:active, .studio-view .btn-info.active, .studio-components-panel .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle, .open > .studio-components-panel .btn-info.dropdown-toggle {
+      color: #fff;
+      background-color: #31b0d5;
+      border-color: #269abc; }
+    .studio-view .btn-info:active, .studio-components-panel .btn-info:active, .studio-view .btn-info.active, .studio-components-panel .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle, .open > .studio-components-panel .btn-info.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-info.disabled, .studio-components-panel .btn-info.disabled, .studio-view .btn-info.disabled:hover, .studio-components-panel .btn-info.disabled:hover, .studio-view .btn-info.disabled:focus, .studio-components-panel .btn-info.disabled:focus, .studio-view .btn-info.disabled.focus, .studio-components-panel .btn-info.disabled.focus, .studio-view .btn-info.disabled:active, .studio-components-panel .btn-info.disabled:active, .studio-view .btn-info.disabled.active, .studio-components-panel .btn-info.disabled.active, .studio-view .btn-info[disabled], .studio-components-panel .btn-info[disabled], .studio-view .btn-info[disabled]:hover, .studio-components-panel .btn-info[disabled]:hover, .studio-view .btn-info[disabled]:focus, .studio-components-panel .btn-info[disabled]:focus, .studio-view .btn-info[disabled].focus, .studio-components-panel .btn-info[disabled].focus, .studio-view .btn-info[disabled]:active, .studio-components-panel .btn-info[disabled]:active, .studio-view .btn-info[disabled].active, .studio-components-panel .btn-info[disabled].active, fieldset[disabled] .studio-view .btn-info, fieldset[disabled] .studio-components-panel .btn-info, fieldset[disabled] .studio-view .btn-info:hover, fieldset[disabled] .studio-components-panel .btn-info:hover, fieldset[disabled] .studio-view .btn-info:focus, fieldset[disabled] .studio-components-panel .btn-info:focus, fieldset[disabled] .studio-view .btn-info.focus, fieldset[disabled] .studio-components-panel .btn-info.focus, fieldset[disabled] .studio-view .btn-info:active, fieldset[disabled] .studio-components-panel .btn-info:active, fieldset[disabled] .studio-view .btn-info.active, fieldset[disabled] .studio-components-panel .btn-info.active {
+      background-color: #5bc0de;
+      border-color: #46b8da; }
+    .studio-view .btn-info .badge, .studio-components-panel .btn-info .badge {
+      color: #5bc0de;
+      background-color: #fff; }
+  .studio-view .btn-warning, .studio-components-panel .btn-warning {
+    color: #fff;
+    background-color: #f0ad4e;
+    border-color: #eea236; }
+    .studio-view .btn-warning:hover, .studio-components-panel .btn-warning:hover, .studio-view .btn-warning:focus, .studio-components-panel .btn-warning:focus, .studio-view .btn-warning.focus, .studio-components-panel .btn-warning.focus, .studio-view .btn-warning:active, .studio-components-panel .btn-warning:active, .studio-view .btn-warning.active, .studio-components-panel .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle, .open > .studio-components-panel .btn-warning.dropdown-toggle {
+      color: #fff;
+      background-color: #ec971f;
+      border-color: #d58512; }
+    .studio-view .btn-warning:active, .studio-components-panel .btn-warning:active, .studio-view .btn-warning.active, .studio-components-panel .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle, .open > .studio-components-panel .btn-warning.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-warning.disabled, .studio-components-panel .btn-warning.disabled, .studio-view .btn-warning.disabled:hover, .studio-components-panel .btn-warning.disabled:hover, .studio-view .btn-warning.disabled:focus, .studio-components-panel .btn-warning.disabled:focus, .studio-view .btn-warning.disabled.focus, .studio-components-panel .btn-warning.disabled.focus, .studio-view .btn-warning.disabled:active, .studio-components-panel .btn-warning.disabled:active, .studio-view .btn-warning.disabled.active, .studio-components-panel .btn-warning.disabled.active, .studio-view .btn-warning[disabled], .studio-components-panel .btn-warning[disabled], .studio-view .btn-warning[disabled]:hover, .studio-components-panel .btn-warning[disabled]:hover, .studio-view .btn-warning[disabled]:focus, .studio-components-panel .btn-warning[disabled]:focus, .studio-view .btn-warning[disabled].focus, .studio-components-panel .btn-warning[disabled].focus, .studio-view .btn-warning[disabled]:active, .studio-components-panel .btn-warning[disabled]:active, .studio-view .btn-warning[disabled].active, .studio-components-panel .btn-warning[disabled].active, fieldset[disabled] .studio-view .btn-warning, fieldset[disabled] .studio-components-panel .btn-warning, fieldset[disabled] .studio-view .btn-warning:hover, fieldset[disabled] .studio-components-panel .btn-warning:hover, fieldset[disabled] .studio-view .btn-warning:focus, fieldset[disabled] .studio-components-panel .btn-warning:focus, fieldset[disabled] .studio-view .btn-warning.focus, fieldset[disabled] .studio-components-panel .btn-warning.focus, fieldset[disabled] .studio-view .btn-warning:active, fieldset[disabled] .studio-components-panel .btn-warning:active, fieldset[disabled] .studio-view .btn-warning.active, fieldset[disabled] .studio-components-panel .btn-warning.active {
+      background-color: #f0ad4e;
+      border-color: #eea236; }
+    .studio-view .btn-warning .badge, .studio-components-panel .btn-warning .badge {
+      color: #f0ad4e;
+      background-color: #fff; }
+  .studio-view .btn-danger, .studio-components-panel .btn-danger {
+    color: #fff;
+    background-color: #ED1C24;
+    border-color: #de1219; }
+    .studio-view .btn-danger:hover, .studio-components-panel .btn-danger:hover, .studio-view .btn-danger:focus, .studio-components-panel .btn-danger:focus, .studio-view .btn-danger.focus, .studio-components-panel .btn-danger.focus, .studio-view .btn-danger:active, .studio-components-panel .btn-danger:active, .studio-view .btn-danger.active, .studio-components-panel .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle, .open > .studio-components-panel .btn-danger.dropdown-toggle {
+      color: #fff;
+      background-color: #c61017;
+      border-color: #a50d13; }
+    .studio-view .btn-danger:active, .studio-components-panel .btn-danger:active, .studio-view .btn-danger.active, .studio-components-panel .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle, .open > .studio-components-panel .btn-danger.dropdown-toggle {
+      background-image: none; }
+    .studio-view .btn-danger.disabled, .studio-components-panel .btn-danger.disabled, .studio-view .btn-danger.disabled:hover, .studio-components-panel .btn-danger.disabled:hover, .studio-view .btn-danger.disabled:focus, .studio-components-panel .btn-danger.disabled:focus, .studio-view .btn-danger.disabled.focus, .studio-components-panel .btn-danger.disabled.focus, .studio-view .btn-danger.disabled:active, .studio-components-panel .btn-danger.disabled:active, .studio-view .btn-danger.disabled.active, .studio-components-panel .btn-danger.disabled.active, .studio-view .btn-danger[disabled], .studio-components-panel .btn-danger[disabled], .studio-view .btn-danger[disabled]:hover, .studio-components-panel .btn-danger[disabled]:hover, .studio-view .btn-danger[disabled]:focus, .studio-components-panel .btn-danger[disabled]:focus, .studio-view .btn-danger[disabled].focus, .studio-components-panel .btn-danger[disabled].focus, .studio-view .btn-danger[disabled]:active, .studio-components-panel .btn-danger[disabled]:active, .studio-view .btn-danger[disabled].active, .studio-components-panel .btn-danger[disabled].active, fieldset[disabled] .studio-view .btn-danger, fieldset[disabled] .studio-components-panel .btn-danger, fieldset[disabled] .studio-view .btn-danger:hover, fieldset[disabled] .studio-components-panel .btn-danger:hover, fieldset[disabled] .studio-view .btn-danger:focus, fieldset[disabled] .studio-components-panel .btn-danger:focus, fieldset[disabled] .studio-view .btn-danger.focus, fieldset[disabled] .studio-components-panel .btn-danger.focus, fieldset[disabled] .studio-view .btn-danger:active, fieldset[disabled] .studio-components-panel .btn-danger:active, fieldset[disabled] .studio-view .btn-danger.active, fieldset[disabled] .studio-components-panel .btn-danger.active {
+      background-color: #ED1C24;
+      border-color: #de1219; }
+    .studio-view .btn-danger .badge, .studio-components-panel .btn-danger .badge {
+      color: #ED1C24;
+      background-color: #fff; }
+  .studio-view .btn-link, .studio-components-panel .btn-link {
+    color: #7e9dbb;
+    font-weight: normal;
+    border-radius: 0; }
+    .studio-view .btn-link, .studio-components-panel .btn-link, .studio-view .btn-link:active, .studio-components-panel .btn-link:active, .studio-view .btn-link.active, .studio-components-panel .btn-link.active, .studio-view .btn-link[disabled], .studio-components-panel .btn-link[disabled], fieldset[disabled] .studio-view .btn-link, fieldset[disabled] .studio-components-panel .btn-link {
+      background-color: transparent;
+      -webkit-box-shadow: none;
+      box-shadow: none; }
+    .studio-view .btn-link, .studio-components-panel .btn-link, .studio-view .btn-link:hover, .studio-components-panel .btn-link:hover, .studio-view .btn-link:focus, .studio-components-panel .btn-link:focus, .studio-view .btn-link:active, .studio-components-panel .btn-link:active {
+      border-color: transparent; }
+    .studio-view .btn-link:hover, .studio-components-panel .btn-link:hover, .studio-view .btn-link:focus, .studio-components-panel .btn-link:focus {
+      color: #52779b;
+      text-decoration: underline;
+      background-color: transparent; }
+    .studio-view .btn-link[disabled]:hover, .studio-components-panel .btn-link[disabled]:hover, .studio-view .btn-link[disabled]:focus, .studio-components-panel .btn-link[disabled]:focus, fieldset[disabled] .studio-view .btn-link:hover, fieldset[disabled] .studio-components-panel .btn-link:hover, fieldset[disabled] .studio-view .btn-link:focus, fieldset[disabled] .studio-components-panel .btn-link:focus {
+      color: #777777;
+      text-decoration: none; }
+  .studio-view .btn-lg, .studio-components-panel .btn-lg {
+    padding: 10px 16px;
+    font-size: 15px;
+    line-height: 1.33333;
+    border-radius: 6px; }
+  .studio-view .btn-sm, .studio-components-panel .btn-sm {
+    padding: 5px 10px;
+    font-size: 11px;
+    line-height: 1.5;
+    border-radius: 3px; }
+  .studio-view .btn-xs, .studio-components-panel .btn-xs {
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 1.5;
+    border-radius: 3px; }
+  .studio-view .btn-block, .studio-components-panel .btn-block {
+    display: block;
+    width: 100%; }
+  .studio-view .btn-block + .btn-block, .studio-components-panel .btn-block + .btn-block {
+    margin-top: 5px; }
+  .studio-view input[type="submit"].btn-block, .studio-components-panel input[type="submit"].btn-block,
+  .studio-view input[type="reset"].btn-block,
+  .studio-components-panel input[type="reset"].btn-block,
+  .studio-view input[type="button"].btn-block,
+  .studio-components-panel input[type="button"].btn-block {
+    width: 100%; }
 
 .studio-ice-overlay,
 .studio-ice-indicator {
@@ -2765,6 +2942,10 @@ body.studio-dnd-enabled [data-studio-components-target] {
   border-radius: 4px !important;
   background-color: rgba(255, 255, 255, 0.7) !important;
   box-shadow: 0 0 10px 0 rgba(237, 28, 36, 0.4) !important; }
+  body.studio-dnd-enabled [data-studio-components-target] .ui-sortable-helper * {
+    cursor: move !important; }
+  body.studio-dnd-enabled [data-studio-components-target] * {
+    cursor: pointer; }
 body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
   color: #fff;
   padding: 5px 10px;
@@ -2787,7 +2968,7 @@ body.studio-dnd-enabled .studio-draggable-over {
   box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);
   border-top: 1px solid #ccc;
   height: auto;
-  z-index: 3; }
+  z-index: 1036; }
   .studio-components-panel, .studio-components-panel * {
     font-style: normal;
     font-weight: normal;
@@ -2796,15 +2977,17 @@ body.studio-dnd-enabled .studio-draggable-over {
     margin: 0;
     color: #000 !important; }
   .studio-components-panel .studio-panel-title {
-    font-size: 1.3em;
-    padding: 10px; }
-  .studio-components-panel [data-action="done"] {
-    top: 0;
-    right: 0;
-    border: none;
+    font-size: 1.4em;
     padding: 10px;
+    font-weight: bold; }
+  .studio-components-panel [data-action="done"] {
+    top: 9px;
+    right: 11px;
+    border: none;
+    padding: 0px 11px;
     line-height: 27px;
-    position: absolute; }
+    position: absolute;
+    color: #fff !important; }
   .studio-components-panel .studio-component-search {
     padding: 0 10px; }
     .studio-components-panel .studio-component-search input[type="search"] {
@@ -2823,7 +3006,7 @@ body.studio-dnd-enabled .studio-draggable-over {
     position: absolute;
     overflow: auto; }
     .studio-components-panel .studio-components-container .studio-category {
-      margin-bottom: 5px;
+      margin-bottom: 12px;
       box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
       border-radius: 4px; }
       .studio-components-panel .studio-components-container .studio-category .studio-category-name {
@@ -2845,11 +3028,28 @@ body.studio-dnd-enabled .studio-draggable-over {
         border-bottom-right-radius: 4px; }
         .studio-components-panel .studio-components-container .studio-category > sul > sli > sa {
           display: block;
-          padding: 5px 10px; }
+          padding: 5px 10px;
+          border-bottom: 1px solid #F0F0F0; }
+        .studio-components-panel .studio-components-container .studio-category > sul > sli > button {
+          border: none;
+          width: 100%;
+          padding: 4px 12px; }
+          .studio-components-panel .studio-components-container .studio-category > sul > sli > button span {
+            font-size: 1.3em; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse .studio-category-name {
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse sul {
         display: none; }
+  .studio-components-panel .component {
+    background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+    background-position: 0 -501px;
+    display: inline-block;
+    padding-left: 20px;
+    float: left;
+    width: 20px;
+    height: 17px; }
+  .studio-components-panel .ui-draggable-dragging {
+    cursor: move !important; }
 
 /*# sourceMappingURL=guest.css.map */

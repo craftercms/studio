@@ -271,6 +271,8 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             this.items = [];
         }
 
+
+
         var items =  this.items;
 
         itemsContainerEl.innerHTML = "";
@@ -466,6 +468,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
     setValue: function(value) {
         this.items = value;
 
+
         if((typeof this.items) == "string") {
             //Check if the current value is the default value, split it by comma and load it using key/value pair
             if(this.items === this.defaultValue){
@@ -486,6 +489,12 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             }
         }
 
+        if(this.items.length > 0) {
+            if(this.items[0].value == "") {
+                this.items = this.items[0].splice();
+            }
+        }
+        
         this.updateItems();
         this._onChange();
         this.count();
