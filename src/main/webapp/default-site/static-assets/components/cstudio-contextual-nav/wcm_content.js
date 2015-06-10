@@ -726,7 +726,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                     renderReject: {
                         render: function(option, isBulk, isAdmin, state, isRelevant, isWrite, perms) {
                             if(CStudioAuthoring.Service.isPublishAllowed(perms)) {
-                                 
+                                 isRelevant = false;
                                 if ( (state.indexOf("Submitted") != -1 
                                 || state.indexOf("Scheduled") != -1 
                                 || state.indexOf("Deleted") != -1)) {
