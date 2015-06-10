@@ -959,7 +959,7 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.0/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.0/atom/");
         //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
