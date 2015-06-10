@@ -2641,6 +2641,12 @@ span.acn-canned-search {
   -webkit-box-shadow:  0 5px 15px rgba(0, 0, 0, 0.5);
   -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   z-index: 99999;
+  //max-height: 500px;
+
+  .persona-container{
+    max-height: 501px;
+    //overflow-y: scroll;
+  }
 
   img{
     position: static;
@@ -2649,7 +2655,17 @@ span.acn-canned-search {
     margin-left: 15px;
     margin-right: 15px;
     border-radius: 6px;
+    max-width: 140px;
   }
+
+  .form-control{
+    margin-bottom: 7px;
+  }
+  
+  table{
+    margin-bottom: 15px;
+  }
+
 }
 
 #csupdatepersona, #cscancel{
@@ -2661,10 +2677,6 @@ span.acn-canned-search {
   bottom: 21px;
   position: absolute;
   right: 33px;
-}
-
-#csupdatepersona{
-  right: 133px;
 }
 
 #targeting-panel-elem{

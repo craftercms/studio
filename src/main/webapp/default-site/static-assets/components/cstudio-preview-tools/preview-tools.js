@@ -95,13 +95,27 @@
                 this.panel.show();
                 sessionStorage.setItem('pto-on', "on");
 
+                var container = document.getElementById("container");
+                if(container) {
+                    container.style.display="block";
+                }
+
                 this.PreviewToolsOnEvent.fire();
             },
 
             turnToolsOff: function () {
 
                 this.panel.hide();
-                sessionStorage.setItem('pto-on', "");  // empty string value so that when we cast it to boolean we get false
+                sessionStorage.setItem('pto-on', "");  // empty string value so that when we cast it to boolean we get false+
+
+                var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
+                var container = document.getElementById("container");
+                if(reportContainerEl) {
+                    document.body.removeChild(reportContainerEl);
+                }
+                if(container) {
+                    container.style.display="none";
+                }
 
                 this.PreviewToolsOffEvent.fire();
             },
