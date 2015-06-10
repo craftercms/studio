@@ -1112,6 +1112,11 @@ implements SecurityProvider {
         }
     }
 
+    @Override
+    public String getCurrentToken() {
+        return getAlfTicket();
+    }
+
     protected String alfrescoUrl;
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }

@@ -39,4 +39,6 @@ public interface SecurityProvider {
     void addUserGroup(String groupName);
 
     void addUserGroup(String parentGroup, String groupName);
+
+    String getCurrentToken();
 }
