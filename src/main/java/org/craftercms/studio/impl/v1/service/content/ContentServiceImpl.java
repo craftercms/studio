@@ -955,7 +955,7 @@ public class ContentServiceImpl implements ContentService {
         if (length > 0) {
             ContentItemTO item = getContentItem(site, path);
             if (item != null) {
-                String name = item.getName();
+                String name = ContentUtils.getPageName(path);
                 String parentPath = ContentUtils.getParentUrl(path);
                 ContentItemTO parentItem = getContentItemTree(site, parentPath, 1);
                 if (parentItem != null) {
