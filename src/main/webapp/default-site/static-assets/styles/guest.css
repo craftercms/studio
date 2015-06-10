@@ -3036,7 +3036,8 @@ body.studio-dnd-enabled .studio-draggable-over {
       .studio-components-panel .studio-components-container .studio-category.studio-collapse sul {
         display: none; }
   .studio-components-panel .add-component {
-    color: #fff !important; }
+    color: #fff !important;
+    width: 100%; }
   .studio-components-panel .component {
     background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
     background-position: 0 -501px;
