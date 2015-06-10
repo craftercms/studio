@@ -3030,17 +3030,13 @@ body.studio-dnd-enabled .studio-draggable-over {
           display: block;
           padding: 5px 10px;
           border-bottom: 1px solid #F0F0F0; }
-        .studio-components-panel .studio-components-container .studio-category > sul > sli > button {
-          border: none;
-          width: 100%;
-          padding: 4px 12px; }
-          .studio-components-panel .studio-components-container .studio-category > sul > sli > button span {
-            font-size: 1.3em; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse .studio-category-name {
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse sul {
         display: none; }
+  .studio-components-panel .add-component {
+    color: #fff !important; }
   .studio-components-panel .component {
     background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
     background-position: 0 -501px;
