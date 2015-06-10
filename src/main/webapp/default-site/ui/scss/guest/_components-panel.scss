@@ -144,14 +144,6 @@ body.#{$class-prefix}-dnd-enabled {
             padding: 5px 10px;
             border-bottom: 1px solid #F0F0F0;
           }
-          > button {
-            border: none;
-            width: 100%;
-            padding: 4px 12px;
-            span{
-              font-size: 1.3em;
-            }
-          }
         }
       }
 
@@ -168,6 +160,10 @@ body.#{$class-prefix}-dnd-enabled {
 
     }
 
+  }
+
+  .add-component{
+    color: #fff !important;
   }
 
   .component {
