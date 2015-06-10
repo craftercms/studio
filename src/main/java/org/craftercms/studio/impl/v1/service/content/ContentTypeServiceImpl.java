@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -183,7 +184,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                 if (relativePath.matches(pathConfig.getPathInclude())) {
                     logger.debug(relativePath + " matches " + pathConfig.getPathInclude());
                     Set<String> allowedContentTypes = pathConfig.getAllowedContentTypes();
-                    if (allowedContentTypes != null) {
+                    if (CollectionUtils.isNotEmpty(allowedContentTypes)) {
                         for (String key : allowedContentTypes) {
                             if (!contentKeys.contains(key)) {
                                 logger.debug("Checking an allowed content type: " + key);
