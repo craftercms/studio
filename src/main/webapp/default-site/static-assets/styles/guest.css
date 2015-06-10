@@ -2942,6 +2942,10 @@ body.studio-dnd-enabled [data-studio-components-target] {
   border-radius: 4px !important;
   background-color: rgba(255, 255, 255, 0.7) !important;
   box-shadow: 0 0 10px 0 rgba(237, 28, 36, 0.4) !important; }
+  body.studio-dnd-enabled [data-studio-components-target] .ui-sortable-helper * {
+    cursor: move !important; }
+  body.studio-dnd-enabled [data-studio-components-target] * {
+    cursor: pointer; }
 body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
   color: #fff;
   padding: 5px 10px;
@@ -2964,7 +2968,7 @@ body.studio-dnd-enabled .studio-draggable-over {
   box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);
   border-top: 1px solid #ccc;
   height: auto;
-  z-index: 3; }
+  z-index: 1036; }
   .studio-components-panel, .studio-components-panel * {
     font-style: normal;
     font-weight: normal;
@@ -3002,7 +3006,7 @@ body.studio-dnd-enabled .studio-draggable-over {
     position: absolute;
     overflow: auto; }
     .studio-components-panel .studio-components-container .studio-category {
-      margin-bottom: 5px;
+      margin-bottom: 12px;
       box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
       border-radius: 4px; }
       .studio-components-panel .studio-components-container .studio-category .studio-category-name {
@@ -3024,11 +3028,28 @@ body.studio-dnd-enabled .studio-draggable-over {
         border-bottom-right-radius: 4px; }
         .studio-components-panel .studio-components-container .studio-category > sul > sli > sa {
           display: block;
-          padding: 5px 10px; }
+          padding: 5px 10px;
+          border-bottom: 1px solid #F0F0F0; }
+        .studio-components-panel .studio-components-container .studio-category > sul > sli > button {
+          border: none;
+          width: 100%;
+          padding: 4px 12px; }
+          .studio-components-panel .studio-components-container .studio-category > sul > sli > button span {
+            font-size: 1.3em; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse .studio-category-name {
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse sul {
         display: none; }
+  .studio-components-panel .component {
+    background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+    background-position: 0 -501px;
+    display: inline-block;
+    padding-left: 20px;
+    float: left;
+    width: 20px;
+    height: 17px; }
+  .studio-components-panel .ui-draggable-dragging {
+    cursor: move !important; }
 
 /*# sourceMappingURL=guest.css.map */
