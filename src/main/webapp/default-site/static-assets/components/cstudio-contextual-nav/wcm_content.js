@@ -726,15 +726,15 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                     renderReject: {
                         render: function(option, isBulk, isAdmin, state, isRelevant, isWrite, perms) {
                             if(CStudioAuthoring.Service.isPublishAllowed(perms)) {
-                                var isRelevant = false;
-
-                                if ( (state.indexOf("Submitted") != -1 || state.indexOf("Scheduled") != -1 || state.indexOf("Deleted") != -1) &&
-                                    state != "Scheduled" ) {
+                                 
+                                if ( (state.indexOf("Submitted") != -1 
+                                || state.indexOf("Scheduled") != -1 
+                                || state.indexOf("Deleted") != -1)) {
                                     isRelevant = true;
                                 }
 
                                 //Check that all selected items are from go-live queue or not
-                                var content = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                /*var content = CStudioAuthoring.SelectedContent.getSelectedContent();
                                 if (isRelevant && content && content.length >= 1) {
                                     for (var conIdx=0; conIdx<content.length; conIdx++) {
                                         var auxState = CStudioAuthoring.Utils.getContentItemStatus(content[conIdx]);
@@ -752,7 +752,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             break;
                                         }
                                     }
-                                }
+                                }*/
 
                                 option.onclick = function() {
                                     CStudioAuthoring.Operations.rejectContent(
