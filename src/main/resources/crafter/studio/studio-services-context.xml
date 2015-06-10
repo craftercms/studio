@@ -65,6 +65,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
+        <property name="securityProvider" ref="securityProvider"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
