@@ -5098,13 +5098,20 @@ span.acn-canned-search {
   -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   z-index: 99999; }
+  #cstudioPreviewAnalyticsOverlay .persona-container {
+    max-height: 501px; }
   #cstudioPreviewAnalyticsOverlay img {
     position: static;
     float: left;
     border: 1px solid #c9c9c9;
     margin-left: 15px;
     margin-right: 15px;
-    border-radius: 6px; }
+    border-radius: 6px;
+    max-width: 140px; }
+  #cstudioPreviewAnalyticsOverlay .form-control {
+    margin-bottom: 7px; }
+  #cstudioPreviewAnalyticsOverlay table {
+    margin-bottom: 15px; }
 
 #csupdatepersona, #cscancel {
   width: 91px;
@@ -5115,9 +5122,6 @@ span.acn-canned-search {
   bottom: 21px;
   position: absolute;
   right: 33px; }
-
-#csupdatepersona {
-  right: 133px; }
 
 #targeting-panel-elem #container {
   width: 229px !important;
@@ -9133,58 +9137,106 @@ address {
     line-height: 31px; }
     .studio-view input[type="date"].input-sm, .studio-view .input-group-sm > input[type="date"].form-control,
     .studio-view .input-group-sm > input[type="date"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm .studio-view input[type="date"],
+    .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn,
+    .studio-view .studio-dialog .input-group-sm > input[type="date"].form-control,
+    .studio-view .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
+    .studio-view .site-dashboard .input-group-sm > input[type="date"].form-control,
+    .studio-view .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm .studio-view input[type="date"],
     .studio-view input[type="time"].input-sm,
     .studio-view .input-group-sm > input[type="time"].form-control,
     .studio-view .input-group-sm > input[type="time"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+    .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn,
+    .studio-view .studio-dialog .input-group-sm > input[type="time"].form-control,
+    .studio-view .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
+    .studio-view .site-dashboard .input-group-sm > input[type="time"].form-control,
+    .studio-view .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
     .studio-view input[type="time"],
     .studio-view input[type="datetime-local"].input-sm,
     .studio-view .input-group-sm > input[type="datetime-local"].form-control,
     .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+    .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
+    .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
+    .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
     .studio-view input[type="datetime-local"],
     .studio-view input[type="month"].input-sm,
     .studio-view .input-group-sm > input[type="month"].form-control,
     .studio-view .input-group-sm > input[type="month"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+    .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn,
+    .studio-view .studio-dialog .input-group-sm > input[type="month"].form-control,
+    .studio-view .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
+    .studio-view .site-dashboard .input-group-sm > input[type="month"].form-control,
+    .studio-view .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
     .studio-view input[type="month"],
     .studio-dialog input[type="date"].input-sm,
+    .studio-dialog .studio-view .input-group-sm > input[type="date"].form-control,
+    .studio-dialog .studio-view .input-group-sm > input[type="date"].input-group-addon,
     .studio-dialog .input-group-sm > input[type="date"].form-control,
     .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="date"].form-control,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm
     .studio-dialog input[type="date"],
     .studio-dialog input[type="time"].input-sm,
+    .studio-dialog .studio-view .input-group-sm > input[type="time"].form-control,
+    .studio-dialog .studio-view .input-group-sm > input[type="time"].input-group-addon,
     .studio-dialog .input-group-sm > input[type="time"].form-control,
     .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="time"].form-control,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
     .studio-dialog input[type="time"],
     .studio-dialog input[type="datetime-local"].input-sm,
+    .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
     .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
     .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
     .studio-dialog input[type="datetime-local"],
     .studio-dialog input[type="month"].input-sm,
+    .studio-dialog .studio-view .input-group-sm > input[type="month"].form-control,
+    .studio-dialog .studio-view .input-group-sm > input[type="month"].input-group-addon,
     .studio-dialog .input-group-sm > input[type="month"].form-control,
     .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+    .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="month"].form-control,
+    .studio-dialog .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
     .studio-dialog input[type="month"],
     .site-dashboard input[type="date"].input-sm,
+    .site-dashboard .studio-view .input-group-sm > input[type="date"].form-control,
+    .site-dashboard .studio-view .input-group-sm > input[type="date"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="date"].form-control,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
     .site-dashboard .input-group-sm > input[type="date"].form-control,
     .site-dashboard .input-group-sm > input[type="date"].input-group-addon,
     .site-dashboard .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
     .site-dashboard input[type="date"],
     .site-dashboard input[type="time"].input-sm,
+    .site-dashboard .studio-view .input-group-sm > input[type="time"].form-control,
+    .site-dashboard .studio-view .input-group-sm > input[type="time"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="time"].form-control,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
     .site-dashboard .input-group-sm > input[type="time"].form-control,
     .site-dashboard .input-group-sm > input[type="time"].input-group-addon,
     .site-dashboard .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
     .site-dashboard input[type="time"],
     .site-dashboard input[type="datetime-local"].input-sm,
+    .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+    .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
     .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
     .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon,
     .site-dashboard .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
     .site-dashboard input[type="datetime-local"],
     .site-dashboard input[type="month"].input-sm,
+    .site-dashboard .studio-view .input-group-sm > input[type="month"].form-control,
+    .site-dashboard .studio-view .input-group-sm > input[type="month"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="month"].form-control,
+    .site-dashboard .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
     .site-dashboard .input-group-sm > input[type="month"].form-control,
     .site-dashboard .input-group-sm > input[type="month"].input-group-addon,
     .site-dashboard .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
@@ -9192,58 +9244,106 @@ address {
       line-height: 28px; }
     .studio-view input[type="date"].input-lg, .studio-view .input-group-lg > input[type="date"].form-control,
     .studio-view .input-group-lg > input[type="date"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg .studio-view input[type="date"],
+    .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn,
+    .studio-view .studio-dialog .input-group-lg > input[type="date"].form-control,
+    .studio-view .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
+    .studio-view .site-dashboard .input-group-lg > input[type="date"].form-control,
+    .studio-view .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg .studio-view input[type="date"],
     .studio-view input[type="time"].input-lg,
     .studio-view .input-group-lg > input[type="time"].form-control,
     .studio-view .input-group-lg > input[type="time"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+    .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn,
+    .studio-view .studio-dialog .input-group-lg > input[type="time"].form-control,
+    .studio-view .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
+    .studio-view .site-dashboard .input-group-lg > input[type="time"].form-control,
+    .studio-view .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
     .studio-view input[type="time"],
     .studio-view input[type="datetime-local"].input-lg,
     .studio-view .input-group-lg > input[type="datetime-local"].form-control,
     .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+    .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
+    .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
+    .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
     .studio-view input[type="datetime-local"],
     .studio-view input[type="month"].input-lg,
     .studio-view .input-group-lg > input[type="month"].form-control,
     .studio-view .input-group-lg > input[type="month"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+    .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn,
+    .studio-view .studio-dialog .input-group-lg > input[type="month"].form-control,
+    .studio-view .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
+    .studio-view .site-dashboard .input-group-lg > input[type="month"].form-control,
+    .studio-view .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
     .studio-view input[type="month"],
     .studio-dialog input[type="date"].input-lg,
+    .studio-dialog .studio-view .input-group-lg > input[type="date"].form-control,
+    .studio-dialog .studio-view .input-group-lg > input[type="date"].input-group-addon,
     .studio-dialog .input-group-lg > input[type="date"].form-control,
     .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="date"].form-control,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg
     .studio-dialog input[type="date"],
     .studio-dialog input[type="time"].input-lg,
+    .studio-dialog .studio-view .input-group-lg > input[type="time"].form-control,
+    .studio-dialog .studio-view .input-group-lg > input[type="time"].input-group-addon,
     .studio-dialog .input-group-lg > input[type="time"].form-control,
     .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="time"].form-control,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
     .studio-dialog input[type="time"],
     .studio-dialog input[type="datetime-local"].input-lg,
+    .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
     .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
     .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
     .studio-dialog input[type="datetime-local"],
     .studio-dialog input[type="month"].input-lg,
+    .studio-dialog .studio-view .input-group-lg > input[type="month"].form-control,
+    .studio-dialog .studio-view .input-group-lg > input[type="month"].input-group-addon,
     .studio-dialog .input-group-lg > input[type="month"].form-control,
     .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+    .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="month"].form-control,
+    .studio-dialog .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
     .studio-dialog input[type="month"],
     .site-dashboard input[type="date"].input-lg,
+    .site-dashboard .studio-view .input-group-lg > input[type="date"].form-control,
+    .site-dashboard .studio-view .input-group-lg > input[type="date"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="date"].form-control,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
     .site-dashboard .input-group-lg > input[type="date"].form-control,
     .site-dashboard .input-group-lg > input[type="date"].input-group-addon,
     .site-dashboard .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
     .site-dashboard input[type="date"],
     .site-dashboard input[type="time"].input-lg,
+    .site-dashboard .studio-view .input-group-lg > input[type="time"].form-control,
+    .site-dashboard .studio-view .input-group-lg > input[type="time"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="time"].form-control,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
     .site-dashboard .input-group-lg > input[type="time"].form-control,
     .site-dashboard .input-group-lg > input[type="time"].input-group-addon,
     .site-dashboard .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
     .site-dashboard input[type="time"],
     .site-dashboard input[type="datetime-local"].input-lg,
+    .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+    .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
     .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
     .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon,
     .site-dashboard .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
     .site-dashboard input[type="datetime-local"],
     .site-dashboard input[type="month"].input-lg,
+    .site-dashboard .studio-view .input-group-lg > input[type="month"].form-control,
+    .site-dashboard .studio-view .input-group-lg > input[type="month"].input-group-addon,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="month"].form-control,
+    .site-dashboard .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
     .site-dashboard .input-group-lg > input[type="month"].form-control,
     .site-dashboard .input-group-lg > input[type="month"].input-group-addon,
     .site-dashboard .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
@@ -9367,22 +9467,46 @@ address {
   min-height: 29px; }
   .studio-view .form-control-static.input-lg, .studio-view .input-group-lg > .form-control-static.form-control,
   .studio-view .input-group-lg > .form-control-static.input-group-addon,
-  .studio-view .input-group-lg > .input-group-btn > .form-control-static.btn, .studio-view .form-control-static.input-sm, .studio-view .input-group-sm > .form-control-static.form-control,
+  .studio-view .input-group-lg > .input-group-btn > .form-control-static.btn,
+  .studio-view .studio-dialog .input-group-lg > .form-control-static.form-control,
+  .studio-view .studio-dialog .input-group-lg > .form-control-static.input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > .form-control-static.form-control,
+  .studio-view .site-dashboard .input-group-lg > .form-control-static.input-group-addon, .studio-view .form-control-static.input-sm, .studio-view .input-group-sm > .form-control-static.form-control,
   .studio-view .input-group-sm > .form-control-static.input-group-addon,
   .studio-view .input-group-sm > .input-group-btn > .form-control-static.btn,
+  .studio-view .studio-dialog .input-group-sm > .form-control-static.form-control,
+  .studio-view .studio-dialog .input-group-sm > .form-control-static.input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > .form-control-static.form-control,
+  .studio-view .site-dashboard .input-group-sm > .form-control-static.input-group-addon,
   .studio-dialog .form-control-static.input-lg,
+  .studio-dialog .studio-view .input-group-lg > .form-control-static.form-control,
+  .studio-dialog .studio-view .input-group-lg > .form-control-static.input-group-addon,
   .studio-dialog .input-group-lg > .form-control-static.form-control,
   .studio-dialog .input-group-lg > .form-control-static.input-group-addon,
   .studio-dialog .input-group-lg > .input-group-btn > .form-control-static.btn,
+  .studio-dialog .site-dashboard .input-group-lg > .form-control-static.form-control,
+  .studio-dialog .site-dashboard .input-group-lg > .form-control-static.input-group-addon,
   .studio-dialog .form-control-static.input-sm,
+  .studio-dialog .studio-view .input-group-sm > .form-control-static.form-control,
+  .studio-dialog .studio-view .input-group-sm > .form-control-static.input-group-addon,
   .studio-dialog .input-group-sm > .form-control-static.form-control,
   .studio-dialog .input-group-sm > .form-control-static.input-group-addon,
   .studio-dialog .input-group-sm > .input-group-btn > .form-control-static.btn,
+  .studio-dialog .site-dashboard .input-group-sm > .form-control-static.form-control,
+  .studio-dialog .site-dashboard .input-group-sm > .form-control-static.input-group-addon,
   .site-dashboard .form-control-static.input-lg,
+  .site-dashboard .studio-view .input-group-lg > .form-control-static.form-control,
+  .site-dashboard .studio-view .input-group-lg > .form-control-static.input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > .form-control-static.form-control,
+  .site-dashboard .studio-dialog .input-group-lg > .form-control-static.input-group-addon,
   .site-dashboard .input-group-lg > .form-control-static.form-control,
   .site-dashboard .input-group-lg > .form-control-static.input-group-addon,
   .site-dashboard .input-group-lg > .input-group-btn > .form-control-static.btn,
   .site-dashboard .form-control-static.input-sm,
+  .site-dashboard .studio-view .input-group-sm > .form-control-static.form-control,
+  .site-dashboard .studio-view .input-group-sm > .form-control-static.input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > .form-control-static.form-control,
+  .site-dashboard .studio-dialog .input-group-sm > .form-control-static.input-group-addon,
   .site-dashboard .input-group-sm > .form-control-static.form-control,
   .site-dashboard .input-group-sm > .form-control-static.input-group-addon,
   .site-dashboard .input-group-sm > .input-group-btn > .form-control-static.btn {
@@ -9391,11 +9515,23 @@ address {
 .studio-view .input-sm, .studio-view .input-group-sm > .form-control,
 .studio-view .input-group-sm > .input-group-addon,
 .studio-view .input-group-sm > .input-group-btn > .btn,
+.studio-view .studio-dialog .input-group-sm > .form-control,
+.studio-view .studio-dialog .input-group-sm > .input-group-addon,
+.studio-view .site-dashboard .input-group-sm > .form-control,
+.studio-view .site-dashboard .input-group-sm > .input-group-addon,
 .studio-dialog .input-sm,
+.studio-dialog .studio-view .input-group-sm > .form-control,
+.studio-dialog .studio-view .input-group-sm > .input-group-addon,
 .studio-dialog .input-group-sm > .form-control,
 .studio-dialog .input-group-sm > .input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > .btn,
+.studio-dialog .site-dashboard .input-group-sm > .form-control,
+.studio-dialog .site-dashboard .input-group-sm > .input-group-addon,
 .site-dashboard .input-sm,
+.site-dashboard .studio-view .input-group-sm > .form-control,
+.site-dashboard .studio-view .input-group-sm > .input-group-addon,
+.site-dashboard .studio-dialog .input-group-sm > .form-control,
+.site-dashboard .studio-dialog .input-group-sm > .input-group-addon,
 .site-dashboard .input-group-sm > .form-control,
 .site-dashboard .input-group-sm > .input-group-addon,
 .site-dashboard .input-group-sm > .input-group-btn > .btn {
@@ -9407,11 +9543,23 @@ address {
 .studio-view select.input-sm, .studio-view .input-group-sm > select.form-control,
 .studio-view .input-group-sm > select.input-group-addon,
 .studio-view .input-group-sm > .input-group-btn > select.btn,
+.studio-view .studio-dialog .input-group-sm > select.form-control,
+.studio-view .studio-dialog .input-group-sm > select.input-group-addon,
+.studio-view .site-dashboard .input-group-sm > select.form-control,
+.studio-view .site-dashboard .input-group-sm > select.input-group-addon,
 .studio-dialog select.input-sm,
+.studio-dialog .studio-view .input-group-sm > select.form-control,
+.studio-dialog .studio-view .input-group-sm > select.input-group-addon,
 .studio-dialog .input-group-sm > select.form-control,
 .studio-dialog .input-group-sm > select.input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > select.btn,
+.studio-dialog .site-dashboard .input-group-sm > select.form-control,
+.studio-dialog .site-dashboard .input-group-sm > select.input-group-addon,
 .site-dashboard select.input-sm,
+.site-dashboard .studio-view .input-group-sm > select.form-control,
+.site-dashboard .studio-view .input-group-sm > select.input-group-addon,
+.site-dashboard .studio-dialog .input-group-sm > select.form-control,
+.site-dashboard .studio-dialog .input-group-sm > select.input-group-addon,
 .site-dashboard .input-group-sm > select.form-control,
 .site-dashboard .input-group-sm > select.input-group-addon,
 .site-dashboard .input-group-sm > .input-group-btn > select.btn {
@@ -9420,23 +9568,47 @@ address {
 .studio-view textarea.input-sm, .studio-view .input-group-sm > textarea.form-control,
 .studio-view .input-group-sm > textarea.input-group-addon,
 .studio-view .input-group-sm > .input-group-btn > textarea.btn,
+.studio-view .studio-dialog .input-group-sm > textarea.form-control,
+.studio-view .studio-dialog .input-group-sm > textarea.input-group-addon,
+.studio-view .site-dashboard .input-group-sm > textarea.form-control,
+.studio-view .site-dashboard .input-group-sm > textarea.input-group-addon,
 .studio-view select[multiple].input-sm,
 .studio-view .input-group-sm > select[multiple].form-control,
 .studio-view .input-group-sm > select[multiple].input-group-addon,
 .studio-view .input-group-sm > .input-group-btn > select[multiple].btn,
+.studio-view .studio-dialog .input-group-sm > select[multiple].form-control,
+.studio-view .studio-dialog .input-group-sm > select[multiple].input-group-addon,
+.studio-view .site-dashboard .input-group-sm > select[multiple].form-control,
+.studio-view .site-dashboard .input-group-sm > select[multiple].input-group-addon,
 .studio-dialog textarea.input-sm,
+.studio-dialog .studio-view .input-group-sm > textarea.form-control,
+.studio-dialog .studio-view .input-group-sm > textarea.input-group-addon,
 .studio-dialog .input-group-sm > textarea.form-control,
 .studio-dialog .input-group-sm > textarea.input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > textarea.btn,
+.studio-dialog .site-dashboard .input-group-sm > textarea.form-control,
+.studio-dialog .site-dashboard .input-group-sm > textarea.input-group-addon,
 .studio-dialog select[multiple].input-sm,
+.studio-dialog .studio-view .input-group-sm > select[multiple].form-control,
+.studio-dialog .studio-view .input-group-sm > select[multiple].input-group-addon,
 .studio-dialog .input-group-sm > select[multiple].form-control,
 .studio-dialog .input-group-sm > select[multiple].input-group-addon,
 .studio-dialog .input-group-sm > .input-group-btn > select[multiple].btn,
+.studio-dialog .site-dashboard .input-group-sm > select[multiple].form-control,
+.studio-dialog .site-dashboard .input-group-sm > select[multiple].input-group-addon,
 .site-dashboard textarea.input-sm,
+.site-dashboard .studio-view .input-group-sm > textarea.form-control,
+.site-dashboard .studio-view .input-group-sm > textarea.input-group-addon,
+.site-dashboard .studio-dialog .input-group-sm > textarea.form-control,
+.site-dashboard .studio-dialog .input-group-sm > textarea.input-group-addon,
 .site-dashboard .input-group-sm > textarea.form-control,
 .site-dashboard .input-group-sm > textarea.input-group-addon,
 .site-dashboard .input-group-sm > .input-group-btn > textarea.btn,
 .site-dashboard select[multiple].input-sm,
+.site-dashboard .studio-view .input-group-sm > select[multiple].form-control,
+.site-dashboard .studio-view .input-group-sm > select[multiple].input-group-addon,
+.site-dashboard .studio-dialog .input-group-sm > select[multiple].form-control,
+.site-dashboard .studio-dialog .input-group-sm > select[multiple].input-group-addon,
 .site-dashboard .input-group-sm > select[multiple].form-control,
 .site-dashboard .input-group-sm > select[multiple].input-group-addon,
 .site-dashboard .input-group-sm > .input-group-btn > select[multiple].btn {
@@ -9472,11 +9644,23 @@ address {
 .studio-view .input-lg, .studio-view .input-group-lg > .form-control,
 .studio-view .input-group-lg > .input-group-addon,
 .studio-view .input-group-lg > .input-group-btn > .btn,
+.studio-view .studio-dialog .input-group-lg > .form-control,
+.studio-view .studio-dialog .input-group-lg > .input-group-addon,
+.studio-view .site-dashboard .input-group-lg > .form-control,
+.studio-view .site-dashboard .input-group-lg > .input-group-addon,
 .studio-dialog .input-lg,
+.studio-dialog .studio-view .input-group-lg > .form-control,
+.studio-dialog .studio-view .input-group-lg > .input-group-addon,
 .studio-dialog .input-group-lg > .form-control,
 .studio-dialog .input-group-lg > .input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > .btn,
+.studio-dialog .site-dashboard .input-group-lg > .form-control,
+.studio-dialog .site-dashboard .input-group-lg > .input-group-addon,
 .site-dashboard .input-lg,
+.site-dashboard .studio-view .input-group-lg > .form-control,
+.site-dashboard .studio-view .input-group-lg > .input-group-addon,
+.site-dashboard .studio-dialog .input-group-lg > .form-control,
+.site-dashboard .studio-dialog .input-group-lg > .input-group-addon,
 .site-dashboard .input-group-lg > .form-control,
 .site-dashboard .input-group-lg > .input-group-addon,
 .site-dashboard .input-group-lg > .input-group-btn > .btn {
@@ -9488,11 +9672,23 @@ address {
 .studio-view select.input-lg, .studio-view .input-group-lg > select.form-control,
 .studio-view .input-group-lg > select.input-group-addon,
 .studio-view .input-group-lg > .input-group-btn > select.btn,
+.studio-view .studio-dialog .input-group-lg > select.form-control,
+.studio-view .studio-dialog .input-group-lg > select.input-group-addon,
+.studio-view .site-dashboard .input-group-lg > select.form-control,
+.studio-view .site-dashboard .input-group-lg > select.input-group-addon,
 .studio-dialog select.input-lg,
+.studio-dialog .studio-view .input-group-lg > select.form-control,
+.studio-dialog .studio-view .input-group-lg > select.input-group-addon,
 .studio-dialog .input-group-lg > select.form-control,
 .studio-dialog .input-group-lg > select.input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > select.btn,
+.studio-dialog .site-dashboard .input-group-lg > select.form-control,
+.studio-dialog .site-dashboard .input-group-lg > select.input-group-addon,
 .site-dashboard select.input-lg,
+.site-dashboard .studio-view .input-group-lg > select.form-control,
+.site-dashboard .studio-view .input-group-lg > select.input-group-addon,
+.site-dashboard .studio-dialog .input-group-lg > select.form-control,
+.site-dashboard .studio-dialog .input-group-lg > select.input-group-addon,
 .site-dashboard .input-group-lg > select.form-control,
 .site-dashboard .input-group-lg > select.input-group-addon,
 .site-dashboard .input-group-lg > .input-group-btn > select.btn {
@@ -9501,23 +9697,47 @@ address {
 .studio-view textarea.input-lg, .studio-view .input-group-lg > textarea.form-control,
 .studio-view .input-group-lg > textarea.input-group-addon,
 .studio-view .input-group-lg > .input-group-btn > textarea.btn,
+.studio-view .studio-dialog .input-group-lg > textarea.form-control,
+.studio-view .studio-dialog .input-group-lg > textarea.input-group-addon,
+.studio-view .site-dashboard .input-group-lg > textarea.form-control,
+.studio-view .site-dashboard .input-group-lg > textarea.input-group-addon,
 .studio-view select[multiple].input-lg,
 .studio-view .input-group-lg > select[multiple].form-control,
 .studio-view .input-group-lg > select[multiple].input-group-addon,
 .studio-view .input-group-lg > .input-group-btn > select[multiple].btn,
+.studio-view .studio-dialog .input-group-lg > select[multiple].form-control,
+.studio-view .studio-dialog .input-group-lg > select[multiple].input-group-addon,
+.studio-view .site-dashboard .input-group-lg > select[multiple].form-control,
+.studio-view .site-dashboard .input-group-lg > select[multiple].input-group-addon,
 .studio-dialog textarea.input-lg,
+.studio-dialog .studio-view .input-group-lg > textarea.form-control,
+.studio-dialog .studio-view .input-group-lg > textarea.input-group-addon,
 .studio-dialog .input-group-lg > textarea.form-control,
 .studio-dialog .input-group-lg > textarea.input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > textarea.btn,
+.studio-dialog .site-dashboard .input-group-lg > textarea.form-control,
+.studio-dialog .site-dashboard .input-group-lg > textarea.input-group-addon,
 .studio-dialog select[multiple].input-lg,
+.studio-dialog .studio-view .input-group-lg > select[multiple].form-control,
+.studio-dialog .studio-view .input-group-lg > select[multiple].input-group-addon,
 .studio-dialog .input-group-lg > select[multiple].form-control,
 .studio-dialog .input-group-lg > select[multiple].input-group-addon,
 .studio-dialog .input-group-lg > .input-group-btn > select[multiple].btn,
+.studio-dialog .site-dashboard .input-group-lg > select[multiple].form-control,
+.studio-dialog .site-dashboard .input-group-lg > select[multiple].input-group-addon,
 .site-dashboard textarea.input-lg,
+.site-dashboard .studio-view .input-group-lg > textarea.form-control,
+.site-dashboard .studio-view .input-group-lg > textarea.input-group-addon,
+.site-dashboard .studio-dialog .input-group-lg > textarea.form-control,
+.site-dashboard .studio-dialog .input-group-lg > textarea.input-group-addon,
 .site-dashboard .input-group-lg > textarea.form-control,
 .site-dashboard .input-group-lg > textarea.input-group-addon,
 .site-dashboard .input-group-lg > .input-group-btn > textarea.btn,
 .site-dashboard select[multiple].input-lg,
+.site-dashboard .studio-view .input-group-lg > select[multiple].form-control,
+.site-dashboard .studio-view .input-group-lg > select[multiple].input-group-addon,
+.site-dashboard .studio-dialog .input-group-lg > select[multiple].form-control,
+.site-dashboard .studio-dialog .input-group-lg > select[multiple].input-group-addon,
 .site-dashboard .input-group-lg > select[multiple].form-control,
 .site-dashboard .input-group-lg > select[multiple].input-group-addon,
 .site-dashboard .input-group-lg > .input-group-btn > select[multiple].btn {
@@ -10452,27 +10672,45 @@ address {
     color: #777777;
     text-decoration: none; }
 .studio-view .btn-lg, .studio-view .btn-group-lg > .btn,
+.studio-view .studio-dialog .btn-group-lg > .btn,
+.studio-view .site-dashboard .btn-group-lg > .btn,
 .studio-dialog .btn-lg,
+.studio-dialog .studio-view .btn-group-lg > .btn,
 .studio-dialog .btn-group-lg > .btn,
+.studio-dialog .site-dashboard .btn-group-lg > .btn,
 .site-dashboard .btn-lg,
+.site-dashboard .studio-view .btn-group-lg > .btn,
+.site-dashboard .studio-dialog .btn-group-lg > .btn,
 .site-dashboard .btn-group-lg > .btn {
   padding: 10px 16px;
   font-size: 15px;
   line-height: 1.33333;
   border-radius: 6px; }
 .studio-view .btn-sm, .studio-view .btn-group-sm > .btn,
+.studio-view .studio-dialog .btn-group-sm > .btn,
+.studio-view .site-dashboard .btn-group-sm > .btn,
 .studio-dialog .btn-sm,
+.studio-dialog .studio-view .btn-group-sm > .btn,
 .studio-dialog .btn-group-sm > .btn,
+.studio-dialog .site-dashboard .btn-group-sm > .btn,
 .site-dashboard .btn-sm,
+.site-dashboard .studio-view .btn-group-sm > .btn,
+.site-dashboard .studio-dialog .btn-group-sm > .btn,
 .site-dashboard .btn-group-sm > .btn {
   padding: 5px 10px;
   font-size: 11px;
   line-height: 1.5;
   border-radius: 3px; }
 .studio-view .btn-xs, .studio-view .btn-group-xs > .btn,
+.studio-view .studio-dialog .btn-group-xs > .btn,
+.studio-view .site-dashboard .btn-group-xs > .btn,
 .studio-dialog .btn-xs,
+.studio-dialog .studio-view .btn-group-xs > .btn,
 .studio-dialog .btn-group-xs > .btn,
+.studio-dialog .site-dashboard .btn-group-xs > .btn,
 .site-dashboard .btn-xs,
+.site-dashboard .studio-view .btn-group-xs > .btn,
+.site-dashboard .studio-dialog .btn-group-xs > .btn,
 .site-dashboard .btn-group-xs > .btn {
   padding: 1px 5px;
   font-size: 11px;
@@ -11059,10 +11297,16 @@ address {
   .studio-view .input-group-addon.input-sm,
   .studio-view .input-group-sm > .input-group-addon,
   .studio-view .input-group-sm > .input-group-btn > .input-group-addon.btn,
+  .studio-view .studio-dialog .input-group-sm > .input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > .input-group-addon,
   .studio-dialog .input-group-addon.input-sm,
+  .studio-dialog .studio-view .input-group-sm > .input-group-addon,
   .studio-dialog .input-group-sm > .input-group-addon,
   .studio-dialog .input-group-sm > .input-group-btn > .input-group-addon.btn,
+  .studio-dialog .site-dashboard .input-group-sm > .input-group-addon,
   .site-dashboard .input-group-addon.input-sm,
+  .site-dashboard .studio-view .input-group-sm > .input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > .input-group-addon,
   .site-dashboard .input-group-sm > .input-group-addon,
   .site-dashboard .input-group-sm > .input-group-btn > .input-group-addon.btn {
     padding: 5px 10px;
@@ -11071,10 +11315,16 @@ address {
   .studio-view .input-group-addon.input-lg,
   .studio-view .input-group-lg > .input-group-addon,
   .studio-view .input-group-lg > .input-group-btn > .input-group-addon.btn,
+  .studio-view .studio-dialog .input-group-lg > .input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > .input-group-addon,
   .studio-dialog .input-group-addon.input-lg,
+  .studio-dialog .studio-view .input-group-lg > .input-group-addon,
   .studio-dialog .input-group-lg > .input-group-addon,
   .studio-dialog .input-group-lg > .input-group-btn > .input-group-addon.btn,
+  .studio-dialog .site-dashboard .input-group-lg > .input-group-addon,
   .site-dashboard .input-group-addon.input-lg,
+  .site-dashboard .studio-view .input-group-lg > .input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > .input-group-addon,
   .site-dashboard .input-group-lg > .input-group-addon,
   .site-dashboard .input-group-lg > .input-group-btn > .input-group-addon.btn {
     padding: 10px 16px;
@@ -11314,9 +11564,15 @@ address {
 .site-dashboard .nav-tabs.nav-justified {
   width: 100%; }
   .studio-view .nav-justified > li, .studio-view .nav-tabs.nav-justified > li,
+  .studio-view .studio-dialog .nav-tabs.nav-justified > li,
+  .studio-view .site-dashboard .nav-tabs.nav-justified > li,
   .studio-dialog .nav-justified > li,
+  .studio-dialog .studio-view .nav-tabs.nav-justified > li,
   .studio-dialog .nav-tabs.nav-justified > li,
+  .studio-dialog .site-dashboard .nav-tabs.nav-justified > li,
   .site-dashboard .nav-justified > li,
+  .site-dashboard .studio-view .nav-tabs.nav-justified > li,
+  .site-dashboard .studio-dialog .nav-tabs.nav-justified > li,
   .site-dashboard .nav-tabs.nav-justified > li {
     float: none; }
     .studio-view .nav-justified > li > a, .studio-view .nav-tabs.nav-justified > li > a,
@@ -11333,9 +11589,15 @@ address {
     left: auto; }
   @media (min-width: 768px) {
     .studio-view .nav-justified > li, .studio-view .nav-tabs.nav-justified > li,
+    .studio-view .studio-dialog .nav-tabs.nav-justified > li,
+    .studio-view .site-dashboard .nav-tabs.nav-justified > li,
     .studio-dialog .nav-justified > li,
+    .studio-dialog .studio-view .nav-tabs.nav-justified > li,
     .studio-dialog .nav-tabs.nav-justified > li,
+    .studio-dialog .site-dashboard .nav-tabs.nav-justified > li,
     .site-dashboard .nav-justified > li,
+    .site-dashboard .studio-view .nav-tabs.nav-justified > li,
+    .site-dashboard .studio-dialog .nav-tabs.nav-justified > li,
     .site-dashboard .nav-tabs.nav-justified > li {
       display: table-cell;
       width: 1%; }
@@ -11823,16 +12085,28 @@ address {
   margin-top: 9.5px;
   margin-bottom: 9.5px; }
   .studio-view .navbar-btn.btn-sm, .studio-view .btn-group-sm > .navbar-btn.btn,
+  .studio-view .studio-dialog .btn-group-sm > .navbar-btn.btn,
+  .studio-view .site-dashboard .btn-group-sm > .navbar-btn.btn,
   .studio-dialog .navbar-btn.btn-sm,
+  .studio-dialog .studio-view .btn-group-sm > .navbar-btn.btn,
   .studio-dialog .btn-group-sm > .navbar-btn.btn,
+  .studio-dialog .site-dashboard .btn-group-sm > .navbar-btn.btn,
   .site-dashboard .navbar-btn.btn-sm,
+  .site-dashboard .studio-view .btn-group-sm > .navbar-btn.btn,
+  .site-dashboard .studio-dialog .btn-group-sm > .navbar-btn.btn,
   .site-dashboard .btn-group-sm > .navbar-btn.btn {
     margin-top: 11px;
     margin-bottom: 11px; }
   .studio-view .navbar-btn.btn-xs, .studio-view .btn-group-xs > .navbar-btn.btn,
+  .studio-view .studio-dialog .btn-group-xs > .navbar-btn.btn,
+  .studio-view .site-dashboard .btn-group-xs > .navbar-btn.btn,
   .studio-dialog .navbar-btn.btn-xs,
+  .studio-dialog .studio-view .btn-group-xs > .navbar-btn.btn,
   .studio-dialog .btn-group-xs > .navbar-btn.btn,
+  .studio-dialog .site-dashboard .btn-group-xs > .navbar-btn.btn,
   .site-dashboard .navbar-btn.btn-xs,
+  .site-dashboard .studio-view .btn-group-xs > .navbar-btn.btn,
+  .site-dashboard .studio-dialog .btn-group-xs > .navbar-btn.btn,
   .site-dashboard .btn-group-xs > .navbar-btn.btn {
     margin-top: 14px;
     margin-bottom: 14px; }

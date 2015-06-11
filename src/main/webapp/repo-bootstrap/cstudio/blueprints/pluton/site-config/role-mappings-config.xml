@@ -8,16 +8,16 @@
             <role>author</role>
         </group>
 
-        <group name="site_pluton_SiteManager">
+        <group name="site_SITENAME_SiteManager">
             <role>admin</role>
         </group>
-        <group name="site_pluton_SiteCollaborator">
+        <group name="site_SITENAME_SiteCollaborator">
             <role>author</role>
         </group>
-        <group name="site_pluton_SiteContributor">
+        <group name="site_SITENAME_SiteContributor">
             <role>author</role>
         </group>
-        <group name="site_pluton_SiteConsumer">
+        <group name="site_SITENAME_SiteConsumer">
             <role>viewer</role>
         </group>         
     </groups>
