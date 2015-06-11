@@ -260,10 +260,10 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                 html.push(crafter.String(COMPONENT_TPL)
                     .fmt(component.path, component.type, component.label));
             });
-            html.push('<sli><button class="btn btn-default add-component">Add Component</button></sli>');
             html.push('</sul>');
             html.push('</sdiv>');
         });
+        html.push('<button class="btn btn-primary add-component">Add Component</button>');
         $c.html(html.join(''));
     }
 

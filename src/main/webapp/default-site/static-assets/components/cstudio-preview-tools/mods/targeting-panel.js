@@ -150,8 +150,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 		
 			reportContainerEl.style.position = "fixed";
 			reportContainerEl.style.width = "800px";
-			reportContainerEl.style.height = "300px";
-			reportContainerEl.style.top = "100px";
+			reportContainerEl.style.height = "auto";
+            reportContainerEl.style.minHeight = "300px";
+			reportContainerEl.style.top = "50px";
 		
 			var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
 			reportContainerEl.style.left = x+"px";
@@ -225,13 +226,11 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 						 	}
 						 	
 						 	var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
-
-						 	reportContainerEl.style.display = "block";
 							
 							var overlayHtml = "";
 							if(reportContainerEl) {
 								overlayHtml = 
-									"<div style='font-weight: bold; font-size: 20px; margin: 15px;'>Persona: "+item.personaName;
+									"<div class='persona-container'><div style='font-weight: bold; font-size: 20px; margin: 15px;'>Persona: "+item.personaName;
 									
 									if(carousel.activePersona.username == item.personaName) {
 										overlayHtml +=	" (Active) "
@@ -258,11 +257,11 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 												var property =  persona.settings[j];
 												
 												overlayHtml += "<tr>" +
-												     "<td style='font-weight:bold; padding-right:8px;' >" + property.label + "</td>";
+												     "<td style='font-weight:bold; padding: 5px 16px 5px 0'; >" + property.label + "</td>";
 												     
 												     if(carousel.activePersona.username == item.personaName) {
 												     	overlayHtml += 
-												     	 "<td><input id='crPersona_" + property.name +"' "+ 
+												     	 "<td><input type='text' class='form-control' id='crPersona_" + property.name +"' "+
 												     	        "value='" + carousel.activePersonaAttributes[property.name] + "'/></td>"; 
 												     }
 												     else {
@@ -288,22 +287,34 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 									overlayHtml +=	
 									"<div id='csupdatepersona' class='btn btn-primary'>Update</div>";
 									}
-									overlayHtml += "<div id='cscancel' class='btn btn-default'>Cancel</div>";
+									//overlayHtml += "<div id='cscancel' class='btn btn-default'>Cancel</div>";
+
+                                    overlayHtml += "</div>";
 									
 									
 									reportContainerEl.innerHTML = overlayHtml;
+
+
+                                    var personaContainer = document.getElementsByClassName('persona-container')[0];
+                                    console.log(personaContainer.offsetHeight);
+                                    if(personaContainer.offsetHeight > 500){
+                                        personaContainer.style.overflowY = "scroll";
+                                    }else{
+                                        personaContainer.style.overflowY = "initial";
+                                        personaContainer.style.paddingBottom = "10px";
+                                    }
 									
 									
 									//if(carousel.activePersona != item.personaName) {
 										var assumePersonaEl = document.getElementById("csupdatepersona");
-										var cancelPersonaEl = document.getElementById("cscancel");
+										//var cancelPersonaEl = document.getElementById("cscancel");
 										var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
 										
-										cancelPersonaEl.onclick = function(e) {
+										/*cancelPersonaEl.onclick = function(e) {
 										
 											reportContainerEl.style.display = "none";
 											
-										}; 
+										}; */
 
 										//assumePersonaEl.toggleFn = this.parentControl.context.toggleFn;
 										assumePersonaEl.onclick = function(e) {

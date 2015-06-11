@@ -1330,7 +1330,7 @@ var YEvent = YAHOO.util.Event;
                     CStudioAuthoring.Service.getInContextEditView({
                         success: function (response) {
                             window.top.studioFormZorder= (window.top.studioFormZorder) ? window.top.studioFormZorder + 1 : 9999;
-                            var template = '<iframe id="in-context-edit-editor-'+editorId+'" frameborder="0" style="z-index:'+window.top.studioFormZorder+';" onload="CStudioAuthoring.InContextEdit.autoSizeIceDialog("'+editorId+'");"></iframe>"';
+                            var template = '<iframe id="in-context-edit-editor-'+editorId+'" frameborder="0" style="z-index:'+window.top.studioFormZorder+';" onload="CStudioAuthoring.InContextEdit.autoSizeIceDialog();"></iframe>"';
                             var parentEl = window.top.document.body;
                             $modal
                                 .find('.bd').html(template).end()

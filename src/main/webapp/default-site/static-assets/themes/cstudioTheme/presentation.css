@@ -251,7 +251,7 @@ select,
 input[type="text"],
 textarea
 {
-   border: 1px solid #C5D6E2;
+   /*border: 1px solid #C5D6E2;*/
    font-weight: normal;
 }
 
