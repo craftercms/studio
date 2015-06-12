@@ -5099,7 +5099,7 @@ span.acn-canned-search {
   -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   z-index: 99999; }
   #cstudioPreviewAnalyticsOverlay .persona-container {
-    max-height: 501px; }
+    max-height: 463px; }
   #cstudioPreviewAnalyticsOverlay img {
     position: static;
     float: left;
@@ -5111,7 +5111,7 @@ span.acn-canned-search {
   #cstudioPreviewAnalyticsOverlay .form-control {
     margin-bottom: 7px; }
   #cstudioPreviewAnalyticsOverlay table {
-    margin-bottom: 15px; }
+    margin-bottom: 10px; }
 
 #csupdatepersona, #cscancel {
   width: 91px;
