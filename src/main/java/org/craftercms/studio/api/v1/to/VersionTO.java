@@ -18,11 +18,12 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.util.Date;
+import java.util.Scanner;
 
 /**
  * a version record
  */
-public class VersionTO {
+public class VersionTO implements Comparable<VersionTO> {
 
     protected Date lastModifiedDate;
     protected String lastModifier;
@@ -92,4 +93,47 @@ public class VersionTO {
                 + ", lastModifiedDate: " + lastModifiedDate;
     }
 
+    @Override
+    public boolean equals(Object version) {
+        if (this == version) {
+            return true;
+        }
+        if (version == null) {
+            return false;
+        }
+        if (this.getClass() != version.getClass()) {
+            return false;
+        }
+        return this.compareTo((VersionTO) version) == 0;
+    }
+
+    @Override
+    public int compareTo(VersionTO version) {
+        if (version == null) {
+            return 1;
+        }
+
+        Scanner scanner1 = new Scanner(this.getVersionNumber());
+        scanner1.useDelimiter("\\.");
+
+        Scanner scanner2 = new Scanner(version.getVersionNumber());
+        scanner2.useDelimiter("\\.");
+
+        while(scanner1.hasNextInt() && scanner2.hasNextInt()) {
+            int v1 = scanner1.nextInt();
+            int v2 = scanner2.nextInt();
+            if (v1 < v2) {
+                return -1;
+            } else if (v1 > v2) {
+                return 1;
+            }
+        }
+
+        if (scanner1.hasNextInt()) {
+            return 1; //str1 has an additional lower-level version number
+        } else if (scanner2.hasNextInt()) {
+            return -1;
+        }
+        return 0;
+    }
 }
