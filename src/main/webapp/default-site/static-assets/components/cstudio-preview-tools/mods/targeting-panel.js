@@ -152,7 +152,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 			reportContainerEl.style.width = "800px";
 			reportContainerEl.style.height = "auto";
             reportContainerEl.style.minHeight = "300px";
-			reportContainerEl.style.top = "50px";
+			reportContainerEl.style.top = "96px";
 		
 			var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
 			reportContainerEl.style.left = x+"px";
@@ -297,7 +297,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
                                     var personaContainer = document.getElementsByClassName('persona-container')[0];
                                     console.log(personaContainer.offsetHeight);
-                                    if(personaContainer.offsetHeight > 500){
+                                    if(personaContainer.offsetHeight > 462){
                                         personaContainer.style.overflowY = "scroll";
                                     }else{
                                         personaContainer.style.overflowY = "initial";
