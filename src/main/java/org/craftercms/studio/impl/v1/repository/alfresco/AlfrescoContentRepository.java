@@ -873,7 +873,7 @@ implements SecurityProvider {
                     } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-                        copyFolder(targetFolder, sourceFolder);
+                        copyChildren(targetFolder, sourceFolder);
                     }
                     return true;
                 } else {

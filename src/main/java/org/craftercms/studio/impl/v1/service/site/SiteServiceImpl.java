@@ -452,12 +452,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
  		boolean success = true;
  		try {
 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content",
 				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
 
 	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config",
 	 			siteConfigFolder);
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);

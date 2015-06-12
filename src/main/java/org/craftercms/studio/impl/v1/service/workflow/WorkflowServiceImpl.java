@@ -206,6 +206,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
                 result.setSuccess(true);
+				result.setStatus(200);
                 result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
                 for (String fullPath : submittedPaths) {
                     objectStateService.setSystemProcessing(site, contentService.getRelativeSitePath(site, fullPath), false);
@@ -278,7 +279,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         //}
         /****** end ******/
 		Map<String, Object> properties = new HashMap<>();
-        ObjectMetadata itemProperties = objectMetadataManager.getProperties(site, dependencyTO.getUri());
 		properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
 		properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail ? 1 : 0);
 		properties.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion ? 1 : 0);
@@ -287,7 +287,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (null == scheduledDate) {
 			properties.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
         } else {
-			itemProperties.setLaunchDate(scheduledDate);
+			properties.put(ObjectMetadata.PROP_LAUNCH_DATE, scheduledDate);
         }
 		if (!objectMetadataManager.metadataExist(site, dependencyTO.getUri())) {
 			objectMetadataManager.insertNewObjectMetadata(site, dependencyTO.getUri());

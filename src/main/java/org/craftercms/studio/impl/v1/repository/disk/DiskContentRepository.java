@@ -136,15 +136,22 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
+
         
         boolean success = true;
 
         try {
             Path source = constructRepoPath(fromPath);
             Path target = constructRepoPath(toPath);
-            TreeCopier tc = new TreeCopier(source, target, false, false);
-            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+            File sourceFile = source.toFile();
+            if (sourceFile.isDirectory()) {
+                FileUtils.copyDirectory(sourceFile, target.toFile());
+            } else {
+                FileUtils.copyFileToDirectory(sourceFile, target.toFile());
+            }
+            //TreeCopier tc = new TreeCopier(source, target, false, false);
+            //EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            //Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
         }
         catch(Exception err) {
             // log this error

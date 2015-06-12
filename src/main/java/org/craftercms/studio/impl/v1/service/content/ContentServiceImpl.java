@@ -711,6 +711,10 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 item.setLockOwner(metadata.getLockOwner());
             }
+            if (metadata.getLaunchDate() != null) {
+                item.scheduledDate = metadata.getLaunchDate();
+                item.setScheduledDate(metadata.getLaunchDate());
+            }
         } else {
             item.setLockOwner("");
         }
