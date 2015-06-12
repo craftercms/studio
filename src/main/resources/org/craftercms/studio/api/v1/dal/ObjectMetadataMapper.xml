@@ -72,7 +72,9 @@
             <if test="approvedBy != null">approvedby=#{approvedBy},</if>
             <if test="submittedBy != null">submittedby=#{submittedBy},</if>
             <if test="submittedForDeletion != null">submittedfordeletion=#{submittedForDeletion},</if>
-            <if test="sendEmail != null">sendemail=#{sendEmail}</if>
+            <if test="sendEmail != null">sendemail=#{sendEmail},</if>
+            <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
+            <if test="launchDate != null">launchdate=#{launchDate}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
