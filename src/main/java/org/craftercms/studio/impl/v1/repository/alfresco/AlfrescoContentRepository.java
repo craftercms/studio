@@ -514,6 +514,8 @@ implements SecurityProvider {
     @Override
     public boolean validateTicket(String ticket) {
         //make me do something
+        ticket = (ticket!=null) ? ticket : getSessionTicket();
+
         Map<String, String> params = new HashMap<>();
         params.put("ticket", ticket);
         String serviceURL = null;
@@ -1096,7 +1098,7 @@ implements SecurityProvider {
 
 
     protected String getSessionTicket() {
-        String ticket = null;
+        String ticket = "UNSET";
         RequestContext context = RequestContext.getCurrent();
 
         if(context != null) {
@@ -1115,6 +1117,12 @@ implements SecurityProvider {
             }
         }
 
+        if(ticket==null) {
+            ticket = "NOTICKET";
+        }
+
+System.out.println("=========================\r\nGetting ticket:"+ticket);
+
         return ticket;
     }
 
@@ -1124,6 +1132,7 @@ implements SecurityProvider {
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_ticket", ticket);
+System.out.println("=========================\r\nsetting ticket:"+ticket);
         }        
     }
     
@@ -1135,6 +1144,7 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("alf_user");
         }
+System.out.println("=========================\r\ngetting user:"+username);
 
         return username;
     }
@@ -1146,6 +1156,9 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_user", username);
         }
+
+System.out.println("=========================\r\nsetting user:"+username);
+
     }
 
     protected String alfrescoUrl;
