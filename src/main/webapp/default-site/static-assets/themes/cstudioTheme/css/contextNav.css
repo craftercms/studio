@@ -623,6 +623,12 @@ body.yui-skin-cstudioTheme .mask{
   background-color: #5d84a9;
   border-color: #4e7294; }
 
+.action-wrapper button.btn-default.close-button{
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
 .yui-module.yui-overlay.yui-panel .yui-button.default button{
   color: #333333;
   background-color: white;
