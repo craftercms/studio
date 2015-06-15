@@ -39,6 +39,7 @@ body.#{$class-prefix}-dnd-enabled {
       text-align: center;
       background: $brand-primary;
       border-radius: $border-radius-base;
+      cursor: move;
     }
   }
 
@@ -139,10 +140,24 @@ body.#{$class-prefix}-dnd-enabled {
         border-bottom-left-radius: $border-radius-base;
         border-bottom-right-radius: $border-radius-base;
         > sli {
+
+          border-bottom: 1px solid #F0F0F0;
+          display: block;
+          
           > sa {
-            display: block;
+            display: inline-block;
             padding: 5px 10px;
-            border-bottom: 1px solid #F0F0F0;
+            width: 87%;
+          }
+          > .deleteComponent{
+            cursor: pointer;
+            width: 20px;
+            display: inline-block;
+            height: 20px;
+            background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+            background-position: 0 -120px;
+            position: relative;
+            top: 6px;
           }
         }
       }

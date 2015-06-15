@@ -103,15 +103,29 @@
     amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
 
-        var data = config.components.category;
+        var data;
+        if (config.components.category){
+            data = config.components.category;
+        }else{
+            data = config.components;
+        }
         var categories = [];
 
         if ($.isArray(data)) {
             $.each(data, function(i, c) {
-                categories.push({ label: c.label, components: c.component });
+                if(c.component){
+                    categories.push({ label: c.label, components: c.component });
+                }else{
+                    categories.push({ label: c.label, components: c.components });
+                }
+
             });
         } else {
-            categories.push({ label: data.label, components: data.component });
+            if(data.component) {
+                categories.push({ label: data.label, components: data.component });
+            }else{
+                categories.push({ label: data.label, components: data.components });
+            }
         }
 
         communicator.publish(Topics.START_DRAG_AND_DROP, {

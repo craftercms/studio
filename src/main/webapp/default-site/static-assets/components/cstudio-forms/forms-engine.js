@@ -1091,6 +1091,9 @@ var CStudioForms = CStudioForms || function() {
                                             _notifyServer = false;
                                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                             window.top.iceDialogs[editorId].close();
+                                            if(path == '/site/components/page'){
+                                                reloadParentWindow();
+                                            }
                                         }
                                     }, isDefault:false },
                                         { text:"No",  handler:function(){this.hide();}, isDefault:true } ]

@@ -28,8 +28,52 @@
         zones: null,
 
         initialize: function (config) {
-            // this.componentsOn = !!(sessionStorage.getItem('components-on'));
+
             var self = this;
+            self.componentsOn = !!(sessionStorage.getItem('components-on'));
+
+            var initialContentModel;
+            if (self.componentsOn) {
+                CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
+                    failure: CStudioAuthoring.Utils.noop,
+                    success: function (response) {
+
+                        amplify.subscribe('/page-model/loaded', function (data) {
+
+                                var dom = (new window.DOMParser())
+                                    .parseFromString(data.model, "text/xml").children[0];
+                                var contentMap = CStudioForms.Util.xmlModelToMap(dom);
+                                initialContentModel = amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
+                                amplify.publish('/operation/completed');
+
+                                var data = response.category;
+                                var categories = [];
+
+                                if ($.isArray(data)) {
+                                    $.each(data, function(i, c) {
+                                        if(c.component){
+                                            categories.push({ label: c.label, components: c.component });
+                                        }else{
+                                            categories.push({ label: c.label, components: c.components });
+                                        }
+
+                                    });
+                                } else {
+                                    if(data.component) {
+                                        categories.push({ label: data.label, components: data.component });
+                                    }else{
+                                        categories.push({ label: data.label, components: data.components });
+                                    }
+                                }
+
+                                amplify.publish(cstopic('START_DRAG_AND_DROP'), {
+                                    components: categories,
+                                    contentModel: initialContentModel
+                                });
+                        });
+                    }
+                });
+            }
 
             if (this.initialized == false) {
                 this.initialized = true;
@@ -96,6 +140,12 @@
                     }
                     self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true);
                 });
+
+                if (CStudioAuthoringContext.previewCurrentPath) {
+                    self.getPageModel(
+                        self.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
+                        'init-components', true, false);
+                }
 
                 amplify.subscribe(cstopic('COMPONENT_DROPPED'), function () {
                     self.ondrop.apply(self, arguments);
@@ -288,7 +338,6 @@
         },
 
         expand: function (containerEl, config) {
-            sessionStorage.setItem('components-on', 'on');
             CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
                 failure: CStudioAuthoring.Utils.noop,
                 success: function (config) {
@@ -991,7 +1040,7 @@
                                     srcEl.componentPlaceholder.modelData = {
                                         key: contentTO.item.uri,
                                         value: value,
-                                        include: contentTO.item.uri,
+                                        include: contentTO.item.uri
                                     };
                                     cpl.modelData = {
                                         key: contentTO.item.uri,
