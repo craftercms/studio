@@ -2951,7 +2951,8 @@ body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
   padding: 5px 10px;
   text-align: center;
   background: #7e9dbb;
-  border-radius: 4px; }
+  border-radius: 4px;
+  cursor: move; }
 body.studio-dnd-enabled .studio-draggable-over {
   background-color: rgba(255, 255, 255, 0.9) !important;
   box-shadow: 0 0 5px 5px rgba(241, 75, 82, 0.4) !important; }
@@ -3026,10 +3027,22 @@ body.studio-dnd-enabled .studio-draggable-over {
         margin: 0;
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px; }
-        .studio-components-panel .studio-components-container .studio-category > sul > sli > sa {
-          display: block;
-          padding: 5px 10px;
-          border-bottom: 1px solid #F0F0F0; }
+        .studio-components-panel .studio-components-container .studio-category > sul > sli {
+          border-bottom: 1px solid #F0F0F0;
+          display: block; }
+          .studio-components-panel .studio-components-container .studio-category > sul > sli > sa {
+            display: inline-block;
+            padding: 5px 10px;
+            width: 87%; }
+          .studio-components-panel .studio-components-container .studio-category > sul > sli > .deleteComponent {
+            cursor: pointer;
+            width: 20px;
+            display: inline-block;
+            height: 20px;
+            background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+            background-position: 0 -120px;
+            position: relative;
+            top: 6px; }
       .studio-components-panel .studio-components-container .studio-category.studio-collapse .studio-category-name {
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px; }

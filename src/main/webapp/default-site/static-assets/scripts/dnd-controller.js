@@ -12,7 +12,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         '<sdiv class="studio-component-search"><input type="search" placeholder="search components..." /></sdiv>',
         '<sdiv class="studio-components-container"></sdiv>',
         '</sdiv>'].join('');
-    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@"><span class="status-icon component"></span>%@</sa></sli>';
+    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@"><span class="status-icon component"></span>%@</sa><a class="deleteComponent"></a></sli>';
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';
@@ -107,6 +107,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
     function disableDnD() {
 
+        sessionStorage.setItem('components-on', '');
+
         if (!this.active()) return;
         this.active(false);
 
@@ -131,6 +133,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function enableDnD(components, initialComponentModel) {
+        sessionStorage.setItem('components-on', 'true');
 
         if (this.active()) return;
         this.active(true);
@@ -250,6 +253,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function renderPalette(components) {
+        console.log(components);
         var html = [],
             $c = this.getPalette().children('.studio-components-container');
         $.each(components || [], function (i, category) {
