@@ -70,6 +70,19 @@
                                     components: categories,
                                     contentModel: initialContentModel
                                 });
+                            /*var draggableComponentEls = YDom.getElementsByClassName("ui-sortable-handle");
+                            draggableComponentEls.forEach(function( index ) {
+                                //$( this ).append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
+                                var delControl = createDeleteControl('removeComp');
+
+                                delControl.onclick = function() {
+                                    Utility.removeComponent(this, function () {
+                                        //CStudioAuthoring.DamPanel.getPageModel(CStudioAuthoring.DamPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
+                                        window.location.reload();
+                                    });
+                                };
+                                this.appendChild(delControl);
+                            });*/
                         });
                     }
                 });
@@ -151,6 +164,10 @@
                     self.ondrop.apply(self, arguments);
                 });
 
+                amplify.subscribe(cstopic('SAVE_DRAG_AND_DROP'), function (isNew) {
+                    self.save.apply(isNew, arguments);
+                });
+
                 var interval = setInterval(function () {
                     if (CStudioAuthoringContext.previewCurrentPath) {
                         self.getPageModel(
@@ -217,6 +234,14 @@
                 operate();
             }
 
+        },
+
+        save: function (isNew, zones){
+            ComponentsPanel.zones = zones;
+            CStudioAuthoring.ComponentsPanel.getPageModel(
+                CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                    CStudioAuthoringContext.previewCurrentPath),
+                (isNew ? 'save-components-new' : 'save-components'), true, false);
         },
 
         render: function (containerEl, config) {

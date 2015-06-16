@@ -16,6 +16,17 @@ body.#{$class-prefix}-dnd-enabled {
     background-color: rgba(255,255,255,.7) !important;
     box-shadow: 0 0 10px 0 rgba($crimson, .4) !important;
 
+    .ui-sortable-handle{
+      position: relative;
+
+      .removeComp{
+        position: absolute;
+        top: -5px;
+        right: 0px;
+      }
+      
+    }
+
     .ui-sortable-helper{
       *{
         cursor: move!important;
