@@ -99,6 +99,12 @@
             message.zones);
     });
 
+    communicator.subscribe(Topics.SAVE_DRAG_AND_DROP, function (message) {
+        amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
+            message.isNew,
+            message.zones);
+    });
+
     var initialContentModel;
     amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
