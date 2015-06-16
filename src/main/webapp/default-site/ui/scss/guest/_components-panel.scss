@@ -57,6 +57,8 @@ body.#{$class-prefix}-dnd-enabled {
   .#{$class-prefix}-draggable-over {
     background-color: rgba(255,255,255,.9) !important;
     box-shadow: 0 0 5px 5px rgba(lighten($crimson, 10%), .4) !important;
+    //width: 130%;
+    //height: 200%!important;
   }
 
 }
