@@ -205,7 +205,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                         });
 
                         publish.call(me, Topics.SAVE_DRAG_AND_DROP, {
-                            isNew: 'false',
+                            isNew: false,
                             zones: zones
                         });
 
