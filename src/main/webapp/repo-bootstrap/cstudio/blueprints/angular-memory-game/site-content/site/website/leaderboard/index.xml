@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+  <content-type>/page/leaderboard</content-type>
+  <file-name valid="true">index.xml</file-name>
+  <internal-name>Leader Board</internal-name>
+  <title>Leader board</title>
+  <display-template>/templates/web/leaderboard.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+</page>

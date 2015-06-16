@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/game</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>0de5</objectGroupId>
+	<objectId>0de59592-88ea-2035-3101-e446350a5ce5</objectId>
+	<internal-name>Fish</internal-name>
+	<file-name>index.xml</file-name>
+	<folder-name>0de59592-88ea-2035-3101-e446350a5ce5</folder-name>
+	<cards>	<item>	<image>/static-assets/images/cards/puffer.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/yellow.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/robot.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/clown.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/pink.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/orange.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/blue.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/pusherfish.png</image>
+	</item></cards>
+	<createdDate>06/20/2013 11:15:07</createdDate>
+	<lastModifiedDate>9/10/2014 1:19:12</lastModifiedDate>
+	<maxAge>999</maxAge>
+	<maxAge_i>200</maxAge_i>
+	<expirationDate_dt>08/31/2013 18:14:11</expirationDate_dt>
+</component>
