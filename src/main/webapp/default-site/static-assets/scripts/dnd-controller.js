@@ -164,7 +164,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
         $(DROPPABLE_SELECTION).droppable({
             hoverClass: 'studio-draggable-over',
-            connectWithSortable: true,
+            accept: '[data-studio-component]',
+            tolerance: 'touch',
             drop: function (e, ui) {
                 var $dropZone = $(this),
                     $component = ui.draggable;
@@ -188,9 +189,6 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             var delControl = createDeleteControl('removeComp');
             delControl.onclick = function() {
                 removeComponent(this, function () {
-                    //CStudioAuthoring.DamPanel.getPageModel(CStudioAuthoring.DamPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
-                    //window.location.reload();
-                    //publish.call(me, Topics.SAVE_DRAG_AND_DROP, {isNew : true});
                     var zones = {};
                     setTimeout(function () {
 
