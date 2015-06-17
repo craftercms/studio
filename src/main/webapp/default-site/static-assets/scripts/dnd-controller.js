@@ -159,6 +159,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             revert: 'invalid',
             helper: 'clone',
             appendTo: 'body',
+            cursor: 'move',
             zIndex: 1030
         });
 
@@ -166,9 +167,12 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             hoverClass: 'studio-draggable-over',
             accept: '[data-studio-component]',
             tolerance: 'touch',
+            //activate: function( event, ui ) {$(this).height($(this).height() + ui.draggable.height());$(this).width($(this).width() + ui.draggable.width());},
+            //deactivate: function( event, ui ) {$(this).height('auto');$(this).width('auto');},
             drop: function (e, ui) {
                 var $dropZone = $(this),
                     $component = ui.draggable;
+                    //$(this).height('auto');$(this).width('auto')
                 componentDropped.call(me, $dropZone, $component);
             }
         }).sortable({
