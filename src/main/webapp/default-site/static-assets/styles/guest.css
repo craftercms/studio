@@ -3068,4 +3068,12 @@ body.studio-dnd-enabled .studio-draggable-over {
   .studio-components-panel .ui-draggable-dragging {
     cursor: move !important; }
 
+.ui-droppable.ui-sortable {
+  min-height: 40px;
+  min-width: 50px; }
+
+.ui-sortable-handle.ui-sortable-helper {
+  z-index: 999999999999999999999999999999999999 !important;
+  position: relative; }
+
 /*# sourceMappingURL=guest.css.map */

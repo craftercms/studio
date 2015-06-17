@@ -210,3 +210,18 @@ body.#{$class-prefix}-dnd-enabled {
   }
 
 }
+
+.ui-droppable.ui-sortable{
+  min-height: 40px;
+  min-width: 50px;
+}
+
+.ui-sortable-handle.ui-sortable-helper{
+  z-index:999999999999999999999999999999999999!important;
+  position: relative;
+
+}
+
+.studio-draggable-over{
+  //width: 100%;
+}
