@@ -519,7 +519,7 @@ CStudioSearch.preFireSearch = function(searchContext) {
     paginationTextBox.disabled = "disabled";
     sortDropDown.disabled = "disabled";
     
-	//CStudioSearch.toggleResultDetail("hide-link");
+	CStudioSearch.toggleResultDetail("hide-link");
 	
 	var resultHeaderInProgress = YDom.get("cstudio-wcm-search-result-in-progress");
 	var contextPath = document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + CStudioAuthoringContext.baseUri+"/";  
