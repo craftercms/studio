@@ -1,5 +1,44 @@
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
+REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">',
+			'<div id=\"acnVersionWrapper\" class=\"acnBox\">',
+			'<h3>Reject</h3>',
+			'<p>The following checked item(s) will be rejected.</p>',
+			'<div class="acnScroll">',
+  			'<h5>',
+			'<span class="left">Item</span>',
+			'<span class="right">Submitted By</span>',
+			'</h5>',
+    '<div class="acnScrollBox" style="height:100px">',
+			'<table class="acnLiveTable liveTable">',
+        '<tbody>',
+       '</tbody></table>',
+		'</div>',
+	'</div>',
+	'<div class="formRow padTop">',
+		'<label>Rejection Reason:</label>',
+		'<div class="field">',
+			'<select id="rejectReasonDropDown" class="rejectReasonDropDown">',
+				 '<option>Select a Reason</option>',
+					 '<option>Not Approved</option>',
+					 '<option>Incorrect Branding</option>',
+					 '<option>Typos</option>',
+					 '<option>Broken Links</option>',
+					 '<option>Needs Section Owner\'s Approval</option>',
+			'</select>',
+		'</div>',
+	'</div>',
+	'<div class="formRow">',
+		'<textarea id="rejectMessageArea" class="rejectBottomBox rejectTextarea"></textarea>',
+	'</div>',
+	'<div class="acnSubmitButtons">',
+		'<span><input id="golivesubmitButton" type="submit" value="Send Rejection" class="rejectSend"></span>',
+		'<span><input id="golivecancelButton" type="submit" value="Cancel" class="rejectCancel"></span>',
+	'</div>',
+	'<div id="rejectReasonJson" style="display:none;">',
+	'</div>',
+'</div>',
+'</div>'].join();
 
 /**
  * GoLive Constructor
@@ -136,7 +175,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 						
 							// Instantiate the Panel
 							this.dialog = this.createPanel('submitPanel', true, 10);							
-							this.dialog.setBody(dependencyList);
+							this.dialog.setBody(REJECT_DIALOG_TEMPLATE);
 							this.dialog.render(document.body);
 							this.dialog.show();
 						
@@ -145,7 +184,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							if (oContainerPanel && oContainerPanel.style.zIndex != "") {
 								var zIdx = oContainerPanel.style.zIndex;
 								if (!isNaN(zIdx) && parseInt(zIdx, 10) <= 100) {
-									oContainerPanel.style.zIndex = "101";
+									oContainerPanel.style.zIndex = "1500";
 								}
 							}
 						
@@ -220,27 +259,24 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							var self = this;
 							
 							if (this.itemArray.length) {
-								var xmlString = CStudioAuthoring.Utils.createContentItemsXml(contentItems),
+								var xmlString = CStudioAuthoring.Utils.createContentItemsJson(contentItems),
 									dependencyUrl = CStudioAuthoringContext.baseUri +
-													"/service/ui/workflow-actions/reject-dependencies?site=" +
+													CStudioAuthoring.Service.getDependenciesServiceUrl + "?site=" +
 													CStudioAuthoringContext.site;
 						
 								var serviceCallback = {
 									success: function(o) {
-										var respText = o.responseText,
-											timeZoneText = o.getResponseHeader.Timezone,
-											scriptString = self.getJsonObject(respText),
-											ftlWithoutScriptTag = self.removeScriptContent(respText);  // replace everything in between and including <script> tags
+										var respText = o.responseText;
+										var timeZoneText = o.getResponseHeader.Timezone;
 											
-										self.dependencyJsonObj = eval('(' + scriptString + ')');
+										self.dependencyJsonObj = eval('(' + respText + ')');
 										self.flatMap = self.createItemMap();
 										self.uncheckedItemsArray = [];                    
-										self.displayItemListWithDependencies(ftlWithoutScriptTag);
+										self.displayItemListWithDependencies(respText);
 										
 										
 										// get reject reason from hidden div
-										var rejectReasonJsonObj = eval('(' + YDom.get("rejectReasonJson").innerHTML + ')'),
-											reasonJsonArray = rejectReasonJsonObj.messages;
+									    var reasonJsonArray = [];
 											
 										for (var i = 0; i < reasonJsonArray.length; i++) {
 											self.reasonHash[reasonJsonArray[i].title] = reasonJsonArray[i].body;

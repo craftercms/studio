@@ -25,7 +25,6 @@
 
     });
 
-    if (jQuery && jQuery.isPlainObject)
 
     function closeButtonClicked() {
         this.end();
