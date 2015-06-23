@@ -3921,10 +3921,6 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
   width: 600px; }
 
 div.acnBox {
-  background: url("/studio/static-assets/themes/cstudioTheme/images/bg/submit_bg.jpg") repeat-x;
-  background-color: #d6d6d6;
-  border: 4px #000 solid;
-  color: #000;
   margin: 0;
   padding: 15px 25px;
   position: relative;
@@ -3990,8 +3986,11 @@ div.acnBox div.acnBoxFloatRight {
 div.acnBox div.formRow {
   margin: 0;
   overflow: hidden;
-  padding: 0 10px 5px 0;
+  padding: 0 0 5px 0;
   width: 550px; }
+
+div.acnBox div.formRow .rejectBottomBox {
+  height: 110px; }
 
 div.acnBox div.formRow label {
   float: left;
@@ -4053,7 +4052,9 @@ div.acnBox div.radio div.textField input {
   width: 100px; }
 
 div.acnBox div.padTop {
-  padding-top: 5px; }
+  padding: 5px 0 11px; }
+  div.acnBox div.padTop label {
+    margin-top: 6px; }
 
 div.acnBox div.padBottom {
   padding-bottom: 8px; }
@@ -4074,26 +4075,30 @@ div.acnBox div.acnScroll h5 {
   font-weight: normal;
   margin: 0;
   overflow: hidden;
-  padding: 3px 20px 3px 27px;
-  width: 503px; }
+  padding: 7px 20px 7px 27px;
+  width: 100%;
+  border-radius: 6px 6px 0 0; }
 
 div.acnBox div.acnScroll h5 span.left {
   display: block;
-  float: left; }
+  float: left;
+  color: #fff !important; }
 
 div.acnBox div.acnScroll h5 span.right {
   display: block;
   float: right;
-  padding-right: 5px; }
+  padding-right: 5px;
+  color: #fff !important; }
 
 div.acnBox div.acnScroll div.acnScrollBox {
-  border: 1px solid #7F9BD9;
+  border: 1px solid #CCCCCC;
   background-color: #fff;
   height: 280px;
   overflow-y: scroll;
   overflow-x: hidden;
   padding: 5px;
-  width: 538px; }
+  width: 100%;
+  border-radius: 0 0 6px 6px; }
 
 div.schedulePolicyWrapper div.schedulePolicySubmitButtons {
   text-align: center; }

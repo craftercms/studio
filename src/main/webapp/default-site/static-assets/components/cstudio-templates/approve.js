@@ -10,7 +10,7 @@
         ITEM_ROW: [
             '<tr>',
                 '<td class="text-center"><input type="checkbox" class="item-checkbox" data-item-id="{uri}" checked/></td>',
-                '<td class="name"><div class="in">{internalName} {uri}</div></div.></td>',
+                '<td class="name"><div class="in">{internalName} {uri}</div></div></td>',
                 '<td class="text-right schedule">{scheduleDate}</td>',
             '</tr>'
         ].join("")
