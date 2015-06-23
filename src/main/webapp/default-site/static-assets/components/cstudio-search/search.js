@@ -345,7 +345,7 @@ CStudioSearch.renderCommonResultWrapper = function(contentTO, resultBody) {
 
 	return "<div class='cstudio-search-result'>" +
 				"<div id='result-select-" + contentTO.resultId + "' class='cstudio-search-select-container'></div>" +
-				"<div id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 32px;'></div>" +
+				"<div class='result-status' id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 32px;'></div>" +
 				"<div style='margin-top: -16px'>"+
 					"<div class='cstudio-search-result-body'>" +
 						resultBody +
@@ -436,7 +436,7 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 	}
 	else {
 		nextEl = document.createElement("a");
-		nextEl.innerHTML = CMgs.format(langBundle, "pageNext")+" &raquo;";
+		nextEl.innerHTML = "&nbsp;&nbsp;&nbsp;" +CMgs.format(langBundle, "pageNext")+" &raquo;";
 		nextEl.className = "cstudio-wcm-search-pagination-number";
 
 		nextEl.onclick = function() {
@@ -468,7 +468,7 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		
 		if(parseInt(i+1) == parseInt(CStudioSearch.searchContext.currentPage)) {
 			var pageEl = document.createElement("span");
-			pageEl.innerHTML = "&nbsp;" + (i+1) + "&nbsp;&nbsp;&nbsp;";
+			pageEl.innerHTML = "&nbsp;" + (i+1);
 			pageEl.pageNumber = i+1;
 			pageEl.className = "disabled";
 		} else {
@@ -554,7 +554,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			    paginationTextBox.disabled = "";
 			    sortDropDown.disabled = "";
 			    
-				CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_OPEN);
+				CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_CLOSED);
 				
 				//var resultHeaderInProgress = YDom.get("cstudio-wcm-search-result-in-progress");  
 				//resultHeaderInProgress.innerHTML = "";
@@ -638,6 +638,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 						var itemTitle = CStudioAuthoring.Utils.getTooltipContent(contentItem.item);
 						var oSpan = document.createElement("div");
 						oSpan.setAttribute("id", "search-item-tt-" + contentItem.resultId);
+                        oSpan.setAttribute("class","cstudio-search-result-cont");
 						oSpan.setAttribute("title", itemTitle);
 						searReultItem.parentNode.insertBefore(oSpan, searReultItem);
 						oSpan.appendChild(resultStatusEl);
@@ -823,7 +824,7 @@ CStudioSearch.toggleResultDetail = function(state){
 		YAHOO.util.Dom.removeClass(elements, cssClass);		
 		link.set("innerHTML", CMgs.format(langBundle, "showDescriptions"));
 	}
-	else if(state == CStudioSearch.DETAIL_CLOSE) {
+	else if(state == CStudioSearch.DETAIL_CLOSED) {
 		YAHOO.util.Dom.addClass(elements, cssClass);
 		link.set("innerHTML", CMgs.format(langBundle, "hideDescriptions"));		
 	}
@@ -1237,10 +1238,10 @@ CStudioSearch.ContentTypeConfigMap = [];
 CStudioSearch.toggleDescriptionLink =  function(){	
 	var link = YDom.get('cstudio-wcm-search-description-toggle-link');
 	if(link){
-		if(link.innerHTML == CMgs.format(langBundle, "showDescriptions")){		
-			link.innerHTML =  CMgs.format(langBundle, "hideDescriptions");			
+		if(link.innerHTML == CMgs.format(langBundle, "hideDescriptions")){
+			link.innerHTML =  CMgs.format(langBundle, "showDescriptions");
 		}else{		
-			link.innerHTML = CMgs.format(langBundle, "showDescriptions");			
+			link.innerHTML = CMgs.format(langBundle, "hideDescriptions");
 		}	
 	}	
 }

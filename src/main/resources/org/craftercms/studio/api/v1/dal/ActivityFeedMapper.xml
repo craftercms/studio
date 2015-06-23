@@ -18,7 +18,7 @@
 
   <cache />
 
-  <select id="getDeletedActivity" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+  <select id="getDeletedActivity" parameterType="java.util.Map" resultMap="ActivityFeedMap">
     select *
     from cstudio_activity
     where site_network = #{siteNetwork}
@@ -28,7 +28,7 @@
   </select>
 
 
-  <select id="selectUserFeedEntries" parameterType="java.util.HashMap" resultMap="ActivityFeedMap" >
+  <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap" >
       select *
       from cstudio_activity
       where post_user_id = #{userId}
@@ -40,7 +40,7 @@
       order by modified_date desc limit #{startPos},#{feedSize}
   </select>
 
-    <select id="selectUserFeedEntries" parameterType="java.util.HashMap" resultMap="ActivityFeedMap" databaseId="derby" >
+    <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap" databaseId="derby" >
         select *
         from cstudio_activity
         where post_user_id = #{userId}
@@ -53,7 +53,7 @@
         offset #{startPos} rows fetch next #{feedSize} rows only
     </select>
 
-  <select id="selectUserFeedEntriesHideLive" parameterType="java.util.HashMap" resultMap="ActivityFeedMap">
+  <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap">
       select act.*
       from cstudio_activity act
       inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
@@ -71,7 +71,7 @@
       order by act.modified_date desc limit #{startPos},#{feedSize}
   </select>
 
-    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.HashMap" resultMap="ActivityFeedMap" databaseId="derby">
+    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap" databaseId="derby">
         select act.*
         from cstudio_activity act
         inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
@@ -90,7 +90,7 @@
         offset #{startPos} rows fetch next #{feedSize} rows only
     </select>
 
-    <select id="getCountUserContentFeedEntries" parameterType="java.util.HashMap" resultType="int">
+    <select id="getCountUserContentFeedEntries" parameterType="java.util.Map" resultType="int">
 
       select count(*)
       from cstudio_activity
@@ -100,14 +100,14 @@
 
     </select>
 
-    <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+    <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
         insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
         modified_date, site_network,content_id,content_type)
         values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
         #{siteNetwork},#{contentId},#{contentType})
     </insert>
 
-    <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed">
+    <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
       update cstudio_activity set activity_type=#{type},
    	   summary=#{summary},
    	   modified_date=#{modifiedDate},
@@ -116,14 +116,14 @@
 
     </update>
 
-    <update id="renameContent" parameterType="java.util.Map">
+    <update id="renameContent" parameterType="java.util.Map" flushCache="true" >
         update cstudio_activity
         set content_id = #{newPath}
         where site_network = #{site}
         and content_id = #{oldPath}
     </update>
 
-    <delete id="deleteActivitiesForSite" parameterType="java.util.Map">
+    <delete id="deleteActivitiesForSite" parameterType="java.util.Map" flushCache="true">
         DELETE FROM cstudio_activity
         WHERE site_network = #{site}
     </delete>

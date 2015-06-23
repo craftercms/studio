@@ -126,7 +126,6 @@ implements SecurityProvider {
         return this.copyContentInternal(fromPath, toPath, true);
     };
 
-
     /**
      * get immediate children for path
      * @param path path to content
@@ -416,30 +415,7 @@ implements SecurityProvider {
      * Get the alfresco ticket from the URL or the cookie or from an authorinization
      */
     protected String getAlfTicket() {
-        String ticket = "UNSET";
-        RequestContext context = RequestContext.getCurrent();
-
-        if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            String sessionTicket = (String)httpSession.getValue("alf_ticket");
-
-            if(sessionTicket != null) {
-                ticket = sessionTicket;
-            }
-
-        } else {
-            CronJobContext cronJobContext = CronJobContext.getCurrent();
-            if (cronJobContext != null) {
-                ticket = cronJobContext.getAuthenticationToken();
-            } else {
-                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
-                if (repositoryEventContext != null) {
-                    ticket = repositoryEventContext.getAuthenticationToken();
-                }
-            }
-        }
-
-        return ticket;
+        return this.getSessionTicket();
     }
 
     @Override
@@ -504,9 +480,7 @@ implements SecurityProvider {
     @Override
     public String getCurrentUser() {
         addDebugStack();
-        RequestContext context = RequestContext.getCurrent();
-        HttpSession httpSession = context.getRequest().getSession();
-        String username = (String)httpSession.getValue("username");
+        String username = this.getSessionUsername();
         return username;
     }
 
@@ -526,7 +500,10 @@ implements SecurityProvider {
             SAXReader reader = new SAXReader();
             Document response = reader.read(retStream);
             Node ticketNode = response.selectSingleNode("//ticket");
-            toRet = ticketNode.getText();
+            toRet = ticketNode.getText();   
+     
+            this.storeSessionTicket(toRet);
+            this.storeSessionUsername(username);                 
         }
         catch(Exception err) {
             logger.error("err getting content: ", err);
@@ -537,6 +514,8 @@ implements SecurityProvider {
     @Override
     public boolean validateTicket(String ticket) {
         //make me do something
+        ticket = (ticket!=null) ? ticket : getSessionTicket();
+
         Map<String, String> params = new HashMap<>();
         params.put("ticket", ticket);
         String serviceURL = null;
@@ -894,7 +873,7 @@ implements SecurityProvider {
                     } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-                        copyFolder(targetFolder, sourceFolder);
+                        copyChildren(targetFolder, sourceFolder);
                     }
                     return true;
                 } else {
@@ -959,7 +938,7 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.0/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.0/atom/");
         //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
@@ -1112,8 +1091,79 @@ implements SecurityProvider {
         }
     }
 
+    @Override
+    public String getCurrentToken() {
+        return this.getSessionTicket();
+    }
+
+
+    protected String getSessionTicket() {
+        String ticket = "UNSET";
+        RequestContext context = RequestContext.getCurrent();
+
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            ticket = (String)httpSession.getAttribute("alf_ticket");
+        }
+        else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+            if (cronJobContext != null) {
+                ticket = cronJobContext.getAuthenticationToken();
+            } else {
+                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+                if (repositoryEventContext != null) {
+                    ticket = repositoryEventContext.getAuthenticationToken();
+                }
+            }
+        }
+
+        if(ticket==null) {
+            ticket = "NOTICKET";
+        }
+
+System.out.println("=========================\r\nGetting ticket:"+ticket);
+
+        return ticket;
+    }
+
+    protected void storeSessionTicket(String ticket) {
+        RequestContext context = RequestContext.getCurrent();
+
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            httpSession.setAttribute("alf_ticket", ticket);
+System.out.println("=========================\r\nsetting ticket:"+ticket);
+        }        
+    }
+    
+    protected String getSessionUsername() {
+        String username = null;
+        RequestContext context = RequestContext.getCurrent();
+
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            username = (String)httpSession.getAttribute("alf_user");
+        }
+System.out.println("=========================\r\ngetting user:"+username);
+
+        return username;
+    }
+
+    protected void storeSessionUsername(String username) {
+        RequestContext context = RequestContext.getCurrent();
+
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            httpSession.setAttribute("alf_user", username);
+        }
+
+System.out.println("=========================\r\nsetting user:"+username);
+
+    }
+
     protected String alfrescoUrl;
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
 
 }
+

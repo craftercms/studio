@@ -51,6 +51,7 @@
                 "ICE_ZONE_ON": "ICE_ZONE_ON",
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
                 "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
+                "SAVE_DRAG_AND_DROP": "SAVE_DRAG_AND_DROP",
                 "COMPONENT_DROPPED": "COMPONENT_DROPPED",
                 "COMPONENT_MOVED": "COMPONENT_MOVED",
                 "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",

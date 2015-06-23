@@ -15,6 +15,28 @@ body.#{$class-prefix}-dnd-enabled {
     border-radius: $border-radius-base !important;
     background-color: rgba(255,255,255,.7) !important;
     box-shadow: 0 0 10px 0 rgba($crimson, .4) !important;
+
+    .ui-sortable-handle{
+      position: relative;
+
+      .removeComp{
+        position: absolute;
+        top: -5px;
+        right: 0px;
+      }
+      
+    }
+
+    .ui-sortable-helper{
+      *{
+        cursor: move!important;
+      }
+    }
+
+    *{
+      cursor: pointer;
+    }
+
   }
 
   [data-studio-component] {
@@ -28,17 +50,22 @@ body.#{$class-prefix}-dnd-enabled {
       text-align: center;
       background: $brand-primary;
       border-radius: $border-radius-base;
+      cursor: move;
     }
   }
 
   .#{$class-prefix}-draggable-over {
     background-color: rgba(255,255,255,.9) !important;
     box-shadow: 0 0 5px 5px rgba(lighten($crimson, 10%), .4) !important;
+    //width: 130%;
+    //height: 200%!important;
   }
 
 }
 
 .#{$class-prefix}-components-panel {
+
+  @extend .studio-view;
 
   top: 0;
   right: 0;
@@ -51,7 +78,7 @@ body.#{$class-prefix}-dnd-enabled {
   box-shadow: 0 0 10px 0 rgba(#fff, .5);
   border-top: 1px solid #ccc;
   height: auto;
-  z-index: 3;
+  z-index: 1036;
 
   &, * {
     font-style: normal;
@@ -59,20 +86,23 @@ body.#{$class-prefix}-dnd-enabled {
     font-family: Raleway, sans-serif;
     padding: 0;
     margin: 0;
+    color: #000 !important;
   }
 
   .#{$class-prefix}-panel-title {
-    font-size: 1.3em;
+    font-size: 1.4em;
     padding: 10px;
+    font-weight: bold;
   }
 
   [data-action="done"] {
-    top: 0;
-    right: 0;
+    top: 9px;
+    right: 11px;
     border: none;
-    padding: 10px;
+    padding: 0px 11px;
     line-height: 27px;
     position: absolute;
+    color: #fff !important;
   }
 
   .#{$class-prefix}-component-search {
@@ -83,6 +113,7 @@ body.#{$class-prefix}-dnd-enabled {
       border-radius: 50px;
       padding: 5px 10px;
       outline: none;
+      display: none;
     }
   }
 
@@ -91,14 +122,14 @@ body.#{$class-prefix}-dnd-enabled {
     left: 0;
     right: 0;
     bottom: 0;
-    top: 80px;
+    top: 38px;
     padding: 10px;
     position: absolute;
     overflow: auto;
 
     .#{$class-prefix}-category {
 
-      margin-bottom: 5px;
+      margin-bottom: 12px;
       box-shadow: 1px 0 2px rgba(0,0,0,.1);
       border-radius: $border-radius-base;
 
@@ -108,7 +139,8 @@ body.#{$class-prefix}-dnd-enabled {
         border-bottom: 1px solid $gray-lighter;
         border-top-left-radius: $border-radius-base;
         border-top-right-radius: $border-radius-base;
-        background: #fff;
+        background: #F0F0F0;
+        font-weight: bold;
       }
 
       > sul {
@@ -121,9 +153,24 @@ body.#{$class-prefix}-dnd-enabled {
         border-bottom-left-radius: $border-radius-base;
         border-bottom-right-radius: $border-radius-base;
         > sli {
+
+          border-bottom: 1px solid #F0F0F0;
+          display: block;
+          
           > sa {
-            display: block;
+            display: inline-block;
             padding: 5px 10px;
+            width: 87%;
+          }
+          > .deleteComponent{
+            cursor: pointer;
+            width: 20px;
+            display: inline-block;
+            height: 20px;
+            background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+            background-position: 0 -120px;
+            position: relative;
+            top: 6px;
           }
         }
       }
@@ -143,4 +190,38 @@ body.#{$class-prefix}-dnd-enabled {
 
   }
 
+  .add-component{
+    color: #fff !important;
+    width: 100%;
+  }
+
+  .component {
+    background: url(/studio/static-assets/themes/cstudioTheme/images/icons/icon_strip_vertical.gif) no-repeat;
+    background-position: 0 -501px;
+    display: inline-block;
+    padding-left: 20px;
+    float: left;
+    width: 20px;
+    height: 17px;
+  }
+
+  .ui-draggable-dragging{
+    cursor: move!important;
+  }
+
+}
+
+.ui-droppable.ui-sortable{
+  min-height: 40px;
+  min-width: 50px;
+}
+
+.ui-sortable-handle.ui-sortable-helper{
+  z-index:999999999999999999999999999999999999!important;
+  position: relative;
+
+}
+
+.studio-draggable-over{
+  //width: 100%;
 }

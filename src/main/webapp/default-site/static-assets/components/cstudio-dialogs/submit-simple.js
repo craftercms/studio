@@ -331,7 +331,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 
             if (this.itemArray.length) {
                 var jsonString = CStudioAuthoring.Utils.createContentItemsJson(contentItems),
-                    dependencyUrl = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/dependency/get-dependencies.json?site='+ CStudioAuthoringContext.site;
+                    dependencyUrl = CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.getDependenciesServiceUrl + '?site=' + CStudioAuthoringContext.site;
 
                 var serviceCallback = {
                     success: function(o) {

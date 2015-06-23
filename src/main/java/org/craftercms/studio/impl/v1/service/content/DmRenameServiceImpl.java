@@ -17,7 +17,9 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
@@ -28,8 +30,11 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
@@ -42,6 +47,7 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperati
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleOperation;
 import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Document;
 
 import java.util.*;
 
@@ -125,13 +131,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      */
     @Override
     public boolean isItemRenamed(String site, String uri){
-        /*
-        NodeService nodeService = getService(NodeService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String fullPath = servicesConfig.getRepositoryRootPath(site) + uri;
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);*/
-        return false; //PORT nodeService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
+        return objectMetadataManager.isRenamed(site, uri);
     }
 
     /**
@@ -262,7 +262,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         label.append(ContentUtils.getParentUrl(submittedUri));
         for (String uri :childUris){
             //find all child items that are already live and revert the sandbox to staging version
-            String oldStagingUri = getStoredStagingUri(site, uri);
+            String oldStagingUri = objectMetadataManager.getOldPath(site, uri);
             
             if (oldStagingUri != null){
                 if (isRenameDeleteTag(site, uri)){
@@ -313,30 +313,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     /**
-     *
-     * Renamed node will have content in a different location in staging.
-     * Code below access the appropariate node property and returns the equivanlent staging url
-     */
-    protected String getStoredStagingUri(String site, String uri) {
-        /*
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        DmContentService dmContentService = getService(DmContentService.class);
-        String fullPath = dmContentService.getContentFullPath(site, getIndexFilePath(uri));
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        if (nodeRef == null) {
-            fullPath = fullPath.replace(String.format("/%s", DmConstants.INDEX_FILE), "");
-            nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        }
-        if (nodeRef != null) {
-            Serializable val = persistenceManagerService.getProperty(nodeRef, CStudioContentModel.PROP_RENAMED_OLD_URL);
-            if(val != null){
-                return (String)val;
-            }
-        }*/
-        return null;
-    }
-
-    /**
      * Cut/paste a tree. Cut any child in this hirarchy and paste it somewhere outside.
      * There is a limitation that we cannot push a deleted child to staging wiothout pushing the deleted parent.
      * In such scenario we need to push the deleted parent as well. This api returns false in such case
@@ -345,13 +321,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * @return false if we push the renamed child without pushing the renamed parent.
      */
     protected boolean isRenameDeleteTag(String site,String uri) {
-        return false;
-        /* TODO: implement this
-        DmContentService dmContentService = getService(DmContentService.class);
-        String fullPath = dmContentService.getContentFullPath(site, getIndexFilePath(uri));
-        Serializable val = getService(PersistenceManagerService.class).getProperty(fullPath, CStudioContentModel.PROP_RENAMED_DELETE_URL);
-        return val!=null && (Boolean)val;
-        */
+        ObjectMetadata metadata = objectMetadataManager.getProperties(site, uri);
+        return StringUtils.isEmpty(metadata.getDeleteUrl());
     }
 
     /**
@@ -463,17 +434,17 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
             contentService.deleteContent(site, ContentUtils.getParentUrl(sourcePath));
 
-            ContentItemTO item = contentService.getContentItem(dstFullPath);
+            ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
             if (item == null) {
                 throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
             }
 
             String renamedUri = item.getUri();
-            String storedStagingUri = getStoredStagingUri(site, renamedUri);
+            String storedStagingUri = objectMetadataManager.getOldPath(site, renamedUri);
             objectStateService.updateObjectPath(site, sourcePath, renamedUri);
 
             if(storedStagingUri == null){
-                addRenameUriDeleteProperty(contentService.expandRelativeSitePath(site, renamedUri));
+                addRenameUriDeleteProperty(site, renamedUri);
             }
 
             //update cache and add node property to all children with oldurl if required
@@ -550,16 +521,10 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
     }
 
-    protected void addRenameUriDeleteProperty(String filePath) {
-        /*
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(getIndexFilePath(filePath));
-        if (nodeRef == null) {
-            nodeRef = persistenceManagerService.getNodeRef(filePath);
-        }
-        if (nodeRef != null) {
-            persistenceManagerService.setProperty(nodeRef, CStudioContentModel.PROP_RENAMED_DELETE_URL, "true");
-        }*/
+    protected void addRenameUriDeleteProperty(String site, String relativePath) {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put(ObjectMetadata.PROP_DELETE_URL, true);
+        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
     }
 
     /**
@@ -643,42 +608,41 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         DmContentService dmContentService = getService(DmContentService.class);
         DmPathTO path = new DmPathTO(fullPath);
         String childUri = path.getRelativePath();*/
-        String oldUri = (fileContent) ? oldPath : relativePath.replace(ContentUtils.getParentUrl(renamedPath), ContentUtils.getParentUrl(oldPath));
-        /*
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-        Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(node);
 
-        if (addNodeProperty && getStoredStagingUri(site,childUri) == null && fileContent) {
-            persistenceManagerService.addAspect(node, CStudioContentModel.ASPECT_RENAMED, new HashMap< QName, Serializable>());
-            if (nodeProperties.get(CStudioContentModel.PROP_RENAMED_OLD_URL) == null) {
-                nodeProperties.put(CStudioContentModel.PROP_RENAMED_OLD_URL, oldUri);
+
+
+        String oldUri = (fileContent) ? oldPath : relativePath.replace(ContentUtils.getParentUrl(renamedPath), ContentUtils.getParentUrl(oldPath));
+        objectStateService.updateObjectPath(site, oldUri, relativePath);
+        objectMetadataManager.updateObjectPath(site, oldUri, relativePath);
+        ObjectMetadata metadata = objectMetadataManager.getProperties(site, relativePath);
+        Map<String, Object> properties = new HashMap<String, Object>();
+        if (addNodeProperty && StringUtils.isEmpty(metadata.getOldUrl()) && fileContent) {
+            properties.put(ObjectMetadata.PROP_RENAMED, 1);
+            if (StringUtils.isEmpty(metadata.getOldUrl())) {
+                properties.put(ObjectMetadata.PROP_OLD_URL, oldUri);
             }
         } else {
-            String indexFilePath = getIndexFilePath(fullPath);
-            NodeRef indexNode = persistenceManagerService.getNodeRef(indexFilePath);
-            persistenceManagerService.addAspect(indexNode, CStudioContentModel.ASPECT_RENAMED, new HashMap<QName, Serializable>());
-            if (nodeProperties.get(CStudioContentModel.PROP_RENAMED_OLD_URL) == null) {
-                nodeProperties.put(CStudioContentModel.PROP_RENAMED_OLD_URL, oldUri);
+            String indexRelativePath = getIndexFilePath(relativePath);
+            metadata = objectMetadataManager.getProperties(site, indexRelativePath);
+            properties.put(ObjectMetadata.PROP_RENAMED, 1);
+            if (StringUtils.isEmpty(metadata.getOldUrl())) {
+                properties.put(ObjectMetadata.PROP_OLD_URL, oldUri);
             }
         }
-        persistenceManagerService.updateObjectPath(node, path.getRelativePath());
-        nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-        nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-        persistenceManagerService.setProperties(node, nodeProperties);
+        properties.put(ObjectMetadata.PROP_MODIFIER, user);
+        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 
 
         //dependencies also has to be moved post rename
         try{
-            Document document = dmContentService.getContentXml(site, null, childUri);
-            DmDependencyService dmDependencyService = getService(DmDependencyService.class);
-            Map<String, Set<String>> globalDeps = new FastMap<String, Set<String>>();
-            dmDependencyService.extractDependencies(site, childUri, document, globalDeps);
+            Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+            dmDependencyService.extractDependencies(site, relativePath, document, globalDeps);
         }catch(Exception e){
-            throw new ServiceException("Error during extracting dependency of "+childUri,e);
-        }*/
-        updateGoLiveQueue(site,relativePath,oldUri);
-        updateActivity(site, relativePath, oldUri);
+            logger.error("Error during extracting dependency of " + relativePath, e);
+        }
+        updateGoLiveQueue(site, relativePath, oldUri);
+        updateActivity(site, oldUri, relativePath);
     }
 
     protected void updateGoLiveQueue(String site,String newFullPath, String oldUri){
@@ -699,9 +663,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }*/
     }
 
-    protected void updateActivity(String newUrl, String oldUrl, String site){
+    protected void updateActivity(String site, String oldUrl, String newUrl){
         logger.debug("Updating activity url post rename:"+newUrl);
-        activityService.renameContentId(oldUrl, newUrl,site);
+        activityService.renameContentId(site, oldUrl, newUrl);
     }
 
     /**
@@ -784,8 +748,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
@@ -805,13 +769,21 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
 
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+
     protected SecurityService securityService;
     protected ContentService contentService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected WorkflowService workflowService;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected DmWorkflowListener dmWorkflowListener;
     protected DmPublishService dmPublishService;
     protected WorkflowProcessor workflowProcessor;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmDependencyService dmDependencyService;
 }

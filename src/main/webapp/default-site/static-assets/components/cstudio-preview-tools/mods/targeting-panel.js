@@ -65,7 +65,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
                 var carousel = new YAHOO.widget.Carousel(sliderEl, {
                     isCircular: true,
-                    numVisible: 4
+                    numVisible: 3
                 });
 
                 carousel.parentControl = this;
@@ -90,6 +90,11 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
                 carousel.render();
                 carousel.show();
+
+                var leftArrow = document.getElementById('container').getElementsByTagName('button')[0];
+                leftArrow.innerHTML = "<";
+                var rightArrow = document.getElementById('container').getElementsByTagName('button')[1];
+                rightArrow.innerHTML = ">";
 
 
 
@@ -145,8 +150,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 		
 			reportContainerEl.style.position = "fixed";
 			reportContainerEl.style.width = "800px";
-			reportContainerEl.style.height = "300px";
-			reportContainerEl.style.top = "100px";
+			reportContainerEl.style.height = "auto";
+            reportContainerEl.style.minHeight = "300px";
+			reportContainerEl.style.top = "96px";
 		
 			var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
 			reportContainerEl.style.left = x+"px";
@@ -224,7 +230,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							var overlayHtml = "";
 							if(reportContainerEl) {
 								overlayHtml = 
-									"<div style='color: white; font-weight: bold; font-size: 20px; font-family: Arial,Helvetica; margin: 15px;'>Persona: "+item.personaName;
+									"<div class='persona-container'><div style='font-weight: bold; font-size: 20px; margin: 15px;'>Persona: "+item.personaName;
 									
 									if(carousel.activePersona.username == item.personaName) {
 										overlayHtml +=	" (Active) "
@@ -232,9 +238,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 									
 								overlayHtml +=	
 									"</div>" +
-									"<img style='position: static; float: left; border:1px solid white; margin-left:15px; margin-right:15px;' width='150px' height='150px' src='" + carousel.getImageFn(item) + "'\>" +
-									"<div style='color: white; font-size: 15px; font-family: Arial,Helvetica; margin: 15px;'>"+item.personaDescription+"</div>" +
-									"<div style='color: white; font-weight: bold; font-size: 20px; font-family: Arial,Helvetica; margin: 15px;'>Properties</div>";
+									"<img src='" + carousel.getImageFn(item) + "'\>" +
+									"<div style='font-size: 15px; margin: 15px;'>"+item.personaDescription+"</div>" +
+									"<div style='font-weight: bold; font-size: 20px;'>Properties</div>";
 									
 									
 									
@@ -250,12 +256,12 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 											for(var j=0; j<persona.settings.length; j++){
 												var property =  persona.settings[j];
 												
-												overlayHtml += "<tr style='color:white'>" +
-												     "<td style='font-weight:bold' >" + property.label + "</td>";
+												overlayHtml += "<tr>" +
+												     "<td style='font-weight:bold; padding: 5px 16px 5px 0'; >" + property.label + "</td>";
 												     
 												     if(carousel.activePersona.username == item.personaName) {
 												     	overlayHtml += 
-												     	 "<td><input id='crPersona_" + property.name +"' "+ 
+												     	 "<td><input type='text' class='form-control' id='crPersona_" + property.name +"' "+
 												     	        "value='" + carousel.activePersonaAttributes[property.name] + "'/></td>"; 
 												     }
 												     else {
@@ -275,20 +281,41 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
 									if(carousel.activePersona.username != item.personaName) {
 										overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Assume</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>Assume</div>";
 									}
 									else {
 									overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-green-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Update</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>Update</div>";
 									}
+									//overlayHtml += "<div id='cscancel' class='btn btn-default'>Cancel</div>";
+
+                                    overlayHtml += "</div>";
 									
 									
 									reportContainerEl.innerHTML = overlayHtml;
+
+
+                                    var personaContainer = document.getElementsByClassName('persona-container')[0];
+                                    console.log(personaContainer.offsetHeight);
+                                    if(personaContainer.offsetHeight > 462){
+                                        personaContainer.style.overflowY = "scroll";
+                                    }else{
+                                        personaContainer.style.overflowY = "initial";
+                                        personaContainer.style.paddingBottom = "10px";
+                                    }
 									
 									
 									//if(carousel.activePersona != item.personaName) {
 										var assumePersonaEl = document.getElementById("csupdatepersona");
+										//var cancelPersonaEl = document.getElementById("cscancel");
+										var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
 										
+										/*cancelPersonaEl.onclick = function(e) {
+										
+											reportContainerEl.style.display = "none";
+											
+										}; */
+
 										//assumePersonaEl.toggleFn = this.parentControl.context.toggleFn;
 										assumePersonaEl.onclick = function(e) {
 	

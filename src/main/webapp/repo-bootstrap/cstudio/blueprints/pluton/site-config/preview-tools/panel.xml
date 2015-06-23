@@ -38,20 +38,20 @@
      <config>
            <experiments>
               <experiment>
-                       <title>Home Page Red vs. Blue CTA Buttons</title>
+                       <title>Yellow vs Blue Mask on Home</title>
                           <variations>
-                           <variation><title>Red</title><url>/</url></variation>
+                           <variation><title>Yellow</title><url>/</url></variation>
                           <variation><title>Blue</title><url>/?c1v1</url></variation>
                       </variations>
                 </experiment>
 
 
               <experiment>
-                       <title>Catalog Page Sorting</title>
+                       <title>Faceted Search vs Keyword</title>
                           <variations>
-                           <variation><title>Arrival Date</title><url>/</url></variation>
-                          <variation><title>Price High to Low</title><url>/?c1v1</url></variation>
-                          <variation><title>Price Low to High</title><url>/?c1v1</url></variation>
+                           <variation><title>Faceted</title><url>/</url></variation>
+                          <variation><title>Faceted + Keyword</title><url>/?c1v1</url></variation>
+                          <variation><title>Keyword Only</title><url>/?c1v1</url></variation>
                       </variations>
                 </experiment>
 

@@ -17,15 +17,13 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import java.io.*;
 import java.lang.String;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumSet;
+import java.util.*;
 import javax.servlet.ServletContext;
 
 import org.craftercms.commons.http.*;
@@ -136,15 +134,19 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
+
         
         boolean success = true;
 
         try {
             Path source = constructRepoPath(fromPath);
             Path target = constructRepoPath(toPath);
-            TreeCopier tc = new TreeCopier(source, target, false, false);
-            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+            File sourceFile = source.toFile();
+            if (sourceFile.isDirectory()) {
+                FileUtils.copyDirectory(sourceFile, target.toFile());
+            } else {
+                FileUtils.copyFileToDirectory(sourceFile, target.toFile());
+            }
         }
         catch(Exception err) {
             // log this error
@@ -263,6 +265,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             logger.error("error while getting history for content item " + path, err);
         }
 
+        Collections.sort(versionList);
         VersionTO[] versions = new VersionTO[versionList.size()];
         versions = versionList.toArray(versions);
         return versions;

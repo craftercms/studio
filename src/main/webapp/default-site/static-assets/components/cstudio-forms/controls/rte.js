@@ -90,7 +90,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 				});
 				_thisControl.rteTables = rteConfig.rteTables;
 				_thisControl.rteTableStyles = rteConfig.rteTablestyles;
-				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles;
+				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles.style;
 				_thisControl.rteLinkTargets = rteConfig.rteLinkTargets;
 			},
 			failure: function() {
@@ -686,8 +686,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		var stylesheets  = "/studio/static-assets/themes/cstudioTheme/css/forms-rte.css";
 		var rteConfig = this.rteConfig;
 		
-		for(var i=0; i<rteConfig.rteStylesheets.length; i++) {
-			var item = rteConfig.rteStylesheets[i];
+		for(var i=0; i<rteConfig.rteStylesheets.link.length; i++) {
+			var item = rteConfig.rteStylesheets.link[i];
 			if(!item.appliesToChannel 
 					|| (!channel && item.appliesToChannel == "default")
 					|| (channel && item.appliesToChannel.indexOf(channel) != -1 )) {				

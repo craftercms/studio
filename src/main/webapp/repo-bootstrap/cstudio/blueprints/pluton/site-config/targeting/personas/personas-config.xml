@@ -1,82 +1,135 @@
 <personas>
     <persona>
         <name>Anonymous</name>
-        <description>User is unknown to Acme.com.</description>
+        <description>User is unknown to Pluton.com.</description>
         <thumb>anon.jpg</thumb>
         <settings>
         </settings>
    </persona>
     <persona>
-        <name>Lead</name>
-        <description>User has expressed interest in ACME products and services.</description>
-        <thumb>lead.jpg</thumb>
+        <name>Marketing, Northeast US</name>
+        <description>User is a Marketing professional form the US, Northeast</description>
+        <thumb>marketing-ne.jpg</thumb>
         <settings>
             <property>
             	<name>segment</name>
             	<label>Segment</label>
-            	<value>lead</value>
+            	<value>marketing</value>
             </property>
             <property>
-            	<name>someProp</name>
-            	<label>Another Property</label>
-            	<value>Foo</value>
+            	<name>geo</name>
+            	<label>Geo Location</label>
+            	<value>42.353146,-71.12792200000001</value>
+            </property>
+
+
+            <property>
+                <name>propertya</name>
+                <label>Property A</label>
+                <value>Value A</value>
+            </property>
+            <property>
+                <name>propertyb</name>
+                <label>Property B</label>
+                <value>Value B</value>
+            </property>
+            <property>
+                <name>propertyc</name>
+                <label>Property C</label>
+                <value>Value C</value>
+            </property>
+            <property>
+                <name>propertyd</name>
+                <label>Property D</label>
+                <value>Value D</value>
+            </property>
+            <property>
+                <name>propertye</name>
+                <label>Property E</label>
+                <value>Value E</value>
+            </property>
+            <property>
+                <name>propertyf</name>
+                <label>Property F</label>
+                <value>Value F</value>
+            </property>
+            <property>
+                <name>propertyh</name>
+                <label>Property H</label>
+                <value>Value H</value>
+            </property>
+            <property>
+                <name>propertyi</name>
+                <label>Property I</label>
+                <value>Value I</value>
+            </property>
+            <property>
+                <name>propertyj</name>
+                <label>Property J</label>
+                <value>Value J</value>
+            </property>
+            <property>
+                <name>propertyk</name>
+                <label>Property K</label>
+                <value>Value K</value>
+            </property>
+            <property>
+                <name>propertyl</name>
+                <label>Property L</label>
+                <value>Value L</value>
+            </property>
+            <property>
+                <name>propertym</name>
+                <label>Property M</label>
+                <value>Value m</value>
+            </property>
+            <property>
+                <name>propertyn</name>
+                <label>Property N</label>
+                <value>Value N</value>
+            </property>
+
+
+        </settings>
+
+   </persona>
+    <persona>
+        <name>IT, Southern US</name>
+        <description>User is a IT professional in the US, Southeast</description>
+        <thumb>cio.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>it</value>
+            </property>
+            <property>
+            	<name>geo</name>
+            	<label>Geo Location</label>
+            	<value>26.202702,-80.15315099999998</value>
+            </property>
+        </settings>
+   </persona>
+    <persona>
+        <name>Designer</name>
+        <description>User Designer</description>
+        <thumb>designer.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>designer</value>
             </property>
             <property>
             	<name>newOptIn</name>
             	<label>Opt-in for newsletter</label>
             	<value>true</value>
             </property>
-        </settings>
-   </persona>
-    <persona>
-        <name>Customer</name>
-        <description>User is a customer of ACME products and Services.</description>
-        <thumb>customer.jpg</thumb>
-        <settings>
             <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>customer</value>
-            </property>
-            <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>true</value>
-            </property>
-        </settings>
-   </persona>
-    <persona>
-        <name>Partner</name>
-        <description>User is a partner of ACME</description>
-        <thumb>partner.jpg</thumb>
-        <settings>
-            <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>partner</value>
-            </property>
-            <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>true</value>
-            </property>
-        </settings>
-   </persona>
-    <persona>
-        <name>Employee</name>
-        <description>User is an ACME employee.</description>
-        <thumb>employee.jpg</thumb>
-        <settings>
-            <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>employee</value>
-            </property>
-            <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>false</value>
-            </property>
+                <name>geo</name>
+                <label>Geo Location</label>
+                <value>26.202702,-80.15315099999998</value>
+            </property>            
         </settings>
    </persona>
 </personas>

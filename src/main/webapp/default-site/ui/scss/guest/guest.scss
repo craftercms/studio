@@ -3,6 +3,7 @@
 
 @import "../variables";
 @import "../util/animate";
+@import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
 
 @import "elements";
 // @import "foundation";
@@ -11,6 +12,17 @@
 
 [#{$ice-attribute-name}] {
 
+}
+
+.studio-view {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $text-color;
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/type";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/scaffolding";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/buttons";
 }
 
 .#{$ice-class-prefix}-overlay,

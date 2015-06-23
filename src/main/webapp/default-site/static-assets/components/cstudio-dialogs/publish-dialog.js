@@ -230,9 +230,11 @@ CStudioAuthoring.Dialogs.PublishDialog.prototype.createItemMap = function() {
 	var _populateMap = function(itemArray, map) {
 		for (var i = 0; i < itemArray.length; i++) {
 			var item = itemArray[i];
-			map[item.uri] = item;
-			if (item.children.length) {
-				_populateMap(item.children, map);
+			if(item) {
+				map[item.uri] = item;
+				if (item && item.children && item.children.length) {
+					_populateMap(item.children, map);
+				}
 			}
 		}
 	}

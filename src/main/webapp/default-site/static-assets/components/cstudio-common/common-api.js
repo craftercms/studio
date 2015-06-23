@@ -1330,7 +1330,7 @@ var YEvent = YAHOO.util.Event;
                     CStudioAuthoring.Service.getInContextEditView({
                         success: function (response) {
                             window.top.studioFormZorder= (window.top.studioFormZorder) ? window.top.studioFormZorder + 1 : 9999;
-                            var template = '<iframe id="in-context-edit-editor-'+editorId+'" frameborder="0" style="z-index:'+window.top.studioFormZorder+';" onload="CStudioAuthoring.InContextEdit.autoSizeIceDialog("'+editorId+'");"></iframe>"';
+                            var template = '<iframe id="in-context-edit-editor-'+editorId+'" frameborder="0" style="z-index:'+window.top.studioFormZorder+';" onload="CStudioAuthoring.InContextEdit.autoSizeIceDialog();"></iframe>"';
                             var parentEl = window.top.document.body;
                             $modal
                                 .find('.bd').html(template).end()
@@ -2179,6 +2179,7 @@ var YEvent = YAHOO.util.Event;
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
             getScheduledItemsServiceUrl: "/api/1/services/api/1/deployment/get-scheduled-items.json",
+            getDependenciesServiceUrl: "/api/1/services/api/1/dependency/get-dependencies.json",
 
             // Preview Services
             previewSyncAllServiceUrl: "/api/1/services/api/1/preview/sync-site.json",

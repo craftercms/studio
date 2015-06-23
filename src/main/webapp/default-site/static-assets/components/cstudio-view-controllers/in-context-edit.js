@@ -91,7 +91,7 @@
                                 $modal.height(max);
                             }
 
-                            if (count++ > 5) {
+                            if (count++ > 10) {
                                 clearInterval(interval);
                             }
 

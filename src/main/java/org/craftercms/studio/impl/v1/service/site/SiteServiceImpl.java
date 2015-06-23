@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -405,7 +406,19 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 	@Override
 	public List<SiteFeed> getUserSites(String user) {
-		return siteFeedMapper.getSites();
+        String username = user;
+        if (StringUtils.isEmpty(username)) {
+            username = securityService.getCurrentUser();
+        }
+        List<SiteFeed> sites = siteFeedMapper.getSites();
+        List<SiteFeed> toRet = new ArrayList<SiteFeed>();
+        for (SiteFeed site : sites) {
+            Set<String> userRoles = securityService.getUserRoles(site.getSiteId(),username);
+            if (CollectionUtils.isNotEmpty(userRoles)) {
+                toRet.add(site);
+            }
+        }
+        return toRet;
 	}
 
     @Override
@@ -439,12 +452,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
  		boolean success = true;
  		try {
 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content", 
+			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content",
 				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
 
 	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);	 		
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config", 
+ 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
+	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config",
 	 			siteConfigFolder);
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
@@ -605,20 +618,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			blueprints[idx++] = blueprintTO;
 		}
 
-		/*
-
-		blueprints[0] = new SiteBlueprintTO();
-		blueprints[0].id = "empty";
-		blueprints[0].label = "Empty";
-		blueprints[0].description = "Blueprint has no pages, styles, content types";
-		blueprints[0].screenshots = new String[] { "entry.jpg" };
-
-		blueprints[1] = new SiteBlueprintTO();
-		blueprints[1].id = "corporate";
-		blueprints[1].label = "Corporate Brochure Site";
-		blueprints[1].description = "Blueprint is a example corporate brochureware site.";
-		blueprints[1].screenshots = new String[] { "entry.jpg", "section.jpg", "contact.jpg" };
-		*/
 		return blueprints;
 	}
 

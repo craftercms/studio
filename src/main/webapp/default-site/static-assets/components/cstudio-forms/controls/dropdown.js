@@ -67,8 +67,8 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 				
 				if(prop.name == "datasource") {
 					if(prop.value && prop.value != "") {
-						this.datasourceName = (Array.isArray(prop.value))?prop.value[0]:prop.value;	
-					}
+					this.datasourceName = (Array.isArray(prop.value)) ? prop.value[0] : prop.value;
+                    this.datasourceName = this.datasourceName.replace("[\"","").replace("\"]","");					}
 				}
 				
 				if(prop.name == "emptyvalue"){

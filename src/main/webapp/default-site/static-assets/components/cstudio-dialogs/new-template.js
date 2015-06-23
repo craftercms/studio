@@ -106,7 +106,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	limitInput: function(event, params) {
 		var value = params.nameEl.value;
 		value = value.replace(" ", "-");
-		value = value.replace(/[^a-zA-Z0-9-\.]/g, '')
+		value = value.replace(/[^a-zA-Z0-9-\._]/g, '')
 		params.nameEl.value = value;
 	},
 

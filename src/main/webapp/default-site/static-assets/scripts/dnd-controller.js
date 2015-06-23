@@ -7,12 +7,12 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     var OVERLAY_TPL = '<sdiv class="studio-dnd-controller-overlay"></sdiv>';
     var PALETTE_TPL = [
         '<sdiv class="studio-components-panel">',
-        '<sbutton data-action="done">done</sbutton>',
+        '<sbutton class="btn btn-primary" data-action="done">Done</sbutton>',
         '<sh1 class="studio-panel-title">Components</sh1>',
         '<sdiv class="studio-component-search"><input type="search" placeholder="search components..." /></sdiv>',
         '<sdiv class="studio-components-container"></sdiv>',
         '</sdiv>'].join('');
-    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@">%@</sa></sli>';
+    var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@"><span class="status-icon component"></span>%@</sa></sli>';
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';
@@ -107,6 +107,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
     function disableDnD() {
 
+        sessionStorage.setItem('components-on', '');
+
         if (!this.active()) return;
         this.active(false);
 
@@ -123,6 +125,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $p.detach();
         });
 
+        $('.removeComp').remove();
+
     }
 
     function done() {
@@ -131,6 +135,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function enableDnD(components, initialComponentModel) {
+        sessionStorage.setItem('components-on', 'true');
 
         if (this.active()) return;
         this.active(true);
@@ -154,15 +159,20 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             revert: 'invalid',
             helper: 'clone',
             appendTo: 'body',
+            cursor: 'move',
             zIndex: 1030
         });
 
         $(DROPPABLE_SELECTION).droppable({
             hoverClass: 'studio-draggable-over',
-            connectWithSortable: true,
+            accept: '[data-studio-component]',
+            tolerance: 'touch',
+            //activate: function( event, ui ) {$(this).height($(this).height() + ui.draggable.height());$(this).width($(this).width() + ui.draggable.width());},
+            //deactivate: function( event, ui ) {$(this).height('auto');$(this).width('auto');},
             drop: function (e, ui) {
                 var $dropZone = $(this),
                     $component = ui.draggable;
+                    //$(this).height('auto');$(this).width('auto')
                 componentDropped.call(me, $dropZone, $component);
             }
         }).sortable({
@@ -175,6 +185,37 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         });
 
         componentsModelLoad(initialComponentModel);
+
+        //$('.ui-sortable-handle').append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
+
+        $( ".ui-sortable-handle" ).each(function( index ) {
+            //$( this ).append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
+            var delControl = createDeleteControl('removeComp');
+            delControl.onclick = function() {
+                removeComponent(this, function () {
+                    var zones = {};
+                    setTimeout(function () {
+
+                        $('[data-studio-components-target]').each(function () {
+                            var $el = $(this),
+                                zoneName = $el.attr('data-studio-components-target');
+                            zones[zoneName] = [];
+                            $el.find('[data-studio-component]').each(function (i, el) {
+                                var $comp = $(this);
+                                zones[zoneName].push($comp.data('model') || tracking);
+                            });
+                        });
+
+                        publish.call(me, Topics.SAVE_DRAG_AND_DROP, {
+                            isNew: false,
+                            zones: zones
+                        });
+
+                    });
+                });
+            };
+            $( this ).append(delControl);
+        });
 
     }
 
@@ -250,6 +291,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function renderPalette(components) {
+        console.log(components);
         var html = [],
             $c = this.getPalette().children('.studio-components-container');
         $.each(components || [], function (i, category) {
@@ -263,7 +305,33 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             html.push('</sul>');
             html.push('</sdiv>');
         });
+        html.push('<button class="btn btn-primary add-component">Add Component</button>');
         $c.html(html.join(''));
+    }
+
+    function createDeleteControl(className) {
+        var deleteEl = document.createElement("a"),
+            btnEl = document.createElement("img");
+
+        $( deleteEl).addClass(className);
+
+        btnEl.src = "/studio/static-assets/themes/cstudioTheme/images/icons/delete.png";
+        btnEl.style.width = "16px";
+        btnEl.style.height = "16px";
+
+        deleteEl.appendChild(btnEl);
+        return deleteEl;
+    }
+
+    function removeComponent (srcEl, callback) {
+
+        srcEl.parentNode.remove();
+
+        //Utility.refreshPlaceholderHeight(srcContainer);
+
+        if (typeof callback == "function") {
+            callback();
+        }
     }
 
 });

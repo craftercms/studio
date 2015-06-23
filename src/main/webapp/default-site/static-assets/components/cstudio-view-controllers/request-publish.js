@@ -25,7 +25,6 @@
 
     });
 
-    if (jQuery && jQuery.isPlainObject)
 
     function closeButtonClicked() {
         this.end();
@@ -73,13 +72,15 @@
                 }
             }
         });
+
+        window.location.reload();
     }
 
     function renderItems(items) {
         var html = [],
             tpl = [
                 '<tr>',
-                '<td><input type="checkbox" class="select-all-check" data-item-id="_URI_"/></td>',
+                '<td><input type="checkbox" class="select-all-check" data-item-id="_URI_" checked/></td>',
                 '<td>_NAME_</td>',
                 '<td>_SCHEDULE_</td>',
                 '</tr>'

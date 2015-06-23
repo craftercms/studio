@@ -65,6 +65,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
+        <property name="securityProvider" ref="securityProvider"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -273,7 +274,9 @@
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="dmPublishService" ref="cstudioDmPublishService" />
-        <property name="WorkflowProcessor" ref="cstudioWorkflowProcessor" />
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -807,6 +810,7 @@
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
 </beans>

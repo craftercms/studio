@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/game</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>b5df</objectGroupId>
+	<objectId>b5dfc144-f4d8-a694-1546-d12b67f51932</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>b5dfc144-f4d8-a694-1546-d12b67f51932</folder-name>
+	<internal-name>Kids Stuff</internal-name>
+	<cards>	<item>	<image>/static-assets/images/cards/rocket.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/zeppelin.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/baked-potato.png</image>
+	</item>	<item>	<image>/static-assets/images/cards/kronos.png</image>
+	</item></cards>
+	<createdDate>06/20/2013 04:03:26</createdDate>
+	<lastModifiedDate>6/16/2015 16:49:20</lastModifiedDate>
+	<maxAge>10</maxAge>
+	<maxAge_i>12</maxAge_i>
+	<expirationDate_dt>10/31/2014 14:57:14</expirationDate_dt>
+</component>

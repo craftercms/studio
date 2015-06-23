@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -358,12 +359,7 @@ public class ContentServiceImpl implements ContentService {
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(getRelativeSitePath(site, fullPath));
-            RequestContext context = RequestContext.getCurrent();
-            String sessionTicket = null;
-            if (context != null) {
-                HttpSession httpSession = context.getRequest().getSession();
-                sessionTicket = (String) httpSession.getValue("alf_ticket");
-            }
+            String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
             repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
@@ -465,7 +461,7 @@ public class ContentServiceImpl implements ContentService {
         item.isPage = item.page;
         item.previewable = item.page;
         item.isPreviewable = item.previewable;
-        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site));
+        item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor();
         item.isComponent = item.component;
         item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
         item.isAsset = item.asset;
@@ -715,6 +711,10 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 item.setLockOwner(metadata.getLockOwner());
             }
+            if (metadata.getLaunchDate() != null) {
+                item.scheduledDate = metadata.getLaunchDate();
+                item.setScheduledDate(metadata.getLaunchDate());
+            }
         } else {
             item.setLockOwner("");
         }
@@ -763,6 +763,13 @@ public class ContentServiceImpl implements ContentService {
         boolean success = false;
 
         success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(path);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
 
         if(success) {
             // publish item udated event or push to preview
@@ -955,7 +962,7 @@ public class ContentServiceImpl implements ContentService {
         if (length > 0) {
             ContentItemTO item = getContentItem(site, path);
             if (item != null) {
-                String name = item.getName();
+                String name = ContentUtils.getPageName(path);
                 String parentPath = ContentUtils.getParentUrl(path);
                 ContentItemTO parentItem = getContentItemTree(site, parentPath, 1);
                 if (parentItem != null) {
@@ -1177,6 +1184,7 @@ public class ContentServiceImpl implements ContentService {
     protected SecurityService securityService;
     protected Reactor repositoryReactor;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected SecurityProvider securityProvider;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1187,13 +1195,8 @@ public class ContentServiceImpl implements ContentService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
-    public ObjectStateService getObjectStateService() {
-        return objectStateService;
-    }
-
-    public void setObjectStateService(ObjectStateService objectStateService) {
-        this.objectStateService = objectStateService;
-    }
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
     public DmDependencyService getDependencyService() { return dependencyService; }
     public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
@@ -1215,4 +1218,7 @@ public class ContentServiceImpl implements ContentService {
 
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
+
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 }

@@ -59,48 +59,53 @@
   <div id="cstudio-wcm-search-wrapper"> 
     <div id="cstudio-wcm-search-main">        
       
-      <div id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header" style="font-size: 24px; font-weight:bold"></div>
+      <h1 id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header"></h1>
       <div id="cstudio-wcm-search-filter-controls"></div>   
       <div style="clear:both;"></div>
       <br />
-      <span><script>CMgs.display(langBundle, "keywords")</script></span>
-      <br />
-      <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox"  value="${RequestParameters["s"]!''}"/>
+      <div class="form-group">
+          <label><script>CMgs.display(langBundle, "keywords")</script></label>
+          <br />
+          <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox" class="form-control"  value="${RequestParameters["s"]!''}"/>
 
-      <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
+          <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
+      </div>
             
-      <input type="button" id="cstudio-wcm-search-button" value="Search">   
-      <div id="cstudio-wcm-search-result-header">
-        <div id="cstudio-wcm-search-result-header-container">       
-          <span class="cstudio-wcm-search-result-header"><script>CMgs.display(langBundle, "searchResults")</script></span>
-          <span id="cstudio-wcm-search-message-span"></span>      
-          <span id="cstudio-wcm-search-result-header-count"></span>
-          <a id="cstudio-wcm-search-description-toggle-link" href="javascript:void(0)" onClick="CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_TOGGLE);"></a>
-          
-          <div class="filters">
-            <div class="cstudio-wcm-search-result-header-pagination"> 
-              <script>CMgs.display(langBundle, "show")</script>:<input type="text" 
-                    class="cstudio-wcm-search-result-header-pagination-textbox" 
-                    maxlength="3" 
-                    value="20"
-                    id="cstudio-wcm-search-item-per-page-textbox"
-                    name="total"/>
-            </div>
-            <div class="cstudio-wcm-search-result-header-sort">
-              <script>CMgs.display(langBundle, "sort")</script>:<select id="cstudio-wcm-search-sort-dropdown" name="sortBy">
-              <!-- items added via ajax -->
-              </select>
+      <input type="button" id="cstudio-wcm-search-button" class="btn btn-primary" value="Search">
+
+      <div class="panel panel-default">
+          <div id="cstudio-wcm-search-result-header" class="panel-heading">
+            <div id="cstudio-wcm-search-result-header-container">
+              <span class="cstudio-wcm-search-result-header"><script>CMgs.display(langBundle, "searchResults")</script></span>
+              <span id="cstudio-wcm-search-message-span"></span>
+              <span id="cstudio-wcm-search-result-header-count"></span>
+              <a id="cstudio-wcm-search-description-toggle-link" href="javascript:void(0)" onClick="CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_TOGGLE);"></a>
+
+              <div class="filters">
+                <div class="cstudio-wcm-search-result-header-pagination">
+                  <script>CMgs.display(langBundle, "show")</script>:<input type="text"
+                        class="form-control cstudio-wcm-search-result-header-pagination-textbox"
+                        maxlength="3"
+                        value="20"
+                        id="cstudio-wcm-search-item-per-page-textbox"
+                        name="total"/>
+                </div>
+                <div class="cstudio-wcm-search-result-header-sort">
+                  <script>CMgs.display(langBundle, "sort")</script>:<select id="cstudio-wcm-search-sort-dropdown" name="sortBy" class="form-control">
+                  <!-- items added via ajax -->
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>      
-      <div id="cstudio-wcm-search-result">
-         <div id="cstudio-wcm-search-result-in-progress" class="cstudio-wcm-search-result-in-progress-img"></div>
-        &nbsp;  
-      </div>
+          <div id="cstudio-wcm-search-result">
+             <div id="cstudio-wcm-search-result-in-progress" class="cstudio-wcm-search-result-in-progress-img"></div>
+            &nbsp;
+          </div>
 
-      <div class="cstudio-wcm-search-pagination">
-        <div id="cstudio-wcm-search-pagination-controls"></div>
+          <div class="cstudio-wcm-search-pagination">
+            <div id="cstudio-wcm-search-pagination-controls"></div>
+          </div>
       </div>
     
 

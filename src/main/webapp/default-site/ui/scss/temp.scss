@@ -3,6 +3,7 @@
 @import "util/animate";
 @import url("/studio/static-assets/themes/cstudioTheme/css/icons.css");
 @import url(http://fonts.googleapis.com/css?family=Raleway:400,500,700);
+@import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
 #acnVersionWrapper, div.schedulePolicyWrapper {
   width: 554px;
@@ -1216,10 +1217,6 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
 }
 
 div.acnBox {
-  background: url('/studio/static-assets/themes/cstudioTheme/images/bg/submit_bg.jpg') repeat-x;
-  background-color: #d6d6d6;
-  border: 4px #000 solid;
-  color: #000;
   margin: 0;
   padding: 15px 25px;
   position: relative;
@@ -1297,10 +1294,14 @@ div.acnBox div.acnBoxFloatRight {
 }
 
 div.acnBox div.formRow {
-  margin: 0;
-  overflow: hidden;
-  padding: 0 10px 5px 0;
-  width: 550px;
+   margin: 0;
+   overflow: hidden;
+   padding: 0 0 5px 0;
+   width: 550px;
+}
+
+div.acnBox div.formRow .rejectBottomBox {
+  height: 110px;
 }
 
 div.acnBox div.formRow label {
@@ -1375,7 +1376,11 @@ div.acnBox div.radio div.textField input {
 }
 
 div.acnBox div.padTop {
-  padding-top: 5px;
+  padding: 5px 0 11px;
+
+  label{
+    margin-top: 6px;
+  }
 }
 
 div.acnBox div.padBottom {
@@ -1400,29 +1405,33 @@ div.acnBox div.acnScroll h5 {
   font-weight: normal;
   margin: 0;
   overflow: hidden;
-  padding: 3px 20px 3px 27px;
-  width: 503px;
+  padding: 7px 20px 7px 27px;
+  width: 100%;
+  border-radius: 6px 6px 0 0;
 }
 
 div.acnBox div.acnScroll h5 span.left {
   display: block;
   float: left;
+  color: #fff !important;
 }
 
 div.acnBox div.acnScroll h5 span.right {
   display: block;
   float: right;
   padding-right: 5px;
+  color: #fff !important;
 }
 
 div.acnBox div.acnScroll div.acnScrollBox {
-  border: 1px solid #7F9BD9;
+  border: 1px solid #CCCCCC;
   background-color: #fff;
   height: 280px;
   overflow-y: scroll;
   overflow-x: hidden;
   padding: 5px;
-  width: 538px;
+  width: 100%;
+  border-radius: 0 0 6px 6px;
 }
 
 div.schedulePolicyWrapper div.schedulePolicySubmitButtons {
@@ -2621,15 +2630,93 @@ span.acn-canned-search {
 
 }
 
+#maskDialog {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1031;
+  background-color: rgb(68, 68, 68);
+  opacity: 0.5!important;
+}
+
 #cstudioPreviewAnalyticsOverlay {
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -o-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3), inset 0 10px rgba(255, 255, 255, 0.2), inset 0 10px 20px rgba(255, 255, 255, 0.25), inset 0 -15px 30px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(201, 201, 201, 1);
+  background: #efefef;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  -o-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow:  0 5px 15px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   z-index: 99999;
+  //max-height: 500px;
+
+  .persona-container{
+    max-height: 463px;
+    //overflow-y: scroll;
+  }
+
+  img{
+    position: static;
+    float: left;
+    border: 1px solid rgb(201, 201, 201);
+    margin-left: 15px;
+    margin-right: 15px;
+    border-radius: 6px;
+    max-width: 140px;
+  }
+
+  .form-control{
+    margin-bottom: 7px;
+  }
+  
+  table{
+    margin-bottom: 10px;
+  }
+
+}
+
+#csupdatepersona, #cscancel{
+  width: 91px;
+  height: 30px;
+  float: right;
+  font-weight: bold;
+  cursor: pointer;
+  bottom: 21px;
+  position: absolute;
+  right: 33px;
+}
+
+#targeting-panel-elem{
+
+  #container{
+    width: 229px!important;
+    padding: 21px 30px 30px 35px;
+  }
+
+  span{
+    button{
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 1px 6px;
+      font-family: Arial;
+      border: 3px solid #6d90b2;
+      position: absolute;
+      top: 51px;
+      z-index: 2;
+    }
+
+  }
+
+  .yui-carousel-first-button button{
+    left: 0px;
+  }
+
+  .yui-carousel-next-button button{
+    left: 203px;
+  }
+
 }
 
 #cstudio-emulate {
@@ -2637,7 +2724,12 @@ span.acn-canned-search {
 }
 
 .yui-carousel-content {
-  left: 30px;
+  left: 0;
+  width: 161px!important;
+
+  .yui-carousel-element li{
+    border-radius: 6px;
+  }
 }
 
 .yui-carousel {
@@ -2647,6 +2739,7 @@ span.acn-canned-search {
 
 .yui-carousel .yui-carousel-item-selected{
   border: none;
+  border-radius: 6px;
 }
 
 .yui-carousel-pager-item {
@@ -2671,10 +2764,15 @@ span.acn-canned-search {
 }
 
 #preview-tools-panel-persona-selected {
-  width: 100px;
-  height: 100px;
+  width: 102px;
+  height: 102px;
   margin-left: 70px;
-  border: 1px solid black;
+
+  img{
+    border: 1px solid rgb(201, 201, 201);
+    border-radius: 6px;
+  }
+
 }
 
 #preview-tools-panel-persona-selected-title {

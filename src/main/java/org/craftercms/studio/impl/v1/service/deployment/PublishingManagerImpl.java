@@ -25,15 +25,18 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -331,7 +334,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (item.getOldPath() != null && item.getOldPath().length() > 0) {
                 contentService.deleteContent(item.getSite(), item.getOldPath());
                 deployer.deleteFile(item.getSite(), item.getOldPath());
-                //contentRepository.clearRenamed(item.getSite(), item.getPath());
+                objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
             }
             deployer.deleteFile(item.getSite(), item.getPath());
             if (isLive) {
@@ -349,9 +352,10 @@ public class PublishingManagerImpl implements PublishingManager {
             }
             if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
                 if (item.getOldPath() != null && item.getOldPath().length() > 0) {
-                    //contentRepository.deleteContent(item.getSite(), item.getEnvironment(), item.getOldPath());
+                    Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
+                    deployer.deleteFile(item.getSite(), item.getOldPath());
                     if (isLive) {
-                        //contentRepository.clearRenamed(item.getSite(), item.getPath());
+                        objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
                     }
                 }
             }
@@ -360,7 +364,7 @@ public class PublishingManagerImpl implements PublishingManager {
             deployer.deployFile(item.getSite(), item.getPath());
             if (isLive) {
                 ContentItemTO contentItem = contentService.getContentItem(item.getSite(), item.getPath());
-                objectStateService.transition(item.getSite(), contentItem, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DEPLOYMENT);
+                objectStateService.transition(item.getSite(), contentItem, TransitionEvent.DEPLOYMENT);
             }
             LOGGER.debug("Resetting system processing for {0}:{1}", item.getSite(), item.getPath());
             objectStateService.setSystemProcessing(item.getSite(), item.getPath(), false);
@@ -456,12 +460,12 @@ public class PublishingManagerImpl implements PublishingManager {
         if (objectStateService.isNew(site, itemPath)) {
             missingItem.setAction(CopyToEnvironment.Action.NEW);
         }
-        /* TODO: check for renamed
-        if (contentRepository.isRenamed(site, itemPath)) {
-            String oldPath = contentRepository.getOldPath(site, itemPath);
+        ObjectMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
+        if (metadata.getRenamed() != 0) {
+            String oldPath = metadata.getOldUrl();
             missingItem.setOldPath(oldPath);
             missingItem.setAction(CopyToEnvironment.Action.MOVE);
-        }*/
+        }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
         missingItem.setUser(item.getUser());
@@ -502,6 +506,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -512,6 +519,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected String environmentsStoreRootPath;
     protected DeployerFactory deployerFactory;
     protected ContentRepository contentRepository;
+    protected ObjectMetadataManager objectMetadataManager;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

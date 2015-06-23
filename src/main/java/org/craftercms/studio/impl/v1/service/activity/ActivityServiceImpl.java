@@ -28,15 +28,16 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
@@ -212,11 +213,15 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	private long insertFeedEntry(ActivityFeed activityFeed) {
+		DebugUtils.addDebugStack(logger);
+		logger.info("Insert activity " + activityFeed.getContentId());
 		Long id = activityFeedMapper.insertActivityFeed(activityFeed);
 		return (id != null ? id : -1);
 	}
 
 	private void updateFeedEntry(ActivityFeed activityFeed) {
+		DebugUtils.addDebugStack(logger);
+		logger.info("Update activity " + activityFeed.getContentId());
 		activityFeedMapper.updateActivityFeed(activityFeed);
 
 	}
@@ -246,12 +251,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}*/
 
 	@Override
-	public void renameContentId(String oldUrl, String newUrl, String site) {
-		Map<String, Object> params = new HashMap<>();
-		params.put("site", site);
+	public void renameContentId(String site, String oldUrl, String newUrl) {
+		DebugUtils.addDebugStack(logger);
+		logger.info("Rename " + oldUrl + " to " + newUrl);
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("newPath", newUrl);
+		params.put("site", site);
 		params.put("oldPath", oldUrl);
-		activityFeedMapper.renameContent(params);
+        activityFeedMapper.renameContent(params);
 	}
 /*
 	@Override
@@ -313,10 +320,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				remainingItem--;
 			}
 		}
+		logger.debug("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
 
-		if(logger.isDebugEnabled()){
-			logger.debug("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
-		}
 		return hasMoreItems;
 	}
 

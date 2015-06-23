@@ -122,12 +122,12 @@
 						</property>
 						<property>
 							<name>rteConfiguration</name>
-							<value>generic</value>
+							<value>black</value>
 							<type>string</type>
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>[&quot;desktop&quot;]</value>
 							<type>datasource:image</type>
 						</property>
 					</properties>
@@ -142,5 +142,18 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>	</datasources>
+	<datasources>				<datasource>
+					<type>img-desktop-upload</type>
+					<id>desktop</id>
+					<title>Desktop</title>
+					<interface>image</interface>
+					<properties>
+						<property>
+							<name>repoPath</name>
+							<value>/static-assets/images/page</value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+	</datasources>
 </form>

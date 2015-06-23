@@ -545,6 +545,10 @@ body.yui-skin-cstudioTheme .mask{
   width:100%!important;
 }
 
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div.acnBox{
+    width: 595px!important;
+}
+
 .yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div select{
   display: block;
   width: 100%;
@@ -622,6 +626,12 @@ body.yui-skin-cstudioTheme .mask{
   color: white;
   background-color: #5d84a9;
   border-color: #4e7294; }
+
+.action-wrapper button.btn-default.close-button{
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
 
 .yui-module.yui-overlay.yui-panel .yui-button.default button{
   color: #333333;

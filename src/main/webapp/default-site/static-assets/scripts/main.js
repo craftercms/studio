@@ -440,7 +440,10 @@
         '$scope', '$state', 'sitesService', '$timeout', '$window', '$modal',
         function ($scope, $state, sitesService,$timeout, $window, $modal) {
 
+            // View models
+            $scope.site = null;
             $scope.blueprints = [];
+
             function getBlueprints() {
                 sitesService.getAvailableBlueprints().success(function (data) {
                     $scope.blueprints = data;
@@ -451,8 +454,6 @@
             };
 
             getBlueprints();
-            // View models
-            $scope.site = { siteId: '', siteName: '', description: '', blueprint: $scope.blueprints[0] };
 
             // View methods
             $scope.percent = percent;
@@ -460,7 +461,7 @@
             $scope.create = create;
             $scope.setSiteId = setSiteId;
 
-            $scope.$watch('sites', getSite);
+            $scope.$watch('site', getSite);
 
             function setSiteId() {
                 if ($scope.site.siteName != undefined){
