@@ -2159,6 +2159,8 @@ var YEvent = YAHOO.util.Event;
             retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
             
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
+            lookupFoldersServiceUri: "/api/1/services/api/1/content/get-pages.json", // NEED A SERVICE
+
 
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
@@ -2214,9 +2216,6 @@ var YEvent = YAHOO.util.Event;
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            
-            // lookupFoldersServiceUri: "/proxy/alfresco/cstudio/wcm/content/get-folr",
-
             // wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
             // allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
             // lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
