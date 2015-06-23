@@ -4607,8 +4607,7 @@ div.acnBox table.acnLiveTable td.acnLiveTableRight {
 .rejectTextarea {
   width: 547px;
   width: 540px \9;
-  height: 145px;
-  overflow-y: scroll; }
+  height: 145px; }
 
 .rejectButtons {
   margin-top: 17px;
