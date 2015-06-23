@@ -545,6 +545,10 @@ body.yui-skin-cstudioTheme .mask{
   width:100%!important;
 }
 
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div.acnBox{
+    width: 595px!important;
+}
+
 .yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div select{
   display: block;
   width: 100%;

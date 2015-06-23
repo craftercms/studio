@@ -1,43 +1,43 @@
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
-REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">',
-			'<div id=\"acnVersionWrapper\" class=\"acnBox\">',
-			'<h3>Reject</h3>',
-			'<p>The following checked item(s) will be rejected.</p>',
-			'<div class="acnScroll">',
-  			'<h5>',
-			'<span class="left">Item</span>',
-			'<span class="right">Submitted By</span>',
-			'</h5>',
-    '<div class="acnScrollBox" style="height:100px">',
-			'<table class="acnLiveTable liveTable">',
-        '<tbody>',
-       '</tbody></table>',
-		'</div>',
-	'</div>',
-	'<div class="formRow padTop">',
-		'<label>Rejection Reason:</label>',
-		'<div class="field">',
-			'<select id="rejectReasonDropDown" class="rejectReasonDropDown">',
-				 '<option>Select a Reason</option>',
-					 '<option>Not Approved</option>',
-					 '<option>Incorrect Branding</option>',
-					 '<option>Typos</option>',
-					 '<option>Broken Links</option>',
-					 '<option>Needs Section Owner\'s Approval</option>',
-			'</select>',
-		'</div>',
-	'</div>',
-	'<div class="formRow">',
-		'<textarea id="rejectMessageArea" class="rejectBottomBox rejectTextarea"></textarea>',
-	'</div>',
-	'<div class="acnSubmitButtons">',
-		'<span><input id="golivesubmitButton" type="submit" value="Send Rejection" class="rejectSend"></span>',
-		'<span><input id="golivecancelButton" type="submit" value="Cancel" class="rejectCancel"></span>',
-	'</div>',
-	'<div id="rejectReasonJson" style="display:none;">',
-	'</div>',
-'</div>',
+REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">'+
+			'<div id=\"acnVersionWrapper\" class=\"acnBox\">'+
+			'<h3>Reject</h3>'+
+			'<p>The following checked item(s) will be rejected.</p>'+
+			'<div class="acnScroll">'+
+  			'<h5>'+
+			'<span class="left">Item</span>'+
+			'<span class="right">Submitted By</span>'+
+			'</h5>'+
+    '<div class="acnScrollBox" style="height:100px">'+
+			'<table class="acnLiveTable liveTable">'+
+        '<tbody id="tbodyDepend">'+
+       '</tbody></table>'+
+		'</div>'+
+	'</div>'+
+	'<div class="formRow padTop">'+
+		'<label>Rejection Reason:</label>'+
+		'<div class="field">'+
+			'<select id="rejectReasonDropDown" class="rejectReasonDropDown">'+
+				 '<option>Select a Reason</option>'+
+					 '<option>Not Approved</option>'+
+					 '<option>Incorrect Branding</option>'+
+					 '<option>Typos</option>'+
+					 '<option>Broken Links</option>'+
+					 '<option>Needs Section Owner\'s Approval</option>'+
+			'</select>'+
+		'</div>'+
+	'</div>'+
+	'<div class="formRow">'+
+		'<textarea id="rejectMessageArea" class="rejectBottomBox rejectTextarea form-control"></textarea>'+
+	'</div>'+
+	'<div class="acnSubmitButtons">'+
+		'<span><input id="golivesubmitButton" type="submit" value="Send Rejection" class="rejectSend btn btn-primary"></span>'+
+		'<span><input id="golivecancelButton" type="submit" value="Cancel" class="rejectCancel btn btn-default"></span>'+
+	'</div>'+
+	'<div id="rejectReasonJson" style="display:none;">'+
+	'</div>'+
+'</div>'+
 '</div>'].join();
 
 /**
@@ -47,7 +47,7 @@ CStudioAuthoring.Dialogs.DialogReject = CStudioAuthoring.Dialogs.DialogReject ||
     CStudioAuthoring.Dialogs.DialogReject.superclass.constructor.call(this);
     this.moduleName = "reject";  	
     this.reasonHash = [];
-}; 
+};
 
 CStudioAuthoring.Module.requireModule("publish-dialog",
         		"/static-assets/components/cstudio-dialogs/publish-dialog.js",
@@ -187,6 +187,8 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 									oContainerPanel.style.zIndex = "1500";
 								}
 							}
+
+                            renderItems(dependencyList.items);
 						
 							// put up curtain on top of nav bar
 							YDom.get('curtain').style.display = 'block';
@@ -219,8 +221,13 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							YEvent.delegate("acnSubmitWrapper", "click", onCheckBoxSubmittedItemClick, ".acnLiveTableCheckbox > input", this, true);
 						
 							this.publishingChannelsInit();
+
+                            var submitInvokeReject = function(){
+                                this.invokeRejectService();
+                                this.closeDialog();
+                            }
 						
-							YEvent.addListener("golivesubmitButton", "click", this.invokeRejectService, this, true);
+							YEvent.addListener("golivesubmitButton", "click", submitInvokeReject, this, true);
 							YEvent.addListener("golivecancelButton", "click", this.closeDialog, this, true);
 						
 							// hide dependency line if only 1 item
@@ -249,7 +256,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							var reasonList = YDom.get("rejectReasonDropDown");
 							var chosenOption = reasonList.options[reasonList.selectedIndex];
 							if (reasonList.selectedIndex != 0) {
-								YDom.get('rejectMessageArea').value = this.reasonHash[chosenOption.value];
+								YDom.get('rejectMessageArea').value = reasonList.options[reasonList.selectedIndex].innerHTML;
 							} else {
 								YDom.get('rejectMessageArea').value = '';
 							}
@@ -272,7 +279,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 										self.dependencyJsonObj = eval('(' + respText + ')');
 										self.flatMap = self.createItemMap();
 										self.uncheckedItemsArray = [];                    
-										self.displayItemListWithDependencies(respText);
+										self.displayItemListWithDependencies(self.dependencyJsonObj);
 										
 										
 										// get reject reason from hidden div
@@ -325,6 +332,34 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							
 							this.getDependenciesForGoLiveItemList(contentItems);      
 						};
+
+                        function renderItems(items) {
+
+                            var html = [];
+
+                            CStudioAuthoring.Utils.each(items, function (index, item) {
+                                html.push(
+                                    '<tr>',
+                                        '<td class="text-center"><input type="checkbox" class="item-checkbox" data-item-id="'+item.uri+'" checked/></td>',
+                                        '<td class="name"><div class="in">'+item.internalName +' ' + item.uri+'</div></div></td>'
+                                );
+
+                                if(item.userFirstName){
+                                    html.push(
+                                            '<td class="text-right schedule">'+ item.userFirstName +'</td>',
+                                        '</tr>'
+                                    );
+                                }else{
+                                    html.push(
+                                            '<td class="text-right schedule"></td>',
+                                        '</tr>'
+                                    );
+                                }
+                            });
+
+                            YDom.get('tbodyDepend').innerHTML = html.join('');
+
+                        }
 						
 						// Create GoLive dialog instance
 						var reject = new CStudioAuthoring.Dialogs.DialogReject();
