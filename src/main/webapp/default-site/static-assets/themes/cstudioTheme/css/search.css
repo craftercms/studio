@@ -261,3 +261,43 @@ div#cstudio-wcm-search-pagination-controls {
 .cstudio-search-result-body .cstudio-search-description .cstudio-search-banner-image {
 	max-width: 640px;
 }
+
+.cstudio-wcm-browse-main .cstudio-search-result .cstudio-search-result-body{
+    font-size: 0.95em;
+}
+
+.cstudio-wcm-browse-main a.cstudio-search-download-link{
+    color: #7e9dbb;
+    text-decoration: none;
+    font-size: 1.38em;
+}
+
+.cstudio-wcm-browse-main #cstudio-wcm-search-search-title{
+    margin-bottom: 22px;
+}
+
+.cstudio-wcm-browse-main .browse-icon{
+    position: relative;
+    top: 5px;
+
+}
+
+.skin-browse #studioBar .navbar-brand img{
+    width: 75px;
+    position: relative;
+    bottom: 15px;
+}
+
+.skin-browse #xformfooterWrapper {
+    height: 42px;
+}
+
+.skin-browse #xformfooterWrapper #xformfooterheader{
+    background: #E4E4E4;
+    height: 42px;
+    border-top: 1px solid #CBCBCB;
+}
+
+.skin-browse #xformfooterWrapper #xformfooterheader #formSaveButton{
+    color: #fff;
+}

@@ -12,6 +12,7 @@
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css" />
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css" />
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/forms-default.css" />
+<link rel="stylesheet" type="text/css" href="/studio/static-assets/styles/forms-engine.css" />
 
 <!-- Template Assets -->
    <script type="text/javascript" src="/studio/static-assets/yui/treeview/treeview-min.js"></script> 
@@ -40,7 +41,7 @@
     </#if>
 </head>
 
-<body class="yui-skin-cstudioTheme">
+<body class="yui-skin-cstudioTheme skin-browse">
    <div class="sticky-wrapper">
 <div id="global_x002e_cstudio-browse">
     <div id="global_x002e_cstudio-browse_x0023_default">
@@ -52,7 +53,7 @@
                        
     var formControls = new CStudioAuthoring.CommandToolbar("cstudio-command-controls", true);
     
-    formControls.addControl("formSaveButton", "Add Item", function() { 
+    formControls.addControl("formSaveButton", "Add Item", function() {
 
       var searchId = CStudioAuthoring.Utils.getQueryVariable(document.location.search, "searchId");
       var crossServerAccess = false;
@@ -109,20 +110,20 @@
       }
     });
   
-    formControls.addControl("formSaveButton", "Cancel", function() { 
+    formControls.addControl("formCancelButton", "Cancel", function() {
       window.close();
     });
-  }); 
+  });
 
   </script>
 
   <div id="cstudio-wcm-search-wrapper" style="min-width: 1130px;">
 
-    <div id="cstudio-wcm-search-main">        
-      <div id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header"></div>
-      <div id="cstudio-wcm-search-filter-controls" style="width:230px; min-height:570px; background-color:white; float:left; padding: 10px 20px; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 10px;"></div>
+    <div id="cstudio-wcm-search-main" class="cstudio-wcm-browse-main">
+      <h1 id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header"></h1>
+      <div id="cstudio-wcm-search-filter-controls" style="width:230px; min-height:570px; background-color:white; float:left; padding: 10px 20px; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 25px;"></div>
        
-        <div id="cstudio-wcm-search-result" style="min-width: 715px; width:67%; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 10px;  margin-left: 10px; overflow:hidden;">
+        <div id="cstudio-wcm-search-result" style="min-width: 715px; min-height:570px; width:67%; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 25px;  margin-left: 10px; overflow:hidden;">
          <div id="cstudio-wcm-search-result-in-progress" class="cstudio-wcm-search-result-in-progress-img"></div>
         &nbsp;  
       </div>
@@ -137,6 +138,17 @@
     <#if mode == "select" >
       <div id="cstudio-command-controls"></div>
     </#if>
+   </div>
+
+   <div id="studioBar" class="studio-view">
+       <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+           <div class="container-fluid">
+                   <a class="navbar-brand" href="/studio/site-dashboard">
+                       <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio">
+                   </a>
+               </div>
+           </div>
+       </nav>
    </div>
 
 </html>
