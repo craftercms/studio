@@ -123,7 +123,7 @@
       <h1 id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header"></h1>
       <div id="cstudio-wcm-search-filter-controls" style="width:230px; min-height:570px; background-color:white; float:left; padding: 10px 20px; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 25px;"></div>
        
-        <div id="cstudio-wcm-search-result" style="min-width: 715px; min-height:570px; width:67%; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 25px;  margin-left: 10px; overflow:hidden;">
+        <div id="cstudio-wcm-search-result" style="min-width: 715px; min-height:570px; width:67%; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 50px;  margin-left: 10px; overflow:hidden;">
          <div id="cstudio-wcm-search-result-in-progress" class="cstudio-wcm-search-result-in-progress-img"></div>
         &nbsp;  
       </div>

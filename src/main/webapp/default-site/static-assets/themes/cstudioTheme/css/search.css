@@ -289,15 +289,19 @@ div#cstudio-wcm-search-pagination-controls {
 }
 
 .skin-browse #xformfooterWrapper {
-    height: 42px;
+    height: 58px;
 }
 
 .skin-browse #xformfooterWrapper #xformfooterheader{
-    background: #E4E4E4;
-    height: 42px;
-    border-top: 1px solid #CBCBCB;
+    background: #f8f8f8;
+    height: 58px;
+    border-top: 1px solid #e7e7e7;
 }
 
 .skin-browse #xformfooterWrapper #xformfooterheader #formSaveButton{
     color: #fff;
+}
+
+.skin-browse #xformfooterWrapper #xformfooterheader input{
+    margin-top: 12px;
 }
