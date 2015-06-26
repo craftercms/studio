@@ -107,7 +107,8 @@ CStudioSearch.init = function(){
 	CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
 
 	// initialize filter
-	CStudioSearch.initializeSearchFilter(); 
+	CStudioSearch.initializeSearchFilter();
+
 }
 
 
@@ -214,7 +215,7 @@ CStudioSearch.renderCommonResultWrapper = function(contentTO, resultBody) {
 
 	return "<div class='cstudio-search-result'>" +
 				"<div id='result-select-" + contentTO.resultId + "' class='cstudio-search-select-container'></div>" +
-				"<div id='result-status" + contentTO.resultId + "' style='float: left; margin-left: 32px;'></div>" +
+				"<div class='browse-icon' id='result-status" + contentTO.resultId + "' style='float: left; margin-left: 32px;'></div>" +
 				"<div>"+
 					"<div class='cstudio-search-result-body'>" +
 						resultBody +
@@ -393,6 +394,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 						      			}else {
 						      				document.getElementById("submission-controls").firstChild.disabled = "disabled";
 						      			}
+
 					      			}
 					      		};
 					      	}
@@ -457,8 +459,20 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				
 				if(fileResultCount==0) {
 				YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>There are no files at this path.</i></p>";
-				} 
-			},
+				}
+
+                var formSaveButton = YDom.get('formSaveButton');
+                var formCancelButton = YDom.get('formCancelButton');
+
+                YDom.addClass(formSaveButton, 'btn btn-primary');
+                YDom.addClass(formCancelButton, 'btn btn-default');
+
+                var FilterControlsEl = YDom.get('cstudio-wcm-search-filter-controls');
+                var SearchResultEl = YDom.get('cstudio-wcm-search-result');
+
+                FilterControlsEl.style.height = SearchResultEl.clientHeight + "px";
+
+            },
 	        failure: function(o) {
 			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>Unable to Retrieve Search Result. Please Try again.</strong><br><br><br><i>If this is consistent, please contact System Administrator.</i></p>";
 			},
@@ -722,7 +736,7 @@ CStudioSearch.loadContentTypeMap = function() {
 			
 			failure: function() {
 				CStudioSearch.initializeSearchFilter();
-			},
+			}
 		};
 		try {
 			CStudioAuthoring.Service.getAllContentTypesForSite(CStudioAuthoringContext.site, contentTypeCallback);
