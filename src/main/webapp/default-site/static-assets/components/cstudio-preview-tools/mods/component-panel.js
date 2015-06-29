@@ -5,6 +5,7 @@
         moduleName = 'component-panel', // ties css file to the js file
         YDom = YAHOO.util.Dom,
         YElement = YAHOO.util.Element,
+        YEvent = YAHOO.util.Event,
         dcNewComponentClass = 'new-component',
         dcComponentClass = 'cstudio-draggable-component',
         dcWrapperClass = 'cstudio-component-ice',
@@ -29,64 +30,10 @@
 
         initialize: function (config) {
 
-            var self = this;
+            var self = this,
+                Topics = crafter.studio.preview.Topics;
+
             self.componentsOn = !!(sessionStorage.getItem('components-on'));
-
-            var initialContentModel;
-            if (self.componentsOn) {
-                CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
-                    failure: CStudioAuthoring.Utils.noop,
-                    success: function (response) {
-
-                        amplify.subscribe('/page-model/loaded', function (data) {
-
-                                var dom = (new window.DOMParser())
-                                    .parseFromString(data.model, "text/xml").children[0];
-                                var contentMap = CStudioForms.Util.xmlModelToMap(dom);
-                                initialContentModel = amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
-                                amplify.publish('/operation/completed');
-
-                                var data = response.category;
-                                var categories = [];
-
-                                if ($.isArray(data)) {
-                                    $.each(data, function(i, c) {
-                                        if(c.component){
-                                            categories.push({ label: c.label, components: c.component });
-                                        }else{
-                                            categories.push({ label: c.label, components: c.components });
-                                        }
-
-                                    });
-                                } else {
-                                    if(data.component) {
-                                        categories.push({ label: data.label, components: data.component });
-                                    }else{
-                                        categories.push({ label: data.label, components: data.components });
-                                    }
-                                }
-
-                                amplify.publish(cstopic('START_DRAG_AND_DROP'), {
-                                    components: categories,
-                                    contentModel: initialContentModel
-                                });
-                            /*var draggableComponentEls = YDom.getElementsByClassName("ui-sortable-handle");
-                            draggableComponentEls.forEach(function( index ) {
-                                //$( this ).append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
-                                var delControl = createDeleteControl('removeComp');
-
-                                delControl.onclick = function() {
-                                    Utility.removeComponent(this, function () {
-                                        //CStudioAuthoring.DamPanel.getPageModel(CStudioAuthoring.DamPanel.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath), "save-components", true, false);
-                                        window.location.reload();
-                                    });
-                                };
-                                this.appendChild(delControl);
-                            });*/
-                        });
-                    }
-                });
-            }
 
             if (this.initialized == false) {
                 this.initialized = true;
@@ -115,11 +62,18 @@
                     switch (data.operation) {
 
                         case "init-components":
-                            self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
-                            // TODO is it requried to send component model to host > guest?
-                            // self.linkComponentsToModel(contentMap);
-                            amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
-                            amplify.publish('/operation/completed');
+                                self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
+                                // TODO is it requried to send component model to host > guest?
+                                // self.linkComponentsToModel(contentMap);
+                                amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
+                                amplify.publish('/operation/completed');
+
+                                self.componentsOn = !!(sessionStorage.getItem('components-on'));
+                                console.log(self.componentsOn);
+                                if (self.componentsOn) {
+                                    self.expand();
+                                }
+
                             return;
 
                         case "save-components":
@@ -142,23 +96,13 @@
                             return;
 
                     }
-                    
+
                 });
 
                 amplify.subscribe('components/form-def/loaded', function (data) {
-                    if (data.isNew && data.isNew == true) {
-                        amplify.subscribe('/operation/completed', function (data) {
-                            window.location.reload();
-                        });
-                    }
-                    self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true);
+                    amplify.publish('/operation/started');
+                    self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true, data.isNew);
                 });
-
-                if (CStudioAuthoringContext.previewCurrentPath) {
-                    self.getPageModel(
-                        self.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
-                        'init-components', true, false);
-                }
 
                 amplify.subscribe(cstopic('COMPONENT_DROPPED'), function () {
                     self.ondrop.apply(self, arguments);
@@ -168,11 +112,23 @@
                     self.save.apply(isNew, arguments);
                 });
 
+
+                amplify.subscribe(cstopic('ENABLE_DRAG_AND_DROP'), function () {
+                    self.enable();
+                });
+
+                amplify.subscribe(cstopic('GUEST_SITE_LOAD'), function () {
+                    console.log('inside guest checkin');
+                    var dialogIframe = document.getElementsByClassName("studio-ice-dialog")[0];
+                    if (dialogIframe){
+                        dialogIframe.parentNode.parentNode.removeChild(dialogIframe.parentNode);
+                    }
+                    self.init();
+                });
+
                 var interval = setInterval(function () {
                     if (CStudioAuthoringContext.previewCurrentPath) {
-                        self.getPageModel(
-                            self.getPreviewPagePath(CStudioAuthoringContext.previewCurrentPath),
-                            'init-components', true, false);
+                        self.init();
                         clearInterval(interval);
                     }
                 }, 100);
@@ -182,13 +138,6 @@
 
         ondrop: function (type, path, isNew, tracking, zones) {
 
-            function operate() {
-                CStudioAuthoring.ComponentsPanel.getPageModel(
-                    CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                        CStudioAuthoringContext.previewCurrentPath),
-                    (isNew ? 'save-components-new' : 'save-components'), true, false);
-            }
-
             if (isNew) {
                 CStudioAuthoring.Operations.performSimpleIceEdit({
                     uri: path,
@@ -196,7 +145,7 @@
                 }, null, false, {
                     failure: CStudioAuthoring.Utils.noop,
                     success: function (contentTO) {
-
+                        amplify.publish('/operation/started');
                         // Use the information from the newly created component entry and use it to load the model data for the
                         // component placeholder in the UI. After this update, we can then proceed to save all the components
                         var value = (!!contentTO.item.internalName)
@@ -217,7 +166,6 @@
                             });
                         });
 
-                        ComponentsPanel.zones = zones;
                         ComponentsPanel.contentModelMap[tracking] = modelData;
 
                         amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
@@ -225,15 +173,14 @@
                             trackingNumber: tracking
                         });
 
-                        operate();
+                        ComponentsPanel.save(isNew, zones);
 
                     }
                 });
-            } else {
-                ComponentsPanel.zones = zones;
-                operate();
-            }
 
+            } else {
+                ComponentsPanel.save(isNew, zones);
+            }
         },
 
         save: function (isNew, zones){
@@ -242,6 +189,13 @@
                 CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
                     CStudioAuthoringContext.previewCurrentPath),
                 (isNew ? 'save-components-new' : 'save-components'), true, false);
+        },
+
+        init: function (){
+            CStudioAuthoring.ComponentsPanel.getPageModel(
+                CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                    CStudioAuthoringContext.previewCurrentPath),
+                'init-components', true, false);
         },
 
         render: function (containerEl, config) {
@@ -338,7 +292,7 @@
             // console.log("initial model ", contentMap);
         },
 
-        saveModel: function (pagePath, formDefinition, contentMap, start, complete) {
+        saveModel: function (pagePath, formDefinition, contentMap, start, complete, isNew) {
 
             if (start) {
                 amplify.publish('/operation/started');
@@ -354,6 +308,10 @@
                     success: function () {
                         if (complete) {
                             amplify.publish('/operation/completed');
+                            if(isNew){
+                                amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            }
+
                         }
                     },
                     failure: function () {
@@ -1172,6 +1130,53 @@
                 // var destEl = YDom.get(id);
                 // destEl = YDom.getAncestorByClassName(destEl, dcContainerClass);
                 // YDom.removeClass(destEl, dcContainerClass + "-active");
+            },
+
+            verifyMode: function (e){
+                self.componentsOn = !!(sessionStorage.getItem('components-on'));
+
+                var initialContentModel;
+                if (self.componentsOn) {
+                    CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
+                        failure: CStudioAuthoring.Utils.noop,
+                        success: function (response) {
+
+                            amplify.subscribe('/page-model/loaded', function (data) {
+
+                                var dom = (new window.DOMParser())
+                                    .parseFromString(data.model, "text/xml").children[0];
+                                var contentMap = CStudioForms.Util.xmlModelToMap(dom);
+                                initialContentModel = amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
+                                amplify.publish('/operation/completed');
+
+                                var data = response.category;
+                                var categories = [];
+
+                                if ($.isArray(data)) {
+                                    $.each(data, function(i, c) {
+                                        if(c.component){
+                                            categories.push({ label: c.label, components: c.component });
+                                        }else{
+                                            categories.push({ label: c.label, components: c.components });
+                                        }
+
+                                    });
+                                } else {
+                                    if(data.component) {
+                                        categories.push({ label: data.label, components: data.component });
+                                    }else{
+                                        categories.push({ label: data.label, components: data.components });
+                                    }
+                                }
+
+                                amplify.publish(cstopic('START_DRAG_AND_DROP'), {
+                                    components: categories,
+                                    contentModel: initialContentModel
+                                });
+                            });
+                        }
+                    });
+                }
             }
 
         });

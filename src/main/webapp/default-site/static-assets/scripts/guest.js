@@ -39,6 +39,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
         });
     });
 
+    communicator.on(Topics.REFRESH_PREVIEW, function (message) {
+        window.location.reload();
+    });
+
     communicator.on(Topics.ICE_TOOLS_OFF, function (message) {
         removeICERegions();
     });

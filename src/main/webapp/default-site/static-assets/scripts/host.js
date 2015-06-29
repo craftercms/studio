@@ -9,10 +9,12 @@
 
     communicator.subscribe(Topics.GUEST_CHECKIN, function (url) {
         var site = CStudioAuthoring.Utils.Cookies.readCookie('crafterSite');
-        setHash({
+        var params = {
             page: url,
             site: site
-        });
+        };
+        setHash(params);
+        amplify.publish(cstopic('GUEST_CHECKIN'), params);
     });
 
     communicator.subscribe(Topics.GUEST_CHECKOUT, function () {
@@ -29,16 +31,14 @@
             }  
         };
         
-        if(!message.itemId) {
+        if (!message.itemId) {
             // base page edit
             CStudioAuthoring.Operations.performSimpleIceEdit(
                 CStudioAuthoring.SelectedContent.getSelectedContent()[0],
                 message.iceId, //field
                 true,
                 editCb, []);
-        }
-
-        else {
+        } else {
             var getContentItemsCb = {
                 success: function (contentTO) {
                     CStudioAuthoring.Operations.performSimpleIceEdit(
@@ -70,10 +70,12 @@
     communicator.subscribe(Topics.GUEST_SITE_LOAD, function (message, scope) {
 
         if (message.url) {
-            setHash({
+            var params = {
                 page:message.url,
                 site: CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
-            });
+            };
+            setHash(params);
+            amplify.publish(cstopic('GUEST_SITE_LOAD'), params);
         }
 
         // Once the guest window notifies that the page as successfully loaded,
@@ -103,6 +105,15 @@
         amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
             message.isNew,
             message.zones);
+    });
+
+    communicator.subscribe(Topics.INIT_DRAG_AND_DROP, function (message) {
+        amplify.publish(cstopic('INIT_DRAG_AND_DROP'),
+            message.zones);
+    });
+
+    amplify.subscribe(cstopic('REFRESH_PREVIEW'), function () {
+        communicator.publish(Topics.REFRESH_PREVIEW);
     });
 
     var initialContentModel;
