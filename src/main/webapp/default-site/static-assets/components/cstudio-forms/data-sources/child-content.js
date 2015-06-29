@@ -64,8 +64,8 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 								control.insertItem(name, value);
 								control._renderItems();
 
-								var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-								window.top.iceDialogs[editorId].close()
+								//var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+								//CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 							},
 							failure: function() {
 							}	
@@ -82,8 +82,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 							success: function(contentTO, editorId, name, value) {
 								control.insertItem(name, value);
 								control._renderItems();
-								window.top.iceDialogs[editorId].close()
-
+								CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 							},
 							failure: function() {
 							}	
@@ -111,9 +110,8 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 							control.insertItem(item.uri, value);
 							control._renderItems();
 							
-							var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-							window.top.iceDialogs[editorId].close()
-
+							// var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+							// CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 						}					
 					}, 
 					failure: function() {
@@ -131,7 +129,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 					success: function(contentTO, editorId, name, value) {
                         if(control){
                             control.updateEditedItem(value);
-							window.top.iceDialogs[editorId].close();
+							CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                         }
 
 					},

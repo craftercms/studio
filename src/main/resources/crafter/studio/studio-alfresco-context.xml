@@ -10,9 +10,13 @@
         <property name="alfrescoUrl" value="${alfrescoUrl}" />
     </bean>
 
+    <bean id="cstudioAlfrescoContentRepositoryCACHED" class="org.craftercms.studio.impl.v1.repository.cached.CachedContentRepository">
+        <property name="wrappedRepository" ref="cstudioAlfrescoContentRepository" />
+    </bean>
+
     <bean id="cstudioAlfrescoContentRepositoryRegistration" 
           parent="cstudioContentRepositoryRegistration">
-        <property name="contentRepository" ref="cstudioAlfrescoContentRepository"/>
+        <property name="contentRepository" ref="cstudioAlfrescoContentRepositoryCACHED"/>
         <property name="repositoryType" value="alfresco"/>
     </bean>
 
