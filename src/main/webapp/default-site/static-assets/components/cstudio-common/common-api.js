@@ -1319,8 +1319,7 @@ var YEvent = YAHOO.util.Event;
                     success: function() {
                         if(CStudioAuthoringContext.isPreview) {
                             CStudioAuthoringContext.Service.refreshPreview();
-                        }
-                        else{
+                        }else {
                             window.location.reload();
                         }
                     }
