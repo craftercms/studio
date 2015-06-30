@@ -417,6 +417,10 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = new ContentItemTO();
         contentPath = contentPath.replace("//", "/");
 
+        item.uri = contentPath;
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
+
         item.asset = true;
         item.site = site;
         item.internalName = item.name;
@@ -425,10 +429,6 @@ public class ContentServiceImpl implements ContentService {
         item.floating = false;
         item.hideInAuthoring = false;
 
-        item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
-        
         item.page = false;
         item.previewable = false;
         item.component = false;
