@@ -30,6 +30,7 @@ public class RepositoryEventMessage {
 
     private String site;
     private String path;
+    private String oldPath;
     private RepositoryEventContext repositoryEventContext;
 
     public String getSite() { return site; }
@@ -37,6 +38,9 @@ public class RepositoryEventMessage {
 
     public String getPath() { return path; }
     public void setPath(final String path) { this.path = path; }
+
+    public String getOldPath() { return oldPath; }
+    public void setOldPath(String oldPath) { this.oldPath = oldPath; }
 
     public RepositoryEventContext getRepositoryEventContext() { return repositoryEventContext; }
     public void setRepositoryEventContext(RepositoryEventContext repositoryEventContext) { this.repositoryEventContext = repositoryEventContext; }
