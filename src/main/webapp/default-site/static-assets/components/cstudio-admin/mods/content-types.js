@@ -1228,7 +1228,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		function getSelectedOption(valueArray) {
 			var val = null;
 
-			valueArray.forEach( function(obj) {
+            [].forEach.call(valueArray, function(obj) {
 	            if (obj.selected) {
 	                val = obj.value;
 	            }
