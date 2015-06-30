@@ -409,8 +409,18 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        return _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
+        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
                 expandRelativeSitePath(site, toPath));
+
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(toPath);
+        message.setOldPath(fromPath);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        return toRet;
     }
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
