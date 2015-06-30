@@ -165,24 +165,29 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             helper: 'clone',
             appendTo: 'body',
             cursor: 'move',
+            connectToSortable: DROPPABLE_SELECTION,
             zIndex: 1030
         });
 
-        $(DROPPABLE_SELECTION).droppable({
+        $(DROPPABLE_SELECTION).sortable({
+            items: '[data-studio-component]',
+            cursor: 'move',
+            forceHelperSize: true,
+            forcePlaceholderSize: true,
+            greedy: true,
+            connectWith: DROPPABLE_SELECTION,
             hoverClass: 'studio-draggable-over',
-            accept: '[data-studio-component]',
-            tolerance: 'touch',
-            //activate: function( event, ui ) {$(this).height($(this).height() + ui.draggable.height());$(this).width($(this).width() + ui.draggable.width());},
-            //deactivate: function( event, ui ) {$(this).height('auto');$(this).width('auto');},
-            drop: function (e, ui) {
+            over: function( event, ui ) {
+                $(this).addClass('studio-draggable-over');
+            },
+            out: function( event, ui ) {
+                $(this).removeClass('studio-draggable-over');
+            },
+            update: function (e, ui) {
                 var $dropZone = $(this),
-                    $component = ui.draggable;
-                    //$(this).height('auto');$(this).width('auto')
+                    $component = ui.item;
                     componentDropped.call(me, $dropZone, $component);
             }
-        }).sortable({
-            items: '[data-studio-component]',
-            connectWith: DROPPABLE_SELECTION
         });
 
         $('[data-studio-component]').each(function () {
@@ -232,9 +237,10 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             type = $component.attr('data-studio-component-type');
             name = $component.text();
             tracking = crafter.guid();
-            $dropZone.append(
+            $component.before(
                 string('<div data-studio-component="%@" data-studio-component-path="%@" data-studio-tracking-number="%@">%@</div>')
                     .fmt(type, path, tracking, name));
+            $component.remove();
         } else {
             tracking = $component.attr('data-studio-tracking-number');
             path = $component.attr('data-studio-component-path');
