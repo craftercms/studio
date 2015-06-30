@@ -3068,7 +3068,7 @@ body.studio-dnd-enabled .studio-draggable-over {
   .studio-components-panel .ui-draggable-dragging {
     cursor: move !important; }
 
-.ui-droppable.ui-sortable {
+.ui-sortable {
   min-height: 40px;
   min-width: 50px; }
 
