@@ -131,11 +131,17 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function done() {
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+        amplify.publish(Topics.ICE_TOOLS_OFF);
         this.stop();
         publish.call(this, Topics.STOP_DRAG_AND_DROP);
+        if(iceOn){
+            setTimeout(function(){ amplify.publish(Topics.ICE_TOOLS_ON); }, 430);
+        }
     }
 
     function enableDnD(components, initialComponentModel) {
+        amplify.publish(Topics.ICE_TOOLS_OFF);
         sessionStorage.setItem('components-on', 'true');
 
         if (this.active()) return;
@@ -230,9 +236,20 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $( this ).append(delControl);
         });
 
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+        if(iceOn){
+            setTimeout(function(){ amplify.publish(Topics.ICE_TOOLS_ON); }, 400);
+        }
+
     }
 
     function componentDropped($dropZone, $component) {
+
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+
+        if(iceOn){
+            amplify.publish(Topics.ICE_TOOLS_ON);
+        }
 
         var me = this,
             isNew = $component.hasClass('studio-component-drag-target'),
