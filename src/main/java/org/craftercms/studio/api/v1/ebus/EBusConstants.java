@@ -45,5 +45,10 @@ public final class EBusConstants {
      */
     public static final String REPOSITORY_PREVIEW_SYNC_EVENT = "repository.previewSync";
 
+    /**
+     * Repository delete event name.
+     */
+    public static final String REPOSITORY_MOVE_EVENT = "repository.move";
+
     private EBusConstants() {}
 }

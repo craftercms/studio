@@ -118,6 +118,47 @@ public class PreviewDeployer implements Deployer {
     @Override
     public void deleteFile(String site, String path) {
 
+        DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+        URL requestUrl = null;
+
+        try {
+            String url = DEPLOYER_SERVLET_URL;
+            List<Part> formParts = new ArrayList<>();
+            if (deploymentEndpointConfigTO != null) {
+                requestUrl = new URL(deploymentEndpointConfigTO.getServerUrl());
+                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, deploymentEndpointConfigTO.getPassword()));
+                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, deploymentEndpointConfigTO.getTarget()));
+            } else {
+                requestUrl = new URL("http", defaultServer, defaultPort, url);
+                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, defaultPassword));
+                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
+            }
+
+            StringBuilder sbDeletedFiles = new StringBuilder(path);
+            if (path.endsWith("/index.xml")) {
+                RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path.replace("/index.xml", "")));
+                if (!(children != null && children.length > 1)) {
+                    sbDeletedFiles.append(FILES_SEPARATOR).append(path.replace("/index.xml", ""));
+
+                }
+            }
+            formParts.add(new StringPart(DEPLOYER_DELETED_FILES_PARAM, sbDeletedFiles.toString()));
+            formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
+
+            PostMethod postMethod = new PostMethod(requestUrl.toString());
+            postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+            Part[] parts = new Part[formParts.size()];
+
+            for (int i = 0; i < formParts.size(); i++) parts[i] = formParts.get(i);
+            postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+            HttpClient client = new HttpClient();
+            int status = client.executeMethod(postMethod);
+            postMethod.releaseConnection();
+        }
+        catch(Exception err) {
+            logger.error("error while preview deploying '" + site + ":" + path + "'", err);
+        }
     }
 
     @Override
@@ -193,6 +234,27 @@ public class PreviewDeployer implements Deployer {
             } else {
                 deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
             }
+        }
+    }
+
+    @EventHandler(
+            event = EBusConstants.REPOSITORY_MOVE_EVENT,
+            ebus = EBusConstants.REPOSITORY_REACTOR,
+            type = EventSelectorType.REGEX
+    )
+    public void onMoveContent(final Event<RepositoryEventMessage> event) throws ServiceException {
+        RepositoryEventMessage message = event.getData();
+        try {
+            String site = message.getSite();
+            String path = message.getPath();
+            String oldPath = message.getOldPath();
+            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
+            deleteFile(site, oldPath);
+            syncFolder(site, contentService.expandRelativeSitePath(site, path));
+        } catch (Exception t) {
+            logger.error("Error while deploying moving content from: " + message.getSite() + " - " + message.getOldPath() + " to: " + message.getSite() + " - " + message.getPath(), t);
+        } finally {
+            RepositoryEventContext.setCurrent(null);
         }
     }
 
