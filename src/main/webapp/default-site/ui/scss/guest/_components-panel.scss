@@ -222,8 +222,13 @@ body.#{$class-prefix}-dnd-enabled {
 
 }
 
-.studio-component-over{
-  box-shadow: 0 0 5px 5px rgba(lighten($crimson, 10%), .4) !important;
+.studio-component-drag-target.studio-component-over{
+  box-shadow: 0 0 3px 3px rgba(lighten($crimson, 10%), .2) !important;
+}
+
+.studio-component-drag-target.ui-draggable.ui-draggable-handle.ui-draggable-dragging{
+  background-color: #fff;
+  color:#000;
 }
 
 .studio-draggable-over{

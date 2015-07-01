@@ -179,11 +179,15 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             hoverClass: 'studio-draggable-over',
             over: function( event, ui ) {
                 $(this).addClass('studio-draggable-over');
-                //ui.item.addClass('studio-component-over');
             },
             out: function( event, ui ) {
                 $(this).removeClass('studio-draggable-over');
-                //ui.item.remove('studio-component-over');
+            },
+            start: function( event, ui ) {
+                ui.item.addClass('studio-component-over');
+            },
+            stop: function( event, ui ) {
+                ui.item.removeClass('studio-component-over');
             },
             update: function (e, ui) {
                 var $dropZone = $(this),
