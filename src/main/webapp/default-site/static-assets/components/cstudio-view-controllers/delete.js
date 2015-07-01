@@ -191,10 +191,10 @@
             eachfn(checks, function(i, check){
                 if (check.checked && !check.disabled) {
                     var parsed = JSON.parse(decodeURIComponent(
-                            check.getAttribute("json"))),
-                        scheduledDate = check.getAttribute("scheduleddate");
-                    parsed.scheduledDate = scheduledDate == "-" ? "" : scheduledDate;
-                    checkedItems.push(parsed);
+                            check.getAttribute("json")));
+                        //scheduledDate = check.getAttribute("scheduleddate");
+                    //parsed.scheduledDate = scheduledDate == "-" ? "" : scheduledDate;
+                    checkedItems.push(parsed.uri);
                 }
             });
             return checkedItems;
