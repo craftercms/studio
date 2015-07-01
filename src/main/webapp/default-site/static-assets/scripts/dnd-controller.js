@@ -114,7 +114,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         this.active(false);
 
         $(DRAGGABLE_SELECTION).draggable('destroy');
-        $(DROPPABLE_SELECTION).droppable('destroy').sortable('destroy');
+        $(DROPPABLE_SELECTION).sortable('destroy');
         $body.removeClass(PANEL_ON_BD_CLASS);
 
         var $p = this.getPalette(),
@@ -179,9 +179,11 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             hoverClass: 'studio-draggable-over',
             over: function( event, ui ) {
                 $(this).addClass('studio-draggable-over');
+                //ui.item.addClass('studio-component-over');
             },
             out: function( event, ui ) {
                 $(this).removeClass('studio-draggable-over');
+                //ui.item.remove('studio-component-over');
             },
             update: function (e, ui) {
                 var $dropZone = $(this),
