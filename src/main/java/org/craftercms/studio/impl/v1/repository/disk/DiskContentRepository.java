@@ -262,7 +262,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             });
         }
         catch(Exception err) {
-            logger.error("error while getting history for content item " + path, err);
+            logger.error("error while getting history for content item " + path);
+            logger.debug("error while getting history for content item " + path, err);
         }
 
         Collections.sort(versionList);
@@ -296,7 +297,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 Files.copy(content, constructVersionRepoPath(versionPath), options);
             }
             catch(Exception err) {
-                logger.error("error versionign file: "+path, err);
+                logger.error("error versioning file: "+path, err);
                 versionId = null;
             }
             finally {
@@ -334,7 +335,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 Files.copy(wipContent, constructRepoPath(path), options);
             }
             catch(Exception err) {
-                logger.error("error versionign file: "+path, err);
+                logger.error("error versioning file: "+path, err);
                 versionId = null;
             }
             finally {
