@@ -96,7 +96,14 @@ body .mask{
 
 .yui-dialog .yui-overlay.yui-panel{
   border-radius: 6px;
+}
 
+.yui-dialog .yui-overlay.yui-panel .hd{
+    border-radius: 6px 6px 0 0;
+}
+
+.yui-dialog .yui-overlay.yui-panel .ft{
+    border-radius: 0 0 6px 6px;
 }
 
 .yui-dialog .yui-panel .contentTypePopupInner {

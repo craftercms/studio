@@ -115,7 +115,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 buttons: [ { text:"OK", handler: function(){
                     this.destroy();
 
-                }, isDefault:true } ]
+                }, isDefault:false } ]
             });
         dialog.setHeader("CStudio Warning");
         dialog.render(document.body);
