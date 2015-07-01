@@ -69,7 +69,6 @@
                                 amplify.publish('/operation/completed');
 
                                 self.componentsOn = !!(sessionStorage.getItem('components-on'));
-                                console.log(self.componentsOn);
                                 if (self.componentsOn) {
                                     self.expand();
                                 }
@@ -118,7 +117,6 @@
                 });
 
                 amplify.subscribe(cstopic('GUEST_SITE_LOAD'), function () {
-                    console.log('inside guest checkin');
                     var dialogIframe = document.getElementsByClassName("studio-ice-dialog")[0];
                     if (dialogIframe){
                         dialogIframe.parentNode.parentNode.removeChild(dialogIframe.parentNode);
