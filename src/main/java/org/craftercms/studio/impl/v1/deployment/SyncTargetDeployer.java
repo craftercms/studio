@@ -161,6 +161,13 @@ public class SyncTargetDeployer implements Deployer {
 // TODO: implement metadata transfer
         }
 
+        for (int i = 0; i < deletedFiles.size(); i++) {
+            if (i > 0) {
+                sbDeletedFiles.append(FILES_SEPARATOR);
+            }
+            sbDeletedFiles.append(deletedFiles.get(i));
+        }
+
         if (sbDeletedFiles.length() > 0) {
             formParts.add(new StringPart(DELETED_FILES_REQUEST_PARAMETER, sbDeletedFiles.toString()));
         }

@@ -461,7 +461,7 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setAction(CopyToEnvironment.Action.NEW);
         }
         ObjectMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
-        if (metadata.getRenamed() != 0) {
+        if ((metadata != null) && (metadata.getRenamed() != 0)) {
             String oldPath = metadata.getOldUrl();
             missingItem.setOldPath(oldPath);
             missingItem.setAction(CopyToEnvironment.Action.MOVE);
