@@ -84,12 +84,12 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
                            '</div>';
 		
 		document.getElementById("upload-popup-inner").style.width = "350px";
-		document.getElementById("upload-popup-inner").style.height = "165px";
+		document.getElementById("upload-popup-inner").style.height = "180px";
 
 		 // Instantiate the Dialog
 		upload_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
-								  height : "227px",
+								  height : "242px",
                                   effect:{
                                       effect: YAHOO.widget.ContainerEffect.FADE,
                                       duration: 0.25
