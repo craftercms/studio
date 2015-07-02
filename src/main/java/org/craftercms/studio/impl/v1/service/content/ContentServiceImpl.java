@@ -111,7 +111,8 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(_contentRepository.getContent(path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path {0}", err, path);
+            logger.error("Failed to get content as string for path {0}", path);
+            logger.debug("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
