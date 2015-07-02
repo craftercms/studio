@@ -20,15 +20,16 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 		//YAHOO.namespace("cstudio.container");
 
 		reorderPanel = new YAHOO.widget.Panel(id, {
-					width : "610px",
-					height : "450px",
+					width : "600px",
+					height : "398px",
 					fixedcenter : true,
 					visible : true,
 					close : false,
 					underlay : "none",
 					draggable : false,
 					modal : true,
-					constraintoviewport : true
+					constraintoviewport : true,
+                    zindex : "1050"
 		} );		
 		reorderPanel.render();
 		reorderPanel.show();
@@ -65,6 +66,7 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 	   
 	   var reorderWrapperDiv = document.createElement('div');
        reorderWrapperDiv.id = "reorderWrapper";
+        reorderWrapperDiv.className = "reorderWrapperDialog";
        YAHOO.util.Dom.get(panelId).appendChild(reorderWrapperDiv);
 
        var reorderContainerDiv = document.createElement('div');
@@ -110,15 +112,15 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
        thisPageObject.order = config.control.orderValue;
        thisPageObject.internalName = "This Page";
 
-       var orderLen = orderJson.order.length;      
+       var orderLen = orderJson.order.length - 1;
        var orderToPageMap = {};
        var orderArray = new Array();
        var orderNum;
        for (var i=0; i<orderLen; ++i) {
     	 var orderDetails = {};
-    	 orderDetails.id = orderJson.order[i].id;
-    	 orderDetails.internalName = orderJson.order[i].internalName;
-    	 if (orderJson.order[i].disabled && orderJson.order[i].disabled == 'true') {
+    	 orderDetails.id = orderJson.order[i]._id;
+    	 orderDetails.internalName = orderJson.order[i]._name;
+    	 if (orderJson.order[i]._disabled && orderJson.order[i]._disabled == 'true') {
     		 orderDetails.disabled = true;
     	 } else {
     		 orderDetails.disabled = false;
@@ -130,9 +132,9 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 			if(thisPageObject.order) 
 			  orderNum = parseFloat(thisPageObject.order);
 			else 
-			  orderNum = parseFloat(orderJson.order[i].order);
+			  orderNum = parseFloat(orderJson.order[i]._order);
 		 } else {
-			orderNum = parseFloat(orderJson.order[i].order);
+			orderNum = parseFloat(orderJson.order[i]._order);
 		 }
 
 		 // Added ~ to create a unique key. Order could be same for a new page
@@ -197,22 +199,18 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
        YAHOO.util.Dom.get('reorderWrapper').appendChild(dndSubmitButtonsDiv);
 
        var dndOKButtonDiv = document.createElement('input'); 
-       dndOKButtonDiv.id = 'dndOKButton';       
-       dndOKButtonDiv.style.width = "70px";
-       dndOKButtonDiv.className = 'cstudio-xform-button';
+       dndOKButtonDiv.id = 'dndOKButton';
+       dndOKButtonDiv.className = 'cstudio-xform-button btn btn-primary';
        dndOKButtonDiv.setAttribute('type', 'submit');
        dndOKButtonDiv.setAttribute('value', 'OK');
-	   YAHOO.util.Dom.addClass(dndOKButtonDiv, 'cstudio-button');
        YAHOO.util.Dom.get('reorderButtonWrapper').appendChild(dndOKButtonDiv);
 
        var dndCancelButtonDiv = document.createElement('input');
        dndCancelButtonDiv.id = 'dndCancelButton';       
-       dndCancelButtonDiv.className = 'cstudio-xform-button';
-       dndCancelButtonDiv.style.width = "70px";
+       dndCancelButtonDiv.className = 'cstudio-xform-button btn btn-default';
        dndCancelButtonDiv.style.marginLeft = "15px";
        dndCancelButtonDiv.setAttribute('type', 'submit');
        dndCancelButtonDiv.setAttribute('value', 'Cancel');
-	   YAHOO.util.Dom.addClass(dndCancelButtonDiv, 'cstudio-button');
        YAHOO.util.Dom.get('reorderButtonWrapper').appendChild(dndCancelButtonDiv);
 		
 		if(config.control.readonly != true){
@@ -257,11 +255,11 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 		   // build part of query string with prevPath and nextPath
 		   var pathString;
 		   if (!prevPath) {
-			  pathString = '&after=' + orderJson.order[nextPath-1].id;
+			  pathString = '&after=' + orderJson.order[nextPath-1]._id;
 		   } else if (!nextPath) {
-			  pathString = '&before=' + orderJson.order[prevPath-1].id;
+			  pathString = '&before=' + orderJson.order[prevPath-1]._id;
 		   } else { // both are not null
-			 pathString = '&before=' + orderJson.order[prevPath-1].id + '&after=' + orderJson.order[nextPath-1].id;
+			 pathString = '&before=' + orderJson.order[prevPath-1]._id + '&after=' + orderJson.order[nextPath-1]._id;
 		   }
 
 		   pathStringFinal = thisPageObject.id + pathString;
