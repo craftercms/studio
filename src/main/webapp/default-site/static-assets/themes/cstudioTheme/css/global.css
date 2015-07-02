@@ -3406,3 +3406,58 @@ input.drop-arrow-button {
 .cstudio-search-result .cstudio-search-select-container,
 .cstudio-search-result .cstudio-search-result-body {
   float: left; }
+
+
+
+#reorderWrapper.reorderWrapperDialog{
+    width: 600px;
+    height: 375px;
+    border: none;
+    background: transparent;
+    margin: 0;
+}
+
+#reorderWrapper.reorderWrapperDialog #reorderContainer{
+    margin: 0;
+}
+
+#reorderWrapper.reorderWrapperDialog .reorderHeadertext{
+    display: block;
+    border-bottom: 1px solid rgb(224, 223, 223);
+    width: 100%;
+    padding: 14px 25px 9px;
+}
+
+#reorderWrapper.reorderWrapperDialog .reorderSubtext{
+    margin: 13px 8px 2px 25px;
+}
+
+#reorderWrapper.reorderWrapperDialog #submitxformscroll{
+    height: 231px;
+    width: 548px;
+    margin: 10px 25px;
+    border-color: rgb(224, 223, 223);-webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+#reorderWrapper.reorderWrapperDialog #sortable{
+    width: 100%;
+}
+
+#reorderWrapper.reorderWrapperDialog #sortable li{
+    height: auto;
+    padding: 0.5em 0.4em 0.5em 1.5em;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+#reorderWrapper.reorderWrapperDialog #left-drag-handle{
+    margin: -1px -20px;
+}
+
+#reorderWrapper.reorderWrapperDialog .reorderSubmitWrapperButton{
+    float: right;
+    margin: 0 25px 0 0;
+}
