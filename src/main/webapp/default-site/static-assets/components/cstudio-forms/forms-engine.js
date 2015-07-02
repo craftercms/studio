@@ -21,6 +21,7 @@ var CStudioForms = CStudioForms || function() {
 
         var CMgs = CStudioAuthoring.Messages;
         var formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+        var cstopic = crafter.studio.preview.cstopic;
 
         // private methods
 
@@ -925,7 +926,7 @@ var CStudioForms = CStudioForms || function() {
                     showWarnMsg = false;
                     var queryString = document.location.search;
                     var editorId = CStudioAuthoring.Utils.getQueryVariable(queryString, "editorId");
-                    var iceWindowCallback = window.top.iceCallback[editorId];
+                    var iceWindowCallback = CStudioAuthoring.InContextEdit.getIceCallback(editorId);
 
                     var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
                     var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
@@ -991,7 +992,7 @@ var CStudioForms = CStudioForms || function() {
                                     }
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                        window.top.iceDialogs[editorId].close();
+                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                                     }
                                 },
                                 failure: function (err) {
@@ -1092,7 +1093,7 @@ var CStudioForms = CStudioForms || function() {
                                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                             window.top.iceDialogs[editorId].close();
                                             if(path == '/site/components/page'){
-                                                reloadParentWindow();
+                                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
                                             }
                                         }
                                     }, isDefault:false },
@@ -1175,6 +1176,7 @@ var CStudioForms = CStudioForms || function() {
                     };
 
                     var cancelButtonEl = document.createElement("input");
+                    cancelButtonEl.id = "cancelBtn";
                     YDom.addClass(cancelButtonEl, "btn");
                     YDom.addClass(cancelButtonEl, "btn-default");
                     cancelButtonEl.type = "button";

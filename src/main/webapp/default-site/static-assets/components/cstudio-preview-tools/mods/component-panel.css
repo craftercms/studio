@@ -182,6 +182,7 @@
 	left: 0;
 	background-color: rgba(0, 0, 0, 0.06);
 	display: none;
+    z-index: 999999!important;
 }
 #ajax-overlay.visible {
 	display: block;

@@ -52,12 +52,14 @@
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
                 "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
                 "SAVE_DRAG_AND_DROP": "SAVE_DRAG_AND_DROP",
+                "INIT_DRAG_AND_DROP": "INIT_DRAG_AND_DROP",
                 "COMPONENT_DROPPED": "COMPONENT_DROPPED",
                 "COMPONENT_MOVED": "COMPONENT_MOVED",
                 "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",
                 "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
                 "ICE_TOOLS_ON": "ICE_TOOLS_ON",
                 "ICE_TOOLS_OFF": "ICE_TOOLS_OFF",
+                "REFRESH_PREVIEW": "REFRESH_PREVIEW",
 
                 "": ""
             },

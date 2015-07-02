@@ -51,20 +51,8 @@
                     windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit, aux, editorId);
 
                     this.iframeEl.src = windowUrl;
-                    
-                    if(!window.top.iceDialogs) {
-                        window.top.iceDialogs = [];
-                    }
-
                     this.context.editorId = editorId;
-                    window.top.iceDialogs[editorId] = this.context;
-
-
-                    if(!window.top.iceCallback) {
-                        window.top.iceCallback = [];
-                    } 
-
-                    window.top.iceCallback[editorId] = callback;
+                    CStudioAuthoring.InContextEdit.registerDialog(editorId, this.context);
 
                     this.iframeEl.onload = function () {
 

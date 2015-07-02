@@ -1121,8 +1121,6 @@ implements SecurityProvider {
             ticket = "NOTICKET";
         }
 
-System.out.println("=========================\r\nGetting ticket:"+ticket);
-
         return ticket;
     }
 
@@ -1132,7 +1130,6 @@ System.out.println("=========================\r\nGetting ticket:"+ticket);
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_ticket", ticket);
-System.out.println("=========================\r\nsetting ticket:"+ticket);
         }        
     }
     
@@ -1144,7 +1141,7 @@ System.out.println("=========================\r\nsetting ticket:"+ticket);
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("alf_user");
         }
-System.out.println("=========================\r\ngetting user:"+username);
+//System.out.println("=========================\r\ngetting user:"+username);
 
         return username;
     }
@@ -1157,7 +1154,7 @@ System.out.println("=========================\r\ngetting user:"+username);
             httpSession.setAttribute("alf_user", username);
         }
 
-System.out.println("=========================\r\nsetting user:"+username);
+//System.out.println("=========================\r\nsetting user:"+username);
 
     }
 

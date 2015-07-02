@@ -16,6 +16,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';
+    var DROPPABLE_SELECTION_SIZE = '[data-studio-components-size]';
 
     var $body       = $('body:first');
     var $document   = $(document);
@@ -71,8 +72,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         // component-panel.js loads from page load rather than when enabling dnd
         // hence the page model loads from page load too.
         if (communicator) {
-            communicator.on(Topics.DND_COMPONENT_MODEL_LOAD, function (tracking, data) {
-                componentModelLoad.call(me, tracking, data);
+            communicator.on(Topics.DND_COMPONENT_MODEL_LOAD, function (data) {
+                componentModelLoad.call(me, data.trackingNumber, data.model);
             });
             communicator.on(Topics.DND_COMPONENTS_MODEL_LOAD, function (data) {
                 componentsModelLoad.call(me, data);
@@ -113,7 +114,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         this.active(false);
 
         $(DRAGGABLE_SELECTION).draggable('destroy');
-        $(DROPPABLE_SELECTION).droppable('destroy').sortable('destroy');
+        $(DROPPABLE_SELECTION).sortable('destroy');
         $body.removeClass(PANEL_ON_BD_CLASS);
 
         var $p = this.getPalette(),
@@ -130,11 +131,17 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function done() {
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+        amplify.publish(Topics.ICE_TOOLS_OFF);
         this.stop();
         publish.call(this, Topics.STOP_DRAG_AND_DROP);
+        if(iceOn){
+            setTimeout(function(){ amplify.publish(Topics.ICE_TOOLS_ON); }, 430);
+        }
     }
 
     function enableDnD(components, initialComponentModel) {
+        amplify.publish(Topics.ICE_TOOLS_OFF);
         sessionStorage.setItem('components-on', 'true');
 
         if (this.active()) return;
@@ -155,29 +162,44 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         this.getAnimator($o).fadeIn();
         this.getAnimator($p).slideInRight();
 
+        $("[data-studio-components-size='small']").each(function( index ) {
+            $(this).width($(this).width()/2);
+        });
+
         $(DRAGGABLE_SELECTION).draggable({
             revert: 'invalid',
             helper: 'clone',
             appendTo: 'body',
             cursor: 'move',
+            connectToSortable: DROPPABLE_SELECTION,
             zIndex: 1030
         });
 
-        $(DROPPABLE_SELECTION).droppable({
-            hoverClass: 'studio-draggable-over',
-            accept: '[data-studio-component]',
-            tolerance: 'touch',
-            //activate: function( event, ui ) {$(this).height($(this).height() + ui.draggable.height());$(this).width($(this).width() + ui.draggable.width());},
-            //deactivate: function( event, ui ) {$(this).height('auto');$(this).width('auto');},
-            drop: function (e, ui) {
-                var $dropZone = $(this),
-                    $component = ui.draggable;
-                    //$(this).height('auto');$(this).width('auto')
-                componentDropped.call(me, $dropZone, $component);
-            }
-        }).sortable({
+        $(DROPPABLE_SELECTION).sortable({
             items: '[data-studio-component]',
-            connectWith: DROPPABLE_SELECTION
+            cursor: 'move',
+            forceHelperSize: true,
+            forcePlaceholderSize: true,
+            greedy: true,
+            connectWith: DROPPABLE_SELECTION,
+            hoverClass: 'studio-draggable-over',
+            over: function( event, ui ) {
+                $(this).addClass('studio-draggable-over');
+            },
+            out: function( event, ui ) {
+                $(this).removeClass('studio-draggable-over');
+            },
+            start: function( event, ui ) {
+                ui.item.addClass('studio-component-over');
+            },
+            stop: function( event, ui ) {
+                ui.item.removeClass('studio-component-over');
+            },
+            update: function (e, ui) {
+                var $dropZone = $(this),
+                    $component = ui.item;
+                    componentDropped.call(me, $dropZone, $component);
+            }
         });
 
         $('[data-studio-component]').each(function () {
@@ -186,10 +208,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
         componentsModelLoad(initialComponentModel);
 
-        //$('.ui-sortable-handle').append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
-
         $( ".ui-sortable-handle" ).each(function( index ) {
-            //$( this ).append('<a class="removeComp"><img src="/studio/static-assets/themes/cstudioTheme/images/icons/delete.png" /></a>');
             var delControl = createDeleteControl('removeComp');
             delControl.onclick = function() {
                 removeComponent(this, function () {
@@ -217,9 +236,20 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $( this ).append(delControl);
         });
 
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+        if(iceOn){
+            setTimeout(function(){ amplify.publish(Topics.ICE_TOOLS_ON); }, 400);
+        }
+
     }
 
     function componentDropped($dropZone, $component) {
+
+        var iceOn = !!(sessionStorage.getItem('ice-on'));
+
+        if(iceOn){
+            amplify.publish(Topics.ICE_TOOLS_ON);
+        }
 
         var me = this,
             isNew = $component.hasClass('studio-component-drag-target'),
@@ -230,9 +260,10 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             type = $component.attr('data-studio-component-type');
             name = $component.text();
             tracking = crafter.guid();
-            $dropZone.append(
+            $component.before(
                 string('<div data-studio-component="%@" data-studio-component-path="%@" data-studio-tracking-number="%@">%@</div>')
                     .fmt(type, path, tracking, name));
+            $component.remove();
         } else {
             tracking = $component.attr('data-studio-tracking-number');
             path = $component.attr('data-studio-component-path');
@@ -242,6 +273,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         // DOM Reorganization hasn't happened at this point,
         // need a timeout to grab out the updated DOM structure
         setTimeout(function () {
+
 
             $('[data-studio-components-target]').each(function () {
                 var $el = $(this),
@@ -291,7 +323,6 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function renderPalette(components) {
-        console.log(components);
         var html = [],
             $c = this.getPalette().children('.studio-components-container');
         $.each(components || [], function (i, category) {

@@ -111,7 +111,8 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(_contentRepository.getContent(path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path {0}", err, path);
+            logger.error("Failed to get content as string for path {0}", path);
+            logger.debug("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
@@ -409,13 +410,27 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        return _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
+        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
                 expandRelativeSitePath(site, toPath));
+
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(toPath);
+        message.setOldPath(fromPath);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        return toRet;
     }
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
         contentPath = contentPath.replace("//", "/");
+
+        item.uri = contentPath;
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
+        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
 
         item.asset = true;
         item.site = site;
@@ -425,10 +440,6 @@ public class ContentServiceImpl implements ContentService {
         item.floating = false;
         item.hideInAuthoring = false;
 
-        item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
-        
         item.page = false;
         item.previewable = false;
         item.component = false;

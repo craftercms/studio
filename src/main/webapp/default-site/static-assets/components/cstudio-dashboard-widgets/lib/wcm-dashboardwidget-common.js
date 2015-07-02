@@ -594,7 +594,7 @@ WcmDashboardWidgetCommon.toggleLineItem = function (id, ignoreParent) {
 
     // If all lines are collapsed, then the header link should change to "Expand All" and vice versa.
     var expandAll = false,
-        tableEl = YDom.getAncestorByClassName(id, "ttTable"),
+        tableEl = YDom.getAncestorByTagName(id, "table"),
         rows = tableEl.rows,
         arr = [],
         widgetId = tableEl.id.split("-")[0],

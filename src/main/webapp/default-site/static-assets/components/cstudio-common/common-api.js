@@ -1319,8 +1319,7 @@ var YEvent = YAHOO.util.Event;
                     success: function() {
                         if(CStudioAuthoringContext.isPreview) {
                             CStudioAuthoringContext.Service.refreshPreview();
-                        }
-                        else{
+                        }else {
                             window.location.reload();
                         }
                     }
@@ -6593,6 +6592,53 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
 }
 
 CStudioAuthoring.InContextEdit = {
+    registerDialog: function(editorId, context) {
+
+        if(!window.top.iceDialogs) {
+            window.top.iceDialogs = [];
+        }
+
+        window.top.iceDialogs[editorId] = context;
+        window.top.iceDialogs[window.top.iceDialogs.length] = {key: editorId, value: context };
+    },
+
+    registerIceCallback: function(editorId, callback) {
+        if(!window.top.iceCallback) {
+            window.top.iceCallback = [];
+        }
+
+        window.top.iceCallback[editorId] = callback;
+        window.top.iceCallback[window.top.iceCallback.length] = {key: editorId, value: callback };
+    },
+  
+    getIceCallback: function(editorId) {
+
+        var iceWindowCallback;
+        
+        if(window.top.iceCallback) {
+            iceWindowCallback = window.top.iceCallback[editorId].value;
+        }
+
+        return iceWindowCallback;
+    },
+
+    unstackDialog: function(editorId) {
+
+        //if(window.top.iceDialogs.length > 1) {
+            for(var i=0; i < window.top.iceDialogs.length; i++) {
+                if(window.top.iceDialogs[i].key == editorId) {
+
+                    var dialog = window.top.iceDialogs[i].value;
+                    window.top.iceDialogs.splice(i, 1);
+
+                    if(dialog) {
+                        dialog.close();
+                    }
+                }
+            }
+        //}
+    },
+
     regions: [],
 
     initializeEditRegion: function(regionElId, formField, regionLabel) {
