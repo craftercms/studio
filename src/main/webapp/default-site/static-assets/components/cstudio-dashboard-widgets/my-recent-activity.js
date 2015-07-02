@@ -206,7 +206,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
                     '<div class="dashlet-ident">',
                         '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
                         '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
-                            '<a href="#" class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
+                            '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
                                 itemNameForDisplay,
                             '</a>',
                         '</span>',
