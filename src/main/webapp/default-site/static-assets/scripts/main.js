@@ -537,7 +537,7 @@
 
                 authService.login(credentials)
                     .then(function (data) {
-                        if (data.type === 'error') {
+                        if (data.type === 'failure') {
                             $scope.error = data;
                         }  else if (data.error) {
                             $scope.error = data.error;
