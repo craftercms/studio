@@ -217,7 +217,7 @@ body.#{$class-prefix}-dnd-enabled {
 }
 
 .ui-sortable-handle.ui-sortable-helper{
-  z-index:999999999999999999999999999999999999!important;
+  z-index:99999!important;
   position: relative;
 
 }
