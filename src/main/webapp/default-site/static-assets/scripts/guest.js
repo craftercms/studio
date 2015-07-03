@@ -127,7 +127,9 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
     });
 
     $window.resize(function () {
-        initICERegions();
+        if (!!(sessionStorage.getItem('ice-on'))) {
+            initICERegions();
+        }
     });
 
     loadCss('/studio/static-assets/styles/guest.css');
