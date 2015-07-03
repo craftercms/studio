@@ -551,6 +551,17 @@ body.yui-skin-cstudioTheme .mask{
 .yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div{
   width:100%!important;
 }
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .when-go-live-items{
+    margin:0;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .form-go-live-items .radio{
+    margin-top: 3px;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .form-go-live-items .radio label{
+    padding-left: 10px;
+}
 
 .yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div.acnBox{
     width: 595px!important;
@@ -638,6 +649,12 @@ body.yui-skin-cstudioTheme .mask{
     color: #333;
     background-color: #fff;
     border-color: #ccc;
+}
+
+.action-wrapper button.btn-default.close-button:hover{
+    background-color: #e6e6e6;
+    border-color: #adadad;
+    color: #333333;
 }
 
 .yui-module.yui-overlay.yui-panel .yui-button.default button{
