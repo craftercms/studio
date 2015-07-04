@@ -6260,6 +6260,9 @@ a[ng-click] {
 .login-view h2,
 .recover-view h2 {
   margin-top: 0; }
+.login-view .alert-danger,
+.recover-view .alert-danger {
+  padding: 7px 15px; }
 
 .panel .alert {
   margin: 0;
