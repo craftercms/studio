@@ -1073,7 +1073,7 @@ var CStudioForms = CStudioForms || function() {
                                                             success: function() {
                                                                 _notifyServer = false;
                                                                 var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                                                window.top.iceDialogs[editorId].close();
+                                                                CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                                                             },
                                                             failure: function() {
                                                             }
@@ -1081,7 +1081,7 @@ var CStudioForms = CStudioForms || function() {
                                                     } else {
                                                         _notifyServer = false;
                                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                                        window.top.iceDialogs[editorId].close();
+                                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                                                     }
                                                 },
                                                 failure: function() {
@@ -1091,7 +1091,8 @@ var CStudioForms = CStudioForms || function() {
                                         } else {
                                             _notifyServer = false;
                                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                            window.top.iceDialogs[editorId].close();
+                                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+
                                             if(path == '/site/components/page'){
                                                 window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
                                             }
