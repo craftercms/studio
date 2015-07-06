@@ -515,7 +515,7 @@ implements SecurityProvider {
     public boolean validateTicket(String ticket) {
         //make me do something
         ticket = (ticket!=null) ? ticket : getSessionTicket();
-
+        logger.debug("Validating ticket " + ticket);
         Map<String, String> params = new HashMap<>();
         params.put("ticket", ticket);
         String serviceURL = null;
