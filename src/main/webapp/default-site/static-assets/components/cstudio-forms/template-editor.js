@@ -165,8 +165,14 @@ CStudioAuthoring.Module.requireModule(
 										    selectList.appendChild(option);
 										}
 
-										selectList.onchange = function() {
-									    	editorEl.codeMirrorEditor.replaceRange(this.options[this.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
+										var addButton = document.createElement("button");
+										addButton.id = "addButtonVar";
+										addButton.innerHTML = "Add Code";
+										addButton.className = "btn btn-primary";
+										templateEditorToolbarVarElt.appendChild(addButton);
+
+										addButton.onclick = function() {
+									    	editorEl.codeMirrorEditor.replaceRange(selectList.options[selectList.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
 										};
 									}	
 

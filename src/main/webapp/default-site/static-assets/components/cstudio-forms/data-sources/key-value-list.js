@@ -89,7 +89,7 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
         }
 
         if (cb != null && cb != undefined) {
-            cb.success(value);
+            cb.success(eval(value));
         } else {
             return value;
         }

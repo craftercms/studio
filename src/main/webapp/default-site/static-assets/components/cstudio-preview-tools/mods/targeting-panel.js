@@ -34,9 +34,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
                 sliderEl.appendChild(personalListEl);
 
                 (config.persona) && (config = config.persona);
-                /*if(!config.length) {
-                    config = [config.persona];
-                }*/
+                if(!config.length) {
+                    config = [config];
+                }
 
                 for (var i = 0; i < config.length; ++i) {
 

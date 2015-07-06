@@ -7,6 +7,6 @@ def after = params.after
 def before = params.before
 
 def context = ContentServices.createContext(applicationContext, request)
-result = ContentServices.reorderItems(context, site, path, before, after)
+result.orderValue = ContentServices.reorderItems(context, site, path, before, after)
 
 return result 
