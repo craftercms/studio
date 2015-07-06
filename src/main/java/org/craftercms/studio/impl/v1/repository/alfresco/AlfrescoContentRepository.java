@@ -423,6 +423,9 @@ implements SecurityProvider {
         addDebugStack();
         InputStream retStream = null;
         Map<String, String> toRet = new HashMap<String,String>();
+        if (StringUtils.isEmpty(username)) {
+            return toRet;
+        }
         try {
             // construct and execute url to download result
             // TODO: use alfresco/service/api/sites/craftercms250/memberships/admin instead
@@ -802,7 +805,7 @@ implements SecurityProvider {
     protected String createFolderInternalCMIS(String fullPath, String name) {
         String newFolderRef = null;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
+        if (cleanPath.length() > 1 && cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
         try {
@@ -813,8 +816,11 @@ implements SecurityProvider {
             } catch (CmisObjectNotFoundException ex) {
                 logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
                 int idx = cleanPath.lastIndexOf("/");
-                if (idx > 0) {
+                if (idx >= 0) {
                     String ancestorPath = cleanPath.substring(0, idx);
+                    if (StringUtils.isEmpty(ancestorPath)) {
+                        ancestorPath = "/";
+                    }
                     String parentName = cleanPath.substring(idx + 1);
                     String nodeRef = createFolderInternalCMIS(ancestorPath, parentName);
                     if (StringUtils.isEmpty(nodeRef)) {
