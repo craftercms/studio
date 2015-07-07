@@ -15271,6 +15271,9 @@ table.scroll-body {
   padding-right: 2px;
   width: 23px; }
 
+.studio-view input.schedulingMode {
+  margin: 0 0 0 -20px; }
+
 .cstudio-view {
   font-size: 12px; }
   .cstudio-view .view-square-wrp {
