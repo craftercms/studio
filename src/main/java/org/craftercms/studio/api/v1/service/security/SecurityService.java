@@ -50,4 +50,6 @@ public interface SecurityService {
     void addUserGroup(String groupName);
 
     void addUserGroup(String parentGroup, String groupName);
+
+    void addUserToGroup(String groupName, String user);
 }
