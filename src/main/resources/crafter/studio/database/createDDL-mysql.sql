@@ -38,7 +38,7 @@ CREATE TABLE `cstudio_objectstate` (
   `system_processing` BIT(1)        NOT NULL,
   PRIMARY KEY (`object_id`),
   KEY `cstudio_objectstate_object_idx` (`object_id`),
-  UNIQUE `uq_os_site_path` (`site`, `path`)
+  UNIQUE `uq_os_site_path` (`site`, `path`(200))
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8;
@@ -146,5 +146,5 @@ CREATE TABLE `cstudio_objectmetadata` (
   `submissioncomment` TEXT NULL,
   `launchdate` DATETIME NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `uq__om_site_path` (`site`, `path`)
+  UNIQUE `uq__om_site_path` (`site`, `path`(200))
 );

@@ -1,6 +1,6 @@
 <#if envConfig.site?? == false || envConfig.site == "">
 
-<meta http-equiv="refresh" content="0;URL='/studio/user-dashboard#/sites/all'" />
+<meta http-equiv="refresh" content="0;URL='/studio/user-dashboard/#/sites/all'" />
 
 <#else>
 

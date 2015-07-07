@@ -7030,7 +7030,7 @@ CStudioAuthoring.InContextEdit = {
              success: function(config){
 
                 function authRedirect(authConfig) {
-                       location = "/studio#/login";
+                       location = "/studio/#/login";
                 }
 
                 function authLoop(configObj) {
