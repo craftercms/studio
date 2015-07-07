@@ -24,7 +24,7 @@ class EnvironmentOverrides {
 				result.role = roles[0]
 			}
 			else {
-				response.sendRedirect("/studio#/sites")	
+				response.sendRedirect("/studio/#/sites")
 			}
 
 

@@ -457,19 +457,20 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
  			contentRepository.createFolder("/cstudio/config/sites/", siteId);
-	 		contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-config",
-	 			siteConfigFolder);
+	 		contentRepository.copyContent("/cstudio/blueprints/" + blueprintName + "/site-config",
+					siteConfigFolder);
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
 	 		//replaceFileContent(siteConfigFolder+"/site-config.xml", "SITENAME", siteName);
 	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITENAME", siteId);
-	 		replaceFileContent(siteConfigFolder+"/permission-mappings-config.xml", "SITENAME", siteId);
+	 		replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
 
 			// Add user groups
 			securityService.addUserGroup("crafter_" + siteId);
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
+			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
 			// Set object states
 			createObjectStatesforNewSite(siteId);

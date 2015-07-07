@@ -1303,6 +1303,11 @@ var YEvent = YAHOO.util.Event;
 
             performSimpleIceEdit: function(item, field, isEdit, callback, aux) {
                 var editorId =  CStudioAuthoring.Utils.generateUUID();
+                
+                if(callback) {
+                    CStudioAuthoring.InContextEdit.registerIceCallback(editorId, callback);
+                }
+
                 var id = CSA.Utils.getScopedId(),
                     controller = 'viewcontroller-in-context-edit',
                     animator,
@@ -6616,7 +6621,7 @@ CStudioAuthoring.InContextEdit = {
         var iceWindowCallback;
         
         if(window.top.iceCallback) {
-            iceWindowCallback = window.top.iceCallback[editorId].value;
+            iceWindowCallback = window.top.iceCallback[editorId];
         }
 
         return iceWindowCallback;
@@ -7025,7 +7030,7 @@ CStudioAuthoring.InContextEdit = {
              success: function(config){
 
                 function authRedirect(authConfig) {
-                       location = "/studio#/login";
+                       location = "/studio/#/login";
                 }
 
                 function authLoop(configObj) {

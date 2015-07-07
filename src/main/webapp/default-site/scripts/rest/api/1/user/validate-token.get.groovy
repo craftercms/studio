@@ -23,6 +23,6 @@ def result = [:]
 def token = null
 
 def context = SecurityServices.createContext(applicationContext, request)
-result = SecurityServices.validateTicket(context, token)
+result.valid = SecurityServices.validateTicket(context, token)
 
 return result

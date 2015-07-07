@@ -147,6 +147,11 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public void addUserToGroup(String groupName, String user) {
+
+    }
+
+    @Override
     public String getCurrentToken() {
         return activeProcess.get("ticket");
     }
