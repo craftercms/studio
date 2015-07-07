@@ -11,6 +11,7 @@
         Event = YAHOO.util.Event,
         agent = new CStudioAuthoring.TemplateHolder.TemplateAgent(CStudioAuthoring.TemplateHolder.Approve),
         each = CStudioAuthoring.Utils.each;
+        $ = jQuery;
 
     Base.extend('Approve', {
 
@@ -22,6 +23,8 @@
 
         loadItems: loadItems,
 
+        startup: ['initDatePicker'],
+
         loadPublishingChannels: loadPublishingChannels,
 
         renderItems: renderItems,
@@ -32,7 +35,9 @@
 
         selectAllCheckActionClicked: selectAllItems,
 
-        closeButtonActionClicked: closeButtonClicked
+        closeButtonActionClicked: closeButtonClicked,
+
+        initDatePicker: initDatePicker
 
     });
 
@@ -93,12 +98,7 @@
         });
 
         if (data.schedule === 'custom') {
-            data.now = false;
-            data.scheduleDate = this.getComponent('[name="scheduleDate"]').value;
-            data.scheduleTime = this.getComponent('[name="scheduleTime"]').value;
-            data.scheduledDate = getScheduledDateTimeForJson(data.scheduleDate, data.scheduleTime);
-        } else {
-            data.now = true;
+            data.scheduledDate =  getScheduledDateTimeForJson(this.getComponent('[name="scheduleDate"]').value);
         }
 
         //this.showProcessingOverlay(true);
@@ -230,8 +230,27 @@
         }
     }
 
-    function getScheduledDateTimeForJson(dateValue, timeValue) {
-        var schedDate = new Date(dateValue + " " + timeValue);
+    function initDatePicker() {
+
+        var me = this;
+
+        me.$('[name="schedulingMode"]').change(function () {
+            var $elem = $(this);
+            if ($elem.val() === 'now') {
+                me.$('.date-picker-control').hide();
+                me.$('.date-picker').val('');
+            } else {
+                me.$('.date-picker-control').show();
+                me.$('.date-picker').select();
+            }
+        });
+
+        me.$('.date-picker').datetimepicker();
+
+    }
+
+    function getScheduledDateTimeForJson(dateTimeValue) {
+        var schedDate = new Date(dateTimeValue);
         var schedDateMonth = schedDate.getMonth() + 1;
         var scheduledDate = schedDate.getFullYear() + '-' + schedDateMonth + '-'
             + schedDate.getDate() + 'T' + schedDate.getHours() + ':'

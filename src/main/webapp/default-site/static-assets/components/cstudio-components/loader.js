@@ -212,7 +212,8 @@
         requires: [
             'viewcontroller-base',
             'component-templateagent',
-            'template-approve'
+            'template-approve',
+            'jquery-datetimepicker'
         ]
     });
 
