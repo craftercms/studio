@@ -8,16 +8,13 @@
             <role>author</role>
         </group>
 
-        <group name="site_SITENAME_SiteManager">
+        <group name="crafter_SITENAME_admin">
             <role>admin</role>
         </group>
-        <group name="site_SITENAME_SiteCollaborator">
+        <group name="crafter_SITENAME_author">
             <role>author</role>
         </group>
-        <group name="site_SITENAME_SiteContributor">
-            <role>author</role>
-        </group>
-        <group name="site_SITENAME_SiteConsumer">
+        <group name="crafter_SITENAME_viewer">
             <role>viewer</role>
         </group>         
     </groups>
