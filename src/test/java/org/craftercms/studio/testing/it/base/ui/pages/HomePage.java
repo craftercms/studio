@@ -9,7 +9,7 @@ import org.craftercms.studio.testing.it.base.ui.Page;
  */
 public class HomePage extends Page{
 
-    public static final String PATH = "#/sites";
+    public static final String PATH = "/#/sites";
 
     public static final String CREATE_SITE_BUTTON="css:#container > div > div > div.nav-panel > div.m10 > button";
     public static final String CREATE_SITE_FORM_BTN="css:#container > div > div > div.action-area.ng-scope > div > div"
