@@ -1098,6 +1098,18 @@ implements SecurityProvider {
     }
 
     @Override
+    public void addUserToGroup(String groupName, String user) {
+        String addUserToGroupRequestBody = "{ \"displayName\":\""+user+"\"}";
+        try {
+            InputStream bodyStream = IOUtils.toInputStream(addUserToGroupRequestBody, "UTF-8");
+            String result = alfrescoPostRequest("/api/groups/" + groupName + "/children/" + user, null, bodyStream, "application/json");
+        }
+        catch(Exception err) {
+            logger.error("err adding user: " + user + " to parent group: " + groupName, err);
+        }
+    }
+
+    @Override
     public String getCurrentToken() {
         return this.getSessionTicket();
     }

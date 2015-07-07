@@ -335,6 +335,11 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         securityProvider.addUserGroup(parentGroup, groupName);
     }
 
+    @Override
+    public void addUserToGroup(String groupName, String user) {
+        securityProvider.addUserToGroup(groupName, user);
+    }
+
     protected String getFilenameFromKey(String key) {
         return key.substring(key.indexOf(File.pathSeparator) + 1);
     }
