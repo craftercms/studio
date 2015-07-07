@@ -1178,7 +1178,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
  	 	this.langBundle = CStudioAuthoring.Messages.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 		this.createRowHeading(this.CMgs.format(this.langBundle, "formBasics"), sheetEl);
-		this.createRowFn(this.CMgs.format(this.langBundle, "fotmTitle"), "title", item.title, "", "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(this.CMgs.format(this.langBundle, "formTitle"), "title", item.title, "", "string", sheetEl, function(e, el) { item.title = el.value; } );
 		this.createRowFn(this.CMgs.format(this.langBundle, "description"), "description", item.description, "", "string", sheetEl,  function(e, el) { item.description = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "objectType"), "objectType", item.objectType, "", "readonly", sheetEl,  function(e, el) { item.objectType = el.value; });
 		this.createRowFn(this.CMgs.format(this.langBundle, "contentType"), "content-type", item.contentType, "", "readonly", sheetEl,  function(e, el) { item["content-type"] = el.value; });

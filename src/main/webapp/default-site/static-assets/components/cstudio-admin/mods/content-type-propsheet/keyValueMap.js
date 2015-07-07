@@ -164,7 +164,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 			if(i!=0) {
 				delEl = document.createElement("img");
 				delEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-						  + "/themes/cstudioTheme/images/icons/delete.png";
+						  + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 				YAHOO.util.Dom.addClass(delEl, "deleteControl");
 				delEl.index = i;
 				YAHOO.util.Event.on(delEl, 'click', function(evt) {

@@ -447,7 +447,7 @@ body,tbody {
 }
 
 #keyValueDialogContainer {
-    overflow-y: scroll;
+    /*overflow-y: scroll;*/
     max-height: 420px;
 }
 
@@ -483,6 +483,15 @@ body,tbody {
     font-weight: bold;
     margin-left: 10px;
     margin-right: 10px;
+}
+
+#keyValueDialogContainer input{
+    color: #000;
+}
+
+#keyValueDialogContainer .deleteControl{
+    top:-3px;
+    left: -14px;
 }
 
 .cstudio-seethrough-dialog-button {
