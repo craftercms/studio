@@ -185,7 +185,8 @@ CStudioAuthoring.Module.requireModule(
 				}, {
 					'element': YDom.get(editor.id + '_tbl'),
 					'styles': {
-						'width': 'auto'
+						'width': 'auto',
+						'height': 'auto'
 					}
 				}]);
 				editor.codeMirror.focus();

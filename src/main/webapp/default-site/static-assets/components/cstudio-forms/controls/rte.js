@@ -17,7 +17,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.rteLinkStyles = [];
 	this.rteLinkTargets = [];
 	this.readonly = readonly;
-	this.codeModeXreduction = 50;	// Amount of pixels deducted from the total width value of the RTE in code mode
+	this.codeModeXreduction = 130;	// Amount of pixels deducted from the total width value of the RTE in code mode
 	this.codeModeYreduction = 130;	// Amount of pixels deducted from the total height value of the RTE in code mode
 	this.rteWidth;
 	this.delayedInit = true; 	// Flag that indicates that this control takes a while to initialize 
