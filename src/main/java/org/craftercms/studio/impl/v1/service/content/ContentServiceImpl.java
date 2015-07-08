@@ -726,6 +726,34 @@ public class ContentServiceImpl implements ContentService {
                 item.scheduledDate = metadata.getLaunchDate();
                 item.setScheduledDate(metadata.getLaunchDate());
             }
+            if (StringUtils.isEmpty(metadata.getModifier())) {
+                item.setUser("");
+                item.setUserLastName("");
+                item.setUserFirstName("");
+            } else {
+                item.user = metadata.getModifier();
+                item.setUser(metadata.getModifier());
+                if (StringUtils.isEmpty(metadata.getFirstName())) {
+                    item.userFirstName = metadata.getModifier();
+                    item.setUserFirstName(metadata.getModifier());
+                } else {
+                    item.userFirstName = metadata.getFirstName();
+                    item.setUserFirstName(metadata.getFirstName());
+                }
+                if (StringUtils.isEmpty(metadata.getLastName())) {
+                    item.userLastName = "";
+                    item.setUserLastName("");
+                } else {
+                    item.userLastName = metadata.getLastName();
+                    item.setUserLastName(metadata.getLastName());
+                }
+            }
+            if (metadata.getModified() != null) {
+                item.lastEditDate = metadata.getModified();
+                item.eventDate = metadata.getModified();
+                item.setLastEditDate(metadata.getModified());
+                item.setEventDate(metadata.getModified());
+            }
         } else {
             item.setLockOwner("");
         }
