@@ -145,51 +145,53 @@ implements SecurityProvider {
     public String createVersion(String path, boolean majorVersion) {
 
         try {
-            String nodeRef = getNodeRefForPathCMIS(path);
-            // add versionable aspect
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-            String requestBody = "{ \"added\":[\"cm:versionable\"], \"removed\":[] }";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+            if (contentExists(path)) {
+                String nodeRef = getNodeRefForPathCMIS(path);
+                // add versionable aspect
+                int lastidx = nodeRef.lastIndexOf("/");
+                String nodeUUID = nodeRef.substring(lastidx + 1);
+                String requestBody = "{ \"added\":[\"cm:versionable\"], \"removed\":[] }";
+                InputStream bodyStream = IOUtils.toInputStream(requestBody);
+                String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
 
-            // set aspect properties
-            requestBody = "{ \"properties\" : { \"autoVersion\" : false, \"autoVersionOnUpdateProps\" : false }}";
-            bodyStream = IOUtils.toInputStream(requestBody);
-            result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+                // set aspect properties
+                requestBody = "{ \"properties\" : { \"autoVersion\" : false, \"autoVersionOnUpdateProps\" : false }}";
+                bodyStream = IOUtils.toInputStream(requestBody);
+                result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
 
-            if (majorVersion) {
-                // Upload new version
-                InputStream content = getContentStreamCMIS(path);
-                String contentType = "cm:content";
-                int splitIndex = path.lastIndexOf("/");
-                String name = path.substring(splitIndex + 1);
-                // find the target folder node by its path
-                String folderPath = path.substring(0, splitIndex);
-                String folderRef = getNodeRefForPathCMIS(folderPath);
-                if (folderRef == null) {
-                    // if not, create the folder first
-                    int folderSplitIndex = folderPath.lastIndexOf("/");
-                    String parentFolderPath = folderPath.substring(0, folderSplitIndex);
-                    String folderName = folderPath.substring(folderSplitIndex + 1);
-                    folderRef = this.createFolderInternal(parentFolderPath, folderName);
+                if (majorVersion) {
+                    // Upload new version
+                    InputStream content = getContentStreamCMIS(path);
+                    String contentType = "cm:content";
+                    int splitIndex = path.lastIndexOf("/");
+                    String name = path.substring(splitIndex + 1);
+                    // find the target folder node by its path
+                    String folderPath = path.substring(0, splitIndex);
+                    String folderRef = getNodeRefForPathCMIS(folderPath);
+                    if (folderRef == null) {
+                        // if not, create the folder first
+                        int folderSplitIndex = folderPath.lastIndexOf("/");
+                        String parentFolderPath = folderPath.substring(0, folderSplitIndex);
+                        String folderName = folderPath.substring(folderSplitIndex + 1);
+                        folderRef = this.createFolderInternal(parentFolderPath, folderName);
+                    }
+                    // TODO: might still need to check if the folderRef still exists
+
+                    // add parameters
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("filename", name);
+                    // if it's a new content, check if the folder exists
+                    params.put("destination", folderRef);
+                    if (nodeRef != null) {
+                        params.put("updateNodeRef", nodeRef);
+                    }
+                    //params.put("uploaddirectory", folderRef);
+                    // TODO: add description for version update - do we need this?
+                    params.put("contenttype", contentType);
+                    params.put("majorversion", Boolean.toString(majorVersion));
+                    params.put("overwrite", "true");
+                    result = alfrescoMultipartPostRequest("/api/upload", params, content, "application/xml", "UTF-8");
                 }
-                // TODO: might still need to check if the folderRef still exists
-
-                // add parameters
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("filename", name);
-                // if it's a new content, check if the folder exists
-                params.put("destination", folderRef);
-                if (nodeRef != null) {
-                    params.put("updateNodeRef", nodeRef);
-                }
-                //params.put("uploaddirectory", folderRef);
-                // TODO: add description for version update - do we need this?
-                params.put("contenttype", contentType);
-                params.put("majorversion", Boolean.toString(majorVersion));
-                params.put("overwrite", "true");
-                result = alfrescoMultipartPostRequest("/api/upload", params, content, "application/xml", "UTF-8");
             }
         } catch (ContentNotFoundException e) {
             logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, e);
@@ -662,7 +664,10 @@ implements SecurityProvider {
         try {
             Session session = getCMISSession();
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            CmisObject cmisObject = null;
+            if (contentExists(cleanPath)) {
+                cmisObject = session.getObjectByPath(cleanPath);
+            }
             if (cmisObject != null) {
                 ObjectType type = cmisObject.getBaseType();
                 if ("cmis:document".equals(type.getId())) {
@@ -671,7 +676,10 @@ implements SecurityProvider {
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
-                CmisObject folderCmisObject = session.getObjectByPath(folderPath);
+                CmisObject folderCmisObject = null;
+                if (contentExists(folderPath)) {
+                    folderCmisObject = session.getObjectByPath(folderPath);
+                }
                 Folder folder = null;
                 if (folderCmisObject == null) {
                     // if not, create the folder first
@@ -693,7 +701,7 @@ implements SecurityProvider {
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
-                folder.createDocument(properties, contentStream, VersioningState.NONE);
+                folder.createDocument(properties, contentStream, VersioningState.MINOR);
             }
             return true;
         } catch (CmisBaseException e) {
