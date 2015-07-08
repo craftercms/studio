@@ -1335,10 +1335,10 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
         String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
-        //NodeRef node = persistenceManagerService.getNodeRef(path);
-        //Serializable scheduledDateValue = persistenceManagerService.getProperty(node, WCMWorkflowModel.PROP_LAUNCH_DATE);
-       // Date scheduledDate = DefaultTypeConverter.INSTANCE.convert(Date.class, scheduledDateValue);
-        if (!dmDependencyTO.isSubmitted() /* TODO : if scheduled ... && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())*/) {
+		ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+		Date scheduledDate = properties.getLaunchDate();
+		ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+        if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
             if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
                 return;
             } else {
