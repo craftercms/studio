@@ -316,8 +316,6 @@
             }
 
             $scope.user = authService.getUser();
-            console.log("Controller");
-            console.log(authService.getUser());
             $scope.data = { email: ($scope.user || { 'email': '' }).email };
             $scope.error = null;
 
@@ -325,8 +323,6 @@
             $scope.changePassword = changePassword;
 
             $scope.$on(Constants.AUTH_SUCCESS, function ($event, user) {
-                console.log("AUTH_SUCCESS");
-                console.log(user);
                 $scope.user = user;
                 $scope.data.email = $scope.user.email;
             });
