@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.repository.mapped;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.String;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -159,5 +160,11 @@ public class MappedContentRepository extends AbstractContentRepository {
     public void unLockItem(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
         repo.unLockItem(site, path);
+    }
+
+    @Override
+    public Date getModifiedDate(String path) {
+        ContentRepository repo = lookupRepo(repositoryType);
+        return repo.getModifiedDate(path);
     }
 }

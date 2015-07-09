@@ -1184,6 +1184,26 @@ implements SecurityProvider {
 
     }
 
+    @Override
+    public Date getModifiedDate(String fullPath) {
+        Map<String, String> params = new HashMap<String, String>();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        Date modifiedDate = null;
+        try {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            if (cmisObject != null) {
+                modifiedDate = cmisObject.getLastModificationDate().getTime();
+            }
+        } catch (CmisBaseException e) {
+            logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
+        }
+        return modifiedDate;
+    }
+
     protected String alfrescoUrl;
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }

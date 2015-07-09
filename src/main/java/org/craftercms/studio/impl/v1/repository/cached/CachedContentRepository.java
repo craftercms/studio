@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.repository.cached;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.String;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -241,6 +242,11 @@ public class CachedContentRepository extends AbstractContentRepository {
 //        }
 
         return globalCache;        
+    }
+
+    @Override
+    public Date getModifiedDate(String path) {
+        return wrappedRepo.getModifiedDate(path);
     }
 
     protected class BytesContainer {

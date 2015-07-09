@@ -316,6 +316,8 @@
             }
 
             $scope.user = authService.getUser();
+            console.log("Controller");
+            console.log(authService.getUser());
             $scope.data = { email: ($scope.user || { 'email': '' }).email };
             $scope.error = null;
 
@@ -323,6 +325,8 @@
             $scope.changePassword = changePassword;
 
             $scope.$on(Constants.AUTH_SUCCESS, function ($event, user) {
+                console.log("AUTH_SUCCESS");
+                console.log(user);
                 $scope.user = user;
                 $scope.data.email = $scope.user.email;
             });
@@ -384,7 +388,7 @@
             }
 
             function gettingPermissions(siteId){
-                sitesService.getPermissions(siteId, '/', $scope.user)
+                sitesService.getPermissions(siteId, '/', $scope.user.username || $scope.user)
                     .success(function (data) {
                         for(var i=0; i<data.permissions.length;i++){
                             if(data.permissions[i]=='delete'){

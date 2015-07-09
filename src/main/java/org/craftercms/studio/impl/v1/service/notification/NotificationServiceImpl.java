@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.notification;
 
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
@@ -69,7 +70,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     /** site notification configuration mapping **/
-    protected Map<String, NotificationConfigTO> _notificationConfigMap = new HashMap<String, NotificationConfigTO>();
+    protected Map<String, NotificationConfigTO> notificationConfigMap = new HashMap<String, NotificationConfigTO>();
 
     @Override
     public void register() {
@@ -445,6 +446,13 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         return null;
     }
 */
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
+        return siteConfigPath + "/" + configFileName;
+    }
+
     /**
      * load canned messages from the configuration file
      *
@@ -497,20 +505,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         }
     }
 */
-/* PORT     
-    @Override
-    protected NodeRef getConfigRef(String key) {
-        String siteConfigPath = _configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return persistenceManagerService.getNodeRef(siteConfigPath + "/" + _configFileName);
-    }
-*/
 
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-return null;
-//        return _notificationConfigMap.get(key);
-    }
 
     @Override
     protected void removeConfiguration(String key) {
@@ -723,4 +718,8 @@ return null;
     }
 */
 
+    @Override
+    protected TimeStamped getConfigurationById(String key) {
+        return notificationConfigMap.get(key);
+    }
 }

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 
 import javax.transaction.UserTransaction;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -124,8 +125,7 @@ public interface ContentRepository {
      */
     boolean revertContent(String path, String version, boolean major, String comment);
 
-
-
+    Date getModifiedDate(String path);
 
 
 

@@ -486,6 +486,22 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return success;     
     }
 
+    @Override
+    public Date getModifiedDate(String path) {
+        Date modifiedDate = null;
+
+        try {
+            File file = constructRepoPath(path).toFile();
+            modifiedDate = new Date(file.lastModified());
+        }
+
+        catch(Exception err) {
+            logger.error("error while getting last modified date for file", err);
+        }
+
+        return modifiedDate;
+    }
+
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 

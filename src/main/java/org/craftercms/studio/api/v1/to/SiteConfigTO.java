@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.to;
 
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * This class stores Site Configuration
@@ -66,7 +67,7 @@ public class SiteConfigTO implements Serializable {
 	//protected Map<String, QName> _namespaceToTypeMap = null;
 	
 	/** the last updated date of site configuration **/
-	//protected Date _lastUpdated = null;
+	protected Date lastUpdated = null;
 
     /** web project configuration if the site is dm-based **/
     protected RepositoryConfigTO repositoryConfig = null;
@@ -161,18 +162,16 @@ public class SiteConfigTO implements Serializable {
 	 * @param lastUpdated
 	 *            the lastUpdated to set
 	 */
-	/*
 	public void setLastUpdated(Date lastUpdated) {
-		this._lastUpdated = lastUpdated;
-	}*/
+		this.lastUpdated = lastUpdated;
+	}
 
 	/**
 	 * @return the lastUpdated
 	 */
-	/*
 	public Date getLastUpdated() {
-		return _lastUpdated;
-	}*/
+		return lastUpdated;
+	}
 
     /**
      * @return the repositoryConfig

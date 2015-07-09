@@ -115,7 +115,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
-        String contentTypesRootPath = _configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
@@ -139,7 +139,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
-                    ContentItemTO configNode = contentService.getContentItem(folders[i].path + "/" + folders[i].name + "/" + _configFileName);
+                    ContentItemTO configNode = contentService.getContentItem(folders[i].path + "/" + folders[i].name + "/" + configFileName);
                     if (configNode != null) {
                         ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configNode);
                         if (config != null) {
@@ -152,6 +152,12 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                 }
             }
         }
+    }
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
+        return siteConfigPath + "/" + configFileName;
     }
 
     @Override
