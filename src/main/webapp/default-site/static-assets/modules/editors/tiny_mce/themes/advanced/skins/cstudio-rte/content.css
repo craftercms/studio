@@ -49,7 +49,3 @@ font[face=mceinline] {font-family:inherit !important}
 .mceContentBody  {
     background: #fff;
 }
-
-.mceContentBody p{
-    color: #000;
-}
