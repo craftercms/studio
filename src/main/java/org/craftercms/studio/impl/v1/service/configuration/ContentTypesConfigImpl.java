@@ -68,7 +68,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
         String configFileFullPath = null;
         if (!StringUtils.isEmpty(key)) {
             // key is a combination of site,content-type
-            String [] keys = key.split(":");
+            String [] keys = key.split(",");
             if (keys.length == 2) {
                 String site = keys[0];
                 String contentType = keys[1];
@@ -259,7 +259,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
      */
     protected void addToPathMapping(String key, ContentTypeConfigTO configToAdd) {
         logger.debug("Adding a path configuration to mapping with key: " + key);
-        String [] values = key.split(":");
+        String [] values = key.split(",");
         String site = values[0];
         SiteContentTypePathsTO paths = this.pathMapping.get(site);
         if (paths != null) {
@@ -330,7 +330,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     protected void removeFromPathMapping(String key, ContentTypeConfigTO configToRemove) {
-        String [] values = key.split(":");
+        String [] values = key.split(",");
         String site = values[0];
         SiteContentTypePathsTO paths = this.pathMapping.get(site);
         if (paths != null) {
@@ -372,7 +372,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     public ContentTypeConfigTO loadConfiguration(String site, ContentItemTO configItem) {
-        String key = contentTypeNodeMap.get(site + ":" + configItem.getPath());
+        String key = contentTypeNodeMap.get(site + "," + configItem.getPath());
         // if key is found, check the timestamp
         if (!StringUtils.isEmpty(key)) {
             ContentTypeConfigTO contentTypeConfig = contentTypeMap.get(key);
@@ -409,7 +409,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     protected String getConfigFullPath(String key) {
         if (!StringUtils.isEmpty(key)) {
             // key is a combination of site,content-type
-            String [] keys = key.split(":");
+            String [] keys = key.split(",");
             if (keys.length == 2) {
                 String site = keys[0];
                 String contentType = keys[1];
