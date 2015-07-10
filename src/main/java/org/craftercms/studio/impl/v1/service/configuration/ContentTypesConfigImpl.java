@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -371,13 +372,13 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
 
     }
 
-    public ContentTypeConfigTO loadConfiguration(String site, ContentItemTO configItem) {
-        String key = contentTypeNodeMap.get(site + "," + configItem.getPath());
+    public ContentTypeConfigTO loadConfiguration(String site, String configPath) {
+        String key = contentTypeNodeMap.get(site + "," + ContentUtils.getParentUrl(configPath));
         // if key is found, check the timestamp
         if (!StringUtils.isEmpty(key)) {
             ContentTypeConfigTO contentTypeConfig = contentTypeMap.get(key);
             if (contentTypeConfig != null) {
-                Date modifiedDate = configItem.getLastEditDate();
+                Date modifiedDate = contentRepository.getModifiedDate(contentService.expandRelativeSitePath(site, configPath));
                 if (! (modifiedDate.after(contentTypeConfig.getLastUpdated()))) {
                     // if the node modified date is not after the timestamp, no need to load again
                     logger.debug("Skipping loading " + key + " since it is previsouly loaded and no change was made.");
@@ -388,7 +389,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
         logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
 
         // otherwise load the configuration file
-        ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configItem.getUri());
+        ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configPath);
         key = this.createKey(site, contentTypeConfig.getName());
         this.addContentType(key, contentTypeConfig);
         return contentTypeConfig;
