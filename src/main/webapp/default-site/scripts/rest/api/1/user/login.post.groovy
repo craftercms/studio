@@ -13,7 +13,7 @@ try {
 
     if(ticket != null) {
        def profile = SecurityServices.getUserProfile(context, username)
-       def user = ["name":profile.firstName,"surname":profile.lastName,"email":profile.email]
+       def user = ["username":username,"name":profile.firstName,"surname":profile.lastName,"email":profile.email]
        result.user = user
 
         result.type = "success"

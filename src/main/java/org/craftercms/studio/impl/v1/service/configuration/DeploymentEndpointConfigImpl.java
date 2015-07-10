@@ -45,8 +45,8 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
 
     @Override
     protected void loadConfiguration(String key) {
-        String siteConfigPath = _configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
-        siteConfigPath = siteConfigPath + "/" + _configFileName;
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
+        siteConfigPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         try {
             document = contentService.getContentAsDocument(siteConfigPath);
@@ -123,6 +123,12 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
             config.setLastUpdated(new Date());
             siteMapping.put(key, config);
         }
+    }
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
+        return siteConfigPath + "/" + configFileName;
     }
 
     @Override

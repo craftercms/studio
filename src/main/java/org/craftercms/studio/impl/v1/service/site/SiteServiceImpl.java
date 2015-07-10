@@ -93,7 +93,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 * (non-Javadoc)
 	 *
 	 * @seeorg.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#
-	 * getConfiguration(java.lang.String)
+	 * getConfigurationById(java.lang.String)
 	 */
 	protected TimeStamped getConfigurationById(String key) {
 		// key is not being used here
@@ -115,9 +115,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
       */
 	@SuppressWarnings("unchecked")
 	protected void loadConfiguration(String key) {
-		String configLocation = _configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
+		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
 				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
-		configLocation = configLocation + "/" + _configFileName;
+		configLocation = configLocation + "/" + configFileName;
 		Document document = null;
 		try {
 			document = contentService.getContentAsDocument(configLocation);
@@ -621,6 +621,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 		return blueprints;
 	}
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        return null;
+    }
 
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }

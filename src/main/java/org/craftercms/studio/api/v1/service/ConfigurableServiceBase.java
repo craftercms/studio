@@ -17,9 +17,13 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service;
 
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.to.TimeStamped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
 
 
 /**
@@ -37,12 +41,12 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	/**
 	 * the location where to find the configuration file
 	 */
-	protected String _configPath;
+	protected String configPath;
 
 	/**
 	 * configuration file name
 	 */
-	protected String _configFileName;
+	protected String configFileName;
 
 	
 	/**
@@ -51,7 +55,6 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 * @param key
 	 */
 	protected void checkForUpdate(final String key) {
-//PORT
 		if (isConfigUpdated(key)) {
 		 	loadConfiguration(key);
 		}
@@ -64,26 +67,27 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 * @return true if configuration hasn't been loaded or modified after loading
 	 */
 	protected boolean isConfigUpdated(final String key) {
-		return true;
-// PORT
-		// TimeStamped config = getConfiguration(key);
-		// if (config == null) {
-		// 	return true;
-		// } else {
-		// 	NodeRef configRef = getConfigRef(key);
-  //           if (configRef != null) {
-  //               PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		// 	    Serializable modifiedDateVal = persistenceManagerService.getProperty(configRef, ContentModel.PROP_MODIFIED);
-  //               if (modifiedDateVal == null) return false;
-  //               Date modifiedDate = (Date)modifiedDateVal;
-		// 	    return modifiedDate.after(config.getLastUpdated());
-  //           } else {
-  //               removeConfiguration(key);
-  //               return true;
-  //           }
-		// }
+		TimeStamped config = getConfigurationById(key);
+		if (config == null) {
+		 	return true;
+		} else {
+            String siteConfigFullPath =  getConfigFullPath(key);
+            if (contentRepository.contentExists(siteConfigFullPath)) {
+                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
+                if (modifiedDate == null) {
+                    return false;
+                } else {
+                    return modifiedDate.after(config.getLastUpdated());
+                }
+            } else {
+                removeConfiguration(key);
+                return true;
+            }
+		 }
 	}
-	
+
+    protected abstract String getConfigFullPath(String key);
+
 	/**
 	 * load configuration for the given key
 	 * 
@@ -105,17 +109,6 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
      * @param key
      */
     protected abstract void removeConfiguration(final String key);
-
-
-
-	/**
-	 * find the configuration file node
-	 * 
-	 * @param key
-	 * @return nodeRef
-	 */
-// PORT
-//	protected abstract NodeRef getConfigRef(final String key);
 	
 	/**
 	 * set configuration path
@@ -123,7 +116,7 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 * @param configPath
 	 */
 	public void setConfigPath(String configPath) {
-		this._configPath = configPath;
+		this.configPath = configPath;
 	}
 
 	/**
@@ -132,7 +125,11 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 	 * @param configFileName
 	 */
 	public void setConfigFileName(String configFileName) {
-		this._configFileName = configFileName;
+		this.configFileName = configFileName;
 	}
 
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    protected ContentRepository contentRepository;
 }

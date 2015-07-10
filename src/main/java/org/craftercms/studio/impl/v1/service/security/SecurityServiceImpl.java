@@ -236,7 +236,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
     @Override
     protected void loadConfiguration(String key) {
-        String siteConfigPath = _configPath.replaceFirst(CStudioConstants.PATTERN_SITE, getSiteFromKey(key));
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, getSiteFromKey(key));
         String siteConfigFullPath = siteConfigPath + "/" + getFilenameFromKey(key);
         Document document = null;
         try {
@@ -368,6 +368,28 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     protected void checkForUpdate(String site) {
         super.checkForUpdate(getPermissionsKey(site, roleMappingsFileName));
         super.checkForUpdate(getPermissionsKey(site, permissionsFileName));
+    }
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        if (!StringUtils.isEmpty(key)) {
+            // key is a combination of site,content-type
+            String [] keys = key.split(":");
+            if (keys.length == 2) {
+                String site = keys[0];
+                String fileName = keys[1];
+                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+                String siteConfigFullPath = siteConfigPath + "/" + fileName;
+                return siteConfigFullPath;
+            } else {
+                logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
+
+            }
+        } else {
+            logger.error("Key cannot be empty. site, content type is expected.");
+
+        }
+        return null;
     }
 
     @Override

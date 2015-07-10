@@ -68,13 +68,13 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
         String configFileFullPath = null;
         if (!StringUtils.isEmpty(key)) {
             // key is a combination of site,content-type
-            String [] keys = key.split(",");
+            String [] keys = key.split(":");
             if (keys.length == 2) {
                 String site = keys[0];
                 String contentType = keys[1];
-                String siteConfigPath = _configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
+                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                         .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-                configFileFullPath = siteConfigPath + "/" + _configFileName;
+                configFileFullPath = siteConfigPath + "/" + configFileName;
             } else {
                 logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
             }
@@ -259,7 +259,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
      */
     protected void addToPathMapping(String key, ContentTypeConfigTO configToAdd) {
         logger.debug("Adding a path configuration to mapping with key: " + key);
-        String [] values = key.split(",");
+        String [] values = key.split(":");
         String site = values[0];
         SiteContentTypePathsTO paths = this.pathMapping.get(site);
         if (paths != null) {
@@ -330,7 +330,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     protected void removeFromPathMapping(String key, ContentTypeConfigTO configToRemove) {
-        String [] values = key.split(",");
+        String [] values = key.split(":");
         String site = values[0];
         SiteContentTypePathsTO paths = this.pathMapping.get(site);
         if (paths != null) {
@@ -403,6 +403,29 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     public ContentTypeConfigTO getContentTypeConfig(String key) {
         checkForUpdate(key);
         return contentTypeMap.get(key);
+    }
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        if (!StringUtils.isEmpty(key)) {
+            // key is a combination of site,content-type
+            String [] keys = key.split(":");
+            if (keys.length == 2) {
+                String site = keys[0];
+                String contentType = keys[1];
+                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
+                        .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+                String siteConfigFullPath = siteConfigPath + "/" + configFileName;
+                return siteConfigFullPath;
+            } else {
+                logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
+
+            }
+        } else {
+            logger.error("Key cannot be empty. site, content type is expected.");
+
+        }
+        return null;
     }
 
     @Override
