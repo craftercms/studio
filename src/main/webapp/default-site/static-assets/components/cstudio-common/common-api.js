@@ -1681,52 +1681,155 @@ var YEvent = YAHOO.util.Event;
                 CStudioAuthoring.Operations.openContentWebForm(formId, id, noderef, path, true, asPopup, callback, auxParams);
             },
 
+            // duplicateContent: function(site, path, argsCallback) {
+            //     var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
+            //     var ajaxRequest=CStudioAuthoring.Service.createServiceUri(serviceUri);
+
+            //     var serviceCallback = {
+            //         success: function(oResponse) {
+            //             argsCallback.success();
+            //             var contentTypeJson = oResponse.responseText;
+
+            //             try {
+            //                 var contentTypes = eval("(" + contentTypeJson + ")");
+            //                 var formId = contentTypes.form;
+            //                 var path = contentTypes.path;
+            //                 var editCb = {
+            //                     success: function() {
+            //                         this.callingWindow.location.reload(true);
+            //                     },
+
+            //                     failure: function() {
+            //                     },
+
+            //                     callingWindow: window
+            //                 };
+
+            //                 var auxParams = new Array();
+            //                 /******** CRAFTER-533 & 534 ****************/
+            //                 // this is a temp fix since cstudio currently doesn't support drafter feature
+            //                 // the parameters should be added back when draft becomes available 
+            //                 //var param = {};
+            //                 //param['name'] = "draft";
+            //                 //param['value'] = "true";
+            //                 //auxParams.push(param);
+            //                 //param = {};
+            //                 //param['name'] = "duplicate";
+            //                 //param['value'] = "true";
+            //                 //auxParams.push(param);
+            //                 /******** CRAFTER-533 & 534 ****************/
+            //                 CStudioAuthoring.Operations.editContent(
+            //                     formId,
+            //                     CStudioAuthoringContext.site,path,
+            //                     "", path, false,editCb,auxParams);
+            //             }
+            //             catch(err) {
+            //                 //callback.failure(err);
+            //             }
+            //         },
             duplicateContent: function(site, path, argsCallback) {
-                var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
-                var ajaxRequest=CStudioAuthoring.Service.createServiceUri(serviceUri);
+                //var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
+                // this method should just call a service and open the content but it has to do some work for now
+                CStudioAuthoring.Service.getContent(path, true, {
+                    success: function(parentContent) {
+                        // determine the ID of the top level object\
+                        var origObjectIdPos = parentContent.indexOf("objectId")+9;
+                        var origObjectId = parentContent.substr(origObjectIdPos, 36);
+                        var origGroupId = origObjectId.substr(0,4);
 
-                var serviceCallback = {
-                    success: function(oResponse) {
-                        argsCallback.success();
-                        var contentTypeJson = oResponse.responseText;
+                        var contentTypePos = parentContent.indexOf("content-type")+13;
+                        var contentTypeEndPos = parentContent.indexOf("<", contentTypePos);
+                        var contentType = parentContent.substr(contentTypePos, contentTypeEndPos-contentTypePos);
+                      
+                        // find a list of paths like a "/site/components/page/GRPID/OBJID/*.xml"
+                        var dependencyRegExp = new RegExp("(\\/site\\/components\\/page\\/"+origGroupId+"\\/"+origObjectId+"\\/([^&lt;]+)\\.xml)");
+                        var dependencies = dependencyRegExp.exec(parentContent); 
+                        dependencies = (dependencies) ? dependencies : [];
 
-                        try {
-                            var contentTypes = eval("(" + contentTypeJson + ")");
-                            var formId = contentTypes.form;
-                            var path = contentTypes.path;
-                            var editCb = {
-                                success: function() {
-                                    this.callingWindow.location.reload(true);
-                                },
+                        // create a new ID for this page
+                        var newObjectId = CStudioAuthoring.Utils.generateUUID();
+                        var newGroupId = newObjectId.substring(0,4);
 
-                                failure: function() {
-                                },
+                        // create new path for this page
+                        var newPath = path.replace("/index.xml", "-"+newGroupId+"/index.xml");
 
-                                callingWindow: window
-                            };
+                        for(var i=0; i<dependencies.length; i++) {
+                            var dependencyPath = dependencies[i];
+                            if(dependencyPath.indexOf("/site") != -1) {
+                                // generate new path 
+                                var newDepPath = dependencyPath.replace(origObjectId, newObjectId);
+                                    newDepPath = newDepPath.replace(origGroupId, newGroupId);
 
-                            var auxParams = new Array();
-                            /******** CRAFTER-533 & 534 ****************/
-                            // this is a temp fix since cstudio currently doesn't support drafter feature
-                            // the parameters should be added back when draft becomes available 
-                            //var param = {};
-                            //param['name'] = "draft";
-                            //param['value'] = "true";
-                            //auxParams.push(param);
-                            //param = {};
-                            //param['name'] = "duplicate";
-                            //param['value'] = "true";
-                            //auxParams.push(param);
-                            /******** CRAFTER-533 & 534 ****************/
-                            CStudioAuthoring.Operations.editContent(
-                                formId,
-                                CStudioAuthoringContext.site,path,
-                                "", path, false,editCb,auxParams);
+                                // replace the value in the parent
+                                var replaceIdRegex = new RegExp(dependencyPath, 'g');
+                                parentContent = parentContent.replace(replaceIdRegex, newDepPath);
+
+                                // load the dependency
+                                CStudioAuthoring.Service.getContent(dependencyPath, true, {
+                                    success: function(dependencyContent) {
+                                        var childSaveCb = {
+                                            success: function(){}, 
+                                            failure: function(){}
+                                        };
+
+                                        // write it in new location
+                                        var childContentTypePos = dependencyContent.indexOf("content-type")+13;
+                                        var childContentTypeEndPos = dependencyContent.indexOf("<", childContentTypePos);
+                                        var childContentType = dependencyContent.substr(childContentTypePos, childContentTypeEndPos-childContentTypePos);
+
+                                        var writeChildFileName = newDepPath.substr(newDepPath.lastIndexOf("/")+1);
+                                        var writeChildPath = newDepPath.substr(0, newDepPath.lastIndexOf("/"));
+                                        writeChildServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writeChildPath, writeChildFileName, null, childContentType, CStudioAuthoringContext.site, true, false, false, true);
+
+//                                        var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
+//                                                            + "?site=" + CStudioAuthoringContext.site 
+//                                                            + "&path=" + parentContent;
+                                                            
+                                        YAHOO.util.Connect.setDefaultPostHeader(false);
+                                        YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
+                                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeChildServiceUrl), childSaveCb, dependencyContent);
+                                    },
+                                    failure: function(err) {
+                                        alert("failed to load component content: "+err);
+                                    }
+                                });
+                            }
                         }
-                        catch(err) {
-                            //callback.failure(err);
-                        }
+
+                        // update the object id and group id in the top level object
+                        parentContent = parentContent.replace(origObjectId, newObjectId);
+                        parentContent = parentContent.replace(origGroupId, newGroupId);
+
+                        // save the top level content
+                        var writeFileName = newPath.substr(newPath.lastIndexOf("/")+1);
+                        var writePath = newPath.substr(0, newPath.lastIndexOf("/"));
+                        writeServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writePath, writeFileName, null, contentType, CStudioAuthoringContext.site, true, false, false, true);
+                                          //"/proxy/alfresco/cstudio/wcm/content/write-content-asset"
+                                          //  + "?site=" +  
+                                          //  + "&path=" + newPath;
+                        
+                        var parentSaveCb = {
+                            success: function(){
+                                // open the top level content for edit
+                                CStudioAuthoring.Operations.editContent(
+                                contentType,
+                                CStudioAuthoringContext.site, newPath, 
+                                "", newPath, false); //cb,aux);
+                            }, 
+                            failure: function(){}
+                        };
+
+                        YAHOO.util.Connect.setDefaultPostHeader(false);
+                        YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
+                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), parentSaveCb, parentContent);
+
+      
                     },
+                    failure: function(err) {
+                        alert("failed to load content");
+                    }
+                });
+            },
 
                     failure: function(response) {
                         argsCallback.failure();

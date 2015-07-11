@@ -140,6 +140,7 @@
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="configPath"><value>${notificationService.configPath}</value></property>
         <property name="configFileName"><value>${notificationService.configFileName}</value></property>
+         <property name="contentRepository" ref="cstudioContentRepository"/>
      </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -153,6 +154,7 @@
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl"
@@ -162,6 +164,7 @@
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl"
@@ -169,6 +172,7 @@
         <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
         <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
@@ -201,6 +205,7 @@
         <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl"
@@ -219,6 +224,7 @@
         <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
         <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"

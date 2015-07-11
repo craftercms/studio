@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -104,6 +105,8 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * Content service
 	 */
 	protected ContentService contentService;
+
+	protected ContentRepository contentRepository;
 
     @Override
     public void register() {
@@ -510,7 +513,20 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		if (config == null) {
 			return true;
 		} else {
-			// TODO: we need to check if config was updated
+			String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+			String siteConfigFullPath = siteConfigPath + "/" + configFileName;
+			if (contentRepository.contentExists(siteConfigFullPath)) {
+				Date modifiedDate = contentRepository.getModifiedDate(siteConfigPath);
+				if (modifiedDate == null) {
+					return false;
+				} else {
+					return modifiedDate.after(config.getLastUpdated());
+				}
+			} else {
+				if (!contentRepository.contentExists(siteConfigPath)) {
+					siteMapping.remove(site);
+				}
+			}
 			return true;
 		}
 	}
@@ -548,7 +564,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 			//siteConfig.setDefaultSearchConfig(searchConfig);
             loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
 			// set the last updated date
-			//siteConfig.setLastUpdated(new Date());
+			siteConfig.setLastUpdated(new Date());
 			siteMapping.put(site, siteConfig);
 		} else {
 			LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
@@ -827,4 +843,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
 		this.contentTypesConfig = contentTypesConfig;
 	}
+
+	public ContentRepository getContentRepository() { return contentRepository; }
+	public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 }

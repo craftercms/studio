@@ -11,7 +11,7 @@
         ROOT: [
             '<div class="cstudio-view cancel-workflow-view">',
 
-                '<h2 class="view-title">Warning: Workflow Cancellation</h2>',
+                '<h3 class="view-title">Warning: Workflow Cancellation</h3>',
 
                 '<div class="view-caption">',
                     '<span>',
@@ -39,8 +39,8 @@
                     '</div>',
                 '</div>',
                 '<div class="acn-submit-buttons action-wrapper">',
-                    '<button class="continue">Continue</button>',
-                    '<button class="cancel">Cancel</button>',
+                    '<button class="continue btn btn-primary">Continue</button>',
+                    '<button class="cancel btn btn-default">Cancel</button>',
                 '</div>',
             '</div>'
         ].join(''),

@@ -109,7 +109,9 @@
             }
         });
 
-        me.$('.date-picker').datetimepicker();
+        me.$('.date-picker').datetimepicker({
+            format: 'm/d/Y h:i a'
+        });
 
     }
 

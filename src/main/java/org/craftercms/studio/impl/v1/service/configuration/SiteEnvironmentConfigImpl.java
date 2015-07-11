@@ -147,7 +147,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#getConfiguration(java.lang.String)
+	 * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#getConfigurationById(java.lang.String)
 	 */
 	protected TimeStamped getConfigurationById(String key) {
 		return siteMapping.get(key);
@@ -165,9 +165,9 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
       * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#loadConfiguration(java.lang.String)
       */
 	protected void loadConfiguration(String key) {
-		String configLocation = _configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
+		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
 				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
-		configLocation = configLocation + "/" + _configFileName;
+		configLocation = configLocation + "/" + configFileName;
 
 		Document document = null;
 		try {
@@ -288,5 +288,11 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
             return config.getPreviewDeploymentEndpoint();
         }
         return null;
+    }
+
+    @Override
+    protected String getConfigFullPath(String key) {
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
+        return siteConfigPath + "/" + configFileName;
     }
 }

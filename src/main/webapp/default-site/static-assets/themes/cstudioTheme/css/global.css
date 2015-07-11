@@ -3367,11 +3367,6 @@ input.drop-arrow-button {
   font-size: 12px;
   line-height: 18px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033410}}
-.cancel-workflow-view .view-title {
-  font-size: 15px;
-  margin-bottom: 5px; }
-
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033415}}
 .cancel-workflow-view .action-wrapper button {
   margin-right: 10px; }
@@ -3401,6 +3396,42 @@ input.drop-arrow-button {
   background-color: #CCC;
   border-color: #777;
   color: #999; }
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033410}}
+.cancel-workflow-view .view-caption {
+    margin-top: 15px;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033410}}
+.cancel-workflow-view .view-title {
+    margin-top: 7px;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033410}}
+.cancel-workflow-view .view-square-wrp {
+    border-radius: 6px 6px 0 0;
+}
+
+.yui-module.yui-overlay.yui-panel button.btn-default {
+    color: #333333;
+    background-color: white;
+    border-color: #cccccc;
+}
+
+.yui-module.yui-overlay.yui-panel button.btn-default:hover {
+    background-color: #e6e6e6;
+    border-color: #adadad;
+    color: #333333;
+}
+
+.cancel-workflow-view.cstudio-view .action-wrapper{
+    text-align: right;
+}
+
+.yui-module.yui-overlay.yui-panel .cancel-workflow-view button.cancel{
+    margin-left: 5px;
+}
+
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033445}}
 .cstudio-search-result .cstudio-search-select-container,

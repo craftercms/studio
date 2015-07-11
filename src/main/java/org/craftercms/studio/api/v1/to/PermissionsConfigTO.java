@@ -46,7 +46,7 @@ public class PermissionsConfigTO implements TimeStamped {
 	
 	@Override
 	public void setLastUpdated(Date lastUpdated) {
-		lastUpdated = lastUpdated;
+		this.lastUpdated = lastUpdated;
 	}
 
 	@Override

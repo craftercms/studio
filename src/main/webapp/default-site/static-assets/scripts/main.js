@@ -384,7 +384,7 @@
             }
 
             function gettingPermissions(siteId){
-                sitesService.getPermissions(siteId, '/', $scope.user)
+                sitesService.getPermissions(siteId, '/', $scope.user.username || $scope.user)
                     .success(function (data) {
                         for(var i=0; i<data.permissions.length;i++){
                             if(data.permissions[i]=='delete'){
