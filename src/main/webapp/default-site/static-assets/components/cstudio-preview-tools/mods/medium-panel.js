@@ -59,7 +59,7 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
         $select.change(function () {
             var preset = $(this).val();
             me.presetSelected(preset);
-            alert("c")
+
         });
 
         var timeout;
