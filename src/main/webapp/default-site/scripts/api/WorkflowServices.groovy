@@ -69,8 +69,9 @@ class WorkflowServices {
 	 * get workflow jobs
 	 * @param site - the project ID
 	 */
-	def getWorkflowJobs(site) {
-
+	static getWorkflowJobs(context, site) {
+		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context)
+		return workflowServicesImpl.getWorkflowJobs(site)
 	}
 
 	/**
@@ -79,8 +80,9 @@ class WorkflowServices {
 	 * @param items - collection of items
 	 * @param workflowID - id of workflow
 	 */
-	def createWorkflowJob(site, items, workflowId) {
-
+	static createWorkflowJob(context, site, items, workflowId, properties) {
+		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context)
+		return workflowServicesImpl.createWorkflowJob(context, site, items, workflowId, properties)
 	}
 
 	/**

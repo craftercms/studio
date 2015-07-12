@@ -69,5 +69,22 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         springBackedService.submitToDelete(site, user, requestBody);
     }
+
+    /**
+     * create a workflow job
+     * @param site - the project ID
+     * @param items - collection of items
+     * @param workflowID - id of workflow
+     */
+    def createWorkflowJob(site, items, workflowId, properties) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        return springBackedService.createJob(site, items, workflowId, properties);
+    }
+
+    def getWorkflowJobs(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        return springBackedService.getActiveJobs();
+    }
+
 }
 

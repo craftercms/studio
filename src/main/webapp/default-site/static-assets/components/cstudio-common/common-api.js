@@ -1821,25 +1821,12 @@ var YEvent = YAHOO.util.Event;
 
                         YAHOO.util.Connect.setDefaultPostHeader(false);
                         YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
-                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), parentSaveCb, parentContent);
-
-      
+                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), parentSaveCb, parentContent);      
                     },
                     failure: function(err) {
                         alert("failed to load content");
                     }
                 });
-            },
-
-                    failure: function(response) {
-                        argsCallback.failure();
-                        //callback.failure(response);
-                    }
-                };
-
-
-                YConnect.asyncRequest('GET',ajaxRequest , serviceCallback);
-
             },
 
             /**
@@ -2307,6 +2294,8 @@ var YEvent = YAHOO.util.Event;
             // Workflow Services
             getGoLiveQueueItemsServiceUrl: "/api/1/services/api/1/workflow/get-go-live-items.json",
             getWorkflowAffectedPathsServiceUrl: "/api/1/services/api/1/workflow/get-workflow-affected-paths.json",
+            createWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/create-jobs.json",
+            getWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/get-active-jobs.json",
 
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
@@ -2314,7 +2303,7 @@ var YEvent = YAHOO.util.Event;
             cutContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/cut-item.json",
             pasteContentFromClipboardServiceUri: "/api/1/services/api/1/clipboard/paste-item.json",
             getClipboardItemsServiceUri: "/api/1/services/api/1/clipboard/get-items.json",
-            
+                    
             // Analytics
             getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
             
@@ -2339,8 +2328,7 @@ var YEvent = YAHOO.util.Event;
             // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
             // previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
             // setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
-            // getWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/get-jobs",
-            // createWorkflowJobsServiceUrl: "/proxy/alfresco/cstudio/workflow/create-jobs",
+            
 
             /**
              * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
