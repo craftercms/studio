@@ -237,7 +237,7 @@ public interface ServicesConfig {
 
     //public String getRepositoryRootPath(String site);
     
-    //public List<String> getPreviewableMimetypesPaterns(String site);
+    List<String> getPreviewableMimetypesPaterns(String site);
 
 
     //public String getLiveRepositoryPath(String site);

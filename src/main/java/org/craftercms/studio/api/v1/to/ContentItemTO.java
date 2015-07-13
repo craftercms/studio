@@ -143,6 +143,7 @@ public class ContentItemTO implements Serializable {
 		this.floating = item.floating;
 		this.hideInAuthoring = item.hideInAuthoring;
 		this.previewable = item.previewable;
+        this.isPreviewable = item.previewable;
 		this.lockOwner = item.lockOwner;
 		this.user = item.user;
 		this.userFirstName = item.userFirstName;
