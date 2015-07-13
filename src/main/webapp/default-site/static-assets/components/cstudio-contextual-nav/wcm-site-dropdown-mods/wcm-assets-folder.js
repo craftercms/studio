@@ -689,7 +689,11 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             success: function(templatePath) {
                 this.callingWindow.location.reload(true);   
             }, 
-            failure: function() {}
+            failure: function() {
+
+            },
+
+            callingWindow: window
         }); 
     },
 
