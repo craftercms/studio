@@ -139,9 +139,9 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
-                    ContentItemTO configNode = contentService.getContentItem(folders[i].path + "/" + folders[i].name + "/" + configFileName);
-                    if (configNode != null) {
-                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configNode);
+                    String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
+                    if (contentService.contentExists(configPath)) {
+                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configPath);
                         if (config != null) {
                             contentTypes.add(config);
                         }

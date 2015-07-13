@@ -212,7 +212,7 @@ public class CachedContentRepository extends AbstractContentRepository {
         value = cache.get(key);
 
         if(value != null) {
-            System.out.println("HIT: "+ key);
+            logger.debug("HIT: "+ key);
         }
 
         return value;

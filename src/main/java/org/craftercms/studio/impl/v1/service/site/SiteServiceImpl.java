@@ -623,6 +623,21 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	}
 
     @Override
+    public String getPreviewServerUrl(String site) {
+        return environmentConfig.getPreviewServerUrl(site);
+    }
+
+    @Override
+    public String getLiveServerUrl(String site) {
+        return environmentConfig.getLiveServerUrl(site);
+    }
+
+    @Override
+    public String getAdminEmailAddress(String site) {
+        return environmentConfig.getAdminEmailAddress(site);
+    }
+
+    @Override
     protected String getConfigFullPath(String key) {
         return null;
     }

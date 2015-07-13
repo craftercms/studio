@@ -141,6 +141,10 @@
         <property name="configPath"><value>${notificationService.configPath}</value></property>
         <property name="configFileName"><value>${notificationService.configFileName}</value></property>
          <property name="contentRepository" ref="cstudioContentRepository"/>
+         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+         <property name="securityService" ref="cstudioSecurityService"/>
+         <property name="contentService" ref="cstudioContentService"/>
      </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -307,18 +311,18 @@
     <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSenderImpl" />
-        <property name="defaultFromAddress"><value>${mail.from.default}</value></property>
+        <property name="defaultFromAddress"><value>${crafter.studio.mail.from.default}</value></property>
     </bean>
 
     <bean id="mailSenderImpl" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-      <property name="host" value="smtp.gmail.com" />
-      <property name="port" value="587" />
-      <property name="username" value="username" />
-      <property name="password" value="password" />
+      <property name="host" value="${crafter.studio.mail.host}" />
+      <property name="port" value="${crafter.studio.mail.port}" />
+      <property name="username" value="${crafter.studio.mail.username}" />
+      <property name="password" value="${crafter.studio.mail.password}" />
       <property name="javaMailProperties">
         <props>
-          <prop key="mail.smtp.auth">true</prop>
-          <prop key="mail.smtp.starttls.enable">true</prop>
+          <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
+          <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
         </props>
       </property>  
     </bean>
