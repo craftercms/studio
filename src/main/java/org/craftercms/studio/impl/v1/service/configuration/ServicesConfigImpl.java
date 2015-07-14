@@ -726,8 +726,8 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
                             repo.setRenderingTemplatePatterns(patterns);
                         } else if (patternKey.equals(PATTERN_LEVEL_DESCRIPTOR)) {
                             repo.setLevelDescriptorPatterns(patterns);
-//                        } else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
-//                            repo.setPreviewableMimetypesPaterns(patterns);
+                        } else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
+                            repo.setPreviewableMimetypesPaterns(patterns);
                         } else {
                             LOGGER.error("Unknown pattern key: " + patternKey + " is provided in " + site.getName());
                         }
@@ -804,19 +804,16 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	}
 */
 
-
-	/*
     public List<String> getPreviewableMimetypesPaterns(String site) {
         if (isConfigUpdated(site)) {
             loadConfiguration(site);
         }
-        SiteConfigTO config = _siteMapping.get(site);
+        SiteConfigTO config = siteMapping.get(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
         }
         return null;
-    }*/
-
+    }
 
     @Override
     public boolean siteExists(String site) {

@@ -103,7 +103,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
 	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
-		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths,  processName, properties);
+		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths, processName, properties);
 		job.setCurrentStatus(WorkflowService.STATE_STARTED);
 		job = _workflowJobDAL.updateJob(job);
 		
@@ -1336,7 +1336,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
         String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
 		ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
-		Date scheduledDate = properties.getLaunchDate();
+		Date scheduledDate = null;
+        if (properties != null) {
+            scheduledDate = properties.getLaunchDate();
+        }
 		ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
         if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
             if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {

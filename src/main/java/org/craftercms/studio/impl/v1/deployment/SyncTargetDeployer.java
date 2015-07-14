@@ -157,6 +157,22 @@ public class SyncTargetDeployer implements Deployer {
             formParts.add(stringPart);
             filePart = new FilePart(CONTENT_FILE_REQUEST_PARAMETER + cntFiles, baps);
             formParts.add(filePart);
+            /*
+            if (item.getAction() == PublishingSyncItem.Action.MOVE) {
+                if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
+                    LOGGER.debug("Add old path to be deleted for MOVE action (\"{0}\")", item.getOldPath());
+                    eventItem.setOldPath(item.getOldPath());
+                    if (sbDeletedFiles.length() > 0) {
+                        sbDeletedFiles.append(",").append(item.getOldPath());
+                    } else {
+                        sbDeletedFiles.append(item.getOldPath());
+                    }
+                    if (item.getOldPath().endsWith("/" + _indexFile)) {
+                        sbDeletedFiles.append(FILES_SEPARATOR).append(item.getOldPath().replace("/" + _indexFile, ""));
+                    }
+                }
+            }*/
+            cntFiles++;
 
 // TODO: implement metadata transfer
         }
