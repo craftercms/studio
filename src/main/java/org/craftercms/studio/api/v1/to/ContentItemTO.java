@@ -143,6 +143,7 @@ public class ContentItemTO implements Serializable {
 		this.floating = item.floating;
 		this.hideInAuthoring = item.hideInAuthoring;
 		this.previewable = item.previewable;
+        this.isPreviewable = item.previewable;
 		this.lockOwner = item.lockOwner;
 		this.user = item.user;
 		this.userFirstName = item.userFirstName;
@@ -1507,7 +1508,13 @@ public class ContentItemTO implements Serializable {
 			for (int index = 0; index < children.size(); index++) {
 				ContentItemTO child = children.get(index);
 				String childUri = child.getBrowserUri();
+                if (StringUtils.isEmpty(childUri)) {
+                    childUri = child.getUri();
+                }
 				String itemToAddUri = itemToAdd.getBrowserUri();
+                if (StringUtils.isEmpty(itemToAddUri)) {
+                    itemToAddUri = itemToAdd.getUri();
+                }
 				// for recursive case, check if the item being added should
 				// belong to one of the current level items
 				// or one of the current level items should belong to the item

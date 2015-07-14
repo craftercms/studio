@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
+import java.net.FileNameMap;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -442,6 +444,7 @@ public class ContentServiceImpl implements ContentService {
 
         item.page = false;
         item.previewable = false;
+        item.isPreviewable = false;
         item.component = false;
         item.document = false;
         item.asset = true;
@@ -606,6 +609,7 @@ public class ContentServiceImpl implements ContentService {
                     item.asset = false;
                     item.component = false;
                     item.previewable = false;
+                    item.isPreviewable = false;
         
                     item.internalName = item.name;
                     item.contentType = "folder";
@@ -695,6 +699,14 @@ public class ContentServiceImpl implements ContentService {
                 item.setForm(config.getForm());
                 item.setFormPagePath(config.getFormPath());
                 item.setPreviewable(config.isPreviewable());
+                item.isPreviewable = item.previewable;
+            }
+        } else {
+            FileNameMap fileNameMap = URLConnection.getFileNameMap();
+            String mimeType = fileNameMap.getContentTypeFor(item.getUri());
+            if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
+                item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig.getPreviewableMimetypesPaterns(site)));
+                item.isPreviewable = item.previewable;
             }
         }
         // TODO CodeRev:but what if the config is null?

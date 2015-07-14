@@ -61,7 +61,7 @@ public class RepositoryConfigTO implements Serializable {
     //protected TemplateConfigTO _templateConfig = null;
 
     /** previewable mimetypes patterns **/
-    //private List<String> _previewableMimetypesPaterns;
+    private List<String> previewableMimetypesPaterns;
 
     /**
      * @return the rootPrefix
@@ -267,15 +267,15 @@ public class RepositoryConfigTO implements Serializable {
         this._templateConfig = templateConfig;
     }*/
 
-    /*
-    public List<String> getPreviewableMimetypesPaterns() {
-        return _previewableMimetypesPaterns;
-    }*/
 
-    /*
+    public List<String> getPreviewableMimetypesPaterns() {
+        return previewableMimetypesPaterns;
+    }
+
+
     public void setPreviewableMimetypesPaterns(List<String> patterns) {
-        this._previewableMimetypesPaterns = patterns;
-    }*/
+        this.previewableMimetypesPaterns = patterns;
+    }
 
     public List<String> getRenderingTemplatePatterns() {
         return this.renderingTemplatePatterns;
