@@ -206,7 +206,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 
                                     if(item.userFirstName){
                                         html.push(
-                                                '<td class="text-right schedule">'+ item.userFirstName +'</td>',
+                                                '<td class="schedule">'+ item.userFirstName +'</td>',
                                             '</tr>'
                                         );
                                     }else{

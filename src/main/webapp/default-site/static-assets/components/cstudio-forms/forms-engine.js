@@ -993,6 +993,7 @@ var CStudioForms = CStudioForms || function() {
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                         CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                                        reloadParentWindow();
                                     }
                                 },
                                 failure: function (err) {
