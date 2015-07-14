@@ -114,4 +114,10 @@ public interface SiteService {
    	 * get a list of available blueprints
    	 */
    	SiteBlueprintTO[] getAvailableBlueprints();
+
+    String getPreviewServerUrl(String site);
+
+    String getLiveServerUrl(String site);
+
+    String getAdminEmailAddress(String site);
 }

@@ -563,7 +563,7 @@ body.yui-skin-cstudioTheme .mask{
     padding-left: 10px;
 }
 
-.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div.acnBox{
+.bd > #acnVersionWrapper{
     width: 595px!important;
 }
 

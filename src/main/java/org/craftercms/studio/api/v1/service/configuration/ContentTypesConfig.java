@@ -60,7 +60,7 @@ public interface ContentTypesConfig {
 	 * @param nodeRef
 	 * @return 
 	 */
-	ContentTypeConfigTO loadConfiguration(String site, ContentItemTO itemTO);
+	ContentTypeConfigTO loadConfiguration(String site, String configPath);
 
 	/**
 	 * get path to content types mapping

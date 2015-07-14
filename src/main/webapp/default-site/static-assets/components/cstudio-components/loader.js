@@ -256,7 +256,13 @@
         type: 'js',
         name:'jquery-datetimepicker',
         path: 'libs/datetimepicker/jquery.datetimepicker.js',
-        requires: ['jquery-datetimepicker-css']
+        requires: ['jquery-datetimepicker-css', 'jquery']
+    });
+
+    Loader.addModule({
+        type: 'js',
+        name:'jquery',
+        path: 'libs/jquery/dist/jquery.js'
     });
 
     Loader.addModule({

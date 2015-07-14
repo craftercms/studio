@@ -429,10 +429,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             //ServletContext servletContext = context.getServletContext();
 
             String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
-            bootstrapFolderPath = bootstrapFolderPath.replace("/bootstrap.xml", "");
-
-            logger.info("Bootstrapping with baseline @ " + bootstrapFolderPath);
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+            source = source.getParent();
+
+            logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
+
             Path target = constructRepoPath();
 
             TreeCopier tc = new TreeCopier(source, target, false, false);
