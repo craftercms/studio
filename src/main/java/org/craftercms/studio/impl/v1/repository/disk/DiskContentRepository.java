@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.repository.disk;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import java.io.*;
@@ -80,14 +81,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            try {
-                Files.createDirectories(constructRepoPath(path.substring(0, path.lastIndexOf(File.separator) ) ) );
+            File file = constructRepoPath(path).toFile();
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
             }
-            catch(Exception err) {
-            }
-
-            CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
-            Files.copy(content,constructRepoPath(path), options);
+            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
         }
         catch(Exception err) {
             logger.error("error writing file: " + path, err);
@@ -135,7 +134,6 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
 
-        
         boolean success = true;
 
         try {
@@ -150,6 +148,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         }
         catch(Exception err) {
             // log this error
+            logger.error("Error while copping content from {0} to {1}", err, fromPath, toPath);
             success = false;
         }
 
