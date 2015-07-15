@@ -173,6 +173,10 @@
         communicator.publish(Topics.ICE_TOOLS_ON);
     });
 
+    amplify.subscribe(cstopic('ICE_TOOLS_REGIONS'), function (data){
+        communicator.publish(Topics.ICE_TOOLS_REGIONS, data);
+    });
+
     function setHashPage(url) {
         window.location.hash = '#/?page=' + url;
     }

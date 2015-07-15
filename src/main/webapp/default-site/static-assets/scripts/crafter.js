@@ -59,6 +59,7 @@
                 "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
                 "ICE_TOOLS_ON": "ICE_TOOLS_ON",
                 "ICE_TOOLS_OFF": "ICE_TOOLS_OFF",
+                "ICE_TOOLS_REGIONS": "ICE_TOOLS_REGIONS",
                 "REFRESH_PREVIEW": "REFRESH_PREVIEW",
 
                 "": ""
