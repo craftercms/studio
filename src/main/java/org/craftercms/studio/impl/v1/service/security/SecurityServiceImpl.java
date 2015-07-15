@@ -104,7 +104,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
     /* Derives a key based off the site and filename */
     protected String getPermissionsKey(String site, String filename) {
-        return new StringBuffer(site).append(File.pathSeparator).append(filename).toString();
+        return new StringBuffer(site).append(":").append(filename).toString();
     }
 
     /**
@@ -318,8 +318,8 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     protected String getSiteFromKey(String key) {
-        if (key.contains(File.pathSeparator)) {
-            return key.substring(0, key.indexOf(File.pathSeparator));
+        if (key.contains(":")) {
+            return key.substring(0, key.indexOf(":"));
         } else {
             return key;
         }
@@ -341,7 +341,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     protected String getFilenameFromKey(String key) {
-        return key.substring(key.indexOf(File.pathSeparator) + 1);
+        return key.substring(key.indexOf(":") + 1);
     }
 
     @Override
