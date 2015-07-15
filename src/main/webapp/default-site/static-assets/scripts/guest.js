@@ -41,7 +41,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.REFRESH_PREVIEW, function (message) {
         window.location.reload();
-    });
+    })
 
     communicator.on(Topics.ICE_TOOLS_OFF, function (message) {
         removeICERegions();
@@ -49,6 +49,23 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.ICE_TOOLS_ON, function (message) {
         initICERegions();
+    });
+
+    communicator.on(Topics.ICE_TOOLS_REGIONS, function (message) {
+        var elt = document.querySelectorAll('[data-studio-ice'+message.label+'=' + message.region + ']')[0];
+        console.log(elt);
+        if(elt) {
+            elt.scrollIntoView();
+            window.scrollBy(0,-150);
+            window.setTimeout(function() {
+                initOverlay($(elt));
+                window.setTimeout(function() {
+                    overlay.hide();
+                }, 1000);
+            }, 500);
+        } else {
+            alert("Region " + message.region + " could not be found");
+        }
     });
 
     function initICETarget(elem) {
@@ -78,15 +95,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
         $('.studio-ice-indicator').remove();
     }
 
-    $document.on('mouseover', '.studio-ice-indicator', function (e) {
-
-        var $i = $(this),
-            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
-            iceId = $e.data('studioIce');
-
-        var position = $e.offset(),
-            width = $e.width() - 4, // border-left-width + border-right-width = 4,
-            height = $e.height() - 4, // border-top-width + border-bottom-width = 4
+    function initOverlay(elt) {
+        var position = elt.offset(),
+            width = elt.width() - 4, // border-left-width + border-right-width = 4,
+            height = elt.height() - 4, // border-top-width + border-bottom-width = 4
             props = {
                 top: position.top,
                 left: position.left,
@@ -95,6 +107,15 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
             };
 
         overlay.show(props);
+    }
+
+    $document.on('mouseover', '.studio-ice-indicator', function (e) {
+
+        var $i = $(this),
+            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
+            iceId = $e.data('studioIce');
+
+        initOverlay($e);
 
     });
 
