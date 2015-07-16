@@ -86,36 +86,48 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         wrapper.appendChild(templateButtonEl);
         container.appendChild(wrapper);
 
-        regionSelectEl.options[0] = new Option("Jump to Region", "0", true, false);
-        for(var i=0; i<CStudioAuthoring.InContextEdit.regions.length; i++) {
-            var label = (CStudioAuthoring.InContextEdit.regions[i].label)
-                ? CStudioAuthoring.InContextEdit.regions[i].label
-                : CStudioAuthoring.InContextEdit.regions[i].id;
-            regionSelectEl.options[i+1] = new Option(label, '' + (i+1), false, false);
-        }
+        window.frames['engineWindow'].addEventListener("load", function(){
 
-        regionSelectEl.onchange = function() {
-            var selectedIndex = this.selectedIndex;
-            if(selectedIndex != 0) {
-                var region = CStudioAuthoring.InContextEdit.regions[selectedIndex-1];
-                var regionEl = document.getElementById(region.id);
-                if(regionEl) {
-                    regionEl.scrollIntoView();
-                    window.scrollBy(0,-150);
-                    window.setTimeout(function() {
-                        regionEl.style.border = "1px solid blue";
-                        window.setTimeout(function() {
-                            regionEl.style.border = "";
-                        }, 1000);
-                    }, 1000);
+            try {
+                var inside = this.contentDocument.querySelectorAll('[data-studio-ice]'),
+                    regions = [];
+
+                if (inside.length > 0) {
+
+                    for (var i = 0; i <= (inside.length) - 1; i++) {
+                        regions.push({id: inside[i].getAttribute('data-studio-ice'), formId: inside[i].getAttribute('data-studio-ice'), label: inside[i].getAttribute('data-studio-ice-label')});
+                    }
+
+                    regionSelectEl.options[0] = new Option("Jump to Region", "0", true, false);
+                    for (var i = 0; i < regions.length; i++) {
+                        var label = (regions[i].label)
+                            ? regions[i].label
+                            : regions[i].id;
+                        regionSelectEl.options[i + 1] = new Option(label, '' + (i + 1), false, false);
+                    }
+
+                    regionSelectEl.onchange = function () {
+                        var selectedIndex = this.selectedIndex;
+                        if (selectedIndex != 0) {
+                            var region = regions[selectedIndex - 1];
+                            if (region.label) {
+                                amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '-label', region: region.label});
+                            } else {
+                                amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '', region: region.id});
+                            }
+                        }
+                    };
                 } else {
-                    var label = (region.label) ? region.label : region.id;
-                    alert("Region " + label + " could not be found");
+                    regionSelectEl.options[0] = new Option("No Regions", "0", true, false);
                 }
             }
-        };
+            catch(err){
+                console.log(err);
+            }
 
-		templateButtonEl.onclick = function() {
+        });
+
+        templateButtonEl.onclick = function() {
 			var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 			
 			// if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {

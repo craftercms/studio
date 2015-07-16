@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.repository.disk;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import java.io.*;
@@ -80,17 +81,15 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            try {
-                Files.createDirectories(constructRepoPath(path.substring(0, path.lastIndexOf("/") ) ) );
+            File file = constructRepoPath(path).toFile();
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
             }
-            catch(Exception err) {
-            }
-
-            CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
-            Files.copy(content,constructRepoPath(path), options);
+            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
         }
         catch(Exception err) {
-            logger.error("error writing file: "+path, err);
+            logger.error("error writing file: " + path, err);
             success = false;
         }
 
@@ -135,7 +134,6 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
 
-        
         boolean success = true;
 
         try {
@@ -150,6 +148,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         }
         catch(Exception err) {
             // log this error
+            logger.error("Error while copping content from {0} to {1}", err, fromPath, toPath);
             success = false;
         }
 
@@ -195,13 +194,14 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
                     //Path visitFolder = constructRepoPath(visitFolderPath);
                     item.isFolder = visitPath.toFile().isDirectory();
-                    int lastIdx = visitFolderPath.lastIndexOf("/"+item.name);
+                    int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
                     if (lastIdx > 0) {
                         item.path = visitFolderPath.substring(0, lastIdx);
                     }
                     //item.path = visitFolderPath.replace("/" + item.name, "");
-                    item.path = item.path.replace(getRootPath(), "");
-                    item.path = item.path.replace("/.xml", "");
+                    item.path = item.path.replace(getRootPath().replace("/", File.separator), "");
+                    item.path = item.path.replace(File.separator + ".xml", "");
+                    item.path = item.path.replace(File.separator, "/");
 
                     if (!".DS_Store".equals(item.name)) {
                         logger.debug("ITEM NAME: {0}", item.name);
@@ -231,8 +231,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         final List<VersionTO> versionList = new ArrayList<VersionTO>();
 
         try {
-            final String pathToContent = path.substring(0, path.lastIndexOf("/"));
-            final String filename = path.substring(path.lastIndexOf("/")+1);
+            final String pathToContent = path.substring(0, path.lastIndexOf(File.separator));
+            final String filename = path.substring(path.lastIndexOf(File.separator) + 1);
  
             Path versionPath = constructVersionRepoPath(pathToContent);
 
@@ -291,13 +291,13 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
 
-                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
+                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf(File.separator));
                 Files.createDirectories(constructVersionRepoPath(pathToContent));
 
                 Files.copy(content, constructVersionRepoPath(versionPath), options);
             }
             catch(Exception err) {
-                logger.error("error versioning file: "+path, err);
+                logger.error("error versioning file: " + path, err);
                 versionId = null;
             }
             finally {
@@ -326,7 +326,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
-                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf("/"));
+                String pathToContent = versionPath.substring(0, versionPath.lastIndexOf(File.separator));
                 Files.createDirectories(constructVersionRepoPath(pathToContent));
                 Files.copy(versionContent, constructVersionRepoPath(versionPath), options);
 
@@ -335,7 +335,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 Files.copy(wipContent, constructRepoPath(path), options);
             }
             catch(Exception err) {
-                logger.error("error versioning file: "+path, err);
+                logger.error("error versioning file: " + path, err);
                 versionId = null;
             }
             finally {
@@ -383,7 +383,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         VersionTO[] versions = getContentVersionHistory(path);
 
         if(versions.length != 0) {
-            VersionTO latestVersion = versions[versions.length-1];
+            VersionTO latestVersion = versions[versions.length - 1];
 
             String label = latestVersion.getVersionNumber();
             String[] labelParts = label.split("\\.");
@@ -391,10 +391,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             int minor = Integer.parseInt(labelParts[1]);
 
             if(majorVersion) {
-                versionId = (major+1) + ".0";
+                versionId = (major + 1) + ".0";
             }
             else {
-                versionId = major + "." + (minor+1);
+                versionId = major + "." + (minor + 1);
             }                
         }
         else {
@@ -428,9 +428,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             RequestContext context = RequestContext.getCurrent();
             //ServletContext servletContext = context.getServletContext();
 
-            String bootstrapFolderPath = this.ctx.getRealPath("/repo-bootstrap/bootstrap.xml");
+            String bootstrapFolderPath = this.ctx.getRealPath(File.separator + "repo-bootstrap");// + File.separator + "bootstrap.xml");
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
-            source = source.getParent();
+            //source = source.getParent();
 
             logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
 
@@ -463,7 +463,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      */
     protected Path constructVersionRepoPath(String ... args) {
 
-        return java.nio.file.FileSystems.getDefault().getPath(rootPath+"/versions", args);
+        return java.nio.file.FileSystems.getDefault().getPath(rootPath + File.separator + "versions", args);
 
     }
 
