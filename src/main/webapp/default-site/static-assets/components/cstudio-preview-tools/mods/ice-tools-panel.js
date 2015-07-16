@@ -88,36 +88,41 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 
         window.frames['engineWindow'].addEventListener("load", function(){
 
-            var inside = this.contentDocument.querySelectorAll('[data-studio-ice]'),
-                regions = [];
+            try {
+                var inside = this.contentDocument.querySelectorAll('[data-studio-ice]'),
+                    regions = [];
 
-            if(inside.length > 0) {
+                if (inside.length > 0) {
 
-                for (var i = 0; i <= (inside.length) - 1; i++) {
-                    regions.push({id: inside[i].getAttribute('data-studio-ice'), formId: inside[i].getAttribute('data-studio-ice'), label: inside[i].getAttribute('data-studio-ice-label')});
-                }
-
-                regionSelectEl.options[0] = new Option("Jump to Region", "0", true, false);
-                for (var i = 0; i < regions.length; i++) {
-                    var label = (regions[i].label)
-                        ? regions[i].label
-                        : regions[i].id;
-                    regionSelectEl.options[i + 1] = new Option(label, '' + (i + 1), false, false);
-                }
-
-                regionSelectEl.onchange = function () {
-                    var selectedIndex = this.selectedIndex;
-                    if (selectedIndex != 0) {
-                        var region = regions[selectedIndex - 1];
-                        if (region.label) {
-                            amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '-label', region: region.label});
-                        } else {
-                            amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '', region: region.id});
-                        }
+                    for (var i = 0; i <= (inside.length) - 1; i++) {
+                        regions.push({id: inside[i].getAttribute('data-studio-ice'), formId: inside[i].getAttribute('data-studio-ice'), label: inside[i].getAttribute('data-studio-ice-label')});
                     }
-                };
-            }else{
-                regionSelectEl.options[0] = new Option("No Regions", "0", true, false);
+
+                    regionSelectEl.options[0] = new Option("Jump to Region", "0", true, false);
+                    for (var i = 0; i < regions.length; i++) {
+                        var label = (regions[i].label)
+                            ? regions[i].label
+                            : regions[i].id;
+                        regionSelectEl.options[i + 1] = new Option(label, '' + (i + 1), false, false);
+                    }
+
+                    regionSelectEl.onchange = function () {
+                        var selectedIndex = this.selectedIndex;
+                        if (selectedIndex != 0) {
+                            var region = regions[selectedIndex - 1];
+                            if (region.label) {
+                                amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '-label', region: region.label});
+                            } else {
+                                amplify.publish(cstopic('ICE_TOOLS_REGIONS'), {label: '', region: region.id});
+                            }
+                        }
+                    };
+                } else {
+                    regionSelectEl.options[0] = new Option("No Regions", "0", true, false);
+                }
+            }
+            catch(err){
+                console.log(err);
             }
 
         });

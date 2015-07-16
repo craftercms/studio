@@ -208,11 +208,18 @@
 
         setTimeout(function () {
             // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
-            if (siteChanged || (
-                win.src.replace(origin, '') !== hash.page &&
-                win.contentWindow.location.href.replace(origin, '') !== hash.page)) {
-                win.src = hash.page;
+            try{
+                if (siteChanged ||
+                    win.contentWindow.location.href.replace(origin, '') !== hash.page) {
+                    win.src = hash.page;
+                }
+            }catch (err){
+                if (siteChanged ||
+                    win.src.replace(origin, '') !== hash.page) {
+                    win.src = hash.page;
+                }
             }
+
         });
 
         var path = ('/site/website/' + ((hash.page.indexOf('.html') !== -1)
