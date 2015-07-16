@@ -578,7 +578,7 @@ implements SecurityProvider {
                 nodeRef = property.getValueAsString();
             }
         } catch (CmisBaseException e) {
-            logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
+            logger.warn("Object not found in CMIS repository for path: ", fullPath);
             throw new ContentNotFoundException(e);
         }
         return nodeRef;
