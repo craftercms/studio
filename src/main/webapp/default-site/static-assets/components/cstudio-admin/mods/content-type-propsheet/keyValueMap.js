@@ -68,12 +68,16 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 		var _self = this;
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
 		if(!keyValueDialogEl) {
+            var maskEl = document.createElement("div");
+            maskEl.id = 'keyValueDialogMask';
+            maskEl.style.display = 'block';
 			keyValueDialogEl = document.createElement("div");
 			keyValueDialogEl.id = 'keyValueDialog';
 			YAHOO.util.Dom.addClass(keyValueDialogEl, "property-dialog");
 			YAHOO.util.Dom.addClass(keyValueDialogEl, "seethrough");
 
-			document.body.appendChild(keyValueDialogEl);
+			document.body.appendChild(maskEl);
+            document.body.appendChild(keyValueDialogEl);
 			
 			// copy the values structure
 			keyValueDialogEl.values = [];
@@ -105,24 +109,24 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 		var buttonContainerEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(buttonContainerEl, "property-dialog-button-container");
 		keyValueDialogEl.appendChild(buttonContainerEl);
-		
-		var cancelEl = document.createElement("div");
-		cancelEl.style.right = "120px";
-		YAHOO.util.Dom.addClass(cancelEl, "cstudio-seethrough-dialog-button");
-		cancelEl.innerHTML = "Cancel";
-		buttonContainerEl.appendChild(cancelEl);
-
-		YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
-			_self.context.cancel();
-		}, cancelEl);			
 
 		var saveEl = document.createElement("div");
-		YAHOO.util.Dom.addClass(saveEl, "cstudio-seethrough-dialog-button");
+		YAHOO.util.Dom.addClass(saveEl, "btn btn-primary");
 		saveEl.innerHTML = "Save";
 		buttonContainerEl.appendChild(saveEl);
 		YAHOO.util.Event.on(saveEl, 'click', function(evt) {
 			_self.context.save();
-		}, saveEl);			
+		}, saveEl);
+
+        var cancelEl = document.createElement("div");
+        cancelEl.style.marginLeft = "6px";
+        YAHOO.util.Dom.addClass(cancelEl, "btn btn-default");
+        cancelEl.innerHTML = "Cancel";
+        buttonContainerEl.appendChild(cancelEl);
+
+        YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
+            _self.context.cancel();
+        }, cancelEl);
 	
 	},
 	
@@ -150,7 +154,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 			keyValueDialogEl.appendChild(valueTitleEl);
 
 			var addEl = document.createElement("div");
-			YAHOO.util.Dom.addClass(addEl, "property-dialog-add-link");
+			YAHOO.util.Dom.addClass(addEl, "property-dialog-add-link btn btn-default");
 			addEl.innerHTML = "Add Another";
 			addEl.index = i;
 			
@@ -227,13 +231,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 
 	cancel: function() {
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
+        var keyValueDialogMaskEl = document.getElementById("keyValueDialogMask");
+        keyValueDialogEl.parentNode.removeChild(keyValueDialogMaskEl);
 		keyValueDialogEl.parentNode.removeChild(keyValueDialogEl);
 	},
 
 	save: function() {
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
+        var keyValueDialogMaskEl = document.getElementById("keyValueDialogMask");
 		this.value = keyValueDialogEl.values;
 		this.valueEl.value = this.valueToString();
+        keyValueDialogEl.parentNode.removeChild(keyValueDialogMaskEl);
 		keyValueDialogEl.parentNode.removeChild(keyValueDialogEl);
 		this.updateFn(null, { fieldName: this.fieldName, value: this.valueToJsonString(this.value)});
 	}

@@ -440,21 +440,30 @@ body,tbody {
     position: fixed;
     top: 10%;
     left: 50%;
-    margin-left: -25%;
+    margin-left: -22%;
     color: white;
     width: 550px;
     max-height: 945px;
 }
 
-#keyValueDialogContainer {
+#keyValueDialogContainer, #richTextDialog .property-dialog-body-container {
     /*overflow-y: scroll;*/
     max-height: 420px;
+    padding: 20px 2px 12px;
+    border-bottom: 1px solid #DDD;
+}
+
+#richTextDialog .property-dialog-body-container {
+    padding-bottom: 20px;
 }
 
 .property-dialog-title {
 	font-weight: bold;
-	font-size: 15px;
-    margin: 10px;
+    color: #000;
+    font-size: 21px;
+    margin: 0;
+    padding: 26px 10px;
+    border-bottom: 1px solid #DDD;
 }
 
 .property-dialog-col-title {
@@ -465,16 +474,18 @@ body,tbody {
 }
 
 .property-dialog-row {
-    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.8);
-    margin-bottom: 2px;
-    margin-left: 2px;
-    margin-right: 2px;
+    background: none repeat scroll 0 0 rgba(245, 245, 245, 1);
+    margin-bottom: 9px;
     padding: 10px;
+    color: #414141;
+    border: solid 1px #DDD;
+    border-radius: 6px;
 }
 
 .property-dialog-button-container {
 	display: block;
-	margin-top: 40px;
+    margin: 28px 20px 25px 0px;
+    float: right;
 }
 
 .property-dialog-add-link {
@@ -483,6 +494,22 @@ body,tbody {
     font-weight: bold;
     margin-left: 10px;
     margin-right: 10px;
+    padding: 3px 12px;
+}
+
+#keyValueDialog .property-dialog-add-link.btn{
+    padding: 3px 12px;
+}
+
+#keyValueDialogMask {
+    background-color: rgb(68, 68, 68) !important;
+    opacity: 0.5 !important;
+    z-index: 1031 !important;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
 }
 
 #keyValueDialogContainer input{
@@ -602,12 +629,21 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
    -moz-box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px rgba(255,255,255,0.3)
 }
 
+#keyValueDialog.seethrough, #richTextDialog.seethrough{
+    padding: 0;
+    border:none;
+    border-radius: 6px;
+    background: white;
+    z-index: 99999;
+    box-shadow: none;
+}
+
 .rich-text-dialog {
     display: block;
     position: fixed;
     color: white;
     width: 50%;
-    top: 20%;
+    top: 18%;
 	left: 50%;
 	margin-left: -25%;
 	min-width: 408px;
