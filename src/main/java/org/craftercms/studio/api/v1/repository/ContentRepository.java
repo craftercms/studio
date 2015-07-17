@@ -137,7 +137,6 @@ public interface ContentRepository {
      * lock an item
      * NOTE: site will be removed from this interface
      * @param path
-     * @return document
      */
     void lockItem(String site, String path);
 
@@ -145,7 +144,6 @@ public interface ContentRepository {
      * unlock an item
      * NOTE: site will be removed from this interface
      * @param path
-     * @return document
      */
     void unLockItem(String site, String path);
 
