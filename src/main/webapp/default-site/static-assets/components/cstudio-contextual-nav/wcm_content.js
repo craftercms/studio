@@ -530,7 +530,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 };
                                 var content = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
                                 option.onclick = function() {
-                                    YDom.get("duplicate-loading").style.display = "block";
+                                    //YDom.get("duplicate-loading").style.display = "block";
                                     CStudioAuthoring.Operations.duplicateContent(
                                         CStudioAuthoringContext.site,
                                         content.uri,
