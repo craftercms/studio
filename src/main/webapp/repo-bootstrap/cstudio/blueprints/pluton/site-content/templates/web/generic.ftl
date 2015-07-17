@@ -1,4 +1,3 @@
-
 <#import "/templates/system/common/cstudio-support.ftl" as studio />
 
 <!DOCTYPE html>
@@ -21,12 +20,15 @@
 		<@renderComponent componentPath="/site/components/headers/global-header.xml" />
 
 
+
         <div id="about" class="section primary-section">
             <div class="container">
+
                 <div <@studio.iceAttr iceGroup="body"/> class="about-text">
                     ${model.body_html}
-                </div>
+                </div>            
             </div>
+            
         </div>
 
 		<@renderComponent componentPath="/site/components/footers/global-footer.xml" />

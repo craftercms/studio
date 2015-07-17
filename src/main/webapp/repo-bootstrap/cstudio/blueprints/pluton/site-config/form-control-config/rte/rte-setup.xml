@@ -292,8 +292,9 @@
      </rteStylesheets>
 
 	 <rteStyleOverride>
-	 	 .img-circle {}
-	 	 body { background: black; }
+	 	 .img-circle {  }
+	 	 .mceContentBody p { color:white; }
+	 	 body {  background-color: black !important; }
 	 	 h3 {  color: #FECE1A; }
 		 .layoutColumn { border: 1px solid gray; }
 		 .layoutColumn3 { border: 1px solid gray; }

@@ -77,7 +77,7 @@
 					<properties>
 						<property>
 							<name>width</name>
-							<value>900</value>
+							<value>800</value>
 							<type>int</type>
 						</property>
 						<property>

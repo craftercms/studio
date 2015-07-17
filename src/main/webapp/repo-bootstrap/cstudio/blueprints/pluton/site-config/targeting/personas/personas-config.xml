@@ -24,70 +24,11 @@
 
 
             <property>
-                <name>propertya</name>
-                <label>Property A</label>
-                <value>Value A</value>
+                <name>newletter</name>
+                <label>Signed up for newsletter</label>
+                <value>true</value>
             </property>
-            <property>
-                <name>propertyb</name>
-                <label>Property B</label>
-                <value>Value B</value>
-            </property>
-            <property>
-                <name>propertyc</name>
-                <label>Property C</label>
-                <value>Value C</value>
-            </property>
-            <property>
-                <name>propertyd</name>
-                <label>Property D</label>
-                <value>Value D</value>
-            </property>
-            <property>
-                <name>propertye</name>
-                <label>Property E</label>
-                <value>Value E</value>
-            </property>
-            <property>
-                <name>propertyf</name>
-                <label>Property F</label>
-                <value>Value F</value>
-            </property>
-            <property>
-                <name>propertyh</name>
-                <label>Property H</label>
-                <value>Value H</value>
-            </property>
-            <property>
-                <name>propertyi</name>
-                <label>Property I</label>
-                <value>Value I</value>
-            </property>
-            <property>
-                <name>propertyj</name>
-                <label>Property J</label>
-                <value>Value J</value>
-            </property>
-            <property>
-                <name>propertyk</name>
-                <label>Property K</label>
-                <value>Value K</value>
-            </property>
-            <property>
-                <name>propertyl</name>
-                <label>Property L</label>
-                <value>Value L</value>
-            </property>
-            <property>
-                <name>propertym</name>
-                <label>Property M</label>
-                <value>Value m</value>
-            </property>
-            <property>
-                <name>propertyn</name>
-                <label>Property N</label>
-                <value>Value N</value>
-            </property>
+
 
 
         </settings>

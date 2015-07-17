@@ -36,12 +36,13 @@
                         </#if>
 					</div>
                     <div class="span4" <@studio.componentContainerAttr target="zone3"/>>
+                       
 						<#if model.zone3?? && model.zone3.item??>
                           <#list model.zone3.item as module>
                               <@renderComponent component=module />
                           </#list>
-                        </#if>                       
-                       
+                        </#if>
+                        
                     </div>
                     <div class="span4" <@studio.componentContainerAttr target="zone4"/>>
 						<#if model.zone4?? && model.zone4.item??>

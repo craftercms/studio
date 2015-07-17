@@ -20,6 +20,9 @@
 			<key>employee</key>
 			<value>Employee</value>
 		</item>
-
+		<item>
+			<key>business-owner</key>
+			<value>Business Owner</value>
+		</item>
 	</values>
 </list>

@@ -20,13 +20,13 @@
                         <height></height>
                     </channel>
                     <channel>
-                        <title>iPhone 5 / iPhone 5S</title>
+                        <title>Smart Phone</title>
                         <value>iphone</value>
                         <width>320</width>
                         <height>568</height>
                     </channel>
                     <channel>
-                        <title>iPad</title>
+                        <title>Tablet</title>
                         <value>ipad</value>
                         <width>768</width>
                         <height>1024</height>

@@ -2,6 +2,7 @@
 <#import "/templates/system/common/craftercms-geo-lib.ftl" as crafter />
 <@crafter.browserGeoLocationSupport />
 
+<div class="content centered" <@studio.componentAttr path=model.storeUrl ice=true iceGroup="content" />>
 <#if crafter.browserCoords?? && crafter.browserCoords != "">
 	<#assign queryStatement = 'crafterSite:"pluton" ' />
 	<#assign queryStatement = queryStatement + 'AND content-type:"/component/store-location" ' />
@@ -19,8 +20,9 @@
 	<#assign executedQuery = searchService.search(query) />	
 
 
-	<div <@studio.componentAttr path=model.storeUrl ice=true iceGroup="content" />>
-	<#if executedQuery??>
+	
+
+   <#if executedQuery??>
 	  <#assign locations = executedQuery.response.documents />
   
 	  <h5>Stores Closest to You!</h5>
@@ -32,13 +34,13 @@
 	  </div>
 	  </#list>
 	</#if>
+ 
 <#else>
+ 
   <form>
-  	  <h5>[[${crafter.browserCoords}]]</h5>
-    Enter Zip Code to locate the store nearest you<br/><br/>
+    Enter zip to locate the<br/>office nearest you<br/><br/>
     <input > <br/><br/>
     <a href="#" style="margin-left:20px; color: white; border:1px solid #FECE1A;" class="da-link button">Locate Office</a>
     </form>
 </#if>
 </div>
-
