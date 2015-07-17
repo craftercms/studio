@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/closest-store</content-type>	<display-template>/templates/web/component-closest-store.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>6540</objectGroupId>
+	<objectId>65401eb2-f857-87d3-52fc-b5a68828a329</objectId>
+	<file-name>65401eb2-f857-87d3-52fc-b5a68828a329.xml</file-name>
+	<internal-name>Closest Store </internal-name>
+	<count>1</count>
+	<createdDate>6/30/2015 3:25:39</createdDate>
+	<lastModifiedDate>6/30/2015 3:25:39</lastModifiedDate>
+</component>

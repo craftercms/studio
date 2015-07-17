@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>ce8b</objectGroupId>
+	<objectId>ce8bce2e-6496-752d-c302-7718f1f65c77</objectId>
+	<file-name>ce8bce2e-6496-752d-c302-7718f1f65c77.xml</file-name>
+	<internal-name>Modern Design</internal-name>
+	<content_html>&lt;div class="centered service"&gt;
+&lt;div class="circle-border zoom-in"&gt;&lt;img class="img-circle" src="http://localhost:9090/static-assets/images/Service1.png" alt="service 1" /&gt;&lt;/div&gt;
+&lt;h3&gt;Modern Design 233&lt;/h3&gt;
+&lt;p&gt;We Create Modern And Clean Theme For Your Business Company.&lt;/p&gt;
+&lt;/div&gt;</content_html>
+	<createdDate>6/7/2015 9:47:50</createdDate>
+	<lastModifiedDate>7/11/2015 21:41:57</lastModifiedDate>
+</component>

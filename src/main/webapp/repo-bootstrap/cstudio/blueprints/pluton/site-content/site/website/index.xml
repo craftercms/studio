@@ -14,13 +14,13 @@
 	<objectId>88ec7583-75f5-cd9a-949f-8ee259ff8ce1</objectId>
 	<folder-name/>
 	<createdDate>6/3/2015 1:6:26</createdDate>
-	<lastModifiedDate>6/9/2015 14:21:53</lastModifiedDate>
+	<lastModifiedDate>6/29/2015 4:39:43</lastModifiedDate>
 	<col1Modules>	<item>	<key>/site/components/page/entry/69c848c3-b2e4-49fc-e37f-8eec2ffe3a76.xml</key>
 	<value>Home page targeted slider</value>
 	<include>/site/components/page/entry/69c848c3-b2e4-49fc-e37f-8eec2ffe3a76.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item>	<item>	<key>/site/components/page/entry/a7846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</key>
-	<value>What We Do</value>
+	<value>What We Do123</value>
 	<include>/site/components/page/entry/a7846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item>	<item>	<key>/site/components/page/entry/3d1d37e2-dfec-cec7-811c-5aeb767fbd95.xml</key>

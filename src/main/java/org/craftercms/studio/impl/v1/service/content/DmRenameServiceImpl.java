@@ -226,7 +226,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
             operation = new PreScheduleOperation(workflowService, uris,launchDate, context, rescheduledUris);
         }
-        workflowProcessor.addToWorkflow(site, paths,launchDate, label.toString(), operation, approver, mcpContext);
+        workflowProcessor.addToWorkflow(site, paths, launchDate, label.toString(), operation, approver, mcpContext);
         logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
     }
 
@@ -421,18 +421,17 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
                 ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
                 if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                    contentService.moveContent(site, sourcePath, targetPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), targetPath);
                 } else if (srcItem != null && !srcItem.isFolder()
                                 && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                    contentService.moveContent(site, sourcePath, dstPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 } else {
-                    contentService.moveContent(site, sourcePath, dstPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 }
             } else {
-                contentService.moveContent(site, sourcePath, dstPath);
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
             }
-            contentService.deleteContent(site, ContentUtils.getParentUrl(sourcePath));
 
             ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
             if (item == null) {
@@ -615,6 +614,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         objectStateService.updateObjectPath(site, oldUri, relativePath);
         objectMetadataManager.updateObjectPath(site, oldUri, relativePath);
         ObjectMetadata metadata = objectMetadataManager.getProperties(site, relativePath);
+        if (metadata == null) {
+            metadata = new ObjectMetadata();
+        }
         Map<String, Object> properties = new HashMap<String, Object>();
         if (addNodeProperty && StringUtils.isEmpty(metadata.getOldUrl()) && fileContent) {
             properties.put(ObjectMetadata.PROP_RENAMED, 1);
@@ -624,6 +626,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         } else {
             String indexRelativePath = getIndexFilePath(relativePath);
             metadata = objectMetadataManager.getProperties(site, indexRelativePath);
+            if (metadata == null) {
+                metadata = new ObjectMetadata();
+            }
             properties.put(ObjectMetadata.PROP_RENAMED, 1);
             if (StringUtils.isEmpty(metadata.getOldUrl())) {
                 properties.put(ObjectMetadata.PROP_OLD_URL, oldUri);

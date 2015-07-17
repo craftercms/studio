@@ -303,7 +303,7 @@
 					<constraints>
 						<constraint>
 							<name>minSize</name>
-							<value><![CDATA[1]]></value>
+							<value><![CDATA[]]></value>
 							<type>int</type>
 						</constraint>
 					</constraints>
