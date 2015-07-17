@@ -161,7 +161,23 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean success = true;
 
         try {
-            FileUtils.moveFileToDirectory(constructRepoPath(fromPath).toFile(), constructRepoPath(toPath).toFile(), true);
+            File source = constructRepoPath(fromPath).toFile();
+            File dest = constructRepoPath(toPath).toFile();
+            if (!dest.exists()) {
+                dest.mkdirs();
+            }
+            if (source.isDirectory()) {
+                File[] dirList = source.listFiles();
+                for (File file : dirList) {
+                    if (file.isDirectory()) {
+                        FileUtils.moveDirectoryToDirectory(file, dest, true);
+                    } else {
+                        FileUtils.moveFileToDirectory(file, dest, true);
+                    }
+                }
+                source.delete();
+            }
+            FileUtils.moveFileToDirectory(source, dest, true);
         }
         catch(Exception err) {
             // log this error
