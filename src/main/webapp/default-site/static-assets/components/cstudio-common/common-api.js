@@ -1728,11 +1728,12 @@ var YEvent = YAHOO.util.Event;
             //             }
             //         },
             duplicateContent: function(site, path, argsCallback) {
-                //var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
-                // this method should just call a service and open the content but it has to do some work for now
-                CStudioAuthoring.Service.getContent(path, true, {
+
+                CStudioAuthoring.Service.getContent(path, false, {
                     success: function(parentContent) {
-                        // determine the ID of the top level object\
+                        // determine the ID of the top level object
+//parentContent = parentContent.responseText;
+
                         var origObjectIdPos = parentContent.indexOf("objectId")+9;
                         var origObjectId = parentContent.substr(origObjectIdPos, 36);
                         var origGroupId = origObjectId.substr(0,4);
@@ -1742,9 +1743,12 @@ var YEvent = YAHOO.util.Event;
                         var contentType = parentContent.substr(contentTypePos, contentTypeEndPos-contentTypePos);
                       
                         // find a list of paths like a "/site/components/page/GRPID/OBJID/*.xml"
-                        var dependencyRegExp = new RegExp("(\\/site\\/components\\/page\\/"+origGroupId+"\\/"+origObjectId+"\\/([^&lt;]+)\\.xml)");
-                        var dependencies = dependencyRegExp.exec(parentContent); 
-                        dependencies = (dependencies) ? dependencies : [];
+                        var dependencyRegExp = new RegExp("(\\/site\\/components\\/page\\/"+origGroupId+"\\/"+origObjectId+"\\/([^\.]+)\\.xml)","gm");
+
+var dependencies = [];
+while(found=dependencyRegExp.exec(parentContent)) {
+  dependencies.push(found[0]);
+}
 
                         // create a new ID for this page
                         var newObjectId = CStudioAuthoring.Utils.generateUUID();
@@ -1765,8 +1769,9 @@ var YEvent = YAHOO.util.Event;
                                 parentContent = parentContent.replace(replaceIdRegex, newDepPath);
 
                                 // load the dependency
-                                CStudioAuthoring.Service.getContent(dependencyPath, true, {
+                                CStudioAuthoring.Service.getContent(dependencyPath, false, {
                                     success: function(dependencyContent) {
+//dependencyContent = dependencyContent.responseText;
                                         var childSaveCb = {
                                             success: function(){}, 
                                             failure: function(){}
@@ -1777,13 +1782,13 @@ var YEvent = YAHOO.util.Event;
                                         var childContentTypeEndPos = dependencyContent.indexOf("<", childContentTypePos);
                                         var childContentType = dependencyContent.substr(childContentTypePos, childContentTypeEndPos-childContentTypePos);
 
-                                        var writeChildFileName = newDepPath.substr(newDepPath.lastIndexOf("/")+1);
-                                        var writeChildPath = newDepPath.substr(0, newDepPath.lastIndexOf("/"));
-                                        writeChildServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writeChildPath, writeChildFileName, null, childContentType, CStudioAuthoringContext.site, true, false, false, true);
+                                        var writeChildFileName = this.path.substr(newDepPath.lastIndexOf("/")+1);
+                                        var writeChildPath = this.path; //.substr(0, newDepPath.lastIndexOf("/"));
+                                        var writeChildServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writeChildPath, writeChildFileName, null, childContentType, CStudioAuthoringContext.site, true, false, false, true);
 
-//                                        var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-//                                                            + "?site=" + CStudioAuthoringContext.site 
-//                                                            + "&path=" + parentContent;
+                                        //var writeChildServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
+                                        //                    + "?site=" + CStudioAuthoringContext.site 
+                                        //                    + "&path=" + writeChildPath;
                                                             
                                         YAHOO.util.Connect.setDefaultPostHeader(false);
                                         YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
@@ -1791,7 +1796,8 @@ var YEvent = YAHOO.util.Event;
                                     },
                                     failure: function(err) {
                                         alert("failed to load component content: "+err);
-                                    }
+                                    },
+                                    path: newDepPath
                                 });
                             }
                         }
@@ -1802,19 +1808,33 @@ var YEvent = YAHOO.util.Event;
 
                         // save the top level content
                         var writeFileName = newPath.substr(newPath.lastIndexOf("/")+1);
-                        var writePath = newPath.substr(0, newPath.lastIndexOf("/"));
-                        writeServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writePath, writeFileName, null, contentType, CStudioAuthoringContext.site, true, false, false, true);
-                                          //"/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-                                          //  + "?site=" +  
-                                          //  + "&path=" + newPath;
+                        var writePath = newPath; //.substr(0, newPath.lastIndexOf("/"));
+                        var writeServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writePath, writeFileName, null, contentType, CStudioAuthoringContext.site, true, false, false, true);
+                        //var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
+                        //                    + "?site=" + CStudioAuthoringContext.site 
+                        //                    + "&path=" + writePath;
                         
-                        var parentSaveCb = {
+var parentSaveCb = {
                             success: function(){
                                 // open the top level content for edit
-                                CStudioAuthoring.Operations.editContent(
-                                contentType,
-                                CStudioAuthoringContext.site, newPath, 
-                                "", newPath, false); //cb,aux);
+                                var getContentItemCb = {
+                                    success: function (contentTO) {
+                                          contentTO = contentTO.item;
+                                         CStudioAuthoring.Operations.editContent(
+                                            contentType, //contentTO.form,
+                                            CStudioAuthoringContext.siteId,
+                                            newPath, //contentTO.uri,
+                                            null, //contentTO.nodeRef,
+                                            newPath, //contentTO.uri,
+                                            false,
+                                            { success: function() {}, failure: function() {}});
+                                    },
+                                    failure: function() {
+
+                                    }
+                                };
+
+                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, newPath, getContentItemCb, false, false);            
                             }, 
                             failure: function(){}
                         };
