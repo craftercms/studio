@@ -75,7 +75,8 @@ public class EnvironmentStoreDeployer implements Deployer{
 */
     @Override
     public void deleteFile(String site, String path) {
-
+        File file = new File(getDestinationPath(site, path, environment));
+        file.delete();
     }
 /*
     @Override

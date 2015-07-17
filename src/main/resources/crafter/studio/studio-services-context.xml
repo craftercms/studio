@@ -66,6 +66,8 @@
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="securityProvider" ref="securityProvider"/>
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->

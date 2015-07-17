@@ -42,11 +42,9 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.content.DmRenameService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -164,7 +162,7 @@ public class ContentServiceImpl implements ContentService {
         }
         catch(Exception err) {
             // configurable weather or not to blow up the entire write?
-            logger.error("Failed to create version for object at path: "+path, err);
+            logger.error("Failed to create version for object at path: " + path, err);
         }
 
        return writeSuccess;
@@ -397,11 +395,35 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path) {
+        generateDeleteActivity(site, path);
         boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
         return toRet;
+    }
+
+    protected void generateDeleteActivity(String site, String path) {
+        String approver = securityService.getCurrentUser();
+        boolean exists = contentExists(site, path);
+        if (exists) {
+            ObjectMetadata properties = objectMetadataManager.getProperties(site, path);
+            String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties.getSubmittedBy() : approver);
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            if (path.endsWith(DmConstants.XML_PATTERN)) {
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
+            }
+            logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
+
+            activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, extraInfo);
+            // process content life cycle
+            if (path.endsWith(DmConstants.XML_PATTERN)) {
+
+                String contentType = getContentTypeClass(site, path);
+                dmContentLifeCycleService.process(site, user, path,
+                        contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
+            }
+        }
     }
 
     @Override
@@ -1236,6 +1258,8 @@ public class ContentServiceImpl implements ContentService {
     protected Reactor repositoryReactor;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected SecurityProvider securityProvider;
+    protected ActivityService activityService;
+    protected DmContentLifeCycleService dmContentLifeCycleService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1272,4 +1296,10 @@ public class ContentServiceImpl implements ContentService {
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+
+    public ActivityService getActivityService() { return activityService; }
+    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
+
+    public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
+    public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
 }
