@@ -125,16 +125,28 @@ public interface ContentRepository {
      */
     boolean revertContent(String path, String version, boolean major, String comment);
 
+    /**
+     * get the modified date for an oject at path
+     * NOTE: THis should be move to a get metadata of some sort that returns a structure with additional data
+     * @param path
+     * @return document
+     */
     Date getModifiedDate(String path);
 
-
-
-
-
-/* ===  */
-// Maybes
+    /**
+     * lock an item
+     * NOTE: site will be removed from this interface
+     * @param path
+     * @return document
+     */
     void lockItem(String site, String path);
 
+    /**
+     * unlock an item
+     * NOTE: site will be removed from this interface
+     * @param path
+     * @return document
+     */
     void unLockItem(String site, String path);
 
 
