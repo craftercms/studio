@@ -222,7 +222,7 @@
                 body = agent.get("SUCCESS", {
                     msg: message
                 });
-            this.getComponent(".cstudio-view.admin-delete-view").innerHTML = body;
+            this.getComponent(".studio-view.admin-delete-view").innerHTML = body;
             Event.addListener(this.getComponent(".action-complete-close"), "click", function(){
                 this.end();
             }, null, this);

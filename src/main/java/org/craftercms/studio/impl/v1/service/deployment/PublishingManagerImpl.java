@@ -23,6 +23,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -31,6 +32,7 @@ import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
@@ -207,11 +209,12 @@ public class PublishingManagerImpl implements PublishingManager {
                         //eventItem.setState(DeploymentEventItem.STATE_DELETED);
                         deletedFiles.add(item.getPath());
                         if (item.getPath().endsWith("/" + indexFile)) {
+                            String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
                             String folderPath = item.getPath().replace("/" + indexFile, "");
-                            /*
-                            if (contentRepository.numberOfChildren(site, folderPath) < 1) {
-                                sbDeletedFiles.append(FILES_SEPARATOR).append(folderPath);
-                            }*/
+                            if (children.length < 2) {
+                                deletedFiles.add(folderPath);
+                            }
                         }
                     } else {
                         filesToDeploy.add(item.getPath());
@@ -334,11 +337,26 @@ public class PublishingManagerImpl implements PublishingManager {
             if (item.getOldPath() != null && item.getOldPath().length() > 0) {
                 contentService.deleteContent(item.getSite(), item.getOldPath());
                 deployer.deleteFile(item.getSite(), item.getOldPath());
+
                 objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
             }
+            boolean haschildren = false;
             deployer.deleteFile(item.getSite(), item.getPath());
+            if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
+                String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                if (children.length < 2) {
+                    deployer.deleteFile(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                } else {
+                    haschildren = true;
+                }
+            }
+
             if (isLive) {
                 contentService.deleteContent(item.getSite(), item.getPath());
+                if (!haschildren) {
+                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                }
             }
         } else {
             LOGGER.debug("Setting system processing for {0}:{1}", item.getSite(), item.getPath());
