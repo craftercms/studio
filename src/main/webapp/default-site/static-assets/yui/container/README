@@ -125,7 +125,7 @@ Fixed the following bugs:
 
 + Module.setBody, setHeader and setFooter methods now accept
   DocumentFragments. This feature was implicitly available
-  in versions prior to 2.5.0 and is now officially supported.
+  in versions prior to 2.5.1-SNAPSHOT and is now officially supported.
 
 Changes:
 --------
@@ -154,7 +154,7 @@ Changes:
   accessible using the keyboard, however the mask will still 
   prevent mouse access to elements.
 
-*** version 2.5.0 ***
+*** version 2.5.1-SNAPSHOT ***
 
 Fixed the following bugs:
 -------------------------

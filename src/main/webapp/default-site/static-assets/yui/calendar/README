@@ -64,7 +64,7 @@ Calendar Release Notes
   by setting the value of YAHOO.widget.DateMath.WEEK_ONE_JAN_DATE
   to 4.
 
-*** version 2.5.0 *** 
+*** version 2.5.1-SNAPSHOT *** 
 
 + Prevent default event handling in CalendarNavigator enter key 
   listener, to prevent automatic form submission when using Calendar
