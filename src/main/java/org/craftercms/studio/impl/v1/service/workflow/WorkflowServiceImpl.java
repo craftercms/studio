@@ -940,6 +940,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     doDelete(site, submittedItems, approver);
             }
             result.setSuccess(true);
+            result.setStatus(200);
             result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
 
         } catch (JSONException e) {
