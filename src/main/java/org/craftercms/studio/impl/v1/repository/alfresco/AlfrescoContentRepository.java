@@ -417,7 +417,7 @@ implements SecurityProvider {
     /**
      * Get the alfresco ticket from the URL or the cookie or from an authorinization
      */
-    protected String getAlfTicket() {
+    public String getAlfTicket() {
         return this.getSessionTicket();
     }
 

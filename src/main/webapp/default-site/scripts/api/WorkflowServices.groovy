@@ -1,8 +1,16 @@
+
 package scripts.api
+
+@Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.2' )
+@Grab(group='org.apache.httpcomponents', module='httpclient', version='4.1' )
 
 import scripts.api.ServiceFactory
 import groovy.util.logging.Log
 
+import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.ContentType
+import groovyx.net.http.Method
+import groovyx.net.http.RESTClient
 /** 
  * workflow services
  */
@@ -75,14 +83,85 @@ class WorkflowServices {
 	}
 
 	/**
-	 * crate a workflow job
+	 * create a workflow job
 	 * @param site - the project ID
 	 * @param items - collection of items
 	 * @param workflowID - id of workflow
 	 */
 	static createWorkflowJob(context, site, items, workflowId, properties) {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context)
-		return workflowServicesImpl.createWorkflowJob(context, site, items, workflowId, properties)
+		def ret = ""
+		def getNodeRefResponse = ""
+		def furl = ""
+
+		if(workflowId.indexOf("activiti") != -1) {
+			// lookup item node refs
+			def alfrescoConnector = context.applicationContext.get("cstudioAlfrescoContentRepository")
+			def alfItems = []
+			def assignee = "admin"
+			def processDefinitionId = workflowId //"activitiAdhoc:1:4"
+			def processDefinitionKey = processDefinitionId.substring(processDefinitionId.indexOf(":"))
+
+			def host = alfrescoConnector.getAlfrescoUrl() //"http://127.0.0.1:7080"
+		    def alfTicket = alfrescoConnector.getAlfTicket()
+ 			def http = new HTTPBuilder(host)
+
+
+		    def serviceGetNodeID = "/alfresco/service/api/nodelocator/xpath"
+		    for(int i=0; i<items.size; i++) {
+		    	def cmsPath = items[i] 
+		    	def contentPath = "/wem-projects/"+site+"/"+site+"/work-area"+cmsPath
+		    	def alfPath = "/app:company_home" + contentPath.replaceAll("/", "/cm:")
+
+				http.get(
+ 					path: serviceGetNodeID,
+ 					query: ["alf_ticket": alfTicket, "query": alfPath],
+ 				) { resp, reader -> [reader,resp.status]
+ 					getNodeRefResponse = reader
+ 					getNodeRefResponse = ""+getNodeRefResponse.data.nodeRef
+					getNodeRefResponse = getNodeRefResponse.replace("workspace://SpacesStore/","")
+					alfItems.add(getNodeRefResponse)
+ 				}
+ 
+		    }
+
+		    def servicePath = "/alfresco/api/-default-/public/workflow/versions/1/processes"
+
+		    def serviceBody = "{" + 
+	   				"\"processDefinitionId\":\""+processDefinitionId+"\"," +
+					"\"processDefinitionKey\": \""+processDefinitionKey+"\"," +
+	   				"\"variables\":{" +
+		      			"\"bpm_assignee\":\""+ assignee +"\"" +
+	   				"}," +
+	   				"\"items\":["
+
+					    for(int j=0; j<alfItems.size; j++) {
+					    	serviceBody += "\""+alfItems[j]+"\""
+
+					    	if(j<(alfItems.size-1)) {
+					    		serviceBody += ","
+					    	} 
+					    }	   				
+	   			serviceBody += "]}"
+		    
+			try{
+ 				http.post(
+ 					path: servicePath,
+ 					query: ["alf_ticket": alfTicket],
+ 					body: serviceBody
+ 				) { resp, reader -> [reader,resp.status]
+ 					ret = reader
+ 				}
+
+	            return ret;    
+			}
+			catch(err) {
+				throw new Exception ("error starting Alfresco workflow: "+err+":"+ret)
+			}
+		}
+		else {
+			return workflowServicesImpl.createWorkflowJob(context, site, items, workflowId, properties)
+		}
 	}
 
 	/**
