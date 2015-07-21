@@ -836,9 +836,9 @@
 .date-time-container > .date-link:hover,
 .date-time-container > .clear-link:hover { text-decoration: none; }
 .date-time-container .time-container { display: inline-block; position: relative; margin-right: 3px; }
-.date-time-container .time-control { background-color: #FFFFFF; width: 92px; border: 1px solid #C5D6E2; color: #000000; margin: 0 2px 0 0; padding: 2px 3px; }
-.date-time-container .time-increment { background: url(../images/bg/up.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 9px; width: 15px; position: absolute; right: 3px; top: 1px; }
-.date-time-container .time-decrement { background: url(../images/bg/down.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 9px; width: 15px; position: absolute; right: 3px; bottom: 1px; }
+.date-time-container .time-control { background-color: #FFFFFF; width: 100px; border: 1px solid #C5D6E2; color: #000000; margin: 0 2px 0 0; padding: 2px 3px; }
+.date-time-container .time-increment { background: url(../images/bg/up.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 10.5px; width: 19px; position: absolute; right: 3px; top: 2px; background-size: 18px;}
+.date-time-container .time-decrement { background: url(../images/bg/down.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 10.5px; width: 19px; position: absolute; right: 3px; bottom: 1px; background-size: 18px;}
 .date-time-container .warning { font-size: 11px; color: #D50; width: 100%; }
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
