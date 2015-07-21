@@ -320,9 +320,8 @@ public class DeploymentServiceImpl implements DeploymentService {
      */
     protected ContentItemTO getDeployedItem(String site, String path) {
 
-        ContentItemTO item;
-        item = contentService.getContentItem(site, path, 0);
-        if (item == null) {
+        ContentItemTO item = null;
+        if (!contentService.contentExists(site, path)) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
             ActivityFeed activity = activityService.getDeletedActivity(site, path);
             if (activity != null) {
@@ -340,6 +339,9 @@ public class DeploymentServiceImpl implements DeploymentService {
                     item.browserUri = browserUri;
                 }
             }
+            item.setLockOwner("");
+        } else {
+            item = contentService.getContentItem(site, path, 0);
         }
         return item;
 

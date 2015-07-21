@@ -130,6 +130,10 @@
                         }
                     ]
                 })
+                .state('logout', {
+                    url: 'logout',
+                    controller: 'AppCtrl'
+                })
                 .state('preview', {
                     url: '/preview?site&url',
                     cssClass: 'studio-preview',
@@ -187,6 +191,9 @@
             };
 
             this.logout = function () {
+                console.info("Logging out");
+                $http.post(api('logout'), null);
+                console.info("Done!");
                 user = null;
             };
 
@@ -297,6 +304,7 @@
         function ($scope, $state, authService, Constants) {
 
             function logout() {
+                console.info("Logging out 2");
                 authService.logout();
                 $state.go('login');
             }

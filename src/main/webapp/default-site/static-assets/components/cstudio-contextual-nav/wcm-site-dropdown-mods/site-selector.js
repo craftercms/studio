@@ -74,11 +74,11 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 					// set the cookie for preview and then redirect
 					if(shortName != "_ALL_SITES_") {
 						CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
-						window.location =CStudioAuthoringContext.authoringAppBaseUri + "/preview?site="+shortName;
+						window.location = CStudioAuthoringContext.authoringAppBaseUri + "/preview?site="+shortName;
 					}
 					else {
 						CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
-						window.location =CStudioAuthoringContext.authoringAppBaseUri;
+						window.location = CStudioAuthoringContext.authoringAppBaseUri + "/#/sites";
 					}						
 				};
 			},

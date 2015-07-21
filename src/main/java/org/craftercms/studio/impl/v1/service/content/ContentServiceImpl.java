@@ -888,6 +888,7 @@ public class ContentServiceImpl implements ContentService {
         }
         // set if the content is new
         item.isDeleted = true;
+        item.deleted = true;
         item.isContainer = false;
         item.container = false;
         //item.isNewFile = false;
