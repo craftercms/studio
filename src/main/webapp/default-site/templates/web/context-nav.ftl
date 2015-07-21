@@ -25,7 +25,7 @@
 
                 <ul class="nav navbar-nav" id="activeContentActions"></ul>
 
-                <a class="navbar-text navbar-right" href="/studio/logout" style="margin-left: 0; margin-right:0;">Sign Out</a>
+                <a id="acn-logout-link" class="navbar-text navbar-right" style="margin-left: 0; margin-right:0;">Sign Out</a>
                 <div id="acn-persona" class="navbar-right"></div>
                 <div class="navbar-form navbar-right" role="search">
                     <div class="form-group">

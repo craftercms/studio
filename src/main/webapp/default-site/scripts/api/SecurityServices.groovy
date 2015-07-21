@@ -71,4 +71,9 @@ class SecurityServices {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getUserRoles(site, user)
 	}
+
+    static logout(context) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.logout();
+    }
 }

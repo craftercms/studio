@@ -52,4 +52,6 @@ public interface SecurityService {
     void addUserGroup(String parentGroup, String groupName);
 
     void addUserToGroup(String groupName, String user);
+
+    boolean logout();
 }

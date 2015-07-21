@@ -155,4 +155,11 @@ public class TestSecurityProvider implements SecurityProvider {
     public String getCurrentToken() {
         return activeProcess.get("ticket");
     }
+
+    @Override
+    public boolean logout() {
+        activeUser.remove("username");
+        activeUser.remove("ticket");
+        return true;
+    }
 }

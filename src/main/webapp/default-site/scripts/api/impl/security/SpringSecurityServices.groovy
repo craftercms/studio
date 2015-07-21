@@ -61,5 +61,8 @@ class SpringSecurityServices {
         return springBackedService.validateTicket(token)
     }
 
-
+    def logout() {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.logout()
+    }
 }

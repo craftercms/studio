@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,33 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.security;
+import scripts.api.SecurityServices
 
-import java.util.Set;
-import java.util.Map;
+def result = [:]
 
-/**
- * @author Dejan Brkic
- */
-public interface SecurityProvider {
+try {
+    def context = SecurityServices.createContext(applicationContext, request)
+    result.success = SecurityServices.logout(context)
 
-    Set<String> getUserGroups(String user);
+    result.user = null
 
-    String getCurrentUser();
-
-    Map<String, String> getUserProfile(String user);
-
-    String authenticate(String username, String password);
-
-    boolean validateTicket(String ticket);
-
-    void addUserGroup(String groupName);
-
-    void addUserGroup(String parentGroup, String groupName);
-
-    String getCurrentToken();
-
-    void addUserToGroup(String groupName, String user);
-
-    boolean logout();
+    if (result.success) {
+        result.type = "success"
+        result.message = "Logout successful"
+    } else {
+        result.type = "failure"
+        result.message = "Logout failed"
+    }
+} catch(err) {
+    result.exception = err
+    result.type = "error"
+    result.message = "Error while logging out"
 }
