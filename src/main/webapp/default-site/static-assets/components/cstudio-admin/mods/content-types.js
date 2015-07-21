@@ -944,30 +944,47 @@ YAHOO.extend(DragAndDropDecorator, YAHOO.util.DDProxy, {
 				if(destEl) {
 					if(YAHOO.util.Dom.hasClass(srcEl, "control-section")) {
 						// new control from toolbar
-						var form = (destEl.section) ? destEl.section.form : destEl.definition;
-						item = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.insertNewSection(form);
-						handled = true;
+                        if(!YAHOO.util.Dom.hasClass(destEl, "content-type-visual-field-container") &&
+                            !YAHOO.util.Dom.hasClass(destEl, "content-type-visual-section-container")&&
+                            !YAHOO.util.Dom.hasClass(destEl, "content-type-datasources-container")) {
+                            var form = (destEl.section) ? destEl.section.form : destEl.definition;
+                            item = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.insertNewSection(form);
+                            handled = true;
+                        }
 					}
 					else if(YAHOO.util.Dom.hasClass(srcEl, "new-control-type")) {
 						// new control from toolbar
-						if(destEl.section) {
+                        var form =  null;
+
+                        if(destEl.section) {
+                            form = destEl.section;
+                        }
+                        else if(destEl.field) {
+                            form = destEl.field.section;
+                        }
+
+                        if(form != null) {
 							item = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.insertNewField(
-								destEl.section, srcEl.prototypeField);
+                                form, srcEl.prototypeField);
 							handled = true;
 						}
 					}
 					else if(YAHOO.util.Dom.hasClass(srcEl, "new-datasource-type")) {
 						var form =  null;
-						
-						if(destEl.definition) {
-							 form = destEl.definition;
-						}
-						else if(destEl.field) {
-							form = destEl.field.section.form;
-						}
-						else if(destEl.section) {
-							form = destEl.section.form;
-						}
+
+                        if(!YAHOO.util.Dom.hasClass(destEl, "content-type-visual-field-container") &&
+                           !YAHOO.util.Dom.hasClass(destEl, "content-type-visual-section-container")) {
+
+                            if (destEl.definition) {
+                                form = destEl.definition;
+                            }
+                            else if (destEl.field) {
+                                form = destEl.field.section.form;
+                            }
+                            else if (destEl.section) {
+                                form = destEl.section.form;
+                            }
+                        }
 						
 						if (form != null) {
     						    item = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.insertNewDatasource(form, srcEl.prototypeDatasource);
