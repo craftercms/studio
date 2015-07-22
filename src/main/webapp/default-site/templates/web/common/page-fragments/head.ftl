@@ -13,6 +13,9 @@
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/contextNav.css"/>
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css" />
 <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/styleicon.css" />
+<!--[if IE 9]>
+	<link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/ie9.css" />
+<![endif]-->
 
 <script src="/studio/static-assets/yui/utilities/utilities.js"></script>
 <script src="/studio/static-assets/yui/button/button-min.js"></script>
