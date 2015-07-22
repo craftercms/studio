@@ -54,11 +54,25 @@
         WHERE site = #{site} AND path = #{path}
     </select>
 
+    <update id="setSystemProcessingBySiteAndPath" databaseId="postgres" parameterType="java.util.Map">
+        UPDATE cstudio_objectstate
+        SET system_processing = case when (#{system_processing} = TRUE) then 1::bit when (#{system_processing} = FALSE) then 0::bit end
+        WHERE site = #{site} AND path = #{path}
+    </update>
+
     <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map">
         UPDATE cstudio_objectstate
         SET system_processing = #{systemProcessing}
         WHERE site = #{site} AND path = #{path}
     </update>
+
+    <insert id="insertEntry" databaseId="postgres" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" >
+        INSERT INTO
+        cstudio_objectstate
+        (object_id, site, path, state, system_processing)
+        VALUES
+        (#{objectId}, #{site}, #{path}, #{state}, B'0')
+    </insert>
 
     <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" >
         INSERT INTO
@@ -67,6 +81,8 @@
         VALUES
         (#{objectId}, #{site}, #{path}, #{state}, 0)
     </insert>
+
+
 
     <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState">
         UPDATE cstudio_objectstate

@@ -16,7 +16,7 @@
                             <prop key="DB2">db2</prop>
                             <prop key="Oracle">oracle</prop>
                             <prop key="MySQL">mysql</prop>
-                            <prop key="Postgres">postgres</prop>
+                            <prop key="PostgreSQL">postgres</prop>
                             <prop key="Derby">derby</prop>
                      </props>
               </property>
