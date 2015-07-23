@@ -200,3 +200,14 @@ div#acn-dropdown-menu-inner div:last-child {
 .yui-skin-cstudioTheme .yuimenu .bd, .yui-menu-shadow{
     border-radius: 6px;
 }
+
+.dialog-dialog-mask{
+    background-color: rgb(68, 68, 68) !important;
+    opacity: 0.5 !important;
+    z-index: 1031 !important;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
