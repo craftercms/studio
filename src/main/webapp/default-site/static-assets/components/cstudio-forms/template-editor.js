@@ -140,6 +140,9 @@ CStudioAuthoring.Module.requireModule(
 										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" />"},
 										    {label:"Component attribute", value:"<@studio.componentAttr path=model.storeUrl ice=false />"},
 										    {label:"Render list of components", value:"<#list model.VARIABLENAME.item as module>\r\n\t<@renderComponent component=module />\r\n</#list>"},
+										    {label:"Iterate over a list of items and load content item", value:"<#list model.VARIABLENAME.item as myItem>\r\n\t<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />\r\n\t${myContentItem.variableName}\r\n</#list>"},
+										    {label:"Iterate over repeat group", value:"<#list model.VARIABLENAME.item as row>\r\n\t${row.VARIABLENAME}\r\n</#list>"},
+
 
 										    {label:"Freemarker value assignment", value:"<#assign imageSource = model.image!\"\" />"},
 										    {label:"Freemarker value IF", value:"<#if CONDITION>\r\n\t...\r\n</#if>"},
