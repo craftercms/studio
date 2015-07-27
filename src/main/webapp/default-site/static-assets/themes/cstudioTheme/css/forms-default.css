@@ -333,31 +333,43 @@
 #help-dialog {
 	display: block;
 	position: fixed;
-	color: white;
-	width: 50%;
+	color: black;
+	width: 32%;
 	top: 20%;
-	left: 50%;
+	left: 57%;
 	margin-left: -25%;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: none;
+    border: 1px solid #EEE;
+    z-index: 1036;
 }
 
 #help-dialog .dialog-title {
 	font-weight: bold;
-	font-size: 15px;
-    margin: 10px;
-	text-align: center;
+    font-size: 21px;
+    padding: 10px;
+	text-align: left;
+    border-bottom: 1px solid #DDD;
 }
 
 #help-dialog .dialog-body {
-    padding: 5px 15px;
+    padding: 30px 15px;
     height: auto;
     max-height: 300px;
     overflow-y: auto;
+    border-bottom: 1px solid #DDD;
 }
 
 #help-dialog .dialog-button-bar {
-	margin: 10px 10px 5px 0px;
+	margin: 20px 15px 20px 0px;
 	text-align: right;
 }
+
+#help-dialog .btn{
+    display: inline-block;
+}
+
 
 #help-dialog .dialog-button {
 	background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green-button.png");
@@ -415,6 +427,18 @@
 #help-dialog center          { text-align: center }
 #help-dialog :link, #help-dialog :visited { text-decoration: underline }
 #help-dialog :focus          { outline: thin dotted invert }
+
+.dialog-dialog-mask{
+    background-color: rgb(68, 68, 68) !important;
+    opacity: 0.5 !important;
+    z-index: 1031 !important;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
 /* -- End Help Dialog -- */
 
 
