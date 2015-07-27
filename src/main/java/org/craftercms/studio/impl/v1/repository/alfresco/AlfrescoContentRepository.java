@@ -44,6 +44,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -416,7 +417,7 @@ implements SecurityProvider {
     /**
      * Get the alfresco ticket from the URL or the cookie or from an authorinization
      */
-    protected String getAlfTicket() {
+    public String getAlfTicket() {
         return this.getSessionTicket();
     }
 
@@ -1202,6 +1203,28 @@ implements SecurityProvider {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
         }
         return modifiedDate;
+    }
+
+    @Override
+    public boolean logout() {
+        //make me do something
+        String ticket = getSessionTicket();
+        logger.debug("Invalidating ticket " + ticket);
+        Map<String, String> params = new HashMap<>();
+        params.put("ticket", ticket);
+        String serviceURL = null;
+        try {
+            serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
+            DeleteMethod getMethod = new DeleteMethod(serviceURL);
+            HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+            int status = httpClient.executeMethod(getMethod);
+            if (status == HttpStatus.SC_OK) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Error while invalidating authentication token", e);
+        }
+        return false;
     }
 
     protected String alfrescoUrl;

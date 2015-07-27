@@ -130,6 +130,10 @@
                         }
                     ]
                 })
+                .state('logout', {
+                    url: 'logout',
+                    controller: 'AppCtrl'
+                })
                 .state('preview', {
                     url: '/preview?site&url',
                     cssClass: 'studio-preview',
@@ -187,6 +191,9 @@
             };
 
             this.logout = function () {
+                console.info("Logging out");
+                $http.post(api('logout'), null);
+                console.info("Done!");
                 user = null;
             };
 
@@ -232,7 +239,11 @@
             };
 
             this.setCookie = function (site) {
-                $cookies[cookieName] = site.siteId;
+                //$cookies[cookieName] = site.siteId;
+                var domainVal;
+                domainVal = (document.location.hostname != 'localhost') ? "domain=" + document.location.hostname : "";
+                document.cookie =
+                    [cookieName, "=", site.siteId, "; path=/; " + domainVal].join("");
             };
 
             this.editSite = function (site) {
@@ -297,6 +308,7 @@
         function ($scope, $state, authService, Constants) {
 
             function logout() {
+                console.info("Logging out 2");
                 authService.logout();
                 $state.go('login');
             }

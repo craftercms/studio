@@ -393,6 +393,11 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     @Override
+    public boolean logout() {
+        return securityProvider.logout();
+    }
+
+    @Override
     public void register() {
         getServicesManager().registerService(SecurityService.class, this);
     }

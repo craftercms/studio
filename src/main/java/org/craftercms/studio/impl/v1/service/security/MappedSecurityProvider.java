@@ -120,4 +120,10 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(providerType);
         provider.addUserToGroup(groupName, user);
     }
+
+    @Override
+    public boolean logout() {
+        SecurityProvider provider = lookupProvider(providerType);
+        return provider.logout();
+    }
 }

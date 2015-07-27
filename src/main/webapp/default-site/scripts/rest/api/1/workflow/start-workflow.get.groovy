@@ -1,6 +1,7 @@
+
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,33 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.security;
+import scripts.api.WorkflowServices;
 
-import java.util.Set;
-import java.util.Map;
+// extract parameters
+def result = [:];
+def site = params.site;
+def user = params.user;
+def itemId = params.item;
+def workflowId = params.workflowId;
+def items = ["/site/website/index.xml", "/site/website/about-us/index.xml"]
+def properties = []
 
-/**
- * @author Dejan Brkic
- */
-public interface SecurityProvider {
 
-    Set<String> getUserGroups(String user);
 
-    String getCurrentUser();
-
-    Map<String, String> getUserProfile(String user);
-
-    String authenticate(String username, String password);
-
-    boolean validateTicket(String ticket);
-
-    void addUserGroup(String groupName);
-
-    void addUserGroup(String parentGroup, String groupName);
-
-    String getCurrentToken();
-
-    void addUserToGroup(String groupName, String user);
-
-    boolean logout();
-}
+def context = WorkflowServices.createContext(applicationContext, request);
+result = WorkflowServices.createWorkflowJob(context, site, items, workflowId, properties)
+return result;
