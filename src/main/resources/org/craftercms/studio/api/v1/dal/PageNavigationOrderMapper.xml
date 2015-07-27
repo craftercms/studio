@@ -21,22 +21,23 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.PageNavigationOrderMapper">
-  <resultMap id="PageNavigationOrderMap" type="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
-    <id property="folderId" column="folder_id"/>
-    <result property="site" column="site"/>
-    <result property="path" column="path" />
-    <result property="maxCount" column="max_count" />
-  </resultMap>
+    <resultMap id="PageNavigationOrderMap" type="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        <id property="folderId" column="folder_id"/>
+        <result property="site" column="site"/>
+        <result property="path" column="path"/>
+        <result property="maxCount" column="max_count"/>
+    </resultMap>
 
-  <cache />
+    <cache/>
 
-  <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap" resultMap="PageNavigationOrderMap">
-    SELECT folder_id, site, path, max_count
+    <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap"
+            resultMap="PageNavigationOrderMap">
+        SELECT folder_id, site, path, max_count
         FROM cstudio_pagenavigationordersequence
         WHERE site = #{site} AND path = #{path}
-  </select>
+    </select>
 
-    <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder" >
+    <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
         INSERT INTO
         cstudio_pagenavigationordersequence
         (folder_id, site, path, max_count)
@@ -44,7 +45,7 @@
         (#{folderId}, #{site}, #{path}, #{maxCount})
     </insert>
 
-    <update id="update" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder" >
+    <update id="update" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
         UPDATE
         cstudio_pagenavigationordersequence
         SET site= #{site}, path = #{path}, max_count = #{maxCount}
