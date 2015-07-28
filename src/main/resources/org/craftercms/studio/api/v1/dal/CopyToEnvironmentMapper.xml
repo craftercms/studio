@@ -18,34 +18,34 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper">
 
-  <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment" >
-      <id property="id" column="id"/>
-      <result property="site" column="site"/>
-      <result property="environment" column="environment"/>
-      <result property="path" column="path"/>
-      <result property="oldPath" column="oldpath"/>
-      <result property="user" column="username"/>
-      <result property="scheduledDate" column="scheduleddate"/>
-      <result property="state" column="state"/>
-      <result property="action" column="action"/>
-      <result property="contentTypeClass" column="contenttypeclass"/>
-      <result property="submissionComment" column="submissioncomment"/>
-  </resultMap>
+    <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
+        <id property="id" column="id"/>
+        <result property="site" column="site"/>
+        <result property="environment" column="environment"/>
+        <result property="path" column="path"/>
+        <result property="oldPath" column="oldpath"/>
+        <result property="user" column="username"/>
+        <result property="scheduledDate" column="scheduleddate"/>
+        <result property="state" column="state"/>
+        <result property="action" column="action"/>
+        <result property="contentTypeClass" column="contenttypeclass"/>
+        <result property="submissionComment" column="submissioncomment"/>
+    </resultMap>
 
-  <cache />
+    <cache/>
 
-  <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map" >
-    SELECT *
-    FROM cstudio_copytoenvironment
-    WHERE site = #{site}
-    AND state = #{state}
-    AND scheduleddate &gt; #{now}
-    ORDER BY scheduleddate ASC
-  </select>
+    <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND state = #{state}
+        AND scheduleddate &gt; #{now}
+        ORDER BY scheduleddate ASC
+    </select>
 
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
         INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment)

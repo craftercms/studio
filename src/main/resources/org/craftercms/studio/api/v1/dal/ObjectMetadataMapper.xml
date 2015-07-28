@@ -94,7 +94,6 @@
     <select id="countEntries" resultType="int" parameterType="java.util.Map">
         SELECT count(1) FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </select>
-
     <delete id="deleteEntry" parameterType="java.util.Map">
         DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </delete>

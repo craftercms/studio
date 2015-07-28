@@ -38,8 +38,6 @@
         <parameter property="status" jdbcType="VARCHAR"/>
     </parameterMap>
 
-
-
     <select id="getSites" resultMap="SiteFeedMap">
         SELECT * FROM cstudio_site
     </select>
