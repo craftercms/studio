@@ -351,6 +351,13 @@ var CStudioForms = CStudioForms || function() {
                             document.body.appendChild(helpDialogEl);
                         }
 
+                        var maskEl = document.createElement("div");
+                        YAHOO.util.Dom.addClass(maskEl, "dialog-dialog-mask");
+                        maskEl.style.display = 'block';
+                        maskEl.id = 'dialogMask';
+                        //window.parent.document.body.appendChild(maskEl);
+                        document.body.appendChild(maskEl);
+
                         helpDialogEl.style.display = "block";
                         helpDialogEl.innerHTML = "";
 
@@ -371,13 +378,15 @@ var CStudioForms = CStudioForms || function() {
                         helpDialogEl.appendChild(buttonContainerEl);
 
                         var okEl = document.createElement("div");
-                        YAHOO.util.Dom.addClass(okEl, "dialog-button");
+                        YAHOO.util.Dom.addClass(okEl, "btn btn-primary");
                         okEl.innerHTML = "OK";
                         buttonContainerEl.appendChild(okEl);
 
                         YAHOO.util.Event.on(okEl, 'click', function(evt) {
                             var helpDialogEl = document.getElementById("help-dialog");
+                            var dialogMask = document.getElementById("dialogMask");
                             helpDialogEl.parentNode.removeChild(helpDialogEl);
+                            dialogMask.parentNode.removeChild(dialogMask);
                         }, okEl);
                     }, this);
                 }

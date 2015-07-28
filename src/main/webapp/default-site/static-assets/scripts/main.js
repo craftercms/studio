@@ -239,7 +239,11 @@
             };
 
             this.setCookie = function (site) {
-                $cookies[cookieName] = site.siteId;
+                //$cookies[cookieName] = site.siteId;
+                var domainVal;
+                domainVal = (document.location.hostname != 'localhost') ? "domain=" + document.location.hostname : "";
+                document.cookie =
+                    [cookieName, "=", site.siteId, "; path=/; " + domainVal].join("");
             };
 
             this.editSite = function (site) {
