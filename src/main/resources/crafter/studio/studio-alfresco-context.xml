@@ -6,8 +6,10 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
+    <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository" init-method="bootstrap">
         <property name="alfrescoUrl" value="${alfrescoUrl}" />
+        <property name="adminUser" value="${repositoryJob.username}"/>
+        <property name="adminPassword" value="${repositoryJob.password}"/>
     </bean>
 
     <bean id="cstudioAlfrescoContentRepositoryCACHED" class="org.craftercms.studio.impl.v1.repository.cached.CachedContentRepository">
