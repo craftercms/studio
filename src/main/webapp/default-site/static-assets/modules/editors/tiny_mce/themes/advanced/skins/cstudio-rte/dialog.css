@@ -29,6 +29,7 @@ a:hover {color:#2B6FB6;}
 .nowrap {white-space: nowrap}
 
 /* Forms */
+div.panel{background-color: transparent; }
 fieldset {margin:0; padding:4px; border:1px solid #919B9C; font-family:Verdana, Arial; font-size:10px;}
 legend {color:#7BB1EA; font-family: Arial, Helvetica, sans-serif; font-size:12px; font-weight:normal;}
 label.msg {display:none;}
@@ -40,6 +41,9 @@ input, select, textarea {border:1px solid #CCCCCC;}
 input.radio {border:1px none #000000; background:transparent; vertical-align:middle;}
 input.checkbox {border:1px none #000000; background:transparent; vertical-align:middle;}
 .input_noborder {border:0;}
+.form-control{margin-bottom: 10px;}
+.btn-insert{margin-left: 72px;}
+.btn-insert-anchor{margin: 10px 0 0 92px;}
 
 /* Buttons */
 #insert, #cancel, input.button, .updateButton {
@@ -145,5 +149,8 @@ h3 {font-size:14px;}
 #tablecell #advanced_panel > fieldset > table { min-width: 500px; }
 
 #tablerow #advanced_panel > fieldset > table { min-width: 390px; }
+
+.link_wrapper{padding-bottom: 0;}
+td.paddingright{padding-right: 10px;}
 
 .hidden { display: none !important; }

@@ -138,7 +138,7 @@ var LinkDialog = {
 				lst.options[lst.options.length] = new Option(o.name, o.value);
 			});
 		}else{
-			lst.options[lst.options.length] = new Option(tinyMCEPopup.getLang('not_set'), '');
+			//lst.options[lst.options.length] = new Option(tinyMCEPopup.getLang('not_set'), '');
 			lst.options[lst.options.length] = new Option(tinyMCEPopup.getLang('advanced_dlg.link_target_same'), '_self');
 			lst.options[lst.options.length] = new Option(tinyMCEPopup.getLang('advanced_dlg.link_target_blank'), '_blank');
 		}

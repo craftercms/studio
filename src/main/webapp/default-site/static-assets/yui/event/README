@@ -14,7 +14,7 @@ YUI Library - Event - Release Notes
   * Arrays are once again resized when a listener is removed.
   * onAvailable/onContentReady stop polling when there is nothing to look for.
 
-2.5.0
+2.5.1-SNAPSHOT
   * Added try/catch to getTarget to suppress errors when targeting
     ActiveX controls.
   * Increased the default poll interval to 20ms, and decreased poll

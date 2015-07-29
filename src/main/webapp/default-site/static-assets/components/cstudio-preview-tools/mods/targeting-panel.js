@@ -296,7 +296,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
 
                                     var personaContainer = document.getElementsByClassName('persona-container')[0];
-                                    console.log(personaContainer.offsetHeight);
+                                    //console.log(personaContainer.offsetHeight);
                                     if(personaContainer.offsetHeight > 462){
                                         personaContainer.style.overflowY = "scroll";
                                     }else{

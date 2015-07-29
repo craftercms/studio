@@ -90,7 +90,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 				});
 				_thisControl.rteTables = rteConfig.rteTables;
 				_thisControl.rteTableStyles = rteConfig.rteTablestyles;
-				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles.style;
+				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles;
 				_thisControl.rteLinkTargets = rteConfig.rteLinkTargets;
 			},
 			failure: function() {

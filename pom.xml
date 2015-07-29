@@ -6,13 +6,13 @@
     <artifactId>crafter-studio-2</artifactId>
     <name>Crafter Studio</name>
     <packaging>war</packaging>
-    <version>2.5.0-SNAPSHOT</version>
+    <version>2.5.1-SNAPSHOT</version>
     <url>http://www.craftercms.org</url>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
-        <version>7</version>
+        <version>9</version>
     </parent>
 
     <organization>
@@ -61,9 +61,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/craftercms/studio</connection>
+        <connection>scm:git:git://github.com/craftercms/studio2</connection>
         <developerConnection>scm:git:git://github.com/craftercms/studio2</developerConnection>
-        <url>scm:git:git://github.com/craftercms/engine</url>
+        <url>scm:git:git://github.com/craftercms/studio2</url>
     </scm>
 
 
@@ -90,15 +90,6 @@
             </releases>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <url>http://10.30.90.77:8081/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
-
-
     <dependencies>
 
         <!-- Crafter Engine -->
@@ -282,6 +273,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
+                   <attachClasses>true</attachClasses>
                     <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
                     <workDirectory>target/overlay-war-folder</workDirectory>
                     <overlays>
@@ -296,6 +288,33 @@
                         </overlay>
                     </overlays>
                 </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

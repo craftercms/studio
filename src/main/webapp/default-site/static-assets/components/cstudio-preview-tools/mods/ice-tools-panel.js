@@ -122,7 +122,9 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                 }
             }
             catch(err){
-                console.log(err);
+                if( window.console && window.console.log) {
+                    console.log(err);
+                }
             }
 
         });

@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>{#advanced_dlg.anchor_title}</title>
+    <link rel="stylesheet" href="../../../../../styles/forms-engine.css"/>
 	<script type="text/javascript" src="../../tiny_mce_popup.js"></script>
 	<script type="text/javascript" src="js/anchor.js"></script>
 </head>
@@ -12,14 +13,14 @@
 			<td colspan="2" class="title" id="app_title">{#advanced_dlg.anchor_title}</td>
 		</tr>
 		<tr>
-			<td class="nowrap"><label for="anchorName">{#advanced_dlg.anchor_name}:</label></td>
-			<td><input name="anchorName" type="text" class="mceFocus" id="anchorName" value="" style="width: 200px" aria-required="true" /></td>
+			<td class="nowrap paddingright"><label for="anchorName">{#advanced_dlg.anchor_name}:</label></td>
+			<td><input name="anchorName"  type="text" class="mceFocus form-control" id="anchorName" value="" style="width: 200px" aria-required="true" /></td>
 		</tr>
 	</table>
 
 	<div class="mceActionPanel">
-		<input type="submit" id="insert" name="insert" value="{#update}" />
-		<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="tinyMCEPopup.close();" />
+		<input type="submit" class="btn btn-primary btn-insert-anchor" name="insert" value="{#update}" />
+		<input type="button" class="btn btn-default" id="cancel" name="cancel" value="{#cancel}" onclick="tinyMCEPopup.close();" />
 	</div>
 </form>
 </body>
