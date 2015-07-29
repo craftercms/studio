@@ -15,7 +15,7 @@ CREATE TABLE `cstudio_activity` (
   KEY `cstudio_activity_content_idx` (`content_id`(255))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8 ;
 
 CREATE TABLE `cstudio_DEPENDENCY` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
@@ -28,7 +28,7 @@ CREATE TABLE `cstudio_DEPENDENCY` (
   KEY `cstudio_dependency_sourcepath_idx` (`source_path`(255))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8 ;
 
 CREATE TABLE `cstudio_objectstate` (
   `object_id`         VARCHAR(255)  NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `cstudio_objectstate` (
   UNIQUE `uq_os_site_path` (`site`, `path`(200))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8 ;
 
 CREATE TABLE `cstudio_pagenavigationordersequence` (
   `folder_id` VARCHAR(100) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `cstudio_pagenavigationordersequence` (
   KEY `cstudio_pagenavigationorder_folder_idx` (`folder_id`)
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8 ;
 
 CREATE TABLE `cstudio_copytoenvironment` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -72,7 +72,7 @@ CREATE TABLE `cstudio_copytoenvironment` (
   INDEX `cstudio_cte_path_idx` (`path`(250) ASC),
   INDEX `cstudio_cte_sitepath_idx` (`site` ASC, `path`(250) ASC),
   INDEX `cstudio_cte_state_idx` (`state` ASC)
-);
+) ;
 
 CREATE TABLE `cstudio_publishtotarget` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -89,7 +89,7 @@ CREATE TABLE `cstudio_publishtotarget` (
   INDEX `cstudio_ptt_environment_idx` (`environment` ASC),
   INDEX `cstudio_ptt_path` (`path`(250) ASC),
   INDEX `cstudio_ptt_sitepath_idx` (`site` ASC, `path`(250) ASC)
-);
+) ;
 
 CREATE TABLE `cstudio_deploymentsynchistory` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -108,7 +108,7 @@ CREATE TABLE `cstudio_deploymentsynchistory` (
   INDEX `cs_depsynchist_target_idx` (`target` ASC),
   INDEX `cs_depsynchist_user_idx` (`username` ASC),
   INDEX `cs_depsynchist_ctc_idx` (`contenttypeclass` ASC)
-);
+) ;
 
 CREATE TABLE `cstudio_site` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
@@ -119,7 +119,7 @@ CREATE TABLE `cstudio_site` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
-  INDEX `site_id_idx` (`site_id` ASC));
+  INDEX `site_id_idx` (`site_id` ASC)) ;
 
 CREATE TABLE `cstudio_objectmetadata` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -147,4 +147,4 @@ CREATE TABLE `cstudio_objectmetadata` (
   `launchdate` DATETIME NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__om_site_path` (`site`, `path`(200))
-);
+) ;
