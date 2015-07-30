@@ -1237,8 +1237,7 @@ implements SecurityProvider {
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
-
-        if(bootstrapCheck() == false) {
+        if(bootstrapEnabled && !bootstrapCheck()) {
             String ticket = authenticate(adminUser, adminPassword);
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
             RepositoryEventContext.setCurrent(repositoryEventContext);
@@ -1301,6 +1300,7 @@ implements SecurityProvider {
     protected String alfrescoUrl;
     protected String adminUser;
     protected String adminPassword;
+    protected boolean bootstrapEnabled = false;
 
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
@@ -1310,5 +1310,9 @@ implements SecurityProvider {
 
     public String getAdminPassword() { return adminPassword; }
     public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+
+    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
+    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
+
 }
 
