@@ -43,8 +43,8 @@
                 <tbody>
                 <tr ng-repeat="site in sites">
                     <td>{{site.name}}</td>
-                    <td><a ng-click="goToDashboard(site)">Dashboard &raquo;</a></td>
                     <td><a ng-click="editSite(site)">Preview &raquo;</a></td>
+                    <td><a ng-click="goToDashboard(site)">Dashboard &raquo;</a></td>
                     <td><a href="{{site.url}}" target="_blank">Live site &raquo;</a></td>
                     <td><a ng-show="site.remove" ng-click="removeSiteSites(site)"><i class="glyphicon glyphicon-trash"></i></a></td>
                 </tr>
