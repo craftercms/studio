@@ -90,7 +90,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 				});
 				_thisControl.rteTables = rteConfig.rteTables;
 				_thisControl.rteTableStyles = rteConfig.rteTablestyles;
-				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles;
+				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles.style;
 				_thisControl.rteLinkTargets = rteConfig.rteLinkTargets;
 			},
 			failure: function() {
@@ -455,8 +455,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	        encoding : "xml",
             valid_elements :"+*[*]",
             extended_valid_elements :"+*[*]",
-            valid_children : "+*[*]",//+body[style]
-	        paste_auto_cleanup_on_paste : true,
+            valid_children : "+*[*]",
+			valid_elements :"+*[*]",
+	        paste_auto_cleanup_on_paste : true,	        paste_auto_cleanup_on_paste : true,
 			relative_urls : false,
 
 			readonly: _thisControl.readonly,

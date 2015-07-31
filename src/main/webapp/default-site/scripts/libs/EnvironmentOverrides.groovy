@@ -12,12 +12,21 @@ class EnvironmentOverrides {
 		def cookies = request.getCookies();
 
     	def context = SiteServices.createContext(appContext, request)
-		result.environment = serverProperties["environment"]  
-
+		result.environment = serverProperties["environment"] 
+		result.previewServerUrl = serverProperties["previewUrl"]
+		if(result.previewServerUrl.equals("\${previewUrl}")){
+			result.previewServerUrl=request.scheme+"://"+request.serverName+":"+request.serverPort;
+		}
 		try {		
 			result.user = SecurityServices.getCurrentUser(context)
 			result.site = Cookies.getCookieValue("crafterSite", request)
-   
+   		
+   			def language = Cookies.getCookieValue("crafterStudioLanguage", request)
+   			if(language == null || language == "" || language == "UNSET") {
+   				language = "en"
+   			}
+			result.language = language
+			
 			def roles = SecurityServices.getUserRoles(context, result.site, result.user)
 			  
 			if(roles!=null && roles.size() > 0) {
