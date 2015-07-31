@@ -15,9 +15,9 @@
 
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Properties				-->
-    <!--									-->
+    <!--                                    -->
+    <!--            Properties              -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean name="crafter.properties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -35,18 +35,18 @@
     </bean>
 
     <!--
-	Activates various annotations to 
-	250's @PostConstruct, @PreDestrbe detected in bean classes: Spring's @Required and @Autowired, as well as JSRoy and @Resource (if available), JAX-WS's @WebServiceRef (if available), EJB3's @EJB
-	(if available), and JPA's @PersistenceContext and @PersistenceUnit (if available).
+    Activates various annotations to 
+    250's @PostConstruct, @PreDestrbe detected in bean classes: Spring's @Required and @Autowired, as well as JSRoy and @Resource (if available), JAX-WS's @WebServiceRef (if available), EJB3's @EJB
+    (if available), and JPA's @PersistenceContext and @PersistenceUnit (if available).
     -->
     <context:annotation-config/>
 
     <bean id="crafter.applicationContextAccessor" class="org.craftercms.engine.util.spring.ApplicationContextAccessor" />
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Filters				-->
-    <!--									-->
+    <!--                                    -->
+    <!--             Filters                -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.exceptionHandlingFilter" class="org.craftercms.engine.servlet.filter.ExceptionHandlingFilter">
@@ -68,9 +68,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Services				-->
-    <!--									-->
+    <!--                                    -->
+    <!--            Services                -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.excludeLevelDescriptorItemFilter" class="org.craftercms.engine.service.filter.ExcludeByNameItemFilter">
@@ -109,9 +109,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Macros 				-->
-    <!--									-->
+    <!--                                    -->
+    <!--             Macros                 -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.webAppPathMacro" class="org.craftercms.engine.macro.impl.WebAppPathMacro" />
@@ -138,9 +138,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Contexts				-->
-    <!--									-->
+    <!--                                    -->
+    <!--            Contexts                -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.siteContextRegistry" class="org.craftercms.engine.service.context.SiteContextRegistry" />
@@ -172,9 +172,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Mobile Support			-->
-    <!--									-->
+    <!--                                    -->
+    <!--            Mobile Support          -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean name="crafter.userAgentTemplateDetector" class="org.craftercms.engine.mobile.UserAgentTemplateDetector">
@@ -201,9 +201,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			  Search    			-->
-    <!--									-->
+    <!--                                    -->
+    <!--              Search                -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
@@ -211,9 +211,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Navigation    			-->
-    <!--									-->
+    <!--                                    -->
+    <!--             Navigation             -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.breadcrumbBuilder" class="org.craftercms.engine.util.breadcrumb.BreadcrumbBuilder">
@@ -224,9 +224,9 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--		FreeMarker Config			-->
-    <!--									-->
+    <!--                                    -->
+    <!--        FreeMarker Config           -->
+    <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <bean id="crafter.crafterTemplateExceptionHandler" class="org.craftercms.engine.freemarker.CrafterTemplateExceptionHandler">
@@ -274,6 +274,8 @@
                 <entry key="cookieDomain" value="${cookieDomain}" />
                 <entry key="alfrescoUrl" value="${alfrescoUrl}" />
                 <entry key="environment" value="${environment}" />
+                <entry key="previewUrl" value="${previewUrl}" />
+                
             </map>
         </constructor-arg>       
     </bean>

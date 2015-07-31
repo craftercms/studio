@@ -31,8 +31,12 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.String;
+import java.nio.file.Files;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
@@ -49,7 +53,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -1227,9 +1233,86 @@ implements SecurityProvider {
         return false;
     }
 
+    /**
+     * bootstrap the repository
+     */
+    public void bootstrap() throws Exception {
+        if(bootstrapEnabled && !bootstrapCheck()) {
+            String ticket = authenticate(adminUser, adminPassword);
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+            RepositoryEventContext.setCurrent(repositoryEventContext);
+            logger.info("Bootstrapping repository for Crafter CMS");
+
+            String bootstrapFolderPath = getBootstrapFolderPath();
+            bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
+            File source = new File(bootstrapFolderPath);
+            bootstrapDir(source, bootstrapFolderPath);
+            RepositoryEventContext.setCurrent(null);
+        }
+    }
+
+    private void bootstrapDir(File dir, String rootPath) {
+
+        Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        for (File child : children) {
+            String relativePath = child.getAbsolutePath().replace(rootPath, "");
+            String parentPath = child.getParent().replace(rootPath, "");
+            if (StringUtils.isEmpty(parentPath)) {
+                parentPath = "/";
+            }
+            if (child.isDirectory()) {
+                createFolderInternalCMIS(parentPath, child.getName());
+            } else if (child.isFile()) {
+                try {
+                    writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                } catch (IOException e) {
+                    logger.error("Error while bootstrapping file: " + relativePath, e);
+                }
+            }
+        }
+    }
+
+    private boolean bootstrapCheck() {
+        boolean contenSpace = contentExists("/wem-projects");
+        boolean blueprintsSpace = contentExists("/cstudio/blueprints");
+        boolean configSpace = contentExists("/cstudio/config");
+        return contenSpace && blueprintsSpace && configSpace;
+    }
+
+    private String getBootstrapFolderPath() {
+        String path = this.getClass().getClassLoader().getResource("").getPath();
+        String fullPath = null;
+        try {
+            fullPath = URLDecoder.decode(path, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+        String pathArr[] = fullPath.split("/WEB-INF/classes/");
+        System.out.println(fullPath);
+        System.out.println(pathArr[0]);
+        fullPath = pathArr[0];
+
+        String reponsePath = "";
+        reponsePath = new File(fullPath).getPath();
+        return reponsePath;
+    }
+
     protected String alfrescoUrl;
+    protected String adminUser;
+    protected String adminPassword;
+    protected boolean bootstrapEnabled = false;
+
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
+
+    public String getAdminUser() { return adminUser; }
+    public void setAdminUser(String adminUser) { this.adminUser = adminUser; }
+
+    public String getAdminPassword() { return adminPassword; }
+    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+
+    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
+    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
 
 }
 

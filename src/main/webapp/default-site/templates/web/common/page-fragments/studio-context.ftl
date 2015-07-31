@@ -6,15 +6,15 @@
 	 * note: these are all fixed at the moment but will be dynamic
 	 */
 	CStudioAuthoringContext = {
-		user: "${envConfig.user!'UNSET1'}",
-		role: "${envConfig.role!'UNSET2'}",
-		site: "${envConfig.site!'UNSET3'}",
-		siteId: "${envConfig.site!'UNSET3'}",
+		user: "${envConfig.user!'UNSET'}",
+		role: "${envConfig.role!'UNSET'}",
+		site: "${envConfig.site!'UNSET'}",
+		siteId: "${envConfig.site!'UNSET'}",
 		collabSandbox: "",
 		baseUri: "/studio",
 		authoringAppBaseUri: "${envConfig.authoringServerUrl!'/studio'}",
-		formServerUri: "${envConfig.formServerUrl!'UNSET5'}",
-		previewAppBaseUri: "${envConfig.previewServerUrl!''}", <#-- TODO RETURNING UNSET. Changed to '' to be able to use preview. -->
+		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
+		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}", 
 		contextMenuOffsetPage: false,
 		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
@@ -23,7 +23,7 @@
 		openSiteDropdown: ${envConfig.openSiteDropdown!"false"},
 		isPreview: false,
 		liveAppBaseUri:"",
-		lang: "en"
+		lang: "${envConfig.language!'UNSET'}"
 	};
 
    	if(CStudioAuthoringContext.role === "") {
