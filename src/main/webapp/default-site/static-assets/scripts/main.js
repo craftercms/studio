@@ -349,12 +349,15 @@
 
             $scope.goToDashboard = sitesService.goToDashboard;
 
+            $scope.createSites = false;
+
 
             function getSites () {
                 sitesService.getSites()
                     .success(function (data) {
                         $scope.sites = data;
                         isRemove();
+                        createSitePermission();
                     })
                     .error(function () {
                         $scope.sites = null;
@@ -392,7 +395,7 @@
                 }
             }
 
-            function gettingPermissions(siteId){
+            function removePermissionPerSite(siteId){
                 sitesService.getPermissions(siteId, '/', $scope.user.username || $scope.user)
                     .success(function (data) {
                         for(var i=0; i<data.permissions.length;i++){
@@ -407,8 +410,21 @@
 
             function isRemove(){
                 for(var j=0; j<$scope.sites.length;j++){
-                    gettingPermissions($scope.sites[j].siteId);
+                    removePermissionPerSite($scope.sites[j].siteId);
                 }
+            }
+
+            function createSitePermission(){
+                sitesService.getPermissions('test1', '/', $scope.user.username || $scope.user)
+                    .success(function (data) {
+                        for(var i=0; i<data.permissions.length;i++){
+                            if(data.permissions[i]=='create-site'){
+                                $scope.createSites = true;
+                            }
+                        }
+                    })
+                    .error(function () {
+                    });
             }
 
         }

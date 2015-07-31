@@ -7,7 +7,7 @@
     <div ng-if="sites">
         <div class="nav-panel">
 
-            <div class="m10">
+            <div ng-show="createSites" class="m10">
                 <button class="btn btn-default btn-pill btn-block"
                         ui-sref="home.sites.create"
                         ng-class="{ active: $state.includes('create') }">
