@@ -27,6 +27,8 @@
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>
      <script src="/studio/static-assets/components/cstudio-components/loader.js"></script>
+
+    <script>document.domain = "${Request.serverName}";</script> <!-- blah blah -->
     
 </head>
 
