@@ -382,6 +382,8 @@
                 <entry key="cookieDomain" value="${cookieDomain}" />
                 <entry key="alfrescoUrl" value="${alfrescoUrl}" />
                 <entry key="environment" value="${environment}" />
+                <entry key="previewUrl" value="${previewUrl}" />
+
             </map>
         </constructor-arg>
     </bean>
