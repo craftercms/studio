@@ -802,9 +802,11 @@ var CStudioForms = CStudioForms || function() {
 
                     if (oModel.createdDate === undefined || oModel.createdDate === 'undefined' || oModel.createdDate === '') {
                         oModel.createdDate = nowTimestamp;
+                        oModel.createdDate_dt = nowTimestamp;
                     }
 
                     oModel.lastModifiedDate = nowTimestamp;
+                    oModel.lastModifiedDate_dt = nowTimestamp;
 
                 }, renderPersist: true });
 
@@ -2042,7 +2044,7 @@ var CStudioForms = CStudioForms || function() {
             },
 
             printFieldsToXml: function(formModel, formSections, formConfig) {
-                var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'lastModifiedDate', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
+                var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'createdDate_dt', 'lastModifiedDate', 'lastModifiedDate_dt', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
                     output = '',
                     validFieldsStr, fieldRe, section;
 
