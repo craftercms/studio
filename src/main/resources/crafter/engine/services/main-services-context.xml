@@ -9,7 +9,7 @@
 
     <import resource="classpath:crafter/core/core-context.xml"/>
     <import resource="classpath:crafter/engine/services/security-context.xml"/>
-    <import resource="classpath:crafter/engine/services/social-context.xml"/>
+    <!--import resource="classpath:crafter/engine/services/social-context.xml"/ -->
     <import resource="classpath:crafter/engine/services/scripting-context.xml"/>
     <import resource="classpath:crafter/engine/services/url-transformation-context.xml"/>
 
@@ -20,7 +20,7 @@
     <!--									-->
     <!-- ////////////////////////////////// -->
 
-    <bean name="crafter.properties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <bean name="crafter.properties" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
         <property name="order" value="0"/>
         <property name="locations">
             <list>
@@ -43,6 +43,12 @@
 
     <bean id="crafter.applicationContextAccessor" class="org.craftercms.engine.util.spring.ApplicationContextAccessor" />
 
+    <bean id="crafter.propertyResolver" class="org.springframework.core.env.PropertySourcesPropertyResolver">
+        <constructor-arg>
+            <bean factory-bean="crafter.properties" factory-method="getAppliedPropertySources"/>
+        </constructor-arg>
+    </bean>
+
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--			 Filters				-->
@@ -59,6 +65,11 @@
         </property>
     </bean>
 
+    <bean id="crafter.siteContextResolvingFilter"
+          class="org.craftercms.engine.servlet.filter.SiteContextResolvingFilter">
+        <property name="contextResolver" ref="crafter.siteContextResolver"/>
+    </bean>
+<!--
     <bean id="crafter.siteContextResolvingFilter" class="org.craftercms.engine.servlet.filter.SiteContextFromDefaultResolvingFilter">
         <property name="siteContextRegistry" ref="crafter.siteContextRegistry" />
         <property name="siteContextFactory" ref="crafter.siteContextFactory" />
@@ -66,7 +77,7 @@
         <property name="fallbackSiteContextFactory" ref="crafter.fallbackSiteContextFactory" />
         <property name="fallbackSiteName" value="default" />
     </bean>
-
+-->
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--			Services				-->
@@ -78,7 +89,7 @@
     </bean>
 
     <bean id="crafter.siteItemService" class="org.craftercms.engine.service.SiteItemService">
-        <property name="contentStoreService" ref="crafter.contentStoreService" />
+        <property name="storeService" ref="crafter.contentStoreService" />
         <property name="modelValueConverters">
             <map>
                 <entry key="i">
@@ -121,9 +132,8 @@
     <bean id="crafter.requestUriMacro" class="org.craftercms.engine.macro.impl.RequestUriMacro" />
 
     <bean id="crafter.siteNameRequestAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName"
-                  value="#{T(org.craftercms.engine.servlet.filter.AbstractSiteContextResolvingFilter).SITE_NAME_ATTRIBUTE}" />
-        <property name="requestScope" value="true" />
+        <property name="attributeName" value="siteName"/>
+        <property name="requestScope" value="true"/>
     </bean>
 
     <bean id="crafter.macroResolver" class="org.craftercms.engine.macro.impl.MacroResolverImpl">
@@ -143,8 +153,37 @@
     <!--									-->
     <!-- ////////////////////////////////// -->
 
-    <bean id="crafter.siteContextRegistry" class="org.craftercms.engine.service.context.SiteContextRegistry" />
+    <!--<bean id="crafter.siteContextRegistry" class="org.craftercms.engine.service.context.SiteContextRegistry" /> -->
 
+    <bean id="crafter.siteContextResolver" class="org.craftercms.engine.service.context.DefaultSiteContextResolver">
+        <property name="siteContextManager" ref="crafter.siteContextManager"/>
+        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
+        <property name="fallbackSiteName" value="default"/>
+    </bean>
+
+    <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager">
+        <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
+        <property name="contextFactory" ref="crafter.siteContextFactory"/>
+    </bean>
+
+    <bean id="crafter.siteContextFactory" class="org.craftercms.engine.service.context.SiteContextFactory">
+        <property name="maxAllowedItemsInCache" value="${crafter.engine.site.default.cache.maxAllowedItems}"/>
+        <property name="rootFolderPath" value="${crafter.engine.site.default.rootFolder.path}"/>
+        <property name="staticAssetsPath" value="${crafter.engine.site.default.staticAssets.path}"/>
+        <property name="templatesPath" value="${crafter.engine.site.default.templates.path}"/>
+        <property name="freeMarkerConfigFactory" ref="crafter.freeMarkerConfigFactory"/>
+        <property name="restScriptsPath" value="${crafter.engine.site.default.rest.scripts.path}"/>
+        <property name="controllerScriptsPath" value="${crafter.engine.site.default.controller.scripts.path}"/>
+        <property name="configPaths" value="${crafter.engine.site.default.config.paths}"/>
+        <property name="applicationContextPaths" value="${crafter.engine.site.default.config.appContext.paths}"/>
+        <property name="groovyClassesPath" value="${crafter.engine.site.default.classes.groovy.path}"/>
+        <property name="urlTransformationEngine" ref="crafter.urlTransformationEngine"/>
+        <property name="storeService" ref="crafter.contentStoreService"/>
+        <property name="macroResolver" ref="crafter.macroResolver"/>
+        <property name="groovyGlobalVars" ref="crafter.restScriptsVariables"/>
+        <property name="jobResolvers" ref="crafter.scriptJobResolvers"/>
+    </bean>
+  <!--
     <bean id="crafter.siteContextFactory" class="org.craftercms.engine.service.context.SiteContextFactory">
         <property name="maxAllowedItemsInCache" value="${crafter.engine.site.default.cache.maxAllowedItems}" />
         <property name="rootFolderPath" value="${crafter.engine.site.default.rootFolder.path}" />
@@ -157,8 +196,30 @@
         <property name="storeService" ref="crafter.contentStoreService" />
         <property name="macroResolver" ref="crafter.macroResolver" />
     </bean>
+-->
 
     <bean id="crafter.fallbackSiteContextFactory" class="org.craftercms.engine.service.context.SiteContextFactory">
+        <property name="maxAllowedItemsInCache" value="${crafter.engine.site.default.cache.maxAllowedItems}"/>
+        <property name="rootFolderPath" value="default-site"/>
+        <property name="staticAssetsPath" value="/static-assets"/>
+        <property name="templatesPath" value="/"/>
+        <property name="freeMarkerConfigFactory" ref="crafter.freeMarkerConfigFactory"/>
+        <property name="restScriptsPath" value="/scripts/rest"/>
+        <property name="controllerScriptsPath" value="/scripts/controllers"/>
+        <property name="configPaths"
+                  value="/config/site.xml,classpath:crafter/engine/extension/sites/{siteName}/site.xml"/>
+        <property name="applicationContextPaths"
+                  value="/config/spring/application-context.xml,
+                  classpath:crafter/engine/extension/sites/{siteName}/spring/application-context.xml"/>
+        <property name="groovyClassesPath" value="/classes/groovy"/>
+        <property name="urlTransformationEngine" ref="crafter.urlTransformationEngine"/>
+        <property name="storeService" ref="crafter.contentStoreService"/>
+        <property name="macroResolver" ref="crafter.macroResolver"/>
+        <property name="groovyGlobalVars" ref="crafter.restScriptsVariables"/>
+        <property name="jobResolvers" ref="crafter.scriptJobResolvers"/>
+    </bean>
+
+    <!--<bean id="crafter.fallbackSiteContextFactory" class="org.craftercms.engine.service.context.SiteContextFactory">
         <property name="maxAllowedItemsInCache" value="${crafter.engine.site.default.cache.maxAllowedItems}" />
         <property name="rootFolderPath" value="default-site"/>
         <property name="staticAssetsPath" value="/static-assets" />
@@ -169,7 +230,7 @@
         <property name="urlTransformationEngine" ref="crafter.urlTransformationEngine" />
         <property name="storeService" ref="crafter.contentStoreService" />
         <property name="macroResolver" ref="crafter.macroResolver" />
-    </bean>
+    </bean>-->
 
     <!-- ////////////////////////////////// -->
     <!--								 	-->
@@ -287,9 +348,30 @@
 
   <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
   </bean>
-    
 
+    <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--		  Social Services			-->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
 
+    <bean id="crafter.connectionFactoryLocator"
+          class="org.craftercms.engine.util.spring.social.ConfigAwareConnectionFactoryLocator">
+        <property name="defaultLocator" ref="crafter.defaultConnectionFactoryLocator"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <bean id="crafter.defaultConnectionFactoryLocator"
+          class="org.springframework.social.connect.support.ConnectionFactoryRegistry">
+        <!-- Override to specify default connection factories -->
+    </bean>
+
+    <bean id="crafter.providerLoginSupport" class="org.craftercms.security.social.impl.ProviderLoginSupportImpl">
+        <property name="connectionFactoryLocator" ref="crafter.connectionFactoryLocator"/>
+        <property name="authenticationManager" ref="crafter.authenticationManager"/>
+        <property name="profileService" ref="crafter.profileServiceRestClient"/>
+        <property name="textEncryptor" ref="crafter.textEncryptor"/>
+    </bean>
 
     <!-- ////////////////////////////////// -->
     <!--                                    -->
