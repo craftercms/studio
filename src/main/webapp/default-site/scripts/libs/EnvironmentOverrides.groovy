@@ -13,8 +13,10 @@ class EnvironmentOverrides {
 
     	def context = SiteServices.createContext(appContext, request)
 		result.environment = serverProperties["environment"] 
-		result.previewServerUrl = serverProperties["previewUrl"] 
-
+		result.previewServerUrl = serverProperties["previewUrl"]
+		if(result.previewServerUrl.equals("\${previewUrl}")){
+			result.previewServerUrl=request.scheme+"://"+request.serverName+":"+request.serverPort;
+		}
 		try {		
 			result.user = SecurityServices.getCurrentUser(context)
 			result.site = Cookies.getCookieValue("crafterSite", request)
