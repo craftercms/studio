@@ -11,12 +11,26 @@
                 <div class="user-display">
                     <div class="name">{{user.name}} {{user.surname}}</div>
                     <div class="email">{{user.email}}</div>
+                    <div class="language">
+                        <select id="language"
+                                name="language"
+                                class="form-control"
+                                ng-change="selectAction(langSelect)"
+                                ng-model="langSelect" >
+                            <option ng-selected="opt.selected" ng-repeat="opt in languagesAvailable" value="{{opt.id}}">
+                                {{opt.label}}
+                            </option>
+                        </select>
+                        <button class="btn btn-primary" ng-click="setLangCookie()">
+                            Update Language
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-sm-6">
             <h2>Change Password</h2>
-            <div class="form">
+            <div class="form well">
                 <div class="form-group">
                     <label for="current">Current Password</label>
                     <input class="form-control" type="password" id="current" ng-model="data.original"/>
@@ -41,3 +55,14 @@
 
     </div>
 </div>
+<script type="text/ng-template" id="settingLanguajeConfirmation.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Language</h3>
+    </div>
+    <div class="modal-body">
+        <p>The language was set correctly</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="cancel()">OK</button>
+    </div>
+</script>

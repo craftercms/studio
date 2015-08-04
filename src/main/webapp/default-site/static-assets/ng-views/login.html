@@ -29,6 +29,22 @@
                 </div>
             </div>
         </div>
+        <div class="row mt10">
+            <div class="col-lg-12 columns">
+                <div class="form-group">
+                    <select id="language"
+                            name="language"
+                            class="form-control"
+                            ng-change="selectAction(langSelect)"
+                            ng-model="langSelect" >
+                        <option ng-selected="opt.selected" ng-repeat="opt in languagesAvailable" value="{{opt.id}}">
+                            {{opt.label}}
+                        </option>
+                    </select>
+                    <!-- <a ui-sref="login.recover">Forgot your Password?</a> -->
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-lg-12 columns">
                 <div class="alert alert-danger" ng-if="error">
