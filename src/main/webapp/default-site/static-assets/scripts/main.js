@@ -147,7 +147,8 @@
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
         PATH_IMG: '/images/',
-        SERVICE: '/studio/api/1/services/api/1/'
+        SERVICE: '/studio/api/1/services/api/1/',
+        LANGUAGE_COOKIE: 'crafterStudioLanguage'
     });
 
     app.service('authService', [
@@ -236,6 +237,10 @@
                 });
             };
 
+            this.setGeneralCookie = function(cookieGenName, value){
+                $cookies[cookieGenName] = value;
+            }
+
             this.setCookie = function (site) {
                 //$cookies[cookieName] = site.siteId;
                 var domainVal;
@@ -284,6 +289,32 @@
                 });
             }
 
+            this.getAvailableLanguages = function(){
+                return $http.get(server('get-available-languages'));
+            }
+
+            this.getLanguages = function(scope) {
+                this.getAvailableLanguages()
+                    .success(function (data) {
+                        var cookieLang = $cookies[Constants.LANGUAGE_COOKIE];
+                        if(cookieLang){
+                            for(var i=0; i<data.length; i++){
+                                if(data[i].id == cookieLang){
+                                    scope.langSelect = data[i].id;
+                                    scope.langSelected = data[i].id;
+                                }
+                            }
+                        }else{
+                            scope.langSelect = data[0].id;
+                            scope.langSelected = data[0].id;
+                        }
+                        scope.languagesAvailable = data;
+                    })
+                    .error(function () {
+                        scope.languagesAvailable = [];
+                    });
+            }
+
             function api(action) {
                 return Constants.SERVICE + 'site/' + action + '.json';
             }
@@ -296,14 +327,21 @@
                 return Constants.SERVICE + 'security/' + action + '.json';
             }
 
+            function server(action) {
+                return Constants.SERVICE + 'server/' + action + '.json';
+            }
+
             return this;
 
         }
     ]);
 
     app.controller('AppCtrl', [
-        '$scope', '$state', 'authService', 'Constants',
-        function ($scope, $state, authService, Constants) {
+        '$rootScope', '$scope', '$state', 'authService', 'Constants', 'sitesService', '$cookies', '$modal',
+        function ($rootScope, $scope, $state, authService, Constants, sitesService, $cookies, $modal) {
+
+            $scope.langSelected = '';
+            $scope.modalInstance = '';
 
             function logout() {
                 authService.logout();
@@ -324,6 +362,30 @@
                     });
             }
 
+            $scope.languagesAvailable = [];
+
+            sitesService.getLanguages($scope);
+
+            $scope.selectAction = function(optSelected) {
+                $scope.langSelected = optSelected;
+            };
+
+            $scope.setLangCookie = function() {
+                $rootScope.modalInstance = $modal.open({
+                    templateUrl: 'settingLanguajeConfirmation.html',
+                    controller: 'AppCtrl',
+                    backdrop: 'static',
+                    keyboard: false,
+                    size: 'sm'
+                });
+                sitesService.setGeneralCookie(Constants.LANGUAGE_COOKIE, $scope.langSelected);
+
+            };
+
+            $scope.cancel = function () {
+                $rootScope.modalInstance.close();
+            };
+
             $scope.user = authService.getUser();
             $scope.data = { email: ($scope.user || { 'email': '' }).email };
             $scope.error = null;
@@ -335,6 +397,8 @@
                 $scope.user = user;
                 $scope.data.email = $scope.user.email;
             });
+
+
 
         }
     ]);
@@ -553,10 +617,11 @@
     ]);
 
     app.controller('LoginCtrl', [
-        '$scope', '$state', 'authService', '$timeout',
-        function ($scope, $state, authService, $timeout) {
+        '$scope', '$state', 'authService', '$timeout', '$cookies', 'sitesService',
+        function ($scope, $state, authService, $timeout, $cookies, sitesService) {
 
             var credentials = {};
+            $scope.langSelected = '';
 
             function login() {
 
@@ -568,6 +633,7 @@
                             $scope.error = data.error;
                         } else {
                             $state.go('home.sites');
+                            sitesService.setGeneralCookie(Constants.LANGUAGE_COOKIE, $scope.langSelected);
                         }
                     });
 
@@ -604,7 +670,16 @@
                 if ($state.current.name === 'login.recover') {
                     $timeout(hideModal, 50);
                 }
+                //console.log(angular.element(document.querySelector('#language')));
             });
+
+            $scope.languagesAvailable = [];
+
+            sitesService.getLanguages($scope);
+
+            $scope.selectAction = function(optSelected) {
+                $scope.langSelected = optSelected;
+            };
 
         }
     ]);
