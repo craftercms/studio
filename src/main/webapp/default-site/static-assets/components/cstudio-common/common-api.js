@@ -7132,8 +7132,6 @@ CStudioAuthoring.InContextEdit = {
         //
         if(!(!(window.ActiveXObject) && "ActiveXObject" in window)){
             win.CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", win.CStudioAuthoringContext.site);
-        }else{
-            console.log('yess');
         }
     }, w);
 
