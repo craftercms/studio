@@ -6,33 +6,83 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository" init-method="bootstrap">
+    <bean id="cstudioAlfrescoContentRepositoryUnCached" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository" init-method="bootstrap">
         <property name="alfrescoUrl" value="${alfrescoUrl}" />
         <property name="adminUser" value="${repositoryJob.username}"/>
         <property name="adminPassword" value="${repositoryJob.password}"/>
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfresco') and '${crafter.repository.bootstrapEnabled}'}" />
     </bean>
 
-    <bean id="cstudioAlfrescoContentRepositoryCACHED" class="org.craftercms.studio.impl.v1.repository.cached.CachedContentRepository">
-        <property name="wrappedRepository" ref="cstudioAlfrescoContentRepository" />
+    <bean id="cstudioAlfrescoContentRepository" class="org.craftercms.studio.impl.v1.repository.cached.CachedContentRepository">
+        <property name="wrappedRepository" ref="cstudioAlfrescoContentRepositoryUnCached" />
     </bean>
 
     <bean id="cstudioAlfrescoContentRepositoryRegistration" 
           parent="cstudioContentRepositoryRegistration">
-        <property name="contentRepository" ref="cstudioAlfrescoContentRepositoryCACHED"/>
+        <property name="contentRepository" ref="cstudioAlfrescoContentRepository"/>
         <property name="repositoryType" value="alfresco"/>
     </bean>
+
+    <!-- mixed option -->
+    <bean id="cstudioDevPathMappedContentRepository" 
+        class="org.craftercms.studio.impl.v1.repository.path.PathMappedContentRepository">
+        <property name="defaultRepository" ref="cstudioAlfrescoContentRepository"/>
+        <!-- assume development model, content in alfresco, JS, CSS, templates and config in disk -->
+        <property name="pathRepositoryMap">
+            <map>
+                <entry key="^/cstudio/config/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+                <entry key="^/versions/cstudio/config.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+                <entry key="^/cstudio/blueprints/[^/]+/site-config/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+                <entry key="^/versions/cstudio/blueprints/[^/]+/site-config/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+
+
+                <entry key="^/wem-projects/[^/]+/[^/]+/work-area/static-assets/app/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+                <entry key="^/versions/wem-projects/[^/]+/[^/]+/work-area/static-assets/app/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+
+                <entry key="^/wem-projects/[^/]+/[^/]+/work-area/templates/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+                <entry key="^/versions/wem-projects/[^/]+/[^/]+/work-area/templates/.*">
+                    <ref bean="cstudioDiskContentRepository" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="cstudioDiskAndAlfrescoMappedDevContentRepositoryRegistration" 
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioDevPathMappedContentRepository"/>
+        <property name="repositoryType" value="diskAndAlfrescoMappedDev"/>
+    </bean>
+
 
     <!-- ////////////////////////////////////// -->
     <!--         security layer               -->
     <!-- ////////////////////////////////////// -->
-    <alias name="cstudioAlfrescoContentRepository" alias="cstudioAlfrescoSecurityProvider"/>
+    <bean id="cstudioAlfrescoSecurityProvider" 
+          class="org.craftercms.studio.impl.v1.service.security.CachedSecurityProvider">
+        <property name="provider" ref="cstudioAlfrescoContentRepositoryUnCached"/>
+    </bean>
 
-        <bean id="cstudioAlfrescoSecurityProviderRegistration" 
+   <!-- use the uncached provider directly -->
+   <!--alias name="cstudioAlfrescoContentRepositoryUnCached" alias="cstudioAlfrescoSecurityProvider"/-->
+
+    <bean id="cstudioAlfrescoSecurityProviderRegistration" 
           parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="cstudioAlfrescoSecurityProvider"/>
         <property name="providerType" value="alfresco"/>
     </bean>
-
 
 </beans>
