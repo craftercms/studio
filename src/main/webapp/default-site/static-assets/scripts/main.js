@@ -147,7 +147,8 @@
     app.constant('Constants', {
         AUTH_SUCCESS: 'auth-success',
         PATH_IMG: '/images/',
-        SERVICE: '/studio/api/1/services/api/1/'
+        SERVICE: '/studio/api/1/services/api/1/',
+        LANGUAGE_COOKIE: 'crafterStudioLanguage'
     });
 
     app.service('authService', [
@@ -295,7 +296,7 @@
             this.getLanguages = function(scope) {
                 this.getAvailableLanguages()
                     .success(function (data) {
-                        var cookieLang = $cookies['crafterStudioLanguage'];
+                        var cookieLang = $cookies[Constants.LANGUAGE_COOKIE];
                         if(cookieLang){
                             for(var i=0; i<data.length; i++){
                                 if(data[i].id == cookieLang){
@@ -377,7 +378,7 @@
                     keyboard: false,
                     size: 'sm'
                 });
-                sitesService.setGeneralCookie('crafterStudioLanguage', $scope.langSelected);
+                sitesService.setGeneralCookie(Constants.LANGUAGE_COOKIE, $scope.langSelected);
 
             };
 
@@ -632,7 +633,7 @@
                             $scope.error = data.error;
                         } else {
                             $state.go('home.sites');
-                            sitesService.setGeneralCookie('crafterStudioLanguage', $scope.langSelected);
+                            sitesService.setGeneralCookie(Constants.LANGUAGE_COOKIE, $scope.langSelected);
                         }
                     });
 
