@@ -292,6 +292,28 @@
                 return $http.get(server('get-available-languages'));
             }
 
+            this.getLanguages = function(scope) {
+                this.getAvailableLanguages()
+                    .success(function (data) {
+                        var cookieLang = $cookies['crafterStudioLanguage'];
+                        if(cookieLang){
+                            for(var i=0; i<data.length; i++){
+                                if(data[i].id == cookieLang){
+                                    scope.langSelect = data[i].id;
+                                    scope.langSelected = data[i].id;
+                                }
+                            }
+                        }else{
+                            scope.langSelect = data[0].id;
+                            scope.langSelected = data[0].id;
+                        }
+                        scope.languagesAvailable = data;
+                    })
+                    .error(function () {
+                        scope.languagesAvailable = [];
+                    });
+            }
+
             function api(action) {
                 return Constants.SERVICE + 'site/' + action + '.json';
             }
@@ -340,25 +362,8 @@
             }
 
             $scope.languagesAvailable = [];
-            function getLanguages() {
-                sitesService.getAvailableLanguages()
-                    .success(function (data) {
-                        var cookieLang = $cookies['crafterStudioLanguage'];
-                        if(cookieLang){
-                            for(var i=0; i<data.length; i++){
-                                if(data[i].id == cookieLang){
-                                    data[i].selected = true;
-                                }
-                            }
-                        }
-                        $scope.languagesAvailable = data;
-                    })
-                    .error(function () {
-                        $scope.languagesAvailable = [];
-                    });
-            }
 
-            getLanguages();
+            sitesService.getLanguages($scope);
 
             $scope.selectAction = function(optSelected) {
                 $scope.langSelected = optSelected;
@@ -664,28 +669,12 @@
                 if ($state.current.name === 'login.recover') {
                     $timeout(hideModal, 50);
                 }
+                //console.log(angular.element(document.querySelector('#language')));
             });
 
             $scope.languagesAvailable = [];
-            function getLanguages() {
-                sitesService.getAvailableLanguages()
-                    .success(function (data) {
-                        var cookieLang = $cookies['crafterStudioLanguage'];
-                        if(cookieLang){
-                            for(var i=0; i<data.length; i++){
-                                if(data[i].id == cookieLang){
-                                    data[i].selected = true;
-                                }
-                            }
-                        }
-                        $scope.languagesAvailable = data;
-                    })
-                    .error(function () {
-                        $scope.languagesAvailable = [];
-                    });
-            }
 
-            getLanguages();
+            sitesService.getLanguages($scope);
 
             $scope.selectAction = function(optSelected) {
                 $scope.langSelected = optSelected;

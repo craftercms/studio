@@ -16,10 +16,12 @@
                                 name="language"
                                 class="form-control"
                                 ng-change="selectAction(langSelect)"
-                                ng-model="langSelect" >
-                            <option ng-selected="opt.selected" ng-repeat="opt in languagesAvailable" value="{{opt.id}}">
+                                ng-model="langSelect"
+                                ng-options="opt.id as opt.label for opt in languagesAvailable">
+                            <option value="" ng-if="false"></option>
+                            <!--<option ng-selected="opt.selected" ng-repeat="opt in languagesAvailable" value="{{opt.id}}">
                                 {{opt.label}}
-                            </option>
+                            </option>-->
                         </select>
                         <button class="btn btn-primary" ng-click="setLangCookie()">
                             Update Language
