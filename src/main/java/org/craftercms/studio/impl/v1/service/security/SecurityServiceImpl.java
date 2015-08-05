@@ -73,34 +73,118 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         // determine whether to refresh the config
         checkForUpdate(site);
 
-        // get the config files from the permissionsConfigMap based on the key
-        PermissionsConfigTO rolesConfig = permissionsConfigMap.get(getPermissionsKey(site, roleMappingsFileName));
-        PermissionsConfigTO permissionsConfig = permissionsConfigMap.get(getPermissionsKey(site, permissionsFileName));
-        Set<String> roles = new HashSet<String>();
-        addUserRoles(roles, site, user);
-        addGroupRoles(roles, site, groups, rolesConfig);
-        // resolve the permission
-        Set<String> permissions = populateUserPermissions(site, path, roles, permissionsConfig);
-        // check if the user is allowed to edit the content
+        Set<String> permissions = new HashSet<String>();
 
-        if(path.indexOf("/site") == 0) { // If it's content a file 
-            try {
-                ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
-                boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
-                if (!isAllowed) {
-                    logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-                    // If no default role is set
-                    permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-                    return permissions;
+        if (StringUtils.isNotEmpty(site)) {
+            // get the config files from the permissionsConfigMap based on the key
+            PermissionsConfigTO rolesConfig = permissionsConfigMap.get(getPermissionsKey(site, roleMappingsFileName));
+            PermissionsConfigTO permissionsConfig = permissionsConfigMap.get(getPermissionsKey(site, permissionsFileName));
+            Set<String> roles = new HashSet<String>();
+            addUserRoles(roles, site, user);
+            addGroupRoles(roles, site, groups, rolesConfig);
+            // resolve the permission
+            permissions = populateUserPermissions(site, path, roles, permissionsConfig);
+            // check if the user is allowed to edit the content
+
+            if (path.indexOf("/site") == 0) { // If it's content a file
+                try {
+                    ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
+                    boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
+                    if (!isAllowed) {
+                        logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        // If no default role is set
+                        permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        return permissions;
+                    }
+                } catch (ServiceException e) {
+                    logger.debug("Error while getting the content type of " + path + ". skipping user role checking on the content.");
                 }
-            } catch (ServiceException e) {
-                logger.debug("Error while getting the content type of " + path + ". skipping user role checking on the content.");
             }
         }
 
+        PermissionsConfigTO globalRolesConfig = permissionsConfigMap.get("###GLOBAL###:"+globalRoleMappingsFileName);
+        PermissionsConfigTO globalPermissionsConfig = permissionsConfigMap.get("###GLOBAL###:"+globalPermissionsFileName);
+        Set<String> roles = new HashSet<String>();
+        addGlobalUserRoles(user, roles, globalRolesConfig);
+        addGlobalGroupRoles(roles, groups, globalRolesConfig);
+        permissions.addAll(populateUserGlobalPermissions(path, roles, globalPermissionsConfig));
         return permissions;
     }
 
+    protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
+        Set<String> groups = securityProvider.getUserGroups(user);
+        if (rolesConfig != null) {
+            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+            for (String group : groups) {
+                String groupName = group.replaceFirst("GROUP_", "");
+                List<String> userRoles = rolesMap.get(groupName);
+                if (roles != null && userRoles != null) {
+                    roles.addAll(userRoles);
+                }
+            }
+        }
+    }
+
+    protected void addGlobalGroupRoles(Set<String> roles, List<String> groups, PermissionsConfigTO rolesConfig) {
+        if (groups != null) {
+            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+            for (String group : groups) {
+                List<String> groupRoles = rolesMap.get(group);
+                if (groupRoles != null) {
+                    logger.debug("Adding roles by group " + group + ": " + roles);
+                    roles.addAll(groupRoles);
+                }
+            }
+        }
+    }
+
+    protected Set<String> populateUserGlobalPermissions(String path, Set<String> roles,
+                                                  PermissionsConfigTO permissionsConfig) {
+        Set<String> permissions = new HashSet<String>();
+        if (roles != null && !roles.isEmpty()) {
+            for (String role : roles) {
+                Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
+                Map<String, List<Node>> siteRoles = permissionsMap.get("###GLOBAL###");
+                if (siteRoles == null || siteRoles.isEmpty()) {
+                    siteRoles = permissionsMap.get("*");
+                }
+                if (siteRoles != null && !siteRoles.isEmpty()) {
+                    List<Node> ruleNodes = siteRoles.get(role);
+                    if (ruleNodes == null || ruleNodes.isEmpty()) {
+                        ruleNodes = siteRoles.get("*");
+                    }
+                    if (ruleNodes != null && !ruleNodes.isEmpty()) {
+                        for (Node ruleNode : ruleNodes) {
+                            String regex = ruleNode.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_REGEX);
+                            if (path.matches(regex)) {
+                                logger.debug("Global permissions found by matching " + regex + " for " + role);
+
+                                List<Node> permissionNodes = ruleNode.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                                for (Node permissionNode : permissionNodes) {
+                                    String permission = permissionNode.getText().toLowerCase();
+                                    logger.debug("adding global permissions " + permission + " to " + path + " for " + role);
+                                    permissions.add(permission);
+                                }
+                            }
+                        }
+                    } else {
+                        logger.debug("No default role is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                        // If no default role is set
+                        permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                    }
+                } else {
+                    logger.debug("No default site is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                    // If no default site is set
+                    permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                }
+            }
+        } else {
+            logger.debug("No user or group matching found. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+            // If user or group did not match the roles-mapping file
+            permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+        }
+        return permissions;
+    }
 
     /* Derives a key based off the site and filename */
     protected String getPermissionsKey(String site, String filename) {
@@ -366,8 +450,110 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 	 */
     @Override
     protected void checkForUpdate(String site) {
-        super.checkForUpdate(getPermissionsKey(site, roleMappingsFileName));
-        super.checkForUpdate(getPermissionsKey(site, permissionsFileName));
+        if (StringUtils.isNotEmpty(site)) {
+            super.checkForUpdate(getPermissionsKey(site, roleMappingsFileName));
+            super.checkForUpdate(getPermissionsKey(site, permissionsFileName));
+        }
+        if (isGlobalPermissionsConfigUpdated()) {
+            loadGlobalPermissionsConfiguration();
+        }
+        if (isGlobalRolesConfigUpdated()) {
+            loadGlobalRolesConfiguration();
+        }
+    }
+
+    protected boolean isGlobalRolesConfigUpdated() {
+        String globalRolesKey = "###GLOBAL###:" + globalRoleMappingsFileName;
+        TimeStamped config = getConfigurationById(globalRolesKey);
+        if (config == null) {
+            return true;
+        } else {
+            String siteConfigFullPath =  globalConfigPath + "/" + globalRoleMappingsFileName;
+            if (contentRepository.contentExists(siteConfigFullPath)) {
+                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
+                if (modifiedDate == null) {
+                    return false;
+                } else {
+                    return modifiedDate.after(config.getLastUpdated());
+                }
+            } else {
+                removeConfiguration(globalRolesKey);
+                return true;
+            }
+        }
+    }
+
+    protected boolean isGlobalPermissionsConfigUpdated() {
+        String globalPermissionsKey = "###GLOBAL###:" + globalPermissionsFileName;
+        TimeStamped config = getConfigurationById(globalPermissionsKey);
+        if (config == null) {
+            return true;
+        } else {
+            String siteConfigFullPath =  globalConfigPath + "/" + globalPermissionsFileName;
+            if (contentRepository.contentExists(siteConfigFullPath)) {
+                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
+                if (modifiedDate == null) {
+                    return false;
+                } else {
+                    return modifiedDate.after(config.getLastUpdated());
+                }
+            } else {
+                removeConfiguration(globalPermissionsKey);
+                return true;
+            }
+        }
+    }
+
+    protected void loadGlobalPermissionsConfiguration() {
+        String globalPermissionsConfigPath = globalConfigPath + "/" + globalPermissionsFileName;
+        Document document = null;
+        try {
+            document = contentService.getContentAsDocument(globalPermissionsConfigPath);
+        } catch (DocumentException e) {
+            logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
+        }
+        if (document != null) {
+            PermissionsConfigTO config = new PermissionsConfigTO();
+            config.setMapping(document);
+            Element root = document.getRootElement();
+
+            // permissions file
+            loadPermissions(root, config);
+
+            String globalPermissionsKey = "###GLOBAL###:" + globalPermissionsFileName;
+            config.setKey(globalPermissionsKey);
+            config.setLastUpdated(new Date());
+
+            permissionsConfigMap.put(globalPermissionsKey, config);
+        } else {
+            logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
+        }
+    }
+
+    protected void loadGlobalRolesConfiguration() {
+        String globalRolesConfigPath = globalConfigPath + "/" + globalRoleMappingsFileName;
+        Document document = null;
+        try {
+            document = contentService.getContentAsDocument(globalRolesConfigPath);
+        } catch (DocumentException e) {
+            logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
+        }
+        if (document != null) {
+            PermissionsConfigTO config = new PermissionsConfigTO();
+            config.setMapping(document);
+            Element root = document.getRootElement();
+
+            // roles file
+            loadRoles(root, config);
+
+            String globalRolesKey = "###GLOBAL###:" + globalRoleMappingsFileName;
+            config.setKey(globalRolesKey);
+            config.setLastUpdated(new Date());
+
+            permissionsConfigMap.put(globalRolesKey, config);
+        } else {
+            logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
+        }
     }
 
     @Override
@@ -408,6 +594,15 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     public String getPermissionsFileName() { return permissionsFileName; }
     public void setPermissionsFileName(String permissionsFileName) { this.permissionsFileName = permissionsFileName; }
 
+    public String getGlobalConfigPath() { return globalConfigPath; }
+    public void setGlobalConfigPath(String globalConfigPath) { this.globalConfigPath = globalConfigPath; }
+
+    public String getGlobalRoleMappingsFileName() { return globalRoleMappingsFileName; }
+    public void setGlobalRoleMappingsFileName(String globalRoleMappingsFileName) { this.globalRoleMappingsFileName = globalRoleMappingsFileName; }
+
+    public String getGlobalPermissionsFileName() {  return globalPermissionsFileName; }
+    public void setGlobalPermissionsFileName(String globalPermissionsFileName) { this.globalPermissionsFileName = globalPermissionsFileName; }
+
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
@@ -420,6 +615,9 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     protected Map<String, PermissionsConfigTO> permissionsConfigMap = new HashMap<String, PermissionsConfigTO>();
     protected String roleMappingsFileName;
     protected String permissionsFileName;
+    protected String globalConfigPath;
+    protected String globalRoleMappingsFileName;
+    protected String globalPermissionsFileName;
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;

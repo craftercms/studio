@@ -210,6 +210,9 @@
         <property name="configPath"><value>${permissionService.configPath}</value></property>
         <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
+        <property name="globalConfigPath"><value>${permissionService.globalConfigPath}</value></property>
+        <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
+        <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
@@ -533,6 +536,7 @@
         init-method="bootstrap">
         <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="${repository.diskImplementation.path}" />
+        <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
     </bean>
 
     <bean id="cstudioDiskContentRepositoryRegistration" 
