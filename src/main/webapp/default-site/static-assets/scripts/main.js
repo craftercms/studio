@@ -478,7 +478,7 @@
             }
 
             function createSitePermission(){
-                sitesService.getPermissions('test1', '/', $scope.user.username || $scope.user)
+                sitesService.getPermissions('', '/', $scope.user.username || $scope.user)
                     .success(function (data) {
                         for(var i=0; i<data.permissions.length;i++){
                             if(data.permissions[i]=='create-site'){

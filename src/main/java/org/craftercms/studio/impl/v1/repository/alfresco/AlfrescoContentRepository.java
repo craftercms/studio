@@ -94,6 +94,7 @@ implements SecurityProvider {
         try {
             return (this.getNodeRefForPathCMIS(path) != null);
         } catch (ContentNotFoundException e) {
+            logger.info("Content not found exception for path: " + path, e);
             return false;
         }
     }
@@ -861,7 +862,7 @@ implements SecurityProvider {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
         } catch (CmisBaseException err) {
-            logger.error("Failed to create " + name + " folder in " + fullPath, err);
+            logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
         return newFolderRef;
     }
@@ -1237,36 +1238,44 @@ implements SecurityProvider {
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
+        String ticket = authenticate(adminUser, adminPassword);
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+        RepositoryEventContext.setCurrent(repositoryEventContext);
         if(bootstrapEnabled && !bootstrapCheck()) {
-            String ticket = authenticate(adminUser, adminPassword);
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
-            RepositoryEventContext.setCurrent(repositoryEventContext);
+
             logger.info("Bootstrapping repository for Crafter CMS");
 
             String bootstrapFolderPath = getBootstrapFolderPath();
             bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
             File source = new File(bootstrapFolderPath);
             bootstrapDir(source, bootstrapFolderPath);
-            RepositoryEventContext.setCurrent(null);
+            addUserGroup("CRAFTER_CREATE_SITES");
+            addUserToGroup("CRAFTER_CREATE_SITES", adminUser);
+
         }
+        RepositoryEventContext.setCurrent(null);
     }
 
     private void bootstrapDir(File dir, String rootPath) {
 
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
-            String relativePath = child.getAbsolutePath().replace(rootPath, "");
-            String parentPath = child.getParent().replace(rootPath, "");
-            if (StringUtils.isEmpty(parentPath)) {
-                parentPath = "/";
-            }
-            if (child.isDirectory()) {
-                createFolderInternalCMIS(parentPath, child.getName());
-            } else if (child.isFile()) {
-                try {
-                    writeContentCMIS(relativePath, FileUtils.openInputStream(child));
-                } catch (IOException e) {
-                    logger.error("Error while bootstrapping file: " + relativePath, e);
+            String childPath = child.getAbsolutePath();
+            logger.info("BOOTSTRAP Processing path: {0}", childPath);
+            if (!rootPath.equals(childPath)) {
+                String relativePath = childPath.replace(rootPath, "");
+                String parentPath = child.getParent().replace(rootPath, "");
+                if (StringUtils.isEmpty(parentPath)) {
+                    parentPath = "/";
+                }
+                if (child.isDirectory()) {
+                    createFolderInternalCMIS(parentPath, child.getName());
+                } else if (child.isFile()) {
+                    try {
+                        writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                    } catch (IOException e) {
+                        logger.error("Error while bootstrapping file: " + relativePath, e);
+                    }
                 }
             }
         }
@@ -1274,8 +1283,12 @@ implements SecurityProvider {
 
     private boolean bootstrapCheck() {
         boolean contenSpace = contentExists("/wem-projects");
+        logger.info("BOOTSTRAP CHECK Content exists /wem-projects: " + contenSpace);
         boolean blueprintsSpace = contentExists("/cstudio/blueprints");
+        logger.info("BOOTSTRAP CHECK Content exists /cstudio/blueprints: " + blueprintsSpace);
         boolean configSpace = contentExists("/cstudio/config");
+        logger.info("BOOTSTRAP CHECK Content exists /cstudio/config: " + configSpace);
+        logger.info("BOOTSTRAP CHECK Result: " + (contenSpace && blueprintsSpace && configSpace));
         return contenSpace && blueprintsSpace && configSpace;
     }
 
@@ -1288,8 +1301,6 @@ implements SecurityProvider {
             return null;
         }
         String pathArr[] = fullPath.split("/WEB-INF/classes/");
-        System.out.println(fullPath);
-        System.out.println(pathArr[0]);
         fullPath = pathArr[0];
 
         String reponsePath = "";
