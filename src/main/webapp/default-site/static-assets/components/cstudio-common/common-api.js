@@ -7129,7 +7129,12 @@ CStudioAuthoring.InContextEdit = {
 
     // Parameter 'win' of the anonymous function will be the object passed as parameter 'w'
     YAHOO.util.Event.onDOMReady(function (e, args, win) {
-        win.CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", win.CStudioAuthoringContext.site);
+        //
+        if(!(!(window.ActiveXObject) && "ActiveXObject" in window)){
+            win.CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", win.CStudioAuthoringContext.site);
+        }else{
+            console.log('yess');
+        }
     }, w);
 
 }) (window);
