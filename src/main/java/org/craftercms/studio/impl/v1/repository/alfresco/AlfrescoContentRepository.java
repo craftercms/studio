@@ -56,6 +56,7 @@ import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -637,20 +638,29 @@ implements SecurityProvider {
                 Iterator<CmisObject> iterator = children.iterator();
                 while (iterator.hasNext()) {
                     CmisObject child = iterator.next();
-
+                    boolean isWorkingCopy = false;
                     boolean isFolder = "cmis:folder".equals(child.getBaseType().getId());
                     RepositoryItem item = new RepositoryItem();
                     item.name = child.getName();
-                    if (child.getType().isFileable()) {
-                        FileableCmisObject fileableCmisObject = (FileableCmisObject) child;
-                        item.path = fileableCmisObject.getPaths().get(0);
+
+                    if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)child;
+                        item.path = document.getPaths().get(0);
+                        Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
+                        if (secundaryTypes != null) {
+                            List<String> aspects = secundaryTypes.getValue();
+                            if (aspects.contains("P:cm:workingcopy")) {
+                                isWorkingCopy = true;
+                            }
+                        }
                     } else {
                         item.path = fullPath;
                     }
                     item.path = StringUtils.removeEnd(item.path,"/" + item.name);
                     item.isFolder = isFolder;
-
-                    tempList.add(item);
+                    if (!isWorkingCopy) {
+                        tempList.add(item);
+                    }
                 }
                 items = new RepositoryItem[tempList.size()];
                 items = tempList.toArray(items);
@@ -680,7 +690,13 @@ implements SecurityProvider {
                 ObjectType type = cmisObject.getBaseType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-                    document.setContentStream(contentStream, true);
+                    String pwcId = document.getVersionSeriesCheckedOutId();
+                    org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(pwcId);
+                    if (pwcDocument != null) {
+                        pwcDocument.checkIn(false, null, contentStream, null);
+                    } else {
+                        document.setContentStream(contentStream, true);
+                    }
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
@@ -960,7 +976,7 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.0/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.1/atom/");
         //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
@@ -984,6 +1000,8 @@ implements SecurityProvider {
 
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
+        lockItemCMIS(fullPath);
+        /*
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         try {
             String nodeRef = getNodeRefForPathCMIS(cleanPath);
@@ -1002,7 +1020,7 @@ implements SecurityProvider {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Exception err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }
+        }*/
 
 /*
         String fullPath = expandRelativeSitePath(site, path);
@@ -1029,6 +1047,24 @@ implements SecurityProvider {
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         }*/
+    }
+
+    protected void lockItemCMIS(String fullPath) {
+        Session session = getCMISSession();
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            AlfrescoDocument document = (AlfrescoDocument) cmisObject;
+            document.checkOut();
+        } catch (CmisBaseException err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+        } catch (Throwable err) {
+            logger.error("Error while locking content at path " + cleanPath, err);
+
+        }
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
