@@ -2462,6 +2462,11 @@ span.acn-canned-search {
   width: 546px;
 }
 
+.copyContent .copy-content-container {
+  width: auto;
+  border-bottom: 1px solid #7F9BD9;
+}
+
 .copy-content-container h5 {
   background-color: #7F9DB9;
   color: #FFFFFF;
@@ -2469,6 +2474,14 @@ span.acn-canned-search {
   margin-bottom: 0px;
   overflow: hidden;
   padding: 3px 20px;
+}
+
+.copyContent .copy-content-container h5{
+  border-radius: 6px 6px 0 0;
+}
+
+#cstudio-wcm-popup-div .copyContent .copy-content-container h5 span{
+  color: #fff;
 }
 
 .copy-content-container h5 span {
@@ -2485,6 +2498,10 @@ span.acn-canned-search {
   position: relative;
   width: 544px;
   padding: 2px 0 0;
+}
+
+.copyContent .copy-content-container div.scrollBox {
+  width: 100%;
 }
 
 .copy-content-container ul div {
