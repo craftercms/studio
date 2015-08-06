@@ -205,12 +205,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.alfresco.cmis.client</groupId>
-            <artifactId>alfresco-opencmis-extension</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
             <version>10.11.1.1</version>

@@ -19,8 +19,6 @@ package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sf.json.JSONObject;
-import org.alfresco.cmis.client.AlfrescoDocument;
-import org.alfresco.cmis.client.AlfrescoFolder;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -151,137 +149,39 @@ implements SecurityProvider {
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
+    @Override
     public String createVersion(String path, boolean majorVersion) {
 
-        try {
-            if (contentExists(path)) {
-                String nodeRef = getNodeRefForPathCMIS(path);
-                // add versionable aspect
-                int lastidx = nodeRef.lastIndexOf("/");
-                String nodeUUID = nodeRef.substring(lastidx + 1);
-                String requestBody = "{ \"added\":[\"cm:versionable\"], \"removed\":[] }";
-                InputStream bodyStream = IOUtils.toInputStream(requestBody);
-                String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
-
-                // set aspect properties
-                requestBody = "{ \"properties\" : { \"autoVersion\" : false, \"autoVersionOnUpdateProps\" : false }}";
-                bodyStream = IOUtils.toInputStream(requestBody);
-                result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
-
-                if (majorVersion) {
-                    // Upload new version
-                    InputStream content = getContentStreamCMIS(path);
-                    String contentType = "cm:content";
-                    int splitIndex = path.lastIndexOf("/");
-                    String name = path.substring(splitIndex + 1);
-                    // find the target folder node by its path
-                    String folderPath = path.substring(0, splitIndex);
-                    String folderRef = getNodeRefForPathCMIS(folderPath);
-                    if (folderRef == null) {
-                        // if not, create the folder first
-                        int folderSplitIndex = folderPath.lastIndexOf("/");
-                        String parentFolderPath = folderPath.substring(0, folderSplitIndex);
-                        String folderName = folderPath.substring(folderSplitIndex + 1);
-                        folderRef = this.createFolderInternal(parentFolderPath, folderName);
-                    }
-                    // TODO: might still need to check if the folderRef still exists
-
-                    // add parameters
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("filename", name);
-                    // if it's a new content, check if the folder exists
-                    params.put("destination", folderRef);
-                    if (nodeRef != null) {
-                        params.put("updateNodeRef", nodeRef);
-                    }
-                    //params.put("uploaddirectory", folderRef);
-                    // TODO: add description for version update - do we need this?
-                    params.put("contenttype", contentType);
-                    params.put("majorversion", Boolean.toString(majorVersion));
-                    params.put("overwrite", "true");
-                    result = alfrescoMultipartPostRequest("/api/upload", params, content, "application/xml", "UTF-8");
-                }
-            }
-        } catch (ContentNotFoundException e) {
-            logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, e);
-        } catch (Exception e) {
-            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, e);
-        }
-        return "";
-        /*
         String versionLabel = null;
-        Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
-        }
-        try {
-            Session session = getCMISSession();
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            if (cmisObject != null) {
-                ObjectType type = cmisObject.getBaseType();
-                if ("cmis:document".equals(type.getId())) {
-                    AlfrescoDocument alfDoc = (AlfrescoDocument)cmisObject;
-                    /*
-                    if (!alfDoc.hasAspect("D:cm:versionable")) {
-                        alfDoc.addAspect("D:cm:versionable");
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    }*/
-                    /*
-                    Property autoVersion = alfDoc.getProperty("cm:autoVersion");
-                    if (autoVersion == null || (Boolean.parseBoolean(autoVersion.getValueAsString()))) {
-                        Map<String, Object> properties = new HashMap<String, Object>();
-                        properties.put("cm:autoVersion", false);
-                        alfDoc.updateProperties(properties, true);
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    }*/
-/*
-                    Property lockOwner = alfDoc.getProperty("cm:lockOwner");
-                    Property lockType = alfDoc.getProperty("cm:lockType");
-                    if (lockOwner != null && lockType != null) {
-                        if (!alfDoc.hasAspect("P:cm:lockable")) {
-                            alfDoc.addAspect("P:cm:lockable");
-                        } else {
-                            Map<String, Object> properties = new HashMap<String, Object>();
-                            properties.put("cm:lockOwner", null);
-                            properties.put("cm:lockType", null);
-                            alfDoc.updateProperties(properties, true);
-                        }
-                        //session.clear();
-                        //alfDoc = (AlfrescoDocument)session.getObject(alfDoc.getId());
-                    }
-                    session.removeObjectFromCache(alfDoc.getId());
-                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    ObjectId objId = alfDoc.checkOut();
-                    AlfrescoDocument workingCopy = (AlfrescoDocument)session.getObject(objId);
-                    ContentStream contentStream = workingCopy.getContentStream();
-                    objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
-                    session.removeObjectFromCache(alfDoc.getId());
-                    session.removeObjectFromCache(objId);
-                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    if (lockOwner != null && lockType != null) {
-                        if (!alfDoc.hasAspect("P:cm:lockable")) {
-                            alfDoc.addAspect("P:cm:lockable");
-                        }
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                        Map<String, Object> properties = new HashMap<String, Object>();
-                        properties.put("cm:lockOwner", lockOwner.getValue());
-                        properties.put("cm:lockType", lockType.getValue());
-                        alfDoc.updateProperties(properties, true);
+        if (majorVersion) {
+            // only major version will be created on demand. minor version is created on updates
+
+            Map<String, String> params = new HashMap<String, String>();
+            String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+            if (cleanPath.endsWith("/")) {
+                cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+            }
+            try {
+                Session session = getCMISSession();
+                CmisObject cmisObject = session.getObjectByPath(cleanPath);
+                if (cmisObject != null) {
+                    ObjectType type = cmisObject.getBaseType();
+                    if ("cmis:document".equals(type.getId())) {
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                        ObjectId objId = document.checkOut();
+                        org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
+                        ContentStream contentStream = workingCopy.getContentStream();
+                        objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                        session.removeObjectFromCache(document.getId());
+                        session.removeObjectFromCache(objId);
                     }
                 }
+            } catch (CmisBaseException err) {
+                logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, err);
             }
-        } catch (CmisBaseException err) {
-            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, err);
         }
         return versionLabel;
-        */
+
     }
 
     /** 
@@ -697,6 +597,7 @@ implements SecurityProvider {
                     } else {
                         document.setContentStream(contentStream, true);
                     }
+                    session.removeObjectFromCache(document.getId());
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
@@ -753,6 +654,7 @@ implements SecurityProvider {
                 result = true;
             } else {
                 cmisObject.delete(true);
+                session.removeObjectFromCache(cmisObject.getId());
                 result = true;
             }
         } catch (CmisBaseException e) {
@@ -903,9 +805,9 @@ implements SecurityProvider {
                 ObjectType sourceType = sourceCmisObject.getType();
                 ObjectType targetType = targetCmisObject.getType();
                 if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
-                    AlfrescoFolder targetFolder = (AlfrescoFolder)targetCmisObject;
+                    Folder targetFolder = (Folder)targetCmisObject;
                     if ("cmis:document".equals(sourceType.getId())) {
-                        AlfrescoDocument sourceDocument = (AlfrescoDocument)sourceCmisObject;
+                        org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
                         logger.debug("Coping document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                         copyDocument(targetFolder, sourceDocument);
                     } else if ("cmis:folder".equals(sourceType.getId())) {
@@ -944,14 +846,14 @@ implements SecurityProvider {
         ItemIterable<CmisObject> immediateChildren = toCopyFolder.getChildren();
         for (CmisObject child : immediateChildren) {
             if (BaseTypeId.CMIS_DOCUMENT.value().equals(child.getBaseTypeId().value())) {
-                copyDocument(parentFolder, (AlfrescoDocument) child);
+                copyDocument(parentFolder, (org.apache.chemistry.opencmis.client.api.Document) child);
             } else if (BaseTypeId.CMIS_FOLDER.value().equals(child.getBaseTypeId().value())) {
                 copyFolder(parentFolder, (Folder) child);
             }
         }
     }
 
-    private void copyDocument(Folder parentFolder, AlfrescoDocument sourceDocument) {
+    private void copyDocument(Folder parentFolder, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
         Map<String, Object> documentProperties = new HashMap<String, Object>(2);
         documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
@@ -1001,52 +903,6 @@ implements SecurityProvider {
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
         lockItemCMIS(fullPath);
-        /*
-        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        try {
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            // add lockable aspect
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-            String requestBody = "{ \"added\":[\"cm:lockable\"], \"removed\":[] }";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-
-            // set aspect properties
-            requestBody = "{ \"properties\" : { \"lockOwner\" : " + getCurrentUser() + ", \"lockType\" : WRITE_LOCK }}";
-            bodyStream = IOUtils.toInputStream(requestBody);
-            result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-        } catch (ContentNotFoundException err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        } catch (Exception err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        }*/
-
-/*
-        String fullPath = expandRelativeSitePath(site, path);
-        Session session = getCMISSession();
-        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
-        }
-        try {
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
-            if (!document.hasAspect("P:cm:lockable")) {
-                //document.addAspect("P:cm:lockable");
-                logger.debug("Added lockable aspect for content at path " + cleanPath);
-            } else {
-                logger.debug("Already has lockable aspect for content at path " + cleanPath);
-            }
-            Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put("cm:lockOwner", getCurrentUser());
-            properties.put("cm:lockType", "WRITE_LOCK");
-            //document.updateProperties(properties);
-        } catch (CmisBaseException err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        } catch (Throwable err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        }*/
     }
 
     protected void lockItemCMIS(String fullPath) {
@@ -1057,7 +913,7 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            AlfrescoDocument document = (AlfrescoDocument) cmisObject;
+            org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
             document.checkOut();
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
@@ -1073,32 +929,6 @@ implements SecurityProvider {
 
     public void unLockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
-        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        try {
-            /*
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-
-            // set aspect properties
-            String requestBody = "{ \"properties\" : { \"lockOwner\" : \"\", \"lockType\" : \"\"}}";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-            */
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            // add lockable aspect
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-            String requestBody = "{ \"added\":[], \"removed\":[\"cm:lockable\"] }";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-        } catch (ContentNotFoundException err) {
-            logger.error("Error while unlocking content at path " + cleanPath, err);
-        } catch (Exception err) {
-            logger.error("Error while unlocking content at path " + cleanPath, err);
-        }
-        /*
-        String fullPath = expandRelativeSitePath(site, path);
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1106,21 +936,20 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
-            if (document.hasAspect("P:cm:lockable")) {
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put("cm:lockOwner", null);
-                properties.put("cm:lockType", null);
-                //document.updateProperties(properties);
-                logger.debug("Removing lockable aspect for content at path " + cleanPath);
-            } else {
-                logger.debug("Lockable aspect was already removed for content at path " + cleanPath);
+            ObjectType type = cmisObject.getBaseType();
+            if ("cmis:document".equals(type.getId())) {
+                org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                String pwcId = document.getVersionSeriesCheckedOutId();
+                org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
+                if (pwcDocument != null) {
+                    pwcDocument.cancelCheckOut();
+                }
             }
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }*/
+        }
     }
 
     @Override
@@ -1211,8 +1040,6 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("alf_user");
         }
-//System.out.println("=========================\r\ngetting user:"+username);
-
         return username;
     }
 
@@ -1223,9 +1050,6 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_user", username);
         }
-
-//System.out.println("=========================\r\nsetting user:"+username);
-
     }
 
     @Override
@@ -1279,7 +1103,7 @@ implements SecurityProvider {
         RepositoryEventContext.setCurrent(repositoryEventContext);
         if(bootstrapEnabled && !bootstrapCheck()) {
 
-            logger.info("Bootstrapping repository for Crafter CMS");
+            logger.debug("Bootstrapping repository for Crafter CMS");
 
             String bootstrapFolderPath = getBootstrapFolderPath();
             bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
@@ -1297,7 +1121,7 @@ implements SecurityProvider {
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
             String childPath = child.getAbsolutePath();
-            logger.info("BOOTSTRAP Processing path: {0}", childPath);
+            logger.debug("BOOTSTRAP Processing path: {0}", childPath);
             if (!rootPath.equals(childPath)) {
                 String relativePath = childPath.replace(rootPath, "");
                 String parentPath = child.getParent().replace(rootPath, "");
@@ -1319,12 +1143,8 @@ implements SecurityProvider {
 
     private boolean bootstrapCheck() {
         boolean contenSpace = contentExists("/wem-projects");
-        logger.info("BOOTSTRAP CHECK Content exists /wem-projects: " + contenSpace);
         boolean blueprintsSpace = contentExists("/cstudio/blueprints");
-        logger.info("BOOTSTRAP CHECK Content exists /cstudio/blueprints: " + blueprintsSpace);
         boolean configSpace = contentExists("/cstudio/config");
-        logger.info("BOOTSTRAP CHECK Content exists /cstudio/config: " + configSpace);
-        logger.info("BOOTSTRAP CHECK Result: " + (contenSpace && blueprintsSpace && configSpace));
         return contenSpace && blueprintsSpace && configSpace;
     }
 
