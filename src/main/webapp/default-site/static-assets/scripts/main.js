@@ -224,7 +224,6 @@
         function ($http, Constants, $cookies, $timeout, $window) {
 
             var me = this;
-            var cookieName = 'crafterSite';
 
             this.getSites = function() {
                 return $http.get(json('get-sites-3'));
@@ -236,20 +235,16 @@
                 });
             };
 
-            this.setGeneralCookie = function(cookieGenName, value){
-                $cookies[cookieGenName] = value;
-            }
-
-            this.setCookie = function (site) {
+            this.setCookie = function(cookieGenName, value){
                 //$cookies[cookieName] = site.siteId;
                 var domainVal;
                 domainVal = (document.location.hostname != 'localhost') ? "domain=" + document.location.hostname : "";
                 document.cookie =
-                    [cookieName, "=", site.siteId, "; path=/; " + domainVal].join("");
-            };
+                    [cookieGenName, "=", value, "; path=/; " + domainVal].join("");
+            }
 
             this.editSite = function (site) {
-                me.setCookie(site);
+                me.setCookie('crafterSite',site.siteId);
                 $timeout(function () {
 
                     // For future in-app iframe
@@ -262,7 +257,7 @@
 
             this.goToDashboard = function (site) {
 
-                me.setCookie(site);
+                me.setCookie('crafterSite',site.siteId);
                 $timeout(function () {
                     $window.location.href = '/studio/site-dashboard';
                 }, 0, false);
@@ -377,7 +372,7 @@
                     keyboard: false,
                     size: 'sm'
                 });
-                sitesService.setGeneralCookie('crafterStudioLanguage', $scope.langSelected);
+                sitesService.setCookie('crafterStudioLanguage', $scope.langSelected);
 
             };
 
@@ -632,7 +627,7 @@
                             $scope.error = data.error;
                         } else {
                             $state.go('home.sites');
-                            sitesService.setGeneralCookie('crafterStudioLanguage', $scope.langSelected);
+                            sitesService.setCookie('crafterStudioLanguage', $scope.langSelected);
                         }
                     });
 
