@@ -65,7 +65,7 @@ CStudioAuthoring.Messages.registerBundle ( "siteDashboard", "kr",
        dashletIconGuideStateInWorkflow : "워크 플로에서",
        dashletIconGuideStateScheduled : "예약",
        dashletIconGuideStateSystemProcessing : "처리",
-       dashletIconGuideStateLocked : "편집에 대해 잠김",
+       dashletIconGuideStateLocked : "편집에 대해 잠김"
 
 });
 
@@ -94,7 +94,7 @@ CStudioAuthoring.Messages.registerBundle ( "contextnav", "kr", {
 
        search: "검색",
 
-       logout: "로그 아웃",
+       logout: "로그 아웃"
 
 });
 
@@ -116,7 +116,7 @@ CStudioAuthoring.Messages.registerBundle ( "forms", "kr", {
        errSaveFailed: ". 형태의 컨텐츠를 저장할 수 없습니다 다시 연락처 또는 시스템 관리자 나 시도하십시오.",
        errOnRepeat: "중계기 작동에 오류 : {0}",
        errFailedToLoadContent : "오류 내용을로드 : {0}",
-       errExpectedIndexXml : "이 Index.xml 이외의 파일 이름을 기대되지 않음",
+       errExpectedIndexXml : "이 Index.xml 이외의 파일 이름을 기대되지 않음"
       
 
 });

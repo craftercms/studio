@@ -63,9 +63,9 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
             };
         } else {
             context = {
-                "heading": "Copy",
-                "description": "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
-                "actionButton": "Copy",
+                "heading": CMgs.format(formsLangBundle, "copy"),
+                "description": CMgs.format(formsLangBundle, "copyDescription"),
+                "actionButton": CMgs.format(formsLangBundle, "copy"),
                 "request": CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.copyServiceUrl + "?site=" + site
             };
         }
@@ -216,14 +216,14 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
                     '<div>' + context['description'] + '</div> ' +
                     '<div class="copy-content-container">' +
                         '<h5>' +
-                            '<span>Page</span>' +
+                            '<span>' + CMgs.format(formsLangBundle, "page")+ '</span>' +
                         '</h5>' +
                         '<div class="scrollBox">&nbsp;&nbsp;Loading contents ... </div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="contentTypePopupBtn"> ' +
                     '<input type="submit" class="cstudio-xform-button ok btn btn-primary" id="copyButton" value="' + context['actionButton'] + '" />' +
-                    '<input type="submit" class="cstudio-xform-button cancel btn btn-default" id="copyCancelButton" value="Cancel" />' +
+                    '<input type="submit" class="cstudio-xform-button cancel btn btn-default" id="copyCancelButton" value="' +CMgs.format(formsLangBundle, 'cancel')+ '" />' +
                 '</div> ' +
                 '</div> ' +
             '</div>';
