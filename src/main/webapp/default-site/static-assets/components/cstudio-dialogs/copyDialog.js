@@ -56,9 +56,9 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
         var context;
         if (isCut) {
             context = {
-                "heading": "Cut",
-                "description": "Please select any of the sub-pages you would like to batch cut.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
-                "actionButton": "Cut",
+                "heading": CMgs.format(formsLangBundle, "cut"),
+                "description": CMgs.format(formsLangBundle, "copyDescription"),
+                "actionButton": CMgs.format(formsLangBundle, "cut"),
                 "request": CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/cut?site=" + site
             };
         } else {
@@ -218,7 +218,7 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
                         '<h5>' +
                             '<span>' + CMgs.format(formsLangBundle, "page")+ '</span>' +
                         '</h5>' +
-                        '<div class="scrollBox">&nbsp;&nbsp;Loading contents ... </div>' +
+                        '<div class="scrollBox">&nbsp;&nbsp;' + CMgs.format(formsLangBundle, "loadingContents")+ '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="contentTypePopupBtn"> ' +
