@@ -123,6 +123,7 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     errOnRepeat: "Error on repeater operation: {0}",
     errFailedToLoadContent: "Error loading content: {0}",
     errExpectedIndexXml: "Not expecting file-name other than index.xml",
+    ok: "Aceptar",
 
     copy: "Copiar",
     copyDescription: "Por favor seleccione las subpaginas que le gustaria copar.<br/> Al pegar, se conservarán las sub-páginas seleccionadas y su jerarquía posicional.",
@@ -135,7 +136,12 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     newFolderTitle: "Crear una carpeta nueva",
     newFolderBody: "Porfavor ingrese el nombre de la carpeta",
     newFolderLabel: "Nombre de la carpeta:",
-    newFolderUpdating: "Creando la carpeta..."
+    newFolderUpdating: "Creando la carpeta...",
+
+    chooseContentType:"Elige un tipo de contenido",
+    chooseContentTypeBody: "Las siguientes plantillas de inicio están disponibles para su uso dentro de esta sección.",
+    chooseContentTypeLabel: "Nombre de la Plantilla:",
+    chooseContentTypePreview: "Vista Previa:"
 
 });
 

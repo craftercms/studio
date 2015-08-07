@@ -58,26 +58,28 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		}
 
 		var divIdName = "cstudio-wcm-popup-div";
+        var CMgs = CStudioAuthoring.Messages;
+        var formsLangBundle = CStudioAuthoring.Messages.getBundle("forms", CStudioAuthoringContext.lang);
 		newdiv.setAttribute("id",divIdName);
 		newdiv.className= "yui-pe-content";
 		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:501px;">'+
 								'<div class="contentTypePopupContent" id="ct_contentTypePopupContent"> '+
 									'<form name="contentFromWCM" action=""> '+
-									'<div class="contentTypePopupHeader">Choose Content Type</div> '+
-									'<div>The following starter templates are available for use within this section.</div> '+
+									'<div class="contentTypePopupHeader">'+CMgs.format(formsLangBundle, 'chooseContentType')+'</div> '+
+									'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypeBody')+'</div> '+
 									'<div class="contentTypeOuter"> '+
 										'<div class="templateName" id="templateName"> '+
 										'<div class="contentTypeDropdown">'+
-											'<div>Template Name: </div><select id="wcm-content-types-dropdown" size="16" class="cstudio-wcm-popup-select-control" style="width:273px; height:275px;"></select> '+
+											'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypeLabel')+'</div><select id="wcm-content-types-dropdown" size="16" class="cstudio-wcm-popup-select-control" style="width:273px; height:275px;"></select> '+
 										'</div></div>'+
 										'<div class="previewImage" id="previewImage">'+
 										'<div class="contentTypePreview">'+
-											'<div>Preview: </div><img src="'+CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
+											'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypePreview')+'</div><img src="'+CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
 										'</div></div>'+
 									'</div> '+
 									'<div class="contentTypePopupBtn"> '+
-										'<input type="submit" class="btn btn-primary cstudio-xform-button ok" id="submitWCMPopup" value="OK" />' +
-										'<input type="submit" class="btn btn-default cstudio-xform-button cancel" id="closeWCMPopup" value="Cancel" />' +
+										'<input type="submit" class="btn btn-primary cstudio-xform-button ok" id="submitWCMPopup" value="' +CMgs.format(formsLangBundle, 'ok')+ '" />' +
+										'<input type="submit" class="btn btn-default cstudio-xform-button cancel" id="closeWCMPopup" value="' +CMgs.format(formsLangBundle, 'cancel')+ '" />' +
 									'</div>'+
 									'</form> '+
 								'</div> '+

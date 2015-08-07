@@ -123,6 +123,7 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     errOnRepeat: "Error on repeater operation: {0}",
     errFailedToLoadContent: "Error loading content: {0}",
     errExpectedIndexXml: "Not expecting file-name other than index.xml",
+    ok: "Ok",
 
     copy: "Copy",
     copyDescription: "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
@@ -135,8 +136,12 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     newFolderTitle: "Create a New Folder",
     newFolderBody: "Please enter a folder name",
     newFolderLabel: "Folder Name:",
-    newFolderUpdating: "Creating a folder..."
+    newFolderUpdating: "Creating a folder...",
 
+    chooseContentType:"Choose Content Type",
+    chooseContentTypeBody: "The following starter templates are available for use within this section.",
+    chooseContentTypeLabel: "Template Name:",
+    chooseContentTypePreview: "Preview:"
 });
 
 CStudioAuthoring.Messages.registerBundle("search", "en", {
