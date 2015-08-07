@@ -191,9 +191,7 @@
             };
 
             this.logout = function () {
-                console.info("Logging out");
                 $http.post(api('logout'), null);
-                console.info("Done!");
                 user = null;
             };
 
@@ -226,7 +224,6 @@
         function ($http, Constants, $cookies, $timeout, $window) {
 
             var me = this;
-            var cookieName = 'crafterSite';
 
             this.getSites = function() {
                 return $http.get(json('get-sites-3'));
@@ -238,16 +235,16 @@
                 });
             };
 
-            this.setCookie = function (site) {
+            this.setCookie = function(cookieGenName, value){
                 //$cookies[cookieName] = site.siteId;
                 var domainVal;
                 domainVal = (document.location.hostname != 'localhost') ? "domain=" + document.location.hostname : "";
                 document.cookie =
-                    [cookieName, "=", site.siteId, "; path=/; " + domainVal].join("");
-            };
+                    [cookieGenName, "=", value, "; path=/; " + domainVal].join("");
+            }
 
             this.editSite = function (site) {
-                me.setCookie(site);
+                me.setCookie('crafterSite',site.siteId);
                 $timeout(function () {
 
                     // For future in-app iframe
@@ -260,7 +257,7 @@
 
             this.goToDashboard = function (site) {
 
-                me.setCookie(site);
+                me.setCookie('crafterSite',site.siteId);
                 $timeout(function () {
                     $window.location.href = '/studio/site-dashboard';
                 }, 0, false);
@@ -286,6 +283,32 @@
                 });
             }
 
+            this.getAvailableLanguages = function(){
+                return $http.get(server('get-available-languages'));
+            }
+
+            this.getLanguages = function(scope) {
+                this.getAvailableLanguages()
+                    .success(function (data) {
+                        var cookieLang = $cookies['crafterStudioLanguage'];
+                        if(cookieLang){
+                            for(var i=0; i<data.length; i++){
+                                if(data[i].id == cookieLang){
+                                    scope.langSelect = data[i].id;
+                                    scope.langSelected = data[i].id;
+                                }
+                            }
+                        }else{
+                            scope.langSelect = data[0].id;
+                            scope.langSelected = data[0].id;
+                        }
+                        scope.languagesAvailable = data;
+                    })
+                    .error(function () {
+                        scope.languagesAvailable = [];
+                    });
+            }
+
             function api(action) {
                 return Constants.SERVICE + 'site/' + action + '.json';
             }
@@ -298,17 +321,23 @@
                 return Constants.SERVICE + 'security/' + action + '.json';
             }
 
+            function server(action) {
+                return Constants.SERVICE + 'server/' + action + '.json';
+            }
+
             return this;
 
         }
     ]);
 
     app.controller('AppCtrl', [
-        '$scope', '$state', 'authService', 'Constants',
-        function ($scope, $state, authService, Constants) {
+        '$rootScope', '$scope', '$state', 'authService', 'Constants', 'sitesService', '$cookies', '$modal',
+        function ($rootScope, $scope, $state, authService, Constants, sitesService, $cookies, $modal) {
+
+            $scope.langSelected = '';
+            $scope.modalInstance = '';
 
             function logout() {
-                console.info("Logging out 2");
                 authService.logout();
                 $state.go('login');
             }
@@ -327,6 +356,30 @@
                     });
             }
 
+            $scope.languagesAvailable = [];
+
+            sitesService.getLanguages($scope);
+
+            $scope.selectAction = function(optSelected) {
+                $scope.langSelected = optSelected;
+            };
+
+            $scope.setLangCookie = function() {
+                $rootScope.modalInstance = $modal.open({
+                    templateUrl: 'settingLanguajeConfirmation.html',
+                    controller: 'AppCtrl',
+                    backdrop: 'static',
+                    keyboard: false,
+                    size: 'sm'
+                });
+                sitesService.setCookie('crafterStudioLanguage', $scope.langSelected);
+
+            };
+
+            $scope.cancel = function () {
+                $rootScope.modalInstance.close();
+            };
+
             $scope.user = authService.getUser();
             $scope.data = { email: ($scope.user || { 'email': '' }).email };
             $scope.error = null;
@@ -338,6 +391,8 @@
                 $scope.user = user;
                 $scope.data.email = $scope.user.email;
             });
+
+
 
         }
     ]);
@@ -352,12 +407,15 @@
 
             $scope.goToDashboard = sitesService.goToDashboard;
 
+            $scope.createSites = false;
+
 
             function getSites () {
                 sitesService.getSites()
                     .success(function (data) {
                         $scope.sites = data;
                         isRemove();
+                        createSitePermission();
                     })
                     .error(function () {
                         $scope.sites = null;
@@ -395,7 +453,7 @@
                 }
             }
 
-            function gettingPermissions(siteId){
+            function removePermissionPerSite(siteId){
                 sitesService.getPermissions(siteId, '/', $scope.user.username || $scope.user)
                     .success(function (data) {
                         for(var i=0; i<data.permissions.length;i++){
@@ -410,8 +468,21 @@
 
             function isRemove(){
                 for(var j=0; j<$scope.sites.length;j++){
-                    gettingPermissions($scope.sites[j].siteId);
+                    removePermissionPerSite($scope.sites[j].siteId);
                 }
+            }
+
+            function createSitePermission(){
+                sitesService.getPermissions('', '/', $scope.user.username || $scope.user)
+                    .success(function (data) {
+                        for(var i=0; i<data.permissions.length;i++){
+                            if(data.permissions[i]=='create-site'){
+                                $scope.createSites = true;
+                            }
+                        }
+                    })
+                    .error(function () {
+                    });
             }
 
         }
@@ -540,10 +611,11 @@
     ]);
 
     app.controller('LoginCtrl', [
-        '$scope', '$state', 'authService', '$timeout',
-        function ($scope, $state, authService, $timeout) {
+        '$scope', '$state', 'authService', '$timeout', '$cookies', 'sitesService',
+        function ($scope, $state, authService, $timeout, $cookies, sitesService) {
 
             var credentials = {};
+            $scope.langSelected = '';
 
             function login() {
 
@@ -555,6 +627,7 @@
                             $scope.error = data.error;
                         } else {
                             $state.go('home.sites');
+                            sitesService.setCookie('crafterStudioLanguage', $scope.langSelected);
                         }
                     });
 
@@ -591,7 +664,16 @@
                 if ($state.current.name === 'login.recover') {
                     $timeout(hideModal, 50);
                 }
+                //console.log(angular.element(document.querySelector('#language')));
             });
+
+            $scope.languagesAvailable = [];
+
+            sitesService.getLanguages($scope);
+
+            $scope.selectAction = function(optSelected) {
+                $scope.langSelected = optSelected;
+            };
 
         }
     ]);

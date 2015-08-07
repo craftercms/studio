@@ -43,6 +43,11 @@
         and site=#{site}
     </select>
 
+    <delete id="deleteObjectState" databaseId="oracle" parameterType="String">
+        DELETE FROM cstudio_objectstate
+        WHERE object_id = #{objectId};
+    </delete>
+
     <delete id="deleteObjectState" parameterType="String">
         DELETE FROM cstudio_objectstate
         WHERE object_id = #{objectId}
@@ -81,8 +86,6 @@
         VALUES
         (#{objectId}, #{site}, #{path}, #{state}, 0)
     </insert>
-
-
 
     <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState">
         UPDATE cstudio_objectstate

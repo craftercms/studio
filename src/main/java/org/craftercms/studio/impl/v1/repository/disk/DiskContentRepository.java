@@ -432,7 +432,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         Path cstudioFolder = constructRepoPath("cstudio");
         boolean bootstrapCheck = Files.exists(cstudioFolder);
 
-        if(bootstrapCheck == false) {
+        if(bootstrapEnabled && !bootstrapCheck) {
             try{
                 logger.error("Bootstrapping repository for Crafter CMS");
                 Files.createDirectories(constructRepoPath());
@@ -608,4 +608,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             return FileVisitResult.CONTINUE;
         }
     }
+
+    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
+    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
+
+    protected boolean bootstrapEnabled = false;
 }
