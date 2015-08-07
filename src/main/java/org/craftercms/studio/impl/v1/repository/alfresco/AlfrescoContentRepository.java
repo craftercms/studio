@@ -885,7 +885,7 @@ implements SecurityProvider {
         // set the alfresco object factory
 
         if (alfrescoCMIS) {
-            parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
+            //parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
         }
 
         // find all the repositories at this URL - there should only be one.
