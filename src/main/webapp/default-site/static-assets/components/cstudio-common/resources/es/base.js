@@ -1,12 +1,12 @@
 
-CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
+CStudioAuthoring.Messages.registerBundle("siteDashboard", "es",
     { dashboardTitle: "{0} Dashboard",
       approvedScheduledCollapseAll: "Collapse All",
-      dashletFilterPages: "Pages",
-      dashletFilterComponents: "Components",
-      dashletFilterDocuments: "Documents",
+      dashletFilterPages: "Páginas",
+      dashletFilterComponents: "Componentes",
+      dashletFilterDocuments: "Documentos",
       dashletFilterAssets: "Assets",
-      dashletFilterAll: "All",
+      dashletFilterAll: "Todo",
 
       dashletGoLiveQueueTitle: "Items Waiting For Approval",
       dashletGoLiveCollapseAll: "Collapse All",
@@ -14,15 +14,15 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
       dashletGoLiveShowInProgress: "Show \"In-Progress\" Items",
       dashletGoLiveHideInProgress: "Hide \"In-Progress\" Items",
       dashletGoLiveColPageName: "Item Name",
-      dashletGoLiveColEdit: "Edit",
+      dashletGoLiveColEdit: "Editar",
       dashletGoLiveColURL: "URL",
       dashletGoLiveColPublishDate: "Publish Date & Time",
       dashletGoLiveColLastEditedBy: "Last Edited By",
-      dashletGoLiveColLastEditedDate: "Last Edited",
-      dashletGoLivePages: "Pages ({0})",
-      dashletGoLiveComponents: "Components ({0})",
+      dashletGoLiveColLastEditedDate: "Ultima Edición",
+      dashletGoLivePages: "Páginas ({0})",
+      dashletGoLiveComponents: "Componentes ({0})",
       dashletGoLiveAssets: "Assets ({0})",
-      dashletGoLiveEdit: "Edit",
+      dashletGoLiveEdit: "Editar",
 
       dashletApprovedSchedTitle: "Approved Scheduled Items",
       dashletApprovedSchedCollapseAll: "Collapse All",
@@ -74,8 +74,8 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en",
 
 });
 
-CStudioAuthoring.Messages.registerBundle("contextnav", "en", { 
-      siteContent: "Site Content",
+CStudioAuthoring.Messages.registerBundle("contextnav", "es", {
+      siteContent: "Contenido del Sitio",
 
       wcmContentEdit: "Edit",
       wcmContentView: "View",
@@ -105,33 +105,32 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
 
 });
 
-CStudioAuthoring.Messages.registerBundle("forms", "en", { 
-      expandAll: "Expand All",
-      collapseAll: "Collapse All",
+CStudioAuthoring.Messages.registerBundle("forms", "es", {
+      expandAll: "Expandir Todo",
+      collapseAll: "Collapsar Todo",
       pageName: "Item Name",
-      location: "Location",
-      sectionValidation: "{0} of {1} field requirements are invalid",
-      saveAndClose: "Save and Close",
-      saveAndPreview: "Save and Preview",
-      cancel: "Cancel",
-      close: "Close",
-      repeatAddAnother: "Add Another",
-      repeatMoveUp: "Move Up",
-      repeatMoveDown: "Move Down",
-      repeatDelete: "Delete",
+      location: "Ubicación",
+      sectionValidation: "{0} de {1} campos requeridos son invalidos",
+      saveAndClose: "Guardar y Cerrar",
+      saveAndPreview: "Salvar y Mostrar",
+      cancel: "Cancelar",
+      close: "Cerrar",
+      repeatAddAnother: "Agregar Otro",
+      repeatMoveUp: "Mover Arriba",
+      repeatMoveDown: "Mover Abajo",
+      repeatDelete: "Eliminar",
       errMissingRequirements: "You cannot save until all form requirements are satisfied",
       errSaveFailed: "Unable to save form content. Please try again or contact or your system administrator.",
       errOnRepeat: "Error on repeater operation: {0}",
       errFailedToLoadContent: "Error loading content: {0}",
       errExpectedIndexXml: "Not expecting file-name other than index.xml",
-
-    copy: "Copy",
-    copyDescription: "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
-    page: "Page"
-
+      
+      copy: "Copiar",
+      copyDescription: "Por favor seleccione las subpaginas que le gustaria copar.<br/> Al pegar, se conservarán las sub-páginas seleccionadas y su jerarquía posicional.",
+      page: "Página"
 });
 
-CStudioAuthoring.Messages.registerBundle("search", "en", { 
+CStudioAuthoring.Messages.registerBundle("search", "es", {
       defaultTitle: "WCM Search",
       searchButtonLabel: "Search",
       keywordsLabel: "Keywords (optional)",
@@ -150,7 +149,7 @@ CStudioAuthoring.Messages.registerBundle("search", "en", {
       errNoResults: "Your search returned no results."
 });
 
-CStudioAuthoring.Messages.registerBundle("contentTypes", "en", { 
+CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
       label: "Content Types",
       openExistingType: "Open Existing Type",
       createNewType: "Create New Type",
