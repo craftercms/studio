@@ -1098,22 +1098,24 @@ implements SecurityProvider {
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
-        String ticket = authenticate(adminUser, adminPassword);
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
-        RepositoryEventContext.setCurrent(repositoryEventContext);
-        if(bootstrapEnabled && !bootstrapCheck()) {
+        if (bootstrapEnabled) {
+            String ticket = authenticate(adminUser, adminPassword);
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+            RepositoryEventContext.setCurrent(repositoryEventContext);
+            if (!bootstrapCheck()) {
 
-            logger.debug("Bootstrapping repository for Crafter CMS");
+                logger.debug("Bootstrapping repository for Crafter CMS");
 
-            String bootstrapFolderPath = getBootstrapFolderPath();
-            bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
-            File source = new File(bootstrapFolderPath);
-            bootstrapDir(source, bootstrapFolderPath);
-            addUserGroup("CRAFTER_CREATE_SITES");
-            addUserToGroup("CRAFTER_CREATE_SITES", adminUser);
+                String bootstrapFolderPath = getBootstrapFolderPath();
+                bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
+                File source = new File(bootstrapFolderPath);
+                bootstrapDir(source, bootstrapFolderPath);
+                addUserGroup("CRAFTER_CREATE_SITES");
+                addUserToGroup("CRAFTER_CREATE_SITES", adminUser);
 
+            }
+            RepositoryEventContext.setCurrent(null);
         }
-        RepositoryEventContext.setCurrent(null);
     }
 
     private void bootstrapDir(File dir, String rootPath) {
