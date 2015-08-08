@@ -591,8 +591,8 @@ implements SecurityProvider {
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     String pwcId = document.getVersionSeriesCheckedOutId();
-                    org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(pwcId);
-                    if (pwcDocument != null) {
+                    if (pwcId != null) {
+                        org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(pwcId);
                         pwcDocument.checkIn(false, null, contentStream, null);
                     } else {
                         document.setContentStream(contentStream, true);
