@@ -132,6 +132,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     errFailedToLoadContent: "Error loading content: {0}",
     errExpectedIndexXml: "Not expecting file-name other than index.xml",
     ok: "Ok",
+    yes: "Yes",
+    no: "No",
 
     copy: "Copy",
     copyDescription: "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
@@ -149,7 +151,10 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     chooseContentType: "Choose Content Type",
     chooseContentTypeBody: "The following starter templates are available for use within this section.",
     chooseContentTypeLabel: "Template Name:",
-    chooseContentTypePreview: "Preview:"
+    chooseContentTypePreview: "Preview:",
+
+    cancelDialogHeader:"Crafter Studio",
+    cancelDialogBody:"Close this form without saving changes?"
 });
 
 CStudioAuthoring.Messages.registerBundle("search", "en", {

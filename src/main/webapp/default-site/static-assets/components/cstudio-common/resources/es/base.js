@@ -132,6 +132,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     errFailedToLoadContent: "Error loading content: {0}",
     errExpectedIndexXml: "Not expecting file-name other than index.xml",
     ok: "Aceptar",
+    yes: "Si",
+    no: "No",
 
     copy: "Copiar",
     copyDescription: "Por favor seleccione las subpaginas que le gustaria copar.<br/> Al pegar, se conservarán las sub-páginas seleccionadas y su jerarquía posicional.",
@@ -149,7 +151,10 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     chooseContentType: "Elige un tipo de contenido",
     chooseContentTypeBody: "Las siguientes plantillas de inicio están disponibles para su uso dentro de esta sección.",
     chooseContentTypeLabel: "Nombre de la Plantilla:",
-    chooseContentTypePreview: "Vista Previa:"
+    chooseContentTypePreview: "Vista Previa:",
+
+    cancelDialogHeader:"Crafter Studio",
+    cancelDialogBody:"Desea cerrar este formulario sin guardar los cambios?"
 
 });
 
