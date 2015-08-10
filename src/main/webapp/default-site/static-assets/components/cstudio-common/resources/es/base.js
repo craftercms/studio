@@ -154,7 +154,11 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     chooseContentTypePreview: "Vista Previa:",
 
     cancelDialogHeader:"Crafter Studio",
-    cancelDialogBody:"Desea cerrar este formulario sin guardar los cambios?"
+    cancelDialogBody:"Desea cerrar este formulario sin guardar los cambios?",
+
+    changeTemplateDialogTitle:"Advertencia: Cambiando el Tipo de Contenido",
+    changeTemplateDialogSubTitle:"Crafter Studio",
+    changeTemplateDialogBody:"La siguiente operación puede provocar la pérdida de datos. ¿Quieres continuar?"
 
 });
 
