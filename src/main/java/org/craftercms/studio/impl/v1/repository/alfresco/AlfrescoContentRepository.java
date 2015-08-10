@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONObject;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.String;
-import java.nio.file.Files;
 import java.util.*;
 import java.net.*;
 import java.net.URI;
@@ -43,6 +41,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -54,7 +53,6 @@ import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -69,7 +67,6 @@ import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import org.dom4j.Document;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import reactor.core.Reactor;
 
 
 /**
@@ -151,7 +148,7 @@ implements SecurityProvider {
      */
     @Override
     public String createVersion(String path, boolean majorVersion) {
-
+        long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
             // only major version will be created on demand. minor version is created on updates
@@ -180,6 +177,8 @@ implements SecurityProvider {
                 logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, err);
             }
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
         return versionLabel;
 
     }
@@ -237,12 +236,15 @@ implements SecurityProvider {
      * fire GET request to Alfresco with proper security
      */
     protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+        long startTime = System.currentTimeMillis();
         InputStream retResponse = null;
 
         URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
 
         retResponse = serviceURI.toURL().openStream();
 
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoGetRequest(String uri, Map<String, String> params); {0}, {1}\n\t\tDuration: {2}", uri, params.values(), duration);
         return retResponse;
     }
 
@@ -250,6 +252,7 @@ implements SecurityProvider {
      * fire POST request to Alfresco with propert security
      */
     protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
+        long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
         PostMethod postMethod = new PostMethod(serviceURL);
         postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
@@ -257,6 +260,8 @@ implements SecurityProvider {
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         int status = httpClient.executeMethod(postMethod);
 
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -277,6 +282,7 @@ implements SecurityProvider {
      * @throws Exception
      */
     protected String alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet) throws Exception {
+        long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, new HashMap<String, String>(0));
         PostMethod postMethod = new PostMethod(serviceURL);
         // create multipart request parts
@@ -299,6 +305,9 @@ implements SecurityProvider {
         logger.debug("Executing multipart post request to " + uri);
         int status = httpClient.executeMethod(postMethod);
         logger.debug("Response status back from the server: " + status);
+
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -427,6 +436,7 @@ implements SecurityProvider {
 
     @Override
     public boolean validateTicket(String ticket) {
+        long startTime = System.currentTimeMillis();
         //make me do something
         ticket = (ticket!=null) ? ticket : getSessionTicket();
         logger.debug("Validating ticket " + ticket);
@@ -439,11 +449,15 @@ implements SecurityProvider {
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
             if (status == HttpStatus.SC_OK) {
+                long duration = System.currentTimeMillis() - startTime;
+                logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
                 return true;
             }
         } catch (Exception e) {
             logger.error("Error while validating authentication token", e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
     }
 
@@ -473,6 +487,7 @@ implements SecurityProvider {
     }
 
     protected String getNodeRefForPathCMIS(String fullPath) throws ContentNotFoundException {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -490,10 +505,13 @@ implements SecurityProvider {
             logger.warn("Object not found in CMIS repository for path: ", fullPath);
             throw new ContentNotFoundException(e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return nodeRef;
     }
 
     protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -516,10 +534,13 @@ implements SecurityProvider {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
             throw new ContentNotFoundException(e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return inputStream;
     }
 
     protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -566,10 +587,13 @@ implements SecurityProvider {
                 items = tempList.toArray(items);
             }
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return items;
     }
 
     protected boolean writeContentCMIS(String fullPath, InputStream content) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -628,6 +652,8 @@ implements SecurityProvider {
                 properties.put(PropertyIds.NAME, filename);
                 folder.createDocument(properties, contentStream, VersioningState.MINOR);
             }
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
             return true;
         } catch (CmisBaseException e) {
             logger.error("Error writing content to a path {0}", e, fullPath);
@@ -636,10 +662,13 @@ implements SecurityProvider {
         } catch (Throwable t) {
             logger.error("Error writing content to a path {0}", t, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
         return false;
     }
 
     protected boolean deleteContentCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -660,10 +689,13 @@ implements SecurityProvider {
         } catch (CmisBaseException e) {
             logger.error("Could not find content for path {0}", fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return result;
     }
 
     protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         VersionTO[] versions = new VersionTO[0];
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -698,10 +730,13 @@ implements SecurityProvider {
         } catch(CmisBaseException err) {
             logger.error("err getting content: ", err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return versions;
     }
 
     protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+        long startTime = System.currentTimeMillis();
         boolean success = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -733,10 +768,13 @@ implements SecurityProvider {
         } catch (CmisBaseException err) {
             logger.error("err reverting content content: ", err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
         return success;
     }
 
     protected String createFolderInternalCMIS(String fullPath, String name) {
+        long startTime = System.currentTimeMillis();
         String newFolderRef = null;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.length() > 1 && cleanPath.endsWith("/")) {
@@ -782,10 +820,13 @@ implements SecurityProvider {
         } catch (CmisBaseException err) {
             logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
         return newFolderRef;
     }
 
     protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut) {
+        long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanFromPath.endsWith("/")) {
@@ -815,6 +856,8 @@ implements SecurityProvider {
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyChildren(targetFolder, sourceFolder);
                     }
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
                     return true;
                 } else {
                     logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath + " is not folder.");
@@ -830,7 +873,8 @@ implements SecurityProvider {
         } catch (CmisBaseException err) {
             logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " + toFullPath, err);
         }
-
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
         return result;
     }
 
@@ -906,6 +950,7 @@ implements SecurityProvider {
     }
 
     protected void lockItemCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -921,6 +966,8 @@ implements SecurityProvider {
             logger.error("Error while locking content at path " + cleanPath, err);
 
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
@@ -928,6 +975,7 @@ implements SecurityProvider {
     }
 
     public void unLockItem(String site, String path) {
+        long startTime = System.currentTimeMillis();
         String fullPath = expandRelativeSitePath(site, path);
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -950,6 +998,8 @@ implements SecurityProvider {
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("unLockItem(String site, String path); {0}, {1}\n\t\tDuration: {2}", site, path, duration);
     }
 
     @Override
@@ -1054,6 +1104,7 @@ implements SecurityProvider {
 
     @Override
     public Date getModifiedDate(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1069,11 +1120,14 @@ implements SecurityProvider {
         } catch (CmisBaseException e) {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return modifiedDate;
     }
 
     @Override
     public boolean logout() {
+        long startTime = System.currentTimeMillis();
         //make me do something
         String ticket = getSessionTicket();
         logger.debug("Invalidating ticket " + ticket);
@@ -1086,11 +1140,15 @@ implements SecurityProvider {
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
             if (status == HttpStatus.SC_OK) {
+                long duration = System.currentTimeMillis() - startTime;
+                logger.debug("logout()\n\t\tDuration: {0}", duration);
                 return true;
             }
         } catch (Exception e) {
             logger.error("Error while invalidating authentication token", e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("logout()\n\t\tDuration: {0}", duration);
         return false;
     }
 
