@@ -13,6 +13,7 @@
 
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
    
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/search.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>

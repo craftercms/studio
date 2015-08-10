@@ -10,6 +10,7 @@
     <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
     <script src="${path}en/base.js"></script>
     <script src="${path}kr/base.js"></script>
+    <script src="${path}es/base.js"></script>
 
     <#assign path="/studio/static-assets/components/cstudio-dashboard-widgets/" />
     <script src="${path}lib/wcm-dashboardwidget-common.js"></script>
@@ -27,7 +28,8 @@
     <script>
         var
                 CMgs = CStudioAuthoring.Messages,
-                langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
+                langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang),
+                formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
     </script>
 
     <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
@@ -215,6 +217,7 @@
 
         var CMgs = CStudioAuthoring.Messages;
         var langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
+        var formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
         var loc = CStudioAuthoring.Messages.format;
 
         document.querySelector('.page-header h1').innerHTML = loc(langBundle, "dashboardTitle", "${envConfig.siteTitle!"SITE"}");

@@ -16,6 +16,6 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "fr",
       dashletGoLivePages: "FR-Pages ({0})",
       dashletGoLiveComponents: "FR-Components ({0})",
       dashletGoLiveAssets: "FR-Assets ({0})",
-      dashletGoLiveEdit: "FR-Edit",
+      dashletGoLiveEdit: "FR-Edit"
 
 });
