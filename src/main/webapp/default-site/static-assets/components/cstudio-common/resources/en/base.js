@@ -154,7 +154,12 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     chooseContentTypePreview: "Preview:",
 
     cancelDialogHeader:"Crafter Studio",
-    cancelDialogBody:"Close this form without saving changes?"
+    cancelDialogBody:"Close this form without saving changes?",
+
+    changeTemplateDialogTitle:"Warning: Change Content Type",
+    changeTemplateDialogSubTitle:"Crafter Studio",
+    changeTemplateDialogBody:"The following operation may result in data loss. Would you like to proceed?"
+
 });
 
 CStudioAuthoring.Messages.registerBundle("search", "en", {

@@ -128,7 +128,10 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     no: "아니",
 
     cancelDialogHeader:"크래프터 스튜디오",
-    cancelDialogBody:"변경 사항을 저장하지 않고이 양식을 닫습니다?"
+    cancelDialogBody:"변경 사항을 저장하지 않고이 양식을 닫습니다?",
 
+    changeTemplateDialogTitle:"경고 : 콘텐츠 형식 변경",
+    changeTemplateDialogSubTitle:"크래프터 스튜디오",
+    changeTemplateDialogBody:"아래의 조작은 데이터 손실이 발생할 수 있습니다. 당신은 계속 진행 하시겠습니까?"
 
 });
