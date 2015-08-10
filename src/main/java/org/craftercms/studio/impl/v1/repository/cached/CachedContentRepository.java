@@ -246,7 +246,18 @@ public class CachedContentRepository extends AbstractContentRepository {
 
     @Override
     public Date getModifiedDate(String path) {
-        return wrappedRepo.getModifiedDate(path);
+        Date value = null;
+        value = (Date)getCachedObject("getModifiedDate-"+path);
+
+        if(value == null) {
+            value = wrappedRepo.getModifiedDate(path);
+
+            if(value != null) {
+                cacheObject("getModifiedDate-"+path, value);
+            }
+        }
+
+        return value;
     }
 
     protected class BytesContainer {
