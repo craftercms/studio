@@ -123,7 +123,12 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     errSaveFailed: ". 형태의 컨텐츠를 저장할 수 없습니다 다시 연락처 또는 시스템 관리자 나 시도하십시오.",
     errOnRepeat: "중계기 작동에 오류 : {0}",
     errFailedToLoadContent: "오류 내용을로드 : {0}",
-    errExpectedIndexXml: "이 Index.xml 이외의 파일 이름을 기대되지 않음"
+    errExpectedIndexXml: "이 Index.xml 이외의 파일 이름을 기대되지 않음",
+    yes: "네",
+    no: "아니",
+
+    cancelDialogHeader:"크래프터 스튜디오",
+    cancelDialogBody:"변경 사항을 저장하지 않고이 양식을 닫습니다?"
 
 
 });
