@@ -43,7 +43,7 @@ WcmDashboardWidgetCommon.insertEditLink = function (item, editLinkId) {
                 var editLink = document.getElementById(editLinkId);
 
                 if (editLink) {
-                    editLink.innerHTML = ''.concat('<a href="javascript:" class="editLink', ((item.deleted || item.inFlight ) ? ' non-previewable-edit' : ''), '">Edit</a>');
+                    editLink.innerHTML = ''.concat('<a href="javascript:" class="editLink', ((item.deleted || item.inFlight ) ? ' non-previewable-edit' : ''), '">'+CMgs.format(langBundle, "dashboardEdit")+'</a>');
                 } else {
                     // We cannot assume the DOM will be ready to insert the edit link
                     // that's why we'll poll until the element is available in the DOM
@@ -275,8 +275,10 @@ WcmDashboardWidgetCommon.init = function (instance) {
     /////////////////////////////////////////////////////
     // added to protect un wanted values in text boxes //
     ////////////////////////////////////////////////////
-    if (YDom.get("widget-showitems-" + widgetId) != null)
+    if (YDom.get("widget-showitems-" + widgetId) != null) {
         YDom.get("widget-showitems-" + widgetId).value = 10;
+        YDom.get("widget-showitems-" + widgetId+"-label").innerHTML = CMgs.format(langBundle, "showNumItems");
+    }
 
     YEvent.onAvailable(widgetId, function () {
 
@@ -643,13 +645,13 @@ WcmDashboardWidgetCommon.toggleHeaderLink = function (widget, linkEl, showCollap
 
     if (showCollapsed) {
         linkEl.setAttribute("href", "javascript:void(0);");
-        linkEl.innerHTML = "Expand All";
+        linkEl.innerHTML = CMgs.format(langBundle, "dashboardExpandAll");
         linkEl.className = "btn btn-default btn-sm widget-collapse-state";
         widget.instance.expanded = false;
     }
     else {
         linkEl.setAttribute("href", "javascript:void(0);");
-        linkEl.innerHTML = "Collapse All";
+        linkEl.innerHTML = CMgs.format(langBundle, "dashboardCollapseAll");
         linkEl.className = "btn btn-default btn-sm widget-expand-state";
         widget.instance.expanded = true;
     }

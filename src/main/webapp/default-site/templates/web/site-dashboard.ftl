@@ -90,7 +90,7 @@
                 <ul class="widget-controls">
                     <li class="form-inline">
                         <div class="input-group">
-                            <label for="widget-showitems-recentlyMadeLive" class="input-group-addon">Show</label>
+                            <label id="widget-showitems-recentlyMadeLive-label" for="widget-showitems-recentlyMadeLive" class="input-group-addon">Show</label>
                             <input id="widget-showitems-recentlyMadeLive" type="text" maxlength="3" value="10"
                                    class="form-control input-sm"/>
                         </div>
@@ -114,7 +114,7 @@
                 <ul class="widget-controls">
                     <li class="form-inline">
                         <div class="input-group">
-                            <label for="widget-showitems-MyRecentActivity" class="input-group-addon">Show</label>
+                            <label id="widget-showitems-MyRecentActivity-label" for="widget-showitems-MyRecentActivity" class="input-group-addon">Show</label>
                             <input type="text" id="widget-showitems-MyRecentActivity" maxlength="3" value="10"
                                    class="form-control input-sm"/>
                         </div>
