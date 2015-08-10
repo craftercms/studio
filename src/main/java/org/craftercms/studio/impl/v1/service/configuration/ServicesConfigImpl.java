@@ -516,7 +516,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 			String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
 			String siteConfigFullPath = siteConfigPath + "/" + configFileName;
 			if (contentRepository.contentExists(siteConfigFullPath)) {
-				Date modifiedDate = contentRepository.getModifiedDate(siteConfigPath);
+				Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
 				if (modifiedDate == null) {
 					return false;
 				} else {
