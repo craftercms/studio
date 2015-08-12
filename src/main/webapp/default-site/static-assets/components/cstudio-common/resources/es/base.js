@@ -186,7 +186,23 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     deleteSubmitDialogTitle:"Enviar para su eliminación",
     deleteSubmitDialogTime:"¿Cuándo desea eliminar los artículos marcados?",
     deleteSubmitEmailMe:"Enviarme un correo cuando los artículos son eliminados.",
-    deleteSubmitDialogAsSoon:"Lo antes posible."
+    deleteSubmitDialogAsSoon:"Lo antes posible.",
+
+    approveDialogTitle: "Aprobar para Publicar",
+    approveDialogSubTitle: "Los siguientes elementos seleccionados estarán en vivo.",
+    approveDialogPage: "Página",
+    approveDialogOriginalSchedule: "Horario original",
+    approveDialogSubmissionComment: "Comentario de envio",
+    approveDialogSelectedScheduling: "Seleccionado artículo Programado",
+    approveDialogItemsLiveNow: "Los artículos deben ir en vivo ahora.",
+    approveDialogItemsLiveDate: "Los artículos irán en vivo en una fecha y hora específica",
+    approveDialogPublishContent: "Publicar Contenido",
+    approveDialogPublishingOptions: "Opciones de Publicación",
+    approveDialogBroadcastUpdate: "Actualización de contenido",
+
+    requestApproveDialogTitle: "Solicitud de Publicación",
+    requestApproveDialogSubTitle: "Cuando desea que los artiículos vayan en vivo?",
+    requestApproveDialogEmailMe: "Enviarme un correo cuando los artículos esten en vivo."
 
 
 });

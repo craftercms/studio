@@ -584,7 +584,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getApproveView,
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
-
+                        CSA.Operations.translateContent();
                         this.loadItems(items);
                         this.loadPublishingChannels();
 
@@ -603,6 +603,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getRequestPublishView,
                     controller: 'viewcontroller-requestpublish',
                     callback: function(dialog) {
+                        CSA.Operations.translateContent();
                         this.renderItems(contentItems);
                     }
                 }, true, '800px');
