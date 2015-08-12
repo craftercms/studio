@@ -56,6 +56,36 @@
         offset #{startPos} rows fetch next #{feedSize} rows only
     </select>
 
+    <select id="selectUserFeedEntries" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+        </if>
+        and [id] in
+          (select top (#{feedSize}) [id] from cstudio_activity
+          where post_user_id = #{userId}
+          and site_network = #{siteNetwork}
+          and summary_format = #{summaryFormat}
+          <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+          </if>
+          and id not in
+            (select top (#{startPos}) [id]
+            from cstudio_activity
+            where post_user_id = #{userId}
+            and site_network = #{siteNetwork}
+            and summary_format = #{summaryFormat}
+            <if test="contentType != null and contentType != 'all' ">
+              and content_type = #{contentType}
+            </if>
+            order by modified_date desc)
+          order by modified_date desc)
+        order by modified_date desc
+    </select>
+
     <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap">
         select *
         from cstudio_activity
@@ -87,6 +117,43 @@
 	      order by act.modified_date desc
 	    )
 	    where rownum between #{startPos} and (#{startPos} + #{feedSize});
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and act.[id] in
+          (select top (#{feedSize}) [id] from cstudio_activity
+          where post_user_id = #{userId}
+          and site_network = #{siteNetwork}
+          and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+          and id not in
+            (select top (#{startPos}) [id]
+            from cstudio_activity
+            where post_user_id = #{userId}
+            and site_network = #{siteNetwork}
+            and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+            order by modified_date desc)
+          order by modified_date desc)
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+      order by act.modified_date desc
     </select>
 
     <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap"
