@@ -1019,12 +1019,7 @@ var YEvent = YAHOO.util.Event;
                     }
 
                 } else {
-
-                    url = (
-                    CStudioAuthoringContext.authoringAppBaseUri
-                    + "asset-preview?site=" + CStudioAuthoringContext.site
-                    + "&nodeRef=" + contentTO.nodeRef);
-
+                    url = CStudioAuthoringContext.previewAppBaseUri+contentTO.uri;
                 }
 
                 if (incontextEdit) {
