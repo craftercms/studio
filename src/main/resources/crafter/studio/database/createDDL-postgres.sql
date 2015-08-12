@@ -134,7 +134,7 @@ CREATE TABLE cstudio_publishtotarget
   username character varying(255) NOT NULL,
   version bigint NOT NULL,
   action character varying(20) NOT NULL,
-  contenttypeclass character varying(20) NOT NULL,
+  contenttypeclass character varying(20),
   CONSTRAINT cstudio_publishtotarget_pkey PRIMARY KEY (id)
 ) ;
 
@@ -166,7 +166,7 @@ CREATE TABLE cstudio_deploymentsynchistory
   path text NOT NULL,
   target character varying(50) NOT NULL,
   username character varying(255) NOT NULL,
-  contenttypeclass character varying(25) NOT NULL,
+  contenttypeclass character varying(25),
   CONSTRAINT cstudio_deploymentsynchistory_pkey PRIMARY KEY (id)
 ) ;
 
