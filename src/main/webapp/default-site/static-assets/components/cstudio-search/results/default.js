@@ -23,10 +23,7 @@ CStudioSearch.ResultRenderer.Default = {
 					CStudioSearch.getContentTypeName(contentTO.item.contentType) + 
 				"</span>" +
 				"<br />"+
-				"<div class='cstudio-search-result-detail'>" +
-					"<span class='cstudio-search-description'>" +
-						contentTO.item.metaDescription + 
-					"</span>";
+				"<div class='cstudio-search-result-detail'>";
 					
 					if(contentTO.item.previewable && contentTO.item.previewable == true) {
 						result +=
