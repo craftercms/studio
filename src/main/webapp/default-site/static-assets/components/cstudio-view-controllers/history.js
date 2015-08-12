@@ -97,7 +97,7 @@
                                     rowEl.appendChild(tdEl);
 
                                     revertActionEl = document.createElement("a");
-                                    revertActionEl.innerHTML = "Revert";
+                                    revertActionEl.innerHTML = CMgs.format(formsLangBundle, "historyDialogRevert");
                                     revertActionEl.item = selection;
                                     revertActionEl.version = version.versionNumber;
                                     col5El.appendChild(revertActionEl);

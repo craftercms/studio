@@ -158,7 +158,15 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
 
     changeTemplateDialogTitle:"Advertencia: Cambiando el Tipo de Contenido",
     changeTemplateDialogSubTitle:"Crafter Studio",
-    changeTemplateDialogBody:"La siguiente operación puede provocar la pérdida de datos. ¿Quieres continuar?"
+    changeTemplateDialogBody:"La siguiente operación puede provocar la pérdida de datos. ¿Quieres continuar?",
+
+    historyDialogTitle: "Historial de las Versiones",
+    historyDialogSubTitle: "Historial mostrado para:",
+    historyDialogTableRowVersion: "Versión",
+    historyDialogTableRowTime: "Tiempo de Edición",
+    historyDialogTableRowEditBy: "Editado por",
+    historyDialogTableRowComment: "Comentario",
+    historyDialogRevert: "Revertir"
 
 });
 
