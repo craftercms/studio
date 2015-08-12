@@ -22,6 +22,7 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 
         var me = this,
             $select,
+            $engine = $('#engineWindow'),
             $container = $(containerEl),
             channels = ((config.config.channels.length)
                 ? config.config.channels.channels[0]
@@ -112,7 +113,21 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
             orientation;
 
         $body.removeClass('studio-device-preview-portrait studio-device-preview-landscape');
+		
+		var location = $engine[0].src;
 
+		var t = (location.indexOf("?") == -1) ? "?" : "&";
+		
+		if(location.indexOf("cstudio-useragent") == -1) {
+			location += t + "cstudio-useragent="+CStudioAuthoringContext.channel;
+		}
+		else {
+			var re = new RegExp("[\\?&]cstudio-useragent=([^&#]*)");
+      		location = location.replace(re, t + "cstudio-useragent" + "=" + CStudioAuthoringContext.channel);			
+		}
+		
+		$engine[0].src = location;
+		
         if (width !== 'auto') {
             width = parseInt(width);
         }
