@@ -99,7 +99,7 @@ CREATE TABLE `cstudio_deploymentsynchistory` (
   `path`             TEXT         NOT NULL,
   `target`           VARCHAR(50)  NOT NULL,
   `username`         VARCHAR(255) NOT NULL,
-  `contenttypeclass` VARCHAR(25)  NOT NULL,
+  `contenttypeclass` VARCHAR(25)  NULL,
   PRIMARY KEY (`id`),
   INDEX `cs_depsynchist_site_idx` (`site` ASC),
   INDEX `cs_depsynchist_env_idx` (`environment` ASC),
