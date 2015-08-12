@@ -174,19 +174,35 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     historyDialogUnable:"Unable to load version history.",
     historyDialogTryAgain:"Try again",
 
-    deleteDialogTitle:"Delete",
-    deleteDialogSubTitle:"The following checked items will be deleted:",
-    deleteDialogSetLink:'Set everything to "Now"',
-    deleteDialogPage:"Page",
-    deleteDialogDelete:"Delete",
-    deleteDialogNow:"Now",
-    deleteDialogFeedBack:"Dependencies must be checked before you can submit",
-    deleteDialogNoItemsSelected:"No items selected",
+    deleteDialogTitle: "Delete",
+    deleteDialogSubTitle: "The following checked items will be deleted:",
+    deleteDialogSetLink: 'Set everything to "Now"',
+    deleteDialogPage: "Page",
+    deleteDialogDelete: "Delete",
+    deleteDialogNow: "Now",
+    deleteDialogFeedBack: "Dependencies must be checked before you can submit",
+    deleteDialogNoItemsSelected: "No items selected",
 
-    deleteSubmitDialogTitle:"Submit for deletion",
-    deleteSubmitDialogTime:"When would you like the checked item(s) to be deleted?",
-    deleteSubmitEmailMe:"Email me when my items are deleted",
-    deleteSubmitDialogAsSoon:"As soon as possible."
+    deleteSubmitDialogTitle: "Submit for deletion",
+    deleteSubmitDialogTime: "When would you like the checked item(s) to be deleted?",
+    deleteSubmitEmailMe: "Email me when my items are deleted",
+    deleteSubmitDialogAsSoon: "As soon as possible.",
+
+    approveDialogTitle: "Approve for Publish",
+    approveDialogSubTitle: "The following checked items will go live.",
+    approveDialogPage: "Page",
+    approveDialogOriginalSchedule: "Original Schedule",
+    approveDialogSubmissionComment: "Submission Comment",
+    approveDialogSelectedScheduling: "Selected Item Scheduling",
+    approveDialogItemsLiveNow: "Items should go live now.",
+    approveDialogItemsLiveDate: "Items go live on a specific date &amp; time",
+    approveDialogPublishContent: "Publish Content",
+    approveDialogPublishingOptions: "Publishing Options",
+    approveDialogBroadcastUpdate: "Broadcast content update",
+
+    requestApproveDialogTitle: "Request Publish",
+    requestApproveDialogSubTitle: "When would you like the checked item(s) to go live?",
+    requestApproveDialogEmailMe: "Email me when items go live."
 
 
 });

@@ -160,6 +160,22 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     deleteSubmitDialogTitle:"삭제 제출",
     deleteSubmitDialogTime:"당신이 체크 된 항목을 원하는 경우 삭제할?",
     deleteSubmitEmailMe:"내 항목이 삭제 될 때 이메일을 보내주세요",
-    deleteSubmitDialogAsSoon:"최대한 빨리."
+    deleteSubmitDialogAsSoon:"최대한 빨리.",
+
+    approveDialogTitle: "게시에 대한 승인",
+    approveDialogSubTitle: "다음 선택 항목이 게재됩니다.",
+    approveDialogPage: "페이지",
+    approveDialogOriginalSchedule: "원래 일정",
+    approveDialogSubmissionComment: "제출 코멘트",
+    approveDialogSelectedScheduling: "선택 항목 예약",
+    approveDialogItemsLiveNow: "항목은 지금 살아 가야한다.",
+    approveDialogItemsLiveDate: "항목은 특정 날짜와 시간에 게재",
+    approveDialogPublishContent: "콘텐츠를 게시",
+    approveDialogPublishingOptions: "출판 옵션",
+    approveDialogBroadcastUpdate: "방송 콘텐츠 업데이트",
+
+    requestApproveDialogTitle: "게시를 요청할",
+    requestApproveDialogSubTitle: "당신이 원하는 때 체크 항목 (들)을 게재하는 방법?",
+    requestApproveDialogEmailMe: "항목 살아 갈 때 이메일을 보내주세요."
 
 });
