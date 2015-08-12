@@ -676,6 +676,7 @@ body.yui-skin-cstudioTheme .mask{
 
 #closeUserWarning .hd{
   border-radius: 6px 6px 0 0;
+  font-size: 15px;
 }
 
 #closeUserWarning .ft{

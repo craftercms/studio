@@ -488,6 +488,13 @@ var YEvent = YAHOO.util.Event;
                 Loader.use.apply(Loader, params);
             },
 
+            translateContent: function(){
+                var elements = document.querySelectorAll('[data-translation]');
+                for(var i=0; i<elements.length; i++){
+                    elements[i].innerHTML = CMgs.format(formsLangBundle, elements[i].getAttribute('data-translation'));
+                }
+            },
+
             deleteContent: function(items) {
 
                 var controller, view;
@@ -506,6 +513,9 @@ var YEvent = YAHOO.util.Event;
                     fn: view,
                     controller: controller,
                     callback: function(dialogue) {
+                        CSA.Operations.translateContent();
+                        if(YDom.get("cancelBtn")){YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");}
+                        if(YDom.get("deleteBtn")){YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");}
                         this.loadDependencies(items);
                         this.on("submitComplete", function(evt, args){
                             var reloadFn = function(){
@@ -538,6 +548,10 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getHistoryView,
                     controller: "viewcontroller-history",
                     callback: function(dialogue) {
+
+                        CSA.Operations.translateContent();
+
+                        YDom.get("historyCloseBtn").value = CMgs.format(formsLangBundle, "close");
 
                         this.loadHistory(contentObj);
 
@@ -1019,12 +1033,7 @@ var YEvent = YAHOO.util.Event;
                     }
 
                 } else {
-
-                    url = (
-                    CStudioAuthoringContext.authoringAppBaseUri
-                    + "asset-preview?site=" + CStudioAuthoringContext.site
-                    + "&nodeRef=" + contentTO.nodeRef);
-
+                    url = CStudioAuthoringContext.previewAppBaseUri+contentTO.uri;
                 }
 
                 if (incontextEdit) {

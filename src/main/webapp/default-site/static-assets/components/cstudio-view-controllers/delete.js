@@ -152,7 +152,7 @@
                         id: item.browserUri,
                         parent: parentUri,
                         scheduledDate: "-",
-                        scheduledDateText: "Now",
+                        scheduledDateText: CMgs.format(formsLangBundle, "deleteDialogNow"),
                         checked: "checked"
                     }));
                     if (item.children && item.children.length) {
@@ -166,7 +166,7 @@
                 }
                 eachfn(items, iterator);
             } else {
-                html.push("No items selected");
+                html.push(CMgs.format(formsLangBundle, "deleteDialogNoItemsSelected"));
             }
             var depCheckWrn = this.getComponent(".items-feedback");
             if (depCheckWrn && !depFlag) {
@@ -280,7 +280,7 @@
         },
         setAllNowActionClicked: function(){
             eachfn(this.getComponents("a.when"), function(i, e){
-                e.innerHTML = "Now";
+                e.innerHTML = CMgs.format(formsLangBundle, "deleteDialogNow");
             });
             eachfn(this.getComponents("input.item-check"), function(i, e){
                 e.setAttribute("scheduleddate","-");

@@ -62,6 +62,11 @@ class SiteServices {
         return siteServicesImpl.getUserSites(user)
     }
 
+    static getAllAvailableSites(context) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getAllAvailableSites()
+    }
+
     static createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
