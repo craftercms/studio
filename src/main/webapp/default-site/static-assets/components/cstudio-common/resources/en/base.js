@@ -134,6 +134,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     ok: "Ok",
     yes: "Yes",
     no: "No",
+    submit:"Submit",
+    loading:"Loading&hellip;",
 
     copy: "Copy",
     copyDescription: "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
@@ -166,7 +168,26 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     historyDialogTableRowTime: "Edit Time",
     historyDialogTableRowEditBy: "Edited By",
     historyDialogTableRowComment: "Comment",
-    historyDialogRevert: "Revert"
+    historyDialogRevert: "Revert",
+    historyDialogLoadingWait: "Loading, please wait&hellip;",
+    historyDialogNoVersionsFound: "No versions found.",
+    historyDialogUnable:"Unable to load version history.",
+    historyDialogTryAgain:"Try again",
+
+    deleteDialogTitle:"Delete",
+    deleteDialogSubTitle:"The following checked items will be deleted:",
+    deleteDialogSetLink:'Set everything to "Now"',
+    deleteDialogPage:"Page",
+    deleteDialogDelete:"Delete",
+    deleteDialogNow:"Now",
+    deleteDialogFeedBack:"Dependencies must be checked before you can submit",
+    deleteDialogNoItemsSelected:"No items selected",
+
+    deleteSubmitDialogTitle:"Submit for deletion",
+    deleteSubmitDialogTime:"When would you like the checked item(s) to be deleted?",
+    deleteSubmitEmailMe:"Email me when my items are deleted",
+    deleteSubmitDialogAsSoon:"As soon as possible."
+
 
 });
 

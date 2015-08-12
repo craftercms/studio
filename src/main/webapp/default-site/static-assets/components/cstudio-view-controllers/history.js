@@ -31,7 +31,7 @@
             loadFn = function () {
 
                 var tbody = _this.getComponent('table.item-listing tbody');
-                tbody.innerHTML = '<tr><td colspan="5"><i>Loading, please wait&hellip;</i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5"><i>'+CMgs.format(formsLangBundle, "historyDialogLoadingWait")+'&hellip;</i></td></tr>';
 
                 CStudioAuthoring.Service.getVersionHistory(
                     CStudioAuthoringContext.site,
@@ -45,7 +45,7 @@
                             itemStateEl.innerHTML = history.item.internalName;
 
                             if (versions.length == 0) {
-                                tbody.innerHTML = '<tr><td colspan="5"><i>No versions found.</i></td></tr>';
+                                tbody.innerHTML = '<tr><td colspan="5"><i>'+CMgs.format(formsLangBundle, "historyDialogNoVersionsFound")+'</i></td></tr>';
                             } else {
 
                                 tbody.innerHTML = '';
@@ -127,7 +127,7 @@
                             }
                         },
                         failure: function () {
-                            tbody.innerHTML = '<tr><td>Unable to load version history. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr>';
+                            tbody.innerHTML = '<tr><td>'+CMgs.format(formsLangBundle, "historyDialogUnable")+' <a class="retry-dependency-load" href="javascript:">'+CMgs.format(formsLangBundle, "historyDialogTryAgain")+'</a></td></tr>';
                             Event.addListener(_this.getComponent("a.retry-dependency-load"), "click", loadFn);
                         }
                     });
