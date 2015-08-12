@@ -126,6 +126,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     errExpectedIndexXml: "이 Index.xml 이외의 파일 이름을 기대되지 않음",
     yes: "네",
     no: "아니",
+    submit:"제출",
+    loading:"로드&hellip;",
 
     cancelDialogHeader:"크래프터 스튜디오",
     cancelDialogBody:"변경 사항을 저장하지 않고이 양식을 닫습니다?",
@@ -140,6 +142,24 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     historyDialogTableRowTime: "편집 시간",
     historyDialogTableRowEditBy: "편집",
     historyDialogTableRowComment: "논평",
-    historyDialogRevert: "되돌리기"
+    historyDialogRevert: "되돌리기",
+    historyDialogLoadingWait: "로딩 중 기다려주세요&hellip;",
+    historyDialogNoVersionsFound: "어떤 버전을 찾을 수 없습니다.",
+    historyDialogUnable:"버전 기록을로드 할 수 없습니다.",
+    historyDialogTryAgain:"다시 시도",
+
+    deleteDialogTitle:"삭제",
+    deleteDialogSubTitle:"다음 선택 항목이 삭제됩니다 :",
+    deleteDialogSetLink:'이제"모든 것을 설정',
+    deleteDialogPage:"페이지",
+    deleteDialogDelete:"삭제",
+    deleteDialogNow:"지금",
+    deleteDialogFeedBack:"제출하기 전에 종속성 확인해야합니다",
+    deleteDialogNoItemsSelected:"선택 항목이 없습니다",
+
+    deleteSubmitDialogTitle:"삭제 제출",
+    deleteSubmitDialogTime:"당신이 체크 된 항목을 원하는 경우 삭제할?",
+    deleteSubmitEmailMe:"내 항목이 삭제 될 때 이메일을 보내주세요",
+    deleteSubmitDialogAsSoon:"최대한 빨리."
 
 });

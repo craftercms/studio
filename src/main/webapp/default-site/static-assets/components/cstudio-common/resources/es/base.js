@@ -134,6 +134,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     ok: "Aceptar",
     yes: "Si",
     no: "No",
+    submit:"Enviar",
+    loading:"Cargando&hellip;",
 
     copy: "Copiar",
     copyDescription: "Por favor seleccione las subpaginas que le gustaria copar.<br/> Al pegar, se conservarán las sub-páginas seleccionadas y su jerarquía posicional.",
@@ -166,7 +168,26 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
     historyDialogTableRowTime: "Tiempo de Edición",
     historyDialogTableRowEditBy: "Editado por",
     historyDialogTableRowComment: "Comentario",
-    historyDialogRevert: "Revertir"
+    historyDialogRevert: "Revertir",
+    historyDialogLoadingWait: "Cargando, por favor esperar&hellip;",
+    historyDialogNoVersionsFound: "No hay versiones encontradas.",
+    historyDialogUnable:"No se puede cargar el historial de versiones.",
+    historyDialogTryAgain:"Inténtalo de nuevo",
+
+    deleteDialogTitle:"Eliminar",
+    deleteDialogSubTitle:"Los siguientes elementos seleccionados serán eliminados:",
+    deleteDialogSetLink:'Establecer todo para "Ahora"',
+    deleteDialogPage:"Página",
+    deleteDialogDelete:"Eliminar",
+    deleteDialogNow:"Ahora",
+    deleteDialogFeedBack:"Las dependencias deben comprobarse antes de enviarlas",
+    deleteDialogNoItemsSelected:"No hay artículos seleccionados",
+
+    deleteSubmitDialogTitle:"Enviar para su eliminación",
+    deleteSubmitDialogTime:"¿Cuándo desea eliminar los artículos marcados?",
+    deleteSubmitEmailMe:"Enviarme un correo cuando los artículos son eliminados.",
+    deleteSubmitDialogAsSoon:"Lo antes posible."
+
 
 });
 

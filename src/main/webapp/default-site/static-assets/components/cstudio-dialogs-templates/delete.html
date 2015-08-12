@@ -66,31 +66,31 @@
         </div>
     </div>
 
-    <h3 class="view-title">Delete</h3>
+    <h3 data-translation="deleteDialogTitle" class="view-title">Delete</h3>
     <div class="form-group">
-        <span>The following checked items will be deleted:</span>
-        <a class="set-all-now" href="javascript:" style="float:right">Set everything to "Now"</a>
+        <span data-translation="deleteDialogSubTitle">The following checked items will be deleted:</span>
+        <a class="set-all-now" href="javascript:" style="float:right" data-translation="deleteDialogSetLink">Set everything to "Now"</a>
     </div>
 
     <div class="form-group">
         <table class="item-listing">
             <thead>
             <tr>
-                <th><div class="item"><span style="padding-left:15px">Page</span></div></th>
+                <th><div class="item"><span style="padding-left:15px" data-translation="deleteDialogPage">Page</span></div></th>
                 <th><div class="item-desc">&nbsp;</div></th>
-                <th><div class="item-sch">Delete</div></th>
+                <th><div class="item-sch" data-translation="deleteDialogDelete">Delete</div></th>
             </tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
-    <div class="form-group items-feedback" style="text-align:center;">
+    <div class="form-group items-feedback" style="text-align:center;" data-translation="deleteDialogFeedBack">
         Dependencies must be checked before you can submit
     </div>
 
     <div>
-        <input type="submit" class="do-delete btn btn-primary" value="Delete" />
-        <input type="submit" class="cancel btn btn-default" value="Cancel" />
+        <input id="deleteBtn" type="submit" class="do-delete btn btn-primary" value="Delete" />
+        <input id="cancelBtn" type="submit" class="cancel btn btn-default" value="Cancel" />
     </div>
 
 </div>
