@@ -132,6 +132,14 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
 
     changeTemplateDialogTitle:"경고 : 콘텐츠 형식 변경",
     changeTemplateDialogSubTitle:"크래프터 스튜디오",
-    changeTemplateDialogBody:"아래의 조작은 데이터 손실이 발생할 수 있습니다. 당신은 계속 진행 하시겠습니까?"
+    changeTemplateDialogBody:"아래의 조작은 데이터 손실이 발생할 수 있습니다. 당신은 계속 진행 하시겠습니까?",
+
+    historyDialogTitle: "버전 기록",
+    historyDialogSubTitle: "역사에 대해 표시 :",
+    historyDialogTableRowVersion: "버전",
+    historyDialogTableRowTime: "편집 시간",
+    historyDialogTableRowEditBy: "편집",
+    historyDialogTableRowComment: "논평",
+    historyDialogRevert: "되돌리기"
 
 });

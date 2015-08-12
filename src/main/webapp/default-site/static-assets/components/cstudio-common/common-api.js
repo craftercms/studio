@@ -533,11 +533,23 @@ var YEvent = YAHOO.util.Event;
                 });
             },
 
+            translateContent: function(){
+                var elements = document.querySelectorAll('[data-translation]');
+                console.log(elements);
+                for(var i=0; i<elements.length; i++){
+                    elements[i].innerHTML = CMgs.format(formsLangBundle, elements[i].getAttribute('data-translation'));
+                }
+            },
+
             viewContentHistory: function(contentObj, callback){
                 CSA.Operations._showDialogueView({
                     fn: CSA.Service.getHistoryView,
                     controller: "viewcontroller-history",
                     callback: function(dialogue) {
+
+                        CSA.Operations.translateContent();
+
+                        YDom.get("historyCloseBtn").value = CMgs.format(formsLangBundle, "close");
 
                         this.loadHistory(contentObj);
 
