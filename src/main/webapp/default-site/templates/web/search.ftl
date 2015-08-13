@@ -65,14 +65,14 @@
       <div style="clear:both;"></div>
       <br />
       <div class="form-group">
-          <label><script>CMgs.display(langBundle, "keywords")</script></label>
+          <label><script>CMgs.display(langBundle, "keywordsLabel")</script></label>
           <br />
           <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox" class="form-control"  value="${RequestParameters["s"]!''}"/>
 
           <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
       </div>
             
-      <input type="button" id="cstudio-wcm-search-button" class="btn btn-primary" value="Search">
+      <button id="cstudio-wcm-search-button" class="btn btn-primary" ><script>CMgs.display(langBundle, "searchButtonLabel")</script></button>
 
       <div class="panel panel-default">
           <div id="cstudio-wcm-search-result-header" class="panel-heading">

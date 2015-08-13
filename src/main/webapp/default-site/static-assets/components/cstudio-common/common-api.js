@@ -488,10 +488,10 @@ var YEvent = YAHOO.util.Event;
                 Loader.use.apply(Loader, params);
             },
 
-            translateContent: function(){
+            translateContent: function(langBundle){
                 var elements = document.querySelectorAll('[data-translation]');
                 for(var i=0; i<elements.length; i++){
-                    elements[i].innerHTML = CMgs.format(formsLangBundle, elements[i].getAttribute('data-translation'));
+                    elements[i].innerHTML = CMgs.format(langBundle, elements[i].getAttribute('data-translation'));
                 }
             },
 
@@ -513,7 +513,7 @@ var YEvent = YAHOO.util.Event;
                     fn: view,
                     controller: controller,
                     callback: function(dialogue) {
-                        CSA.Operations.translateContent();
+                        CSA.Operations.translateContent(formsLangBundle);
                         if(YDom.get("cancelBtn")){YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");}
                         if(YDom.get("deleteBtn")){YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");}
                         this.loadDependencies(items);
@@ -549,7 +549,7 @@ var YEvent = YAHOO.util.Event;
                     controller: "viewcontroller-history",
                     callback: function(dialogue) {
 
-                        CSA.Operations.translateContent();
+                        CSA.Operations.translateContent(formsLangBundle);
 
                         YDom.get("historyCloseBtn").value = CMgs.format(formsLangBundle, "close");
 
@@ -584,7 +584,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getApproveView,
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
-                        CSA.Operations.translateContent();
+                        CSA.Operations.translateContent(formsLangBundle);
                         this.loadItems(items);
                         this.loadPublishingChannels();
 
@@ -603,7 +603,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getRequestPublishView,
                     controller: 'viewcontroller-requestpublish',
                     callback: function(dialog) {
-                        CSA.Operations.translateContent();
+                        CSA.Operations.translateContent(formsLangBundle);
                         this.renderItems(contentItems);
                     }
                 }, true, '800px');

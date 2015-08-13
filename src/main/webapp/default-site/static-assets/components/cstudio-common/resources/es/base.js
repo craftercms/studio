@@ -208,22 +208,26 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
 });
 
 CStudioAuthoring.Messages.registerBundle("search", "es", {
-    defaultTitle: "WCM Search",
-    searchButtonLabel: "Search",
-    keywordsLabel: "Keywords (optional)",
-    searchResults: "Search Results",
-    showing: "(Showing {0}-{1} of {2})",
-    hideDescriptions: "Hide Descriptions",
-    showDescriptions: "Show Descriptions",
-    show: "Show",
-    sort: "Sort",
-    sortRelevance: "Relevance",
-    sortAlphabetical: "Alphabetical",
-    sortCreateDate: "Create Date",
-    pagePrevious: "Previous",
-    pageNext: "Next",
-    errSearchFailed: "Search Failed. Try adjusting your filters. Cause: If issue persists contact administrator with error: {0}",
-    errNoResults: "Your search returned no results."
+    defaultTitle: "Busqueda WCM",
+    searchButtonLabel: "Busqueda",
+    keywordsLabel: "Palabras Claves (opcional)",
+    searchResults: "Resultados de la búsqueda",
+    showing: "(Mostrando {0}-{1} de {2})",
+    hideDescriptions: "Ocultar Descripciones",
+    showDescriptions: "Mostrar Descripciones",
+    show: "Mostrar",
+    sort: "Ordenar",
+    sortRelevance: "Por Relevancia",
+    sortAlphabetical: "Alfabéticamente",
+    sortCreateDate: "Por Fecha de Creación",
+    pagePrevious: "Anterior",
+    pageNext: "Siguiente",
+    resultsEdited: "Editado",
+    resultsBy: "Por",
+    resultsUnknownType: "Tipo Desconocido",
+    resultsTemplate: "Plantilla",
+    errSearchFailed: "Busqueda Fallida. Trate de ajustar sus filtros. Causa: Si el problema persiste contacte al administrador y consultele el siguiente error: {0}",
+    errNoResults: "Su búsqueda no produjo resultados."
 });
 
 CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
