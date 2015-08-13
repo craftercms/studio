@@ -179,3 +179,59 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     requestApproveDialogEmailMe: "항목 살아 갈 때 이메일을 보내주세요."
 
 });
+
+CStudioAuthoring.Messages.registerBundle("search", "kr", {
+    defaultTitle: "수색 WCM",
+    searchButtonLabel: "수색",
+    keywordsLabel: "키워드 (선택)",
+    searchResults: "검색 결과",
+    showing: "(보기 {0}-{1} 의 {2})",
+    hideDescriptions: "숨기기 설명",
+    showDescriptions: "보기 설명",
+    show: "표시",
+    sort: "종류",
+    sortRelevance: "관련성",
+    sortAlphabetical: "알파벳",
+    sortCreateDate: "날짜 만들기",
+    pagePrevious: "이전",
+    pageNext: "다음",
+    resultsEdited: "편집",
+    resultsBy: "편집",
+    resultsUnknownType: "알 수없는 유형",
+    resultsTemplate: "주형",
+    errSearchFailed: "검색하지 못했습니다. 필터를 조정 해보십시오. 원인 : 문제가 오류와 함께 연락처 관리자 지속되면: {0}",
+    errNoResults: "귀하의 검색 결과가 없습니다."
+});
+
+CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
+    label: "Content Types",
+    openExistingType: "Open Existing Type",
+    createNewType: "Create New Type",
+    save: "Save",
+    saved: "Saved",
+    saveFailed: "Save Failed",
+    formSection: "Form Section",
+    repeatingGroup: "Repeating Group",
+    minOccurs: "Minimum Occurances",
+    maxOccurs: "Maximum Occurances",
+    formBasics: "Form Basics",
+    formTitle: "title",
+    description: "Description",
+    objectType: "Object Type",
+    contentType: "Content Type",
+    datasourceBasics: "Data Source Basics",
+    title: "Title",
+    name: "Name",
+    properties: "Properties",
+    sectionBasics: "Section Basics",
+    variableName: "Name / Variable Name",
+    iceGroup: "ICE Group",
+    fieldBasics: "Field Basics",
+    defaultValue: "Default Value",
+    help: "Help",
+    properties: "Properties",
+    constraints: "Constraints",
+    propertiesExplorer: "Properties Explorer",
+    controls: "Controls",
+    datasources: "Data Sources"
+});

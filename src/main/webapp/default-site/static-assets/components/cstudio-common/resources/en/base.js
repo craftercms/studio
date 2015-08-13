@@ -222,6 +222,10 @@ CStudioAuthoring.Messages.registerBundle("search", "en", {
     sortCreateDate: "Create Date",
     pagePrevious: "Previous",
     pageNext: "Next",
+    resultsEdited: "Edited",
+    resultsBy: "By",
+    resultsUnknownType: "Unknown Type",
+    resultsTemplate: "Template",
     errSearchFailed: "Search Failed. Try adjusting your filters. Cause: If issue persists contact administrator with error: {0}",
     errNoResults: "Your search returned no results."
 });

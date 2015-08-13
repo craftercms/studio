@@ -577,6 +577,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			        	}
 			        	return false;
 			        }
+                    var formsLangBundle = CMgs.getBundle("search", CStudioAuthoringContext.lang);
 					
 					/* render results */
 			        for(var i=0; i<results.objectList.length; i++) {
@@ -618,6 +619,8 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			        	}
 				      	
 				      	resultEl.innerHTML = resultsHTML;
+                        var elements = document.querySelectorAll('[data-translation]');
+                        CStudioAuthoring.Operations.translateContent(langBundle);
 	
 						var resultStatusIconStyle = CStudioAuthoring.Utils.getIconFWClasses(_item),
                             resultStatusEl = YDom.get("result-status"+contentItem.resultId),
@@ -1194,9 +1197,9 @@ CStudioSearch.loadResultTemplates = function(templates, callback) {
 
 CStudioSearch.getContentTypeName = function(ctype) {
 	if (CStudioAuthoring.Utils.isEmpty(ctype)) 
-		return "Unknown Type";
+		return '<span data-translation="resultsUnknownType">Unknown Type</span>';
 	var ctypeName = CStudioSearch.ContentTypeConfigMap[ctype]; 
-	return (CStudioAuthoring.Utils.isEmpty(ctypeName)) ? ("["+ctype+"] Template") : ctypeName;
+	return (CStudioAuthoring.Utils.isEmpty(ctypeName)) ? ("["+ctype+"] <span data-translation='resultsTemplate'>Template</span>") : ctypeName;
 }
 
 /**
