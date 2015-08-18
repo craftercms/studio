@@ -139,6 +139,19 @@
 .studio-view,
 .studio-dialog {
 
+  &.history-view{
+    table.item-listing{
+      thead,tbody{
+        display: block;
+      }
+      tbody{
+        height: 199px!important;
+        overflow-y: scroll;
+        background-color: #fff;
+      }
+    }
+  }
+
   .view-title {
     margin: 0 0 5px;
   }
@@ -159,6 +172,10 @@
 
     th, td {
       padding: 5px 10px;
+    }
+
+    .original-schedule{
+       padding: 5px 10px 5px 6px;
     }
 
     th {

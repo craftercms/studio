@@ -234,6 +234,18 @@ class ContentServices {
 	}
 
 	/** 
+	 * Get the content for a specific version
+	 * @param site - the project ID
+	 * @param path - the path of the item to "revert"
+	 * @param version - old version ID to base to version on
+	 * @paran context - container for passing request, token and other values that may be needed by the implementation
+	 */
+	static getContentVersionAtPath(site, path, version, context){
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.getContentVersionAtPath(site, path, version) 		
+	}
+	
+	/** 
 	 * search the repository
 	 * @param site - the project ID	 
 	 * @param keywords - keywords

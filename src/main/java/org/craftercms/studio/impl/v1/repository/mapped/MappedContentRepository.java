@@ -151,6 +151,13 @@ public class MappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public InputStream getContentVersion(String path, String version) 
+	throws ContentNotFoundException {    
+    	ContentRepository repo = lookupRepo(repositoryType);
+       	return repo.getContentVersion(path, version);
+    }
+    
+    @Override
     public void lockItem(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
        repo.lockItem(site, path);

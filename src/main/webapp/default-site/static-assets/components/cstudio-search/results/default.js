@@ -32,9 +32,9 @@ CStudioSearch.ResultRenderer.Default = {
 					
 			result +=
 				"</div>"+
-				"<span class='cstudio-search-download-additional'>Edited "+ 
-					CStudioAuthoring.Utils.formatDateFromString(contentTO.item.eventDate, "simpleformat") + 
-					" by " + CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
+				"<span class='cstudio-search-download-additional'><span data-translation='resultsEdited'>Edited</span> "+
+					CStudioAuthoring.Utils.formatDateFromString(contentTO.item.eventDate, "simpleformat") +
+					" <span data-translation='resultsBy'>by</span> " + CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
 				"</span>";
 				
 		return CStudioSearch.renderCommonResultWrapper(contentTO, result);

@@ -15181,6 +15181,15 @@ address {
   .site-dashboard .row.unpad > [class|="col"] {
     padding: 0; }
 
+.studio-view.history-view table.item-listing thead, .studio-view.history-view table.item-listing tbody,
+.studio-dialog.history-view table.item-listing thead,
+.studio-dialog.history-view table.item-listing tbody {
+  display: block; }
+.studio-view.history-view table.item-listing tbody,
+.studio-dialog.history-view table.item-listing tbody {
+  height: 199px !important;
+  overflow-y: scroll;
+  background-color: #fff; }
 .studio-view .view-title,
 .studio-dialog .view-title {
   margin: 0 0 5px; }
@@ -15197,6 +15206,9 @@ address {
   .studio-dialog table.item-listing th,
   .studio-dialog table.item-listing td {
     padding: 5px 10px; }
+  .studio-view table.item-listing .original-schedule,
+  .studio-dialog table.item-listing .original-schedule {
+    padding: 5px 10px 5px 6px; }
   .studio-view table.item-listing th,
   .studio-dialog table.item-listing th {
     color: #fff;

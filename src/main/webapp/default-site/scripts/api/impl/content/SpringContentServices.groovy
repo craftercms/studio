@@ -183,6 +183,17 @@ class SpringContentServices {
 	}
 
 	/** 
+	 *  Get the content for a specific version
+	 * @param site - the project ID
+	 * @param path - the path of the item to retrieve
+	 * @param version - old version ID to base to version on
+	 */
+	def getContentVersionAtPath(site, path, version) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.getContentVersionAsString(site, path, version)			
+	}
+
+	/** 
 	 * revert a version (create a new version based on an old version)
 	 * @param site - the project ID
 	 * @param path - the path of the item to "revert"

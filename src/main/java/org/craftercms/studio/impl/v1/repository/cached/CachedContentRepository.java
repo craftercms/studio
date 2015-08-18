@@ -189,6 +189,13 @@ public class CachedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public InputStream getContentVersion(String path, String version) 
+	throws ContentNotFoundException {
+		// nothing to cache    
+    	return wrappedRepo.getContentVersion(path, version);
+    }
+    
+    @Override
     public void lockItem(String site, String path) {
       //nothing to cache
       wrappedRepo.lockItem(site, path);
