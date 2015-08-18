@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v1.repository;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import java.io.InputStream;
 
 /**
  * Abstract repository interface provides common repository operations across implementations
@@ -29,4 +31,16 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 public abstract class AbstractContentRepository implements ContentRepository {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
+	
+    /** 
+     * return a specific version of the content
+     * @param path path of the content
+     * @param version version to return
+     * @return input stream
+     */
+    public InputStream getContentVersion(String path, String version) 
+	throws ContentNotFoundException {    
+    	throw new java.lang.RuntimeException("operation not supported");
+    }
+	
 }

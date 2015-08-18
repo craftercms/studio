@@ -363,6 +363,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         return success;
     }
+    
+    public InputStream getContentVersion(String path, String version) 
+	throws ContentNotFoundException { 
+		return getVersionedContent(path, version);
+    }
+
 
     public void lockItem(String site, String path) {
     }
