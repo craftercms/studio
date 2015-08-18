@@ -23,11 +23,13 @@ import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 public interface DeploymentEndpointConfig {
 
-    public DeploymentEndpointConfigTO getDeploymentConfig(String site, String endpoint);
+    DeploymentEndpointConfigTO getDeploymentConfig(String site, String endpoint);
 
-    public boolean isUpdated(String site);
+    boolean isUpdated(String site);
 
-    public boolean exists(String site);
+    boolean exists(String site);
 
-    public DeploymentConfigTO getSiteDeploymentConfig(String site);
+    DeploymentConfigTO getSiteDeploymentConfig(String site);
+
+    void reloadConfiguration(String site);
 }

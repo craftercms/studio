@@ -71,7 +71,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     @Override
     public Set<String> getUserPermissions(String site, String path, String user, List<String> groups) {
         // determine whether to refresh the config
-        checkForUpdate(site);
+        //checkForUpdate(site);
 
         Set<String> permissions = new HashSet<String>();
 
@@ -220,7 +220,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
             // determine whether to refresh the config
-            checkForUpdate(site);
+            //checkForUpdate(site);
             // get the config files from the permissionsConfigMap based on the key
             PermissionsConfigTO rolesConfig = permissionsConfigMap.get(getPermissionsKey(site, roleMappingsFileName));
             Set<String> userRoles = new HashSet<String>();
@@ -576,6 +576,19 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
         }
         return null;
+    }
+
+    @Override
+    public void reloadConfiguration(String site) {
+        loadConfiguration(getPermissionsKey(site, permissionsFileName));
+        loadConfiguration(getPermissionsKey(site, roleMappingsFileName));
+
+    }
+
+    @Override
+    public void reloadGlobalConfiguration() {
+        loadGlobalPermissionsConfiguration();
+        loadGlobalRolesConfiguration();
     }
 
     @Override
