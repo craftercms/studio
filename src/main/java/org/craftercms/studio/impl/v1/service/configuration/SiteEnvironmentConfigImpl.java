@@ -65,7 +65,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
       */
 	@Override
 	public EnvironmentConfigTO getEnvironmentConfig(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		return siteMapping.get(site);
 	}
 
@@ -75,7 +75,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
 	 */
 	public String getPreviewServerUrl(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		EnvironmentConfigTO config = siteMapping.get(site);
 		if (config != null) {
 			String previewServerUrl = config.getPreviewServerUrl();
@@ -90,7 +90,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	}
 	
 	public String getLiveServerUrl(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		EnvironmentConfigTO config = siteMapping.get(site);
 		if (config != null) {
 			return config.getLiveServerUrl();
@@ -99,7 +99,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	}
 	
 	public String getAdminEmailAddress(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		EnvironmentConfigTO config = siteMapping.get(site);
 		if (config != null) {
 			return config.getAdminEmailAddress();
@@ -113,7 +113,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
 	 */
 	public String getAuthoringServerUrl(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		EnvironmentConfigTO config = siteMapping.get(site);
 		if (config != null) {
 			return config.getAuthoringServerUrl();
@@ -126,7 +126,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getFormServerUrl(java.lang.String)
 	 */
 	public String getFormServerUrl(String site) {
-		checkForUpdate(site);
+		//checkForUpdate(site);
 		EnvironmentConfigTO config = siteMapping.get(site);
 		if (config != null) {
 			return config.getFormServerUrlPattern();
@@ -240,7 +240,12 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 		}
 	}
 
-	/**
+    @Override
+    public void reloadConfiguration(String site) {
+        loadConfiguration(site);
+    }
+
+    /**
 	 * @param environment the environment to set
 	 */
 	public void setEnvironment(String environment) {
@@ -256,7 +261,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 
     @Override
     public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         EnvironmentConfigTO config = siteMapping.get(site);
         if (config != null) {
             return config.getPublishingChannelGroupConfigs();
@@ -266,7 +271,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 
     @Override
     public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         EnvironmentConfigTO config = siteMapping.get(site);
         if (config != null) {
             return config.getLiveEnvironmentPublishingGroup();
@@ -282,7 +287,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 
     @Override
     public String getPreviewDeploymentEndpoint(String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         EnvironmentConfigTO config = siteMapping.get(site);
         if (config != null) {
             return config.getPreviewDeploymentEndpoint();

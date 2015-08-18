@@ -271,6 +271,41 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     @Override
+    public void reloadConfiguration(String site) {
+        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+        RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
+        List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
+
+        if (folders != null) {
+            for (int i = 0; i < folders.length; i++) {
+                reloadContentTypeConfigForChildren(site, folders[i], contentTypes);
+            }
+        }
+    }
+
+    protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
+        String fullPath = node.path + "/" + node.name;
+        logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
+        RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
+        if (folders != null) {
+            for (int i = 0; i < folders.length; i++) {
+                if (folders[i].isFolder) {
+                    String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
+                    if (contentService.contentExists(configPath)) {
+                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configPath);
+                        if (config != null) {
+                            contentTypes.add(config);
+                        }
+                    }
+                    // traverse the children file-folder structure
+
+                    reloadContentTypeConfigForChildren(site, folders[i], contentTypes);
+                }
+            }
+        }
+    }
+
+    @Override
     public void register() {
         getServicesManager().registerService(ContentTypeService.class, this);
     }

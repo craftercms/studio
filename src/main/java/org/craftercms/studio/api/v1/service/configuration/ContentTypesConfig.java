@@ -62,7 +62,9 @@ public interface ContentTypesConfig {
 	 */
 	ContentTypeConfigTO loadConfiguration(String site, String configPath);
 
-	/**
+    ContentTypeConfigTO reloadConfiguration(String site, String configPath);
+
+    /**
 	 * get path to content types mapping
 	 * 
 	 * @param site

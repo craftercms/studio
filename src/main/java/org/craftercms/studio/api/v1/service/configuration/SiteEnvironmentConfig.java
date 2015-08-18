@@ -102,4 +102,6 @@ public interface SiteEnvironmentConfig {
     PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site);
 
     String getPreviewDeploymentEndpoint(String site);
+
+    void reloadConfiguration(String site);
 }

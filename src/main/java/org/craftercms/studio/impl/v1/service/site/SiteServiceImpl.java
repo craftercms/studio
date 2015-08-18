@@ -36,10 +36,12 @@ import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConf
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
@@ -53,6 +55,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import reactor.core.Reactor;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -81,7 +84,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
 	@Override	
 	public boolean writeConfiguration(String path, InputStream content) {
-		return contentRepository.writeContent(path, content);
+		boolean toRetrun = contentRepository.writeContent(path, content);
+        reloadSiteConfigurations();
+        return toRetrun;
 	}
 
 	@Override
@@ -268,6 +273,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	 * check if any of site configuration is updated and reload it
 	 */
 	protected void checkForUpdates() {
+        /*
 		if (sitesMappings == null) {
 			loadSitesMappings();
 		} else {
@@ -306,13 +312,13 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 
 	/**
 	 * load sites mappings
-	 */
+	 *//*
 	protected void loadSitesMappings() {
 		Map<String, SiteTO> sitesMapping = new HashMap<>();
 		ContentItemTO sitesTree = contentService.getContentItemTree(sitesConfigPath, 1);
@@ -338,7 +344,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			logger.warn("[SITESERVICE] no sites found at : " + this.sitesConfigPath);
 		}
 	}
-
+*/
 	/**
 	 * load site configuration info (not environment specific)
 	 *
@@ -491,6 +497,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
             deploymentService.syncAllContentToPreview(siteId);
+            reloadSiteConfiguration(siteId);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -642,6 +649,69 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         return null;
     }
 
+    @Override
+    public void reloadSiteConfigurations() {
+        reloadGlobalConfiguration();
+        if (this.sitesMappings == null) {
+            this.sitesMappings = new HashMap<String, SiteTO>();
+        }
+        Set<String> sites = getAllAvailableSites();
+
+        if (sites != null && sites.size() > 0) {
+            for (String site : sites) {
+                reloadSiteConfiguration(site);
+            }
+        } else {
+            logger.error("[SITESERVICE] no sites found");
+        }
+    }
+
+    @Override
+    public void reloadSiteConfiguration(String site) {
+        if (this.sitesMappings == null) {
+            this.sitesMappings = new HashMap<String, SiteTO>();
+        }
+        SiteTO siteConfig = new SiteTO();
+        if (this.sitesMappings.containsKey(site)) {
+            if (servicesConfig.isUpdated(site)) {
+                logger.debug("[SITESERVICE] " + site + " configuration is updated. reloading it.");
+                siteConfig = this.sitesMappings.get(site);
+                loadSiteConfig(site, siteConfig);
+            }
+            if (environmentConfig.isUpdated(site)) {
+                logger.debug("[SITESERVICE] " + site + " environment configuration is updated. reloading it.");
+                siteConfig = this.sitesMappings.get(site);
+                environmentConfig.reloadConfiguration(site);
+                loadSiteEnvironmentConfig(site, siteConfig);
+            }
+            if (deploymentEndpointConfig.isUpdated(site)) {
+                logger.debug("[SITESERVICE] " + site + " deployment configuration is updated. reloading it.");
+                siteConfig = this.sitesMappings.get(site);
+                deploymentEndpointConfig.reloadConfiguration(site);
+                loadSiteDeploymentConfig(site, siteConfig);
+            }
+            notificationService.reloadConfiguration(site);
+        } else {
+            logger.debug("[SITESERVICE] loading site configuration for " + site);
+            siteConfig.setSite(site);
+            siteConfig.setEnvironment(this.environment);
+            this.loadSiteConfig(site, siteConfig);
+            environmentConfig.reloadConfiguration(site);
+            this.loadSiteEnvironmentConfig(site, siteConfig);
+            deploymentEndpointConfig.reloadConfiguration(site);
+            this.loadSiteDeploymentConfig(site, siteConfig);
+            this.sitesMappings.put(site, siteConfig);
+            notificationService.reloadConfiguration(site);
+            securityService.reloadConfiguration(site);
+            contentTypeService.reloadConfiguration(site);
+        }
+    }
+
+    @Override
+    public void reloadGlobalConfiguration() {
+        securityService.reloadGlobalConfiguration();
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -698,6 +768,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public Reactor getRepositoryRector() { return repositoryRector; }
     public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
 
+    public NotificationService getNotificationService() { return notificationService; }
+    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
+
+    public ContentTypeService getContentTypeService() { return contentTypeService; }
+    public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -716,6 +792,8 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected Reactor repositoryRector;
+    protected NotificationService notificationService;
+    protected ContentTypeService contentTypeService;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
