@@ -15,14 +15,15 @@
             display: block;
             padding: 10px;
             margin: 10px;
-            width: 800px;
-            max-height: 100px;
+            //width: 800px;
+            //max-height: 100px;
             overflow: scroll;
         }
     </style>
     <div class='content'>${diff}</div>
-    <div class='content'>${variantA}</div>
+    <!--div class='content'>${variantA}</div>
     <div class='content'>${variantB}</div>
+    <div class='content'>${xsl}</div-->
     
 </body>
 </html>
