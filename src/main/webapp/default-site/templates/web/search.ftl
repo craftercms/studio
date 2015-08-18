@@ -13,6 +13,7 @@
 
      <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
    
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/search.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>
@@ -64,14 +65,14 @@
       <div style="clear:both;"></div>
       <br />
       <div class="form-group">
-          <label><script>CMgs.display(langBundle, "keywords")</script></label>
+          <label><script>CMgs.display(langBundle, "keywordsLabel")</script></label>
           <br />
           <input type="text" name="keywords" id="cstudio-wcm-search-keyword-textbox" class="form-control"  value="${RequestParameters["s"]!''}"/>
 
           <input type="hidden" id="cstudio-wcm-search-presearch"  value="true" />
       </div>
             
-      <input type="button" id="cstudio-wcm-search-button" class="btn btn-primary" value="Search">
+      <button id="cstudio-wcm-search-button" class="btn btn-primary" ><script>CMgs.display(langBundle, "searchButtonLabel")</script></button>
 
       <div class="panel panel-default">
           <div id="cstudio-wcm-search-result-header" class="panel-heading">

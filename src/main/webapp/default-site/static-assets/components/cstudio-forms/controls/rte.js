@@ -455,8 +455,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	        encoding : "xml",
             valid_elements :"+*[*]",
             extended_valid_elements :"+*[*]",
-            valid_children : "+*[*]",//+body[style]
-	        paste_auto_cleanup_on_paste : true,
+            valid_children : "+*[*]",
+			valid_elements :"+*[*]",
+	        paste_auto_cleanup_on_paste : true,	        paste_auto_cleanup_on_paste : true,
 			relative_urls : false,
 
 			readonly: _thisControl.readonly,

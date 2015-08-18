@@ -18,9 +18,6 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONObject;
-import org.alfresco.cmis.client.AlfrescoDocument;
-import org.alfresco.cmis.client.AlfrescoFolder;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -31,7 +28,10 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.String;
 import java.util.*;
 import java.net.*;
@@ -41,6 +41,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -49,7 +50,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -64,7 +67,6 @@ import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import org.dom4j.Document;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import reactor.core.Reactor;
 
 
 /**
@@ -88,6 +90,7 @@ implements SecurityProvider {
         try {
             return (this.getNodeRefForPathCMIS(path) != null);
         } catch (ContentNotFoundException e) {
+            logger.info("Content not found exception for path: " + path, e);
             return false;
         }
     }
@@ -143,137 +146,41 @@ implements SecurityProvider {
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
+    @Override
     public String createVersion(String path, boolean majorVersion) {
-
-        try {
-            if (contentExists(path)) {
-                String nodeRef = getNodeRefForPathCMIS(path);
-                // add versionable aspect
-                int lastidx = nodeRef.lastIndexOf("/");
-                String nodeUUID = nodeRef.substring(lastidx + 1);
-                String requestBody = "{ \"added\":[\"cm:versionable\"], \"removed\":[] }";
-                InputStream bodyStream = IOUtils.toInputStream(requestBody);
-                String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
-
-                // set aspect properties
-                requestBody = "{ \"properties\" : { \"autoVersion\" : false, \"autoVersionOnUpdateProps\" : false }}";
-                bodyStream = IOUtils.toInputStream(requestBody);
-                result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/" + nodeUUID, null, bodyStream, "application/json");
-
-                if (majorVersion) {
-                    // Upload new version
-                    InputStream content = getContentStreamCMIS(path);
-                    String contentType = "cm:content";
-                    int splitIndex = path.lastIndexOf("/");
-                    String name = path.substring(splitIndex + 1);
-                    // find the target folder node by its path
-                    String folderPath = path.substring(0, splitIndex);
-                    String folderRef = getNodeRefForPathCMIS(folderPath);
-                    if (folderRef == null) {
-                        // if not, create the folder first
-                        int folderSplitIndex = folderPath.lastIndexOf("/");
-                        String parentFolderPath = folderPath.substring(0, folderSplitIndex);
-                        String folderName = folderPath.substring(folderSplitIndex + 1);
-                        folderRef = this.createFolderInternal(parentFolderPath, folderName);
-                    }
-                    // TODO: might still need to check if the folderRef still exists
-
-                    // add parameters
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("filename", name);
-                    // if it's a new content, check if the folder exists
-                    params.put("destination", folderRef);
-                    if (nodeRef != null) {
-                        params.put("updateNodeRef", nodeRef);
-                    }
-                    //params.put("uploaddirectory", folderRef);
-                    // TODO: add description for version update - do we need this?
-                    params.put("contenttype", contentType);
-                    params.put("majorversion", Boolean.toString(majorVersion));
-                    params.put("overwrite", "true");
-                    result = alfrescoMultipartPostRequest("/api/upload", params, content, "application/xml", "UTF-8");
-                }
-            }
-        } catch (ContentNotFoundException e) {
-            logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, e);
-        } catch (Exception e) {
-            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, e);
-        }
-        return "";
-        /*
+        long startTime = System.currentTimeMillis();
         String versionLabel = null;
-        Map<String, String> params = new HashMap<String, String>();
-        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanPath.endsWith("/")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
-        }
-        try {
-            Session session = getCMISSession();
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            if (cmisObject != null) {
-                ObjectType type = cmisObject.getBaseType();
-                if ("cmis:document".equals(type.getId())) {
-                    AlfrescoDocument alfDoc = (AlfrescoDocument)cmisObject;
-                    /*
-                    if (!alfDoc.hasAspect("D:cm:versionable")) {
-                        alfDoc.addAspect("D:cm:versionable");
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    }*/
-                    /*
-                    Property autoVersion = alfDoc.getProperty("cm:autoVersion");
-                    if (autoVersion == null || (Boolean.parseBoolean(autoVersion.getValueAsString()))) {
-                        Map<String, Object> properties = new HashMap<String, Object>();
-                        properties.put("cm:autoVersion", false);
-                        alfDoc.updateProperties(properties, true);
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    }*/
-/*
-                    Property lockOwner = alfDoc.getProperty("cm:lockOwner");
-                    Property lockType = alfDoc.getProperty("cm:lockType");
-                    if (lockOwner != null && lockType != null) {
-                        if (!alfDoc.hasAspect("P:cm:lockable")) {
-                            alfDoc.addAspect("P:cm:lockable");
-                        } else {
-                            Map<String, Object> properties = new HashMap<String, Object>();
-                            properties.put("cm:lockOwner", null);
-                            properties.put("cm:lockType", null);
-                            alfDoc.updateProperties(properties, true);
-                        }
-                        //session.clear();
-                        //alfDoc = (AlfrescoDocument)session.getObject(alfDoc.getId());
-                    }
-                    session.removeObjectFromCache(alfDoc.getId());
-                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    ObjectId objId = alfDoc.checkOut();
-                    AlfrescoDocument workingCopy = (AlfrescoDocument)session.getObject(objId);
-                    ContentStream contentStream = workingCopy.getContentStream();
-                    objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
-                    session.removeObjectFromCache(alfDoc.getId());
-                    session.removeObjectFromCache(objId);
-                    alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                    if (lockOwner != null && lockType != null) {
-                        if (!alfDoc.hasAspect("P:cm:lockable")) {
-                            alfDoc.addAspect("P:cm:lockable");
-                        }
-                        session.clear();
-                        session.removeObjectFromCache(alfDoc.getId());
-                        alfDoc = (AlfrescoDocument)session.getObjectByPath(cleanPath);
-                        Map<String, Object> properties = new HashMap<String, Object>();
-                        properties.put("cm:lockOwner", lockOwner.getValue());
-                        properties.put("cm:lockType", lockType.getValue());
-                        alfDoc.updateProperties(properties, true);
+        if (majorVersion) {
+            // only major version will be created on demand. minor version is created on updates
+
+            Map<String, String> params = new HashMap<String, String>();
+            String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+            if (cleanPath.endsWith("/")) {
+                cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+            }
+            try {
+                Session session = getCMISSession();
+                CmisObject cmisObject = session.getObjectByPath(cleanPath);
+                if (cmisObject != null) {
+                    ObjectType type = cmisObject.getBaseType();
+                    if ("cmis:document".equals(type.getId())) {
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                        ObjectId objId = document.checkOut();
+                        org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
+                        ContentStream contentStream = workingCopy.getContentStream();
+                        objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                        session.removeObjectFromCache(document.getId());
+                        session.removeObjectFromCache(objId);
                     }
                 }
+            } catch (CmisBaseException err) {
+                logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " + path, err);
             }
-        } catch (CmisBaseException err) {
-            logger.error("Error while creating new " + (majorVersion?"major":"minor") + " version for path " + path, err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
         return versionLabel;
-        */
+
     }
 
     /** 
@@ -329,12 +236,15 @@ implements SecurityProvider {
      * fire GET request to Alfresco with proper security
      */
     protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+        long startTime = System.currentTimeMillis();
         InputStream retResponse = null;
 
         URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
 
         retResponse = serviceURI.toURL().openStream();
 
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoGetRequest(String uri, Map<String, String> params); {0}, {1}\n\t\tDuration: {2}", uri, params.values(), duration);
         return retResponse;
     }
 
@@ -342,6 +252,7 @@ implements SecurityProvider {
      * fire POST request to Alfresco with propert security
      */
     protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType) throws Exception {
+        long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
         PostMethod postMethod = new PostMethod(serviceURL);
         postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
@@ -349,6 +260,8 @@ implements SecurityProvider {
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         int status = httpClient.executeMethod(postMethod);
 
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -369,6 +282,7 @@ implements SecurityProvider {
      * @throws Exception
      */
     protected String alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet) throws Exception {
+        long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, new HashMap<String, String>(0));
         PostMethod postMethod = new PostMethod(serviceURL);
         // create multipart request parts
@@ -391,6 +305,9 @@ implements SecurityProvider {
         logger.debug("Executing multipart post request to " + uri);
         int status = httpClient.executeMethod(postMethod);
         logger.debug("Response status back from the server: " + status);
+
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -519,6 +436,7 @@ implements SecurityProvider {
 
     @Override
     public boolean validateTicket(String ticket) {
+        long startTime = System.currentTimeMillis();
         //make me do something
         ticket = (ticket!=null) ? ticket : getSessionTicket();
         logger.debug("Validating ticket " + ticket);
@@ -531,11 +449,15 @@ implements SecurityProvider {
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
             if (status == HttpStatus.SC_OK) {
+                long duration = System.currentTimeMillis() - startTime;
+                logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
                 return true;
             }
         } catch (Exception e) {
             logger.error("Error while validating authentication token", e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
     }
 
@@ -565,6 +487,7 @@ implements SecurityProvider {
     }
 
     protected String getNodeRefForPathCMIS(String fullPath) throws ContentNotFoundException {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -582,10 +505,13 @@ implements SecurityProvider {
             logger.warn("Object not found in CMIS repository for path: ", fullPath);
             throw new ContentNotFoundException(e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return nodeRef;
     }
 
     protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -608,10 +534,13 @@ implements SecurityProvider {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
             throw new ContentNotFoundException(e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return inputStream;
     }
 
     protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -630,29 +559,41 @@ implements SecurityProvider {
                 Iterator<CmisObject> iterator = children.iterator();
                 while (iterator.hasNext()) {
                     CmisObject child = iterator.next();
-
+                    boolean isWorkingCopy = false;
                     boolean isFolder = "cmis:folder".equals(child.getBaseType().getId());
                     RepositoryItem item = new RepositoryItem();
                     item.name = child.getName();
-                    if (child.getType().isFileable()) {
-                        FileableCmisObject fileableCmisObject = (FileableCmisObject) child;
-                        item.path = fileableCmisObject.getPaths().get(0);
+
+                    if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)child;
+                        item.path = document.getPaths().get(0);
+                        Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
+                        if (secundaryTypes != null) {
+                            List<String> aspects = secundaryTypes.getValue();
+                            if (aspects.contains("P:cm:workingcopy")) {
+                                isWorkingCopy = true;
+                            }
+                        }
                     } else {
                         item.path = fullPath;
                     }
                     item.path = StringUtils.removeEnd(item.path,"/" + item.name);
                     item.isFolder = isFolder;
-
-                    tempList.add(item);
+                    if (!isWorkingCopy) {
+                        tempList.add(item);
+                    }
                 }
                 items = new RepositoryItem[tempList.size()];
                 items = tempList.toArray(items);
             }
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return items;
     }
 
     protected boolean writeContentCMIS(String fullPath, InputStream content) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -673,7 +614,14 @@ implements SecurityProvider {
                 ObjectType type = cmisObject.getBaseType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-                    document.setContentStream(contentStream, true);
+                    String pwcId = document.getVersionSeriesCheckedOutId();
+                    if (pwcId != null) {
+                        org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(pwcId);
+                        pwcDocument.checkIn(false, null, contentStream, null);
+                    } else {
+                        document.setContentStream(contentStream, true);
+                    }
+                    session.removeObjectFromCache(document.getId());
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
@@ -704,6 +652,8 @@ implements SecurityProvider {
                 properties.put(PropertyIds.NAME, filename);
                 folder.createDocument(properties, contentStream, VersioningState.MINOR);
             }
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
             return true;
         } catch (CmisBaseException e) {
             logger.error("Error writing content to a path {0}", e, fullPath);
@@ -712,10 +662,13 @@ implements SecurityProvider {
         } catch (Throwable t) {
             logger.error("Error writing content to a path {0}", t, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
         return false;
     }
 
     protected boolean deleteContentCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -730,15 +683,19 @@ implements SecurityProvider {
                 result = true;
             } else {
                 cmisObject.delete(true);
+                session.removeObjectFromCache(cmisObject.getId());
                 result = true;
             }
         } catch (CmisBaseException e) {
             logger.error("Could not find content for path {0}", fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return result;
     }
 
     protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         VersionTO[] versions = new VersionTO[0];
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -773,10 +730,13 @@ implements SecurityProvider {
         } catch(CmisBaseException err) {
             logger.error("err getting content: ", err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return versions;
     }
 
     protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+        long startTime = System.currentTimeMillis();
         boolean success = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -808,10 +768,13 @@ implements SecurityProvider {
         } catch (CmisBaseException err) {
             logger.error("err reverting content content: ", err);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
         return success;
     }
 
     protected String createFolderInternalCMIS(String fullPath, String name) {
+        long startTime = System.currentTimeMillis();
         String newFolderRef = null;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.length() > 1 && cleanPath.endsWith("/")) {
@@ -855,12 +818,15 @@ implements SecurityProvider {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
         } catch (CmisBaseException err) {
-            logger.error("Failed to create " + name + " folder in " + fullPath, err);
+            logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
         return newFolderRef;
     }
 
     protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut) {
+        long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanFromPath.endsWith("/")) {
@@ -880,9 +846,9 @@ implements SecurityProvider {
                 ObjectType sourceType = sourceCmisObject.getType();
                 ObjectType targetType = targetCmisObject.getType();
                 if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
-                    AlfrescoFolder targetFolder = (AlfrescoFolder)targetCmisObject;
+                    Folder targetFolder = (Folder)targetCmisObject;
                     if ("cmis:document".equals(sourceType.getId())) {
-                        AlfrescoDocument sourceDocument = (AlfrescoDocument)sourceCmisObject;
+                        org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
                         logger.debug("Coping document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                         copyDocument(targetFolder, sourceDocument);
                     } else if ("cmis:folder".equals(sourceType.getId())) {
@@ -890,6 +856,8 @@ implements SecurityProvider {
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyChildren(targetFolder, sourceFolder);
                     }
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
                     return true;
                 } else {
                     logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath + " is not folder.");
@@ -905,7 +873,8 @@ implements SecurityProvider {
         } catch (CmisBaseException err) {
             logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " + toFullPath, err);
         }
-
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
         return result;
     }
 
@@ -921,14 +890,14 @@ implements SecurityProvider {
         ItemIterable<CmisObject> immediateChildren = toCopyFolder.getChildren();
         for (CmisObject child : immediateChildren) {
             if (BaseTypeId.CMIS_DOCUMENT.value().equals(child.getBaseTypeId().value())) {
-                copyDocument(parentFolder, (AlfrescoDocument) child);
+                copyDocument(parentFolder, (org.apache.chemistry.opencmis.client.api.Document) child);
             } else if (BaseTypeId.CMIS_FOLDER.value().equals(child.getBaseTypeId().value())) {
                 copyFolder(parentFolder, (Folder) child);
             }
         }
     }
 
-    private void copyDocument(Folder parentFolder, AlfrescoDocument sourceDocument) {
+    private void copyDocument(Folder parentFolder, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
         Map<String, Object> documentProperties = new HashMap<String, Object>(2);
         documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
@@ -953,14 +922,14 @@ implements SecurityProvider {
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.0/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.1/atom/");
         //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
         // set the alfresco object factory
 
         if (alfrescoCMIS) {
-            parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
+            //parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
         }
 
         // find all the repositories at this URL - there should only be one.
@@ -977,28 +946,11 @@ implements SecurityProvider {
 
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
-        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        try {
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            // add lockable aspect
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-            String requestBody = "{ \"added\":[\"cm:lockable\"], \"removed\":[] }";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
+        lockItemCMIS(fullPath);
+    }
 
-            // set aspect properties
-            requestBody = "{ \"properties\" : { \"lockOwner\" : " + getCurrentUser() + ", \"lockType\" : WRITE_LOCK }}";
-            bodyStream = IOUtils.toInputStream(requestBody);
-            result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-        } catch (ContentNotFoundException err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        } catch (Exception err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        }
-
-/*
-        String fullPath = expandRelativeSitePath(site, path);
+    protected void lockItemCMIS(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1006,22 +958,16 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
-            if (!document.hasAspect("P:cm:lockable")) {
-                //document.addAspect("P:cm:lockable");
-                logger.debug("Added lockable aspect for content at path " + cleanPath);
-            } else {
-                logger.debug("Already has lockable aspect for content at path " + cleanPath);
-            }
-            Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put("cm:lockOwner", getCurrentUser());
-            properties.put("cm:lockType", "WRITE_LOCK");
-            //document.updateProperties(properties);
+            org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+            document.checkOut();
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }*/
+
+        }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
@@ -1029,32 +975,7 @@ implements SecurityProvider {
     }
 
     public void unLockItem(String site, String path) {
-        String fullPath = expandRelativeSitePath(site, path);
-        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
-        try {
-            /*
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-
-            // set aspect properties
-            String requestBody = "{ \"properties\" : { \"lockOwner\" : \"\", \"lockType\" : \"\"}}";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/api/metadata/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-            */
-            String nodeRef = getNodeRefForPathCMIS(cleanPath);
-            // add lockable aspect
-            int lastidx = nodeRef.lastIndexOf("/");
-            String nodeUUID = nodeRef.substring(lastidx + 1);
-            String requestBody = "{ \"added\":[], \"removed\":[\"cm:lockable\"] }";
-            InputStream bodyStream = IOUtils.toInputStream(requestBody);
-            String result = alfrescoPostRequest("/slingshot/doclib/action/aspects/node/workspace/SpacesStore/"+nodeUUID, null, bodyStream, "application/json");
-        } catch (ContentNotFoundException err) {
-            logger.error("Error while unlocking content at path " + cleanPath, err);
-        } catch (Exception err) {
-            logger.error("Error while unlocking content at path " + cleanPath, err);
-        }
-        /*
+        long startTime = System.currentTimeMillis();
         String fullPath = expandRelativeSitePath(site, path);
         Session session = getCMISSession();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -1063,21 +984,22 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            AlfrescoDocument document = (AlfrescoDocument)cmisObject;
-            if (document.hasAspect("P:cm:lockable")) {
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put("cm:lockOwner", null);
-                properties.put("cm:lockType", null);
-                //document.updateProperties(properties);
-                logger.debug("Removing lockable aspect for content at path " + cleanPath);
-            } else {
-                logger.debug("Lockable aspect was already removed for content at path " + cleanPath);
+            ObjectType type = cmisObject.getBaseType();
+            if ("cmis:document".equals(type.getId())) {
+                org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                String pwcId = document.getVersionSeriesCheckedOutId();
+                org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
+                if (pwcDocument != null) {
+                    pwcDocument.cancelCheckOut();
+                }
             }
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
             logger.error("Error while locking content at path " + cleanPath, err);
-        }*/
+        }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("unLockItem(String site, String path); {0}, {1}\n\t\tDuration: {2}", site, path, duration);
     }
 
     @Override
@@ -1168,8 +1090,6 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("alf_user");
         }
-//System.out.println("=========================\r\ngetting user:"+username);
-
         return username;
     }
 
@@ -1180,13 +1100,11 @@ implements SecurityProvider {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_user", username);
         }
-
-//System.out.println("=========================\r\nsetting user:"+username);
-
     }
 
     @Override
     public Date getModifiedDate(String fullPath) {
+        long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1202,11 +1120,14 @@ implements SecurityProvider {
         } catch (CmisBaseException e) {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return modifiedDate;
     }
 
     @Override
     public boolean logout() {
+        long startTime = System.currentTimeMillis();
         //make me do something
         String ticket = getSessionTicket();
         logger.debug("Invalidating ticket " + ticket);
@@ -1219,17 +1140,106 @@ implements SecurityProvider {
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
             if (status == HttpStatus.SC_OK) {
+                long duration = System.currentTimeMillis() - startTime;
+                logger.debug("logout()\n\t\tDuration: {0}", duration);
                 return true;
             }
         } catch (Exception e) {
             logger.error("Error while invalidating authentication token", e);
         }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("logout()\n\t\tDuration: {0}", duration);
         return false;
     }
 
+    /**
+     * bootstrap the repository
+     */
+    public void bootstrap() throws Exception {
+        if (bootstrapEnabled) {
+            String ticket = authenticate(adminUser, adminPassword);
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+            RepositoryEventContext.setCurrent(repositoryEventContext);
+            if (!bootstrapCheck()) {
+
+                logger.debug("Bootstrapping repository for Crafter CMS");
+
+                String bootstrapFolderPath = getBootstrapFolderPath();
+                bootstrapFolderPath = bootstrapFolderPath + (File.separator + "repo-bootstrap");
+                File source = new File(bootstrapFolderPath);
+                bootstrapDir(source, bootstrapFolderPath);
+                addUserGroup("CRAFTER_CREATE_SITES");
+                addUserToGroup("CRAFTER_CREATE_SITES", adminUser);
+
+            }
+            RepositoryEventContext.setCurrent(null);
+        }
+    }
+
+    private void bootstrapDir(File dir, String rootPath) {
+
+        Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        for (File child : children) {
+            String childPath = child.getAbsolutePath();
+            logger.debug("BOOTSTRAP Processing path: {0}", childPath);
+            if (!rootPath.equals(childPath)) {
+                String relativePath = childPath.replace(rootPath, "");
+                String parentPath = child.getParent().replace(rootPath, "");
+                if (StringUtils.isEmpty(parentPath)) {
+                    parentPath = "/";
+                }
+                if (child.isDirectory()) {
+                    createFolderInternalCMIS(parentPath, child.getName());
+                } else if (child.isFile()) {
+                    try {
+                        writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                    } catch (IOException e) {
+                        logger.error("Error while bootstrapping file: " + relativePath, e);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean bootstrapCheck() {
+        boolean contenSpace = contentExists("/wem-projects");
+        boolean blueprintsSpace = contentExists("/cstudio/blueprints");
+        boolean configSpace = contentExists("/cstudio/config");
+        return contenSpace && blueprintsSpace && configSpace;
+    }
+
+    private String getBootstrapFolderPath() {
+        String path = this.getClass().getClassLoader().getResource("").getPath();
+        String fullPath = null;
+        try {
+            fullPath = URLDecoder.decode(path, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+        String pathArr[] = fullPath.split("/WEB-INF/classes/");
+        fullPath = pathArr[0];
+
+        String reponsePath = "";
+        reponsePath = new File(fullPath).getPath();
+        return reponsePath;
+    }
+
     protected String alfrescoUrl;
+    protected String adminUser;
+    protected String adminPassword;
+    protected boolean bootstrapEnabled = false;
+
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
+
+    public String getAdminUser() { return adminUser; }
+    public void setAdminUser(String adminUser) { this.adminUser = adminUser; }
+
+    public String getAdminPassword() { return adminPassword; }
+    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+
+    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
+    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
 
 }
 

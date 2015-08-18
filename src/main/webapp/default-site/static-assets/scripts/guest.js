@@ -53,7 +53,6 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.ICE_TOOLS_REGIONS, function (message) {
         var elt = document.querySelectorAll('[data-studio-ice'+message.label+'=' + message.region + ']')[0];
-        console.log(elt);
         if(elt) {
             elt.scrollIntoView();
             window.scrollBy(0,-150);

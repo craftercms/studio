@@ -37,6 +37,12 @@ $icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
 
 }
 
+.settings-view{
+  .row{
+    padding: 0 25px;
+  }
+}
+
 .panel {
 
     .alert {
@@ -55,6 +61,12 @@ $icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
 
     .name {
         font-size: 1.5em;
+    }
+
+    #language{
+      width: 45%;
+      display: inline-block;
+      margin-top: 20px;
     }
 
 }

@@ -1,12 +1,12 @@
 <div class="studio-view">
 
-    <h3 class="view-title">Request Publish</h3>
-    <p class="when-go-live-items"> When would you like the checked item(s) to go live?</p>
+    <h3 class="view-title" data-translation="requestApproveDialogTitle">Request Publish</h3>
+    <p class="when-go-live-items" data-translation="requestApproveDialogSubTitle"> When would you like the checked item(s) to go live?</p>
 
     <div class="form-group form-go-live-items">
         <div class="radio">
             <label>
-                <input type="checkbox" name="notifyApproval" checked /> Email me when items go live.
+                <input type="checkbox" name="notifyApproval" checked /> <span data-translation="requestApproveDialogEmailMe">Email me when items go live.</span>
             </label>
         </div>
     </div>
@@ -19,13 +19,13 @@
                     <thead>
                     <tr>
                         <th><input type="checkbox" class="select-all-check" checked/></th>
-                        <th>Page</th>
-                        <th>Original Time</th>
+                        <th data-translation="approveDialogPage">Page</th>
+                        <th data-translation="approveDialogOriginalSchedule">Original Time</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
-                        <td colspan="3"><i>Loading&hellip;</i></td>
+                        <td colspan="3"><i data-translation="loading">Loading&hellip;</i></td>
                     </tr>
                     </tbody>
                 </table>
@@ -36,17 +36,17 @@
 
             <section class="form-group">
 
-                <h4>Selected Item Scheduling</h4>
+                <h4 data-translation="approveDialogSelectedScheduling">Selected Item Scheduling</h4>
                 <div class="radio">
                     <label>
                         <input class="schedulingMode" type="radio" name="schedulingMode" value="now" checked />
-                        Items should go live now.
+                        <span data-translation="approveDialogItemsLiveNow">Items should go live now.</span>
                     </label>
                 </div>
                 <div class="radio">
                     <label>
                         <input class="schedulingMode" type="radio" name="schedulingMode" value="custom" />
-                        Items go live on a specific date &amp; time
+                        <span data-translation="approveDialogItemsLiveDate">Items go live on a specific date &amp; time</span>
                     </label>
                 </div>
 
@@ -57,7 +57,7 @@
             </section>
 
             <section class="form-group">
-                <label>Submission Comment</label>
+                <label data-translation="approveDialogSubmissionComment">Submission Comment</label>
                 <textarea class="form-control submission-comment"></textarea>
             </section>
 
@@ -65,10 +65,10 @@
     </div>
 
     <div class="action-wrapper">
-        <button class="btn btn-primary submit-button">
+        <button data-translation="submit" class="btn btn-primary submit-button">
             Submit
         </button>
-        <button class="btn btn-default close-button">
+        <button data-translation="close" class="btn btn-default close-button">
             Close
         </button>
     </div>

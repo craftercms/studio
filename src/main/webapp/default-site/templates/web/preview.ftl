@@ -7,6 +7,7 @@
     <#include "/templates/web/common/page-fragments/head.ftl" />
     <script src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+    <script src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <script>CStudioAuthoringContext.isPreview = true</script>
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
@@ -14,6 +15,7 @@
     <script>
         CMgs = CStudioAuthoring.Messages;
         langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
+        formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
     </script>
 
     <script src="/studio/static-assets/scripts/crafter.js"></script>

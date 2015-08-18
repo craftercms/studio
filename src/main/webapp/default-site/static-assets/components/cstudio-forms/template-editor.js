@@ -146,7 +146,7 @@ CStudioAuthoring.Module.requireModule(
 
 										    {label:"Freemarker value assignment", value:"<#assign imageSource = model.image!\"\" />"},
 										    {label:"Freemarker value IF", value:"<#if CONDITION>\r\n\t...\r\n</#if>"},
-										    {label:"Freemarker value LOOP", value:"<#list ARRAY as value>\r\n\t${value_idx}: ${value}\r\n</#list>"},
+										    {label:"Freemarker value LOOP", value:"<#list ARRAY as value>\r\n\t${value_index}: ${value}\r\n</#list>"},
 										    {label:"Freemarker Fragment include", value:"<#include \"/templates/PATH\" />"},
 										    {label:"Freemarker Library import", value:"<#import \"/templates/PATH\" as NAMESPACE />"},
 

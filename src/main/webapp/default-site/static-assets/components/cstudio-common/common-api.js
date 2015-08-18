@@ -488,6 +488,13 @@ var YEvent = YAHOO.util.Event;
                 Loader.use.apply(Loader, params);
             },
 
+            translateContent: function(langBundle){
+                var elements = document.querySelectorAll('[data-translation]');
+                for(var i=0; i<elements.length; i++){
+                    elements[i].innerHTML = CMgs.format(langBundle, elements[i].getAttribute('data-translation'));
+                }
+            },
+
             deleteContent: function(items) {
 
                 var controller, view;
@@ -506,6 +513,9 @@ var YEvent = YAHOO.util.Event;
                     fn: view,
                     controller: controller,
                     callback: function(dialogue) {
+                        CSA.Operations.translateContent(formsLangBundle);
+                        if(YDom.get("cancelBtn")){YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");}
+                        if(YDom.get("deleteBtn")){YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");}
                         this.loadDependencies(items);
                         this.on("submitComplete", function(evt, args){
                             var reloadFn = function(){
@@ -539,6 +549,10 @@ var YEvent = YAHOO.util.Event;
                     controller: "viewcontroller-history",
                     callback: function(dialogue) {
 
+                        CSA.Operations.translateContent(formsLangBundle);
+
+                        YDom.get("historyCloseBtn").value = CMgs.format(formsLangBundle, "close");
+
                         this.loadHistory(contentObj);
 
                         this.on("submitComplete", function(evt, args){
@@ -570,7 +584,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getApproveView,
                     controller: 'viewcontroller-approve',
                     callback: function(dialogue) {
-
+                        CSA.Operations.translateContent(formsLangBundle);
                         this.loadItems(items);
                         this.loadPublishingChannels();
 
@@ -589,6 +603,7 @@ var YEvent = YAHOO.util.Event;
                     fn: CSA.Service.getRequestPublishView,
                     controller: 'viewcontroller-requestpublish',
                     callback: function(dialog) {
+                        CSA.Operations.translateContent(formsLangBundle);
                         this.renderItems(contentItems);
                     }
                 }, true, '800px');
@@ -1019,12 +1034,7 @@ var YEvent = YAHOO.util.Event;
                     }
 
                 } else {
-
-                    url = (
-                    CStudioAuthoringContext.authoringAppBaseUri
-                    + "asset-preview?site=" + CStudioAuthoringContext.site
-                    + "&nodeRef=" + contentTO.nodeRef);
-
+                    url = CStudioAuthoringContext.previewAppBaseUri+contentTO.uri;
                 }
 
                 if (incontextEdit) {
@@ -7129,7 +7139,10 @@ CStudioAuthoring.InContextEdit = {
 
     // Parameter 'win' of the anonymous function will be the object passed as parameter 'w'
     YAHOO.util.Event.onDOMReady(function (e, args, win) {
-        win.CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", win.CStudioAuthoringContext.site);
+        //
+        if(!(!(window.ActiveXObject) && "ActiveXObject" in window)){
+            win.CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", win.CStudioAuthoringContext.site);
+        }
     }, w);
 
 }) (window);

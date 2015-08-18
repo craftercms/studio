@@ -471,7 +471,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
         if((typeof this.items) == "string") {
             //Check if the current value is the default value, split it by comma and load it using key/value pair
-            if(this.items === this.defaultValue){
+            if(this.items === this.defaultValue && this.items != ""){
                 this.items = [];
                 var defaultItems = this.defaultValue.split(",");
                 for(var i = 0; i < defaultItems.length; i++){

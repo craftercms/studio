@@ -75,7 +75,7 @@
                 }
                 eachfn(items, iterator);
             } else {
-                html.push("No items selected");
+                html.push(CMgs.format(formsLangBundle, "deleteDialogNoItemsSelected"));
             }
             var depCheckWrn = this.getComponent(".items-feedback");
             var oBodyDiv = this.getComponent("div.body");
@@ -153,7 +153,7 @@
                     }
                 }
             });
-        },
+        }
 
     });
 

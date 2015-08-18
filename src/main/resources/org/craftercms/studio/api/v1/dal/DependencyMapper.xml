@@ -22,38 +22,46 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.DependencyMapper">
 
-    <resultMap id="DependencyMap" type="org.craftercms.studio.api.v1.dal.DependencyEntity" />
+    <resultMap id="DependencyMap" type="org.craftercms.studio.api.v1.dal.DependencyEntity"/>
 
-    <cache />
+    <cache/>
 
-    <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap" >
-    SELECT site, source_path, target_path, type
-    FROM cstudio_DEPENDENCY
-    WHERE source_path = #{sourcePath} AND site = #{site}
-  </select>
+    <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap">
+        SELECT site, source_path, target_path, type
+        FROM cstudio_DEPENDENCY
+        WHERE source_path = #{sourcePath} AND site = #{site}
+    </select>
 
     <delete id="deleteAllSourceDependencies" parameterType="java.util.Map">
-    DELETE
-    FROM cstudio_DEPENDENCY
-    WHERE source_path = #{path} AND site = #{site}
-  </delete>
+        DELETE
+        FROM cstudio_DEPENDENCY
+        WHERE source_path = #{path} AND site = #{site}
+    </delete>
+
+    <insert id="insertList" databaseId="oracle" parameterType="java.util.Map">
+        INSERT ALL
+        <foreach collection="dependencies" item="element" index="index">
+            INTO cstudio_DEPENDENCY (site, source_path, target_path, type) VALUES ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
+        </foreach>
+        SELECT * FROM dual
+    </insert>
 
     <insert id="insertList" parameterType="java.util.Map">
         INSERT INTO cstudio_DEPENDENCY (site, source_path, target_path, type) VALUES
-        <foreach collection="dependencies" item="element" index="index" separator=",">
+        <foreach collection="dependencies" item="element" index="index" separator="," >
             ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
         </foreach>
     </insert>
 
-    <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap" >
+    <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap">
         SELECT site, source_path, target_path, type
         FROM cstudio_DEPENDENCY
         WHERE source_path = #{sourcePath} AND site = #{site} AND type = #{type}
     </select>
 
     <delete id="deleteDependenciesForSite" parameterType="java.util.Map">
-      DELETE FROM cstudio_DEPENDENCY
-      WHERE site = #{site}
+        DELETE FROM cstudio_DEPENDENCY
+        WHERE site = #{site}
     </delete>
 
     <delete id="deleteDependenciesForSiteAndPath" parameterType="java.util.Map">

@@ -802,9 +802,11 @@ var CStudioForms = CStudioForms || function() {
 
                     if (oModel.createdDate === undefined || oModel.createdDate === 'undefined' || oModel.createdDate === '') {
                         oModel.createdDate = nowTimestamp;
+                        oModel.createdDate_dt = nowTimestamp;
                     }
 
                     oModel.lastModifiedDate = nowTimestamp;
+                    oModel.lastModifiedDate_dt = nowTimestamp;
 
                 }, renderPersist: true });
 
@@ -929,7 +931,7 @@ var CStudioForms = CStudioForms || function() {
                 //If the form is opened in view mode, we don't need show the warn message or unlock the item
                 var showWarnMsg = (form.readOnly)?false:true;
                 var _notifyServer = (form.readOnly)?false:true;
-                var message = "Close this form without saving changes?";
+                var message = CMgs.format(formsLangBundle, "cancelDialogBody");
 
                 var saveFn = function(preview) {
                     showWarnMsg = false;
@@ -1068,7 +1070,7 @@ var CStudioForms = CStudioForms || function() {
                                 { width: "300px",fixedcenter: true, visible: false, draggable: false, close: false, modal: true,
                                     text: message, icon: YAHOO.widget.SimpleDialog.ICON_WARN,
                                     constraintoviewport: true,
-                                    buttons: [ { text:"Yes", handler: function(){
+                                    buttons: [ { text:CMgs.format(formsLangBundle, "yes"), handler: function(){
                                         this.hide();
                                         var entityId = buildEntityIdFn();
                                         showWarnMsg = false;
@@ -1108,9 +1110,9 @@ var CStudioForms = CStudioForms || function() {
                                             }
                                         }
                                     }, isDefault:false },
-                                        { text:"No",  handler:function(){this.hide();}, isDefault:true } ]
+                                        { text:CMgs.format(formsLangBundle, "no"),  handler:function(){this.hide();}, isDefault:true } ]
                                 });
-                            dialog.setHeader("Crafter Studio WCM");
+                            dialog.setHeader(CMgs.format(formsLangBundle, "cancelDialogHeader"));
                             dialog.render(document.body);
                             dialogEl = document.getElementById("closeUserWarning");
                             dialogEl.dialog = dialog;
@@ -1137,7 +1139,7 @@ var CStudioForms = CStudioForms || function() {
                     YDom.addClass(saveButtonEl, "btn-primary");
                     YDom.addClass(saveButtonEl, "cstudio-button-first");
                     saveButtonEl.type = "button";
-                    saveButtonEl.value = CMgs.format(formsLangBundle, "saveAndClose");;
+                    saveButtonEl.value = CMgs.format(formsLangBundle, "saveAndClose");
                     formButtonContainerEl.appendChild(saveButtonEl);
 
                     saveButtonEl.onclick = function() {
@@ -2042,7 +2044,7 @@ var CStudioForms = CStudioForms || function() {
             },
 
             printFieldsToXml: function(formModel, formSections, formConfig) {
-                var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'lastModifiedDate', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
+                var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'createdDate_dt', 'lastModifiedDate', 'lastModifiedDate_dt', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
                     output = '',
                     validFieldsStr, fieldRe, section;
 

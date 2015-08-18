@@ -32,6 +32,7 @@ public class TestSecurityProvider implements SecurityProvider {
     private final static Map<String, Set<String>> USER_GROUPS = new HashMap<String, Set<String>>() {{
         Set<String> adminGroups = new HashSet<String>();
         adminGroups.add("crafter-admin");
+        adminGroups.add("crafter-create-sites");
         Set<String> authorGroups = new HashSet<String>();
         authorGroups.add("crafter-author");
         put("admin", adminGroups);

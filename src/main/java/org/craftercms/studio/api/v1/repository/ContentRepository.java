@@ -125,6 +125,13 @@ public interface ContentRepository {
      */
     boolean revertContent(String path, String version, boolean major, String comment);
 
+    /** 
+     * return a specific version of the content
+     * @param path path of the content
+     * @param version version to return
+     * @return input stream
+     */
+    InputStream getContentVersion(String path, String version) throws ContentNotFoundException;  
     /**
      * get the modified date for an oject at path
      * NOTE: THis should be move to a get metadata of some sort that returns a structure with additional data

@@ -851,6 +851,43 @@ public class ContentServiceImpl implements ContentService {
         return success;
     }
 
+	/**
+     * return the content for a given version
+     *
+     * @param site    - the project ID
+     * @param path    - the path item
+     * @param version - version
+     */
+ 	public InputStream getContentVersion(String site, String path, String version) 	
+ 	throws ContentNotFoundException {
+ 		String repositoryPath = expandRelativeSitePath(site, path);
+ 		
+ 		return _contentRepository.getContentVersion(repositoryPath, version);
+ 	}
+
+	/**
+     * return the content for a given version
+     *
+     * @param site    - the project ID
+     * @param path    - the path item
+     * @param version - version
+     */
+ 	public String getContentVersionAsString(String site, String path, String version) 
+	throws ContentNotFoundException { 		
+ 		String content = null;
+
+        try {
+            content = IOUtils.toString(getContentVersion(site, path, version));
+        }
+        catch(Exception err) {
+            logger.error("Failed to get content as string for path {0}", path);
+            logger.debug("Failed to get content as string for path {0}", err, path);
+        }
+
+        return content;
+ 	}
+ 
+ 
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
         String absolutePath = expandRelativeSitePath(site, relativePath);
         DmPathTO path = new DmPathTO(absolutePath);

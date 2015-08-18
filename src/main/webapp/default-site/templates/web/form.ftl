@@ -14,6 +14,7 @@
 
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
 
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/yui/assets/rte.css" />
     <script type="text/javascript" src="/studio/static-assets/modules/editors/tiny_mce/tiny_mce.js"></script>
@@ -27,6 +28,8 @@
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>
      <script src="/studio/static-assets/components/cstudio-components/loader.js"></script>
+
+    <script>document.domain = "${Request.serverName}";</script> <!-- blah blah -->
     
 </head>
 

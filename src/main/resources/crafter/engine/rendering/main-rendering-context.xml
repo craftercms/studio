@@ -80,9 +80,6 @@
                     <property name="urlTransformerName" value="renderUrlToStoreUrl" />
                     <property name="fullHttpsUrlTransformerName" value="toFullHttpsUrl" />
                     <property name="urlTransformationService" ref="crafter.urlTransformationService" />
-                    <property name="localizeViews" value="${crafter.engine.page.view.localized}" />
-                    <property name="localizedUrlDelimiter" value="_" />
-                    <property name="urlParser" ref="crafter.contentBundleUrlParser" />
                     <property name="cacheTemplate" ref="crafter.cacheTemplate" />
                     <property name="siteItemService" ref="crafter.siteItemService" />
                     <property name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
@@ -96,7 +93,6 @@
                     <property name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
                     <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
                     <property name="accessManager" ref="crafter.pageAccessManager"/>
-                    <property name="scriptFactory" ref="crafter.scriptFactory"/>
                     <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
                     
                 </bean>

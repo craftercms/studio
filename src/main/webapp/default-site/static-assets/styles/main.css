@@ -6264,6 +6264,9 @@ a[ng-click] {
 .recover-view .alert-danger {
   padding: 7px 15px; }
 
+.settings-view .row {
+  padding: 0 25px; }
+
 .panel .alert {
   margin: 0;
   border: 0;
@@ -6275,6 +6278,10 @@ a[ng-click] {
   border-bottom: 1px solid #f2f2f2; }
   .user-display .name {
     font-size: 1.5em; }
+  .user-display #language {
+    width: 45%;
+    display: inline-block;
+    margin-top: 20px; }
 
 small .text-sm {
   font-size: 40%; }

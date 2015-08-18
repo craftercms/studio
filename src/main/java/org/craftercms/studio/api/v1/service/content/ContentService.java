@@ -193,15 +193,24 @@ public interface ContentService {
      */
     boolean revertContentItem(String site, String path, String version, boolean major, String comment);
 
+	/**
+     * return the content for a given version
+     *
+     * @param site    - the project ID
+     * @param path    - the path item
+     * @param version - version
+     */
+ 	InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 
-    ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
-
-    String expandRelativeSitePath(String site, String relativePath);
-
-    String getRelativeSitePath(String site, String fullPath);
-
-    String getContentTypeClass(String site, String uri);
-
+	/**
+     * return the content for a given version
+     *
+     * @param site    - the project ID
+     * @param path    - the path item
+     * @param version - version
+     */
+ 	String getContentVersionAsString(String site, String path, String version)	throws ContentNotFoundException;
+ 	
     /**
      * write content
      *
@@ -234,6 +243,20 @@ public interface ContentService {
      * @return next available name that avoids a name conflict
      */
     String getNextAvailableName(String site, String path);
+
+
+
+
+/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
+/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
+
+    ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
+
+    String expandRelativeSitePath(String site, String relativePath);
+
+    String getRelativeSitePath(String site, String fullPath);
+
+    String getContentTypeClass(String site, String uri);
 
     ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
 

@@ -57,7 +57,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 		liLoadingEl.appendChild(imgEl);
 
-		itemFilterEl.innerHTML = "Hide Live Items";
+		itemFilterEl.innerHTML = CMgs.format(langBundle, "dashletMyRecentActivityHideLiveItems");
 		itemFilterEl.href = "javascript:void(0);";
 		itemFilterEl.id = "widget-expand-state-" + widgetId;
         listItemEl.appendChild(itemFilterEl);

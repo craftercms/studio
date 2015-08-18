@@ -56,16 +56,16 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
         var context;
         if (isCut) {
             context = {
-                "heading": "Cut",
-                "description": "Please select any of the sub-pages you would like to batch cut.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
-                "actionButton": "Cut",
+                "heading": CMgs.format(formsLangBundle, "cut"),
+                "description": CMgs.format(formsLangBundle, "copyDescription"),
+                "actionButton": CMgs.format(formsLangBundle, "cut"),
                 "request": CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/cut?site=" + site
             };
         } else {
             context = {
-                "heading": "Copy",
-                "description": "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
-                "actionButton": "Copy",
+                "heading": CMgs.format(formsLangBundle, "copy"),
+                "description": CMgs.format(formsLangBundle, "copyDescription"),
+                "actionButton": CMgs.format(formsLangBundle, "copy"),
                 "request": CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.copyServiceUrl + "?site=" + site
             };
         }
@@ -209,28 +209,30 @@ CStudioAuthoring.Dialogs.DialogCopy = CStudioAuthoring.Dialogs.DialogCopy || (fu
         context = getContext(cut, site);
         newdiv.setAttribute("id", "cstudio-wcm-popup-div");
         newdiv.className = "yui-pe-content";
-        newdiv.innerHTML = '<style>div#copyCheckBoxItems .status-icon{padding-left: 5px !important;}</style><div class="contentTypePopupInner" id="contentTypePopupInner">' +
+        newdiv.innerHTML = '<style>div#copyCheckBoxItems .status-icon{padding-left: 5px !important;}</style><div class="contentTypePopupInner copyContent" id="contentTypePopupInner">' +
             '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
-            '<div class="contentTypePopupHeader">' + context['heading'] + '</div> ' +
-            '<div>' + context['description'] + '</div> ' +
-            '<div class="copy-content-container">' +
-            '<h5>' +
-            '<span>Page</span>' +
-            '</h5>' +
-            '<div class="scrollBox">&nbsp;&nbsp;Loading contents ... </div>' +
-            '</div>' +
-            '<div class="contentTypePopupBtn"> ' +
-            '<input type="submit" class="cstudio-xform-button ok" id="copyButton" value="' + context['actionButton'] + '" />' +
-            '<input type="submit" class="cstudio-xform-button cancel" id="copyCancelButton" value="Cancel" />' +
-            '</div> ' +
-            '</div> ' +
+                '<div class="contentTypePopupHeader">' + context['heading'] + '</div> ' +
+                '<div class="contentTypeOuter">' +
+                    '<div>' + context['description'] + '</div> ' +
+                    '<div class="copy-content-container">' +
+                        '<h5>' +
+                            '<span>' + CMgs.format(formsLangBundle, "page")+ '</span>' +
+                        '</h5>' +
+                        '<div class="scrollBox">&nbsp;&nbsp;' + CMgs.format(formsLangBundle, "loadingContents")+ '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="contentTypePopupBtn"> ' +
+                    '<input type="submit" class="cstudio-xform-button ok btn btn-primary" id="copyButton" value="' + context['actionButton'] + '" />' +
+                    '<input type="submit" class="cstudio-xform-button cancel btn btn-default" id="copyCancelButton" value="' +CMgs.format(formsLangBundle, 'cancel')+ '" />' +
+                '</div> ' +
+                '</div> ' +
             '</div>';
 
         document.body.appendChild(newdiv);
 
         dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", {
             width: "608px",
-            height: "444px",
+            height: "525px",
             fixedcenter: true,
             visible: false,
             modal: true,

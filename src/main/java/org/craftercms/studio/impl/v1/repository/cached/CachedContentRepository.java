@@ -189,6 +189,13 @@ public class CachedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public InputStream getContentVersion(String path, String version) 
+	throws ContentNotFoundException {
+		// nothing to cache    
+    	return wrappedRepo.getContentVersion(path, version);
+    }
+    
+    @Override
     public void lockItem(String site, String path) {
       //nothing to cache
       wrappedRepo.lockItem(site, path);
@@ -246,7 +253,18 @@ public class CachedContentRepository extends AbstractContentRepository {
 
     @Override
     public Date getModifiedDate(String path) {
-        return wrappedRepo.getModifiedDate(path);
+        Date value = null;
+        value = (Date)getCachedObject("getModifiedDate-"+path);
+
+        if(value == null) {
+            value = wrappedRepo.getModifiedDate(path);
+
+            if(value != null) {
+                cacheObject("getModifiedDate-"+path, value);
+            }
+        }
+
+        return value;
     }
 
     protected class BytesContainer {
