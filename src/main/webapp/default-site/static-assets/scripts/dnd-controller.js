@@ -7,8 +7,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     var OVERLAY_TPL = '<sdiv class="studio-dnd-controller-overlay"></sdiv>';
     var PALETTE_TPL = [
         '<sdiv class="studio-components-panel">',
-        '<sbutton class="btn btn-primary" data-action="done">Done</sbutton>',
-        '<sh1 class="studio-panel-title">Components</sh1>',
+        '<sbutton class="btn btn-primary" data-action="done" data-translation="done">Done</sbutton>',
+        '<sh1 class="studio-panel-title" data-translation="components">Components</sh1>',
         '<sdiv class="studio-component-search"><input type="search" placeholder="search components..." /></sdiv>',
         '<sdiv class="studio-components-container"></sdiv>',
         '</sdiv>'].join('');
@@ -336,7 +336,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             html.push('</sul>');
             html.push('</sdiv>');
         });
-        html.push('<button class="btn btn-primary add-component">Add Component</button>');
+        html.push('<button class="btn btn-primary add-component" data-translation="addComponent">Add Component</button>');
         $c.html(html.join(''));
     }
 

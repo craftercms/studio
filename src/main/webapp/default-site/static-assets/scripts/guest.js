@@ -36,6 +36,14 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
             dndController.start(message.components, message.contentModel);
 
+            var translation = message.translation;
+            var elements = $('[data-translation]');
+            elements.each(function() {
+                if($( this ).attr( "data-translation" ) == "done")$( this ).html(translation.done);
+                if($( this ).attr( "data-translation" ) == "components")$( this ).html(translation.components);
+                if($( this ).attr( "data-translation" ) == "addComponent")$( this ).html(translation.addComponent);
+            });
+
         });
     });
 

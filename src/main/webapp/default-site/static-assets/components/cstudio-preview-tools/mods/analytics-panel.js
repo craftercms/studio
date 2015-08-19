@@ -30,7 +30,7 @@ CStudioAuthoring.AnalyticsPanel = CStudioAuthoring.AnalyticsPanel || {
 						YAHOO.util.Dom.addClass(reportSelectEl, "acn-panel-dropdown");
 
 						containerEl.appendChild(reportSelectEl);
-						reportSelectEl.options[0] = new Option("Reports Off", "0", true, false);
+						reportSelectEl.options[0] = new Option(CMgs.format(previewLangBundle, "reportsOff"), "0", true, false);
 						
                         if(!config.reports) {
                             config.reports = [];
@@ -122,7 +122,7 @@ CStudioAuthoring.AnalyticsPanel = CStudioAuthoring.AnalyticsPanel || {
                     moduleConfig, moduleCb);
             }
             catch(err) {
-                this.containerEl.innerHTML = "<div style='color: white; line-height: 111px; text-align: center;'><b>Unable to render report due to error</b><br/>" + err + "</div>";                
+                this.containerEl.innerHTML = "<div style='color: white; line-height: 111px; text-align: center;'><b>"+CMgs.format(previewLangBundle, "reportsError")+"</b><br/>" + err + "</div>";
             };
                 
         },

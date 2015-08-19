@@ -432,6 +432,7 @@ var YEvent = YAHOO.util.Event;
          * common operations
          */
         Operations: {
+
             _showDialogueView: function(oRequest, setZIndex, dialogWidth){
                 var width = (dialogWidth) ? dialogWidth : "602px";
                 var Loader = CSA.Env.Loader,
@@ -2739,6 +2740,7 @@ var parentSaveCb = {
                     success: function(response) {
                         var res = response.responseText || "null";  // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
                         callback.success(YAHOO.lang.JSON.parse(res));
+                        if(previewLangBundle){CStudioAuthoring.Operations.translateContent(previewLangBundle);}
                     },
                     failure: function(response) {
                         callback.failure(response);
@@ -6714,7 +6716,7 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
 
     display: function(bundle, messageId, a, b, c, d, e, f, g) {
         var formattedMessage = CStudioAuthoring.Messages.format(bundle, messageId, a, b, c, d, e, f, g);
-        document.write(formattedMessage);
+        document.body.appendChild(formattedMessage);
     }
 }
 

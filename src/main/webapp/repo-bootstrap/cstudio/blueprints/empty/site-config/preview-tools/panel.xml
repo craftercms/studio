@@ -1,8 +1,14 @@
 <panel>
    <modules>
-      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
+      <module>
+          <moduleName>ice-tools-panel</moduleName>
+          <title>inContextEditing</title>
+      </module>
      <!--module><moduleName>content-schedule-panel</moduleName><title>Content Scheduling and Effectivity</title></module-->
-      <module><moduleName>component-panel</moduleName><title>Page Components</title></module>
+      <module>
+          <moduleName>component-panel</moduleName>
+          <title>pageComponents</title>
+      </module>
       <!--module><moduleName>dam-panel</moduleName><title>Images</title>
         <config>
              <location>/site/static-assets/images</location>
@@ -10,17 +16,17 @@
       </module-->   
       <module>
             <moduleName>medium-panel</moduleName>
-            <title>Publishing Channel</title>
+            <title>publishingChannel</title>
             <config>
                 <channels>
                     <channel>
-                        <title>Web</title>
+                        <title>web</title>
                         <value>browser</value>
                         <width></width>
                         <height></height>
                     </channel>
                     <channel>
-                        <title>iPhone 5 / iPhone 5S</title>
+                        <title>iphone</title>
                         <value>iphone</value>
                         <width>320</width>
                         <height>568</height>
@@ -34,24 +40,40 @@
                 </channels>
             </config>
         </module>
-     <module><moduleName>experiments-panel</moduleName><title>Multi-Variant Testing</title>
+     <module>\
+         <moduleName>experiments-panel</moduleName>
+         <title>multiVariantTesting</title>
      <config>
            <experiments>
               <experiment>
-                       <title>Home Page Red vs. Blue CTA Buttons</title>
+                       <title>HomeRedVsBlue</title>
                           <variations>
-                           <variation><title>Red</title><url>/</url></variation>
-                          <variation><title>Blue</title><url>/?c1v1</url></variation>
+                           <variation>
+                               <title>red</title>
+                               <url>/</url></variation>
+                          <variation>
+                              <title>blue</title>
+                              <url>/?c1v1</url>
+                          </variation>
                       </variations>
                 </experiment>
 
 
               <experiment>
-                       <title>Catalog Page Sorting</title>
+                       <title>catalogPageSorting</title>
                           <variations>
-                           <variation><title>Arrival Date</title><url>/</url></variation>
-                          <variation><title>Price High to Low</title><url>/?c1v1</url></variation>
-                          <variation><title>Price Low to High</title><url>/?c1v1</url></variation>
+                           <variation>
+                               <title>arrivalDate</title>
+                               <url>/</url>
+                           </variation>
+                          <variation>
+                              <title>priceHightoLow</title>
+                              <url>/?c1v1</url>
+                          </variation>
+                          <variation>
+                              <title>priceLowtoHigh</title>
+                              <url>/?c1v1</url>
+                          </variation>
                       </variations>
                 </experiment>
 
@@ -59,10 +81,16 @@
          </config>     
      </module>
      <!-- module><moduleName>analytics-panel</moduleName><title>Analytics</title></module-->
-     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+     <module>
+         <moduleName>targeting-panel</moduleName>
+         <title>targeting</title>
+     </module>
 
  <!-- module><moduleName>annotate-panel</moduleName><title>Annotation</title></module-->
- <module><moduleName>translation-panel</moduleName><title>Translation</title></module>
+ <module>
+     <moduleName>translation-panel</moduleName>
+     <title>translation</title>
+ </module>
    
 <!-- module><moduleName>campaigns-panel</moduleName><title>Campaings</title></module-->    
      
