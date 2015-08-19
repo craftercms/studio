@@ -100,6 +100,8 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -827,6 +829,14 @@
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+    </bean>
+
+    <!-- Application Listeners -->
+    <bean class="org.craftercms.studio.impl.v1.util.spring.context.SiteConfigurationLoader">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="adminUser" value="${repositoryJob.username}"/>
+        <property name="adminPassword" value="${repositoryJob.password}"/>
     </bean>
 
 </beans>

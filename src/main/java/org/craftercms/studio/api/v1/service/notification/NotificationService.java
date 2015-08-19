@@ -133,4 +133,5 @@ public interface NotificationService {
 	 */
 	public void sendGenericNotification(String site, String path, String to, String from, String key, Map<String,String> params);
 
+    void reloadConfiguration(String site);
 }

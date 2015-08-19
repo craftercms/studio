@@ -105,7 +105,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public boolean sendNotice(String site, String action) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Boolean sendNotice = config.getSendNoticeMapping().get(action);
@@ -119,7 +119,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public String getGeneralMessage(String site, String key) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, String> messages = config.getMessages();
@@ -132,7 +132,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public List<MessageTO> getCannedRejectionReasons(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, List<MessageTO>> messages = config.getCannedMessages();
@@ -144,7 +144,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -156,7 +156,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -168,7 +168,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -180,7 +180,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -192,7 +192,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -204,7 +204,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -216,7 +216,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -228,7 +228,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -240,7 +240,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -253,7 +253,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public String getCompleteMessage(final String site, final String key) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, String> messages = config.getCompleteMessages();
@@ -266,7 +266,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public String getErrorMessage(String site, String key, Map<String, String> params) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         NotificationConfigTO config = notificationConfigMap.get(site);
         if (config != null) {
             Map<String, String> messages = config.getErrorMessages();
@@ -699,6 +699,12 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         return ret;
     }
 
+    @Override
+    public void reloadConfiguration(String site) {
+        if (isConfigUpdated(site)) {
+            loadConfiguration(site);
+        }
+    }
 
     @Override
     protected TimeStamped getConfigurationById(String key) {

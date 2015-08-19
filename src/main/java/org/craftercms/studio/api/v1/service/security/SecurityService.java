@@ -53,5 +53,9 @@ public interface SecurityService {
 
     void addUserToGroup(String groupName, String user);
 
+    void reloadConfiguration(String site);
+
+    void reloadGlobalConfiguration();
+
     boolean logout();
 }

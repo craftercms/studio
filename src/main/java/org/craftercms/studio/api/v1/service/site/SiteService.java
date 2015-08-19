@@ -120,4 +120,10 @@ public interface SiteService {
     String getLiveServerUrl(String site);
 
     String getAdminEmailAddress(String site);
+
+    void reloadSiteConfigurations();
+
+    void reloadSiteConfiguration(String site);
+
+    void reloadGlobalConfiguration();
 }

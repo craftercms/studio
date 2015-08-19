@@ -47,7 +47,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     @Override
     public ContentTypeConfigTO getContentTypeConfig(String site, String contentType) {
         String key = createKey(site, contentType);
-        checkForUpdate(key);
+        //checkForUpdate(key);
         return contentTypeMap.get(key);
     }
 
@@ -387,6 +387,13 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
             }
         }
         logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
+        return reloadConfiguration(site, configPath);
+    }
+
+    @Override
+    public ContentTypeConfigTO reloadConfiguration(String site, String configPath) {
+        String key = contentTypeNodeMap.get(site + "," + ContentUtils.getParentUrl(configPath));
+        logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
 
         // otherwise load the configuration file
         ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configPath);
@@ -402,7 +409,7 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
 
     @Override
     public ContentTypeConfigTO getContentTypeConfig(String key) {
-        checkForUpdate(key);
+        //checkForUpdate(key);
         return contentTypeMap.get(key);
     }
 
