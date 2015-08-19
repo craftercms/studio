@@ -145,9 +145,15 @@
             }
         }
 
+        var text = {};
+        text.done = CMgs.format(previewLangBundle, "done");
+        text.components = CMgs.format(previewLangBundle, "components");
+        text.addComponent = CMgs.format(previewLangBundle, "addComponent");
+
         communicator.publish(Topics.START_DRAG_AND_DROP, {
             components: categories,
-            contentModel: initialContentModel
+            contentModel: initialContentModel,
+            translation: text
         });
 
     });

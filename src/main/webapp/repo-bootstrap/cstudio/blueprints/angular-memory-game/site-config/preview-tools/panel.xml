@@ -1,19 +1,22 @@
 <panel>
    <modules>
-      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
+      <module>
+          <moduleName>ice-tools-panel</moduleName>
+          <title>inContextEditing</title>
+      </module>
 <module>
             <moduleName>medium-panel</moduleName>
-            <title>Publishing Channel</title>
+            <title>publishingChannel</title>
             <config>
                 <channels>
                     <channel>
-                        <title>Web</title>
+                        <title>web</title>
                         <value>browser</value>
                         <width></width>
                         <height></height>
                     </channel>
                     <channel>
-                        <title>iPhone 5 / iPhone 5S</title>
+                        <title>iphone</title>
                         <value>iphone</value>
                         <width>320</width>
                         <height>568</height>
@@ -27,8 +30,14 @@
                 </channels>
             </config>
         </module>
-     <module><moduleName>analytics-panel</moduleName><title>Analytics</title></module>
-     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+     <module>
+         <moduleName>analytics-panel</moduleName>
+         <title>analytics</title>
+     </module>
+     <module>
+         <moduleName>targeting-panel</moduleName>
+         <title>targeting</title>
+     </module>
 
  
       <!-- write your own features -->
