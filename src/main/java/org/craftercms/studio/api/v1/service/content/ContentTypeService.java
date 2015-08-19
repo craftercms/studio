@@ -63,4 +63,6 @@ public interface ContentTypeService {
     List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException;
 
     boolean changeContentType(String site, String path, String contentType) throws ServiceException;
+
+    void reloadConfiguration(String site);
 }

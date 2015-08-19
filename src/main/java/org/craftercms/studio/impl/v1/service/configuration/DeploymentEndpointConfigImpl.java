@@ -150,7 +150,7 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
 
     @Override
     public DeploymentEndpointConfigTO getDeploymentConfig(String site, String endpoint) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         if (siteMapping.containsKey(site)) {
             DeploymentConfigTO config = siteMapping.get(site);
             if (config != null) {
@@ -173,8 +173,13 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
 
     @Override
     public DeploymentConfigTO getSiteDeploymentConfig(String site) {
-        checkForUpdate(site);
+        //checkForUpdate(site);
         return siteMapping.get(site);
+    }
+
+    @Override
+    public void reloadConfiguration(String site) {
+        loadConfiguration(site);
     }
 
     public ContentService getContentService() { return contentService; }
