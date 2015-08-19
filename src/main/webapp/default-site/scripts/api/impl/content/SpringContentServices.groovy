@@ -68,7 +68,7 @@ class SpringContentServices {
 	 * @param content - the content to write
 	 */
 	def writeAsset(site, path, content){
-
+		throw new Exception("NOT USED")
 	}
 
 	/**
@@ -91,6 +91,17 @@ class SpringContentServices {
 		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.getContentAsString(contentPath)
+	}
+
+	/**
+	 * get the actual content at a given path
+	 * @param site - the project ID
+	 * @param path - the path of the content to get
+	 */
+	def getContentAsStream(site, path) { 
+		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.getContent(contentPath)
 	}
 
   	/**
