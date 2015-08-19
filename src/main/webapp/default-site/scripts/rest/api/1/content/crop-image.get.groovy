@@ -1,15 +1,13 @@
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.io.ByteArrayInputStream
 import java.io.File
 import scripts.api.ContentServices
-
-import javax.imageio.ImageIO;
+import javax.imageio.ImageIO
 
 def req = request 
 def site = "pluton"
-def imgPath = "/static-assets/images/page/generic/web-design-process.jpg"
-
+def imgPath = params.path
 def t = params.t.toInteger()
 def l = params.l.toInteger()
 def w = params.w.toInteger()
