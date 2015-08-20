@@ -2740,7 +2740,12 @@ var parentSaveCb = {
                     success: function(response) {
                         var res = response.responseText || "null";  // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
                         callback.success(YAHOO.lang.JSON.parse(res));
-                        if(previewLangBundle){CStudioAuthoring.Operations.translateContent(previewLangBundle);}
+                        try{
+                            CStudioAuthoring.Operations.translateContent(previewLangBundle);
+                        }catch(err){
+
+                        }
+
                     },
                     failure: function(response) {
                         callback.failure(response);
