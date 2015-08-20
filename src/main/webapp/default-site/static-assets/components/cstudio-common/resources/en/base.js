@@ -309,8 +309,16 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
 
     requestApproveDialogTitle: "Request Publish",
     requestApproveDialogSubTitle: "When would you like the checked item(s) to go live?",
-    requestApproveDialogEmailMe: "Email me when items go live."
+    requestApproveDialogEmailMe: "Email me when items go live.",
 
+    newContTypeDialogTitle: "Create Content Type",
+    newContTypeDialogDisplayLabel: "Display Label",
+    newContTypeDialogContentTypeName: "Content Type Name",
+    newContTypeDialogType: "Type",
+    component: "Component",
+    newContTypeDialogLabelMsg: "Provide a display label for this content type",
+    newContTypeDialogContentTypeNamelMsg: "Provide a system name for this content type",
+    newContTypeDialogTypeMsg: "Select the type for this content type"
 
 });
 
@@ -338,6 +346,12 @@ CStudioAuthoring.Messages.registerBundle("search", "en", {
 });
 
 CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
+    contentTypes: "Content Types",
+    configuration: "Configuration",
+    workflowJobs: "Workflow Jobs",
+    workflowStates: "Workflow States",
+    loggingLevels: "Logging Levels",
+    logConsole: "Log Console",
     label: "Content Types",
     openExistingType: "Open Existing Type",
     createNewType: "Create New Type",
@@ -363,7 +377,6 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     fieldBasics: "Field Basics",
     defaultValue: "Default Value",
     help: "Help",
-    properties: "Properties",
     constraints: "Constraints",
     propertiesExplorer: "Properties Explorer",
     controls: "Controls",

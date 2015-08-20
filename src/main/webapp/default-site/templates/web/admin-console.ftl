@@ -23,6 +23,12 @@
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>
 
+    <script>
+        CMgs = CStudioAuthoring.Messages;
+        langBundle = CMgs.getBundle("contentTypes", CStudioAuthoringContext.lang);
+        formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+    </script>
+
 </head>
 
 <body class="yui-skin-cstudioTheme">
