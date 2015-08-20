@@ -5587,30 +5587,30 @@ var parentSaveCb = {
                 var status = "";
 
                 if (contentTO.deleted == true) {
-                    return status + "Deleted";
+                    return status + CMgs.format(siteDropdownLangBundle, "statusDeleted");
                 } else if (contentTO.submittedForDeletion == true) {
                     if(contentTO.scheduled ==  true){
-                        status = status + "Scheduled for Delete";
+                        status = status + CMgs.format(siteDropdownLangBundle, "statusScheduledForDelete");
                     } else {
-                        status = status + "Submitted for Delete";
+                        status = status + CMgs.format(siteDropdownLangBundle, "statusSubmittedForDelete");
                     }
 
                     //Disabled string not required in status to show on nav bar
                     if (!navbarStatus && contentTO.disabled == true) {
-                        status = status + " and Disabled";
+                        status = status + " " + CMgs.format(siteDropdownLangBundle, "statusAndDisabled");
                     }
                     return status;
                 } else if (contentTO.inFlight == true) {
-                    status = status + "Processing";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusProcessing");
                     //Disabled string not required in status to show on nav bar
                     if (!navbarStatus && contentTO.disabled == true) {
-                        status = status + " and Disabled";
+                        status = status + " " + CMgs.format(siteDropdownLangBundle, "statusAndDisabled");
                     }
                     return status;
                 } else if (contentTO.inProgress == true) {
-                    status = status + "In Progress";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusInProgress");
                 } else if (contentTO.live == true) {
-                    status = status + "Live";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusLive");
                 }
 
                 if (contentTO.submitted == true) {
@@ -5619,11 +5619,11 @@ var parentSaveCb = {
                     }
                     else {
                         if (status.length > 0) {
-                            status = status + " and ";
+                            status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                         }
                     }
 
-                    status = status + "Submitted";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusSubmitted");
                 }
 
                 if (contentTO.scheduled == true) {
@@ -5632,23 +5632,23 @@ var parentSaveCb = {
                     }
 
                     if (status.length > 0) {
-                        status = status + " and ";
+                        status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                     }
 
-                    status = status + "Scheduled";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusScheduled");
                 }
 
                 //Disabled string not required in status to show on nav bar
                 if (!navbarStatus && contentTO.disabled == true) {
                     if (status.length > 0) {
-                        status = status + " and ";
+                        status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                     }
 
-                    status = status + "Disabled";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusDisabled");
                 }
 
                 if (status == "") {
-                    status = "Live";
+                    status = CMgs.format(siteDropdownLangBundle, "statusLive");
                 }
 
                 return status;
@@ -6716,7 +6716,7 @@ CStudioAuthoring.Messages = CStudioAuthoring.Messages || {
 
     display: function(bundle, messageId, a, b, c, d, e, f, g) {
         var formattedMessage = CStudioAuthoring.Messages.format(bundle, messageId, a, b, c, d, e, f, g);
-        document.body.appendChild(formattedMessage);
+        document.write(formattedMessage);
     }
 }
 

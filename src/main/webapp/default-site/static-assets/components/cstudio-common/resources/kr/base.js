@@ -161,6 +161,57 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "kr", {
 
 });
 
+CStudioAuthoring.Messages.registerBundle("siteDropdown", "kr", {
+    pages: "페이지",
+    page: "페이지",
+    components: "구성 요소들",
+    component: "구성 요소",
+    staticassets: "고정 자산",
+    templates: "템플릿",
+    scripts: "스크립트",
+    analyticsDashboard: "웹 로그 분석 대시 보드",
+    adminConsole: "관리 콘솔",
+    previewSync: "미리 동기화",
+    allSites: "모든 사이트",
+    newContent: "새로운 내용",
+    newFolder: "새 폴더",
+    upload: "업로드",
+    edit: "편집",
+    view: "전망",
+    changeTemplate: "변경 템플릿",
+    delete: "삭제",
+    cut: "절단",
+    copy: "복사",
+    paste: "풀",
+    history: "역사",
+    unlock: "잠금 해제",
+    noActionsAvailable: "가능한 조치가 없습니다",
+    createFolder: "폴더를 만들",
+    createTemplate: "템플릿 만들기",
+    createController: "컨트롤러 만들기",
+    bulkUploadAssets: "대량 업로드 자산",
+    lastEdited: "마지막 편집",
+    editedBy: "에 의해 편집 됨",
+    lockedBy: "에 의해 잠김",
+    status: "지위",
+    scheduled: "예약",
+    loading: "로드...",
+
+    /*tooltip-Status*/
+    statusDeleted: "삭제",
+    statusScheduledForDelete: "삭제 예정",
+    statusSubmittedForDelete: "삭제를 위해 제출",
+    statusAndDisabled: "및 장애인",
+    statusProcessing: "처리",
+    statusInProgress: "진행 중",
+    statusLive: "살고있다",
+    statusAnd: "과",
+    statusSubmitted: "제출",
+    statusScheduled: "예약",
+    statusDisabled: "장애인"
+
+});
+
 
 CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     expandAll: "모두 확장",

@@ -47,7 +47,7 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 
 		var sites = CStudioAuthoring.Service.retrieveSitesList({
 			success: function(sites) {
-				sites.push({name: "All Sites", siteId: "_ALL_SITES_"});
+				sites.push({name: CMgs.format(siteDropdownLangBundle, "allSites"), siteId: "_ALL_SITES_"});
 
 				for (var i=0; i < sites.length; i++) {
 					var curSite = sites[i];

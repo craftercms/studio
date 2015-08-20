@@ -38,7 +38,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
         var parentFolderLinkEl = document.createElement("a");
         parentFolderLinkEl.id = instance.label.toLowerCase() + "-tree";
-        parentFolderLinkEl.innerHTML = instance.label;
+        parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, (instance.label).toLowerCase());
         parentFolderLinkEl.onclick = CStudioAuthoring.ContextualNav.WcmAssetsFolder.onRootFolderClick;
         parentFolderLinkEl.componentInstance = instance;
 
@@ -440,44 +440,44 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         var menuWidth = "80px";
         var menuItems = {
             "assetsFolderMenu" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Create&nbsp;Folder", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "createFolder"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
             ],
             "assetsFolderMenuNoDelete" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Create&nbsp;Folder", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "createFolder"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } }
             ],
             "assetsFolderMenuNoCreateFolder" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
             ],
             "assetsFolderMenuNoDeleteNoCreateFolder" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
             ],
             "assetsMenu" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
             ],
             "assetsMenuNoDelete" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } }
             ],
             "assetsFolderMenuRead" : [
-                { text: "No Actions&nbsp;Available", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "noActionsAvailable"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
             ],
 
             "assetsFolderTemplate" : [
-                { text: "Create&nbsp;Template", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewTemplate, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "createTemplate"), disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewTemplate, obj:tree } }
             ],
 
 
             "assetsFolderScript" : [
-                { text: "Create&nbsp;Controller", disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewScript, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "createController"), disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewScript, obj:tree } }
             ],
 
             "assetsMenuRead" : [
-                { text: "Upload", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
-                { text: "Delete", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
             ]
         };
 
@@ -546,7 +546,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                             // item is a template
 
                             this.aMenuItems.push(
-                                { text: "Edit", disabled: false, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.editTemplate } });
+                                { text: CMgs.format(siteDropdownLangBundle, "edit"), disabled: false, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.editTemplate } });
                         }
 
                     } else {
@@ -561,7 +561,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
                     if (CSA.Utils.hasPerm(CSA.Constants.PERMISSION_WRITE, perms)){
                         this.aMenuItems.push({
-                            text: "Bulk Upload Assets",
+                            text: CMgs.format(siteDropdownLangBundle, "bulkUploadAssets"),
                             onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.bulkUpload }
                         });
                     }
@@ -572,10 +572,10 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                             if(collection.count > 0) {
                                 if (isWrite == true) {
                                     this.menuItems.push(
-                                        { text: "Paste", onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
+                                        { text: CMgs.format(siteDropdownLangBundle, "paste"), onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
                                 } else {
                                     this.menuItems.push(
-                                        { text: "Paste", disabled: true, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
+                                        { text: CMgs.format(siteDropdownLangBundle, "paste"), disabled: true, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
                                 }
                             }
 

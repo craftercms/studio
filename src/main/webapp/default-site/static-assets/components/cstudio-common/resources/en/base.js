@@ -168,6 +168,57 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "en", {
 
 });
 
+CStudioAuthoring.Messages.registerBundle("siteDropdown", "en", {
+    pages: "Pages",
+    page: "Page",
+    components: "Components",
+    component: "Component",
+    staticassets: "Static Assets",
+    templates: "Templates",
+    scripts: "Scripts",
+    analyticsDashboard: "Analytics Dashboard",
+    adminConsole: "Admin Console",
+    previewSync: "Preview Sync",
+    allSites: "All Sites",
+    newContent: "New Content",
+    newFolder: "New Folder",
+    upload: "Upload",
+    edit: "Edit",
+    view: "View",
+    changeTemplate: "Change Template",
+    delete: "Delete",
+    cut: "Cut",
+    copy: "Copy",
+    paste: "Paste",
+    history: "History",
+    unlock: "Unlock",
+    noActionsAvailable: "No Actions Available",
+    createFolder: "Create Folder",
+    createTemplate: "Create Template",
+    createController: "Create Controller",
+    bulkUploadAssets: "Bulk Upload Assets",
+    lastEdited: "Last Edited",
+    editedBy: "Edited by",
+    lockedBy: "Locked by",
+    status: "Status",
+    scheduled: "Scheduled",
+    loading: "Loading...",
+
+    /*tooltip-Status*/
+    statusDeleted: "Deleted",
+    statusScheduledForDelete: "Scheduled for Delete",
+    statusSubmittedForDelete: "Submitted for Delete",
+    statusAndDisabled: "and Disabled",
+    statusProcessing: "Processing",
+    statusInProgress: "In Progress",
+    statusLive: "Live",
+    statusAnd: "and",
+    statusSubmitted: "Submitted",
+    statusScheduled: "Scheduled",
+    statusDisabled: "Disabled"
+
+});
+
 CStudioAuthoring.Messages.registerBundle("forms", "en", {
     expandAll: "Expand All",
     collapseAll: "Collapse All",

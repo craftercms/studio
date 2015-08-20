@@ -93,7 +93,7 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "es", {
     wcmContentSchedule: "Programar",
     wcmContentApprove: "Aprobar y Publicar",
     wcmContentDuplicate: "Duplicar",
-    wcmContentHistory: "Hiltorial",
+    wcmContentHistory: "Historial",
     wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
 
     InProgress: "Editado",
@@ -165,6 +165,57 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "es", {
     components: "Componentes",
     general: "General",
     text: "Texto"
+
+});
+
+CStudioAuthoring.Messages.registerBundle("siteDropdown", "es", {
+    pages: "Páginas",
+    page: "Página",
+    components: "Componentes",
+    component: "Componente",
+    staticassets: "Activos Estáticos",
+    templates: "Plantillas",
+    scripts: "Scripts",
+    analyticsDashboard: "Panel de Control de Análisis",
+    adminConsole: "Consola de Administración",
+    previewSync: "Vista previa de Sincronización",
+    allSites: "Todos los Sitios",
+    newContent: "Nuevo Contenido",
+    newFolder: "Nueva Carpeta",
+    upload: "Subir",
+    edit: "Editar",
+    view: "Ver",
+    changeTemplate: "Cambiar la Plantilla",
+    delete: "Eliminar",
+    cut: "Cortar",
+    copy: "Copiar",
+    paste: "Pegar",
+    history: "Historial",
+    unlock: "Desbloquear",
+    noActionsAvailable: "No Hay Acciones Disponibles",
+    createFolder: "Crear Carpeta",
+    createTemplate: "Crear Plantilla",
+    createController: "Crear Controlador",
+    bulkUploadAssets: "Subir Activos Granel",
+    lastEdited: "Última Edición",
+    editedBy: "Editado Por",
+    lockedBy: "Bloqueado Por",
+    status: "Estado",
+    scheduled: "Programado",
+    loading: "Cargando...",
+
+    /*tooltip-Status*/
+    statusDeleted: "Eliminado",
+    statusScheduledForDelete: "Programado para Eliminar",
+    statusSubmittedForDelete: "Presentado para Eliminar",
+    statusAndDisabled: "y Deshabilitado",
+    statusProcessing: "Procesando",
+    statusInProgress: "En Progreso",
+    statusLive: "En Vivo",
+    statusAnd: "y",
+    statusSubmitted: "Enviado",
+    statusScheduled: "Programado",
+    statusDisabled: "Deshabilitado"
 
 });
 
