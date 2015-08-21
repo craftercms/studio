@@ -168,6 +168,57 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "en", {
 
 });
 
+CStudioAuthoring.Messages.registerBundle("siteDropdown", "en", {
+    pages: "Pages",
+    page: "Page",
+    components: "Components",
+    component: "Component",
+    staticassets: "Static Assets",
+    templates: "Templates",
+    scripts: "Scripts",
+    analyticsDashboard: "Analytics Dashboard",
+    adminConsole: "Admin Console",
+    previewSync: "Preview Sync",
+    allSites: "All Sites",
+    newContent: "New Content",
+    newFolder: "New Folder",
+    upload: "Upload",
+    edit: "Edit",
+    view: "View",
+    changeTemplate: "Change Template",
+    delete: "Delete",
+    cut: "Cut",
+    copy: "Copy",
+    paste: "Paste",
+    history: "History",
+    unlock: "Unlock",
+    noActionsAvailable: "No Actions Available",
+    createFolder: "Create Folder",
+    createTemplate: "Create Template",
+    createController: "Create Controller",
+    bulkUploadAssets: "Bulk Upload Assets",
+    lastEdited: "Last Edited",
+    editedBy: "Edited by",
+    lockedBy: "Locked by",
+    status: "Status",
+    scheduled: "Scheduled",
+    loading: "Loading...",
+
+    /*tooltip-Status*/
+    statusDeleted: "Deleted",
+    statusScheduledForDelete: "Scheduled for Delete",
+    statusSubmittedForDelete: "Submitted for Delete",
+    statusAndDisabled: "and Disabled",
+    statusProcessing: "Processing",
+    statusInProgress: "In Progress",
+    statusLive: "Live",
+    statusAnd: "and",
+    statusSubmitted: "Submitted",
+    statusScheduled: "Scheduled",
+    statusDisabled: "Disabled"
+
+});
+
 CStudioAuthoring.Messages.registerBundle("forms", "en", {
     expandAll: "Expand All",
     collapseAll: "Collapse All",
@@ -258,8 +309,16 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
 
     requestApproveDialogTitle: "Request Publish",
     requestApproveDialogSubTitle: "When would you like the checked item(s) to go live?",
-    requestApproveDialogEmailMe: "Email me when items go live."
+    requestApproveDialogEmailMe: "Email me when items go live.",
 
+    newContTypeDialogTitle: "Create Content Type",
+    newContTypeDialogDisplayLabel: "Display Label",
+    newContTypeDialogContentTypeName: "Content Type Name",
+    newContTypeDialogType: "Type",
+    component: "Component",
+    newContTypeDialogLabelMsg: "Provide a display label for this content type",
+    newContTypeDialogContentTypeNamelMsg: "Provide a system name for this content type",
+    newContTypeDialogTypeMsg: "Select the type for this content type"
 
 });
 
@@ -287,6 +346,12 @@ CStudioAuthoring.Messages.registerBundle("search", "en", {
 });
 
 CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
+    contentTypes: "Content Types",
+    configuration: "Configuration",
+    workflowJobs: "Workflow Jobs",
+    workflowStates: "Workflow States",
+    loggingLevels: "Logging Levels",
+    logConsole: "Log Console",
     label: "Content Types",
     openExistingType: "Open Existing Type",
     createNewType: "Create New Type",
@@ -312,9 +377,36 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     fieldBasics: "Field Basics",
     defaultValue: "Default Value",
     help: "Help",
-    properties: "Properties",
     constraints: "Constraints",
     propertiesExplorer: "Properties Explorer",
     controls: "Controls",
-    datasources: "Data Sources"
+    datasources: "Data Sources",
+
+    /*Controls*/
+    textArea: "Text Area",
+    richTextEditor: "Rich Text Editor",
+    input: "Input",
+    dropdown: "Dropdown",
+    dateTime: "Date / Time",
+    checkBox: "Check Box",
+    groupedCheckboxes: "Grouped Checkboxes",
+    itemSelector: "Item Selector",
+    image: "Image",
+    video: "Video",
+    label: "Label",
+    pageOrder: "Page Order",
+    fileName: "File Name",
+    autoFilename: "Auto Filename",
+
+    /*Datasources */
+    childContent: "Child Content",
+    imageUploadedDesktop: "Image Uploaded from Desktop",
+    DAMImage: "DAM Image Flickr",
+    fileUploadedDesktop: "File Uploaded from Desktop",
+    flashUploadedDesktop: "Flash Uploaded from Desktop",
+    videoUploadedDesktop: "Video Uploaded from Desktop",
+    staticKeyValuePairs: "Static Key Value Pairs",
+    configuredListOfPairs: "Configured List of Pairs",
+    fileBrowse: "File Browse"
+
 });

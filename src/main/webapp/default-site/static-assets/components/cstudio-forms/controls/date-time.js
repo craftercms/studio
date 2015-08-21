@@ -27,7 +27,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Date / Time";
+        return CMgs.format(langBundle, "dateTime");
     },
 
 	validate: function(evt, obj, dateCheck) {

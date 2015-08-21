@@ -17,6 +17,7 @@
         langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang);
         formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
         previewLangBundle = CMgs.getBundle("previewTools", CStudioAuthoringContext.lang);
+        siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
     <script src="/studio/static-assets/scripts/crafter.js"></script>

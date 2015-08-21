@@ -1375,10 +1375,11 @@ div#footerLogin {
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031378}}
 .acn-tooltip .tooltip-title {
-  width: 85px !important;
+  width: 99px !important;
   text-align: right !important;
   font-weight: bold !important;
-  padding-right: 5px !important; }
+  padding-right: 5px !important;
+  display: inline-block;}
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000031385}}
 .break-word {

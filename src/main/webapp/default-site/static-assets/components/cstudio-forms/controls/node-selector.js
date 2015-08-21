@@ -38,7 +38,7 @@ CStudioForms.Controls.NodeSelector.prototype = {
 YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Item Selector";
+        return CMgs.format(langBundle, "itemSelector");
     },
 
     getRequirementCount: function() {

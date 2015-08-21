@@ -27,7 +27,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
 
     getLabel: function() {
-        return "File name";
+        return CMgs.format(langBundle, "fileName");
     },
 
     getRequirementCount: function() {

@@ -20,7 +20,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Dropdown";
+        return CMgs.format(langBundle, "dropdown");
     },
     
 	_onChange: function(evt, obj) {

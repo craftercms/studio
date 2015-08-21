@@ -92,7 +92,7 @@ YAHOO.extend(CStudioForms.Datasources.FileDesktopUpload, CStudioForms.CStudioFor
 	},
 
     getLabel: function() {
-        return "File uploaded from desktop";
+        return CMgs.format(langBundle, "fileUploadedDesktop");
     },
 
    	getInterface: function() {
