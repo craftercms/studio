@@ -18,7 +18,7 @@ function(id, form, owner, properties, constraints)  {
 YAHOO.extend(CStudioForms.Controls.Label, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Label";
+        return CMgs.format(langBundle, "label");
     },
     
 

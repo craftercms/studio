@@ -26,7 +26,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
 
     getLabel: function() {
-        return "Image";
+        return CMgs.format(langBundle, "image");
     },
 
     _onChange: function(evt, obj) {

@@ -11,7 +11,7 @@ CStudioForms.Datasources.KeyValueList = CStudioForms.Datasources.KeyValueList ||
 YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Static Key Value pairs";
+        return CMgs.format(langBundle, "staticKeyValuePairs");
     },
 
     add: function(control) {

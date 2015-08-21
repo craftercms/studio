@@ -17,7 +17,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Check Box";
+        return CMgs.format(langBundle, "checkBox");
     },
 
 	_onChange: function(evt, obj) {

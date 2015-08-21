@@ -25,7 +25,7 @@ YAHOO.extend(CStudioForms.Controls.AutoFilename, CStudioForms.CStudioFormField, 
 
 
     getLabel: function() {
-        return "Auto Filename";
+        return CMgs.format(langBundle, "autoFilename");
     },
 
     render: function(config, containerEl) {

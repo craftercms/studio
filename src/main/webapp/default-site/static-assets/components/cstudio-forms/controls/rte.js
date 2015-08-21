@@ -40,7 +40,7 @@ CStudioAuthoring.Module.requireModule(
 YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Rich Text Editor";
+        return CMgs.format(langBundle, "richTextEditor");
     },
     
     /**

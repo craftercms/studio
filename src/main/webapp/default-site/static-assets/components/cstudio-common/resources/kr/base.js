@@ -356,5 +356,32 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
     constraints: "제약",
     propertiesExplorer: "등록 탐색기",
     controls: "컨트롤",
-    datasources: "데이터 소스"
+    datasources: "데이터 소스",
+
+    /*Controls*/
+    textArea: "텍스트 영역",
+    richTextEditor: "서식있는 텍스트 편집기s",
+    input: "입력",
+    dropdown: "쓰러지 다",
+    dateTime: "날짜 시간",
+    checkBox: "확인란",
+    groupedCheckboxes: "그룹화 확인란",
+    itemSelector: "항목 선택기",
+    image: "영상",
+    video: "비디오",
+    label: "상표",
+    pageOrder: "페이지 순서",
+    fileName: "파일 이름",
+    autoFilename: "자동 파일 이름",
+
+    /*Datasources */
+    childContent: "자식 내용",
+    imageUploadedDesktop: "이미지 바탕 화면에서 업로드",
+    DAMImage: "DAM 이미지 플리커 (Flickr)",
+    fileUploadedDesktop: "파일 바탕 화면에서 업로드",
+    flashUploadedDesktop: "플래시 바탕 화면에서 업로드",
+    videoUploadedDesktop: "비디오 바탕 화면에서 업로드",
+    staticKeyValuePairs: "정적 키 값 쌍",
+    configuredListOfPairs: "쌍의 구성 목록",
+    fileBrowse: "찾아보기를 파일"
 });

@@ -113,7 +113,7 @@ YAHOO.extend(CStudioForms.Datasources.FileBrowseRepo, CStudioForms.CStudioFormDa
 	},
 	
     getLabel: function() {
-        return "File Browse";
+        return CMgs.format(langBundle, "fileBrowse");
     },
 
    	getInterface: function() {

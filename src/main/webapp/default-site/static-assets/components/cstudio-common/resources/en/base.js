@@ -380,5 +380,33 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     constraints: "Constraints",
     propertiesExplorer: "Properties Explorer",
     controls: "Controls",
-    datasources: "Data Sources"
+    datasources: "Data Sources",
+
+    /*Controls*/
+    textArea: "Text Area",
+    richTextEditor: "Rich Text Editor",
+    input: "Input",
+    dropdown: "Dropdown",
+    dateTime: "Date / Time",
+    checkBox: "Check Box",
+    groupedCheckboxes: "Grouped Checkboxes",
+    itemSelector: "Item Selector",
+    image: "Image",
+    video: "Video",
+    label: "Label",
+    pageOrder: "Page Order",
+    fileName: "File Name",
+    autoFilename: "Auto Filename",
+
+    /*Datasources */
+    childContent: "Child Content",
+    imageUploadedDesktop: "Image Uploaded from Desktop",
+    DAMImage: "DAM Image Flickr",
+    fileUploadedDesktop: "File Uploaded from Desktop",
+    flashUploadedDesktop: "Flash Uploaded from Desktop",
+    videoUploadedDesktop: "Video Uploaded from Desktop",
+    staticKeyValuePairs: "Static Key Value Pairs",
+    configuredListOfPairs: "Configured List of Pairs",
+    fileBrowse: "File Browse"
+
 });

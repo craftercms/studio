@@ -11,7 +11,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.FlashDesktopUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Flash uploaded from desktop";
+        return CMgs.format(langBundle, "flashUploadedDesktop");
     },
 
 	/**

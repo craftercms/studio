@@ -18,7 +18,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Text Area";
+        return CMgs.format(langBundle, "textArea");
     },
     
 	_onChange: function(evt, obj) {

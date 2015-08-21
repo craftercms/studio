@@ -383,5 +383,32 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     constraints: "Restricciones",
     propertiesExplorer: "Propiedades de Explorador",
     controls: "Controles",
-    datasources: "Fuentes de Datos"
+    datasources: "Fuentes de Datos",
+
+    /*Controls*/
+    textArea: "Área de Texto",
+    richTextEditor: "Editor de Texto Enriquecido",
+    input: "Campo de Entrada",
+    dropdown: "Menú Desplegable",
+    dateTime: "Fecha Y Hora",
+    checkBox: "Casilla de Verificación",
+    groupedCheckboxes: "Grupo de Casillas de Verificación",
+    itemSelector: "Selector de Elementos",
+    image: "Imagen",
+    video: "Video",
+    label: "Etiqueta",
+    pageOrder: "Orden de Páginas",
+    fileName: "Nombre del Archivo",
+    autoFilename: "Generar Nombre",
+
+    /*Datasources */
+    childContent: "Contenido Hijos",
+    imageUploadedDesktop: "Imagen Subida desde el Escritorio",
+    DAMImage: "Imagen DAM (Flickr)",
+    fileUploadedDesktop: "Archivo Subido desde el Escritorio",
+    flashUploadedDesktop: "Flash Subido desde el Escritorio",
+    videoUploadedDesktop: "Video Subido desde el Escritorio",
+    staticKeyValuePairs: "Pares Estáticos de Valores Clave",
+    configuredListOfPairs: "Configurado Lista de Pares",
+    fileBrowse: "Navegador de Archivos"
 });

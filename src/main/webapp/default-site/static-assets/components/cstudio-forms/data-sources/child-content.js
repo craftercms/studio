@@ -169,7 +169,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
     },
 
     getLabel: function() {
-        return "Child content";
+        return CMgs.format(langBundle, "childContent");
     },
 
    	getInterface: function() {
