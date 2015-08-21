@@ -258,6 +258,25 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
+    @EventHandler(
+            event = EBusConstants.REPOSITORY_DELETE_EVENT,
+            ebus = EBusConstants.REPOSITORY_REACTOR,
+            type = EventSelectorType.REGEX
+    )
+    public void onDeleteContent(final Event<RepositoryEventMessage> event) throws ServiceException {
+        RepositoryEventMessage message = event.getData();
+        try {
+            String site = message.getSite();
+            String path = message.getPath();
+            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
+            deleteFile(site, path);
+        } catch (Exception t) {
+            logger.error("Error while deleting content from: " + message.getSite() + " - " + message.getPath(), t);
+        } finally {
+            RepositoryEventContext.setCurrent(null);
+        }
+    }
+
     public String getDefaultServer() { return defaultServer; }
     public void setDefaultServer(String defaultServer) { this.defaultServer = defaultServer; }
 

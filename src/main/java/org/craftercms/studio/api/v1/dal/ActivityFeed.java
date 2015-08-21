@@ -1,8 +1,8 @@
 package org.craftercms.studio.api.v1.dal;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.codehaus.jackson.map.util.ISO8601DateFormat;
 
 import java.io.Serializable;
 import java.util.Date;

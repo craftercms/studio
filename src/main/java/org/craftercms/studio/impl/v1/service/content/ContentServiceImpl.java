@@ -395,11 +395,26 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path) {
-        generateDeleteActivity(site, path);
+        return deleteContent(site, path, true);
+    }
+
+    @Override
+    public boolean deleteContent(String site, String path, boolean generateActivity) {
+        if (generateActivity) {
+            generateDeleteActivity(site, path);
+        }
         boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
+
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(path);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_DELETE_EVENT, Event.wrap(message));
         return toRet;
     }
 
@@ -423,6 +438,7 @@ public class ContentServiceImpl implements ContentService {
                 dmContentLifeCycleService.process(site, user, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
             }
+
         }
     }
 
