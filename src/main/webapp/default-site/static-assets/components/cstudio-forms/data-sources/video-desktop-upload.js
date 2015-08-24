@@ -11,7 +11,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.VideoDesktopUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Video uploaded from desktop";
+        return CMgs.format(langBundle, "videoUploadedDesktop");
     },
 
 	/**

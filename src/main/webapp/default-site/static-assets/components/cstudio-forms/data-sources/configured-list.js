@@ -41,7 +41,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Configured List of Values";
+        return CMgs.format(langBundle, "configuredListOfPairs");
     },
 
    	getInterface: function() {

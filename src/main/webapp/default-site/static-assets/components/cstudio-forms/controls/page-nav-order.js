@@ -26,7 +26,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
     },
 
     getLabel: function() {
-        return "Page Order";
+        return CMgs.format(langBundle, "pageOrder");
     },
 
 	_onChange: function(evt, obj) {

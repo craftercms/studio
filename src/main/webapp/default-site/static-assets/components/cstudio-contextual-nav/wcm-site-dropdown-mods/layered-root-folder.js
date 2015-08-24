@@ -1854,7 +1854,7 @@ CStudioAuthoringContext.site,
         				},
         				args : context
         			};
-        			var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + ?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
+        			var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
         			var getCopyTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
         			YConnect.asyncRequest('GET', getCopyTreeItemReuest, openCopyDialog);
                 } else {

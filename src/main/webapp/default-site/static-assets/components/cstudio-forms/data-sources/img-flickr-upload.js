@@ -14,7 +14,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ImgFlickrUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "DAM Image: Flickr";
+        return CMgs.format(langBundle, "DAMImage");
     },
     
 	/**

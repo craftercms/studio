@@ -25,7 +25,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Grouped Checkboxes";
+        return CMgs.format(langBundle, "groupedCheckboxes");
     },
 
     getRequirementCount: function() {

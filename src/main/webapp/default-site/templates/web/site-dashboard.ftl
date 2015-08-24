@@ -30,6 +30,7 @@
                 CMgs = CStudioAuthoring.Messages,
                 langBundle = CMgs.getBundle("siteDashboard", CStudioAuthoringContext.lang),
                 formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+                siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
     <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
