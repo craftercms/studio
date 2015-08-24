@@ -839,4 +839,5 @@
         <property name="adminPassword" value="${repositoryJob.password}"/>
     </bean>
 
+    <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
 </beans>

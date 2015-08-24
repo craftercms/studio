@@ -112,7 +112,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
         try {
             // look up the path content first
             boolean contentExists = contentService.contentExists(site, path);
-            ContentItemTO parentContent = contentService.getContentItem(site, path);
+            ContentItemTO parentContent = contentService.getContentItem(site, path, 0);
             if (contentExists && createFolders) {
                 parentContent = createMissingFoldersInPath(site, path, isPreview);
             }
@@ -127,7 +127,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     // otherwise, create new one
                     //contentPath = contentPath.replaceFirst(WcmConstants.INDEX_FILE, "");
                     String fileFullPath =  contentService.expandRelativeSitePath(site, path + "/" + fileName);
-                    ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + fileName);
+                    ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + fileName, 0);
                     if (contentItem != null && overwrite) {
                         updateFile(site, contentItem, fileFullPath, input, user, unlock);
                         return ActivityService.ActivityType.UPDATED;
@@ -167,7 +167,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
         //contentPath = (isPreview) ? DmUtils.getPreviewPath(contentPath) : contentPath;
         try {
             // look up the path content first
-            ContentItemTO parentContent = contentService.getContentItem(site, path);
+            ContentItemTO parentContent = contentService.getContentItem(site, path, 0);
             if (parentContent == null && createFolders) {
                 parentContent = createMissingFoldersInPath(site, path, isPreview);
             }
@@ -186,7 +186,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                         if (!isPreview) {
                             if (cancelWorkflow(site, path)) {
                                 workflowService.removeFromWorkflow(site, path, true);
-                                dmDependencyService.updateDependencies(site,path, DmConstants.DM_STATUS_IN_PROGRESS);
+                                //dmDependencyService.updateDependencies(site,path, DmConstants.DM_STATUS_IN_PROGRESS);
                             } else {
                                 if(updateWorkFlow(site, path)) {
                                     workflowService.updateWorkflowSandboxes(site, path);
@@ -207,11 +207,11 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     if (parentContentPath.endsWith(DmConstants.XML_PATTERN) && !parentContentPath.endsWith(DmConstants.INDEX_FILE)){
                         parentContentPath = parentContentPath.substring(0, parentContentPath.lastIndexOf("/"));
                         String partentRelativePath = contentService.getRelativeSitePath(site, parentContentPath);
-                        parentContent = contentService.getContentItem(site, partentRelativePath);
+                        parentContent = contentService.getContentItem(site, partentRelativePath, 0);
                     }
                     String fileFullPath =  parentContentPath + "/" + fileName;
                     String relativePath = contentService.getRelativeSitePath(site, fileFullPath);
-                    ContentItemTO fileItem = contentService.getContentItem(site, relativePath);
+                    ContentItemTO fileItem = contentService.getContentItem(site, relativePath, 0);
                     if (fileItem != null && overwrite) {
                         InputStream existingContent = contentService.getContent(site, relativePath);
                         String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
@@ -222,7 +222,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                         } else {
                                 if (cancelWorkflow(site, relativePath)) {
                                     workflowService.removeFromWorkflow(site, relativePath, true);
-                                    dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
+                                    //dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
                                 } else {
                                     if(updateWorkFlow(site, relativePath)) {
                                         workflowService.updateWorkflowSandboxes(site, relativePath);
@@ -332,7 +332,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
             } else {
             }
 
-            ContentItemTO fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName);
+            ContentItemTO fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName, 0);
             return fileItem;
         } else {
             String parentPath = contentService.expandRelativeSitePath(site, parentItem.getPath());
@@ -398,7 +398,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                 String relativePath = contentService.getRelativeSitePath(site, fullPath);
                 if (cancelWorkflow(site, relativePath)) {
                     workflowService.removeFromWorkflow(site, relativePath, true);
-                    dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
+                    //dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
                 } else {
                     if(updateWorkFlow(site, relativePath)) {
                         workflowService.updateWorkflowSandboxes(site, relativePath);
@@ -459,12 +459,12 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
                 String currentPath = parentPath + "/" + level;
                 String fullPath = contentService.expandRelativeSitePath(site, currentPath);
-                lastItem = contentService.getContentItem(site, currentPath);
+                lastItem = contentService.getContentItem(site, currentPath, 0);
                 if (lastItem == null) {
                     String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
-                    ContentItemTO parentItem = contentService.getContentItem(site, parentPath);
+                    ContentItemTO parentItem = contentService.getContentItem(site, parentPath, 0);
                     contentService.createFolder(site, parentPath, level);
-                    lastItem = contentService.getContentItem(site, currentPath);
+                    lastItem = contentService.getContentItem(site, currentPath, 0);
                 }
                 parentPath = currentPath;
             }
@@ -480,7 +480,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
         if (fileInfo.isFolder()) {
             return persistenceManagerService.getNodePath(fileNode);
         }*/
-        ContentItemTO itemTO = contentService.getContentItem(site, path);
+        ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         int index = path.lastIndexOf("/");
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();

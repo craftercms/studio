@@ -502,7 +502,7 @@ implements SecurityProvider {
                 nodeRef = property.getValueAsString();
             }
         } catch (CmisBaseException e) {
-            logger.warn("Object not found in CMIS repository for path: ", fullPath);
+            logger.warn("Object not found in CMIS repository for path: {0}", fullPath);
             throw new ContentNotFoundException(e);
         }
         long duration = System.currentTimeMillis() - startTime;
