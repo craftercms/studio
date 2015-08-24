@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -580,20 +579,28 @@ public class WorkflowServiceImpl implements WorkflowService {
 		// remove submitted aspects from all dependent items
 		if (!processedPaths.contains(path)) {
 			processedPaths.add(path);
-			ContentItemTO item = contentService.getContentItem(site, path);
-			if (item != null) {
+			//if (contentService.contentExists(site, path)) {
 				//removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
 				// cancel workflow if anything is pending
+                long startTime = System.currentTimeMillis();
 				if (cancelWorkflow) {
-					_cancelWorkflow(site, path, item);
+					_cancelWorkflow(site, path);
 				}
-
+                long duration = System.currentTimeMillis() - startTime;
+                logger.warn("_cancelWorkflow Duration 111: {0}", duration);
+/*
+                startTime = System.currentTimeMillis();
 				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
+            duration = System.currentTimeMillis() - startTime;
+            logger.warn("getDependencies Duration 112: {0}", duration);
 				if (depItem != null) {
 					DependencyRules dependencyRules = new DependencyRules(site);
 					dependencyRules.setObjectStateService(objectStateService);
 					dependencyRules.setContentService(contentService);
+                    long startTime1 = System.currentTimeMillis();
 					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
+                    duration = System.currentTimeMillis() - startTime1;
+                    logger.warn("applySubmitRule Duration 113: {0}", duration);
 					List<String> transitionNodes = new ArrayList<String>();
 					for (DmDependencyTO dependencyTO : submittedDeps) {
 						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
@@ -607,21 +614,23 @@ public class WorkflowServiceImpl implements WorkflowService {
 						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
 					}
 				}
-			}
+                duration = System.currentTimeMillis() - startTime;
+                logger.warn("removeFromWorkflow - dependencies Duration 114: {0}", duration);*/
+			//}
 		}
 		return false;
 	}
 
-	protected void _cancelWorkflow(String site, String path, ContentItemTO item) {
-		if (item != null) {
-			List<ContentItemTO> allItemsToCancel = getWorkflowAffectedPaths(site, path);
+	protected void _cancelWorkflow(String site, String path) {
+		//if (contentService.contentExists(site, path)) {
+			List<String> allItemsToCancel = getWorkflowAffectedPaths(site, path);
 			List<String> paths = new ArrayList<String>();
-			for (ContentItemTO affectedItem : allItemsToCancel) {
+			for (String affectedItem : allItemsToCancel) {
 				try {
-					deploymentService.cancelWorkflow(site, affectedItem.getUri());
-					paths.add(affectedItem.getUri());
+					deploymentService.cancelWorkflow(site, affectedItem);
+					paths.add(affectedItem);
 				} catch (DeploymentException e) {
-					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem.getUri() + "], site " + site, e);
+					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
 				}
 			}
 			objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
@@ -653,19 +662,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 					}
 				}*/
 			}
-		}
+		//}
 
 	}
 
 	@Override
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+	public List<String> getWorkflowAffectedPaths(String site, String path) {
 		List<String> affectedPaths = new ArrayList<String>();
-		List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+		//List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+        List<String> filteredPaths = new ArrayList<String>();
 		if (objectStateService.isInWorkflow(site, path)) {
 			affectedPaths.add(path);
 			boolean isNew = objectStateService.isNew(site, path);
-			// TODO: check if item is renamed
-			boolean isRenamed = false; //persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
+			boolean isRenamed = objectMetadataManager.isRenamed(site, path);
 			if (isNew || isRenamed) {
 				getMandatoryChildren(site, path, affectedPaths);
 			}
@@ -678,16 +687,16 @@ public class WorkflowServiceImpl implements WorkflowService {
 					candidates.add(p);
 				}
 			}
-			List<String> filteredPaths = new ArrayList<String>();
+
 			for (String cp : candidates) {
 				if (objectStateService.isInWorkflow(site, cp)) {
 					filteredPaths.add(cp);
 				}
 			}
-			affectedItems = getWorkflowAffectedItems(site, filteredPaths);
+			//affectedItems = getWorkflowAffectedItems(site, filteredPaths);
 		}
 
-		return affectedItems;
+		return filteredPaths;
 	}
 
 	private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
@@ -724,8 +733,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 			}
 		}
 	}
-
-	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
+/*
+	protected List<ContentItemTO> getWorkflowAffectedItemsR(String site, List<String> paths) {
 		List<ContentItemTO> items = new ArrayList<>();
 
 		for (String path : paths) {
@@ -734,7 +743,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 		}
 		return items;
 	}
-
+*/
 	@Override
 	public void updateWorkflowSandboxes(String site, String path) {
 		// TODO: copy to live repo node
@@ -1625,8 +1634,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     public boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) {
-        ContentItemTO contentItemTO = contentService.getContentItem(site, url);
-        _cancelWorkflow(site, url, contentItemTO);
+        _cancelWorkflow(site, url);
         return true;
     }
 

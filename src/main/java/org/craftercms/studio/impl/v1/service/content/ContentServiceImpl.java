@@ -62,6 +62,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
@@ -182,19 +183,20 @@ public class ContentServiceImpl implements ContentService {
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String fullPath = expandRelativeSitePath(site, path);
         String relativePath = path;
-        ContentItemTO item = getContentItem(site, path);
+        boolean contentExists = contentExists(site, path);
         String lockKey = id;
-        if (item != null) {
-            lockKey = site + ":" + item.getUri();
+        if (contentExists) {
+            lockKey = site + ":" + path;
         }
         generalLockService.lock(lockKey);
         try {
             boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
-            if (item != null) {
-                ObjectState objectState = objectStateService.getObjectState(site, item.getUri());
+            if (contentExists) {
+                ObjectState objectState = objectStateService.getObjectState(site, path);
                 if (objectState == null) {
+                    ContentItemTO item = getContentItem(site, path, 0);
                     objectStateService.insertNewEntry(site, item);
-                    objectState = objectStateService.getObjectState(site, item.getUri());
+                    objectState = objectStateService.getObjectState(site, path);
                 }
 
                 if(objectState != null) {
@@ -204,7 +206,7 @@ public class ContentServiceImpl implements ContentService {
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
                     }
 
-                    objectStateService.setSystemProcessing(site, item.getUri(), true);
+                    objectStateService.setSystemProcessing(site, path, true);
                 }
                 else {
                     logger.error("the object state is still null.");
@@ -223,8 +225,8 @@ public class ContentServiceImpl implements ContentService {
             }
 
             processContent(id, input, true, params, chainID);
-            if (item != null) {
-                objectStateService.setSystemProcessing(site, item.getUri(), false);
+            if (contentExists) {
+                objectStateService.setSystemProcessing(site, path, false);
             } else {
                 objectStateService.setSystemProcessing(site, path, false);
             }
@@ -236,7 +238,7 @@ public class ContentServiceImpl implements ContentService {
             }
             fullPath = fullPath.replace("//", "/");
             relativePath = getRelativeSitePath(site, fullPath);
-            ContentItemTO itemTo = getContentItem(site, relativePath);
+            ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
                 if (savaAndClose) {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
@@ -250,12 +252,7 @@ public class ContentServiceImpl implements ContentService {
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(relativePath);
-            RequestContext context = RequestContext.getCurrent();
-            String sessionTicket = null;
-            if (context != null) {
-                HttpSession httpSession = context.getRequest().getSession();
-                sessionTicket = (String) httpSession.getValue("alf_ticket");
-            }
+            String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
             repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
@@ -683,8 +680,11 @@ public class ContentServiceImpl implements ContentService {
         return getContentItem(site, path, 2);
     }
 
+    @Cacheable(value = "alfrescoCache")
     @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
+        logger.warn("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
+        System.out.println("Loading content item ... should be cached");
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;
@@ -1063,7 +1063,10 @@ public class ContentServiceImpl implements ContentService {
             String[] strings = id.split(":");
             final String path = strings[1];
             final String site = strings[0];
-            ResultTO to = doSave(id, input, isXml, params, contentChainForm, path, site);
+            long startTime = System.currentTimeMillis();
+            ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.warn("Write Duration: {0}", duration);
             return to;
         } finally {
             long end = System.currentTimeMillis();
@@ -1071,23 +1074,12 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected ResultTO doSave(String id, InputStream input, boolean isXml, Map<String, String> params, String chainName, final String path, final String site) throws ServiceException {
-        String fullPath = expandRelativeSitePath(site, path);
-        if (fullPath.endsWith("/")) fullPath = fullPath.substring(0, fullPath.length() - 1);
-        ResultTO to = contentProcessor.processContent(id, input, isXml, params, chainName);
-        //GoLiveQueue queue = (GoLiveQueue) _cache.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY, site);
-        //if (queue != null) {
-        //    queue.remove(path);
-        //}
-        return to;
-    }
-
     @Override
     public String getNextAvailableName(String site, String path) {
         String[] levels = path.split("/");
         int length = levels.length;
         if (length > 0) {
-            ContentItemTO item = getContentItem(site, path);
+            ContentItemTO item = getContentItem(site, path, 0);
             if (item != null) {
                 String name = ContentUtils.getPageName(path);
                 String parentPath = ContentUtils.getParentUrl(path);

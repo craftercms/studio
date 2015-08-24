@@ -93,7 +93,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
         for (DmDependencyTO dep : dependencyList) {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             if(ContentUtils.matchesPatterns(dep.getUri(), displayPatterns)){
-                ContentItemTO item = contentService.getContentItem(site, dep.getUri());
+                ContentItemTO item = contentService.getContentItem(site, dep.getUri(), 0);
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, dep.getUri()));
                 if (dep.getUri().startsWith(DmConstants.ROOT_PATTERN_SYSTEM_COMPONENTS)) {
                     activityService.postActivity(site, user, dep.getUri(), ActivityService.ActivityType.CREATED, extraInfo);

@@ -112,7 +112,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         try {
             // look up the path content first
             boolean parentExists = contentService.contentExists(site, path);
-            ContentItemTO parentItem = contentService.getContentItem(site, path);
+            ContentItemTO parentItem = contentService.getContentItem(site, path, 0);
             if (parentExists && createFolders) {
                 parentItem = createMissingFoldersInPath(site, path, isPreview);
             }
@@ -129,7 +129,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     String fileFullPath =  parentContentPath + "/" + fileName;
                     String relativeFilePath = contentService.getRelativeSitePath(site, fileFullPath);
                     boolean contentExists = contentService.contentExists(site, fileFullPath);
-                    ContentItemTO fileItem = contentService.getContentItem(site, relativeFilePath);
+                    ContentItemTO fileItem = contentService.getContentItem(site, relativeFilePath, 0);
                     if (fileItem != null && overwrite) {
                         updateFile(site, fileItem, fileFullPath, input, user, isPreview, unlock);
                         return ActivityService.ActivityType.UPDATED;
@@ -169,7 +169,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         //contentPath = (isPreview) ? DmUtils.getPreviewPath(contentPath) : contentPath;
         try {
             // look up the path content first
-            ContentItemTO parentItem = contentService.getContentItem(site, path);
+            ContentItemTO parentItem = contentService.getContentItem(site, path, 0);
             boolean parentContentExists = contentService.contentExists(site, path);
             if (!parentContentExists && createFolders) {
                 parentItem = createMissingFoldersInPath(site, path, isPreview);
@@ -191,7 +191,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                             DmPathTO pathTO = new DmPathTO(parentContentPath);
                             if (cancelWorkflow(site, path)) {
                                 workflowService.removeFromWorkflow(site, pathTO.getRelativePath(), true);
-                                dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
+                                //dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                             } else {
                                 if(updateWorkFlow(site,pathTO.getRelativePath())) {
                                     workflowService.updateWorkflowSandboxes(site,pathTO.getRelativePath());
@@ -210,12 +210,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     if (parentContentPath.endsWith(DmConstants.XML_PATTERN) && !parentContentPath.endsWith(DmConstants.INDEX_FILE)){
                         parentContentPath = parentContentPath.substring(0, parentContentPath.lastIndexOf("/"));
                         String partentRelativePath = contentService.getRelativeSitePath(site, parentContentPath);
-                        parentItem = contentService.getContentItem(site, partentRelativePath);
+                        parentItem = contentService.getContentItem(site, partentRelativePath, 0);
                     }
                     String fileFullPath =  parentContentPath + "/" + fileName;
                     String fileRelativePath = contentService.getRelativeSitePath(site, fileFullPath);
                     boolean fileExists = contentService.contentExists(site, fileRelativePath);
-                    ContentItemTO contentItem = contentService.getContentItem(site, fileRelativePath);
+                    ContentItemTO contentItem = contentService.getContentItem(site, fileRelativePath, 0);
                     if (fileExists && overwrite) {
                         InputStream existingContent = contentService.getContent(site, fileRelativePath);
                         String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
@@ -229,7 +229,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                                 DmPathTO pathTO = new DmPathTO(fileFullPath);
                                 if (cancelWorkflow(site, pathTO.getRelativePath())) {
                                     workflowService.removeFromWorkflow(site, pathTO.getRelativePath(), true);
-                                    dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
+                                    //dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                                 } else {
                                     if(updateWorkFlow(site,pathTO.getRelativePath())) {
                                         workflowService.updateWorkflowSandboxes(site,pathTO.getRelativePath());
@@ -332,7 +332,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
             }
 
-            fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName);
+            fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName, 0);
             return fileItem;
         } else {
             String parentPath = contentService.expandRelativeSitePath(site, parentItem.getPath());
@@ -404,7 +404,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 DmPathTO path = new DmPathTO(fullPath);
                 if (cancelWorkflow(site, path.getRelativePath())) {
                     workflowService.removeFromWorkflow(site, path.getRelativePath(), true);
-                    dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
+                    //dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                 } else {
                     if(updateWorkFlow(site,path.getRelativePath())) {
                         workflowService.updateWorkflowSandboxes(site,path.getRelativePath());
@@ -427,7 +427,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected boolean cancelWorkflow(String site, String path) {
         // don't cancel if the content is a level descriptor
         if (path.endsWith(servicesConfig.getLevelDescriptorName(site))) {
-            return true;
+            return false;
         } else {
             List<String> pagePatterns = servicesConfig.getPagePatterns(site);
             // cancel if the content is a page
@@ -466,11 +466,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 String currentPath = parentPath + "/" + level;
 
                 //fullPath = (isPreview) ? DmUtils.getPreviewPath(fullPath) : fullPath;
-                lastItem = contentService.getContentItem(site, currentPath);
+                lastItem = contentService.getContentItem(site, currentPath, 0);
                 if (lastItem == null) {
                     //parentFullPath = (isPreview) ? DmUtils.getPreviewPath(parentFullPath) : parentFullPath;
                     contentService.createFolder(site, parentPath, level);
-                    lastItem = contentService.getContentItem(site, currentPath);
+                    lastItem = contentService.getContentItem(site, currentPath, 0);
                 }
                 parentPath = currentPath;
             }
@@ -484,7 +484,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         // Check if it is already a folder
 
 
-        ContentItemTO itemTO = contentService.getContentItem(site, path);
+        ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         if (itemTO.isFolder()) {
             return contentService.expandRelativeSitePath(site, path);
         }
