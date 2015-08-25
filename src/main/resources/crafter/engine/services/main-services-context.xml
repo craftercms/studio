@@ -14,6 +14,7 @@
     <import resource="classpath:crafter/engine/services/security-context.xml"/>
     <import resource="classpath:crafter/engine/services/scripting-context.xml"/>
     <import resource="classpath:crafter/engine/services/url-transformation-context.xml"/>
+    <import resource="classpath:crafter/engine/services/targeting-context.xml"/>
 
     <!-- ////////////////////////////////// -->
     <!--								 	-->
@@ -48,22 +49,6 @@
         <constructor-arg>
             <bean factory-bean="crafter.properties" factory-method="getAppliedPropertySources"/>
         </constructor-arg>
-    </bean>
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--		   Localization 			-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-
-    <bean id="crafter.contentStoreAdapter.filesystem" class="org.craftercms.engine.i10n.LocalizedContentStoreAdapter">
-        <property name="actualAdapter">
-            <bean class="org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter">
-                <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
-                <property name="metadataFileExtension" value="${crafter.core.store.metadataFile.extension}"/>
-                <property name="descriptorFileExtension" value="${crafter.core.store.descriptorFile.extension}"/>
-            </bean>
-        </property>
     </bean>
 
     <!-- ////////////////////////////////// -->
