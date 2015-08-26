@@ -70,6 +70,11 @@ class SpringWorkflowServices {
         springBackedService.submitToDelete(site, user, requestBody);
     }
 
+    def reject(site, user, requestBody) {
+        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
+        return springBackedService.reject(site, user, requestBody);
+    }
+
     /**
      * create a workflow job
      * @param site - the project ID
@@ -85,6 +90,7 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         return springBackedService.getActiveJobs();
     }
+
 
 }
 

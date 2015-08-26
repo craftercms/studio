@@ -1,5 +1,6 @@
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
+
 REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">'+
 			'<div id=\"acnVersionWrapper\" class=\"acnBox\">'+
 			'<h3>Reject</h3>'+
@@ -136,7 +137,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 								YConnect.asyncRequest(
 										'POST',
 										CStudioAuthoringContext.baseUri +
-										"/service/ui/workflow-actions/reject-items?site=" +
+										CStudioAuthoring.Service.rejectContentServiceUrl+"?site=" +
 										CStudioAuthoringContext.site, 
 										serviceCallback, 
 										jsonSubmitString);
