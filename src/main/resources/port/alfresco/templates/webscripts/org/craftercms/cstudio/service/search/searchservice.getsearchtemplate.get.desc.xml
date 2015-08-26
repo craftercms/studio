@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-search-template</shortname>
-  <description>Get search template</description>
-  <url>/cstudio/search/get-search-template?site={site}</url>
-  <format default="xml">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

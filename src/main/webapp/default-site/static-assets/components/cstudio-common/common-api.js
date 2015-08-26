@@ -1042,11 +1042,18 @@ var YEvent = YAHOO.util.Event;
                     window.location.reload();
                 } else {
 
-                    // soundTone = "false";
-                    // CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window", new Date() + "|" + url + "|" + soundTone + "|" + targetWindowId);
+					// remove server name and port etc
+					if(url.indexOf("//") != -1) {
+						url = url.replace("//","--x--");
+						url = url.substring(url.indexOf("/"));
+						if(url.indexOf("--x--") != -1) {
+							url = "/";
+						}
+						
+					}
 
                     var Topics = crafter.studio.preview.Topics;
-                    window.location = '/studio/preview/#/?page='+url+'/&site='+CStudioAuthoringContext.site;
+                    window.location = '/studio/preview/#/?page='+url+'&site='+CStudioAuthoringContext.site;
                 }
 
             },
@@ -2778,6 +2785,7 @@ var parentSaveCb = {
              *  Used on unload event of the window
              */
             unlockContentItemSync: function(site, path){
+
                 var _self = this;
                 function isLockedByUser(site, path) {
                     var value = false, response, itemTO;
@@ -3562,7 +3570,7 @@ var parentSaveCb = {
              * lookup Content item
              */
             lookupContentItem: function(site, path, callback, isDraft, populateDependencies) {
-
+ 
                 var serviceUri = this.lookupContentItemServiceUri + "?site=" + site + "&path=" + path;
                 if (isDraft) {
                     serviceUri = serviceUri + "&draft=true";

@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-create-folder</shortname>
-  <description>create folder at the give path</description>
-  <url>/cstudio/wcm/content/create-folder?site={site}&amp;path={path}&amp;name={name}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

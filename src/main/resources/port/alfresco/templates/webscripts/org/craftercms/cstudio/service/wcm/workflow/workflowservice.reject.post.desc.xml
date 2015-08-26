@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-reject-workflow</shortname>
-  <description>Reject items in workflow</description>
-  <url>/cstudio/wcm/workflow/reject?site={site}&amp;sub={sub?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

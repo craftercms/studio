@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>delete-content</shortname>
-  <description>Delete content</description>
-  <url>/cstudio/wcm/content/delete-content?site={site}&amp;path={path}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

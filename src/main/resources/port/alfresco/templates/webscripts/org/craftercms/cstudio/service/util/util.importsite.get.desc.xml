@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>importDM</shortname>
-  <description>import DM Content</description>
-  <url>/cstudio/util/import-site?config={config}</url>
-  <format default="html">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

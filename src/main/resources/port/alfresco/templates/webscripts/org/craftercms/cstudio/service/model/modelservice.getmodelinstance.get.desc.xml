@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-model-instance</shortname>
-  <description>Get model instance</description>
-  <url>/cstudio/model/get-model-instance?site={site}&amp;id={id}</url>
-  <format default="xml">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

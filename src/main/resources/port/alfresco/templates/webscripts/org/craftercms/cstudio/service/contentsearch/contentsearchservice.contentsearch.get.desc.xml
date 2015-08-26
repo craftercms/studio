@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>content-search</shortname>
-  <description>search content by multiple search criteria</description>
-  <url>/cstudio/contentsearch/search?site={site}&amp;page={page?}&amp;num={num?}&amp;sort={sort?}&amp;asc={asc?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

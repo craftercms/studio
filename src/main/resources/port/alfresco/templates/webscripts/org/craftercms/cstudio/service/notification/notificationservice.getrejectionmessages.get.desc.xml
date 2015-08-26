@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-rejection-messages</shortname>
-  <description>get canned rejection messages</description>
-  <url>/cstudio/notification/get-rejection-messages?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

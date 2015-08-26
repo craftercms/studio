@@ -1,1 +1,0 @@
-alter table `cstudio_objectstate` modify `path` varchar(2000);

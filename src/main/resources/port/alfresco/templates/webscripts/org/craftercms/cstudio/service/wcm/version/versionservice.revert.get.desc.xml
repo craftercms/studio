@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>DM Revert Version</shortname>
-  <description>DM Revert Version for contetn</description>
-  <url>/cstudio/wcm/version/revert?site={site}&amp;path={path}&amp;version={version}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

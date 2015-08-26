@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>Retrieve Version History</shortname>
-  <description>Retrieve version history for content</description>
-  <url>/cstudio/wcm/version/get-history?site={site}&amp;path={path}&amp;maxhistory={maxhistory}&amp;showMinor={showMinor}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

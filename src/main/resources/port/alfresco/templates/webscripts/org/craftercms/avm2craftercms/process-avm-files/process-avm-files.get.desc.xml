@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>process all the files in the avm project</shortname>
-  <description></description>
-  <url>/avmtocr/processavmfiles/action</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>
