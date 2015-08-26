@@ -1,7 +1,0 @@
-<webscript>
-	<shortname>get-form-definition</shortname>
-	<description>Get XForm Definition from DM</description>
-	<url>/cstudio/form/getformdefintion?formId={formId}</url>
-	<format default="html">argument</format>
-	<authentication>user</authentication>
-</webscript>

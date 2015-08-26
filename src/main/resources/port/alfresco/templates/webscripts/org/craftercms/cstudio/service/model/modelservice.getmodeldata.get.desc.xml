@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-model-data</shortname>
-  <description>Get model data</description>
-  <url>/cstudio/model/get-model-data?site={site}&amp;modelName={modelName}&amp;currentOnly={currentOnly?}&amp;elementName={elementName?}&amp;format={format?}&amp;endLevel={endLevel?}&amp;startLevel={startLevel?}</url>
-  <format default="xml">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

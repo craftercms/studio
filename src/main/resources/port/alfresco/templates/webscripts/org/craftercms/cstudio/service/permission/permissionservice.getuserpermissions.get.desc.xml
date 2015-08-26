@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>user-permissions</shortname>
-  <description>Get user permissions </description>
-  <url>/cstudio/permission/get-user-permissions?site={site}&amp;path={path}&amp;user={user?}&amp;groups={groups?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

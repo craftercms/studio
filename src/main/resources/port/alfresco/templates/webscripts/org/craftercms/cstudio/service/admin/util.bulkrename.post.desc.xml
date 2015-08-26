@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>Bulk rename</shortname>
-  <description>Utility service for renaming pages that are root of subtree with large set of pages</description>
-  <url>/cstudio/util/bulk-rename?site={site}&amp;srcPath={srcPath}&amp;targetPath={targetPath}</url>
-  <format default="html">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

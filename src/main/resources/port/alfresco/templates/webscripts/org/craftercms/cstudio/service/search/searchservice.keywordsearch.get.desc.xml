@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>type-keyword-search</shortname>
-  <description>search content by the given type and the keyword </description>
-  <url>/cstudio/search/{site}/{keyword}?page={page?}&amp;num={num?}&amp;sort={sort?}&amp;asc={asc?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

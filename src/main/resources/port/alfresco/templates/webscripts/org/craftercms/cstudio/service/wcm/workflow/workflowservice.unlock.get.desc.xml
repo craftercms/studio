@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-control-service</shortname>
-  <description>controller for workflow processor</description>
-  <url>/cstudio/wcm/workflow/unlockItem?site={site}&amp;path={path}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

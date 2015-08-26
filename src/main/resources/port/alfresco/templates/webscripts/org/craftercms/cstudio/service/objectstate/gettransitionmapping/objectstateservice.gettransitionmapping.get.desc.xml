@@ -1,8 +1,0 @@
-<webscript>
-    <shortname>get-transition-mapping</shortname>
-    <description>Get Transition Mapping</description>
-    <url>/cstudio/objectstate/get-transition-mapping</url>
-    <format default="json">argument</format>
-    <authentication>user</authentication>
-    <transaction>required</transaction>
-</webscript>

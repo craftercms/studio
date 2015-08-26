@@ -1,1 +1,0 @@
-ALTER TABLE [dbo].[cstudio_copytoenvironment] ALTER column [username] [nvarchar](255);

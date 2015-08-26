@@ -1,1 +1,0 @@
-Started bulk delete process

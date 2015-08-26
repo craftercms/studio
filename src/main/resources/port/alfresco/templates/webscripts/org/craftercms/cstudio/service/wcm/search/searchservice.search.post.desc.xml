@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-search-contnet</shortname>
-  <description>search content by multiple search criteria in wcm</description>
-  <url>/cstudio/wcm/search/search?site={site}&amp;sandbox={sandbox?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

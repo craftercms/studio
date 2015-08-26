@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-change-content-types</shortname>
-  <description>change the content type of the content at the given path</description>
-  <url>/cstudio/wcm/contenttype/change-content-type?site={site}&amp;sub={sub?}&amp;path={path}&amp;contentType={contentType}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

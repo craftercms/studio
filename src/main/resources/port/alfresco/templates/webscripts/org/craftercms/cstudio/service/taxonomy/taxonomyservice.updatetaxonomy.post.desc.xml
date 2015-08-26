@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>update-taxonomy</shortname>
-  <description>Update Taxonomies</description>
-  <url>/cstudio/taxonomy/update-taxonomy?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>
