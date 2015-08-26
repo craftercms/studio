@@ -79,7 +79,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) {
-		return contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+        reloadSiteConfiguration(site);
+        return toRet;
 	}
 
 	@Override	
@@ -690,7 +692,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
                 deploymentEndpointConfig.reloadConfiguration(site);
                 loadSiteDeploymentConfig(site, siteConfig);
             }
-            notificationService.reloadConfiguration(site);
         } else {
             logger.debug("[SITESERVICE] loading site configuration for " + site);
             siteConfig.setSite(site);
@@ -701,10 +702,10 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
             deploymentEndpointConfig.reloadConfiguration(site);
             this.loadSiteDeploymentConfig(site, siteConfig);
             this.sitesMappings.put(site, siteConfig);
-            notificationService.reloadConfiguration(site);
-            securityService.reloadConfiguration(site);
-            contentTypeService.reloadConfiguration(site);
         }
+        notificationService.reloadConfiguration(site);
+        securityService.reloadConfiguration(site);
+        contentTypeService.reloadConfiguration(site);
     }
 
     @Override
