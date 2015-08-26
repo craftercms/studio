@@ -32,13 +32,22 @@
    <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css" type="text/css" rel="stylesheet">
    <link href="/studio/static-assets/yui/container/assets/container.css" type="text/css" rel="stylesheet">
 
-
+    <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
+    <script src="${path}en/base.js"></script>
+    <script src="${path}kr/base.js"></script>
+    <script src="${path}es/base.js"></script>
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
 
     <#if mode == "act" >
       <#include "/templates/web/common/page-fragments/context-nav.ftl" />
     </#if>
+
+    <script>
+        var CMgs = CStudioAuthoring.Messages,
+                siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
+    </script>
+
 </head>
 
 <body class="yui-skin-cstudioTheme skin-browse">
