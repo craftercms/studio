@@ -1044,8 +1044,12 @@ var YEvent = YAHOO.util.Event;
 
 					// remove server name and port etc
 					if(url.indexOf("//") != -1) {
-						url = url.replace("//","--");
+						url = url.replace("//","--x--");
 						url = url.substring(url.indexOf("/"));
+						if(url.indexOf("--x--") != -1) {
+							url = "/";
+						}
+						
 					}
 
                     var Topics = crafter.studio.preview.Topics;
