@@ -2146,7 +2146,7 @@ var parentSaveCb = {
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
+                var serviceUri = CStudioAuthoring.Service.createFolderServiceUrl;
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
@@ -2300,6 +2300,7 @@ var parentSaveCb = {
             changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
             submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
             deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
+            createFolderServiceUrl: "/api/1/services/api/1/content/create-folder.json",
             
             // ORDER SERVICES
             // READ
@@ -2335,6 +2336,7 @@ var parentSaveCb = {
             getWorkflowAffectedPathsServiceUrl: "/api/1/services/api/1/workflow/get-workflow-affected-paths.json",
             createWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/create-jobs.json",
             getWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/get-active-jobs.json",
+            rejectContentServiceUrl: "/api/1/services/api/1/workflow/reject.json",
 
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
