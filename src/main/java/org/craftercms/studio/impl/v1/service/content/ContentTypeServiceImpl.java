@@ -178,7 +178,11 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
 
     @Override
     public List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException {
+        long start = System.currentTimeMillis();
         this.getAllContentTypes(site);
+        long duration = System.currentTimeMillis() - start;
+        logger.warn("getAllContentTypes duration: " + duration);
+        start = System.currentTimeMillis();
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
@@ -222,8 +226,12 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                     }
                 }
             }
+            duration = System.currentTimeMillis() - start;
+            logger.warn("Other calculation duration: " + duration);
             return contentTypes;
         } else {
+            duration = System.currentTimeMillis() - start;
+            logger.warn("Other calculation duration: " + duration);
             logger.error("No content type path configuration is found for site: " + site);
             return null;
         }

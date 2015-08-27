@@ -85,7 +85,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							}
 							
 							// remove unchecked items and dependencies from dependencyJsonObj
-							this.selectedJsonObj = this.clone_obj(this.dependencyJsonObj);
+							this.selectedJsonObj = this.clone_obj_uri(this.dependencyJsonObj);
 							if (this.removeUncheckedItemsFromJsonNew() == -1) { // no items selected
 								return;
 							}

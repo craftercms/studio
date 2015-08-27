@@ -412,6 +412,31 @@ CStudioAuthoring.Dialogs.PublishDialog.prototype.clone_obj = function(obj) {
     return c;
 };
 
+CStudioAuthoring.Dialogs.PublishDialog.prototype.clone_obj_uri = function(obj) {
+    var c = obj instanceof Array ? [] : {};
+    for (var i in obj) {
+        var prop = obj[i];
+        if (typeof prop == 'object') {
+            if (prop instanceof Array) {
+                c[i] = [];
+
+                for (var j = 0; j < prop.length; j++) {
+                    if (typeof prop[j] != 'object') {
+                        c[i].push(prop[j]);
+                    } else {
+                        c[i].push(prop[j].uri);
+                    }
+                }
+            } else {
+                c[i] = this.clone_obj_uri(prop);
+            }
+        } else {
+            c[i] = prop;
+        }
+    }
+    return c;
+};
+
 CStudioAuthoring.Dialogs.PublishDialog.prototype.removeItem = function (jsonArray, browserUri) {
 	for (var i = 0; i < jsonArray.length; i++) {
 		var obj = jsonArray[i];
