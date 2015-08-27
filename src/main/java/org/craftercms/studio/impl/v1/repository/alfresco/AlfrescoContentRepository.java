@@ -1184,7 +1184,9 @@ implements SecurityProvider {
             logger.debug("BOOTSTRAP Processing path: {0}", childPath);
             if (!rootPath.equals(childPath)) {
                 String relativePath = childPath.replace(rootPath, "");
+                relativePath = relativePath.replace(File.separator, "/");
                 String parentPath = child.getParent().replace(rootPath, "");
+                parentPath = parentPath.replace(File.separator, "/");
                 if (StringUtils.isEmpty(parentPath)) {
                     parentPath = "/";
                 }
