@@ -15,9 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.job.CronJobContext;
+
 import scripts.api.SiteServices
 import scripts.api.impl.content.ContentMonitoring
 
-def context = SiteServices.createContext(applicationContext, request)
+def context = applicationContext
 
-return ContentMonitoring.doMonitoringForAllSites(context)
+def user = context.get("cstudioDeployContentToEnvironmentJobs").userName 
+def pw = context.get("cstudioDeployContentToEnvironmentJobs").password
+
+def ticket = sercurityService.authenticate(user, pw)
+
+if (StringUtils.isNotEmpty(ticket)) {
+    CronJobContext cronJobContext = new CronJobContext(ticket)
+    CronJobContext.setCurrent(cronJobContext)
+	
+	ContentMonitoring.doMonitoringForAllSites(context)
+    
+    CronJobContext.clear()
+} 
+else {
+	logger.error("Not able to authenticate user for cron job.")
+}
