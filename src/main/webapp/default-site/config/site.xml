@@ -1,0 +1,32 @@
+<site>
+    <jobs>
+        <jobFolder>
+            <path>/scripts/jobs/every-minute</path>
+            <cronExpression>0 0/1 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-5-minutes</path>
+            <cronExpression>0 0/5 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-10-minutes</path>
+            <cronExpression>0 0/10 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-15-minutes</path>
+            <cronExpression>0 0/15 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-30-minutes</path>
+            <cronExpression>0 0/5 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-hour</path>
+            <cronExpression>0 1 * * * ?</cronExpression>
+        </jobFolder>
+        <jobFolder>
+            <path>/scripts/jobs/every-day</path>
+            <cronExpression>1 * * * * ?</cronExpression>
+        </jobFolder>
+    </jobs>
+</site>
