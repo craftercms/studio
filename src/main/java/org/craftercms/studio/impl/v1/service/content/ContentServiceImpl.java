@@ -680,7 +680,7 @@ public class ContentServiceImpl implements ContentService {
         return getContentItem(site, path, 2);
     }
 
-    @Cacheable(value = "alfrescoCache")
+
     @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
         logger.debug("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
