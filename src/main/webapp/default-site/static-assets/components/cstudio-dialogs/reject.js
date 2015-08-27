@@ -98,21 +98,14 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 									self = this,
 									serviceCallback = {
 										success:function(oResponse) {
-											//hide loading image when submit is clicked.
-											self.hideLoadingImage("reject");
-											//re enable if service failed to submit again
-											YDom.get("golivesubmitButton").disabled = false;
-											YDom.get("golivecancelButton").disabled = false;
-											self.dialog.setBody(oResponse.responseText);
-											self.setFocusOnDefaultButton();
-                                            self.dialog.hide();
+											 window.location.reload(true);
 										},
 										failure: function (oResponse) {
 											self.pageRedirect(oResponse);
 											if (oResponse.status == -1) {
 												alert('Reject is taking longer. The icon status will be updated once the content rejected.');
-												self.dialog.hide();
-												CStudioAuthoring.Operations.pageReload();
+												window.location.reload(true);
+												//CStudioAuthoring.Operations.pageReload();
 											} else {
 												alert('reject items call failed ' + oResponse.statusText);
                                                 self.dialog.hide();
