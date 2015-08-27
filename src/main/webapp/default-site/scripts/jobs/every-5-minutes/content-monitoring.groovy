@@ -19,20 +19,21 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 
 import scripts.api.SiteServices
+import scripts.api.SecurityServices
 import scripts.api.impl.content.ContentMonitoring
 
 def context = applicationContext
-
-def user = context.get("cstudioDeployContentToEnvironmentJobs").userName 
-def pw = context.get("cstudioDeployContentToEnvironmentJobs").password
+def sercurityService = context.get("cstudioSecurityService")
+def job = context.get("cstudioDeployContentToEnvironmentJobs")
+def user = job.userName 
+def pw = job.password
 
 def ticket = sercurityService.authenticate(user, pw)
-
 if (StringUtils.isNotEmpty(ticket)) {
     CronJobContext cronJobContext = new CronJobContext(ticket)
     CronJobContext.setCurrent(cronJobContext)
 	
-	ContentMonitoring.doMonitoringForAllSites(context)
+	ContentMonitoring.doMonitoringForAllSites(context, logger)
     
     CronJobContext.clear()
 } 
