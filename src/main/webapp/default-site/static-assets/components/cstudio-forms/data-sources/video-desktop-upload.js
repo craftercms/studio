@@ -80,13 +80,13 @@ YAHOO.extend(CStudioForms.Datasources.VideoDesktopUpload, CStudioForms.CStudioFo
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

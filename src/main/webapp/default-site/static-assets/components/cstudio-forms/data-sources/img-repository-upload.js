@@ -17,7 +17,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ImgRepoUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Image from repository";
+        return CMgs.format(langBundle, "imageFromRepository");
     },
     
 	/**
@@ -82,13 +82,13 @@ YAHOO.extend(CStudioForms.Datasources.ImgRepoUpload, CStudioForms.CStudioFormDat
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

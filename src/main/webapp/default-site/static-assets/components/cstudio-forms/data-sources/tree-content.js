@@ -182,7 +182,7 @@ YAHOO.extend(CStudioForms.Datasources.TreeContent, CStudioForms.CStudioFormDatas
 	},
 
     getLabel: function() {
-        return "Tree content";
+        return CMgs.format(langBundle, "treeContent");
     },
 
    	getInterface: function() {
@@ -195,7 +195,7 @@ YAHOO.extend(CStudioForms.Datasources.TreeContent, CStudioForms.CStudioFormDatas
 
 	getSupportedProperties: function() {
 		return [
-			{ label: "Taxonomy Name", name: "taxonomyName", type: "string" }
+			{ label: CMgs.format(langBundle, "taxonomyName"), name: "taxonomyName", type: "string" }
 		];
 	},
 

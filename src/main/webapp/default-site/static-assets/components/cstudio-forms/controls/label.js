@@ -61,7 +61,7 @@ YAHOO.extend(CStudioForms.Controls.Label, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Text", name: "text", type: "string" }
+			{ label: CMgs.format(langBundle, "text"), name: "text", type: "string" }
         ];
 	},
 

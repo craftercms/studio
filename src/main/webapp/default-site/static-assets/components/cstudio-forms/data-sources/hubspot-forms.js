@@ -40,7 +40,7 @@ CStudioForms.Datasources.HubspotForms = CStudioForms.Datasources.HubspotForms ||
 YAHOO.extend(CStudioForms.Datasources.HubspotForms, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Hubspot Forms";
+        return CMgs.format(langBundle, "hubspotForms");
     },
 
     getList: function(cb) {
@@ -77,7 +77,7 @@ YAHOO.extend(CStudioForms.Datasources.HubspotForms, CStudioForms.CStudioFormData
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 

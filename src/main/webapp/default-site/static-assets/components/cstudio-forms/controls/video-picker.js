@@ -21,7 +21,7 @@ CStudioForms.Controls.VideoPicker = CStudioForms.Controls.VideoPicker ||
 YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Video";
+        return CMgs.format(langBundle, "video");
     },
 
     _onChange: function(evt, obj) {
@@ -427,14 +427,14 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
 
     getSupportedProperties: function() {
         return [
-            { label: "Data Source", name: "videoManager", type: "datasource:video" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "datasource"), name: "videoManager", type: "datasource:video" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 });

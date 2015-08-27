@@ -1214,7 +1214,19 @@ CStudioAdminConsole.PropertySheet.prototype = {
 
 			
 			var value = (itemProperty.value) ? itemProperty.value : "";
-			this.createRowFn(property.label, property.name, value,  item.defaultValue, property.type,  sheetEl,   function(e, el) { updatePropertyFn(el.fieldName, el.value); });		
+            var propertyLabel = "";
+            if(property.label == "Display Template"){
+                propertyLabel = "displayTemplate";
+            }else if(property.label == "Merge Strategy"){
+                propertyLabel = "mergeStrategy";
+            }else if(property.label == "Show In Nav"){
+                propertyLabel = "showInNav";
+            }else if(property.label == "Descriptor Mapper"){
+                propertyLabel = "descriptorMapper";
+            }else{
+                propertyLabel = property.label;
+            }
+			this.createRowFn(CMgs.format(langBundle,propertyLabel) , property.name, value,  item.defaultValue, property.type,  sheetEl,   function(e, el) { updatePropertyFn(el.fieldName, el.value); });
 		}
 
 	},
@@ -1339,9 +1351,9 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		}
 
 		this.createRowHeading(CMgs.format(langBundle, "sectionBasics"), sheetEl);
-		this.createRowFn("Title", "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn("Description",  "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
-		this.createRowFn("Default Open", "defaultOpen", item.defaultOpen, false, "boolean",  sheetEl,  function(e, el) { item.defaultOpen = el.value; });
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(CMgs.format(langBundle, "description"),  "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
+		this.createRowFn(CMgs.format(langBundle, "defaultOpen"), "defaultOpen", item.defaultOpen, false, "boolean",  sheetEl,  function(e, el) { item.defaultOpen = el.value; });
 
 	},
 
@@ -1371,7 +1383,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		
 
 		//////////////////////
-		this.createRowHeading(CMgs.format(langBundle, "Properties"), sheetEl);
+		this.createRowHeading(CMgs.format(langBundle, "properties"), sheetEl);
 		var type = CStudioAdminConsole.Tool.ContentTypes.types[item.type];
 		var properties = type.getSupportedProperties(),
 			property, itemProperty, value;
@@ -1412,7 +1424,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 			}
 			
 			this.createRowFn(
-				property.label, 
+                CMgs.format(langBundle, property.label),
 				property.name, 
 				value, 
 				property.defaultValue,
@@ -1486,6 +1498,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		
 		var propertyContainerEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(propertyContainerEl, "property-wrapper");
+        if (label.length > 24){YAHOO.util.Dom.addClass(propertyContainerEl, "large");}
 		containerEl.appendChild(propertyContainerEl);
 		
 		var labelEl = document.createElement("div");
