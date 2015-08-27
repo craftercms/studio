@@ -402,9 +402,9 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
     getSupportedProperties: function() {
         return [
-            { label: "Size", name: "size", type: "int", defaultValue: "50" },
-            { label: "Max Length", name: "maxlength", type: "int", defaultValue: "50" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "size"), name: "size", type: "int", defaultValue: "50" },
+            { label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int", defaultValue: "50" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 

@@ -240,13 +240,13 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 	getSupportedProperties: function() {
 		return [
-		   { label: "Readonly", name: "readonly", type: "boolean"}
+		   { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean"}
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

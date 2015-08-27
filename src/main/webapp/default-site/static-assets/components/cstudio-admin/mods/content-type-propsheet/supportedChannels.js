@@ -60,13 +60,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 		var _self = this;
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
 		if(!keyValueDialogEl) {
+            var maskEl = document.createElement("div");
+            maskEl.id = 'channelsDialogMask';
+            maskEl.style.display = 'block';
 			keyValueDialogEl = document.createElement("div");
 			keyValueDialogEl.id = 'keyValueDialog';
 			YAHOO.util.Dom.addClass(keyValueDialogEl, "property-dialog");
-			YAHOO.util.Dom.addClass(keyValueDialogEl, "seethrough");
-			keyValueDialogEl.style.width = "750px";
-			
-			document.body.appendChild(keyValueDialogEl);
+			YAHOO.util.Dom.addClass(keyValueDialogEl, "seethrough channels");
+			keyValueDialogEl.style.width = "780px";
+
+            document.body.appendChild(maskEl);
+            document.body.appendChild(keyValueDialogEl);
 			
 			// copy the values structure
 			keyValueDialogEl.values = [];
@@ -86,7 +90,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 		
 		var titleEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(titleEl, "property-dialog-title");
-		titleEl.innerHTML = "Supported Channels";
+		titleEl.innerHTML = CMgs.format(langBundle, "supportedChannels");
 		keyValueDialogEl.appendChild(titleEl);
 
 		var keyValueDialogContainerEl = document.createElement("div");
@@ -98,24 +102,24 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 		var buttonContainerEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(buttonContainerEl, "property-dialog-button-container");
 		keyValueDialogEl.appendChild(buttonContainerEl);
-		
-		var cancelEl = document.createElement("div");
-		cancelEl.style.right = "120px";
-		YAHOO.util.Dom.addClass(cancelEl, "cstudio-seethrough-dialog-button");
-		cancelEl.innerHTML = "Cancel";
-		buttonContainerEl.appendChild(cancelEl);
-
-		YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
-			_self.context.cancel();
-		}, cancelEl);			
 
 		var saveEl = document.createElement("div");
-		YAHOO.util.Dom.addClass(saveEl, "cstudio-seethrough-dialog-button");
-		saveEl.innerHTML = "Save";
+		YAHOO.util.Dom.addClass(saveEl, "btn btn-primary");
+		saveEl.innerHTML = CMgs.format(formsLangBundle, "save");
 		buttonContainerEl.appendChild(saveEl);
 		YAHOO.util.Event.on(saveEl, 'click', function(evt) {
 			_self.context.save();
-		}, saveEl);			
+		}, saveEl);
+
+        var cancelEl = document.createElement("div");
+        cancelEl.style.right = "120px";
+        YAHOO.util.Dom.addClass(cancelEl, "btn btn-default");
+        cancelEl.innerHTML = CMgs.format(formsLangBundle, "cancel");
+        buttonContainerEl.appendChild(cancelEl);
+
+        YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
+            _self.context.cancel();
+        }, cancelEl);
 	
 	},
 	
@@ -134,23 +138,23 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 
 			var keyTitleEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(keyTitleEl, "property-dialog-col-title");
-			keyTitleEl.innerHTML = "Label";
+			keyTitleEl.innerHTML = CMgs.format(formsLangBundle, "supportedChannelsDialogLabel");
 			keyValueDialogEl.appendChild(keyTitleEl);
 			
 			var valueTitleEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(valueTitleEl, "property-dialog-col-title");
-			valueTitleEl.innerHTML = "Name";
+			valueTitleEl.innerHTML = CMgs.format(formsLangBundle, "supportedChannelsDialogName");
 			keyValueDialogEl.appendChild(valueTitleEl);
 
 			var sizeTitleEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(sizeTitleEl, "property-dialog-col-title");
-			sizeTitleEl.innerHTML = "Size";
+			sizeTitleEl.innerHTML = CMgs.format(formsLangBundle, "supportedChannelsDialogSize");
 			keyValueDialogEl.appendChild(sizeTitleEl);
 
 
 			var addEl = document.createElement("div");
-			YAHOO.util.Dom.addClass(addEl, "property-dialog-add-link");
-			addEl.innerHTML = "Add Another";
+			YAHOO.util.Dom.addClass(addEl, "property-dialog-add-link btn btn-default");
+			addEl.innerHTML = CMgs.format(formsLangBundle, "addAnother");
 			addEl.index = i;
 			
 			YAHOO.util.Event.on(addEl, 'click', function(evt) {
@@ -163,7 +167,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 			if(i!=0) {
 				delEl = document.createElement("img");
 				delEl.src = CStudioAuthoringContext.authoringAppBaseUri 
-						  + "/themes/cstudioTheme/images/icons/delete.png";
+						  + "/static-assets/themes/cstudioTheme/images/icons/delete.png";
 				YAHOO.util.Dom.addClass(delEl, "deleteControl");
 				delEl.index = i;
 				YAHOO.util.Event.on(delEl, 'click', function(evt) {
@@ -243,13 +247,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.SupportedChannel
 
 	cancel: function() {
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
+        var channelsDialogMaskEl = document.getElementById("channelsDialogMask");
+        keyValueDialogEl.parentNode.removeChild(channelsDialogMaskEl);
 		keyValueDialogEl.parentNode.removeChild(keyValueDialogEl);
 	},
 
 	save: function() {
 		var keyValueDialogEl = document.getElementById("keyValueDialog");
+        var channelsDialogMaskEl = document.getElementById("channelsDialogMask");
 		this.value = keyValueDialogEl.values;
 		this.valueEl.value = this.valueToString(keyValueDialogEl.values);
+        keyValueDialogEl.parentNode.removeChild(channelsDialogMaskEl);
 		keyValueDialogEl.parentNode.removeChild(keyValueDialogEl);
 		this.updateFn(null, { fieldName: this.fieldName, value: this.valueToJsonString(this.value)      }   );
 	}

@@ -45,7 +45,7 @@ CStudioForms.Datasources.SalesforceCampaigns = CStudioForms.Datasources.Salesfor
 YAHOO.extend(CStudioForms.Datasources.SalesforceCampaigns, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Salesforce Campaigns";
+        return CMgs.format(langBundle, "salesforceCampaigns");
     },
 
     getList: function(cb) {
@@ -82,7 +82,7 @@ YAHOO.extend(CStudioForms.Datasources.SalesforceCampaigns, CStudioForms.CStudioF
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 

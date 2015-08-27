@@ -209,16 +209,16 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Display Size", name: "size", type: "int", defaultValue: "50" },
-			{ label: "Max Length", name: "maxlength", type: "int",  defaultValue: "50" },
-			{ label: "Readonly", name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "displaySize"), name: "size", type: "int", defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int",  defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
 			];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
-			{ label: "Match Pattern", name: "pattern", type: "string" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "matchPattern"), name: "pattern", type: "string" },
 		];
 	}
 
