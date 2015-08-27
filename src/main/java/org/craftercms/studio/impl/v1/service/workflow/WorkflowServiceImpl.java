@@ -2140,7 +2140,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
         boolean contentExists = contentService.contentExists(site, dmDependencyTO.getUri());
         if (contentExists) {
-            ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+            ObjectMetadata properties = null;
+            if (!objectMetadataManager.metadataExist(site, dmDependencyTO.getUri())) {
+                objectMetadataManager.insertNewObjectMetadata(site, dmDependencyTO.getUri());
+            }
+            properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+
             String submittedBy = properties.getSubmittedBy();
             if (sendEmail && StringUtils.isNotEmpty(submittedBy) && StringUtils.isNotEmpty(approver)) {
                 boolean isPreviewable = true;
