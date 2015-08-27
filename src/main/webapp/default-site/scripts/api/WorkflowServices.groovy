@@ -207,7 +207,7 @@ class WorkflowServices {
 		return workflowServicesImpl.submitToDelete(site, user, requestBody);
 	}
 
-	static reject(context, user, site, requestBody) {
+	static reject(context, site, user, requestBody) {
 		def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
 		return workflowServicesImpl.reject(site, user, requestBody);
 	}

@@ -172,4 +172,6 @@ public interface WorkflowService {
      * @throws ServiceException
      */
     ResultTO goLive(final String site, final String request) throws ServiceException;
+
+    ResultTO reject(final String site, final String user, final String request) throws ServiceException;
 }
