@@ -169,7 +169,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
     },
 
     getLabel: function() {
-        return "Child content";
+        return CMgs.format(langBundle, "childContent");
     },
 
    	getInterface: function() {
@@ -182,8 +182,8 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" },
-			{ label: "Default Type", name: "type", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" },
+			{ label: CMgs.format(langBundle, "defaultType"), name: "type", type: "string" }
 		];
 	},
 

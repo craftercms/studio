@@ -1,32 +1,38 @@
 <panel>
-   <modules>
-      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
-     <!--module><moduleName>content-schedule-panel</moduleName><title>Content Scheduling and Effectivity</title></module-->
-      <module><moduleName>component-panel</moduleName><title>Page Components</title></module>
-      <!--module><moduleName>dam-panel</moduleName><title>Images</title>
-        <config>
-             <location>/site/static-assets/images</location>
-         </config>
-      </module-->   
-      <module>
+    <modules>
+        <module>
+            <moduleName>ice-tools-panel</moduleName>
+            <title>inContextEditing</title>
+        </module>
+        <!--module><moduleName>content-schedule-panel</moduleName><title>Content Scheduling and Effectivity</title></module-->
+        <module>
+            <moduleName>component-panel</moduleName>
+            <title>pageComponents</title>
+        </module>
+        <!--module><moduleName>dam-panel</moduleName><title>Images</title>
+          <config>
+               <location>/site/static-assets/images</location>
+           </config>
+        </module-->
+        <module>
             <moduleName>medium-panel</moduleName>
-            <title>Publishing Channel</title>
+            <title>publishingChannel</title>
             <config>
                 <channels>
                     <channel>
-                        <title>Web</title>
+                        <title>web</title>
                         <value>browser</value>
                         <width></width>
                         <height></height>
                     </channel>
                     <channel>
-                        <title>Smart Phone</title>
+                        <title>smartPhone</title>
                         <value>iphone</value>
                         <width>320</width>
                         <height>568</height>
                     </channel>
                     <channel>
-                        <title>Tablet</title>
+                        <title>tablet</title>
                         <value>ipad</value>
                         <width>768</width>
                         <height>1024</height>
@@ -34,37 +40,60 @@
                 </channels>
             </config>
         </module>
-     <module><moduleName>experiments-panel</moduleName><title>Multi-Variant Testing</title>
-     <config>
-           <experiments>
-              <experiment>
-                       <title>Yellow vs Blue Mask on Home</title>
-                          <variations>
-                           <variation><title>Yellow</title><url>/</url></variation>
-                          <variation><title>Blue</title><url>/?c1v1</url></variation>
-                      </variations>
-                </experiment>
+        <module>
+            <moduleName>experiments-panel</moduleName>
+            <title>multiVariantTesting</title>
+            <config>
+                <experiments>
+                    <experiment>
+                        <title>YellowVsBlue</title>
+                        <variations>
+                            <variation>
+                                <title>yellow</title>
+                                <url>/</url>
+                            </variation>
+                            <variation>
+                                <title>blue</title>
+                                <url>/?c1v1</url>
+                            </variation>
+                        </variations>
+                    </experiment>
 
 
-              <experiment>
-                       <title>Faceted Search vs Keyword</title>
-                          <variations>
-                           <variation><title>Faceted</title><url>/</url></variation>
-                          <variation><title>Faceted + Keyword</title><url>/?c1v1</url></variation>
-                          <variation><title>Keyword Only</title><url>/?c1v1</url></variation>
-                      </variations>
-                </experiment>
+                    <experiment>
+                        <title>FacetedVsKeyword</title>
+                        <variations>
+                            <variation>
+                                <title>faceted</title>
+                                <url>/</url>
+                            </variation>
+                            <variation>
+                                <title>facetedKeyword</title>
+                                <url>/?c1v1</url>
+                            </variation>
+                            <variation>
+                                <title>keywordOnly</title>
+                                <url>/?c1v1</url>
+                            </variation>
+                        </variations>
+                    </experiment>
 
-           </experiments>
-         </config>     
-     </module>
-     <!-- module><moduleName>analytics-panel</moduleName><title>Analytics</title></module-->
-     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+                </experiments>
+            </config>
+        </module>
+        <!-- module><moduleName>analytics-panel</moduleName><title>Analytics</title></module-->
+        <module>
+            <moduleName>targeting-panel</moduleName>
+            <title>targeting</title>
+        </module>
 
- <!-- module><moduleName>annotate-panel</moduleName><title>Annotation</title></module-->
- <module><moduleName>translation-panel</moduleName><title>Translation</title></module>
-   
-<!-- module><moduleName>campaigns-panel</moduleName><title>Campaings</title></module-->    
-     
-   </modules>
+        <!-- module><moduleName>annotate-panel</moduleName><title>Annotation</title></module-->
+        <module>
+            <moduleName>translation-panel</moduleName>
+            <title>translation</title>
+        </module>
+
+        <!-- module><moduleName>campaigns-panel</moduleName><title>Campaings</title></module-->
+
+    </modules>
 </panel>

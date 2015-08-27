@@ -1,7 +1,0 @@
-<webscript>
-  <shortname>Writes Content</shortname>
-  <description>Currently we have write content for XML and upload Asset for images, css etc.  upload asset requires a form to post content and is not an great interface for simple content uploads like ftl, or in line css editing</description>
-  <url>/cstudio/wcm/content/write-content-asset?site={site}&amp;path={path}</url>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

@@ -6,7 +6,7 @@ import scripts.api.ContentServices
 import javax.imageio.ImageIO
 
 def req = request 
-def site = "pluton"
+def site = params.site
 def imgPath = params.path
 def t = params.t.toInteger()
 def l = params.l.toInteger()

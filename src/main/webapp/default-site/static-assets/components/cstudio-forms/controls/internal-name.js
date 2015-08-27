@@ -24,7 +24,7 @@ YAHOO.extend(CStudioForms.Controls.InternalName, CStudioForms.CStudioFormField, 
     },
 
     getLabel: function() {
-        return "Internal Name";
+        return CMgs.format(langBundle, "internalName");
     },
 
 	_onChange: function(evt, obj) {
@@ -213,8 +213,8 @@ YAHOO.extend(CStudioForms.Controls.InternalName, CStudioForms.CStudioFormField, 
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Display Size", name: "size", type: "int", defaultValue: "50" },
-			{ label: "Max Length", name: "maxlength", type: "int",  defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "displaySize"), name: "size", type: "int", defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int",  defaultValue: "50" },
 			];
 	},
 

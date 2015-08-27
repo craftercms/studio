@@ -432,6 +432,7 @@ var YEvent = YAHOO.util.Event;
          * common operations
          */
         Operations: {
+
             _showDialogueView: function(oRequest, setZIndex, dialogWidth){
                 var width = (dialogWidth) ? dialogWidth : "602px";
                 var Loader = CSA.Env.Loader,
@@ -1041,11 +1042,18 @@ var YEvent = YAHOO.util.Event;
                     window.location.reload();
                 } else {
 
-                    // soundTone = "false";
-                    // CStudioAuthoring.Utils.Cookies.createCookie("cstudio-main-window", new Date() + "|" + url + "|" + soundTone + "|" + targetWindowId);
+					// remove server name and port etc
+					if(url.indexOf("//") != -1) {
+						url = url.replace("//","--x--");
+						url = url.substring(url.indexOf("/"));
+						if(url.indexOf("--x--") != -1) {
+							url = "/";
+						}
+						
+					}
 
                     var Topics = crafter.studio.preview.Topics;
-                    window.location = '/studio/preview/#/?page='+url+'/&site='+CStudioAuthoringContext.site;
+                    window.location = '/studio/preview/#/?page='+url+'&site='+CStudioAuthoringContext.site;
                 }
 
             },
@@ -2138,7 +2146,7 @@ var parentSaveCb = {
                 if (path.lastIndexOf(".") > 0) {
                     path = path.substring(0, path.lastIndexOf("/"));
                 }
-                var serviceUri = "/api/1/services/api/1/content/create-folder.json";
+                var serviceUri = CStudioAuthoring.Service.createFolderServiceUrl;
                 var openCreateFolderDialogCb = {
                     moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(moduleConfig.site, moduleConfig.path, moduleConfig.serviceUri, moduleConfig.callingWindow, moduleConfig.callback);
@@ -2292,6 +2300,7 @@ var parentSaveCb = {
             changeContentTypeUrl: "/api/1/services/api/1/content/change-content-type.json",
             submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
             deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
+            createFolderServiceUrl: "/api/1/services/api/1/content/create-folder.json",
             
             // ORDER SERVICES
             // READ
@@ -2327,6 +2336,7 @@ var parentSaveCb = {
             getWorkflowAffectedPathsServiceUrl: "/api/1/services/api/1/workflow/get-workflow-affected-paths.json",
             createWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/create-jobs.json",
             getWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/get-active-jobs.json",
+            rejectContentServiceUrl: "/api/1/services/api/1/workflow/reject.json",
 
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
@@ -2739,6 +2749,12 @@ var parentSaveCb = {
                     success: function(response) {
                         var res = response.responseText || "null";  // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
                         callback.success(YAHOO.lang.JSON.parse(res));
+                        try{
+                            CStudioAuthoring.Operations.translateContent(previewLangBundle);
+                        }catch(err){
+
+                        }
+
                     },
                     failure: function(response) {
                         callback.failure(response);
@@ -2771,6 +2787,7 @@ var parentSaveCb = {
              *  Used on unload event of the window
              */
             unlockContentItemSync: function(site, path){
+
                 var _self = this;
                 function isLockedByUser(site, path) {
                     var value = false, response, itemTO;
@@ -3555,7 +3572,7 @@ var parentSaveCb = {
              * lookup Content item
              */
             lookupContentItem: function(site, path, callback, isDraft, populateDependencies) {
-
+ 
                 var serviceUri = this.lookupContentItemServiceUri + "?site=" + site + "&path=" + path;
                 if (isDraft) {
                     serviceUri = serviceUri + "&draft=true";
@@ -5585,30 +5602,30 @@ var parentSaveCb = {
                 var status = "";
 
                 if (contentTO.deleted == true) {
-                    return status + "Deleted";
+                    return status + CMgs.format(siteDropdownLangBundle, "statusDeleted");
                 } else if (contentTO.submittedForDeletion == true) {
                     if(contentTO.scheduled ==  true){
-                        status = status + "Scheduled for Delete";
+                        status = status + CMgs.format(siteDropdownLangBundle, "statusScheduledForDelete");
                     } else {
-                        status = status + "Submitted for Delete";
+                        status = status + CMgs.format(siteDropdownLangBundle, "statusSubmittedForDelete");
                     }
 
                     //Disabled string not required in status to show on nav bar
                     if (!navbarStatus && contentTO.disabled == true) {
-                        status = status + " and Disabled";
+                        status = status + " " + CMgs.format(siteDropdownLangBundle, "statusAndDisabled");
                     }
                     return status;
                 } else if (contentTO.inFlight == true) {
-                    status = status + "Processing";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusProcessing");
                     //Disabled string not required in status to show on nav bar
                     if (!navbarStatus && contentTO.disabled == true) {
-                        status = status + " and Disabled";
+                        status = status + " " + CMgs.format(siteDropdownLangBundle, "statusAndDisabled");
                     }
                     return status;
                 } else if (contentTO.inProgress == true) {
-                    status = status + "In Progress";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusInProgress");
                 } else if (contentTO.live == true) {
-                    status = status + "Live";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusLive");
                 }
 
                 if (contentTO.submitted == true) {
@@ -5617,11 +5634,11 @@ var parentSaveCb = {
                     }
                     else {
                         if (status.length > 0) {
-                            status = status + " and ";
+                            status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                         }
                     }
 
-                    status = status + "Submitted";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusSubmitted");
                 }
 
                 if (contentTO.scheduled == true) {
@@ -5630,23 +5647,23 @@ var parentSaveCb = {
                     }
 
                     if (status.length > 0) {
-                        status = status + " and ";
+                        status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                     }
 
-                    status = status + "Scheduled";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusScheduled");
                 }
 
                 //Disabled string not required in status to show on nav bar
                 if (!navbarStatus && contentTO.disabled == true) {
                     if (status.length > 0) {
-                        status = status + " and ";
+                        status = status + " " +CMgs.format(siteDropdownLangBundle, "statusAnd") + " ";
                     }
 
-                    status = status + "Disabled";
+                    status = status + CMgs.format(siteDropdownLangBundle, "statusDisabled");
                 }
 
                 if (status == "") {
-                    status = "Live";
+                    status = CMgs.format(siteDropdownLangBundle, "statusLive");
                 }
 
                 return status;

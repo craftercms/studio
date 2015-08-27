@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>cancel-editing-content</shortname>
-  <description>cancel editing content</description>
-  <url>/cstudio/wcm/content/cancel-editing?site={site}&amp;path={path}&amp;draft={draft}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

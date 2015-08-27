@@ -145,9 +145,15 @@
             }
         }
 
+        var text = {};
+        text.done = CMgs.format(previewLangBundle, "done");
+        text.components = CMgs.format(previewLangBundle, "components");
+        text.addComponent = CMgs.format(previewLangBundle, "addComponent");
+
         communicator.publish(Topics.START_DRAG_AND_DROP, {
             components: categories,
-            contentModel: initialContentModel
+            contentModel: initialContentModel,
+            translation: text
         });
 
     });
@@ -222,9 +228,18 @@
 
         });
 
-        var path = ('/site/website/' + ((hash.page.indexOf('.html') !== -1)
-            ? hash.page.replace('.html', '.xml')
-            : hash.page+'/index.xml')).replace('//','/');
+        var path = hash.page;
+        
+        if(path.indexOf(".") != -1) {
+        	if(path.indexOf(".html") != -1 || path.indexOf(".xml") != -1 ) {
+        		path = ('/site/website/'+ hash.page).replace('//','/');
+        		path = path.replace('.html', '.xml')
+        	}
+        }
+        else {
+        	path = ('/site/website/'+ hash.page+'/index.xml').replace('//','/');
+        }
+        
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
             success: function(content) {
                 CStudioAuthoring.SelectedContent.setContent(content.item);

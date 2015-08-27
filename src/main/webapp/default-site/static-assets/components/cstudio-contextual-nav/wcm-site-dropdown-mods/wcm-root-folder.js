@@ -86,7 +86,7 @@
                 var parentFolderEl = document.createElement("div");
                 var parentFolderLinkEl = document.createElement("a");
                 parentFolderLinkEl.id = instance.label.toLowerCase() + "-tree"; // should be part of class no?
-                parentFolderLinkEl.innerHTML = instance.label;
+                parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, (instance.label).toLowerCase());
                 parentFolderLinkEl.onclick = Self.onRootFolderClick;
                 parentFolderLinkEl.componentInstance = instance;
 
@@ -972,28 +972,28 @@ treeNode.getHtml = function() {
 					[
                         "<table class='width100 acn-tooltip'>",
                             "<tr>",
-                                "<td class='tooltip-title'>{0}: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+": </td>",
                                 "<td class='acn-width200'>",
                                     "<div class='acn-width200' style='word-wrap: break-word;'>{1}</div>",
                                 "</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Status:</td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
                                 "<td class='acn-width200'>",
                                     "<span class='{2}'></span>",
-                                    "<span style='padding-left:2px;'>{3}</span>",
+                                    "<span style='padding-left:2px; position:relative; bottom:2px;'>{3}</span>",
                                 "</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Last Edited: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
                                 "<td class='acn-width200'>{4}</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Edited by: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
                                 "<td class='acn-width200'>{5}</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Locked by: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lockedBy")+": </td>",
                                 "<td class='acn-width200'>{6}</td>",
                             "</tr>",
                         "</table>"
@@ -1016,20 +1016,20 @@ treeNode.getHtml = function() {
                 return sutils.format([
 					"<table class='width100 acn-tooltip'>",
 						"<tr>",
-							"<td class='tooltip-title'>{0}:</td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+":</td>",
 							"<td class='acn-width200'><div class='acn-width200' style='word-wrap: break-word;'>{1}</div></td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Status:</td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
 							"<td class='acn-width200'><span class='{2}'></span>",
 							"<span style='padding-left:2px;'>{3}</span></td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Last Edited: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
 							"<td class='acn-width200'>{4}</td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Edited by: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
 							"<td class='acn-width200'>{5}</td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Scheduled: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "scheduled")+": </td>",
 							"<td class='acn-width200'>{6}</td>",
 						"</tr>",
 					"</table>"
@@ -1048,7 +1048,7 @@ treeNode.getHtml = function() {
                     p_aArgs.clearContent();
 					var d = document.createElement("div");
 					d.className = "bd context-menu-load-msg";
-					d.innerHTML = 'Loading&hellip;';
+					d.innerHTML = CMgs.format(siteDropdownLangBundle, "loading");
 					menuId.appendChild(d);
 
                     var formPath = oCurrentTextNode.data.formPagePath,
@@ -1322,27 +1322,27 @@ treeNode.getHtml = function() {
                 var menuItems = {
                 	separator: { text: "<div>&nbsp;</div>", disabled:true, classname:"menu-separator" },
 
-					newContentOption: { text: "New&nbsp;Content", onclick: { fn: Self.createContent } },
+					newContentOption: { text: CMgs.format(siteDropdownLangBundle, "newContent"), onclick: { fn: Self.createContent } },
 
-					newFolderOption: { text: "New&nbsp;Folder", onclick: { fn: Self.createContainer } },
+					newFolderOption: { text: CMgs.format(siteDropdownLangBundle, "newFolder"), onclick: { fn: Self.createContainer } },
 
-					editOption: { text: "Edit", onclick: { fn: Self.editContent } },
+					editOption: { text: CMgs.format(siteDropdownLangBundle, "edit"), onclick: { fn: Self.editContent } },
 					
-					viewOption: { text: "View", onclick: { fn: Self.viewContent } },
+					viewOption: { text: CMgs.format(siteDropdownLangBundle, "view"), onclick: { fn: Self.viewContent } },
 					
-					changeTemplateOption: { text: "Change&nbsp;Template", onclick: { fn: Self.changeTemplate, obj:tree } },
+					changeTemplateOption: { text: CMgs.format(siteDropdownLangBundle, "changeTemplate"), onclick: { fn: Self.changeTemplate, obj:tree } },
 
-					deleteOption: { text: "Delete", onclick: { fn: Self.deleteContent, obj:tree } },
+					deleteOption: { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: Self.deleteContent, obj:tree } },
 
-					cutOption: { text: "Cut", onclick: { fn: Self.cutContent, obj:tree } },
+					cutOption: { text: CMgs.format(siteDropdownLangBundle, "cut"), onclick: { fn: Self.cutContent, obj:tree } },
 					
-					copyOption: { text: "Copy", onclick: { fn: Self.copyTree, obj:tree } },
+					copyOption: { text: CMgs.format(siteDropdownLangBundle, "copy"), onclick: { fn: Self.copyTree, obj:tree } },
 					
-					pasteOption: { text: "Paste", onclick: { fn: Self.pasteContent} },
+					pasteOption: { text: CMgs.format(siteDropdownLangBundle, "paste"), onclick: { fn: Self.pasteContent} },
 
-					revertOption: { text: "History", onclick: { fn: Self.revertContent, obj:tree } },
+					revertOption: { text: CMgs.format(siteDropdownLangBundle, "history"), onclick: { fn: Self.revertContent, obj:tree } },
 					
-					unlockOption: { text: "Unlock", onclick: { fn: Self.unlockContent } }
+					unlockOption: { text: CMgs.format(siteDropdownLangBundle, "Unlock"), onclick: { fn: Self.unlockContent } }
 				};
                 p_aArgs.clearContent();
 

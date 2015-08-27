@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get a list of avm forms for a webproject</shortname>
-  <description></description>
-  <url>/avmtocr/webproject/forms/list</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

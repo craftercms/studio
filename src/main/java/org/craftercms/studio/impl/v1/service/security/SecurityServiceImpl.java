@@ -113,7 +113,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
         Set<String> groups = securityProvider.getUserGroups(user);
-        if (rolesConfig != null) {
+        if (rolesConfig != null && groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
                 String groupName = group.replaceFirst("GROUP_", "");

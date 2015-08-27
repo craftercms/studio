@@ -178,7 +178,6 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
 
     @Override
     public List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException {
-        this.getAllContentTypes(site);
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);

@@ -68,12 +68,13 @@
                         CStudioAuthoring.PreviewTools.panelCheckBounds.call(CStudioAuthoring.PreviewTools);
                     });
 
-                    panel.setHeader("Preview Tools");
+                    panel.setHeader('<span data-translation="previewToolsTitle">Preview Tools</span>');
                     panel.render();
 
                     CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/preview-tools/panel.xml", {
                         success: function (config) {
                             this.context.buildModules(config);
+
                             if (ptoOn) {
                                 this.context.turnToolsOn();
                             } else {
@@ -198,7 +199,8 @@
                 var moduleEl = document.createElement("div"),
                     headerEl = document.createElement("div"),
                     toggleEl = document.createElement("a"),
-                    panelEl = document.createElement("div");
+                    panelEl = document.createElement("div"),
+                    previewLangBundle = CMgs.getBundle("previewTools", CStudioAuthoringContext.lang);
 
                 var toggleFn = function (e) {
                     YEvent.preventDefault(e);
@@ -235,7 +237,7 @@
                 YDom.addClass(panelEl, "acn-accordion-panel");
 
                 toggleEl.href = "#";
-                toggleEl.innerHTML = moduleConfig.config.title;
+                toggleEl.innerHTML = '<span data-translation="'+moduleConfig.config.title+'">'+moduleConfig.config.title+'</span>';
                 moduleEl.id = moduleConfig.config.moduleName + '-elem';
                 headerEl.appendChild(toggleEl);
 

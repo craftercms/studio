@@ -1,1 +1,0 @@
-model.loggers = cstudioLogging.getCurrentLoggers();

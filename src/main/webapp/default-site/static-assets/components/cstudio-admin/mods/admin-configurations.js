@@ -44,7 +44,7 @@ CStudioAuthoring.Module.requireModule(
 				containerEl.innerHTML = 
 					"<div class='configuration-window'>" +
 						"<select id='config-list'>" +
-					 		" <option value='' >Select Configuration</option>" +
+					 		" <option value='' >"+CMgs.format(langBundle, "confTabSelectConf")+"</option>" +
 						"</select>" +
 						"<div id='edit-area'>" + 
 							"<div id='menu-area'>" + 
@@ -99,15 +99,15 @@ CStudioAuthoring.Module.requireModule(
 								var index = 1;
 								for (var fileIndex in config.files.file) {
 									var fileConfig = config.files.file[fileIndex];
-									var option = new Option(fileConfig.title, fileConfig.path, false, false);
-									option.setAttribute("description", fileConfig.description);
+									var option = new Option(CMgs.format(langBundle, fileConfig.title), fileConfig.path, false, false);
+									option.setAttribute("description", CMgs.format(langBundle, fileConfig.description));
 									option.setAttribute("sample", fileConfig.samplePath);
 									itemSelectEl.options[index++] = option;
 								}
 							} else if (config.files.file) {
 								var fileConfig = config.files.file;
-								var option = new Option(fileConfig.title, fileConfig.path, false, false);
-								option.setAttribute("description", fileConfig.description);
+								var option = new Option(CMgs.format(langBundle, fileConfig.title), fileConfig.path, false, false);
+								option.setAttribute("description", CMgs.format(langBundle, fileConfig.description));
 								option.setAttribute("sample", fileConfig.samplePath);
 								itemSelectEl.options[1] = option;
 							}
@@ -209,9 +209,9 @@ CStudioAuthoring.Module.requireModule(
 			*/
 			addButtons: function (containerEl, itemSelectEl, editor) {
 				containerEl.innerHTML = 
-					"<button type='submit' id='save-button' class='edit-button'>Save</button>" + 
-					"<button type='submit' id='view-sample-button' class='edit-button'>View Sample</button>" + 
-					"<button type='submit' id='hide-sample-button' class='edit-button'>Hide Sample</button>";
+					"<button type='submit' id='save-button' class='btn btn-primary' style='margin-right:5px;'>"+CMgs.format(formsLangBundle, "save")+"</button>" +
+					"<button type='submit' id='view-sample-button' class='btn btn-primary'>"+CMgs.format(formsLangBundle, "viewSample")+"</button>" +
+					"<button type='submit' id='hide-sample-button' class='btn btn-primary'>"+CMgs.format(formsLangBundle, "hideSample")+"</button>";
 
 				// add button actions
 				var saveButtonEl = document.getElementById("save-button");

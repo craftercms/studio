@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-admin-email-address</shortname>
-  <description>get site admin email address</description>
-  <url>/cstudio/site/get-admin-email-address?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

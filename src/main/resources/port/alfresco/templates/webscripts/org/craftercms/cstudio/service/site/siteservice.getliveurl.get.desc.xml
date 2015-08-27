@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>get-live-server-url</shortname>
-  <description>get content live server URL</description>
-  <url>/cstudio/site/get-live-server-url?site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

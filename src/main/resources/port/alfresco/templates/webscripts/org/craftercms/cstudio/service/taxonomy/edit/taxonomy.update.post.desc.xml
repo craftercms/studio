@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>edit taxonomy</shortname>
-  <description>Edit Taxonomy</description>
-  <url>/cstudio/taxonomy/edit?path={path}&amp;name={name}&amp;disabled={disabled}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

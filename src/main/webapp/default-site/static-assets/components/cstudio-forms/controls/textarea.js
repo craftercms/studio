@@ -18,7 +18,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Text Area";
+        return CMgs.format(langBundle, "textArea");
     },
     
 	_onChange: function(evt, obj) {
@@ -186,17 +186,17 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Columns", name: "cols", type: "int", defaultValue: "50" },
-			{ label: "Rows", name: "rows", type: "int", defaultValue: "5" },
-			{ label: "Max Length", name: "maxlength", type: "int", defaultValue: "100000" },
-			{ label: "Allow Resize", name: "allowResize", type: "boolean", defaultValue: "true" },
-			{ label: "Readonly", name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "columns"), name: "cols", type: "int", defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "rows"), name: "rows", type: "int", defaultValue: "5" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int", defaultValue: "100000" },
+			{ label: CMgs.format(langBundle, "allowResize"), name: "allowResize", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
 			];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

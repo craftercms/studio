@@ -132,7 +132,7 @@ public interface WorkflowService {
 	 */
 	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
 
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
+	public List<String> getWorkflowAffectedPaths(String site, String path);
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -172,4 +172,6 @@ public interface WorkflowService {
      * @throws ServiceException
      */
     ResultTO goLive(final String site, final String request) throws ServiceException;
+
+    ResultTO reject(final String site, final String user, final String request) throws ServiceException;
 }

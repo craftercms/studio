@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -100,6 +99,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_CHILDREN = "children";
     protected String JSON_KEY_SEND_EMAIL = "sendEmail";
     protected String JSON_KEY_USER = "user";
+    protected String JSON_KEY_REASON = "reason";
 
 
 	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
@@ -580,20 +580,28 @@ public class WorkflowServiceImpl implements WorkflowService {
 		// remove submitted aspects from all dependent items
 		if (!processedPaths.contains(path)) {
 			processedPaths.add(path);
-			ContentItemTO item = contentService.getContentItem(site, path);
-			if (item != null) {
+			//if (contentService.contentExists(site, path)) {
 				//removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
 				// cancel workflow if anything is pending
+                long startTime = System.currentTimeMillis();
 				if (cancelWorkflow) {
-					_cancelWorkflow(site, path, item);
+					_cancelWorkflow(site, path);
 				}
-
+                long duration = System.currentTimeMillis() - startTime;
+                logger.warn("_cancelWorkflow Duration 111: {0}", duration);
+/*
+                startTime = System.currentTimeMillis();
 				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
+            duration = System.currentTimeMillis() - startTime;
+            logger.warn("getDependencies Duration 112: {0}", duration);
 				if (depItem != null) {
 					DependencyRules dependencyRules = new DependencyRules(site);
 					dependencyRules.setObjectStateService(objectStateService);
 					dependencyRules.setContentService(contentService);
+                    long startTime1 = System.currentTimeMillis();
 					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
+                    duration = System.currentTimeMillis() - startTime1;
+                    logger.warn("applySubmitRule Duration 113: {0}", duration);
 					List<String> transitionNodes = new ArrayList<String>();
 					for (DmDependencyTO dependencyTO : submittedDeps) {
 						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
@@ -607,21 +615,23 @@ public class WorkflowServiceImpl implements WorkflowService {
 						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
 					}
 				}
-			}
+                duration = System.currentTimeMillis() - startTime;
+                logger.warn("removeFromWorkflow - dependencies Duration 114: {0}", duration);*/
+			//}
 		}
 		return false;
 	}
 
-	protected void _cancelWorkflow(String site, String path, ContentItemTO item) {
-		if (item != null) {
-			List<ContentItemTO> allItemsToCancel = getWorkflowAffectedPaths(site, path);
+	protected void _cancelWorkflow(String site, String path) {
+		//if (contentService.contentExists(site, path)) {
+			List<String> allItemsToCancel = getWorkflowAffectedPaths(site, path);
 			List<String> paths = new ArrayList<String>();
-			for (ContentItemTO affectedItem : allItemsToCancel) {
+			for (String affectedItem : allItemsToCancel) {
 				try {
-					deploymentService.cancelWorkflow(site, affectedItem.getUri());
-					paths.add(affectedItem.getUri());
+					deploymentService.cancelWorkflow(site, affectedItem);
+					paths.add(affectedItem);
 				} catch (DeploymentException e) {
-					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem.getUri() + "], site " + site, e);
+					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
 				}
 			}
 			objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
@@ -653,19 +663,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 					}
 				}*/
 			}
-		}
+		//}
 
 	}
 
 	@Override
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+	public List<String> getWorkflowAffectedPaths(String site, String path) {
 		List<String> affectedPaths = new ArrayList<String>();
-		List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+		//List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+        List<String> filteredPaths = new ArrayList<String>();
 		if (objectStateService.isInWorkflow(site, path)) {
 			affectedPaths.add(path);
 			boolean isNew = objectStateService.isNew(site, path);
-			// TODO: check if item is renamed
-			boolean isRenamed = false; //persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED);
+			boolean isRenamed = objectMetadataManager.isRenamed(site, path);
 			if (isNew || isRenamed) {
 				getMandatoryChildren(site, path, affectedPaths);
 			}
@@ -678,16 +688,16 @@ public class WorkflowServiceImpl implements WorkflowService {
 					candidates.add(p);
 				}
 			}
-			List<String> filteredPaths = new ArrayList<String>();
+
 			for (String cp : candidates) {
 				if (objectStateService.isInWorkflow(site, cp)) {
 					filteredPaths.add(cp);
 				}
 			}
-			affectedItems = getWorkflowAffectedItems(site, filteredPaths);
+			//affectedItems = getWorkflowAffectedItems(site, filteredPaths);
 		}
 
-		return affectedItems;
+		return filteredPaths;
 	}
 
 	private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
@@ -724,8 +734,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 			}
 		}
 	}
-
-	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
+/*
+	protected List<ContentItemTO> getWorkflowAffectedItemsR(String site, List<String> paths) {
 		List<ContentItemTO> items = new ArrayList<>();
 
 		for (String path : paths) {
@@ -734,7 +744,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 		}
 		return items;
 	}
-
+*/
 	@Override
 	public void updateWorkflowSandboxes(String site, String path) {
 		// TODO: copy to live repo node
@@ -1625,8 +1635,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     public boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) {
-        ContentItemTO contentItemTO = contentService.getContentItem(site, url);
-        _cancelWorkflow(site, url, contentItemTO);
+        _cancelWorkflow(site, url);
         return true;
     }
 
@@ -2041,7 +2050,127 @@ public class WorkflowServiceImpl implements WorkflowService {
 		return submitForApproval(site, user, requestBody, true);
 	}
 
-	public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
+    @Override
+    public ResultTO reject(String site, String user, String request) throws ServiceException {
+        ResultTO result = new ResultTO();
+        try {
+            String approver = user;
+            JSONObject requestObject = JSONObject.fromObject(request);
+            String reason = (requestObject.containsKey(JSON_KEY_REASON)) ? requestObject.getString(JSON_KEY_REASON) : "";
+            JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
+            String scheduledDate = null;
+            if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
+                scheduledDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
+            }
+            int length = items.size();
+            if (length > 0) {
+                SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+                List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
+                for (int index = 0; index < length; index++) {
+                    String stringItem = items.optString(index);
+                    //JSONObject item = items.getJSONObject(index);
+                    DmDependencyTO submittedItem = null; //getSubmittedItem(site, item, format, scheduledDate);
+                    submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate);
+                    submittedItems.add(submittedItem);
+                }
+                List<String> paths = new ArrayList<String>();
+                for (DmDependencyTO goLiveItem : submittedItems) {
+                    if (contentService.contentExists(site, goLiveItem.getUri())) {
+                        paths.add(goLiveItem.getUri());
+                    }
+                }
+                objectStateService.setSystemProcessingBulk(site, paths, true);
+                reject(site, submittedItems, reason, approver);
+                objectStateService.setSystemProcessingBulk(site, paths, false);
+                result.setSuccess(true);
+                result.setStatus(200);
+                result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_REJECT));
+            } else {
+                result.setSuccess(false);
+                result.setMessage("No items provided for preparation.");
+            }
+        } catch (JSONException e) {
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    protected void reject(String site, List<DmDependencyTO> submittedItems, String reason, String approver) {
+        if (submittedItems != null) {
+            // for each top level items submitted
+            // add its children and dependencies that must go with the top level
+            // item to the submitted aspect
+            // and only submit the top level items to workflow
+            for (DmDependencyTO dmDependencyTO : submittedItems) {
+                DependencyRules rule = new DependencyRules(site);
+                rejectThisAndReferences(site, dmDependencyTO, rule, approver, reason);
+                List<DmDependencyTO> children = dmDependencyTO.getChildren();
+                if (children != null) {
+                    for (DmDependencyTO child : children) {
+                        rejectThisAndReferences(site, child, rule, approver, reason);
+                    }
+                }
+
+
+            }
+        }
+
+        // TODO: send the reason to the user
+    }
+
+    protected void rejectThisAndReferences(String site, DmDependencyTO dmDependencyTO, DependencyRules rule, String approver, String reason) {
+        _reject(site, dmDependencyTO, approver, true, reason);
+        Set<DmDependencyTO> dependencyTOSet = rule.applyRejectRule(dmDependencyTO);
+        for (DmDependencyTO dependencyTO : dependencyTOSet) {
+            boolean lsendEmail = true;
+            try {
+                String fullPath = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
+                ContentItemTO contentItem = contentService.getContentItem(site, dependencyTO.getUri());
+                lsendEmail = !contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset();
+            } catch (Exception e) {
+                logger.error("during rejection, content retrieve failed");
+                lsendEmail = false;
+            }
+            _reject(site, dependencyTO, approver, lsendEmail, reason);
+        }
+    }
+
+    protected void _reject(String site, DmDependencyTO dmDependencyTO, String approver, boolean sendEmail, String reason) {
+        String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
+        boolean contentExists = contentService.contentExists(site, dmDependencyTO.getUri());
+        if (contentExists) {
+            ObjectMetadata properties = null;
+            if (!objectMetadataManager.metadataExist(site, dmDependencyTO.getUri())) {
+                objectMetadataManager.insertNewObjectMetadata(site, dmDependencyTO.getUri());
+            }
+            properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+
+            String submittedBy = properties.getSubmittedBy();
+            if (sendEmail && StringUtils.isNotEmpty(submittedBy) && StringUtils.isNotEmpty(approver)) {
+                boolean isPreviewable = true;
+                try {
+                    ContentItemTO contentItem = contentService.getContentItem(site, dmDependencyTO.getUri());
+                    isPreviewable = contentItem.isPreviewable();
+                } catch (Exception e) {
+                    logger.error("Item cannot be retrieved during rejection notification" + path);
+
+                }
+                notificationService.sendRejectionNotification(site, submittedBy, dmDependencyTO.getUri(), reason, approver, isPreviewable);
+            }
+            Map<String, Object> newProps = new HashMap<String, Object>();
+            newProps.put(ObjectMetadata.PROP_SUBMITTED_BY, "");
+            newProps.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
+            newProps.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+            newProps.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
+            objectMetadataManager.setObjectMetadata(site, dmDependencyTO.getUri(), newProps);
+            ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
+            objectStateService.transition(site, item, TransitionEvent.REJECT);
+        }
+        dmWorkflowListener.postReject(site, dmDependencyTO);
+    }
+
+    public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 //	public void setDmWorkflowService(DmWorkflowService service) { _dmSimpleWfService = service; }
 

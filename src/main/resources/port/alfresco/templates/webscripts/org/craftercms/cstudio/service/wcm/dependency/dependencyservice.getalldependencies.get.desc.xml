@@ -1,7 +1,0 @@
-<webscript>
-  <shortname>get-all-dependencies</shortname>
-  <description>Get all dependencies Service Webscript for CStudio</description>
-  <url>/cstudio/dependencies/getalldependencies?site={site?}&amp;path={path?}&amp;resultstyle={resultstyle}</url>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

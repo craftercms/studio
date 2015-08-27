@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>set logger list</shortname>
-  <description>set Logger List</description>
-  <url>/cstudio/logging/set-level</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

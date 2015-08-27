@@ -230,17 +230,17 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							var overlayHtml = "";
 							if(reportContainerEl) {
 								overlayHtml = 
-									"<div class='persona-container'><div style='font-weight: bold; font-size: 20px; margin: 15px;'>Persona: "+item.personaName;
+									"<div class='persona-container'><div style='font-weight: bold; font-size: 20px; margin: 15px;'>"+CMgs.format(previewLangBundle, "persona")+": "+item.personaName;
 									
 									if(carousel.activePersona.username == item.personaName) {
-										overlayHtml +=	" (Active) "
+										overlayHtml +=	" ("+CMgs.format(previewLangBundle, "active")+") "
 									}
 									
 								overlayHtml +=	
 									"</div>" +
 									"<img src='" + carousel.getImageFn(item) + "'\>" +
 									"<div style='font-size: 15px; margin: 15px;'>"+item.personaDescription+"</div>" +
-									"<div style='font-weight: bold; font-size: 20px;'>Properties</div>";
+									"<div style='font-weight: bold; font-size: 20px;'>"+CMgs.format(previewLangBundle, "properties")+"</div>";
 									
 									
 									
@@ -281,11 +281,11 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
 									if(carousel.activePersona.username != item.personaName) {
 										overlayHtml +=	
-									"<div id='csupdatepersona' class='btn btn-primary'>Assume</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>"+CMgs.format(previewLangBundle, "assume")+"</div>";
 									}
 									else {
 									overlayHtml +=	
-									"<div id='csupdatepersona' class='btn btn-primary'>Update</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>"+CMgs.format(previewLangBundle, "update")+"</div>";
 									}
 									//overlayHtml += "<div id='cscancel' class='btn btn-default'>Cancel</div>";
 

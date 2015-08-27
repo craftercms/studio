@@ -355,7 +355,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (isLive) {
                 contentService.deleteContent(item.getSite(), item.getPath());
                 if (!haschildren) {
-                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""), false);
                 }
             }
         } else {

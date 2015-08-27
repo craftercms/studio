@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-go-live</shortname>
-  <description>approve WCM items to go live </description>
-  <url>/cstudio/wcm/workflow/go-live?site={site}&amp;sub={sub?}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

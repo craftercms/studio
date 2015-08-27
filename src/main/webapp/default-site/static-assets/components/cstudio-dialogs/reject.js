@@ -1,5 +1,6 @@
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
+
 REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">'+
 			'<div id=\"acnVersionWrapper\" class=\"acnBox\">'+
 			'<h3>Reject</h3>'+
@@ -84,7 +85,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 							}
 							
 							// remove unchecked items and dependencies from dependencyJsonObj
-							this.selectedJsonObj = this.clone_obj(this.dependencyJsonObj);
+							this.selectedJsonObj = this.clone_obj_uri(this.dependencyJsonObj);
 							if (this.removeUncheckedItemsFromJsonNew() == -1) { // no items selected
 								return;
 							}
@@ -97,21 +98,14 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 									self = this,
 									serviceCallback = {
 										success:function(oResponse) {
-											//hide loading image when submit is clicked.
-											self.hideLoadingImage("reject");
-											//re enable if service failed to submit again
-											YDom.get("golivesubmitButton").disabled = false;
-											YDom.get("golivecancelButton").disabled = false;
-											self.dialog.setBody(oResponse.responseText);
-											self.setFocusOnDefaultButton();
-                                            self.dialog.hide();
+											 window.location.reload(true);
 										},
 										failure: function (oResponse) {
 											self.pageRedirect(oResponse);
 											if (oResponse.status == -1) {
 												alert('Reject is taking longer. The icon status will be updated once the content rejected.');
-												self.dialog.hide();
-												CStudioAuthoring.Operations.pageReload();
+												window.location.reload(true);
+												//CStudioAuthoring.Operations.pageReload();
 											} else {
 												alert('reject items call failed ' + oResponse.statusText);
                                                 self.dialog.hide();
@@ -136,7 +130,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 								YConnect.asyncRequest(
 										'POST',
 										CStudioAuthoringContext.baseUri +
-										"/service/ui/workflow-actions/reject-items?site=" +
+										CStudioAuthoring.Service.rejectContentServiceUrl+"?site=" +
 										CStudioAuthoringContext.site, 
 										serviceCallback, 
 										jsonSubmitString);

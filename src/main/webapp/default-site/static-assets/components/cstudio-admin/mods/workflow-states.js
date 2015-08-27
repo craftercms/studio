@@ -28,7 +28,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 	renderJobsList: function() {
 		
 		var actions = [
-				{ name: "Set States", context: this, method: this.setStates }
+				{ name: CMgs.format(formsLangBundle, "setStatedDialogSetStates"), context: this, method: this.setStates }
 		];
 		CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 			
@@ -41,10 +41,10 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 		stateLisEl.innerHTML = 
 		"<table id='statesTable' class='cs-statelist'>" +
 			 	"<tr>" +
-				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.WorkflowStates.selectAll(); return false;'>Select All</a></th>" +
-				 	"<th class='cs-statelist-heading'>ID</th>" +
-    			 	"<th class='cs-statelist-heading'>State</th>" +
-				 	"<th class='cs-statelist-heading'>System Processing</th>" +
+				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.WorkflowStates.selectAll(); return false;'>"+CMgs.format(langBundle, "setStatedTabSelectAll")+"</a></th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabID")+"</th>" +
+    			 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabState")+"</th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabSystemProcessing")+"</th>" +
 				 "</tr>" + 
 			"</table>";
 	
@@ -62,7 +62,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.path+"' /></td>" +
 				 			"<td class='cs-statelist-detail-id'>" + state.path + "</td>" +
 				 			"<td class='cs-statelist-detail'>" + state.state + "</td>" +
-				 			"<td class='cs-statelist-detail'>" + (state.systemProcessing=="1") + "</td>";
+				 			"<td class='cs-statelist-detail'>" + CMgs.format(langBundle, (state.systemProcessing=="1").toString()) + "</td>";
 				 		trEl.innerHTML = rowHTML;
 				 		statesTableEl.appendChild(trEl);
 					}
@@ -126,7 +126,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 	    		"<option value='EXISTING_PUBLISHING_FAILED'>EXISTING_PUBLISHING_FAILED</option>" +
 	    		"<option value='EXISTING_DELETED'>EXISTING_DELETED</option>" +
 	    	"</select><br/>" +
-	    	"System Processing: <input id='setProcessing' type='checkbox' value='false'/>" +
+            CMgs.format(formsLangBundle, "setStatedDialogSystemProcessing")+": <input id='setProcessing' type='checkbox' value='false'/>" +
 	    "</div>";
 		
 		var handleSet = function() {
@@ -156,12 +156,12 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 		};
 
 		var myButtons = [
-    		{ text: "Set States", handler: handleSet },
-    		{ text:"Cancel", handler: handleCancel, isDefault:true}
+    		{ text: CMgs.format(formsLangBundle, "setStatedDialogSetStates"), handler: handleSet },
+    		{ text: CMgs.format(formsLangBundle, "cancel"), handler: handleCancel, isDefault:true}
 		];
 
 		mySimpleDialog.cfg.queueProperty("buttons", myButtons);
-		mySimpleDialog.setHeader("Select States");
+		mySimpleDialog.setHeader(CMgs.format(formsLangBundle, "setStatedDialogTitle"));
 		mySimpleDialog.setBody(html);
 		mySimpleDialog.render(document.body);
 		mySimpleDialog.show();

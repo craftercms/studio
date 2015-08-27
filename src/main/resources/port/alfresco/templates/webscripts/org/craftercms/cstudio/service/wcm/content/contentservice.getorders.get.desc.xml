@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>wcm-get-orders</shortname>
-  <description>get the order at the given path</description>
-  <url>/cstudio/wcm/content/get-orders?site={site}&amp;path={path}&amp;sub={sub?}&amp;order={order}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

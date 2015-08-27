@@ -117,6 +117,8 @@ public interface ContentService {
      */
     boolean deleteContent(String site, String path);
 
+    boolean deleteContent(String site, String path, boolean generateActivity);
+
     /**
      * copy content fromPath to toPath
      *

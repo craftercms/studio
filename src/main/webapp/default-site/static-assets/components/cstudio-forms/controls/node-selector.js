@@ -38,7 +38,7 @@ CStudioForms.Controls.NodeSelector.prototype = {
 YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Item Selector";
+        return CMgs.format(langBundle, "itemSelector");
     },
 
     getRequirementCount: function() {
@@ -506,18 +506,18 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
     getSupportedProperties: function() {
         return [
-            { label: "Min Size", name: "minSize", type: "int" },
-            { label: "Max Size", name: "maxSize", type: "int" },
-            { label: "Item Manager", name: "itemManager", type: "datasource:item" },
-            { label: "Readonly", name: "readonly", type: "boolean" },
-            { label: "Disable Flattening for Search", name: "disableFlattening", type: "boolean" },
-            { label: "Use single value filename (backward compat)", name: "useSingleValueFilename", type: "boolean" }           
+            { label: CMgs.format(langBundle, "minSize"), name: "minSize", type: "int" },
+            { label: CMgs.format(langBundle, "maxSize"), name: "maxSize", type: "int" },
+            { label: CMgs.format(langBundle, "itemManager"), name: "itemManager", type: "datasource:item" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
+            { label: CMgs.format(langBundle, "disableFlatteningSearch"), name: "disableFlattening", type: "boolean" },
+            { label: CMgs.format(langBundle, "singleValueFilename"), name: "useSingleValueFilename", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Allow Duplicates", name: "allowDuplicates", type: "boolean" }
+            { label: CMgs.format(langBundle, "allowDuplicate"), name: "allowDuplicates", type: "boolean" }
         ];
     }
 });

@@ -32,14 +32,14 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
             .addClass('studio-view')
             .append([
                 '<div class="form-group">',
-                '<label class="display-block">Dimensions (px)</label> ',
+                '<label class="display-block">'+CMgs.format(previewLangBundle, "dimensionsPx")+'</label> ',
                 '<input class="form-control channel-width" data-axis="x" placeholder="auto">',
                 ' &times; ',
                 '<input class="form-control channel-height" data-axis="y" placeholder="auto"> ',
                 '<a class="flip"><i class="glyphicon glyphicon-refresh" title="Flip dimensions"></i></a>',
                 '</div>',
                 '<div>',
-                '<label>Presets</label> ',
+                '<label>'+CMgs.format(previewLangBundle, "presets")+'</label> ',
                 '<select class="form-control"></select>',
                 '</div>'
             ].join(''));
@@ -47,10 +47,10 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
         $select = $container.find('select');
 
         $select[0].options[0] = new Option(
-            'Custom', 'custom', false, false);
+            CMgs.format(previewLangBundle, "custom"), 'custom', false, false);
 
         for (var i = 0, label; i < channels.length; i++) {
-            label = channels[i].title;
+            label = CMgs.format(previewLangBundle, channels[i].title);
             $select[0].options[i + 1] = new Option(
                 label, channels[i].value);
         }

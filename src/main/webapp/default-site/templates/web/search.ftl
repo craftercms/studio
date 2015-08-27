@@ -47,6 +47,7 @@
     <script>
       CMgs = CStudioAuthoring.Messages;
       langBundle = CMgs.getBundle("search", CStudioAuthoringContext.lang);
+      siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
 </head>

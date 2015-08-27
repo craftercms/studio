@@ -1,8 +1,0 @@
-<webscript>
-    <shortname>migrate-model</shortname>
-    <description>migrate model</description>
-    <url>/cstudio/wcm/util/timezone?site={site}</url>
-    <format default="json">argument</format>
-    <authentication>user</authentication>
-    <transaction>required</transaction>
-</webscript>

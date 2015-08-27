@@ -144,12 +144,12 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
         try {
             // look up the path content first
-            ContentItemTO parentContentItem = contentService.getContentItem(site, path);
+            ContentItemTO parentContentItem = contentService.getContentItem(site, path, 0);
             if (parentContentItem == null && createFolders) {
                 parentContentItem = createMissingFoldersInPath(site, path, isPreview);
             }
             if (parentContentItem != null /*&& persistenceManagerService.getFileInfo(parentContent).isFolder()*/) {
-                ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + assetName);
+                ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + assetName, 0);
                 if (contentItem != null) {
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock);
                 } else {
@@ -256,7 +256,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             DmPathTO path = new DmPathTO(fullPath);
             if (cancelWorkflow(site, path.getRelativePath())) {
                 workflowService.removeFromWorkflow(site, path.getRelativePath(), true);
-                dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
+                //dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
             } else {
                 if(updateWorkFlow(site,path.getRelativePath())) {
                     workflowService.updateWorkflowSandboxes(site,path.getRelativePath());

@@ -11,7 +11,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.VideoDesktopUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Video uploaded from desktop";
+        return CMgs.format(langBundle, "videoUploadedDesktop");
     },
 
 	/**
@@ -80,13 +80,13 @@ YAHOO.extend(CStudioForms.Datasources.VideoDesktopUpload, CStudioForms.CStudioFo
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

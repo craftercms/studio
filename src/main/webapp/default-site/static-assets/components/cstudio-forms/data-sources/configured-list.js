@@ -41,7 +41,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Configured List of Values";
+        return CMgs.format(langBundle, "configuredListOfPairs");
     },
 
    	getInterface: function() {
@@ -78,7 +78,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 	
 	getSupportedProperties: function() {
 		return [{
-			label: "Data Type",
+			label: CMgs.format(langBundle, "dataType"),
 			name: "dataType",
 			type: "dropdown",
 			defaultValue: [{ // Update this array if the dropdown options need to be updated
@@ -87,27 +87,27 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 				selected: true
 			}, {
 				value: "value_s",
-				label: "String",
+				label: CMgs.format(langBundle, "string"),
 				selected: false
 			}, {
 				value: "value_i",
-				label: "Integer",
+				label: CMgs.format(langBundle, "integer"),
 				selected: false
 			}, {
 				value: "value_f",
-				label: "Float",
+				label: CMgs.format(langBundle, "float"),
 				selected: false
 			}, {
 				value: "value_dt",
-				label: "Date",
+				label: CMgs.format(langBundle, "date"),
 				selected: false
 			}, {
 				value: "value_html",
-				label: "HTML",
+				label: CMgs.format(langBundle, "HTML"),
 				selected: false
 			}]
 		}, {
-			label: "List Name",
+			label: CMgs.format(langBundle, "listName"),
 			name: "listName",
 			type: "string"
 		}];
@@ -115,7 +115,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	},
 	
@@ -126,7 +126,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 		else {
 			cb.success(this.list);
 		}
-	},
+	}
 	
 
 });

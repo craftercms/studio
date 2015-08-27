@@ -26,7 +26,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
 
     getLabel: function() {
-        return "Image";
+        return CMgs.format(langBundle, "image");
     },
 
     _onChange: function(evt, obj) {
@@ -625,18 +625,18 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
     getSupportedProperties: function() {
         return [
-            { label: "Width", name: "width", type: "range" },
-            { label: "Height", name: "height", type: "range" },
-            { label: "Thumbnail Width", name: "thumbnailWidth", type: "int" },
-            { label: "Thumbnail Height", name: "thumbnailHeight", type: "int" },
-            { label: "Data Source", name: "imageManager", type: "datasource:image" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "width"), name: "width", type: "range" },
+            { label: CMgs.format(langBundle, "height"), name: "height", type: "range" },
+            { label: CMgs.format(langBundle, "thumbnailWidth"), name: "thumbnailWidth", type: "int" },
+            { label: CMgs.format(langBundle, "thumbnailHeight"), name: "thumbnailHeight", type: "int" },
+            { label: CMgs.format(langBundle, "datasource"), name: "imageManager", type: "datasource:image" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 });

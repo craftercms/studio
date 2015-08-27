@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>reload site configuration</shortname>
-  <description>reload site configuration</description>
-  <url>/cstudio/site/reload-config</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

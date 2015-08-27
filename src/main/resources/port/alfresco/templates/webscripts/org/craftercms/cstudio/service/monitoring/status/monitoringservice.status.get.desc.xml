@@ -1,7 +1,0 @@
-<webscript>
-  <shortname>monitoring-status</shortname>
-  <description>Returns webapp status</description>
-  <url>/api/1/monitoring/status</url>
-  <authentication>none</authentication>
-  <transaction>none</transaction>
-</webscript>

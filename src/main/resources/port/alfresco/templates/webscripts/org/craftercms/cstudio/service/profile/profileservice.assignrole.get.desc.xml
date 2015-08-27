@@ -1,8 +1,0 @@
-<webscript>
-  <shortname>assign-role</shortname>
-  <description>Assign role to user</description>
-  <url>/cstudio/profile/assign-role?user={user}&amp;role={role}&amp;site={site}</url>
-  <format default="json">argument</format>
-  <authentication>user</authentication>
-  <transaction>required</transaction>
-</webscript>

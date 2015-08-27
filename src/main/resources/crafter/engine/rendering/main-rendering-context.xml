@@ -107,4 +107,25 @@
         </property>
     </bean>
 
+    <bean id="crafter.coreObjectMapper" class="org.craftercms.commons.jackson.CustomSerializationObjectMapper">
+        <property name="dateFormat">
+            <bean class="java.text.SimpleDateFormat">
+                <constructor-arg value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
+            </bean>
+        </property>
+        <property name="serializers">
+            <list>
+                <bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
+                <bean class="org.craftercms.core.util.json.jackson.Dom4jDocumentJsonSerializer"/>
+            </list>
+        </property>
+        <property name="deserializers">
+            <map>
+                <entry key="org.bson.types.ObjectId">
+                    <bean class="org.craftercms.commons.jackson.ObjectIdDeserializer"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
 </beans>

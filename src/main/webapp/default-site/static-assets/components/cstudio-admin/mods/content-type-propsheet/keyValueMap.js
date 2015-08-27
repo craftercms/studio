@@ -97,7 +97,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 		
 		var titleEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(titleEl, "property-dialog-title");
-		titleEl.innerHTML = "Values";
+		titleEl.innerHTML = CMgs.format(formsLangBundle, "adminKeyValDialogTitle");
 		keyValueDialogEl.appendChild(titleEl);
 
 		var keyValueDialogContainerEl = document.createElement("div");
@@ -112,7 +112,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 
 		var saveEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(saveEl, "btn btn-primary");
-		saveEl.innerHTML = "Save";
+		saveEl.innerHTML = CMgs.format(formsLangBundle, "save");
 		buttonContainerEl.appendChild(saveEl);
 		YAHOO.util.Event.on(saveEl, 'click', function(evt) {
 			_self.context.save();
@@ -121,7 +121,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
         var cancelEl = document.createElement("div");
         cancelEl.style.marginLeft = "6px";
         YAHOO.util.Dom.addClass(cancelEl, "btn btn-default");
-        cancelEl.innerHTML = "Cancel";
+        cancelEl.innerHTML = CMgs.format(formsLangBundle, "cancel");
         buttonContainerEl.appendChild(cancelEl);
 
         YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
@@ -145,17 +145,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.KeyValueMap, CSt
 
 			var keyTitleEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(keyTitleEl, "property-dialog-col-title");
-			keyTitleEl.innerHTML = "Key";
+			keyTitleEl.innerHTML = CMgs.format(formsLangBundle, "adminKeyValDialogKey");
 			keyValueDialogEl.appendChild(keyTitleEl);
 			
 			var valueTitleEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(valueTitleEl, "property-dialog-col-title");
-			valueTitleEl.innerHTML = "Value";
+			valueTitleEl.innerHTML = CMgs.format(formsLangBundle, "adminKeyValDialogValue");
 			keyValueDialogEl.appendChild(valueTitleEl);
 
 			var addEl = document.createElement("div");
 			YAHOO.util.Dom.addClass(addEl, "property-dialog-add-link btn btn-default");
-			addEl.innerHTML = "Add Another";
+			addEl.innerHTML = CMgs.format(formsLangBundle, "addAnother");
 			addEl.index = i;
 			
 			YAHOO.util.Event.on(addEl, 'click', function(evt) {

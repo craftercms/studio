@@ -40,10 +40,10 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 
 		if (iceOn) {
     	    imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
-    	    labelEl.innerHTML = "In-Context Edit On";
+    	    labelEl.innerHTML = CMgs.format(previewLangBundle, "inContextEditOff");
 		} else {
             imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
-            labelEl.innerHTML = "In-Context Edit Off";
+            labelEl.innerHTML = CMgs.format(previewLangBundle, "inContextEditOn");
 		}
 
 		buttonEl.appendChild(imageEl);
@@ -75,7 +75,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		var templateLabelEl = document.createElement("span");
 
         templateImageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/icons/code-edit.gif";
-    	templateLabelEl.innerHTML = "Edit Template";
+    	templateLabelEl.innerHTML = CMgs.format(previewLangBundle, "editTemplate");
 
         // YDom.addClass(wrapper, 'form-group');
         YDom.addClass(templateButtonEl, 'btn btn-default btn-block');
@@ -98,7 +98,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                         regions.push({id: inside[i].getAttribute('data-studio-ice'), formId: inside[i].getAttribute('data-studio-ice'), label: inside[i].getAttribute('data-studio-ice-label')});
                     }
 
-                    regionSelectEl.options[0] = new Option("Jump to Region", "0", true, false);
+                    regionSelectEl.options[0] = new Option(CMgs.format(previewLangBundle, "jumpToRegion"), "0", true, false);
                     for (var i = 0; i < regions.length; i++) {
                         var label = (regions[i].label)
                             ? regions[i].label
@@ -151,7 +151,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         CStudioAuthoring.IceTools.IceToolsOffEvent.subscribe(function() {
             imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
             contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit_off.png";
-            labelEl.innerHTML = "In-Context Edit Off";
+            labelEl.innerHTML = CMgs.format(previewLangBundle, "inContextEditOn");
 
             amplify.publish(cstopic('ICE_TOOLS_OFF'));
 
@@ -161,7 +161,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
             imageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
             contextNavImg.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/edit.png";
             YDom.replaceClass(containerEl.parentNode, 'contracted', 'expanded');
-            labelEl.innerHTML = "In-Context Edit On";
+            labelEl.innerHTML = CMgs.format(previewLangBundle, "inContextEditOff");
 
             amplify.publish(cstopic('ICE_TOOLS_ON'));
 
