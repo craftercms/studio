@@ -18,7 +18,8 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.profile.api.services.ProfileService;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -32,6 +33,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
+import javax.script.*;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DmMetadataServiceImpl extends AbstractRegistrableService implements DmMetadataService {
@@ -64,48 +67,44 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             }
         }
         contentType = (StringUtils.isEmpty(contentType)) ? getContentType(content) : contentType;
-        /*
-        NodeRef actionedUponNodeRef = (nodeRef != null) ? nodeRef : persistenceManagerService.getNodeRef(dmContentService.getContentFullPath(site, path));
+
+        String actionedUponPath = contentService.expandRelativeSitePath(site, path);
 
         // Find js location
-        NodeRef scriptNodeRef = getScriptRef(site, contentType);
-        if (scriptNodeRef != null) {
-            // find all node references to creat base model
+        String scriptPath = getScriptPath(site, contentType);
+        if (contentService.contentExists(scriptPath)) {
             
-            NodeRef spaceRef = persistenceManagerService.getPrimaryParent(actionedUponNodeRef).getParentRef();
-            ProfileService profileService = getService(ProfileService.class);
-            NodeRef personRef = profileService.getUserRef(user);
-            NodeRef homeSpaceRef = (NodeRef) persistenceManagerService.getProperty(personRef, ContentModel.PROP_HOMEFOLDER);
-            
-            Map<String, Object> model = persistenceManagerService.buildDefaultModel(personRef,
-                    persistenceManagerService.getCompanyHomeNodeRef(), homeSpaceRef, scriptNodeRef,
-                    actionedUponNodeRef, spaceRef);
+            Map<String, Object> model = new HashMap<String, Object>();
             // put any script object needed
-            for (String scriptObjectName : _scriptObjects.keySet()) {
-                model.put(scriptObjectName, _scriptObjects.get(scriptObjectName));
+            for (String scriptObjectName : scriptObjects.keySet()) {
+                model.put(scriptObjectName, scriptObjects.get(scriptObjectName));
             }
-            if (!StringUtils.isEmpty(actionedUponNodeRef.getId())) {
-                model.put(DmConstants.KEY_NODE_REF, actionedUponNodeRef);
+            if (!StringUtils.isEmpty(actionedUponPath)) {
+                model.put(DmConstants.KEY_NODE_REF, actionedUponPath);
             }
             model.put(DmConstants.KEY_SCRIPT_DOCUMENT, content.getDocument());
             model.put(DmConstants.KEY_SITE, site);
             model.put(DmConstants.KEY_PATH, path);
             model.put(DmConstants.KEY_USER, user);
             model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-            model.put(DmConstants.KEY_SCRIPT_NODE, createScriptNode(actionedUponNodeRef));
-            model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
+            //model.put(DmConstants.KEY_SCRIPT_NODE, createScriptNode(actionedUponNodeRef));
+            //model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
             try {
-                persistenceManagerService.executeScript(scriptNodeRef, ContentModel.PROP_CONTENT, model);
+                executeScript(scriptPath, model);
             } catch (Exception e) {
                 throw new ServiceException(e);
             }
         } else {
-            if (logger.isErrorEnabled()) {
-                String scriptLocation = _scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                        .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-                logger.error("No script found at " + scriptLocation + ", contentType: " + contentType);
-            }
-        }*/
+            logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
+        }
+    }
+
+    private void executeScript(String scriptPath, Map<String, Object> model) throws ScriptException {
+        String script = contentService.getContentAsString(scriptPath);
+        ScriptEngineManager factory = new ScriptEngineManager();
+        ScriptEngine engine = factory.getEngineByName("groovy");
+        Bindings bindings = new SimpleBindings(model);
+        engine.eval(script, bindings);
     }
 
     /**
@@ -127,41 +126,23 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
      * get the content metadata extraction script
      *
      * @param contentType
-     * @return nodeRef of the script
-     *//*
-    protected NodeRef getScriptRef(String site, String contentType) {
-        String location = _scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
+     * @return path of the script
+     */
+    protected String getScriptPath(String site, String contentType) {
+        String location = scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
                 .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef node = persistenceManagerService.getNodeRef(location);
-        return node;
-    }*/
-
-    /**
-     * create scriptNode for the given nodeRef
-     *
-     * @param nodeRef
-     * @return scriptNode
-     *//*
-    protected ScriptNode createScriptNode(NodeRef nodeRef) {
-        ServiceRegistry serviceRegistry = getService(ServiceRegistry.class);
-        if (nodeRef.getStoreRef().getProtocol().equals(StoreRef.PROTOCOL_WORKSPACE)) {
-            return new ScriptNode(nodeRef, serviceRegistry);
-        } else {
-        //PORT    return new AVMNode(nodeRef, serviceRegistry);
-            return null;
-        }
-    }*/
+        return location;
+    }
 
     /**
      * metadata extraction script location
      */
-    protected String _scriptLocation;
+    protected String scriptLocation = "";
     public String getScriptLocation() {
-        return _scriptLocation;
+        return scriptLocation;
     }
     public void setScriptLocation(String scriptLocation) {
-        this._scriptLocation = scriptLocation;
+        this.scriptLocation = scriptLocation;
     }
 
     /**

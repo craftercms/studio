@@ -19,11 +19,24 @@ package org.craftercms.studio.impl.v1.service.content;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
 
+import javax.script.*;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService {
@@ -33,12 +46,12 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     /**
      * metadata extraction script location
      */
-    protected String _scriptLocation;
+    protected String scriptLocation;
     public String getScriptLocation() {
-        return _scriptLocation;
+        return scriptLocation;
     }
     public void setScriptLocation(String scriptLocation) {
-        this._scriptLocation = scriptLocation;
+        this.scriptLocation = scriptLocation;
     }
 
     /**
@@ -66,44 +79,42 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         if (StringUtils.isEmpty(contentType)) {
             logger.warn("Skipping content lifecycle script execution. no content type provided for " + site + ":" + path);
             return;
-        }/*
+        }
         // find the script ref based on content type
-        NodeRef scriptNodeRef = getScriptRef(site, contentType);
-        if (scriptNodeRef == null) {
-            if (logger.isErrorEnabled()) {
-                logger.error("No script found at " + _scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                        .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType) + ", contentType: " + contentType);
-            }
+        String scriptPath = getScriptPath(site, contentType);
+        if (contentService.contentExists(scriptPath)) {
+            logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
+
             return;
         }
-        ContentService contentService = getService(ContentService.class);
-        ContentReader contentReader = contentService.getReader(scriptNodeRef, ContentModel.PROP_CONTENT);
-        String script= contentReader.getContentString();
-//        script += "if (controller){" +
-//                     "controller.execute();" +
-//                "};";
+        String script = contentService.getContentAsString(contentService.expandRelativeSitePath(site, scriptPath));
+
         Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
         try {
-            persistenceManagerService.executeScriptString(script, model);
+            executeScriptString(script, model);
         } catch (Exception e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
-            }
-        }*/
+            logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
+        }
+    }
+
+    private void executeScriptString(String script, Map<String, Object> model) throws ScriptException {
+        ScriptEngineManager factory = new ScriptEngineManager();
+        ScriptEngine engine = factory.getEngineByName("groovy");
+        Bindings bindings = new SimpleBindings(model);
+        engine.eval(script, bindings);
     }
 
     /**
      * get the content metadata extraction script
      *
      * @param contentType
-     * @return nodeRef of the script
-     *//*
-    protected NodeRef getScriptRef(String site, String contentType) {
-        String location = _scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
+     * @return path of the script
+     */
+    protected String getScriptPath(String site, String contentType) {
+        String location = scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
                 .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return persistenceManagerService.getNodeRef(location);
-    }*/
+        return location;
+    }
 
     /**
      * build script model
@@ -115,7 +126,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @param operation
      * @param params
      * @return
-     *//*
+     */
     protected Map<String, Object> buildModel(String site, String user, String path, String contentType, String operation, Map<String, String> params) {
         Map<String, Object> model = new HashMap<String,Object>();
         for (String scriptObjectName : _scriptObjects.keySet()) {
@@ -123,55 +134,21 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
         model.put(DmConstants.KEY_SITE, site);
         model.put(DmConstants.KEY_PATH, path);
-        model.put(DmConstants.KEY_FULL_PATH, this.getContentFullPath(site, path));
+        model.put(DmConstants.KEY_FULL_PATH, contentService.expandRelativeSitePath(site, path));
         
-        user = (StringUtils.isEmpty(user)) ? getService(PersistenceManagerService.class).getCurrentUserName() : user;
+        user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
         model.put(DmConstants.KEY_USER, user);
         model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-        //sandbox = _servicesConfig.getSandbox(site);
-        //model.put(DmConstants.KEY_SCRIPT_SANDBOX, sandbox);
         model.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, operation);
-        model.put(DmConstants.KEY_CONTENT_LOADER, new XmlContentLoader(getServicesManager()));
+        model.put(DmConstants.KEY_CONTENT_LOADER, new XmlContentLoader());
         if (params != null) {
             for (String key : params.keySet()) {
                 model.put(key, params.get(key));
             }
         }
         return model;
-    }*/
-
-    /**
-     * get content full path
-     *
-     * @param site
-     * @param path
-     * @return
-     *//*
-    protected String getContentFullPath(String site, String path) {
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String nodePath = servicesConfig.getRepositoryRootPath(site) + path;
-        return nodePath;
-    }*/
-/*
-    protected String _getNodePath(NodeRef node) {
-        List<FileInfo> pathParts = null;
-        try {
-            pathParts = getService(PersistenceManagerService.class).getNamePath(_getCompanyHomeNodeRef(), node);
-        } catch (FileNotFoundException e) {
-            logger.error("ERROR: ", e);
-        }
-        String nodePath = "";
-        for (FileInfo pathPart : pathParts) {
-            nodePath = nodePath + "/" + pathPart.getName();
-        }
-        return nodePath;
     }
 
-    protected NodeRef _getCompanyHomeNodeRef() {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        return persistenceManagerService.getCompanyHomeNodeRef();
-    }
-*/
     /**
      * XmlContentLoader that provides XML document from the path provided
      *
@@ -179,58 +156,54 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @author Dejan Brkic
      *
      */
-    //public class XmlContentLoader implements Serializable {
-
-
-        //private static final long serialVersionUID = -6947731457966015604L;
-
+    public class XmlContentLoader implements Serializable {
+        private static final long serialVersionUID = -7848136703282922101L;
 
         /**
          * default constructor
          */
-        //public XmlContentLoader() {};
+        public XmlContentLoader() {};
 
         /**
          *
          * @param servicesManager
-         *//*
-        public XmlContentLoader(ServicesManager servicesManager) {
-            this._servicesManager = servicesManager;
-        }
+         */
 
-        protected ServicesManager _servicesManager;
-        public ServicesManager getServicesManager() {
-            return _servicesManager;
-        }
-        public void setServicesManager(ServicesManager servicesManager) {
-            this._servicesManager = servicesManager;
-        }
-*/
         /**
          * return XML document
          *
          * @param fullPath
          * @return
-         *//*
+         */
         public Document getContent(String fullPath) {
-            PersistenceManagerService persistenceManagerService = getServicesManager().getService(PersistenceManagerService.class);
             InputStream is = null;
             try {
-                NodeRef contentNode = persistenceManagerService.getNodeRef(fullPath);
-                is = getService(PersistenceManagerService.class).getReader(contentNode).getContentInputStream();
+                is = contentService.getContent(fullPath);
                 SAXReader saxReader = new SAXReader();
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Error while reading content from " + fullPath, e);
+                logger.error("Error while reading content from " + fullPath, e);
+                if (is != null) {
+                    ContentUtils.release(is);
                 }
+                return null;
+            } catch (ContentNotFoundException e) {
+                logger.error("Error while reading content from " + fullPath, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
                 return null;
             }
-        }*/
+        }
+    }
 
-    //}
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    protected ContentService contentService;
+    protected SecurityService securityService;
 }
