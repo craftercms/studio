@@ -126,7 +126,7 @@ YAHOO.extend(CStudioForms.Datasources.FileBrowseRepo, CStudioForms.CStudioFormDa
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 

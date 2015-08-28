@@ -22,7 +22,7 @@ YAHOO.extend(CStudioForms.Controls.Disabled, CStudioForms.CStudioFormField, {
     },
 
     getLabel: function() {
-        return "Disabled";
+        return CMgs.format(langBundle, "disabled");
     },
 
 	_onChange: function(evt, obj) {
@@ -118,7 +118,7 @@ YAHOO.extend(CStudioForms.Controls.Disabled, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 			return [
-			{ label: "Readonly", name: "readonly", type: "boolean" }
+			{ label: Mgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
 			 ];
 	},
 

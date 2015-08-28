@@ -30,9 +30,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         var strValue = "";
 
         if(!Array.isArray(value) && value !== ""){
-           strValue = "Edit message...";
+           strValue = CMgs.format(langBundle, "editMessage")+"...";
         }else{
-           strValue = "Set message...";
+           strValue = CMgs.format(langBundle, "setMessage")+"...";
         }
 
         return strValue;
@@ -62,7 +62,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
 
         var titleEl = document.createElement("div");
         YAHOO.util.Dom.addClass(titleEl, "property-dialog-title");
-        titleEl.innerHTML = "Field Content";
+        titleEl.innerHTML = CMgs.format(formsLangBundle, "adminHelpDialogTitle");
         richTextDialogEl.appendChild(titleEl);
 
         var richTextDialogContainerEl = document.createElement("div");
@@ -79,7 +79,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         var cancelEl = document.createElement("div");
         cancelEl.style.marginRight = "6px";
         YAHOO.util.Dom.addClass(cancelEl, "btn btn-default");
-        cancelEl.innerHTML = "Cancel";
+        cancelEl.innerHTML = CMgs.format(formsLangBundle, "cancel");
         buttonContainerEl.appendChild(cancelEl);
 
         YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
@@ -89,7 +89,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         var saveEl = document.createElement("div");
         saveEl.style.marginRight = "16px";
         YAHOO.util.Dom.addClass(saveEl, "btn btn-primary");
-        saveEl.innerHTML = "Save";
+        saveEl.innerHTML = CMgs.format(formsLangBundle, "save");
         buttonContainerEl.appendChild(saveEl);
         YAHOO.util.Event.on(saveEl, 'click', function(evt) {
             _self.context.save();

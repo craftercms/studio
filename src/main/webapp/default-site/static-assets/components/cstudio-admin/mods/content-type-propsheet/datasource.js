@@ -49,7 +49,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
 
     createLabel: function(containerEl){
         var labelEl = document.createElement("span");
-        labelEl.innerHTML = "No datasources available for this control";
+        labelEl.innerHTML = CMgs.format(langBundle, "noDatasources");
         YDom.setStyle(labelEl,"font-style","italic");
         containerEl.appendChild(labelEl);
     },

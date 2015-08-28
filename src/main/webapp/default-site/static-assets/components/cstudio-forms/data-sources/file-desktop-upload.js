@@ -105,7 +105,7 @@ YAHOO.extend(CStudioForms.Datasources.FileDesktopUpload, CStudioForms.CStudioFor
 
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 

@@ -176,15 +176,15 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [ 
-		   	{ label: "Data Source", name: "datasource", type: "datasource:item" },
-		    { label: "Allow Empty Value", name: "emptyvalue", type: "boolean" },
-			{ label: "Readonly", name: "readonly", type: "boolean" }
+		   	{ label: CMgs.format(langBundle, "datasource"), name: "datasource", type: "datasource:item" },
+		    { label: CMgs.format(langBundle, "allowEmptyValue"), name: "emptyvalue", type: "boolean" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	}
 

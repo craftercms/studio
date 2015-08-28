@@ -30,15 +30,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowJobs, CStudioAdminConsole.Tool, {
 		jobLisEl.innerHTML = 
 			"<table id='jobsTable' class='cs-joblist'>" +
 			 	"<tr>" +
-				 	"<th class='cs-joblist-heading'>Act</th>" +
-				 	"<th class='cs-joblist-heading'>Job ID</th>" +
-    			 	"<th class='cs-joblist-heading'>Process Name</th>" +
-				 	"<th class='cs-joblist-heading'>Created<br/>Date</th>" +
-				 	"<th class='cs-joblist-heading'>Modified<br/>Date</th>" +
-				 	"<th class='cs-joblist-heading'>Site Id</th>" +
-					"<th class='cs-joblist-heading'>Items<br/>in Job</th>" +
-					"<th class='cs-joblist-heading'>Properies</th>"+		
-					"<th class='cs-joblist-heading'>Status</th>"+					 	
+				 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabAct")+"</th>" +
+				 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabJobID")+"</th>" +
+    			 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabProcessName")+"</th>" +
+				 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabCreatedDate")+"</th>" +
+				 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabModifiedDate")+"</th>" +
+				 	"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabSiteId")+"</th>" +
+					"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabItemsInJob")+"</th>" +
+					"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabProperties")+"</th>"+
+					"<th class='cs-joblist-heading'>"+CMgs.format(langBundle, "jobWorkflowTabStatus")+"</th>"+
 				 "</tr>" + 
 			"</table>";
 	

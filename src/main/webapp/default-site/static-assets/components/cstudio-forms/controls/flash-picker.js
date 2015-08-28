@@ -21,7 +21,7 @@ CStudioForms.Controls.FlashPicker = CStudioForms.Controls.FlashPicker ||
 YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Flash";
+        return CMgs.format(langBundle, "flash");
     },
 
     _onChange: function(evt, obj) {
@@ -408,13 +408,13 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
     getSupportedProperties: function() {
         return [
             { label: "Data Source", name: "flashManager", type: "datasource:flash" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: Mgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: Mgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 });

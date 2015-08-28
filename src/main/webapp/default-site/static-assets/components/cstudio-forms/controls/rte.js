@@ -146,17 +146,17 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	 */
 	getSupportedProperties: function() {
 		return [
-			{ label: "Width", name: "width", type: "int" },
-			{ label: "Height", name: "height", type: "int" },
-			{ label: "Max Length", name: "maxlength", type: "int" },
-			{ label: "Allow Resize", name: "allowResize", type: "boolean" },
-			{ label: "Force Root Block p Tag", name: "forceRootBlockPTag", type: "boolean", defaultValue: "true" },
-			{ label: "Force p tags New Lines", name: "forcePTags", type: "boolean", defaultValue: "true" },
-			{ label: "Force br New Lines", name: "forceBRTags", type: "boolean", defaultValue: "false" },
-			{ label: "Require Image Alt Tag", name: "forceImageAlts", type: "boolean", defaultValue: "false" },						
-			{ label: "Supported Channels", name: "supportedChannels", type: "supportedChannels" },
-			{ label: "RTE Configuration", name: "rteConfiguration", type: "string", defaultValue: "generic" },			
-			{ label: "Image Manager", name: "imageManager", type: "datasource:image" }
+			{ label: CMgs.format(langBundle, "width"), name: "width", type: "int" },
+			{ label: CMgs.format(langBundle, "height"), name: "height", type: "int" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int" },
+			{ label: CMgs.format(langBundle, "allowResize"), name: "allowResize", type: "boolean" },
+			{ label: CMgs.format(langBundle, "forceRootBlockP"), name: "forceRootBlockPTag", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "forcePNewLines"), name: "forcePTags", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "forceBRNewLines"), name: "forceBRTags", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "requireImageAlt"), name: "forceImageAlts", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "supportedChannels"), name: "supportedChannels", type: "supportedChannels" },
+			{ label: CMgs.format(langBundle, "RTEConfiguration"), name: "rteConfiguration", type: "string", defaultValue: "generic" },
+			{ label: CMgs.format(langBundle, "imageManager"), name: "imageManager", type: "datasource:image" }
 		];
 	},
 
@@ -165,7 +165,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	 */
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	},
 

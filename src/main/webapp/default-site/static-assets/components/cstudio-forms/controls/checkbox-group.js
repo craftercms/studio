@@ -393,15 +393,15 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
 
     getSupportedProperties: function() {
         return [
-            { label: "Data Source", name: "datasource", type: "datasource:item" },
-            { label: 'Show "Select All"', name: "selectAll", type: "boolean" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "datasource"), name: "datasource", type: "datasource:item" },
+            { label: CMgs.format(langBundle, "showSelectAll"), name: "selectAll", type: "boolean" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Minimum Selection", name:"minSize", type: "int"}
+            { label:CMgs.format(langBundle, "minimumSelection"), name:"minSize", type: "int"}
         ];
     }
 
