@@ -369,7 +369,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		// get environment specific configuration
 		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + environment);
 		EnvironmentConfigTO environmentConfigTO = environmentConfig.getEnvironmentConfig(site);
-		if (environmentConfig == null) {
+		if (environmentConfigTO == null) {
 			logger.error("Environment configuration for site " + site + " does not exist.");
 			return;
 		}

@@ -27,7 +27,6 @@ if (state == undefined) {
     valid = false;
 }
 */
-systemprocessing = false;
 if ("true" == systemprocessing) {
     systemprocessing = true;
 } else {
