@@ -8,7 +8,7 @@
     <#-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
     <#if userEmail??>
-    <script type="application/json" id="user">{"name":"${userFirstName}","surname":"${userLastName}","email":"${userEmail}"}</script>
+    <script type="application/json" id="user">{"name":"${userFirstName}","surname":"${userLastName}","email":"${userEmail}","username":"${username}" }</script>
     </#if>
 
     <script>var CStudioAuthoring = { cookieDomain: "${cookieDomain}" };</script>
