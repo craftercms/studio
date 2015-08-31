@@ -93,7 +93,7 @@ YAHOO.extend(CStudioForms.Controls.UUID, CStudioForms.CStudioFormField, {
 	setValue: function(value) {
 
 		if (!value || value == "") {
-			value == this.generateUUID();
+			value = this.generateUUID();
 		}
 		this.value = value;
 		this.inputEl.value = value;
