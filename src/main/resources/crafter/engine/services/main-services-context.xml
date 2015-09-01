@@ -208,10 +208,16 @@
     <!--									-->
     <!-- ////////////////////////////////// -->
 
-    <bean id="crafter.siteContextResolver" class="org.craftercms.engine.service.context.DefaultSiteContextResolver">
+    <bean id="crafter.siteContextResolverBase"
+          class="org.craftercms.engine.service.context.AbstractSiteContextResolver" abstract="true">
+        <property name="createContextsOnStartup" value="${crafter.engine.site.context.createOnStartup}"/>
         <property name="siteContextManager" ref="crafter.siteContextManager"/>
-        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
         <property name="fallbackSiteName" value="default"/>
+    </bean>
+
+    <bean id="crafter.siteContextResolver" class="org.craftercms.engine.service.context.DefaultSiteContextResolver"
+          parent="crafter.siteContextResolverBase">
+        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
     <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager">

@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -380,6 +381,19 @@ public class PublishingManagerImpl implements PublishingManager {
             LOGGER.debug("Getting deployer for environment store.");
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             deployer.deployFile(item.getSite(), item.getPath());
+
+
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+            if (objectMetadata == null) {
+                objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
+                objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+            }
+            boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
+            if (sendEmail) {
+                String submittedByValue = objectMetadata.getSubmittedBy();
+                notificationService.sendApprovalNotification(item.getSite(), submittedByValue, item.getPath(), item.getUser());
+            }
+
             if (isLive) {
                 ContentItemTO contentItem = contentService.getContentItem(item.getSite(), item.getPath());
                 objectStateService.transition(item.getSite(), contentItem, TransitionEvent.DEPLOYMENT);
@@ -527,6 +541,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
+    public NotificationService getNotificationService() { return notificationService; }
+    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -538,6 +555,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DeployerFactory deployerFactory;
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
+    protected NotificationService notificationService;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

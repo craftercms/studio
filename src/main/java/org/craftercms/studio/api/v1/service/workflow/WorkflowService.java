@@ -132,7 +132,7 @@ public interface WorkflowService {
 	 */
 	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
 
-	public List<String> getWorkflowAffectedPaths(String site, String path);
+	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow

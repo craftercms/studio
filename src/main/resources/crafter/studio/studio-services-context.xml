@@ -831,6 +831,7 @@
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
     </bean>
 
     <!-- Application Listeners -->

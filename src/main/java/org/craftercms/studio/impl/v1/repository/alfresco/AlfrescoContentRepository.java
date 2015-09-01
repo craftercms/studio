@@ -41,6 +41,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -165,7 +166,13 @@ implements SecurityProvider {
                     ObjectType type = cmisObject.getBaseType();
                     if ("cmis:document".equals(type.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-                        ObjectId objId = document.checkOut();
+                        ObjectId objId = null;
+                        try {
+                             objId = document.checkOut();
+                        } catch (CmisVersioningException ex) {
+                            String pwcId = document.getVersionSeriesCheckedOutId();
+                            objId = session.getObject(pwcId);
+                        }
                         org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
                         ContentStream contentStream = workingCopy.getContentStream();
                         objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
