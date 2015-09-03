@@ -639,17 +639,13 @@ implements SecurityProvider {
                 Folder folder = null;
                 if (folderCmisObject == null) {
                     // if not, create the folder first
-                    int folderSplitIndex = folderPath.lastIndexOf("/");
-                    String parentFolderPath = folderPath.substring(0, folderSplitIndex);
-                    String folderName = folderPath.substring(folderSplitIndex + 1);
-                    CmisObject parentFolderCmisObject = session.getObjectByPath(parentFolderPath);
-                    ObjectType parentFolderType = parentFolderCmisObject.getType();
-                    if ("cmis:folder".equals(parentFolderType.getId())) {
-                        Folder parentFolder = (Folder)parentFolderCmisObject;
-                        Map<String, String> newFolderProps = new HashMap<String, String>();
-                        newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
-                        newFolderProps.put(PropertyIds.NAME, folderName);
-                        folder = parentFolder.createFolder(newFolderProps);
+                    boolean created = createMissingFoldersCMIS(folderPath);
+                    if (created) {
+                        session.clear();
+                        folderCmisObject = session.getObjectByPath(folderPath);
+                        folder = (Folder)folderCmisObject;
+                    } else {
+                        return false;
                     }
                 } else {
                     folder = (Folder)folderCmisObject;
@@ -778,6 +774,53 @@ implements SecurityProvider {
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
         return success;
+    }
+
+    protected boolean createMissingFoldersCMIS(String fullPath) {
+        String newFolderRef = null;
+        String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.length() > 1 && cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        try {
+            int idx = cleanPath.lastIndexOf("/");
+            String parentPath = "/";
+            String name = "";
+            if (idx >= 0) {
+                parentPath = cleanPath.substring(0, idx);
+                if (StringUtils.isEmpty(parentPath)) {
+                    parentPath = "/";
+                }
+                name = cleanPath.substring(idx + 1);
+            }
+            Session session = getCMISSession();
+            CmisObject parentCmisOBject = null;
+            try {
+                parentCmisOBject = session.getObjectByPath(parentPath);
+            } catch (CmisObjectNotFoundException ex) {
+                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                createMissingFoldersCMIS(parentPath);
+                session.clear();
+                parentCmisOBject = session.getObjectByPath(parentPath);
+            }
+            if (parentCmisOBject != null) {
+                ObjectType type = parentCmisOBject.getType();
+                if ("cmis:folder".equals(type.getId())) {
+                    Folder folder = (Folder)parentCmisOBject;
+                    Map<String, String> newFolderProps = new HashMap<String, String>();
+                    newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+                    newFolderProps.put(PropertyIds.NAME, name);
+                    Folder newFolder = folder.createFolder(newFolderProps);
+                    Property property = newFolder.getProperty("alfcmis:nodeRef");
+                    newFolderRef = property.getValueAsString();
+                }
+            } else {
+                logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Failed to create  folder in {0}", err, fullPath);
+        }
+        return true;
     }
 
     protected String createFolderInternalCMIS(String fullPath, String name) {

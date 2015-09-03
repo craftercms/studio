@@ -183,6 +183,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                     case SAVE_FOR_PREVIEW:
                         nextState = State.NEW_UNPUBLISHED_LOCKED;
                         break;
+                    default:
+                        nextState = State.NEW_UNPUBLISHED_UNLOCKED;
                 }
             } else {
                 logger.debug("Preforming transition event " + event + " on object " + lockId + " with " + currentState.getState() + " state");
