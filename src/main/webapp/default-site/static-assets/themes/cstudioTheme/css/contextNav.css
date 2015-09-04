@@ -686,3 +686,77 @@ body.yui-skin-cstudioTheme .mask{
 .newTempText{
   margin-bottom: 10px;
 }
+
+
+/*Crop Dialog*/
+
+#crop-popup-inner .contentTypePopupHeader{
+    padding-bottom: 10px!important;
+}
+
+#crop-popup-inner .contentTypeOuter{
+    margin: 14px 0 20px 0;
+    padding: 0 20px 10px;
+}
+
+#crop-popup-inner .cropMethods .refresh{
+    margin-left: 5px;
+}
+
+#crop-popup-inner .leftControls{
+    width: 70%;
+    float:left;
+}
+
+#crop-popup-inner .cropContainer{
+    width: 100%;
+    max-height:270px;
+    margin-bottom: 5px;
+
+}
+
+#crop-popup-inner .formDesc{
+    margin-bottom: 10px;
+}
+
+#crop-popup-inner .rightControls{
+    width: 30%;
+    height:268px;
+    float:left;
+}
+
+#crop-popup-inner .rightControls .img-preview > img {
+    max-width: 100%;
+}
+
+#crop-popup-inner .rightControls .preview-sm {
+    width: 189px;
+    height: 109px;
+    overflow: hidden;
+    float: right;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgb(204, 204, 204);
+}
+
+#crop-popup-inner .rightControls .docs-data{
+    clear: both;
+    padding: 10px 10px 10px 20px;
+}
+
+#crop-popup-inner .input-group{
+    padding-bottom: 5px;
+}
+
+#crop-popup-inner .input-group label{
+    min-width: 64px;
+}
+
+#crop-popup-inner #zoomMessage{
+    margin-left: 11px;
+}
+
+#crop-popup-inner .error{
+    border-color: rgba(169, 68, 66, 0.47);
+}
+
