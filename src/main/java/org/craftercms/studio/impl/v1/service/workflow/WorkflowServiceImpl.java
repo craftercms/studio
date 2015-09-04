@@ -2061,6 +2061,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         ResultTO result = new ResultTO();
         try {
             String approver = user;
+            if (StringUtils.isEmpty(approver)) {
+                approver = securityService.getCurrentUser();
+            }
             JSONObject requestObject = JSONObject.fromObject(request);
             String reason = (requestObject.containsKey(JSON_KEY_REASON)) ? requestObject.getString(JSON_KEY_REASON) : "";
             JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
