@@ -349,13 +349,8 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             try {
                 CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, {
                     success: function(content) {
-                        //self.addImage();
-                        //self.showAlert("The image is cropped");
                         var imagePicker = self;
-
                         self.setImageData(imagePicker, imageData);
-
-                        $('.cstudio-form-control-asset-picker-preview-content').attr('src', imageData.previewUrl);
                         self.cropPopupCancel();
                     },
                     failure: function(message) {
@@ -510,23 +505,11 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
                                     //this.isUploadOverwrite = isUploadOverwrite;
                                 }else{
-                                    imagePicker.inputEl.value = imageData.relativeUrl;
-
-
-                                    imagePicker.previewEl.src = imageData.previewUrl;
-                                    imagePicker.urlEl.innerHTML = imageData.relativeUrl;
-                                    imagePicker.downloadEl.href = imageData.previewUrl;
-
-                                    imagePicker.addEl.value = "Replace";
-
-                                    imagePicker.noPreviewEl.style.display = "none";
-                                    imagePicker.previewEl.style.display = "inline";
-                                    YAHOO.util.Dom.addClass(imagePicker.previewEl, 'cstudio-form-control-asset-picker-preview-content');
-
-
-                                    imagePicker.adjustImage();
-
-                                    imagePicker._onChange(null, imagePicker);
+                                    if(this.setImageData){
+                                        this.setImageData(imagePicker, imageData)
+                                    }else{
+                                        self.setImageData(imagePicker, imageData)
+                                    }
                                 }
                             };
                             image.addEventListener('load', imageLoaded, false);
