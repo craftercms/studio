@@ -261,6 +261,8 @@
 
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
           parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
         <property name="scriptLocation"><value>${ContentLifeCycleProcessor.scriptLocation}</value></property>
         <property name="scriptObjects">
             <map>
@@ -829,6 +831,7 @@
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
     </bean>
 
     <!-- Application Listeners -->

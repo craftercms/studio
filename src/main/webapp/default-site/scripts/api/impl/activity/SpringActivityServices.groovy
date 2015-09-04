@@ -18,6 +18,8 @@
  */
 package scripts.api.impl.activity
 
+import org.craftercms.studio.api.v1.service.activity.ActivityService.ActivityType;
+
 /**
  * @author Dejan Brkic
  */
@@ -38,5 +40,10 @@ class SpringActivityServices {
 
         def springBackedService = this.context.applicationContext.get("cstudioActivityService");
         return springBackedService.getActivities(site, user, num, sort, ascending, excludeLive, filterType);
+    }
+
+    def postActivity(site, user, path, activityType, extraInfo) {
+        def springBackedService = this.context.applicationContext.get("cstudioActivityService");
+        return springBackedService.postActivity(site, user, path, activityType, extraInfo);
     }
 }

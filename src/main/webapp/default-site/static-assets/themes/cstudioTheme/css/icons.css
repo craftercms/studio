@@ -279,3 +279,24 @@
     height: 18px;
     background-repeat: no-repeat;
 }
+
+.status-icon.zoom-in {
+    background-image: url("../images/icons/white-zoom-in-16.png");
+    background-position: 4px 1px;
+    height: 18px;
+    background-repeat: no-repeat;
+}
+
+.status-icon.zoom-out {
+    background-image: url("../images/icons/white-zoom-out-16.png");
+    background-position: 4px 1px;
+    height: 18px;
+    background-repeat: no-repeat;
+}
+
+.status-icon.refresh {
+    background-image: url("../images/icons/white-refresh-16.png");
+    background-position: 4px 1px;
+    height: 18px;
+    background-repeat: no-repeat;
+}

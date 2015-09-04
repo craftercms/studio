@@ -17,9 +17,6 @@
  */
 
 package scripts.api.impl.content
-
-import scripts.api.SiteServices
-import scripts.api.SecurityServices
 import groovy.util.logging.Log
 
 import javax.mail.*
@@ -30,15 +27,16 @@ import java.util.regex.Matcher
 @Log
 class ContentMonitoring {
 
-	static doMonitoringForAllSites(context) {
+	static doMonitoringForAllSites(context, logger) {
 		def results = []
-		def sites = SiteServices.getAllAvailableSites(context)
+		def siteService = context.get("cstudioSiteServiceSimple") 
+		def sites = siteService.getAllAvailableSites()
 
 		for(int i=0; i<sites.size(); i++) {
 			def result = [:]
 			def site = sites[i]
 			result.siteId = site
-			result.contentMonitoring = doContentMonitoringForSite(context, site)
+			result.contentMonitoring = doContentMonitoringForSite(context, site, logger)
 			results.add(result)
 		}
 
@@ -51,12 +49,15 @@ class ContentMonitoring {
 	 * @site the id of the site to do monitoring for
 	 * @return a list of notifications that were made
 	 */
-	static doContentMonitoringForSite(context, site) {
+	static doContentMonitoringForSite(context, site, logger) {
+		logger.info("monitoring for expired content for site: " + site)
+
 		def results = [:]
-		def searchService = context.applicationContext["crafter.searchService"] 
-		def notificationService = context.applicationContext["cstudioNotificationService"] 
+		def searchService = context.get("crafter.searchService")
+		def notificationService = context.get("cstudioNotificationService") 
+		def siteService = context.get("cstudioSiteServiceSimple") 
 		
-		def config = SiteServices.getConfiguration(context, site, "/site-config.xml", false);
+		def config = siteService.getConfiguration(site, "/site-config.xml", false);
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor !=null) {
 
@@ -69,6 +70,8 @@ class ContentMonitoring {
 
 			for(int m=0; m<config.contentMonitoring.monitor.size(); m++) {
 				def monitor = config.contentMonitoring.monitor[m]
+				logger.info("executing monitor: " + monitor.name)
+
 				if(monitor.paths !=null && monitor.paths.path!=null) {
 					if([Collection, Object[]].any { it.isAssignableFrom(monitor.paths.path.getClass()) } == false) {
 						// there is only one path
@@ -81,12 +84,13 @@ class ContentMonitoring {
 					results.monitors = []
 					def queryStatement = monitor.query
 					 
-					def query = searchService.createQuery();
-					query = query.setQuery(queryStatement);
+					def query = searchService.createQuery()
+					query = query.setQuery(queryStatement)
 					 
-					def executedQuery = searchService.search(query);    
-					def itemsFound = executedQuery.response.numFound;    
-					def items = executedQuery.response.documents;
+					def executedQuery = searchService.search(query)   
+					def itemsFound = executedQuery.response.numFound    
+					def items = executedQuery.response.documents
+					logger.info("Content monitor (" + monitor.name + ") found " + itemsFound)
 
 					for(int p=0; p<monitor.paths.path.size(); p++){
 						// there are paths, query for items and then match against paths patterns
@@ -110,13 +114,15 @@ class ContentMonitoring {
 
 						if(monitorPathResult.items.size() > 0) {
 							results.monitors.add(monitorPathResult)
+
+							logger.info("Content monitor: " + monitor.name + " Sending notification ("+path.notificationMessageId+")")
 							notificationService.sendGenericNotification(
 								site, 
 								"PATHINPARAMS", 
 								path.notifyEmail, 
 								"CrafterCms", 
 								path.notificationMessageId, 
-								monitorPathResult)
+								[:])//monitorPathResult)
 						}
 
 					} //end looping over paths
@@ -124,6 +130,9 @@ class ContentMonitoring {
 
 				} // if no paths to monitor, don't do anything
 			} // end looping through site monitors
+		}
+		else {
+			logger.info("no expired items to report")
 		}
 
 		return results 

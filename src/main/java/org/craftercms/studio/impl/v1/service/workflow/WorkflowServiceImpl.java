@@ -624,7 +624,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 	protected void _cancelWorkflow(String site, String path) {
 		//if (contentService.contentExists(site, path)) {
-			List<String> allItemsToCancel = getWorkflowAffectedPaths(site, path);
+			List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
 			List<String> paths = new ArrayList<String>();
 			for (String affectedItem : allItemsToCancel) {
 				try {
@@ -667,37 +667,42 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 	}
 
-	@Override
-	public List<String> getWorkflowAffectedPaths(String site, String path) {
-		List<String> affectedPaths = new ArrayList<String>();
-		//List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
+    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
+        List<String> affectedPaths = new ArrayList<String>();
+        //List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
         List<String> filteredPaths = new ArrayList<String>();
-		if (objectStateService.isInWorkflow(site, path)) {
-			affectedPaths.add(path);
-			boolean isNew = objectStateService.isNew(site, path);
-			boolean isRenamed = objectMetadataManager.isRenamed(site, path);
-			if (isNew || isRenamed) {
-				getMandatoryChildren(site, path, affectedPaths);
-			}
+        if (objectStateService.isInWorkflow(site, path)) {
+            affectedPaths.add(path);
+            boolean isNew = objectStateService.isNew(site, path);
+            boolean isRenamed = objectMetadataManager.isRenamed(site, path);
+            if (isNew || isRenamed) {
+                getMandatoryChildren(site, path, affectedPaths);
+            }
 
-			List<String> dependencyPaths = getDependencyCandidates(site, affectedPaths);
-			affectedPaths.addAll(dependencyPaths);
-			List<String> candidates = new ArrayList<String>();
-			for (String p : affectedPaths) {
-				if (!candidates.contains(p)) {
-					candidates.add(p);
-				}
-			}
+            List<String> dependencyPaths = getDependencyCandidates(site, affectedPaths);
+            affectedPaths.addAll(dependencyPaths);
+            List<String> candidates = new ArrayList<String>();
+            for (String p : affectedPaths) {
+                if (!candidates.contains(p)) {
+                    candidates.add(p);
+                }
+            }
 
-			for (String cp : candidates) {
-				if (objectStateService.isInWorkflow(site, cp)) {
-					filteredPaths.add(cp);
-				}
-			}
-			//affectedItems = getWorkflowAffectedItems(site, filteredPaths);
-		}
+            for (String cp : candidates) {
+                if (objectStateService.isInWorkflow(site, cp)) {
+                    filteredPaths.add(cp);
+                }
+            }
+            //affectedItems = getWorkflowAffectedItems(site, filteredPaths);
+        }
 
-		return filteredPaths;
+        return affectedPaths;
+    }
+
+	@Override
+	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+		List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
+        return getWorkflowAffectedItems(site, affectedPaths);
 	}
 
 	private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
@@ -734,8 +739,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 			}
 		}
 	}
-/*
-	protected List<ContentItemTO> getWorkflowAffectedItemsR(String site, List<String> paths) {
+
+	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
 		List<ContentItemTO> items = new ArrayList<>();
 
 		for (String path : paths) {
@@ -744,7 +749,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 		}
 		return items;
 	}
-*/
+
 	@Override
 	public void updateWorkflowSandboxes(String site, String path) {
 		// TODO: copy to live repo node
@@ -1735,6 +1740,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
+
                     }
                     Set<DmDependencyTO> dependencyTOSet = submitpackage.getItems();
                     for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
@@ -2055,6 +2061,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         ResultTO result = new ResultTO();
         try {
             String approver = user;
+            if (StringUtils.isEmpty(approver)) {
+                approver = securityService.getCurrentUser();
+            }
             JSONObject requestObject = JSONObject.fromObject(request);
             String reason = (requestObject.containsKey(JSON_KEY_REASON)) ? requestObject.getString(JSON_KEY_REASON) : "";
             JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);

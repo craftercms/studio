@@ -32,6 +32,7 @@
 
     function submit() {
         var data = {
+            sendEmail: this.getComponent('[name="notifyApproval"]').checked,
             schedule: this.getComponent('[name="schedulingMode"]:checked').value,
             submissionComment: this.getComponent('.submission-comment').value,
             items: []

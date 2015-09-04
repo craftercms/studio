@@ -40,4 +40,9 @@ class ActivityServices {
         def activitiesServicesImpl = ServiceFactory.getActivityServices(context)
         return activitiesServicesImpl.getActivities(site, user, num, sort, ascending, excludeLive, filterType);
     }
+
+    static postActivity(context, site, user, path, activityType, extraInfo) {
+        def activitiesServicesImpl = ServiceFactory.getActivityServices(context)
+        return activitiesServicesImpl.postActivity(site, user, path, activityType, extraInfo)
+    }
 }

@@ -398,8 +398,8 @@
     ]);
 
     app.controller('SitesCtrl', [
-        '$scope', '$state', 'sitesService', '$modal',
-        function ($scope, $state, sitesService, $modal) {
+        '$scope', '$state', 'sitesService', 'authService', '$modal',
+        function ($scope, $state, sitesService, authService, $modal) {
 
             $scope.sites = null;
 
@@ -408,6 +408,8 @@
             $scope.goToDashboard = sitesService.goToDashboard;
 
             $scope.createSites = false;
+
+            $scope.user = authService.getUser();
 
 
             function getSites () {
