@@ -2129,7 +2129,11 @@ var parentSaveCb = {
                     isUploadOverwrite: isUploadOverwrite
                 }
 
+                CSA.Utils.addCss('/static-assets/libs/cropper/dist/cropper.css');
+                CSA.Utils.addCss('/static-assets/themes/cstudioTheme/css/icons.css');
+
                 CStudioAuthoring.Module.requireModule("upload-dialog", "/static-assets/components/cstudio-dialogs/upload-asset-dialog.js", moduleConfig, openUploadDialogCb);
+                CStudioAuthoring.Module.requireModule("jquery-cropper", "/static-assets/libs/cropper/dist/cropper.js");
             },
 
             /**
@@ -2350,6 +2354,9 @@ var parentSaveCb = {
             
             // Dependencies
             lookupContentDependenciesServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json?deletedep=true&",
+
+            // Crop Image
+            cropImageServiceUri: "/api/1/services/api/1/content/crop-image.json",
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -3120,6 +3127,28 @@ var parentSaveCb = {
                 };
 
                 YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
+            },
+            /**
+             * crop image
+             */
+            cropImage: function(site, path, left, top, height, width, callback) {
+                var serviceUrl = this.cropImageServiceUri;
+                serviceUrl += "?site=" + site;
+                serviceUrl += "&path=" + path;
+                serviceUrl += "&t=" + top;
+                serviceUrl += "&l=" + left;
+                serviceUrl += "&h=" + height;
+                serviceUrl += "&w=" + width;
+                var serviceCallback = {
+                    success: function(jsonResponse) {
+                        var results = eval("(" + jsonResponse.responseText + ")");
+                        callback.success(results);
+                    },
+                    failure: function(response) {
+                        callback.failure(response);
+                    }
+                };
+                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
             },
 
             getUserPermissions: function(site, path, callback) {
