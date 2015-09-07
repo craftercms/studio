@@ -209,24 +209,11 @@
                 this.$('.date-picker-control').hide();
                 this.$('.date-picker-control').value = "";
             } else {
-                /*var dt = CStudioAuthoring.Utils.formatDateFromString(
-                        reference, 'tooltipformat').split(SPACE),
-                    time = dt[1];
-                dp.disabled = false;
-                tp.disabled = false;
-                dp.value = CStudioAuthoring.Utils.formatDateFromString(reference, 'simpleformat')
-                tp.value = (
-                    time.substr(0, time.length - 1) + ':00 ' +
-                    (time.indexOf('P') !== -1 ? 'p.m.' : 'a.m.')
-                );
-                YDom.get('globalSetToDateTime').checked = true;*/
-                //this.$('[name="scheduleDate"]').value = reference;
                 this.$('[name="schedulingMode"]')[0].checked = false;
                 this.$('[name="schedulingMode"]')[1].checked = true;
-                //this.$('input.date-picker')[0].value = CStudioAuthoring.Utils.formatDateFromString(reference, "simpleformat");
+
                 this.$('.date-picker-control').show();
-                this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);// "09/09/2015 11:00 am";
-                //this.$('.date-picker-control').value = "09/09/2015 11:00 am"
+                this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);
             }
         } else {
             this.$('[name="schedulingMode"]')[0].checked = false;
