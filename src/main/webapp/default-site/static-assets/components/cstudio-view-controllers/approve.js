@@ -142,7 +142,9 @@
                         var dependencies = eval("(" + respJson + ")");
                         var submissionCommentElem = me.getComponent('.submission-comment');
                         submissionCommentElem.value = dependencies.submissionComment + ' ' + submissionCommentElem.value;
+                        //var scheduledDate = this.getTimeInJsonObject(dependencies.items, browserUri);
                         me.renderItems(dependencies.items);
+                        verifyMixedSchedules(dependencies.items)
 
                     } catch(err) {
                         var error = err;
@@ -166,6 +168,74 @@
             }
         });
     }
+
+    function traverse (items, referenceDate) {
+        var allHaveSameDate = true,
+            item, children;
+
+        for ( var i = 0, l = items.length;
+              allHaveSameDate === true && i < l;
+              ++i ) {
+
+            item = items[i];
+            children = item.children;
+
+            allHaveSameDate = (item.scheduledDate === referenceDate);
+
+            if (!allHaveSameDate) {
+                break;
+            }
+/*
+            if (children.length > 0) {
+                allHaveSameDate = traverse(children, referenceDate);
+            }
+
+*/
+        }
+
+        return allHaveSameDate;
+
+    }
+    function verifyMixedSchedules(contentItems) {
+
+        var reference = contentItems[0].scheduledDate,
+            allHaveSameDate = traverse(contentItems, reference);
+
+        if (allHaveSameDate) {
+            if (reference === '') {
+                //YDom.get('globalSetToNow').checked = true;
+                this.$('[name="schedulingMode"]')[0].checked = true;
+                this.$('[name="schedulingMode"]')[1].checked = false;
+                this.$('.date-picker-control').hide();
+                this.$('.date-picker-control').value = "";
+            } else {
+                /*var dt = CStudioAuthoring.Utils.formatDateFromString(
+                        reference, 'tooltipformat').split(SPACE),
+                    time = dt[1];
+                dp.disabled = false;
+                tp.disabled = false;
+                dp.value = CStudioAuthoring.Utils.formatDateFromString(reference, 'simpleformat')
+                tp.value = (
+                    time.substr(0, time.length - 1) + ':00 ' +
+                    (time.indexOf('P') !== -1 ? 'p.m.' : 'a.m.')
+                );
+                YDom.get('globalSetToDateTime').checked = true;*/
+                //this.$('[name="scheduleDate"]').value = reference;
+                this.$('[name="schedulingMode"]')[0].checked = false;
+                this.$('[name="schedulingMode"]')[1].checked = true;
+                //this.$('input.date-picker')[0].value = CStudioAuthoring.Utils.formatDateFromString(reference, "simpleformat");
+                this.$('.date-picker-control').show();
+                this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);// "09/09/2015 11:00 am";
+                //this.$('.date-picker-control').value = "09/09/2015 11:00 am"
+            }
+        } else {
+            this.$('[name="schedulingMode"]')[0].checked = false;
+            this.$('[name="schedulingMode"]')[1].checked = true;
+        }
+
+
+    }
+
 
     function loadPublishingChannels() {
         var me = this;
@@ -215,7 +285,10 @@
         var html = [];
 
         each(items, function (index, item) {
+            var temp = item.scheduledDate;
+            item.scheduledDate = CStudioAuthoring.Utils.formatDateFromString(temp);
             html.push(agent.get('ITEM_ROW', item));
+            item.scheduledDate = temp;
         });
 
         this.getComponent('tbody').innerHTML = html.join('');
@@ -259,6 +332,19 @@
             + schedDate.getMinutes() + ':' + schedDate.getSeconds();
 
         return scheduledDate;
+    }
+
+    function getScheduledDateTimeFromJson(dateTimeStr) {
+        var dateTimeTokens = dateTimeStr.split('T');
+        var dateTokens = dateTimeTokens[0].split('-');
+        var timeTokens = dateTimeTokens[1].split(':');
+        var dateTime = new Date(dateTokens[0], dateTokens[1]-1, dateTokens[2], timeTokens[0], timeTokens[1]);
+
+        var hrs = ((dateTime.getHours() %12) ? dateTime.getHours() % 12 : 12);
+        var mnts = dateTime.getMinutes();
+
+        return '' + dateTokens[1] + '/' + dateTokens[2] + '/' + dateTokens[0] + ' '
+            + (hrs < 10 ? '0' + hrs : hrs) + ':' + (mnts < 10 ? '0' + mnts : mnts) + (dateTime.getHours() < 12 ? ' am' : ' pm');
     }
 
 }) (CStudioAuthoring);
