@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -24,16 +25,17 @@ import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmMetadataService;
 import org.craftercms.studio.impl.v1.util.ValueConverter;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
-import javax.script.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,8 +78,10 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             
             Map<String, Object> model = new HashMap<String, Object>();
             // put any script object needed
-            for (String scriptObjectName : scriptObjects.keySet()) {
-                model.put(scriptObjectName, scriptObjects.get(scriptObjectName));
+            if (scriptObjects != null && scriptObjects.size() > 0) {
+                for (String scriptObjectName : scriptObjects.keySet()) {
+                    model.put(scriptObjectName, scriptObjects.get(scriptObjectName));
+                }
             }
             if (!StringUtils.isEmpty(actionedUponPath)) {
                 model.put(DmConstants.KEY_NODE_REF, actionedUponPath);
@@ -87,24 +91,18 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             model.put(DmConstants.KEY_PATH, path);
             model.put(DmConstants.KEY_USER, user);
             model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+            model.put(DmConstants.KEY_APPLICATION_CONTEXT, ApplicationContextProvider.getApplicationContext());
             //model.put(DmConstants.KEY_SCRIPT_NODE, createScriptNode(actionedUponNodeRef));
             //model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
             try {
-                executeScript(scriptPath, model);
+                String script = contentService.getContentAsString(scriptPath);
+                scriptExecutor.executeScriptString(script, model);
             } catch (Exception e) {
                 throw new ServiceException(e);
             }
         } else {
             logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
         }
-    }
-
-    private void executeScript(String scriptPath, Map<String, Object> model) throws ScriptException {
-        String script = contentService.getContentAsString(scriptPath);
-        ScriptEngineManager factory = new ScriptEngineManager();
-        ScriptEngine engine = factory.getEngineByName("groovy");
-        Bindings bindings = new SimpleBindings(model);
-        engine.eval(script, bindings);
     }
 
     /**
@@ -163,4 +161,8 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
     protected ContentService contentService;
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
+    protected ScriptExecutor scriptExecutor;
+    public ScriptExecutor getScriptExecutor() { return scriptExecutor; }
+    public void setScriptExecutor(ScriptExecutor scriptExecutor) { this.scriptExecutor = scriptExecutor; }
 }

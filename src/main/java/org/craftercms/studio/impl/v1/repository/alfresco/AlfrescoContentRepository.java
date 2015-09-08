@@ -220,7 +220,15 @@ implements SecurityProvider {
      */
     protected String createFolderInternal(String path, String name) {
         logger.debug("creating a folder at " + path + " with name: " + name);
-        return createFolderInternalCMIS(path, name);
+        if (createMissingFoldersCMIS(path + "/" + name)) {
+            try {
+                String nodeRef = getNodeRefForPathCMIS(path + "/" + name);
+                return nodeRef;
+            } catch (ContentNotFoundException e) {
+                logger.info("Error while creating folder {1} in path {0}", e, path, name);
+            }
+        }
+        return "";
     }
 
     /**
