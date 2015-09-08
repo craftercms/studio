@@ -181,6 +181,7 @@ public class DmConstants {
     public static final String PUBLISHING_LOCK_KEY = "{SITE}_PUBLISHING_LOCK";
 
     public static final Pattern PATTERN_ACTIVITY_FEED_INTERNAL_NAME = Pattern.compile("^.*\"internalName\":\"(.*?)\".*$");
+    public static final String KEY_APPLICATION_CONTEXT = "applicationContext";
 /*
     public static QName[] SUBMITTED_PROPERTIES = new QName[]{
             CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY,
