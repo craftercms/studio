@@ -18,11 +18,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	/**
 	 * show dialog
 	 */
-	showDialog: function(cb, config) {	
-		this.config = config;
+	showDialog: function(cb, path) {
+		//this.config = config;
 		this._self = this;
 		this.cb = cb;
-		this.dialog = this.createDialog();
+        this.path = path;
+        this.dialog = this.createDialog(path);
 		this.dialog.show();
 		document.getElementById("cstudio-wcm-popup-div_h").style.display = "none";
 		
@@ -38,7 +39,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
     /**
 	 * create dialog
 	 */
-	createDialog: function() {
+	createDialog: function(path) {
 		YDom.removeClass("cstudio-wcm-popup-div", "yui-pe-content");
 
 		var newdiv = YDom.get("cstudio-wcm-popup-div");
@@ -90,7 +91,8 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		
 		var eventParams = {
 			self: this,
-			nameEl: document.getElementById('templateName')
+			nameEl: document.getElementById('templateName'),
+            path: path
 		};
 		
 		YAHOO.util.Event.addListener("templateName", "keypress", this.limitInput, eventParams);
@@ -116,7 +118,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web";
+		var templatePath = params.path;
 		
 		if(name.indexOf(".ftl") == -1) {
 			name = name + ".ftl";
@@ -137,7 +139,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 				CStudioAuthoring.Operations.openTemplateEditor
 					(templatePath+"/"+name, "default", { 
 						success: function() { 
-							_self.cb.success(templatePath+"/"+name); 
+							_self.cb.success(templatePath+"/"+name);
 						}, 
 						failure: function() {
 						}

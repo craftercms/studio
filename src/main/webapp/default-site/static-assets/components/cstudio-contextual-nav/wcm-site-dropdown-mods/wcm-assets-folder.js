@@ -668,7 +668,11 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         var editCb = {
             success: function() {
                 if(CStudioAuthoringContext.isPreview){
-                     CStudioAuthoring.Operations.refreshPreview(); 
+                     try{
+                         CStudioAuthoring.Operations.refreshPreview();
+                     }catch(err) {
+                         this.callingWindow.location.reload(true);
+                     }
                 }
                 else {
                     this.callingWindow.location.reload(true);
@@ -685,16 +689,18 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     },
 
     createNewTemplate: function() {
-        CStudioAuthoring.Operations.createNewTemplate({ 
+        CStudioAuthoring.Operations.createNewTemplate(oCurrentTextNode.data.uri, {
             success: function(templatePath) {
-                this.callingWindow.location.reload(true);   
+                this.callingWindow.location.reload(true);
+                Self.refreshNodes(this.tree,false);
             }, 
             failure: function() {
-
+                this.callingWindow.location.reload(true);
             },
 
-            callingWindow: window
-        }); 
+            callingWindow: window,
+            tree: oCurrentTextNode
+        });
     },
 
     createNewScript: function() {
@@ -706,7 +712,9 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
             },
             tree: oCurrentTextNode
-        }); 
+        });
+
+
     },
 
     /**

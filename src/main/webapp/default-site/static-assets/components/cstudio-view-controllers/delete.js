@@ -223,8 +223,9 @@
                     msg: message
                 });
             this.getComponent(".studio-view.admin-delete-view").innerHTML = body;
-            Event.addListener(this.getComponent(".action-complete-close"), "click", function(){
+            Event.addListener(this.getComponent(".action-complete-close1"), "click", function(){
                 this.end();
+                CStudioAuthoring.Operations.pageReload('deleteSchedule');
             }, null, this);
             if (this.getComponent(".action-complete-close1")) {
                 CStudioAuthoring.Utils.setDefaultFocusOn(this.getComponent(".action-complete-close1"));
