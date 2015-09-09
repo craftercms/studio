@@ -334,6 +334,8 @@
         <props>
           <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
           <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
+            <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
+            <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
         </props>
       </property>  
     </bean>

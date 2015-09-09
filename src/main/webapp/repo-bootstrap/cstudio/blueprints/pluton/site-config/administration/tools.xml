@@ -75,5 +75,6 @@
         <tool><name>workflow-states</name><label>workflowStates</label></tool>
         <tool><name>logging</name><label>loggingLevels</label></tool>
         <tool><name>log-view</name><label>logConsole</label></tool>
+        <tool><name>deployment-queues</name><label>deploymentQueues</label></tool>
     </tools>
 </config>
