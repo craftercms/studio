@@ -257,6 +257,7 @@
         <property name="scriptLocation"><value>${ExtractMetadataProcessor.scriptLocation}</value></property>
          <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
     </bean>
 
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
@@ -268,6 +269,7 @@
             <map>
             </map>
         </property>
+        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
     </bean>
 
     <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
@@ -332,6 +334,8 @@
         <props>
           <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
           <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
+            <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
+            <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
         </props>
       </property>  
     </bean>
@@ -840,6 +844,13 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="adminUser" value="${repositoryJob.username}"/>
         <property name="adminPassword" value="${repositoryJob.password}"/>
+    </bean>
+
+    <!-- Utilities -->
+    <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
+
+    <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
+        <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>

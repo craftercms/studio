@@ -1870,14 +1870,16 @@ var parentSaveCb = {
             /**
              * create new template
              */
-            createNewTemplate: function(templateSaveCb) {
+            createNewTemplate: function(path, templateSaveCb) {
                 var createTemplateDialogCb = {
-                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {																		dialogClass.showDialog(templateSaveCb);
+                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
+                        dialogClass.showDialog(templateSaveCb, path);
                     }
                 };
 
                 var createModuleConfig = {
-                    createTemplateCb: templateSaveCb
+                    createTemplateCb: templateSaveCb,
+                    path: path
                 };
 
                 CStudioAuthoring.Module.requireModule("new-template-dialog",
@@ -1891,7 +1893,7 @@ var parentSaveCb = {
              */
             createNewScript: function(path, scriptSaveCb) {
                 var createScriptDialogCb = {
-                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {                                                                     
+                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
                         dialogClass.showDialog(scriptSaveCb, moduleConfig);
                     }
                 };

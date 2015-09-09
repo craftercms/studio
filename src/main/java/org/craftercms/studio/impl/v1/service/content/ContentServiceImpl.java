@@ -684,7 +684,6 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
         logger.debug("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
-        System.out.println("Loading content item ... should be cached");
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
         String contentPath = path;

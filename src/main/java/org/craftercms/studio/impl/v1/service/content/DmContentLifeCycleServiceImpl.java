@@ -17,23 +17,23 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
 
-import javax.script.*;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -82,26 +82,19 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
         // find the script ref based on content type
         String scriptPath = getScriptPath(site, contentType);
-        if (contentService.contentExists(scriptPath)) {
+        if (!contentService.contentExists(scriptPath)) {
             logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
 
             return;
         }
-        String script = contentService.getContentAsString(contentService.expandRelativeSitePath(site, scriptPath));
+        String script = contentService.getContentAsString(scriptPath);
 
         Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
         try {
-            executeScriptString(script, model);
+            scriptExecutor.executeScriptString(script, model);
         } catch (Exception e) {
             logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
         }
-    }
-
-    private void executeScriptString(String script, Map<String, Object> model) throws ScriptException {
-        ScriptEngineManager factory = new ScriptEngineManager();
-        ScriptEngine engine = factory.getEngineByName("groovy");
-        Bindings bindings = new SimpleBindings(model);
-        engine.eval(script, bindings);
     }
 
     /**
@@ -141,6 +134,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
         model.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, operation);
         model.put(DmConstants.KEY_CONTENT_LOADER, new XmlContentLoader());
+        model.put(DmConstants.KEY_APPLICATION_CONTEXT, ApplicationContextProvider.getApplicationContext());
         if (params != null) {
             for (String key : params.keySet()) {
                 model.put(key, params.get(key));
@@ -204,6 +198,10 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
+    public ScriptExecutor getScriptExecutor() { return scriptExecutor; }
+    public void setScriptExecutor(ScriptExecutor scriptExecutor) { this.scriptExecutor = scriptExecutor; }
+
     protected ContentService contentService;
     protected SecurityService securityService;
+    protected ScriptExecutor scriptExecutor;
 }

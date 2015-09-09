@@ -1516,7 +1516,7 @@ treeNode.getHtml = function() {
             deleteContent: function(p_sType, p_aArgs, tree) {
 				var dropDownWrap = YDom.get('acn-dropdown-menu-wrapper');
 				if(dropDownWrap){
-					dropDownWrap.style.display = 'none'; 
+					//dropDownWrap.style.display = 'none';
 				}				
                 CStudioAuthoring.Operations.deleteContent(
                         [oCurrentTextNode.data]);

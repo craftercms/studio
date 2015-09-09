@@ -66,7 +66,7 @@
             '<h1 class="view-title">Submittal Complete</h1>',
             '<div class="msg-area" style="height:100px;margin-top:15px;color:#000;">{msg}</div>',
             '<div class="action-wrapper acnSubmitButtons">',
-                '<input type="button" value="OK" style="width:80px;" class="action-complete-close1" onClick="CStudioAuthoring.Operations.pageReload(\'deleteSchedule\');" />',
+                '<input type="button" value="OK" style="width:80px;" class="action-complete-close1 btn btn-primary" />',
             '</div>'
         ].join("")
     });
