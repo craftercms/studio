@@ -371,6 +371,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     workflowStates: "Workflow States",
     loggingLevels: "Logging Levels",
     logConsole: "Log Console",
+    deploymentQueues: "Deployment Queues",
     label: "Content Types",
     openExistingType: "Open Existing Type",
     createNewType: "Create New Type",
@@ -505,6 +506,15 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     setStatedTabSelectAll: "Select All",
     false: "False",
     true: "True",
+
+    /*Deployment Queues*/
+    setQueueTabID: "ID",
+    setQueueTabPath: "Path",
+    setQueueTabEnvironment: "Environment",
+    setQueueTabUser: "User",
+    setQueueTabState: "State",
+    setQueueTabAction: "Action",
+    setQueueTabScheduledDate: "Scheduled Date",
 
     /*Jobs Workflow*/
     jobWorkflowTabAct: "Act",

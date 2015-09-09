@@ -42,4 +42,8 @@ class DeploymentServices {
         return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
     }
 
+    static getDeploymentQueue(context, site) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getDeploymentQueue(site);
+    }
 }
