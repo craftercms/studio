@@ -246,6 +246,7 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     loading:"Loading&hellip;",
     viewSample: "View Sample",
     hideSample: "Hide Sample",
+    clearCache: "Clear Cache",
 
     copy: "Copy",
     copyDescription: "Please select any of the sub-pages you would like to batch copy.<br/> When pasting, any selected sub-pages and their positional heirarchy will be retained.",
@@ -336,8 +337,11 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
 
     setStatedDialogTitle: "Select States",
     setStatedDialogSetStates: "Set States",
-    setStatedDialogSystemProcessing: "System Processing"
+    setStatedDialogSystemProcessing: "System Processing",
 
+    setQueueDialogTitle: "Select States",
+    setQueueDialogCancelDeployment: "Cancel Deployment",
+    setQueueDialogSystemProcessing: "System Processing"
 
 });
 
@@ -508,6 +512,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     true: "True",
 
     /*Deployment Queues*/
+    setQueueTabSelectAll: "Select All",
     setQueueTabID: "ID",
     setQueueTabPath: "Path",
     setQueueTabEnvironment: "Environment",
