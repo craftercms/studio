@@ -32,7 +32,9 @@ CStudioAuthoring.Module.requireModule(
 					workareaEl.innerHTML = 
 						"<div id='config-area'>" +
 						"</div>";
-						var actions = [];
+						var actions = [
+                            { name: CMgs.format(formsLangBundle, "clearCache"), context: this, method: this.clearCache }
+                        ];
 						CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 						this.renderJobsList();
 			},
@@ -268,7 +270,23 @@ CStudioAuthoring.Module.requireModule(
 			
 			shrinkEditor: function(editor) {
 				editor.setSize(this.width/2, this.height);
-			}
+			},
+
+            clearCache: function() {
+                var serviceUri = "/api/1/services/api/1/site/clear-configuration-cache.json?site="+CStudioAuthoringContext.site;
+
+                var clearCacheCb = {
+                    success: function() {
+                        alert("Configuration cache cleared");
+                    },
+
+                    failure: function() {
+                        alert("Failed to clear configuration cache");
+                    }
+                };
+
+                YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), clearCacheCb);
+            }
 			
 		});
 
