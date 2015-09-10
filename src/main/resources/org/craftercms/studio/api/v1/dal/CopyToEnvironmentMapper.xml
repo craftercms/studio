@@ -74,6 +74,14 @@
         AND scheduleddate &gt; #{now}
     </update>
 
+    <update id="cancelDeployment" parameterType="java.util.Map">
+        UPDATE cstudio_copytoenvironment
+        SET state = #{canceledState}
+        WHERE id = #{id}
+        AND site = #{site}
+        AND path = #{path}
+    </update>
+
     <select id="getItemsReadyForDeployment" resultMap="CopyToEnvironmentMap">
         SELECT *
         FROM cstudio_copytoenvironment
