@@ -47,6 +47,19 @@
         ORDER BY scheduleddate ASC
     </select>
 
+    <select id="getItemsBySiteAndStates" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND state in
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        AND scheduleddate &gt; #{now}
+        ORDER BY scheduleddate ASC, id asc
+    </select>
+
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
         INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment)
         values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})

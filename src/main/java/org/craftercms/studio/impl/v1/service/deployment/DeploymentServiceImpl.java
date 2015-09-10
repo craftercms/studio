@@ -505,10 +505,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                      List<DmDependencyTO>dependencies) {
         if(dependencies != null) {
             for(DmDependencyTO dependencyTo:dependencies) {
-                if (true/*contentService.isNew(site, dependencyTo.getUri())*/) {
+                if (objectStateService.isNew(site, dependencyTo.getUri())) {
                     String uri = dependencyTo.getUri();
                     String fullPath = contentService.expandRelativeSitePath(site, uri);
-                    if(isNodeInScheduledStatus(fullPath)) {
+                    if(objectStateService.isScheduled(site, uri)) {
                         addScheduledItem(site,launchDate,format,fullPath,scheduledItems,comparator,subComparator,displayPatterns,filterType);
                         if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
                             addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,uri);
@@ -519,17 +519,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    protected boolean isNodeInScheduledStatus(String fullPath) {
-		/*try {
-			Serializable propValue = getService(PersistenceManagerService.class).getProperty(fullPath, CStudioContentModel.PROP_STATUS);
-			if (propValue != null) {
-				String status = (String)propValue;
-				return DmConstants.DM_STATUS_SCHEDULED.equals(status);
-			}
-		} catch (Exception e) {
-		}*/
-        return false;
-    }
 
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path) {
         List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
@@ -670,100 +659,18 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
     }
-/*
-    protected void synchronize(String path, FileInfo dmFileInfo, DeployedPreviewFile deployedFile) throws IOException {
-        boolean nodeExists = dmFileInfo != null;
-        boolean fileExists = deployedFile != null;
 
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        SiteService siteService = getServicesManager().getService(SiteService.class);
-        if (nodeExists && !fileExists) {
-            if (!dmFileInfo.isFolder()) {
-                DmPathTO dmPathTO = new DmPathTO(path);
-                String site = dmPathTO.getSiteName();
-                DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-                PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
-            } else {
-                deployDir(path, dmFileInfo);
-            }
-        } else if (nodeExists && fileExists) {
-            if (!dmFileInfo.isFolder() && deployedFile.isFile()) {
-                if (PreviewDeployUtils.isUpdated(path, dmFileInfo, deployedFile)) {
-                    DmPathTO dmPathTO = new DmPathTO(path);
-                    String site = dmPathTO.getSiteName();
-                    DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-                    PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
-                }
-            } else if (dmFileInfo.isFolder() && deployedFile.isDirectory()) {
-                synchronizeDir(path, dmFileInfo);
-            } else {
-                // This could mean that someone deleted a dir and created a file with the same name, or vice versa.
-                DmPathTO dmPathTO = new DmPathTO(path);
-                String site = dmPathTO.getSiteName();
-                DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-                PreviewDeployUtils.deleteFileOrDir(site, path, deployer, deploymentConfigTO);
-                if (!dmFileInfo.isFolder()) {
-                    PreviewDeployUtils.deployFile(site, path, dmFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
-                } else {
-                    deployDir(path, dmFileInfo);
-                }
-            }
-        } else if (!nodeExists && fileExists) {
-            DmPathTO dmPathTO = new DmPathTO(path);
-            String site = dmPathTO.getSiteName();
-            DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-            PreviewDeployUtils.deleteFileOrDir(site, path, deployer, deploymentConfigTO);
-        }
+    @Override
+    public List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        List<String> states = new ArrayList<String>();
+        states.add(CopyToEnvironment.State.READY_FOR_LIVE);
+        states.add(CopyToEnvironment.State.PROCESSING);
+        params.put("states", states);
+        params.put("now", new Date());
+        return copyToEnvironmentMapper.getItemsBySiteAndStates(params);
     }
-
-    protected void deployDir(String path, FileInfo dmFileInfo) throws IOException {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        SiteService siteService = getServicesManager().getService(SiteService.class);
-        List<FileInfo> childrenFileInfo = persistenceManagerService.list(dmFileInfo.getNodeRef());
-        if (CollectionUtils.isNotEmpty(childrenFileInfo)) {
-            for (FileInfo childFileInfo : childrenFileInfo) {
-                String childPath = path + "/" + childFileInfo.getName();
-                if (!childFileInfo.isFolder()) {
-                    DmPathTO dmPathTO = new DmPathTO(path);
-                    String site = dmPathTO.getSiteName();
-                    DeploymentEndpointConfigTO deploymentConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-                    PreviewDeployUtils.deployFile(site, childPath, childFileInfo, persistenceManagerService, deployer, deploymentConfigTO);
-                } else {
-                    deployDir(childPath, childFileInfo);
-                }
-            }
-        }
-    }
-
-    protected void synchronizeDir(String path, FileInfo dmFileInfo) throws IOException {
-        List<FileInfo> childrenFileInfo = getService(PersistenceManagerService.class).list(dmFileInfo.getNodeRef());
-        List<DeployedPreviewFile> deployedChildren = new LinkedList<DeployedPreviewFile>(deployer.getChildren(path));
-        if (CollectionUtils.isNotEmpty(childrenFileInfo)) {
-            for (FileInfo childFileInfo : childrenFileInfo) {
-                boolean deployedChildFound = false;
-
-                for (Iterator<DeployedPreviewFile> i = deployedChildren.iterator(); i.hasNext() && !deployedChildFound;) {
-                    DeployedPreviewFile deployedChild = i.next();
-                    if (deployedChild.getName().equals(childFileInfo.getName())) {
-                        synchronize(path + "/" + deployedChild.getName(), childFileInfo, deployedChild);
-
-                        deployedChildFound = true;
-                        i.remove();
-                    }
-                }
-
-                if (!deployedChildFound) {
-                    synchronize(path + "/" + childFileInfo.getName(), childFileInfo, null);
-                }
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(deployedChildren)) {
-            for (DeployedPreviewFile deployedChild : deployedChildren) {
-                synchronize(path + "/" + deployedChild.getName(), null, deployedChild);
-            }
-        }
-    }*/
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
