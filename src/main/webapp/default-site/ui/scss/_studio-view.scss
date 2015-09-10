@@ -162,7 +162,7 @@
 
   table.item-listing {
     width: 100%;
-    overflow: hidden;
+    display: block;
     border: 1px solid $brand-primary;
     border-radius: $border-radius-base;
 
@@ -196,13 +196,17 @@ table.scroll-body {
   border-collapse: collapse;
 
   tr {
-    &:after {
-      /* IE8 fix */
+    /*&:after {
+      *//* IE8 fix *//*
       content: ".";
-      margin-left: -3px; /* to hide the content above tr */
-      /* not necessary if you are ok with 1px gap */
+      margin-left: -3px; *//* to hide the content above tr *//*
+      *//* not necessary if you are ok with 1px gap *//*
       visibility: hidden;
-    }
+    }*/
+
+    .small{width: 10%;}
+    .medium{width: 30%;}
+    .large{width: 60%;}
   }
 
   thead {
@@ -213,6 +217,10 @@ table.scroll-body {
     tr {
       width: 100%;
       display: table-row;
+
+      th:last-child{
+        border-radius: 0 3px 0 0;
+      }
     }
 
   }
@@ -222,6 +230,7 @@ table.scroll-body {
     height: 150px;
     display: block;
     overflow: auto;
+    border-radius: 0 0 4px 4px;
 
     tr {
       width: 100%;

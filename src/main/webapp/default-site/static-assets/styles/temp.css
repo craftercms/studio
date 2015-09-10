@@ -15199,7 +15199,7 @@ address {
 .studio-view table.item-listing,
 .studio-dialog table.item-listing {
   width: 100%;
-  overflow: hidden;
+  display: block;
   border: 1px solid #7e9dbb;
   border-radius: 4px; }
   .studio-view table.item-listing th, .studio-view table.item-listing td,
@@ -15220,13 +15220,26 @@ address {
 table.scroll-body {
   width: 100%;
   border-collapse: collapse; }
-  table.scroll-body tr:after {
+  table.scroll-body tr {
+    /*&:after {
+      */
     /* IE8 fix */
-    content: ".";
-    margin-left: -3px;
+               /*
+content: ".";
+margin-left: -3px; */
     /* to hide the content above tr */
+                                                       /*
+*/
     /* not necessary if you are ok with 1px gap */
-    visibility: hidden; }
+                                                  /*
+  visibility: hidden;
+}*/ }
+    table.scroll-body tr .small {
+      width: 10%; }
+    table.scroll-body tr .medium {
+      width: 30%; }
+    table.scroll-body tr .large {
+      width: 60%; }
   table.scroll-body thead {
     width: 100%;
     display: table;
@@ -15234,11 +15247,14 @@ table.scroll-body {
     table.scroll-body thead tr {
       width: 100%;
       display: table-row; }
+      table.scroll-body thead tr th:last-child {
+        border-radius: 0 3px 0 0; }
   table.scroll-body tbody {
     width: 100%;
     height: 150px;
     display: block;
-    overflow: auto; }
+    overflow: auto;
+    border-radius: 0 0 4px 4px; }
     table.scroll-body tbody tr {
       width: 100%;
       display: table; }
