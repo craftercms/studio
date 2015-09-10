@@ -82,4 +82,8 @@ class SiteServices {
         return siteServicesImpl.getAvailableBlueprints()
     }
 
+    static reloadSiteConfiguration(context, site) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.reloadSiteConfiguration(site)
+    }
 }
