@@ -9,7 +9,7 @@
     CStudioAuthoring.register("TemplateHolder.Delete", {
         ROOT_ROW: [
             '<tr>',
-                '<td>',
+                '<td class="medium">',
                     '<div class="item">',
                         '<input class="item-check" id="{id}" type="checkbox" json="{data}" {checked} scheduleddate="{scheduledDate}" /> ',
                         '<label for="{id}" class="{class}" title="{internalName}">{displayName}</label>',
@@ -20,7 +20,7 @@
                         '{displayURL}',
                     '</div>',
                 '</td>',
-                '<td>',
+                '<td class="small">',
                     '<div class="item-sch">',
                         '<a class="when" href="javascript:" checkid="{id}">{scheduledDateText}</a>',
                     '</div>',
@@ -29,7 +29,7 @@
         ].join(""),
         SUB_ROW: [
             '<tr>',
-                '<td>',
+                '<td class="large">',
                     '<div class="item sub-item">',
                         '<input class="item-check" id="{id}" type="checkbox" json="{data}" parentid="{parent}" scheduleddate="{scheduledDate}" {checked} /> ',
                         '<label for="{id}" class="{class}" title="{internalName}">{displayName}</label>',

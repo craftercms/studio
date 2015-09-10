@@ -15189,7 +15189,9 @@ address {
 .studio-dialog.history-view table.item-listing tbody {
   height: 199px !important;
   overflow-y: scroll;
-  background-color: #fff; }
+  background-color: #fff;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #7e9dbb; }
 .studio-view .view-title,
 .studio-dialog .view-title {
   margin: 0 0 5px; }
@@ -15199,8 +15201,6 @@ address {
 .studio-view table.item-listing,
 .studio-dialog table.item-listing {
   width: 100%;
-  display: block;
-  border: 1px solid #7e9dbb;
   border-radius: 4px; }
   .studio-view table.item-listing th, .studio-view table.item-listing td,
   .studio-dialog table.item-listing th,
@@ -15213,6 +15213,12 @@ address {
   .studio-dialog table.item-listing th {
     color: #fff;
     background-color: #7e9dbb; }
+    .studio-view table.item-listing th:first-child,
+    .studio-dialog table.item-listing th:first-child {
+      border-radius: 3px 0 0 0; }
+    .studio-view table.item-listing th:last-child,
+    .studio-dialog table.item-listing th:last-child {
+      border-radius: 0 3px 0 0; }
   .studio-view table.item-listing td,
   .studio-dialog table.item-listing td {
     background-color: #fff; }
@@ -15247,6 +15253,8 @@ margin-left: -3px; */
     table.scroll-body thead tr {
       width: 100%;
       display: table-row; }
+      table.scroll-body thead tr th:first-child {
+        border-radius: 3px 0 0 0; }
       table.scroll-body thead tr th:last-child {
         border-radius: 0 3px 0 0; }
   table.scroll-body tbody {
@@ -15254,7 +15262,9 @@ margin-left: -3px; */
     height: 150px;
     display: block;
     overflow: auto;
-    border-radius: 0 0 4px 4px; }
+    border-radius: 0 0 4px 4px;
+    border: 1px solid #7e9dbb;
+    background-color: #fff; }
     table.scroll-body tbody tr {
       width: 100%;
       display: table; }
