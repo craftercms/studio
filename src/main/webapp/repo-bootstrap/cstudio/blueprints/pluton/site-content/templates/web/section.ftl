@@ -14,7 +14,7 @@
     	<#include "/templates/web/common-page-head.ftl" />
     </head>
     
-    <body>
+    <body >
 
 		<@renderComponent componentPath="/site/components/headers/global-header.xml" />
 
@@ -53,10 +53,14 @@
 					</div>
                 </div>
             </div>
+            
+            <br/><br/><br/><br/><br/>
         </div>
+        
+        
 
 		<@renderComponent componentPath="/site/components/footers/global-footer.xml" />
-
+   
 		<#include "/templates/web/common-page-scripts.ftl" />
         <@studio.toolSupport/> 
     </body>
