@@ -139,9 +139,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
 
         var channelsSelect = document.getElementById("go-pub-channel");
         var publishingOptionsCB = {
-            success:function(o) {
-                var resultChannels = o.responseText;
-                var channels = eval('(' + resultChannels + ')');
+            success:function(channels) {
                 var publishingOptions = "";
                 var channel_index = 0;
                 for (idx in channels.availablePublishChannels) {
@@ -153,8 +151,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
             }
         }
 
-        var channelsServiceUrl = "/proxy/alfresco/cstudio/publish/get-available-publishing-channels?site=" + CStudioAuthoringContext.site;
-        YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(channelsServiceUrl), publishingOptionsCB);
+        CStudioAuthoring.Service.retrievePublishingChannels(CStudioAuthoringContext.site, publishingOptionsCB)
     },
 
     renderDelete: function() {

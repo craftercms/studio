@@ -2295,6 +2295,7 @@ var parentSaveCb = {
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
             retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
+            retrievePublishingChannelsUrl: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
             
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
             lookupFoldersServiceUri: "/api/1/services/api/1/content/get-pages.json", // NEED A SERVICE
@@ -3570,6 +3571,30 @@ var parentSaveCb = {
             menuParentPathKeyFromItemUrl: function(path) {
                 return this.matchDropdownParentNode(path) + '-latest-opened-path';
             },
+
+            
+            /**
+             * retrieve list of channels for a given site
+             */
+            retrievePublishingChannels: function(site, callback) {
+                var serviceUrl = this.retrievePublishingChannelsUrl + "?site="+site;
+
+                var serviceCallback = {
+                    success : function(response) {
+                        var channels = eval("(" + response.responseText + ")");
+                        
+                        callback.success(channels);
+                    },
+
+                    failure: function(response) {
+                        callback.failure(response);
+                    }
+                };
+
+                YConnect.asyncRequest("GET", this.createServiceUri(serviceUrl), serviceCallback);
+            },
+
+
             /**
              * retrieve a list of sites and their metadata
              */
