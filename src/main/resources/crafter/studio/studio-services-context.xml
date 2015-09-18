@@ -102,6 +102,7 @@
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
