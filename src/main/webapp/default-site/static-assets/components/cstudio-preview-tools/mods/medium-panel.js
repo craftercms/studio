@@ -107,6 +107,7 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 
         var $body = $('body'),
             $engine = $('#engineWindow'),
+            $studioPreview = $('.studio-preview'),
             $inputs = this.$container.find('input'),
             width = $inputs.filter('[data-axis="x"]').val() || 'auto',
             height = $inputs.filter('[data-axis="y"]').val() || 'auto',
@@ -158,6 +159,10 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
                 ? ''  : parseInt(width));
 
         $engine.height(
+            (height === 'auto' || height === '')
+                ? ''  : parseInt(height));
+
+        $studioPreview.height(
             (height === 'auto' || height === '')
                 ? ''  : parseInt(height));
 
