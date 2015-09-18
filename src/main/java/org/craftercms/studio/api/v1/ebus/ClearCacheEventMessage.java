@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.ebus;
 
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+public class ClearCacheEventMessage {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    @JsonCreator
+    public ClearCacheEventMessage(@JsonProperty("site")String site) {
+        super();
+        this.site = site;
+    }
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    private String site;
 
-    void cancelWorkflow(Map params);
-
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
-
-    void updateItemDeploymentState(CopyToEnvironment item);
-
-    void deleteDeploymentDataForSite(Map params);
-
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
-
-    void cancelDeployment(Map params);
+    public String getSite() { return site; }
+    public void setSite(String site) { this.site = site; }
 }

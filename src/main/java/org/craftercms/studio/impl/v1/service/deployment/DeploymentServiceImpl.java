@@ -672,6 +672,17 @@ public class DeploymentServiceImpl implements DeploymentService {
         return copyToEnvironmentMapper.getItemsBySiteAndStates(params);
     }
 
+    @Override
+    public boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("id", deploymentId);
+        params.put("canceledState", CopyToEnvironment.State.CANCELED);
+        copyToEnvironmentMapper.cancelDeployment(params);
+        return true;
+    }
+
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }

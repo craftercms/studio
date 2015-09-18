@@ -46,4 +46,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.getDeploymentQueue(site);
     }
+
+    static cancelDeployment(context, site, path, deploymentId) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.cancelDeployment(site, path, deploymentId);
+    }
 }

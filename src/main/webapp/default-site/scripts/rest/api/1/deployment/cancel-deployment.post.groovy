@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
 
-import java.util.List;
-import java.util.Map;
+import scripts.api.DeploymentServices;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+def result = [:]
+def site = params.site;
+def path = params.path;
+def deploymentId = params.deploymentId.toLong();
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+def context = DeploymentServices.createContext(applicationContext, request)
+result = DeploymentServices.cancelDeployment(context, site, path, deploymentId)
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
-
-    void cancelWorkflow(Map params);
-
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
-
-    void updateItemDeploymentState(CopyToEnvironment item);
-
-    void deleteDeploymentDataForSite(Map params);
-
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
-
-    void cancelDeployment(Map params);
-}
+return result

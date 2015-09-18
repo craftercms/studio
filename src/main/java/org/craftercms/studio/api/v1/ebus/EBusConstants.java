@@ -50,5 +50,12 @@ public final class EBusConstants {
      */
     public static final String REPOSITORY_MOVE_EVENT = "repository.move";
 
+    /**
+     * Cluster clear cache event name.
+     */
+    public static final String CLUSTER_CLEAR_CACHE_EVENT = "cluster.clearCache";
+
+    public static final String DISTRIBUTED_REACTOR = "@distributedReactor";
+
     private EBusConstants() {}
 }

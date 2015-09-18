@@ -49,4 +49,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
         return springBackedService.getDeploymentQueue(site);
     }
+
+    def cancelDeployment(site, path, deploymentId) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.cancelDeployment(site, path, deploymentId);
+    }
 }

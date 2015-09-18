@@ -115,13 +115,18 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentQueues, CStudioAdminConsole.Tool
         for(var i=0;  i< list.length; i++) {
             var item = list[i];
             var path = item.path;
+
             var serviceUri = "/api/1/services/api/1/deployment/cancel-deployment.json?site="+CStudioAuthoringContext.site+"&path="+path+"&deploymentId="+item.id;
 
             cb = {
                 success:function() {
+                    alert("Deployment items canceled");
                     CStudioAdminConsole.Tool.DeploymentQueues.prototype.renderQueueTable();
                 },
-                failure: function() {}
+                failure: function() {
+                    alert("Failed to cancel deployment");
+                    CStudioAdminConsole.Tool.DeploymentQueues.prototype.renderQueueTable();
+                }
             };
 
             YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);

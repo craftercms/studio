@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.impl.v1.ebus;
 
-import java.util.List;
-import java.util.Map;
+import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
+import reactor.function.Consumer;
+import reactor.tcp.TcpConnection;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
-
-    List<CopyToEnvironment> getScheduledItems(Map params);
-
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
-
-    void cancelWorkflow(Map params);
-
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
-
-    void updateItemDeploymentState(CopyToEnvironment item);
-
-    void deleteDeploymentDataForSite(Map params);
-
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
-
-    void cancelDeployment(Map params);
+public class DistributedEBussConnectionConsumer implements Consumer<TcpConnection<DistributedEventMessage, String>> {
+    @Override
+    public void accept(TcpConnection<DistributedEventMessage, String> distributedEventMessageStringTcpConnection) {
+        distributedEventMessageStringTcpConnection.in()
+                .consume(new DistributedEBusConsumer());
+    }
 }

@@ -125,5 +125,7 @@ public interface SiteService {
 
     void reloadSiteConfiguration(String site);
 
+    void reloadSiteConfiguration(String site, boolean triggerEvent);
+
     void reloadGlobalConfiguration();
 }

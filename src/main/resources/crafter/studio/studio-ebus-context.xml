@@ -26,7 +26,15 @@
 
     <import resource="classpath*:/crafter/ebus/ebus-context.xml"/>
     <context:component-scan base-package="org.craftercms.commons.ebus"/>
+    <context:component-scan base-package="org.craftercms.studio.impl.v1.ebus"/>
 
     <bean name="repositoryReactor" factory-bean="reactorFactory" factory-method="createReactor"/>
+
+    <bean name="distributedReactor" factory-bean="reactorFactory" factory-method="createReactor"/>
+
+    <bean id="studioDistributedEBusFacade" class="org.craftercms.studio.impl.v1.ebus.DistributedPeerEBusFacedImpl">
+        <property name="distributedReactor" ref="distributedReactor"/>
+        <property name="peerList" value="#{'${studio.ebus.peers}'.split(';')}"/>
+    </bean>
 
 </beans>
