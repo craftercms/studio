@@ -34,7 +34,7 @@
 
     <bean id="studioDistributedEBusFacade" class="org.craftercms.studio.impl.v1.ebus.DistributedPeerEBusFacedImpl">
         <property name="distributedReactor" ref="distributedReactor"/>
-        <property name="peerList" value="#{'${studio.ebus.peers}'.split(';')}"/>
+        <property name="peerList" value="#{'${crafter.studio.ebus.peers}'.split(';')}"/>
     </bean>
 
 </beans>

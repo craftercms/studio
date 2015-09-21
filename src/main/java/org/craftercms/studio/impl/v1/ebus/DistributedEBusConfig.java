@@ -35,7 +35,7 @@ import reactor.tcp.spec.TcpServerSpec;
 @Configuration
 public class DistributedEBusConfig {
 
-    @Value("${crafter.ebus.tcpserver.port}")
+    @Value("${crafter.studio.ebus.tcpserver.port}")
     private int portNumber;
 
     @Bean
