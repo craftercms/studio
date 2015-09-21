@@ -1046,9 +1046,11 @@ implements SecurityProvider {
             if ("cmis:document".equals(type.getId())) {
                 org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                 String pwcId = document.getVersionSeriesCheckedOutId();
-                org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
-                if (pwcDocument != null) {
-                    pwcDocument.cancelCheckOut();
+                if (StringUtils.isNotEmpty(pwcId)) {
+                    org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
+                    if (pwcDocument != null) {
+                        pwcDocument.cancelCheckOut();
+                    }
                 }
             }
         } catch (CmisBaseException err) {
