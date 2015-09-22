@@ -391,14 +391,14 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean deleteContent(String site, String path) {
-        return deleteContent(site, path, true);
+    public boolean deleteContent(String site, String path, String approver) {
+        return deleteContent(site, path, true, approver);
     }
 
     @Override
-    public boolean deleteContent(String site, String path, boolean generateActivity) {
+    public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
         if (generateActivity) {
-            generateDeleteActivity(site, path);
+            generateDeleteActivity(site, path, approver);
         }
         boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
         objectStateService.deleteObjectStateForPath(site, path);
@@ -415,8 +415,10 @@ public class ContentServiceImpl implements ContentService {
         return toRet;
     }
 
-    protected void generateDeleteActivity(String site, String path) {
-        String approver = securityService.getCurrentUser();
+    protected void generateDeleteActivity(String site, String path, String approver) {
+        if (StringUtils.isEmpty(approver)) {
+            approver = securityService.getCurrentUser();
+        }
         boolean exists = contentExists(site, path);
         if (exists) {
             ObjectMetadata properties = objectMetadataManager.getProperties(site, path);
