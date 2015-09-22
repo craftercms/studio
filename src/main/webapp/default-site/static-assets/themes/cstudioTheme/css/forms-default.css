@@ -770,12 +770,17 @@
     border: none;
     margin-right: 4px;
     position: absolute;
-    top: 78px;
+    top: 0;
+}
+
+.cstudio-form-control-asset-picker-zoom-button.video-zoom {
+    right: 25px;
+    margin-right: 0px;
 }
 
 .cstudio-form-control-asset-picker-download-button {
 	position: absolute;
-	top: 78px;
+	top: 0;
     right: 0;
 }
 

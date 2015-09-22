@@ -91,6 +91,24 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
     },
 
     /**
+     * Show Alert
+     */
+    showAlert: function(message){
+        var dialog = new YAHOO.widget.SimpleDialog("alertDialog",
+            { width: "400px",fixedcenter: true, visible: false, draggable: false, close: false, modal: true,
+                text: message, icon: YAHOO.widget.SimpleDialog.ICON_ALARM,
+                constraintoviewport: true,
+                buttons: [ { text:"OK", handler: function(){
+                    this.destroy();
+
+                }, isDefault:false } ]
+            });
+        dialog.setHeader("CStudio Warning");
+        dialog.render(document.body);
+        dialog.show();
+    },
+
+    /**
      * event fired when the ok is pressed
      */
     uploadPopupCancel: function(event) {
@@ -99,13 +117,21 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
 
     addVideo: function() {
         var _self = this;
+        var videoManagerNames = this.datasources;
 
-        if(this.addContainerEl) {
-            addContainerEl = this.addContainerEl;
-            this.addContainerEl = null;
-            this.containerEl.removeChild(addContainerEl);
-        }
-        else {
+        videoManagerNames = (!videoManagerNames) ? "" :
+            (Array.isArray(videoManagerNames)) ? videoManagerNames.join(",") : videoManagerNames;
+        var datasourceMap = this.form.datasourceMap,
+            datasourceDef = this.form.definition.datasources;
+
+        if(videoManagerNames != "" && videoManagerNames.indexOf(",") != -1){
+
+            if(this.addContainerEl) {
+                addContainerEl = this.addContainerEl;
+                this.addContainerEl = null;
+                this.containerEl.removeChild(addContainerEl);
+            }
+            //else {
             addContainerEl = document.createElement("div")
             this.containerEl.appendChild(addContainerEl);
             YAHOO.util.Dom.addClass(addContainerEl, 'cstudio-form-control-video-picker-add-container');
@@ -115,12 +141,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
 
             addContainerEl.style.left = this.addEl.offsetLeft + "px";
             addContainerEl.style.top = this.addEl.offsetTop + 22 + "px";
-            var videoManagerNames = this.datasources;
 
-            videoManagerNames = (!videoManagerNames) ? "" :
-                (Array.isArray(videoManagerNames)) ? videoManagerNames.join(",") : videoManagerNames;
-            var datasourceMap = this.form.datasourceMap,
-                datasourceDef = this.form.definition.datasources;
             // The datasource title is only found in the definition.datasources. It'd make more sense to have all
             // the information in just one place.
 
@@ -130,7 +151,8 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
                 var regexpr = new RegExp("(" + el.id + ")[\\s,]|(" + el.id + ")$"),
                     mapDatasource;
 
-                if (videoManagerNames.search(regexpr) > -1) {
+                //if (videoManagerNames.search(regexpr) > -1) {
+                if (videoManagerNames.indexOf(el.id) != -1) {
                     mapDatasource = datasourceMap[el.id];
 
                     var itemEl = document.createElement("div");
@@ -148,8 +170,10 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
                 }
             }
             datasourceDef.forEach(addMenuOption);
-
-
+        }
+        else if(videoManagerNames != ""){
+            videoManagerNames = videoManagerNames.replace("[\"","").replace("\"]","");
+            this._addVideo(datasourceMap[videoManagerNames]);
         }
     },
 
@@ -170,15 +194,16 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
                             message = "The uploaded file is not of type video";
                         }
 
-                        if (! valid) {
-                            alert(message);
-                            this.videoPicker.deleteVideo();
+                        if (!valid) {
+                            this.videoPicker.showAlert(message);
+                            //this.videoPicker.deleteVideo();
                         } else {
                             this.videoPicker.previewEl.src = videoData.previewUrl;
+                            this.videoPicker.previewEl.setAttribute("controls", "true");
                             this.videoPicker.urlEl.innerHTML = videoData.relativeUrl;
                             this.videoPicker.downloadEl.href = videoData.previewUrl;
 
-                            this.videoPicker.addEl.value = "Edit";
+                            this.videoPicker.addEl.value = "Replace";
 
                             this.videoPicker.noPreviewEl.style.display = "none";
                             this.videoPicker.previewEl.style.display = "inline";
@@ -193,7 +218,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
                         }
                     },
                     failure: function(message) {
-                        alert(message);
+                        this.imagePicker.showAlert(message);
                     }
                 };
                 callback.videoPicker = this;
@@ -266,10 +291,14 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         noPreviewEl.style.paddingLeft = "5px";
         videoEl.appendChild(noPreviewEl);
 
-        var previewEl = document.createElement("EMBED");
+        var previewEl = document.createElement("video");
         this.previewEl = previewEl;
-        previewEl.setAttribute("autoplay", "false");
-        previewEl.setAttribute("autostart", "false");
+        //previewEl.setAttribute("type", "application/mediaplayer");
+        //previewEl.setAttribute("autoplay", "0");
+        //previewEl.setAttribute("autostart", "0");
+        //this.previewEl.setAttribute("controls", "false");
+
+        console.log("this: "+this.previewEl.getAttribute("src"));
 
         YAHOO.util.Dom.addClass(previewEl, 'cstudio-form-control-asset-picker-preview-content');
 
@@ -279,7 +308,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         this.zoomEl = zoomEl;
         zoomEl.type = "button";
 
-        YAHOO.util.Dom.addClass(zoomEl, 'cstudio-form-control-asset-picker-zoom-button');
+        YAHOO.util.Dom.addClass(zoomEl, 'cstudio-form-control-asset-picker-zoom-button video-zoom');
 
         if (this.inputEl.value == null || this.inputEl.value == "") {
             zoomEl.style.display = "none";
@@ -287,17 +316,17 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             zoomEl.style.display = "inline-block";
         }
 
-        controlWidgetContainerEl.appendChild(zoomEl);
+        videoEl.appendChild(zoomEl);
 
         var downloadEl = document.createElement("a");
         this.downloadEl = downloadEl;
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadVideoEl = document.createElement("img");
-        downloadVideoEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
+        downloadVideoEl.src = "/studio/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadVideoEl);
 
-        YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');
+        YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button video-zoom');
 
         if (this.inputEl.value == null || this.inputEl.value == "") {
             downloadEl.style.display = "none";
@@ -305,7 +334,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             downloadEl.style.display = "inline-block";
         }
 
-        controlWidgetContainerEl.appendChild(downloadEl);
+        videoEl.appendChild(downloadEl);
 
         var addEl = document.createElement("input");
         this.addEl = addEl;
@@ -406,9 +435,9 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             this.noPreviewEl.style.display = "inline";
         } else {
             this.previewEl.src = CStudioAuthoringContext.previewAppBaseUri + value;
-            this.previewEl.style.display = "inline";
+            this.previewEl.style.display = "block";
+            this.previewEl.setAttribute("controls", "true");
             this.noPreviewEl.style.display = "none";
-
             this.urlEl.innerHTML = value;
 
             this.zoomEl.style.display = "inline-block";
