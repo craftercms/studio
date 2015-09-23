@@ -1161,8 +1161,8 @@ var YEvent = YAHOO.util.Event;
                     // new item
                     CStudioAuthoring.Operations.performSimpleIceEdit({ contentType: formId, uri:path },
                             null, //field
-                            false //isEdit
-                            //callback
+                            false, //isEdit
+                            callback
                             //aux
                             );
 
@@ -1500,26 +1500,6 @@ var YEvent = YAHOO.util.Event;
                 };
 
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
-            },
-
-            getImageRequest: function(data) {
-                var callback = {
-                    success: function(oResponse) {
-                        data.image.src = data.url;
-                    },
-                    failure: function (oResponse) {
-                        var secondCallback = {
-                            success: function (oResponse) {
-                                data.image.src = data.url;
-                            },
-                            failure: function (oResponse) {
-                                data.image.src = data.url;
-                            }
-                        }
-                        setTimeout(function(){ CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: secondCallback}); },700);
-                    }
-                }
-                CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: callback});
             },
 
             /**
@@ -2292,12 +2272,6 @@ var parentSaveCb = {
             getInContextEditView: function(callback) {
                 CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html', callback);
             },
-
-            getImageRequest: function(data) {
-                CSA.Service.getViewCommon(data.url, data.callback);
-
-            },
-
 
             // constants
             defaultNavContext: "default",
@@ -5933,21 +5907,20 @@ var parentSaveCb = {
 
                 return CStudioAuthoring.StringUtils.format(["<table class='width100 acn-tooltip'>",
                     "<tr>",
-                    "<td class='acn-width80'><strong>{0}:</strong></td>",
+                    "<td class='acn-width80'>{0}:</td>",
                     "<td class='acn-width200'><div class='acn-width200' style='word-wrap: break-word;'>{1}</div></td>",
-                    "</tr>",
-                    //Removing it for the release 2.5.0
-                    /*"<tr><td class='acn-width83'><strong>Status:</strong></td>",
+                    "</tr><tr>",
+                    "<td class='acn-width83'>Status:</td>",
                     "<td class='acn-width200'><span class='{2}'></span>",
-                    "<span style='padding-left:2px;'>{3}</span></td></tr>",*/
-                    "<tr>",
-                    "<td class='acn-width80'><strong>Last Edited: </strong></td>",
+                    "<span style='padding-left:2px;'>{3}</span></td>",
+                    "</tr><tr>",
+                    "<td class='acn-width80'>Last Edited: </td>",
                     "<td class='acn-width200'>{4}</td>",
                     "</tr><tr>",
-                    "<td class='acn-width80'><strong>Edited by: </strong></td>",
+                    "<td class='acn-width80'>Edited by: </td>",
                     "<td class='acn-width200'>{5}</td>",
                     "</tr><tr>",
-                    "<td class='acn-width80'><strong>Locked by: </strong></td>",
+                    "<td class='acn-width80'>Locked by: </td>",
                     "<td class='acn-width200'>{6}</td>",
                     schedInfo,
                     "</tr>",
