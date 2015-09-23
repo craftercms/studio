@@ -148,6 +148,8 @@
         height: 199px!important;
         overflow-y: scroll;
         background-color: #fff;
+        border-radius: 0 0 4px 4px;
+        border: 1px solid #7e9dbb;
       }
     }
   }
@@ -162,8 +164,6 @@
 
   table.item-listing {
     width: 100%;
-    overflow: hidden;
-    border: 1px solid $brand-primary;
     border-radius: $border-radius-base;
 
     tr {
@@ -181,6 +181,14 @@
     th {
       color: #fff;
       background-color: $brand-primary;
+
+      &:first-child{
+        border-radius: 3px 0 0 0;
+      }
+
+      &:last-child{
+        border-radius: 0 3px 0 0;
+      }
     }
 
     td {
@@ -196,13 +204,17 @@ table.scroll-body {
   border-collapse: collapse;
 
   tr {
-    &:after {
-      /* IE8 fix */
+    /*&:after {
+      *//* IE8 fix *//*
       content: ".";
-      margin-left: -3px; /* to hide the content above tr */
-      /* not necessary if you are ok with 1px gap */
+      margin-left: -3px; *//* to hide the content above tr *//*
+      *//* not necessary if you are ok with 1px gap *//*
       visibility: hidden;
-    }
+    }*/
+
+    .small{width: 10%;}
+    .medium{width: 30%;}
+    .large{width: 60%;}
   }
 
   thead {
@@ -213,6 +225,14 @@ table.scroll-body {
     tr {
       width: 100%;
       display: table-row;
+
+      th:first-child{
+        border-radius: 3px 0 0 0;
+      }
+
+      th:last-child{
+        border-radius: 0 3px 0 0;
+      }
     }
 
   }
@@ -222,6 +242,9 @@ table.scroll-body {
     height: 150px;
     display: block;
     overflow: auto;
+    border-radius: 0 0 4px 4px;
+    border: 1px solid #7e9dbb;
+    background-color: #fff;
 
     tr {
       width: 100%;

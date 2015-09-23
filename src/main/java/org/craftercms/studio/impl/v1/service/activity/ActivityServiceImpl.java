@@ -100,13 +100,13 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		String contentType = null;
 		if(extraInfo!=null)
 			contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
-		postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType);
+		postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType, user);
 
 	}
 
 	private void postActivity(String activityType, String siteNetwork, String appTool, String activityData,
-							 String contentId, String contentType) {
-		String currentUser = securityService.getCurrentUser();
+							 String contentId, String contentType, String approver) {
+		String currentUser = (StringUtils.isEmpty(approver)) ? securityService.getCurrentUser() : approver;
 		try {
 			// optional - default to empty string
 			if (siteNetwork == null) {

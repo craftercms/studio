@@ -23,11 +23,12 @@
 	
 
    <#if executedQuery??>
+   
 	  <#assign locations = executedQuery.response.documents />
   
 	  <h5>Stores Closest to You!</h5>
 	  <#list locations as location>
-	  <div>
+	  <div <@studio.iceAttr path=location.localId />>
 	    <img width='200px' height='200px' style="border:1px solid white;"  src="${location.storeFrontImage}" /><br/>
 	    <span>${location.storeName}</span><br/>
 	    <span>${location.address}</span>
@@ -44,3 +45,5 @@
     </form>
 </#if>
 </div>
+
+ 

@@ -72,4 +72,6 @@ public interface DeploymentService {
     void syncAllContentToPreview(String site) throws ServiceException;
 
     List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
+
+    boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 }

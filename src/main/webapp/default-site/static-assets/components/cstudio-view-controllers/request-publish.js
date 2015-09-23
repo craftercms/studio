@@ -81,15 +81,15 @@
         var html = [],
             tpl = [
                 '<tr>',
-                '<td><input type="checkbox" class="select-all-check" data-item-id="_URI_" checked/></td>',
-                '<td>_NAME_</td>',
-                '<td>_SCHEDULE_</td>',
+                '<td class="small"><input type="checkbox" class="select-all-check" data-item-id="_URI_" checked/></td>',
+                '<td class="large">_URI_</td>',
+                '<td class="medium">_SCHEDULE_</td>',
                 '</tr>'
             ].join();
         $.each(items, function (i, item) {
             html.push(tpl
-                .replace('_NAME_', item.internalName)
-                .replace('_SCHEDULE_', item.browserUri)
+                .replace('_URI_', item.uri)
+                .replace('_SCHEDULE_', item.scheduledDate ? item.scheduledDate : "")
                 .replace('_URI_', item.uri));
         });
         this.$('.item-listing tbody').html(html.join(''));

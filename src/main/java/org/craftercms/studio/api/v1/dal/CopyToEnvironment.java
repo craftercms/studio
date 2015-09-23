@@ -32,7 +32,7 @@ public class CopyToEnvironment implements Serializable {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
         public final static String PROCESSING = "PROCESSING";
         public final static String COMPLETED = "COMPLETED";
-        public final static String CANCELED = "CANCELED";
+        public final static String CANCELED = "CANCELLED";
     }
 
     public class Action {

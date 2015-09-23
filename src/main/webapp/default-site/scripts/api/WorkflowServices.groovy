@@ -1,9 +1,6 @@
 
 package scripts.api
 
-@Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.2' )
-@Grab(group='org.apache.httpcomponents', module='httpclient', version='4.1' )
-
 import scripts.api.ServiceFactory
 import groovy.util.logging.Log
 

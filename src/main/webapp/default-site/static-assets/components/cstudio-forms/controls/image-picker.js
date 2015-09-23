@@ -138,7 +138,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         newdiv.className= "yui-pe-content";
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="crop-popup-inner">' +
             '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
-                '<div class="contentTypePopupHeader">Please Crop the Image</div> ' +
+                '<div class="contentTypePopupHeader">Crop Image</div> ' +
                 '<div>'+
                     '<div class="contentTypeOuter clearfix">'+
                         '<div class="formDesc">' + Message + '</div> ' +
@@ -187,7 +187,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                 '</div>' +
                                 '<div class="input-group">' +
                                     '<label class="input-group-addon" for="dataHeight">Height</label>' +
-                                    '<input type="text" class="form-control" id="dataHeight" placeholder="height">' +
+                                    '<input type="text" class="form-control" id="dataHeight" placeholder="height" disabled>' +
                                     '<span class="input-group-addon">px</span>' +
                                 '</div>' +
                             '</div>' +
@@ -301,8 +301,8 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                         $('#cropButton').prop('disabled',false);
                     }
                 }else{
-                    inputValidation(parseInt(minHeightCropBox), parseInt(maxHeightCropBox), $dataHeight);
-                    inputValidation(parseInt(minWidthCropBox), parseInt(maxWidthCropBox), $dataWidth);
+                    inputValidation(parseInt(minHeightCropBox), parseInt(maxHeightCropBox), $dataHeight, $dataWidth);
+                    inputValidation(parseInt(minWidthCropBox), parseInt(maxWidthCropBox), $dataWidth, $dataHeight);
                 }
 
             },
@@ -330,8 +330,10 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             $image.cropper('setData', {"width":parseInt(widthCropBox),"height": parseInt(heightCropBox)});
         });
 
-        function inputValidation(min, max, input){
-            if ((input.val() >= min) && (input.val() <= max)){
+        function inputValidation(min, max, input, auxInput){
+            if (((min && max) && (input.val() >= min) && (input.val() <= max)) ||
+                ((min && !max) && (input.val() >= min)) ||
+                ((!min && max) && (input.val() <= max))){
                 $('#zoomMessage').addClass("hidden");
                 input.removeClass("error");
                 $('#cropButton').prop('disabled',false);
@@ -339,6 +341,10 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 $('#zoomMessage').removeClass("hidden");
                 input.addClass("error");
                 $('#cropButton').prop('disabled',true);
+            }
+            if(input.hasClass("error") || auxInput.hasClass("error")){
+                $('#cropButton').prop('disabled',true);
+                $('#zoomMessage').removeClass("hidden");
             }
         }
 
@@ -487,7 +493,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                 if (!valid) {
                                     var widthConstrains = JSON.parse(self.width);
                                     var heightConstrains = JSON.parse(self.height);
-                                    message = "The uploaded file does not fulfill the width & height constraints";
+                                    message = "The uploaded file does not meet the specified width & height constraints";
                                     //imagePicker.deleteImage();
                                     if((widthConstrains.min && imagePicker.originalWidth < widthConstrains.min)
                                         || (heightConstrains.min && imagePicker.originalHeight < heightConstrains.min)
@@ -517,7 +523,13 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                 message = "Unable to load the selected image. Please try again or select another image";
                                 imagePicker.showAlert(message);
                             });
-                            image.src = imageData.previewUrl;
+                            CStudioAuthoring.Operations.getImageRequest({
+                                url: imageData.previewUrl,
+                                image: image,
+                                failure: function(){
+
+                                }
+                            });
 
 
                         }

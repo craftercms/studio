@@ -211,9 +211,13 @@ public class PublishingManagerImpl implements PublishingManager {
                         deletedFiles.add(item.getPath());
                         if (item.getPath().endsWith("/" + indexFile)) {
                             String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
                             String folderPath = item.getPath().replace("/" + indexFile, "");
-                            if (children.length < 2) {
+                            if (contentRepository.contentExists(fullPath)) {
+                                RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                                if (children.length < 2) {
+                                    deletedFiles.add(folderPath);
+                                }
+                            } else {
                                 deletedFiles.add(folderPath);
                             }
                         }
@@ -336,7 +340,7 @@ public class PublishingManagerImpl implements PublishingManager {
         if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.DELETE)) {
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             if (item.getOldPath() != null && item.getOldPath().length() > 0) {
-                contentService.deleteContent(item.getSite(), item.getOldPath());
+                contentService.deleteContent(item.getSite(), item.getOldPath(), item.getUser());
                 deployer.deleteFile(item.getSite(), item.getOldPath());
 
                 objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
@@ -354,9 +358,9 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (isLive) {
-                contentService.deleteContent(item.getSite(), item.getPath());
+                contentService.deleteContent(item.getSite(), item.getPath(), item.getUser());
                 if (!haschildren) {
-                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""), false);
+                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
                 }
             }
         } else {

@@ -24,7 +24,7 @@ CStudioAdminConsole.Tool.DeploymentQueues = CStudioAdminConsole.Tool.DeploymentQ
 	return this;
 }
 var list = [];
-var wfStates = [];
+var queueItems = [];
 /**
  * Overarching class that drives the content type tools
  */
@@ -46,7 +46,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentQueues, CStudioAdminConsole.Tool
 	renderQueueList: function() {
 		
 		var actions = [
-				{ name: CMgs.format(formsLangBundle, "setStatedDialogSetStates"), context: this, method: this.setStates }
+				{ name: CMgs.format(formsLangBundle, "setQueueDialogCancelDeployment"), context: this, method: this.cancelDeployment }
 		];
 		CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 			
@@ -59,14 +59,14 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentQueues, CStudioAdminConsole.Tool
 		queueListEl.innerHTML =
 		"<table id='queueTable' class='cs-statelist'>" +
 			 	"<tr>" +
-				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.DeploymentQueues.selectAll(); return false;'>"+CMgs.format(langBundle, "setStatedTabSelectAll")+"</a></th>" +
-				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabID")+"</th>" +
-                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabPath")+"</th>" +
-                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabEnvironment")+"</th>" +
-                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabUser")+"</th>" +
-    			 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabState")+"</th>" +
-                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabAction")+"</th>" +
-				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabScheduledDate")+"</th>" +
+				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.DeploymentQueues.selectAll(); return false;'>"+CMgs.format(langBundle, "setQueueTabSelectAll")+"</a></th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabID")+"</th>" +
+                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabPath")+"</th>" +
+                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabEnvironment")+"</th>" +
+                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabUser")+"</th>" +
+    			 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabState")+"</th>" +
+                    "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabAction")+"</th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabScheduledDate")+"</th>" +
 				 "</tr>" + 
 			"</table>";
 	
@@ -102,6 +102,36 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentQueues, CStudioAdminConsole.Tool
 
 			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	},
+
+    cancelDeployment: function() {
+        var items = document.getElementsByClassName('act');
+
+        for(var i=0; i<items.length; i++) {
+            if(items[i].checked == true) {
+                list[list.length] = queueItems[i];
+            }
+        }
+
+        for(var i=0;  i< list.length; i++) {
+            var item = list[i];
+            var path = item.path;
+
+            var serviceUri = "/api/1/services/api/1/deployment/cancel-deployment.json?site="+CStudioAuthoringContext.site+"&path="+path+"&deploymentId="+item.id;
+
+            cb = {
+                success:function() {
+                    alert("Deployment items canceled");
+                    CStudioAdminConsole.Tool.DeploymentQueues.prototype.renderQueueTable();
+                },
+                failure: function() {
+                    alert("Failed to cancel deployment");
+                    CStudioAdminConsole.Tool.DeploymentQueues.prototype.renderQueueTable();
+                }
+            };
+
+            YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+        }
+    },
 			
 	setStates: function() {
 		var items = document.getElementsByClassName('act');

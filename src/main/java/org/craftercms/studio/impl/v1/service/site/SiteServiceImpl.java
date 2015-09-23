@@ -22,10 +22,16 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.ebus.annotations.EventHandler;
+import org.craftercms.commons.ebus.annotations.EventSelectorType;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
+import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
+import org.craftercms.studio.api.v1.ebus.DistributedPeerEBusFacade;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -54,6 +60,9 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import reactor.core.Reactor;
+import reactor.event.Event;
+import reactor.tcp.TcpClient;
+import reactor.tcp.TcpConnection;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
@@ -670,6 +679,22 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     @Override
     public void reloadSiteConfiguration(String site) {
+        reloadSiteConfiguration(site, true);
+    }
+
+    @EventHandler(
+            event = EBusConstants.CLUSTER_CLEAR_CACHE_EVENT,
+            ebus = EBusConstants.DISTRIBUTED_REACTOR,
+            type = EventSelectorType.REGEX
+    )
+    public void onClearCacheEvent(final Event<ClearCacheEventMessage> event) {
+        logger.debug("On clear cache event");
+        ClearCacheEventMessage message = event.getData();
+        reloadSiteConfiguration(message.getSite(), false);
+    }
+
+    @Override
+    public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         if (this.sitesMappings == null) {
             this.sitesMappings = new HashMap<String, SiteTO>();
         }
@@ -706,6 +731,14 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         notificationService.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
+        if (triggerEvent) {
+            ClearCacheEventMessage message = new ClearCacheEventMessage(site);
+            DistributedEventMessage distributedEventMessage = new DistributedEventMessage();
+            distributedEventMessage.setEventKey(EBusConstants.CLUSTER_CLEAR_CACHE_EVENT);
+            distributedEventMessage.setMessageClass(ClearCacheEventMessage.class);
+            distributedEventMessage.setMessage(message);
+            distributedPeerEBusFacade.notifyCluster(distributedEventMessage);
+        }
     }
 
     @Override
@@ -775,6 +808,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public ContentTypeService getContentTypeService() { return contentTypeService; }
     public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
 
+    public DistributedPeerEBusFacade getDistributedPeerEBusFacade() { return distributedPeerEBusFacade; }
+    public void setDistributedPeerEBusFacade(DistributedPeerEBusFacade distributedPeerEBusFacade) { this.distributedPeerEBusFacade = distributedPeerEBusFacade; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -795,9 +831,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     protected Reactor repositoryRector;
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
+    protected DistributedPeerEBusFacade distributedPeerEBusFacade;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
+
 
 	/**
 	 * a map of site key and site information

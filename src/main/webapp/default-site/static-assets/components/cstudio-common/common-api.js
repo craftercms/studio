@@ -1502,6 +1502,26 @@ var YEvent = YAHOO.util.Event;
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
             },
 
+            getImageRequest: function(data) {
+                var callback = {
+                    success: function(oResponse) {
+                        data.image.src = data.url;
+                    },
+                    failure: function (oResponse) {
+                        var secondCallback = {
+                            success: function (oResponse) {
+                                data.image.src = data.url;
+                            },
+                            failure: function (oResponse) {
+                                data.image.src = data.url;
+                            }
+                        }
+                        setTimeout(function(){ CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: secondCallback}); },700);
+                    }
+                }
+                CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: callback});
+            },
+
             /**
              * create content for a given site, at a given path
              * opens a dialog if needed or goes directly to the form if no
@@ -2273,6 +2293,12 @@ var parentSaveCb = {
                 CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html', callback);
             },
 
+            getImageRequest: function(data) {
+                CSA.Service.getViewCommon(data.url, data.callback);
+
+            },
+
+
             // constants
             defaultNavContext: "default",
             
@@ -2295,6 +2321,7 @@ var parentSaveCb = {
             allContentTypesForSite: "/api/1/services/api/1/content/get-content-types.json",
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
             retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
+            retrievePublishingChannelsUrl: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
             
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
             lookupFoldersServiceUri: "/api/1/services/api/1/content/get-pages.json", // NEED A SERVICE
@@ -3570,6 +3597,30 @@ var parentSaveCb = {
             menuParentPathKeyFromItemUrl: function(path) {
                 return this.matchDropdownParentNode(path) + '-latest-opened-path';
             },
+
+            
+            /**
+             * retrieve list of channels for a given site
+             */
+            retrievePublishingChannels: function(site, callback) {
+                var serviceUrl = this.retrievePublishingChannelsUrl + "?site="+site;
+
+                var serviceCallback = {
+                    success : function(response) {
+                        var channels = eval("(" + response.responseText + ")");
+                        
+                        callback.success(channels);
+                    },
+
+                    failure: function(response) {
+                        callback.failure(response);
+                    }
+                };
+
+                YConnect.asyncRequest("GET", this.createServiceUri(serviceUrl), serviceCallback);
+            },
+
+
             /**
              * retrieve a list of sites and their metadata
              */

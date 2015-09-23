@@ -1,4 +1,4 @@
-<content-type name="/component/sider-set" is-wcm-type="true">
+<content-type name="/component/slider-set" is-wcm-type="true">
 	<label>Slider Set</label>
 	<form>/component/slider-set</form>
 	<form-path>simple</form-path>

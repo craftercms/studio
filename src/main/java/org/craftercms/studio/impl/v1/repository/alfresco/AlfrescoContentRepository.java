@@ -693,6 +693,13 @@ implements SecurityProvider {
                 logger.debug("No content found at " + fullPath);
                 result = true;
             } else {
+                ObjectType type = cmisObject.getBaseType();
+                if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                    if (doc.isVersionSeriesCheckedOut()) {
+                        doc.cancelCheckOut();
+                    }
+                }
                 cmisObject.delete(true);
                 session.removeObjectFromCache(cmisObject.getId());
                 result = true;
@@ -1017,7 +1024,9 @@ implements SecurityProvider {
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-            document.checkOut();
+            if (!document.isVersionSeriesCheckedOut()) {
+                document.checkOut();
+            }
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
         } catch (Throwable err) {
@@ -1040,21 +1049,25 @@ implements SecurityProvider {
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        try {
-            CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            ObjectType type = cmisObject.getBaseType();
-            if ("cmis:document".equals(type.getId())) {
-                org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-                String pwcId = document.getVersionSeriesCheckedOutId();
-                org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
-                if (pwcDocument != null) {
-                    pwcDocument.cancelCheckOut();
+        if (contentExists(cleanPath)) {
+            try {
+                CmisObject cmisObject = session.getObjectByPath(cleanPath);
+                ObjectType type = cmisObject.getBaseType();
+                if ("cmis:document".equals(type.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                    String pwcId = document.getVersionSeriesCheckedOutId();
+                    if (StringUtils.isNotEmpty(pwcId)) {
+                        org.apache.chemistry.opencmis.client.api.Document pwcDocument = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
+                        if (pwcDocument != null) {
+                            pwcDocument.cancelCheckOut();
+                        }
+                    }
                 }
+            } catch (CmisBaseException err) {
+                logger.error("Error while locking content at path " + cleanPath, err);
+            } catch (Throwable err) {
+                logger.error("Error while locking content at path " + cleanPath, err);
             }
-        } catch (CmisBaseException err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
-        } catch (Throwable err) {
-            logger.error("Error while locking content at path " + cleanPath, err);
         }
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("unLockItem(String site, String path); {0}, {1}\n\t\tDuration: {2}", site, path, duration);

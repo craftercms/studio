@@ -156,13 +156,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                     this.initializePreferences(oPreferences);
                     // this.initializeResizing();
                     this.initializeVisibility();
-                    /**
-                     * when search text box is focused contex nav need to be hidden.
-                     */
-                    var e = YDom.get("acn-searchtext");
-                    YAHOO.util.Event.addListener(e, "focus", function (evt) {
-                        auth.ContextualNav.WcmSiteDropdown.setVisible(false);
-                    });
+
                     var cfg = this.oPreferences,
                         self = this;
                     YEvent.onAvailable("acn-dropdown-menu", function () {
