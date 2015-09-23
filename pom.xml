@@ -253,6 +253,19 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- groovy workflow services (to talk to Activiti) -->
+        <dependency>
+            <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+            <artifactId>http-builder</artifactId>
+            <version>0.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1</version>
+        </dependency>
+
+        
     </dependencies>
 
     <build>
@@ -262,10 +275,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
             </plugin>
 
             <plugin>

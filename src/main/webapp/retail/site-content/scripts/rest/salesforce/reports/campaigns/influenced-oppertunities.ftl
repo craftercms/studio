@@ -1,5 +1,5 @@
-<#assign uname = "rdanner617@gmail.com" />
-<#assign password = "silverDiner20191tJGj7P23qQj10zOk5jAlZUUc" />
+<#assign uname = "" />
+<#assign password = "" />
 
 <#assign query = "select Id, lastModifiedDate, campaignId, contactId from CampaignMember " />
 <#assign campaignMembers = SalesforceService.executeQuery(query, uname, password) />
