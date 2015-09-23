@@ -115,9 +115,9 @@ public interface ContentService {
      * @param path path to content
      * @return return true if successful
      */
-    boolean deleteContent(String site, String path);
+    boolean deleteContent(String site, String path, String approver);
 
-    boolean deleteContent(String site, String path, boolean generateActivity);
+    boolean deleteContent(String site, String path, boolean generateActivity, String approver);
 
     /**
      * copy content fromPath to toPath
