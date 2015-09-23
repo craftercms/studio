@@ -158,7 +158,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
         CStudioAdminConsole.Tool.BulkOperations.bulkdelete = function() {
             var path = document.getElementById("bulk-delete-path").value;
             if (path) {
-                var serviceUri = "/proxy/alfresco/cstudio/util/bulk-delete?site=" + CStudioAuthoringContext.site
+                var serviceUri = "/api/1/services/api/1/deployment/bulk-delete.json?site=" + CStudioAuthoringContext.site
                     + "&path=" + path;
                 var deleteOpMessage = document.getElementById("bulk-delete-message");
                 var cb = {

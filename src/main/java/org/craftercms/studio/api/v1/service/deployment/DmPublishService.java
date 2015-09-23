@@ -38,7 +38,7 @@ public interface DmPublishService {
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 
     void bulkGoLive(String site, String environment, String path);
-/*
+
     void bulkDelete(String site, String path);
-    */
+
 }

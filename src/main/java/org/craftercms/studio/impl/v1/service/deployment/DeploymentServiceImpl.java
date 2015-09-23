@@ -689,6 +689,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
+    @Override
+    public void bulkDelete(String site, String path) {
+        dmPublishService.bulkDelete(site, path);
+    }
+
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
