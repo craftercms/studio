@@ -293,12 +293,8 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
 
         var previewEl = document.createElement("video");
         this.previewEl = previewEl;
-        //previewEl.setAttribute("type", "application/mediaplayer");
         //previewEl.setAttribute("autoplay", "0");
         //previewEl.setAttribute("autostart", "0");
-        //this.previewEl.setAttribute("controls", "false");
-
-        console.log("this: "+this.previewEl.getAttribute("src"));
 
         YAHOO.util.Dom.addClass(previewEl, 'cstudio-form-control-asset-picker-preview-content');
 
