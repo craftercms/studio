@@ -51,4 +51,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.cancelDeployment(site, path, deploymentId);
     }
+
+    static bulkGoLive(context, site, environment, path) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.bulkGoLive(site, environment, path);
+    }
 }
