@@ -1502,6 +1502,26 @@ var YEvent = YAHOO.util.Event;
                 CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
             },
 
+            getImageRequest: function(data) {
+                var callback = {
+                    success: function(oResponse) {
+                        data.image.src = data.url;
+                    },
+                    failure: function (oResponse) {
+                        var secondCallback = {
+                            success: function (oResponse) {
+                                data.image.src = data.url;
+                            },
+                            failure: function (oResponse) {
+                                data.image.src = data.url;
+                            }
+                        }
+                        setTimeout(function(){ CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: secondCallback}); },700);
+                    }
+                }
+                CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: callback});
+            },
+
             /**
              * create content for a given site, at a given path
              * opens a dialog if needed or goes directly to the form if no
@@ -2271,6 +2291,10 @@ var parentSaveCb = {
 
             getInContextEditView: function(callback) {
                 CSA.Service.getViewCommon('{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html', callback);
+            },
+
+            getImageRequest: function(data) {
+                CSA.Service.getViewCommon(data.url, data.callback);
             },
 
             // constants
