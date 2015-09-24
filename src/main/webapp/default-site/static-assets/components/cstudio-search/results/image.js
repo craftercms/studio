@@ -3,16 +3,12 @@ CStudioSearch.ResultRenderer.Banner = {
 		var mediaTag = "";
 		var path = contentTO.item.uri;
 		
-				mediaTag = "<img src='"+CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site="+ 
-					CStudioAuthoringContext.site+"&path="+path +
-					"&edit=false&createFolders=false' alt='"+contentTO.item.internalName+"' "+
+				mediaTag = "<img src='"+CStudioAuthoringContext.previewAppBaseUri+path+"'" +
+				"alt='"+contentTO.item.internalName+"' "+
 					"class='cstudio-search-banner-image' onload='CStudioSearch.ResultRenderer.Banner.hideMagnifyIcon(this);'/> " +
 					"<img src='"+CStudioAuthoringContext.baseUri+"/static-assets/themes/cstudioTheme/images/magnify.jpg' style='margin-left:-20px;'" +
 					"onclick ='CStudioSearch.magnifyBannerImage(\"" +
-					CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site=" +
-					CStudioAuthoringContext.site+"&path="+path +
-					"&edit=false&createFolders=false" +
-					"\");' />";
+					CStudioAuthoringContext.previewAppBaseUri+path+"\");' />";
 
 
 
