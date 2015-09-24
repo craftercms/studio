@@ -300,4 +300,9 @@ class ContentServices {
         def contentServicesImpl = ServiceFactory.getContentServices(context);
         return contentServicesImpl.reorderItems(site, path, before, after);
     }
+
+    static bulkRename(contex, site, srcPath, targetPath, createFolder) {
+        def contentServicesImpl = ServiceFactory.getContentServices(context);
+        return contentServicesImpl.bulkRename(site, srcPath, targetPath, createFolder);
+    }
 }	
