@@ -138,6 +138,7 @@
          <property name="contentRepository" ref="cstudioContentRepository"/>
          <property name="deployerFactory" ref="cstudioDeployerFactory"/>
          <property name="repositoryReactor" ref="repositoryReactor"/>
+         <property name="dmPublishService" ref="cstudioDmPublishService"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
@@ -244,6 +245,11 @@
          <property name="securityService" ref="cstudioSecurityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"

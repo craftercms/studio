@@ -18,15 +18,23 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
@@ -154,63 +162,47 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
     	return toReturn;
     }
-/*
+
     @Override
     public void bulkGoLive(String site, String environment, String path) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Starting Bulk Go Live for path " + path + " site " + site);
-        }
+        logger.debug("Starting Bulk Go Live for path " + path + " site " + site);
+
         List<String> childrenPaths = new ArrayList<String>();
-        childrenPaths.add(path);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(servicesConfig.getRepositoryRootPath(site), path);
-        if (nodeRef != null) {
-            FileInfo fileInfo = persistenceManagerService.getFileInfo(nodeRef);
-            if (!fileInfo.isFolder()) {
-                childrenPaths.add(path);
-            }
-            if (path.endsWith("/" + DmConstants.INDEX_FILE) && persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED)) {
-                getAllMandatoryChildren(site, path, childrenPaths);
+        ContentItemTO item = contentService.getContentItem(site, path, 2);
+        if (item != null) {
+            childrenPaths.add(item.getUri());
+            if (item.getUri().endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, item.getUri())) {
+                getAllMandatoryChildren(site, item, childrenPaths);
             } else {
-                if (fileInfo.isFolder()) {
-                    getAllMandatoryChildren(site, path, childrenPaths);
+                if (item.isFolder() || item.isContainer()) {
+                    getAllMandatoryChildren(site, item, childrenPaths);
                 }
             }
         }
         List<String> pathsToPublish = new ArrayList<String>();
         for (String childPath : childrenPaths) {
             pathsToPublish.add(childPath);
-            getAllDependenciesRecursive(site, path, pathsToPublish);
+            getAllDependenciesRecursive(site, childPath, pathsToPublish);
         }
         Date launchDate = new Date();
-        String approver = AuthenticationUtil.getFullyAuthenticatedUser();
+        String approver = securityService.getCurrentUser();
         String comment = "Bulk Go Live invoked by " + approver;
-        if (logger.isDebugEnabled()) {
             logger.debug("Deploying " + pathsToPublish.size() + " items");
-        }
         try {
             deploymentService.deploy(site, environment, pathsToPublish, launchDate, approver, comment);
         } catch (DeploymentException e) {
             logger.error("Error while running bulk Go Live operation", e);
         } finally {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Finished Bulk Go Live for path " + path + " site " + site);
-            }
+            logger.debug("Finished Bulk Go Live for path " + path + " site " + site);
         }
     }
 
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) {
-        DmDependencyService dmDependencyService = _servicesManager.getService(DmDependencyService.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String rootPath = servicesConfig.getRepositoryRootPath(site);
         List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
         for (String depPath : depPaths) {
             if (!dependencyPaths.contains(depPath)) {
-                NodeRef nodeRef = persistenceManagerService.getNodeRef(rootPath, depPath);
-                if (nodeRef != null) {
-                    if (persistenceManagerService.isUpdatedOrNew(nodeRef)) {
+                if (contentService.contentExists(site, depPath)) {
+                    if (objectStateService.isUpdatedOrNew(site, depPath)) {
                         dependencyPaths.add(depPath);
                         getAllDependenciesRecursive(site, depPath, dependencyPaths);
                     }
@@ -219,23 +211,13 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
     }
 
-    protected void getAllMandatoryChildren(String site, String path, List<String> pathsToPublish) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        String parentPath = path.replace("/" + DmConstants.INDEX_FILE, "");
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(servicesConfig.getRepositoryRootPath(site), parentPath);
-        if (nodeRef != null) {
-            List<FileInfo> children = persistenceManagerService.list(nodeRef);
-            for (FileInfo childInfo : children) {
-                NodeRef childNode = childInfo.getNodeRef();
-                String fullChildPath = persistenceManagerService.getNodePath(childNode);
-                DmPathTO dmPathTO = new DmPathTO(fullChildPath);
-                if (childInfo.isFolder()) {
-                    getAllMandatoryChildren(site, dmPathTO.getRelativePath(), pathsToPublish);
-                } else {
-                    if (!childInfo.getName().equalsIgnoreCase(DmConstants.INDEX_FILE) || !pathsToPublish.contains(dmPathTO.getRelativePath())) {
-                        pathsToPublish.add(dmPathTO.getRelativePath());
-                    }
+    protected void getAllMandatoryChildren(String site, ContentItemTO item, List<String> pathsToPublish) {
+        if (item != null) {
+            for (ContentItemTO child : item.getChildren()) {
+                child = contentService.getContentItem(site, child.getUri(), 2);
+                pathsToPublish.add(child.getUri());
+                if (child.getChildren() != null && child.getChildren().size() > 0) {
+                    getAllMandatoryChildren(site, child, pathsToPublish);
                 }
             }
         }
@@ -243,44 +225,34 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     public void bulkDelete(String site, String path) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Starting Bulk Delete for path " + path + " site " + site);
-        }
+        logger.debug("Starting Bulk Delete for path " + path + " site " + site);
         List<String> childrenPaths = new ArrayList<String>();
         childrenPaths.add(path);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(servicesConfig.getRepositoryRootPath(site), path);
-        if (nodeRef != null) {
-            FileInfo fileInfo = persistenceManagerService.getFileInfo(nodeRef);
-            if (!fileInfo.isFolder()) {
+        ContentItemTO item = contentService.getContentItem(site, path, 2);
+        if (item != null) {
+            if (!item.isFolder()) {
                 childrenPaths.add(path);
             }
-            if (path.endsWith("/" + DmConstants.INDEX_FILE) && persistenceManagerService.hasAspect(nodeRef, CStudioContentModel.ASPECT_RENAMED)) {
-                getAllMandatoryChildren(site, path, childrenPaths);
+            if (path.endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, path)) {
+                getAllMandatoryChildren(site, item, childrenPaths);
             } else {
-                if (fileInfo.isFolder()) {
-                    getAllMandatoryChildren(site, path, childrenPaths);
+                if (item.isFolder() || item.isContainer()) {
+                    getAllMandatoryChildren(site, item, childrenPaths);
                 }
             }
         }
         Date launchDate = new Date();
-        String approver = AuthenticationUtil.getFullyAuthenticatedUser();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Deleting " + childrenPaths.size() + " items");
-        }
+        String approver = securityService.getCurrentUser();
+        logger.debug("Deleting " + childrenPaths.size() + " items");
+
         try {
             deploymentService.delete(site, childrenPaths, approver, launchDate);
         } catch (DeploymentException e) {
             logger.error("Error while running bulk Delete operation", e);
         } finally {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Finished Bulk Delete for path " + path + " site " + site);
-            }
+            logger.debug("Finished Bulk Delete for path " + path + " site " + site);
         }
     }
-    */
-
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
@@ -292,7 +264,27 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
     protected DeploymentService deploymentService;
     protected SecurityService securityService;
     protected SiteService siteService;
+    protected ContentService contentService;
+    protected ContentRepository contentRepository;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmDependencyService dmDependencyService;
+    protected ObjectStateService objectStateService;
 }

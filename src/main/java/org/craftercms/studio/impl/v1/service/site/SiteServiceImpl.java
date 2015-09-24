@@ -555,23 +555,25 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
             if (child.isFolder) {
                 extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
             } else {
-                DmPathTO dmPathTO = new DmPathTO(fullPath);
+                String childFullPath = child.path + "/" + child.name;
+                DmPathTO dmPathTO = new DmPathTO(childFullPath);
                 String relativePath = dmPathTO.getRelativePath();
-                if (fullPath.endsWith(DmConstants.XML_PATTERN)) {
+
+                if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(fullPath);
+                        Document doc = contentService.getContentAsDocument(childFullPath);
                         dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
                     } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
                     } catch (DocumentException e) {
-                        logger.error("Failed to extract dependencies for document: " + fullPath, e);
+                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
                     }
                 } else {
 
-                    boolean isCss = fullPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = fullPath.endsWith(DmConstants.JS_PATTERN);
+                    boolean isCss = childFullPath.endsWith(DmConstants.CSS_PATTERN);
+                    boolean isJs = childFullPath.endsWith(DmConstants.JS_PATTERN);
                     List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
                     boolean isTemplate = false;
                     for (String templatePattern : templatePatterns) {
@@ -584,7 +586,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(fullPath));
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(childFullPath));
                             if (isCss) {
                                 dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
                             } else if (isJs) {
@@ -594,7 +596,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
                             }
                         }
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for: " + fullPath, e);
+                        logger.error("Failed to extract dependencies for: " + childFullPath, e);
                     }
                 }
             }
