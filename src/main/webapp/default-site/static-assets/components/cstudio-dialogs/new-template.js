@@ -118,7 +118,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = params.path;
+		var templatePath
+        if (typeof params.path === 'string' || params.path instanceof String){
+            templatePath = params.path;
+        }else{
+            templatePath = "/templates/web";
+        }
 		
 		if(name.indexOf(".ftl") == -1) {
 			name = name + ".ftl";
