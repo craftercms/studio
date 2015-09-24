@@ -63,14 +63,11 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Template, CStudi
 				var contentType = _self.valueEl.value
 
 				if(contentType == "") {
-					CStudioAuthoring.Operations.createNewTemplate({ 
-						success: function(templatePath) {
-							_self.valueEl.value = templatePath;
-							_self.value = templatePath;
-							_self.updateFn(null, _self.valueEl);	 
-						}, 
-						failure: function() {}
-					}); 
+					CStudioAuthoring.Operations.createNewTemplate(null,function(templatePath) {
+                            _self.valueEl.value = templatePath;
+                            _self.value = templatePath;
+                            _self.updateFn(null, _self.valueEl);
+                        });
 				}
 				else {
 					CStudioAuthoring.Operations.openTemplateEditor
