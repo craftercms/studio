@@ -29,7 +29,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
             var srcPath = document.getElementById("bulk-rename-src-path").value;
             var targetPath = document.getElementById("bulk-rename-target-path").value;
             if (srcPath && targetPath) {
-                var serviceUri = "/studio/alfresco/cstudio/util/bulk-rename?site="+CStudioAuthoringContext.site+"&srcPath="+srcPath+"&targetPath="+targetPath;
+                var serviceUri = "/api/1/services/api/1/content/bulk-rename.json?site="+CStudioAuthoringContext.site+"&srcPath="+srcPath+"&targetPath="+targetPath;
                 var renameOpMessage = document.getElementById("bulk-rename-message");
 
                 var cb = {
