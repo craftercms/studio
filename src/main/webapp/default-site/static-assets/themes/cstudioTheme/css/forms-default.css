@@ -765,17 +765,15 @@
 .cstudio-form-control-asset-picker-zoom-button {
     background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
     width: 21px;
-    margin-left: -43px;
     cursor: pointer;
     border: none;
-    margin-right: 4px;
     position: absolute;
     top: 0;
+    right: 16px;
 }
 
 .cstudio-form-control-asset-picker-zoom-button.video-zoom {
-    right: 25px;
-    margin-right: 0px;
+    right: 17px;
 }
 
 .cstudio-form-control-asset-picker-download-button {

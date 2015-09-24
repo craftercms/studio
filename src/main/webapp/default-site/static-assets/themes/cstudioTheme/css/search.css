@@ -201,8 +201,20 @@ a.cstudio-search-no-preview:visited {
 	color: #999999;
 }
 
-div.cstudio-search-description{
+div.cstudio-search-description {
+    margin: 0 0 0 0px;
+}
+
+div.cstudio-search-description-img{
 	margin: 0 0 0 0px;
+    position: relative;
+    display: inline-block;
+}
+
+div.cstudio-search-description-img .magnify-icon{
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 span.cstudio-search-description.cstudio-wcm-search-invisible{
