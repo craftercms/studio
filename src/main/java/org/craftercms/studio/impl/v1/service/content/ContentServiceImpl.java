@@ -1293,6 +1293,23 @@ public class ContentServiceImpl implements ContentService {
         return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
     }
 
+    @Override
+    public boolean renameBulk(String site, String path, String targetPath, boolean createFolder) {
+        generalLockService.lock(site + ":" + path);
+        try {
+            dmRenameService.rename(site, path, targetPath, createFolder);
+            return true;
+        } catch (ContentNotFoundException e) {
+            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
+            return false;
+        } catch (ServiceException e) {
+            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
+            return false;
+        } finally {
+            generalLockService.unlock(site + ":" + path);
+        }
+    }
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;

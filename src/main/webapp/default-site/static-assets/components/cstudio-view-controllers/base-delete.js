@@ -60,7 +60,7 @@
         },
         checkSelectedItems: function(selection) {
             eachfn(selection, function(i, item){
-                var uri = item.browserUri,
+                var uri = item.browserUri || item.uri,
                     el = Dom.get(uri);
                 el.checked = true;
                 eachfn(this.getComponents('input[parentid="'+uri+'"]'), function(i, e){

@@ -525,10 +525,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                             });
                             CStudioAuthoring.Operations.getImageRequest({
                                 url: imageData.previewUrl,
-                                image: image,
-                                failure: function(){
-
-                                }
+                                image: image
                             });
 
 

@@ -6,7 +6,7 @@ import groovy.json.JsonSlurper
  * search implementation
  */
 class SolrSearch {
-
+ 
 	/** 
 	 * search the repository
 	 * @param site - the project ID	 
@@ -25,7 +25,7 @@ class SolrSearch {
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
 		if(keywords && keywords != "") {
-			queryStatement    += "AND " + keywords + " "
+			queryStatement    += " *" + keywords + "* "
 		}
 
 		// can't support filters for images at this time because images are not indexed

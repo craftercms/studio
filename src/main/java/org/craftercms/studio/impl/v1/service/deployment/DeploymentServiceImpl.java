@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
@@ -683,6 +684,16 @@ public class DeploymentServiceImpl implements DeploymentService {
         return true;
     }
 
+    @Override
+    public void bulkGoLive(String site, String environment, String path) {
+        dmPublishService.bulkGoLive(site, environment, path);
+    }
+
+    @Override
+    public void bulkDelete(String site, String path) {
+        dmPublishService.bulkDelete(site, path);
+    }
+
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
@@ -721,6 +732,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Reactor getRepositoryReactor() { return repositoryReactor; }
     public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 
+    public DmPublishService getDmPublishService() { return dmPublishService; }
+    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -732,6 +746,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ContentRepository contentRepository;
     protected DeployerFactory deployerFactory;
     protected Reactor repositoryReactor;
+    protected DmPublishService dmPublishService;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

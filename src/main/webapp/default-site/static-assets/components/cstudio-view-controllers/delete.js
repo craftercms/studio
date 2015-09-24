@@ -140,16 +140,16 @@
                     if (item.newFile) {
                         displayName += "*";
                     }
-                    var displayURL = "..." + SUtils.truncate(item.browserUri, 37);
+                    var displayURL = "..." + SUtils.truncate(item.browserUri || "", 37);
                     //Delete should not assume the item is scheduled.
                     html.push(agent.get(!depth ? "ROOT_ROW" : "SUB_ROW", {
-                        url: item.browserUri,
+                        url: item.browserUri || item.uri,
                         displayURL: displayURL,
                         displayName: displayName,
                         internalName: item.internalName,
                         classNames: getClasses(item),
                         data: encodeURIComponent(JSON.stringify(item)),
-                        id: item.browserUri,
+                        id: item.browserUri || item.uri,
                         parent: parentUri,
                         scheduledDate: "-",
                         scheduledDateText: CMgs.format(formsLangBundle, "deleteDialogNow"),

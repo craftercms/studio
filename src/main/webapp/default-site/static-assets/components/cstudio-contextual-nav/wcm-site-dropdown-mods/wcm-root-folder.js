@@ -42,7 +42,7 @@
                     // cache the searches by name so they can be checked quickly when building the nav
                     if (config.params.cannedSearches) {
                     	// not an array
-                    	if ( (typeof(config.params.cannedSearches) == "object") && (config.params.cannedSearches.length == undefined)) {
+                    	if ( (typeof(config.params.cannedSearches) == "object") && (config.params.cannedSearches.cannedSearch.length == undefined)) {
                     		if (config.params.cannedSearches.cannedSearch != undefined) {
                     			var searchPath = config.params.cannedSearches.cannedSearch.path;
                     			if (!instance.cannedSearchCache[searchPath]) {
@@ -51,12 +51,12 @@
                     			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches.cannedSearch);
                     		}
                     	} else { 
-                    		for (var i = 0; i < config.params.cannedSearches.length; i++) {
-                    			var searchPath = config.params.cannedSearches[i].path;
+                    		for (var i = 0; i < config.params.cannedSearches.cannedSearch.length; i++) {
+                    			var searchPath = config.params.cannedSearches.cannedSearch[i].path;
                     			if (!instance.cannedSearchCache[searchPath]) {
                     				instance.cannedSearchCache[searchPath] = [];
                     			}
-                    			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches[i]);
+                    			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches.cannedSearch[i]);
                     		}
                     	}
                     }
@@ -677,11 +677,9 @@ treeNode.getHtml = function() {
 
 					searchEl.onclick = function() {
 
-						var url = CStudioAuthoringContext.authoringAppBaseUri + "/page" +
-								"/site/" + CStudioAuthoringContext.site +
-								"/cstudio-search?s=";
+						var url = CStudioAuthoringContext.authoringAppBaseUri + "/search?site=" + CStudioAuthoringContext.site +"&s=";
 
-						var queryParams = this.searchTO.queryParams;
+						var queryParams = this.searchTO.queryParams.queryParam;
 
 						for (var i = 0; i < queryParams.length; i++) {
 							url += "&" + encodeURIComponent(queryParams[i].name) +
@@ -1822,7 +1820,7 @@ treeNode.getHtml = function() {
                         failure: function() { },
                         activeNode: oCurrentTextNode
                     };
-
+                    dialog.destroy();
                     CStudioAuthoring.Operations.assignContentTemplate(
                             CStudioAuthoringContext.site,
                             CStudioAuthoringContext.user,
