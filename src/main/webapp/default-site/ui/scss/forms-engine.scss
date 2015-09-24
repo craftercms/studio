@@ -22,6 +22,10 @@ header {
 
 }
 
+#zoomCancelButton{
+  position: relative;
+}
+
 // Reset and dependencies
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/print";

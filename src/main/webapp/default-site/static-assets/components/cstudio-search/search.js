@@ -345,7 +345,7 @@ CStudioSearch.renderCommonResultWrapper = function(contentTO, resultBody) {
 
 	return "<div class='cstudio-search-result'>" +
 				"<div id='result-select-" + contentTO.resultId + "' class='cstudio-search-select-container'></div>" +
-				"<div class='result-status' id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 32px;'></div>" +
+				"<div class='result-status' id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 15px;'></div>" +
 				"<div style='margin-top: -16px'>"+
 					"<div class='cstudio-search-result-body'>" +
 						resultBody +
@@ -633,7 +633,9 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				      		titleEl.style.color = "#0176B1";
 				      	}
 
-                        YDom.addClass(resultStatusEl, resultStatusIconStyle);
+                        //Removing it for the release 2.5.0
+                        //YDom.addClass(resultStatusEl, resultStatusIconStyle);
+                        resultStatusEl.style.padding = "1px";
 
 					//Add Tool tip information for item
 					var searReultItem = resultStatusEl.nextSibling;

@@ -1161,8 +1161,8 @@ var YEvent = YAHOO.util.Event;
                     // new item
                     CStudioAuthoring.Operations.performSimpleIceEdit({ contentType: formId, uri:path },
                             null, //field
-                            false //isEdit
-                            //callback
+                            false, //isEdit
+                            callback
                             //aux
                             );
 

@@ -523,7 +523,13 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                 message = "Unable to load the selected image. Please try again or select another image";
                                 imagePicker.showAlert(message);
                             });
-                            image.src = imageData.previewUrl;
+                            CStudioAuthoring.Operations.getImageRequest({
+                                url: imageData.previewUrl,
+                                image: image,
+                                failure: function(){
+
+                                }
+                            });
 
 
                         }
