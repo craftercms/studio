@@ -119,11 +119,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
 		var templatePath
-        if (typeof params.path === 'string' || params.path instanceof String){
-            templatePath = params.path;
-        }else{
-            templatePath = "/templates/web";
-        }
+        params.path ? templatePath = params.path : templatePath = "/templates/web";
 		
 		if(name.indexOf(".ftl") == -1) {
 			name = name + ".ftl";
@@ -144,7 +140,11 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 				CStudioAuthoring.Operations.openTemplateEditor
 					(templatePath+"/"+name, "default", { 
 						success: function() { 
-							_self.cb.success(templatePath+"/"+name);
+							if(_self.cb.success){
+                                _self.cb.success(templatePath+"/"+name);
+                            }else{
+                                _self.cb(templatePath+"/"+name);
+                            }
 						}, 
 						failure: function() {
 						}

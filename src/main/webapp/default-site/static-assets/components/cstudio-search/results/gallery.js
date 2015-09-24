@@ -4,7 +4,7 @@ CStudioSearch.ResultRenderer.Gallery = {
 			var path = contentTO.item.uri;
 			
 			// TODO: Fix Styles for maginify icon if image width > 300
-			mediaTag = "<img src='"+CStudioAuthoringContext.previewAppBaseUri+path+"'"+ alt='"+contentTO.item.internalName+"' "+
+			mediaTag = "<img src='"+CStudioAuthoringContext.previewAppBaseUri+path+"'alt='"+contentTO.item.internalName+"' "+
 				"class='cstudio-search-banner-image' onload='CStudioSearch.ResultRenderer.Gallery.hideMagnifyIcon(this);'/> " +
 				"<img src='"+CStudioAuthoringContext.baseUri+"/themes/cstudioTheme/images/magnify.jpg' style='margin-left:-20px;'" +
 				"onclick ='CStudioSearch.magnifyBannerImage(\"" +

@@ -7,7 +7,7 @@ CStudioSearch.ResultRenderer.Banner = {
 				"alt='"+contentTO.item.internalName+"' "+
 					"class='cstudio-search-banner-image' onload='CStudioSearch.ResultRenderer.Banner.hideMagnifyIcon(this);'/> " +
 					"<img src='"+CStudioAuthoringContext.baseUri+"/static-assets/themes/cstudioTheme/images/magnify.jpg' style='margin-left:-20px;'" +
-					"onclick ='CStudioSearch.magnifyBannerImage(\"" +
+					"class='magnify-icon' id='magnifyIcon' onclick ='console.log(\"in\"); CStudioSearch.magnifyBannerImage(\"" +
 					CStudioAuthoringContext.previewAppBaseUri+path+"\");' />";
 
 
@@ -39,8 +39,9 @@ CStudioSearch.ResultRenderer.Banner = {
 					CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
 				"</span>"+
 			"</div>" +			
-			"<div class='cstudio-search-description'>"+mediaTag+"</div>"
+			"<div class='cstudio-search-description-img'>"+mediaTag+"</div>"
 			);
+        //imageContent.addEventListener('load', popupMag, false);
 	}, 
 	
 	_self: this,
