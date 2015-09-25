@@ -202,7 +202,7 @@
             allHaveSameDate = traverse(contentItems, reference);
 
         if (allHaveSameDate) {
-            if (reference === '') {
+            if (reference === '' || reference === null) {
                 //YDom.get('globalSetToNow').checked = true;
                 this.$('[name="schedulingMode"]')[0].checked = true;
                 this.$('[name="schedulingMode"]')[1].checked = false;
@@ -293,6 +293,8 @@
     function initDatePicker() {
 
         var me = this;
+
+        console.log(me.$('[name="schedulingMode"]'));
 
         me.$('[name="schedulingMode"]').change(function () {
             var $elem = $(this);
