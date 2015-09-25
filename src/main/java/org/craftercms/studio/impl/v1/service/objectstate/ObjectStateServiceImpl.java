@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -86,32 +87,20 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             params.put("site", site);
             params.put("path", path);
             state = objectStateMapper.getObjectStateBySiteAndPath(params);
+
+            if (state == null) {
+                if (contentService.contentExists(site, path)) {
+                    ContentItemTO item = contentService.getContentItem(site, path, 0);
+                    insertNewEntry(site, item);
+                    state = objectStateMapper.getObjectStateBySiteAndPath(params);
+                }
+            }
         } finally {
             generalLockService.unlock(lockId);
         }
         return state;
     }
-/*
-    @Override
-	// TODO: CodeRev: get REAL state? looks like duplicate code minus processing
-    public State getRealObjectState(NodeRef nodeRef) {
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        ObjectStateTO state = null;
-        nodeLockService.lock(nodeRef.getId());
-        try {
-            state = objectStateDAOService.getObjectState(nodeRef.getId());
-            if (state == null) {
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-                objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-                state = objectStateDAOService.getObjectState(nodeRef.getId());
-            }
-        } finally {
-            nodeLockService.unlock(nodeRef.getId());
-        }
-        return state.getState();
-    }
-*/
+
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
         String lockId = site + ":" + path;
@@ -513,7 +502,11 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     protected ObjectStateMapper objectStateMapper;
 
     protected GeneralLockService generalLockService;
+    protected ContentService contentService;
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
 }

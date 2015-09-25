@@ -1357,11 +1357,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             scheduledDate = properties.getLaunchDate();
         }
 		ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
-        if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
-            if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
-                return;
-            } else {
-                submitpackage.addToPackage(dmDependencyTO);
+        if (state != null) {
+            if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
+                if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
+                    return;
+                } else {
+                    submitpackage.addToPackage(dmDependencyTO);
+                }
             }
         }
         if (!dmDependencyTO.isReference()) {
