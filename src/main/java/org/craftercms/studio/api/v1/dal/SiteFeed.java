@@ -35,9 +35,13 @@ public class SiteFeed {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public String getLiveUrl() { return liveUrl; }
+    public void setLiveUrl(String liveUrl) { this.liveUrl = liveUrl; }
+
     protected long id;
     protected String siteId;
     protected String name;
     protected String description;
     protected String status;
+    protected String liveUrl;
 }

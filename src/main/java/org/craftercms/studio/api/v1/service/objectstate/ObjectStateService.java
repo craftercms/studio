@@ -56,6 +56,8 @@ public interface ObjectStateService {
     */
     public List<ObjectState> getSubmittedItems(String site);
 
+    ObjectState getObjectState(String site, String path, boolean insert);
+
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing);
 /*
     public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);

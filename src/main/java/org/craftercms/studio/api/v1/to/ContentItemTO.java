@@ -80,6 +80,7 @@ public class ContentItemTO implements Serializable {
 	public boolean deleted;
 	public boolean inProgress;
 	public boolean live;
+    public boolean inFlight;
 
     // duplicate properties (these are probable getters)
     public boolean isDisabled;
@@ -97,6 +98,7 @@ public class ContentItemTO implements Serializable {
     public boolean isComponent;
     public boolean isDocument;
     public boolean isAsset;
+    public boolean isInFlight;
 
 	// Added by Dejan needs of services porting and UI
 	public Date eventDate;
@@ -358,6 +360,9 @@ public class ContentItemTO implements Serializable {
 
 	public List<DmOrderTO> getOrders() { return orders; }
 	public void setOrders(List<DmOrderTO> orders) { this.orders = orders; }
+
+    public boolean isInFlight() { return this.inFlight; }
+    public void setInFlight(boolean inFlight) { this.inFlight = inFlight; }
 
 	// /** the name of item specified by the creator **/
 	// private String _internalName;

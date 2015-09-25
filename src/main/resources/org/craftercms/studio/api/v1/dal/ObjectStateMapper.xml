@@ -59,19 +59,19 @@
         WHERE site = #{site} AND path = #{path}
     </select>
 
-    <update id="setSystemProcessingBySiteAndPath" databaseId="postgres" parameterType="java.util.Map">
+    <update id="setSystemProcessingBySiteAndPath" databaseId="postgres" parameterType="java.util.Map" flushCache="true">
         UPDATE cstudio_objectstate
         SET system_processing = case when (#{system_processing} = TRUE) then 1::bit when (#{system_processing} = FALSE) then 0::bit end
         WHERE site = #{site} AND path = #{path}
     </update>
 
-    <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map">
+    <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map" flushCache="true">
         UPDATE cstudio_objectstate
         SET system_processing = #{systemProcessing}
         WHERE site = #{site} AND path = #{path}
     </update>
 
-    <insert id="insertEntry" databaseId="postgres" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" >
+    <insert id="insertEntry" databaseId="postgres" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true" >
         INSERT INTO
         cstudio_objectstate
         (object_id, site, path, state, system_processing)
@@ -79,7 +79,7 @@
         (#{objectId}, #{site}, #{path}, #{state}, B'0')
     </insert>
 
-    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" >
+    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
         INSERT INTO
         cstudio_objectstate
         (object_id, site, path, state, system_processing)
@@ -87,7 +87,7 @@
         (#{objectId}, #{site}, #{path}, #{state}, 0)
     </insert>
 
-    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState">
+    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
         UPDATE cstudio_objectstate
         SET state = #{state}, system_processing = #{systemProcessing}
         WHERE object_id = #{objectId}
@@ -104,7 +104,7 @@
         </foreach>
     </select>
 
-    <update id="setObjectStateForSiteAndPaths" parameterType="java.util.Map">
+    <update id="setObjectStateForSiteAndPaths" parameterType="java.util.Map" flushCache="true">
         UPDATE cstudio_objectstate
         SET state = #{state}
         WHERE site = #{site}
@@ -115,19 +115,19 @@
         </foreach>
     </update>
 
-    <update id="updateObjectPath" parameterType="java.util.Map">
+    <update id="updateObjectPath" parameterType="java.util.Map" flushCache="true">
         UPDATE cstudio_objectstate
         SET path = #{newPath}
         WHERE site = #{site}
         AND path = #{oldPath}
     </update>
 
-    <delete id="deleteObjectStatesForSite" parameterType="java.util.Map">
+    <delete id="deleteObjectStatesForSite" parameterType="java.util.Map" flushCache="true">
         DELETE FROM cstudio_objectstate
         WHERE site = #{site}
     </delete>
 
-    <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map">
+    <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map" flushCache="true">
         DELETE FROM cstudio_objectstate
         WHERE site = #{site}
         AND path = #{path}
