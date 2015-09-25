@@ -149,10 +149,11 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 		var editPositionEl = document.createElement("input");
 			this.editPositionEl = editPositionEl;
-			YAHOO.util.Dom.addClass(editPositionEl, 'cstudio-button');
+			YAHOO.util.Dom.addClass(editPositionEl, 'btn btn-primary');
 			editPositionEl.type = "button";
 			editPositionEl.value = "Edit Position";
-			editPositionEl.style.paddingLeft = "10px";
+			editPositionEl.style.padding = "1px 5px";
+            editPositionEl.style.marginLeft = "5px";
 			editPositionEl.style.display = "none";
 			controlWidgetContainerEl.appendChild(editPositionEl);
 
