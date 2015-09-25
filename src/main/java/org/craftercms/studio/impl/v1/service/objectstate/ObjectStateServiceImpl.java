@@ -91,8 +91,10 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             if (state == null) {
                 if (contentService.contentExists(site, path)) {
                     ContentItemTO item = contentService.getContentItem(site, path, 0);
-                    insertNewEntry(site, item);
-                    state = objectStateMapper.getObjectStateBySiteAndPath(params);
+                    if (!item.isFolder()) {
+                        insertNewEntry(site, item);
+                        state = objectStateMapper.getObjectStateBySiteAndPath(params);
+                    }
                 }
             }
         } finally {
