@@ -15,7 +15,7 @@
 &lt;/div&gt;
 &lt;div class="row-fluid team"&gt;
 &lt;div id="first-person" class="span4"&gt;
-&lt;div class="thumbnail"&gt;&lt;img src="http://localhost:9090/static-assets/images/Team1.png" alt="team 1" /&gt;
+&lt;div class="thumbnail"&gt;&lt;img src="/static-assets/images/Team1.png" alt="team 1" /&gt;
 &lt;h3&gt;John Doe&lt;/h3&gt;
 &lt;div class="mask"&gt;
 &lt;h2&gt;Copywriter&lt;/h2&gt;
@@ -24,7 +24,7 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id="second-person" class="span4"&gt;
-&lt;div class="thumbnail"&gt;&lt;img src="http://localhost:9090/static-assets/images/Team2.png" alt="team 1" /&gt;
+&lt;div class="thumbnail"&gt;&lt;img src="/static-assets/images/Team2.png" alt="team 1" /&gt;
 &lt;h3&gt;John Doe&lt;/h3&gt;
 &lt;div class="mask"&gt;
 &lt;h2&gt;Designer&lt;/h2&gt;
@@ -33,7 +33,7 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id="third-person" class="span4"&gt;
-&lt;div class="thumbnail"&gt;&lt;img src="http://localhost:9090/static-assets/images/Team3.png" alt="team 1" /&gt;
+&lt;div class="thumbnail"&gt;&lt;img src="/static-assets/images/Team3.png" alt="team 1" /&gt;
 &lt;h3&gt;John Doe&lt;/h3&gt;
 &lt;div class="mask"&gt;
 &lt;h2&gt;Photographer&lt;/h2&gt;
