@@ -111,12 +111,12 @@ else {
         else {
             result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
                 isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
-
         }
     }
 }
 
-model.fileName = fileName
+//model.fileName = fileName
+model.fileName = result.message.name
 
 def dotPos = fileName.indexOf(".")
 model.fileExtension = (dotPos != -1) ? fileName.substring(dotPos+1) : ""
