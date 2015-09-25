@@ -502,7 +502,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO populateContentDrivenProperties(String site,ContentItemTO item)
     throws Exception {
-        
+
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
@@ -703,6 +703,18 @@ public class ContentServiceImpl implements ContentService {
 
             if(item.uri.endsWith(".xml")) {
                 item = populateContentDrivenProperties(site, item);
+            } else {
+                item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
+                item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
+                item.isPage = item.page;
+                item.previewable = item.page;
+                item.isPreviewable = item.previewable;
+                item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
+                item.isAsset = item.asset;
+                item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site));
+                item.isComponent = item.component;
+                item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
+                item.isDocument = item.document;
             }
 
             loadContentTypeProperties(site, item, item.contentType);
