@@ -432,6 +432,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         for (SiteFeed site : sites) {
             Set<String> userRoles = securityService.getUserRoles(site.getSiteId(),username);
             if (CollectionUtils.isNotEmpty(userRoles)) {
+                site.setLiveUrl(getLiveServerUrl(site.getSiteId()));
                 toRet.add(site);
             }
         }
