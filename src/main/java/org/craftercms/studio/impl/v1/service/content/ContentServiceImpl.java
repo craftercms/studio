@@ -754,7 +754,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        ObjectState state = objectStateService.getObjectState(site, item.getUri());
+        ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isLive = item.isLive();
