@@ -87,7 +87,7 @@
         AND path=#{path}
     </update>
 
-    <insert id="insertEntry" parameterType="java.util.Map">
+    <insert id="insertEntry" parameterType="java.util.Map" flushCache="true">
         INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path})
     </insert>
 
