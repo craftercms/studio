@@ -356,7 +356,7 @@
 <p>"QUOTE"</p>
 <div class="whopic">
 <div class="arrow"><br /></div>
-<img class="centered" src="http://localhost:9090/static-assets/images/Client2.png" alt="client 2" /> <strong>PERSON QUOTED<br /><small>ORG NAME</small> </strong></div>
+<img class="centered" src="/static-assets/images/Client2.png" alt="client 2" /> <strong>PERSON QUOTED<br /><small>ORG NAME</small> </strong></div>
 </div>]]></prototype>
 		</stub>
 		

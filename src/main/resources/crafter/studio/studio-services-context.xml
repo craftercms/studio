@@ -203,6 +203,7 @@
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
           parent="cstudioRegistrableService">
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"

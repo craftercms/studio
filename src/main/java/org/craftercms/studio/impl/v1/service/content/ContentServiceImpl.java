@@ -711,8 +711,10 @@ public class ContentServiceImpl implements ContentService {
             populateMetadata(site, item);
 
             // POPULATE WORKFLOW STATUS
-            populateWorkflowProperties(site, item);
-            //item.setLockOwner("");
+            if (!item.isFolder()) {
+                populateWorkflowProperties(site, item);
+                //item.setLockOwner("");
+            }
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
@@ -762,6 +764,8 @@ public class ContentServiceImpl implements ContentService {
             item.isScheduled = item.isScheduled();
             item.setSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.isSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isSubmitted = item.isSubmitted();
+            item.setInFlight(state.getSystemProcessing() == 1);
+            item.isInFlight = item.isInFlight();
         }
     }
 
