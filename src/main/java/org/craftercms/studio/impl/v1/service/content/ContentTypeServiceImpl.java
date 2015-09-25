@@ -115,6 +115,31 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
+        SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
+        if (pathsConfig != null && pathsConfig.getConfigs() != null) {
+            List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
+            for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {
+                Set<String> allowedContentTypes = pathConfig.getAllowedContentTypes();
+                if (CollectionUtils.isNotEmpty(allowedContentTypes)) {
+                    for (String key : allowedContentTypes) {
+                            logger.debug("Checking an allowed content type: " + key);
+                            ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(key);
+                            if (typeConfig != null) {
+                                // if a match is found, populate the content type information
+                                logger.debug("adding " + key + " to content types.");
+                                contentTypes.add(typeConfig);
+                            }
+                    }
+                }
+            }
+            return contentTypes;
+        } else {
+            logger.error("No content type path configuration is found for site: " + site);
+            return null;
+        }
+    }
+
+    protected List<ContentTypeConfigTO> getAllContentTypes_old(String site) {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();

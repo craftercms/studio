@@ -1820,7 +1820,7 @@ treeNode.getHtml = function() {
                         failure: function() { },
                         activeNode: oCurrentTextNode
                     };
-
+                    dialog.destroy();
                     CStudioAuthoring.Operations.assignContentTemplate(
                             CStudioAuthoringContext.site,
                             CStudioAuthoringContext.user,

@@ -79,7 +79,7 @@
 					f.opaque = true;
 					break;
 				case "link.htm": 
-					f.height = 244; 
+					f.height = 275; 
 					p.authoringObj = CStudioAuthoring;	// insert the variable in the scope of the plugin
 					p.contextObj = CStudioAuthoringContext;  // insert the variable in the scope of the plugin
 					break;

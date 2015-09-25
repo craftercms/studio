@@ -28,7 +28,7 @@ def searchParams = new JsonSlurper().parseText( body )
 // get search options
 def site = params.site
 def keywords = searchParams.keyword
-def page = searchParams.page.toInteger()
+def page = ((searchParams.page.toInteger())-1) // UI is 1 based 
 def pageSize = searchParams.pageSize.toInteger()
 def sort = searchParams.sortBy
 

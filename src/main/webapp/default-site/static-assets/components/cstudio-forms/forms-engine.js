@@ -999,12 +999,13 @@ var CStudioForms = CStudioForms || function() {
                                         var value = form.model["internal-name"];
                                         var name = entityId;
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                                         iceWindowCallback.success(contentTO, editorId, name, value);
                                     }
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                         CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                        reloadParentWindow();
+                                        //reloadParentWindow();  // the form should never reload itself. It should call it's callback, which may decide to load the page.
                                     }
                                 },
                                 failure: function (err) {
@@ -2044,6 +2045,7 @@ var CStudioForms = CStudioForms || function() {
             },
 
             printFieldsToXml: function(formModel, formSections, formConfig) {
+                var fieldInstructions = [];
                 var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'createdDate_dt', 'lastModifiedDate', 'lastModifiedDate_dt', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
                     output = '',
                     validFieldsStr, fieldRe, section;
@@ -2052,8 +2054,24 @@ var CStudioForms = CStudioForms || function() {
                 for (var i = formSections.length - 1; i >= 0; i--) {
                     section = formSections[i];
 
-                    for (var j = section.fields.length - 1; j >= 0; j--)
+                    for (var j = section.fields.length - 1; j >= 0; j--) {
+                    	var field = section.fields[j];
                         validFields.push(section.fields[j].id);
+						var fieldInstruction = { tokenize: false };
+                    	fieldInstructions[field.id] = fieldInstruction;
+
+						for(var p=0; p<field.properties.length; p++) {
+                      		try {
+                        		var property = field.properties[p];
+                        		if(property.name == "tokenize"  && property.value == "true") {
+                           			fieldInstruction.tokenize = true;
+                        		}
+                      		} 
+                      		catch(err) { 
+                      			alert(err) 
+                      		}
+                    	}
+                    }
                 }
 
                 // Add valid fields from form config
@@ -2071,6 +2089,17 @@ var CStudioForms = CStudioForms || function() {
                 validFieldsStr = validFields.join(",");
 
                 for (var key in formModel) {
+                	var attributes = "";
+                	var fieldInstruction = fieldInstructions[key];
+
+	                try {
+    	               if(fieldInstruction && fieldInstruction.tokenize == true) {
+        	             attributes += " tokenized='true' ";
+            	       }
+                	}
+                	catch(err) {
+                		alert(err);
+                	}
 
                     // Because we added start and end elements, we can be sure that any field names will
                     // be delimited by the delimiter token (ie. comma)
@@ -2080,7 +2109,7 @@ var CStudioForms = CStudioForms || function() {
                         var modelItem = formModel[key];
 
                         if(Object.prototype.toString.call( modelItem ) === '[object Array]') {
-                            output += "\t<"+key+">";
+                            output += "\t<"+key+ " " +attributes +" >";
                             for(var j = 0; j < modelItem.length; j++) {
                                 output += "\t<item>";
                                 var repeatItem = modelItem[j];
@@ -2111,7 +2140,7 @@ var CStudioForms = CStudioForms || function() {
                             output += "</"+key+">\r\n";
                         }
                         else {
-                            output += "\t<"+key+">";
+                            output += "\t<"+key+" " + attributes+ " >"
                             output += this.escapeXml(modelItem);
                             output += "</"+key+">\r\n";
                         }

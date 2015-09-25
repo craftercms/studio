@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-ebus</artifactId>
-            <version>2.5.0-RC3</version>
+            <version>2.5.1-SNAPSHOT</version>
         </dependency>
 
 
@@ -182,7 +182,16 @@
             <artifactId>json-lib</artifactId>
             <version>2.4</version>
             <classifier>jdk15</classifier>
-
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-lang</artifactId>
+                    <groupId>commons-lang</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>beanutils</artifactId>
+                    <groupId>commons-beanutils</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- collections -->
@@ -202,6 +211,12 @@
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-impl</artifactId>
             <version>0.13.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -220,6 +235,12 @@
             <groupId>org.projectreactor</groupId>
             <artifactId>reactor-tcp</artifactId>
             <version>1.0.0.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- testing -->
@@ -258,13 +279,13 @@
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
             <artifactId>http-builder</artifactId>
             <version>0.5.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>groovy</artifactId>
+                    <groupId>org.codehaus.groovy</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.1</version>
-        </dependency>
-
         
     </dependencies>
 
@@ -296,7 +317,8 @@
                             <excludes>
                                 <!-- when udpdating ROOT base check here to see if these need to be updated -->
                                 <exclude>WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-
+                                <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
+                                <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
