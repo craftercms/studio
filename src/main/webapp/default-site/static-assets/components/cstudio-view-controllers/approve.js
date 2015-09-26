@@ -294,8 +294,6 @@
 
         var me = this;
 
-        console.log(me.$('[name="schedulingMode"]'));
-
         me.$('[name="schedulingMode"]').change(function () {
             var $elem = $(this);
             if ($elem.val() === 'now') {

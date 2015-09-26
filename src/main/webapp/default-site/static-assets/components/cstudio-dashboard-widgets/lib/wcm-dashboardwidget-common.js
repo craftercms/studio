@@ -997,7 +997,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
 
             YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
                 var checkAllElt = YDom.get(tableName+'CheckAll');
-                var inputsElt = YDom.get(tableName).getElementsByTagName("input");
+                var inputsElt = window.document.querySelectorAll("#"+tableName+" input:enabled");
 
                 if(checkAllElt.checked == true){
                     for(var i=1; i<inputsElt.length;i++){
@@ -1218,7 +1218,30 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
             }
 
             YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
-                WcmDashboardWidgetCommon.checkAll(tableName, e);
+                var checkAllElt = YDom.get(tableName+'CheckAll');
+                var inputsElt = window.document.querySelectorAll("#"+tableName+" input:enabled");
+
+                if(checkAllElt.checked == true){
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = true;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }else{
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = false;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }
             }, this, true);
 
         },
