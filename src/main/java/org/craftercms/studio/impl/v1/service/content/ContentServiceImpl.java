@@ -723,7 +723,7 @@ public class ContentServiceImpl implements ContentService {
             populateMetadata(site, item);
 
             // POPULATE WORKFLOW STATUS
-            if (!item.isFolder()) {
+            if (!item.isFolder() || item.isContainer()) {
                 populateWorkflowProperties(site, item);
                 //item.setLockOwner("");
             }
