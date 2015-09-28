@@ -117,7 +117,7 @@ public class SyncTargetDeployer implements Deployer {
             try {
                 input = FileUtils.openInputStream(file);
                 if (input == null || input.available() < 0) {
-                    if (false /*!contentService.isFolder(site, item.getPath()) /*&& contentRepository.contentExists(site, item.getPath())*/) {
+                    if (file.exists() && !file.isDirectory()) {
                         baps = null;
                         stringPart = null;
                         filePart = null;
@@ -129,8 +129,11 @@ public class SyncTargetDeployer implements Deployer {
                     }
                 }
             } catch (IOException err) {
-                logger.error("Error reading input stream for content at path: " + path + " site: " + site);
-
+                logger.error("Error reading input stream from envirnoment store for content at path: " + path + " site: " + site + " environment: " + environment);
+                if (!file.exists()) {
+                    logger.error("File expected, but does not exist at path: " + file.getAbsolutePath());
+                }
+                continue;
             }
             String fileName = file.getName();
 
