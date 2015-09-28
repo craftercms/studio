@@ -201,7 +201,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
                                 '<input type="checkbox" class="dashlet-item-check" id="', uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), ' />',
                                 '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
                                     '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
-                                        displayName,
+                                        displayName, (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
                                     '</a>',
                                 '</span>',
                             '</div>', depth ?
