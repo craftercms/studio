@@ -102,7 +102,10 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 	// create the panel content for drag and drop
 	content: function(panelId, orderJson, config){
 
-		var query = location.search.substring(1); 
+       var CMgs = CStudioAuthoring.Messages;
+       var langBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+
+	   var query = location.search.substring(1);
        // create object with thisPage
        var thisPageObject = {};
        thisPageObject.id = CStudioAuthoring.Utils.getQueryVariable (query, 'path');
@@ -110,17 +113,17 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
          thisPageObject.id = config.control.constructedPath;
        }
        thisPageObject.order = config.control.orderValue;
-       thisPageObject.internalName = "This Page";
+       thisPageObject.internalName = CMgs.format(langBundle, "currentPage");
 
        var orderLen = orderJson.order.length - 1;
        var orderToPageMap = {};
        var orderArray = new Array();
        var orderNum;
-       for (var i=0; i<orderLen; ++i) {
+       for (var i=0; i<=orderLen; ++i) {
     	 var orderDetails = {};
-    	 orderDetails.id = orderJson.order[i]._id;
-    	 orderDetails.internalName = orderJson.order[i]._name;
-    	 if (orderJson.order[i]._disabled && orderJson.order[i]._disabled == 'true') {
+    	 orderDetails.id = orderJson.order[i].id;
+    	 orderDetails.internalName = orderJson.order[i].internalName ? orderJson.order[i].internalName : orderJson.order[i].name;
+    	 if (orderJson.order[i].disabled && orderJson.order[i].disabled == 'true') {
     		 orderDetails.disabled = true;
     	 } else {
     		 orderDetails.disabled = false;
@@ -132,9 +135,9 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 			if(thisPageObject.order) 
 			  orderNum = parseFloat(thisPageObject.order);
 			else 
-			  orderNum = parseFloat(orderJson.order[i]._order);
+			  orderNum = parseFloat(orderJson.order[i].order);
 		 } else {
-			orderNum = parseFloat(orderJson.order[i]._order);
+			orderNum = parseFloat(orderJson.order[i].order);
 		 }
 
 		 // Added ~ to create a unique key. Order could be same for a new page
@@ -255,11 +258,11 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 		   // build part of query string with prevPath and nextPath
 		   var pathString;
 		   if (!prevPath) {
-			  pathString = '&after=' + orderJson.order[nextPath-1]._id;
+			  pathString = '&after=' + orderJson.order[nextPath-1].id;
 		   } else if (!nextPath) {
-			  pathString = '&before=' + orderJson.order[prevPath-1]._id;
+			  pathString = '&before=' + orderJson.order[prevPath-1].id;
 		   } else { // both are not null
-			 pathString = '&before=' + orderJson.order[prevPath-1]._id + '&after=' + orderJson.order[nextPath-1]._id;
+			 pathString = '&before=' + orderJson.order[prevPath-1].id + '&after=' + orderJson.order[nextPath-1].id;
 		   }
 
 		   pathStringFinal = thisPageObject.id + pathString;

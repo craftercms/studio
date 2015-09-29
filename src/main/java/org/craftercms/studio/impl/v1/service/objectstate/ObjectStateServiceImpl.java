@@ -76,9 +76,16 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
         return getObjectState(nodeRef);
     }
+
+
 */
     @Override
     public ObjectState getObjectState(String site, String path) {
+        return getObjectState(site, path, true);
+    }
+
+    @Override
+    public ObjectState getObjectState(String site, String path, boolean insert) {
         String lockId = site + ":" + path;
         ObjectState state = null;
         generalLockService.lock(lockId);
@@ -88,11 +95,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             params.put("path", path);
             state = objectStateMapper.getObjectStateBySiteAndPath(params);
 
-            if (state == null) {
+            if (state == null && insert) {
                 if (contentService.contentExists(site, path)) {
                     ContentItemTO item = contentService.getContentItem(site, path, 0);
-                    insertNewEntry(site, item);
-                    state = objectStateMapper.getObjectStateBySiteAndPath(params);
+                    if (!item.isFolder()) {
+                        insertNewEntry(site, item);
+                        state = objectStateMapper.getObjectStateBySiteAndPath(params);
+                    }
                 }
             }
         } finally {

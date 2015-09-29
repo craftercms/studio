@@ -266,7 +266,7 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>"\"\\\"\\\\\\\"/static-assets/images/pages/{groupId}/{objectId}\\\\\\\"\\\"\""</value>
+							<value>/static-assets/images/pages/{objectGroupId}/{objectId}</value>
 								<type>string</type>
 						</property>
 					</properties>

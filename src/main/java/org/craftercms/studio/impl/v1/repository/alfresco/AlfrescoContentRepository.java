@@ -737,7 +737,7 @@ implements SecurityProvider {
                         versionTO.setVersionNumber(version.getVersionLabel());
                         versionTO.setLastModifier(version.getLastModifiedBy());
                         versionTO.setLastModifiedDate(version.getLastModificationDate().getTime());
-                        versionTO.setComment(version.getDescription());
+                        versionTO.setComment(version.getCheckinComment());
 
                         versions[idx++] = versionTO;
                     }
@@ -772,10 +772,10 @@ implements SecurityProvider {
                         for (org.apache.chemistry.opencmis.client.api.Document documentVersion : versionsCMIS) {
                             if (version.equals(documentVersion.getVersionLabel())) {
                                 ContentStream contentStream = documentVersion.getContentStream();
-                                doc.setContentStream(contentStream, true);
-                                Map<String, Object> props = new HashMap<String, Object>();
-                                props.put("cmis:description", comment);
-                                doc.updateProperties(props);
+                                ObjectId checkoutId = doc.checkOut();
+                                org.apache.chemistry.opencmis.client.api.Document checkedOutDoc = (org.apache.chemistry.opencmis.client.api.Document)session.getObject(checkoutId);
+
+                                checkedOutDoc.checkIn(false, null, contentStream, comment);
                                 success = true;
                                 break;
                             }

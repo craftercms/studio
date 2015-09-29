@@ -502,7 +502,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO populateContentDrivenProperties(String site,ContentItemTO item)
     throws Exception {
-        
+
         String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
@@ -703,6 +703,18 @@ public class ContentServiceImpl implements ContentService {
 
             if(item.uri.endsWith(".xml")) {
                 item = populateContentDrivenProperties(site, item);
+            } else {
+                item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
+                item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
+                item.isPage = item.page;
+                item.previewable = item.page;
+                item.isPreviewable = item.previewable;
+                item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
+                item.isAsset = item.asset;
+                item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site));
+                item.isComponent = item.component;
+                item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
+                item.isDocument = item.document;
             }
 
             loadContentTypeProperties(site, item, item.contentType);
@@ -711,8 +723,10 @@ public class ContentServiceImpl implements ContentService {
             populateMetadata(site, item);
 
             // POPULATE WORKFLOW STATUS
-            populateWorkflowProperties(site, item);
-            //item.setLockOwner("");
+            if (!item.isFolder() || item.isContainer()) {
+                populateWorkflowProperties(site, item);
+                //item.setLockOwner("");
+            }
         }
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
@@ -752,7 +766,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        ObjectState state = objectStateService.getObjectState(site, item.getUri());
+        ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isLive = item.isLive();
@@ -762,6 +776,8 @@ public class ContentServiceImpl implements ContentService {
             item.isScheduled = item.isScheduled();
             item.setSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.isSubmitted(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isSubmitted = item.isSubmitted();
+            item.setInFlight(state.getSystemProcessing() == 1);
+            item.isInFlight = item.isInFlight();
         }
     }
 
