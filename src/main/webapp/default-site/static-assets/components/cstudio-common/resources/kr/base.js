@@ -312,7 +312,9 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
 
     setStatedDialogTitle: "국가를 선택하십시오",
     setStatedDialogSetStates: "설정 미국",
-    setStatedDialogSystemProcessing: "시스템 처리"
+    setStatedDialogSystemProcessing: "시스템 처리",
+
+    currentPage: "현재 페이지"
 
 });
 
