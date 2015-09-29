@@ -227,6 +227,18 @@ public class PublishingManagerImpl implements PublishingManager {
                             if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
                                 LOGGER.debug("Add old path to be deleted for MOVE action (\"{0}\")", item.getOldPath());
                                 deletedFiles.add(item.getOldPath());
+                                if (item.getOldPath().endsWith("/" + indexFile)) {
+                                    String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                                    String folderPath = item.getOldPath().replace("/" + indexFile, "");
+                                    if (contentRepository.contentExists(fullPath)) {
+                                        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                                        if (children.length < 2) {
+                                            deletedFiles.add(folderPath);
+                                        }
+                                    } else {
+                                        deletedFiles.add(folderPath);
+                                    }
+                                }
                             }
                         }
                     }
@@ -341,7 +353,20 @@ public class PublishingManagerImpl implements PublishingManager {
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
             if (item.getOldPath() != null && item.getOldPath().length() > 0) {
                 contentService.deleteContent(item.getSite(), item.getOldPath(), item.getUser());
+                boolean hasRenamedChildren = false;
                 deployer.deleteFile(item.getSite(), item.getOldPath());
+                if (item.getOldPath().endsWith("/" + DmConstants.INDEX_FILE)) {
+                    String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                    RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                    if (children.length < 2) {
+                        deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                    } else {
+                        hasRenamedChildren = true;
+                    }
+                    if (!hasRenamedChildren) {
+                        contentService.deleteContent(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
+                    }
+                }
 
                 objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
             }
@@ -377,6 +402,19 @@ public class PublishingManagerImpl implements PublishingManager {
                 if (item.getOldPath() != null && item.getOldPath().length() > 0) {
                     Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
                     deployer.deleteFile(item.getSite(), item.getOldPath());
+                    if (item.getOldPath().endsWith("/" + DmConstants.INDEX_FILE)) {
+                        boolean hasRenamedChildren = false;
+                        String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                        if (children.length < 2) {
+                            deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                        } else {
+                            hasRenamedChildren = true;
+                        }
+                        if (!hasRenamedChildren) {
+                            contentService.deleteContent(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
+                        }
+                    }
                     if (isLive) {
                         objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
                     }

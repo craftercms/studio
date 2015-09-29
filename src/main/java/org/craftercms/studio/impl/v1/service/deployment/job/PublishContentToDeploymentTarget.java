@@ -220,9 +220,22 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                         if (endpoint != null) {
                             DeploymentEndpointConfigTO targetItem = targetMap.get(endpoint.getName());
                             if (targetItem == null) {
-                                targets.add(endpoint);
-                                targetMap.put(endpoint.getName(), endpoint);
-                                targetItem = endpoint;
+                                targetItem = new DeploymentEndpointConfigTO();
+                                targetItem.setName(endpoint.getName());
+                                targetItem.setTarget(endpoint.getTarget());
+                                targetItem.setType(endpoint.getType());
+                                targetItem.setServerUrl(endpoint.getServerUrl());
+                                targetItem.setStatusUrl(endpoint.getStatusUrl());
+                                targetItem.setVersionUrl(endpoint.getVersionUrl());
+                                targetItem.setPassword(endpoint.getPassword());
+                                targetItem.setExcludePattern(endpoint.getExcludePattern());
+                                targetItem.setIncludePattern(endpoint.getIncludePattern());
+                                targetItem.setBucketSize(endpoint.getBucketSize());
+                                targetItem.setSiteId(endpoint.getSiteId());
+                                targetItem.setSendMetadata(endpoint.isSendMetadata());
+                                targets.add(targetItem);
+
+                                targetMap.put(endpoint.getName(), targetItem);
                             }
                             targetItem.addEnvironment(groupConfigTO.getName());
                         }
