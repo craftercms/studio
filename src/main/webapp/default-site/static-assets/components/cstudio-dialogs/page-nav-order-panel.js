@@ -102,7 +102,10 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 	// create the panel content for drag and drop
 	content: function(panelId, orderJson, config){
 
-		var query = location.search.substring(1); 
+       var CMgs = CStudioAuthoring.Messages;
+       var langBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+
+	   var query = location.search.substring(1);
        // create object with thisPage
        var thisPageObject = {};
        thisPageObject.id = CStudioAuthoring.Utils.getQueryVariable (query, 'path');
@@ -110,7 +113,7 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
          thisPageObject.id = config.control.constructedPath;
        }
        thisPageObject.order = config.control.orderValue;
-       thisPageObject.internalName = "This Page";
+       thisPageObject.internalName = CMgs.format(langBundle, "currentPage");
 
        var orderLen = orderJson.order.length - 1;
        var orderToPageMap = {};
@@ -119,7 +122,7 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
        for (var i=0; i<=orderLen; ++i) {
     	 var orderDetails = {};
     	 orderDetails.id = orderJson.order[i].id;
-    	 orderDetails.internalName = orderJson.order[i].name;
+    	 orderDetails.internalName = orderJson.order[i].internalName ? orderJson.order[i].internalName : orderJson.order[i].name;
     	 if (orderJson.order[i].disabled && orderJson.order[i].disabled == 'true') {
     		 orderDetails.disabled = true;
     	 } else {
