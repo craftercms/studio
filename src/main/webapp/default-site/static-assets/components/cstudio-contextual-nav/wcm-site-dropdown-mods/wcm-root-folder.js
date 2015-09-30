@@ -902,8 +902,8 @@ treeNode.getHtml = function() {
                     retTransferObj.internalName = "Section Defaults";
                 }
 
-                if (treeItem.newFile) {
-                    retTransferObj.label = retTransferObj.internalName + "*";
+                if (treeItem.isNew) {
+                    retTransferObj.label = retTransferObj.internalName + " *";
                 } else {
                     retTransferObj.label = retTransferObj.internalName;
                 }
