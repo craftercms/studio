@@ -1411,16 +1411,19 @@ public class ContentItemTO implements Serializable {
 			List<Integer> childPositions = new FastList<Integer>(children.size());
 			for (int index = 0; index < children.size(); index++) {
 				ContentItemTO child = children.get(index);
-				String childUri = child.browserUri;
-				String itemToAddUri = itemToAdd.browserUri;
+				String childUri = StringUtils.isEmpty(child.browserUri) ? child.uri : child.browserUri;
+				String itemToAddUri = StringUtils.isEmpty(itemToAdd.browserUri) ? itemToAdd.uri : itemToAdd.browserUri;
 				// for recursive case, check if the item being added should
 				// belong to one of the current level items
 				// or one of the current level items should belong to the item
 				// being added
 				if (recursive) {
-					if (comparator.compare(child, itemToAdd) < 0) {
+                    int compareResult = comparator.compare(child, itemToAdd);
+					if (compareResult < 0) {
 						pos = index + 1 + 0;
-					}
+					} else if (compareResult == 0){
+                        return;
+                    }
 					// if the new item's URI starts with the URI of one of the
 					// item
 					// add the new item as a child of the item found
@@ -1451,10 +1454,13 @@ public class ContentItemTO implements Serializable {
 					// current position
 					// if the current item is greater than the item
 				} else {
-					if (comparator.compare(itemToAdd, child) < 0) {
-						children.add(index, itemToAdd);
-						added = true;
-						break;
+                    int compareResult = comparator.compare(itemToAdd, child);
+					if (compareResult < 0) {
+                        children.add(index, itemToAdd);
+                        added = true;
+                        break;
+                    } else if (compareResult == 0) {
+                        return;
 					} else {
 						pos = index + 1;
 					}

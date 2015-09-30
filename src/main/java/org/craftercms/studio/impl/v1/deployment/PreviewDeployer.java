@@ -277,6 +277,63 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
+    @EventHandler(
+            event = EBusConstants.REPOSITORY_DELETE_SITE_EVENT,
+            ebus = EBusConstants.REPOSITORY_REACTOR,
+            type = EventSelectorType.REGEX
+    )
+    public void onDeleteSite(final Event<RepositoryEventMessage> event) throws ServiceException {
+        RepositoryEventMessage message = event.getData();
+        try {
+            String site = message.getSite();
+            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
+            deleteSite(site);
+        } catch (Exception t) {
+            logger.error("Error while deleting site content from preview: " + message.getSite(), t);
+        } finally {
+            RepositoryEventContext.setCurrent(null);
+        }
+    }
+
+    protected void deleteSite(String site) {
+
+        DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
+        URL requestUrl = null;
+
+        try {
+            String url = DEPLOYER_SERVLET_URL;
+            List<Part> formParts = new ArrayList<>();
+            if (deploymentEndpointConfigTO != null) {
+                requestUrl = new URL(deploymentEndpointConfigTO.getServerUrl());
+                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, deploymentEndpointConfigTO.getPassword()));
+                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, deploymentEndpointConfigTO.getTarget()));
+            } else {
+                requestUrl = new URL("http", defaultServer, defaultPort, url);
+                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, defaultPassword));
+                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
+            }
+
+            StringBuilder sbDeletedFiles = new StringBuilder("/");
+
+            formParts.add(new StringPart(DEPLOYER_DELETED_FILES_PARAM, sbDeletedFiles.toString()));
+            formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
+
+            PostMethod postMethod = new PostMethod(requestUrl.toString());
+            postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+            Part[] parts = new Part[formParts.size()];
+
+            for (int i = 0; i < formParts.size(); i++) parts[i] = formParts.get(i);
+            postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+            HttpClient client = new HttpClient();
+            int status = client.executeMethod(postMethod);
+            postMethod.releaseConnection();
+        }
+        catch(Exception err) {
+            logger.error("error while deleting site from preview: '" + site + "'", err);
+        }
+    }
+
     public String getDefaultServer() { return defaultServer; }
     public void setDefaultServer(String defaultServer) { this.defaultServer = defaultServer; }
 
