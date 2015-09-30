@@ -580,7 +580,7 @@ implements SecurityProvider {
                     item.name = child.getName();
 
                     if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
-                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)child;
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) child;
                         item.path = document.getPaths().get(0);
                         Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
                         if (secundaryTypes != null) {
@@ -589,6 +589,9 @@ implements SecurityProvider {
                                 isWorkingCopy = true;
                             }
                         }
+                    } else if (BaseTypeId.CMIS_FOLDER.equals(child.getBaseTypeId())) {
+                        Folder childFolder = (Folder)child;
+                        item.path = childFolder.getPath();
                     } else {
                         item.path = fullPath;
                     }
