@@ -337,7 +337,9 @@ CStudioAuthoring.Messages.registerBundle("forms", "es", {
 
     setStatedDialogTitle: "Seleccione Estados",
     setStatedDialogSetStates: "Establezca Estados",
-    setStatedDialogSystemProcessing: "Procesamiento de Sistema"
+    setStatedDialogSystemProcessing: "Procesamiento de Sistema",
+
+    currentPage: "Página Actual"
 
 });
 

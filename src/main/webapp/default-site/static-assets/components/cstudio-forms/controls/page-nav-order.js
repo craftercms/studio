@@ -58,6 +58,8 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 	},
 
 	showEditPositionDialog: function() {
+        var CMgs = CStudioAuthoring.Messages;
+        var langBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
 	    //Disable Edit Position button to not allow double clicks
 	    this.editPositionEl.disabled = true;
 
@@ -67,7 +69,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 	    var callback = {
 		    success: function(contentTypes) {                    
-				    var query = location.search.substring(1); 
+				    var query = location.search.substring(1);
 				    var currentPath = CStudioAuthoring.Utils.getQueryVariable(query, 'path');
 				    var contentTypeSize = contentTypes.order.length;
 
@@ -76,7 +78,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 					    var orderId = contentTypes.order[i].id;
 
 					    if (orderId == currentPath) {
-							contentTypes.order[i].internalName = "This Page";
+							contentTypes.order[i].internalName = CMgs.format(langBundle, "currentPage");
 							contentTypes.order[i].order = this.parentControl.orderValue;
 							pageFound = 'true';
 							break;
@@ -84,7 +86,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 					}
 
 					if (pageFound == 'false') {
-						contentTypes.order.push({id:currentPath, order:this.parentControl.orderValue, internalName:"This Page"});
+						contentTypes.order.push({id:currentPath, order:this.parentControl.orderValue, internalName:CMgs.format(langBundle, "currentPage"), name:CMgs.format(langBundle, "currentPage")});
 					}
 
 				    panelId = 'panel1';
