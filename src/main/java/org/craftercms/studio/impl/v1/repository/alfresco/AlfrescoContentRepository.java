@@ -149,6 +149,17 @@ implements SecurityProvider {
      */
     @Override
     public String createVersion(String path, boolean majorVersion) {
+        return createVersion(path, null, majorVersion);
+    }
+
+    /**
+     * create a version
+     * @param path location of content
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -175,7 +186,7 @@ implements SecurityProvider {
                         }
                         org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
                         ContentStream contentStream = workingCopy.getContentStream();
-                        objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                        objId = workingCopy.checkIn(majorVersion, null, contentStream, comment);
                         session.removeObjectFromCache(document.getId());
                         session.removeObjectFromCache(objId);
                     }
