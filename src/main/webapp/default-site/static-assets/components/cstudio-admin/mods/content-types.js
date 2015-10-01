@@ -1233,8 +1233,12 @@ CStudioAdminConsole.PropertySheet.prototype = {
 
 	renderDatasourcePropertySheet: function(item, sheetEl) {
 
-		function getSelectedOption(valueArray) {
+		function getSelectedOption(valueArray, isString) {
 			var val = null;
+
+            if( isString && typeof valueArray === 'string' ) {
+                valueArray = JSON.parse(valueArray);
+            }
 
             [].forEach.call(valueArray, function(obj) {
 	            if (obj.selected) {
@@ -1299,7 +1303,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				} else {
 					// Default value is an array (e.g. key-value-list)
 					// Update the value in case the default value has changed
-					valueSelected = getSelectedOption(itemProperty.value);
+					valueSelected = getSelectedOption(itemProperty.value, true);
 					defaultSelected = getSelectedOption(property.defaultValue);
 
 					value = updateSelected(property.defaultValue, defaultSelected, valueSelected);
