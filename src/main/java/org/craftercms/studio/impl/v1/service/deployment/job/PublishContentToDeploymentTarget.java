@@ -86,121 +86,120 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
 
 
         try {
-            // TODO: transaction ?
-            //UserTransaction tx = _transactionService.getTransaction();
-            try {
-                //tx.begin();
                 Set<String> siteNames = siteService.getAllAvailableSites();
                 //tx.commit();
-                if (siteNames != null && siteNames.size() > 0){
+                if (siteNames != null && siteNames.size() > 0) {
                     for (String site : siteNames) {
-                        logger.debug("Starting publishing for site \"{0}\"", site);
-                        //tx = _transactionService.getTransaction();
-                        //tx.begin();
-                        Set<DeploymentEndpointConfigTO> targets = getAllTargetsForSite(site);
-                        //tx.commit();
-                        for (DeploymentEndpointConfigTO target : targets) {
-                            logger.debug("Starting publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
-                            if (target.getEnvironments() == null || target.getEnvironments().isEmpty()) continue;
-                            if (publishingManager.checkConnection(target)) {
-                                //tx = _transactionService.getTransaction();
-                                //tx.begin();
+                        try {
+                            logger.debug("Starting publishing for site \"{0}\"", site);
+                            //tx = _transactionService.getTransaction();
+                            //tx.begin();
+                            Set<DeploymentEndpointConfigTO> targets = getAllTargetsForSite(site);
+                            //tx.commit();
 
-                                logger.debug("Getting target version (target: \"{0}\", site: \"{1}\"", target.getName(), site);
-                                long targetVersion = publishingManager.getTargetVersion(target, site);
+                            for (DeploymentEndpointConfigTO target : targets) {
+                                logger.debug("Starting publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
+                                if (target.getEnvironments() == null || target.getEnvironments().isEmpty()) continue;
+                                if (publishingManager.checkConnection(target)) {
+                                    //tx = _transactionService.getTransaction();
+                                    //tx.begin();
 
-                                logger.debug("Target version: \"{0}\" (target: \"{1}\", site: \"{2}\"", targetVersion, target.getName(), site);
-                                if(targetVersion != -1) {
-                                    List<PublishToTarget> syncItems = publishingManager.getItemsToSync(site, targetVersion, target.getEnvironments());
-                                    if (syncItems != null && syncItems.size() > 0) {
-                                        logger.info("publishing \"{0}\" item(s) to \"{1}\" for site \"{2}\"", syncItems.size(), target.getName(), site);
+                                    logger.debug("Getting target version (target: \"{0}\", site: \"{1}\"", target.getName(), site);
+                                    long targetVersion = publishingManager.getTargetVersion(target, site);
 
-                                        logger.debug("Filtering out items before sending to deployment agent");
-                                        List<PublishToTarget> filteredItems = filterItems(syncItems, target);
+                                    logger.debug("Target version: \"{0}\" (target: \"{1}\", site: \"{2}\"", targetVersion, target.getName(), site);
+                                    if (targetVersion != -1) {
+                                        List<PublishToTarget> syncItems = publishingManager.getItemsToSync(site, targetVersion, target.getEnvironments());
+                                        if (syncItems != null && syncItems.size() > 0) {
+                                            logger.info("publishing \"{0}\" item(s) to \"{1}\" for site \"{2}\"", syncItems.size(), target.getName(), site);
+
+                                            logger.debug("Filtering out items before sending to deployment agent");
+                                            List<PublishToTarget> filteredItems = filterItems(syncItems, target);
 
 
-                                        try {
-                                            if (filteredItems != null && filteredItems.size() > 0) {
-                                                logger.debug("Sending \"{0}\" items to target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
-                                                publishingManager.deployItemsToTarget(site, filteredItems, target);
+                                            try {
+                                                if (filteredItems != null && filteredItems.size() > 0) {
+                                                    logger.debug("Sending \"{0}\" items to target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
+                                                    publishingManager.deployItemsToTarget(site, filteredItems, target);
+                                                }
+
+                                                long newVersion = getDeployedVersion(syncItems);
+                                                logger.debug("Setting new version for target (target: \"{0}\", site \"{1}\", version \"{2}\"", target.getName(), site, newVersion);
+                                                publishingManager.setTargetVersion(target, newVersion, site);
+
+                                                logger.debug("Inserting deployment history for \"{0}\" items on target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
+                                                publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
+                                            } catch (UploadFailedException err) {
+                                                Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
+                                                if (counters == null) {
+                                                    counters = new HashMap<String, Integer>();
+                                                }
+                                                Integer count = counters.get(err.getTarget());
+                                                if (count == null) {
+                                                    count = 0;
+                                                } else {
+                                                    count++;
+                                                }
+                                                if (count > maxTolerableRetries) {
+                                                    // TODO: Send notification - big red alert!
+                                                    logger.error("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err, err.getSite(), err.getTarget(), err.getUrl());
+                                                } else {
+                                                    logger.warn("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err.getSite(), err.getTarget(), err.getUrl());
+                                                }
+                                                counters.put(err.getTarget(), count);
+                                                _publishingFailureCounters.put(err.getSite(), counters);
+                                                //tx.rollback();
+                                                continue;
                                             }
 
-                                            long newVersion = getDeployedVersion(syncItems);
-                                            logger.debug("Setting new version for target (target: \"{0}\", site \"{1}\", version \"{2}\"", target.getName(), site, newVersion);
-                                            publishingManager.setTargetVersion(target, newVersion, site);
-                                            logger.debug("Inserting deployment history for \"{0}\" items on target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
-                                            publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
-                                        } catch (UploadFailedException err) {
-                                            Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
-                                            if (counters == null) {
-                                                counters = new HashMap<String, Integer>();
-                                            }
-                                            Integer count = counters.get(err.getTarget());
-                                            if (count == null) {
-                                                count = 0;
-                                            } else {
-                                                count++;
-                                            }
-                                            if (count > maxTolerableRetries) {
-                                                // TODO: Send notification - big red alert!
-                                                logger.error("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err, err.getSite(), err.getTarget(), err.getUrl());
-                                            } else {
-                                                logger.warn("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err.getSite(), err.getTarget(), err.getUrl());
-                                            }
-                                            counters.put(err.getTarget(), count);
-                                            _publishingFailureCounters.put(err.getSite(), counters);
-                                            //tx.rollback();
-                                            continue;
                                         }
-
+                                        Map<String, Integer> counters = _publishingFailureCounters.get(site);
+                                        if (counters == null) {
+                                            counters = new HashMap<String, Integer>();
+                                        }
+                                        counters.put(target.getName(), 0);
+                                        _publishingFailureCounters.put(site, counters);
+                                    } else {
+                                        // we can talk to the agent but there is something wrong
+                                        // for example the features we need are not supported
+                                        logger.error("cannot negotiate a version for deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
                                     }
-                                    Map<String, Integer> counters = _publishingFailureCounters.get(site);
-                                    if (counters == null) {
-                                        counters = new HashMap<String, Integer>();
-                                    }
-                                    counters.put(target.getName(), 0);
-                                    _publishingFailureCounters.put(site, counters);
+                                    //tx.commit();
+                                } else {
+                                    // TODO: update target status
+                                    logger.warn("cannot connect to deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
                                 }
-                                else {
-                                    // we can talk to the agent but there is something wrong
-                                    // for example the features we need are not supported
-                                    logger.error("cannot negotiate a version for deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
-                                }
-                                //tx.commit();
+                                logger.debug("Finished publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
                             }
-                            else {
-                                // TODO: update target status
-                                logger.warn("cannot connect to deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
+                            logger.debug("Finished publishing for site \"{0}\"", site);
+                        } catch (ContentNotFoundForPublishingException err) {
+                            Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
+                            if (counters == null) {
+                                counters = new HashMap<String, Integer>();
                             }
-                            logger.debug("Finished publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
+                            Integer count = counters.get(err.getTarget());
+                            if (count == null) {
+                                count = 0;
+                            } else {
+                                count++;
+                            }
+                            if (count > maxTolerableRetries) {
+                                // TODO: Send notification - big red alert!
+                                logger.error("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err, err.getSite(), err.getTarget(), err.getPath());
+                            } else {
+                                logger.warn("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err.getSite(), err.getTarget(), err.getPath());
+                            }
+                            counters.put(err.getTarget(), count);
+                            _publishingFailureCounters.put(err.getSite(), counters);
+                            logger.info("Continue executing deployment for other sites.");
+                            //tx.rollback();
+                        } catch (Exception err) {
+                            logger.error("error while processing items to be published for site: " + site, err);
+                            logger.info("Continue executing deployment for other sites.");
+                            //tx.rollback();
                         }
-                        logger.debug("Finished publishing for site \"{0}\"", site);
                     }
                 }
-            } catch (ContentNotFoundForPublishingException err) {
-                Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
-                if (counters == null) {
-                    counters = new HashMap<String, Integer>();
-                }
-                Integer count = counters.get(err.getTarget());
-                if (count == null) {
-                    count = 0;
-                } else {
-                    count++;
-                }
-                if (count > maxTolerableRetries) {
-                    // TODO: Send notification - big red alert!
-                    logger.error("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err, err.getSite(), err.getTarget(), err.getPath());
-                } else {
-                    logger.warn("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err.getSite(), err.getTarget(), err.getPath());
-                }
-                counters.put(err.getTarget(), count);
-                _publishingFailureCounters.put(err.getSite(), counters);
-                //tx.rollback();
-            } catch(Exception err) {
-                logger.error("error while processing items to be published", err);
-                //tx.rollback();
-            }
         }
         catch(Exception err) {
             logger.error("error while processing items to be published", err);

@@ -115,7 +115,16 @@ public interface ContentRepository {
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    String createVersion(String path, boolean majorVersion); 
+    String createVersion(String path, boolean majorVersion);
+
+    /**
+     * create a version
+     * @param path location of content
+     * @param comment version history comment
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    String createVersion(String path, String comment, boolean majorVersion);
 
     /** 
      * revert a version (create a new version based on an old version)

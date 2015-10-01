@@ -149,6 +149,17 @@ implements SecurityProvider {
      */
     @Override
     public String createVersion(String path, boolean majorVersion) {
+        return createVersion(path, null, majorVersion);
+    }
+
+    /**
+     * create a version
+     * @param path location of content
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -175,7 +186,7 @@ implements SecurityProvider {
                         }
                         org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
                         ContentStream contentStream = workingCopy.getContentStream();
-                        objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                        objId = workingCopy.checkIn(majorVersion, null, contentStream, comment);
                         session.removeObjectFromCache(document.getId());
                         session.removeObjectFromCache(objId);
                     }
@@ -580,7 +591,7 @@ implements SecurityProvider {
                     item.name = child.getName();
 
                     if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
-                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)child;
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) child;
                         item.path = document.getPaths().get(0);
                         Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
                         if (secundaryTypes != null) {
@@ -589,6 +600,9 @@ implements SecurityProvider {
                                 isWorkingCopy = true;
                             }
                         }
+                    } else if (BaseTypeId.CMIS_FOLDER.equals(child.getBaseTypeId())) {
+                        Folder childFolder = (Folder)child;
+                        item.path = childFolder.getPath();
                     } else {
                         item.path = fullPath;
                     }

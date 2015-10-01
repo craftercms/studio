@@ -1,19 +1,19 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
- * 
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- * 
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2007-2013 Crafter Software Corporation.
+ * <p/>
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * <p/>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * <p/>
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
@@ -54,7 +54,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         return running;
     }
 
-    public synchronized static void setRunning(boolean isRunning){
+    public synchronized static void setRunning(boolean isRunning) {
         running = isRunning;
     }
 
@@ -64,8 +64,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             if (singleWorkerLock.tryLock()) {
                 try {
                     processJobs();
-                }
-                catch(Throwable err) {
+                } catch (Throwable err) {
                     logger.error("unable to execute job", err);
                 } finally {
                     singleWorkerLock.unlock();
@@ -82,14 +81,14 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             // TODO: Transaction ?
             UserTransaction tx = transactionService.getTransaction();
 
-            try {
-                // USE MANAGER TO DO ALL OF THIS, MOST OF THESE ARE PROTECTED MANAGER METHODS!
-                //tx.begin();
+            // USE MANAGER TO DO ALL OF THIS, MOST OF THESE ARE PROTECTED MANAGER METHODS!
+            //tx.begin();
 
-                Set<String> siteNames = siteService.getAllAvailableSites();
-                //tx.commit();
-                if (siteNames != null && siteNames.size() > 0){
-                    for (String site : siteNames) {
+            Set<String> siteNames = siteService.getAllAvailableSites();
+            //tx.commit();
+            if (siteNames != null && siteNames.size() > 0) {
+                for (String site : siteNames) {
+                    try {
                         Set<String> environments = getAllPublishingEnvironments(site);
                         for (String environment : environments) {
                             logger.debug("Processing content ready for deployment for site \"{0}\"", site);
@@ -135,7 +134,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             publishingManager.setupItemsForPublishingSync(site, environment, mergedList);
                                         } else {
                                             publishingManager.setupItemsForPublishingSync(site, environment, itemList);
-                                            }
+                                        }
                                         logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                         publishingManager.markItemsCompleted(site, environment, itemList);
                                         //tx.commit();
@@ -145,7 +144,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         throw err;
                                     } catch (Exception err) {
                                         logger.error("Unexpected error while executing deployment to environment " +
-                                            "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
+                                                "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
                                     } finally {
@@ -156,19 +155,19 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                 }
                             }
                         }
+
+
+                    } catch (Exception err) {
+                        logger.error("Error while executing deployment to environment store for site: " + site, err);
+                        logger.info("Continue executing deployment for other sites.");
+                        //tx.rollback();
                     }
                 }
-
-            } catch(Exception err) {
-                logger.error("Error while executing deployment to environment store", err);
-                //tx.rollback();
             }
-        }
-        catch(Exception err) {
+        } catch (Exception err) {
             logger.error("Error while executing deployment to environment store", err);
         }
     }
-
 
 
     private List<String> getPaths(List<CopyToEnvironment> itemsToDeploy) {
@@ -195,30 +194,70 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     /** getter transaction service */
-    public org.craftercms.studio.api.v1.service.transaction.TransactionService getTransactionService() { return transactionService; }
+    public org.craftercms.studio.api.v1.service.transaction.TransactionService getTransactionService() {
+        return transactionService;
+    }
+
     /** setter for transaction service */
-    public void setTransactionService(org.craftercms.studio.api.v1.service.transaction.TransactionService service) { transactionService = service; }
+    public void setTransactionService(org.craftercms.studio.api.v1.service.transaction.TransactionService service) {
+        transactionService = service;
+    }
 
-    public PublishingManager getPublishingManager() { return publishingManager; }
-    public void setPublishingManager(PublishingManager publishingManager) { this.publishingManager = publishingManager; }
+    public PublishingManager getPublishingManager() {
+        return publishingManager;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public void setPublishingManager(PublishingManager publishingManager) {
+        this.publishingManager = publishingManager;
+    }
 
-    public int getProcessingChunkSize() {  return processingChunkSize; }
-    public void setProcessingChunkSize(int processingChunkSize) { this.processingChunkSize = processingChunkSize; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
 
-    public boolean isMasterPublishingNode() { return masterPublishingNode; }
-    public void setMasterPublishingNode(boolean masterPublishingNode) { this.masterPublishingNode = masterPublishingNode; }
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
-    public boolean isMandatoryDependenciesCheckEnabled() { return mandatoryDependenciesCheckEnabled; }
-    public void setMandatoryDependenciesCheckEnabled(boolean mandatoryDependenciesCheckEnabled) { this.mandatoryDependenciesCheckEnabled = mandatoryDependenciesCheckEnabled; }
+    public int getProcessingChunkSize() {
+        return processingChunkSize;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public void setProcessingChunkSize(int processingChunkSize) {
+        this.processingChunkSize = processingChunkSize;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public boolean isMasterPublishingNode() {
+        return masterPublishingNode;
+    }
+
+    public void setMasterPublishingNode(boolean masterPublishingNode) {
+        this.masterPublishingNode = masterPublishingNode;
+    }
+
+    public boolean isMandatoryDependenciesCheckEnabled() {
+        return mandatoryDependenciesCheckEnabled;
+    }
+
+    public void setMandatoryDependenciesCheckEnabled(boolean mandatoryDependenciesCheckEnabled) {
+        this.mandatoryDependenciesCheckEnabled = mandatoryDependenciesCheckEnabled;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
     protected org.craftercms.studio.api.v1.service.transaction.TransactionService transactionService;
     protected PublishingManager publishingManager;

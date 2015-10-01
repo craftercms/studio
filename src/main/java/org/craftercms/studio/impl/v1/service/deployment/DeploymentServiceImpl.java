@@ -427,9 +427,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (ContentUtils.matchesPatterns(path.getRelativePath(), displayPatterns)) {
             ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath(), 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
-                itemToAdd.submitted = false;
+                //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
-                itemToAdd.inProgress = false;
+                //itemToAdd.inProgress = false;
                 boolean found = false;
                 for (int index = 0; index < scheduledItems.size(); index++) {
                     ContentItemTO currDateItem = scheduledItems.get(index);

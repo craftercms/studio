@@ -324,7 +324,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return versionId;
     }
 
-    /** 
+    @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
+        return createVersion(path, majorVersion);
+    }
+
+    /**
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
