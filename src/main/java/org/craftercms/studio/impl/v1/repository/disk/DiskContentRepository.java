@@ -283,8 +283,22 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         }
 
         Collections.sort(versionList);
-        VersionTO[] versions = new VersionTO[versionList.size()];
-        versions = versionList.toArray(versions);
+        VersionTO latest = versionList.get(versionList.size() - 1);
+        String latestVersionLabel = latest.getVersionNumber();
+        int temp = latestVersionLabel.indexOf(".");
+        String currentMajorVersion = latestVersionLabel.substring(0, temp);
+        final List<VersionTO> finalVersionList = new ArrayList<VersionTO>();
+        for (int i = versionList.size(); i > 0; i--) {
+            VersionTO v = versionList.get(i - 1);
+            String versionId = v.getVersionNumber();
+            boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
+            if (condition) continue;
+            finalVersionList.add(v);
+        }
+
+        //Collections.reverse(versionList);
+        VersionTO[] versions = new VersionTO[finalVersionList.size()];
+        versions = finalVersionList.toArray(versions);
         return versions;
     }
 
