@@ -742,12 +742,18 @@ implements SecurityProvider {
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
+                    String currentVersion = doc.getVersionLabel();
+                    int temp = currentVersion.indexOf(".");
+                    String currentMajorVersion = currentVersion.substring(0, temp);
                     if (versionsCMIS != null && versionsCMIS.size() > 0) {
                         versions = new VersionTO[versionsCMIS.size()];
                     }
                     int idx = 0;
                     for (org.apache.chemistry.opencmis.client.api.Document version : versionsCMIS) {
                         VersionTO versionTO = new VersionTO();
+                        String versionId = version.getVersionLabel();
+                        boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
+                        if (condition) continue;
                         versionTO.setVersionNumber(version.getVersionLabel());
                         versionTO.setLastModifier(version.getLastModifiedBy());
                         versionTO.setLastModifiedDate(version.getLastModificationDate().getTime());
