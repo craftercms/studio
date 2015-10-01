@@ -281,21 +281,22 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             logger.error("error while getting history for content item " + path);
             logger.debug("error while getting history for content item " + path, err);
         }
-
-        Collections.sort(versionList);
-        VersionTO latest = versionList.get(versionList.size() - 1);
-        String latestVersionLabel = latest.getVersionNumber();
-        int temp = latestVersionLabel.indexOf(".");
-        String currentMajorVersion = latestVersionLabel.substring(0, temp);
         final List<VersionTO> finalVersionList = new ArrayList<VersionTO>();
-        for (int i = versionList.size(); i > 0; i--) {
-            VersionTO v = versionList.get(i - 1);
-            String versionId = v.getVersionNumber();
-            boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
-            if (condition) continue;
-            finalVersionList.add(v);
-        }
+        if (versionList.size() > 0) {
+            Collections.sort(versionList);
+            VersionTO latest = versionList.get(versionList.size() - 1);
+            String latestVersionLabel = latest.getVersionNumber();
+            int temp = latestVersionLabel.indexOf(".");
+            String currentMajorVersion = latestVersionLabel.substring(0, temp);
 
+            for (int i = versionList.size(); i > 0; i--) {
+                VersionTO v = versionList.get(i - 1);
+                String versionId = v.getVersionNumber();
+                boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
+                if (condition) continue;
+                finalVersionList.add(v);
+            }
+        }
         //Collections.reverse(versionList);
         VersionTO[] versions = new VersionTO[finalVersionList.size()];
         versions = finalVersionList.toArray(versions);
