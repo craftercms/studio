@@ -1348,16 +1348,6 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				sheetEl, 
 				function(e, el) { updatePropertyFn(el.fieldName, el.value); });
 		}
-
-        /*var idDatasource = YDom.getElementsByClassName("property-input-name", null, null)[0];
-        var nameDatasource = YDom.getElementsByClassName("property-input-title", null, null)[0];
-
-        function updateNameFn(){
-            idDatasource.value = nameDatasource.value;
-        }
-
-        YAHOO.util.Event.on(nameDatasource, 'keyup', updateNameFn);*/
-
 	},
 
 	renderSectionPropertySheet: function(item, sheetEl) {

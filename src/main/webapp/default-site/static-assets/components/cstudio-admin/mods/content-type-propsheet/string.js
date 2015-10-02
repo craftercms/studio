@@ -25,15 +25,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.String, CStudioA
                 }
                 CStudioAdminConsole.Tool.ContentTypes.visualization.render();
             };
-
-            /*var testFn = function(event, el) {
-                console.log('test');
-                updateFn(event, el);
-                CStudioAdminConsole.Tool.ContentTypes.visualization.render();
-            };*/
 			
 			YAHOO.util.Event.on(valueEl, 'keyup', updateFieldFn, valueEl);
-            //YAHOO.util.Event.on(valueEl, 'change', testFn, valueEl);
 		}
 		
 		this.valueEl = valueEl;
