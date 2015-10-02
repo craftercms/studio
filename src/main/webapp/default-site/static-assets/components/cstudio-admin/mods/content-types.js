@@ -1277,7 +1277,13 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		var valueSelected, defaultSelected;
 
 		this.createRowHeading(CMgs.format(langBundle, "datasourceBasics"), sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "", "string",  sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "", "string",  sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
 		this.createRowFn(CMgs.format(langBundle, "name"),  "name", item.id, "", "string",  sheetEl,  function(e, el) { item.id = el.value; });
 
 		this.createRowHeading(CMgs.format(langBundle, "properties"), sheetEl);
@@ -1342,7 +1348,6 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				sheetEl, 
 				function(e, el) { updatePropertyFn(el.fieldName, el.value); });
 		}
-
 	},
 
 	renderSectionPropertySheet: function(item, sheetEl) {
@@ -1366,7 +1371,13 @@ CStudioAdminConsole.PropertySheet.prototype = {
         if(item.id == undefined){item.id = "";}
 
 		this.createRowHeading("Repeat Group Basics", sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "",  "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "",  "string", sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
 		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
 		
 		this.createRowFn(CMgs.format(langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
@@ -1378,7 +1389,13 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	renderFieldPropertySheet: function(item, sheetEl) {
 
 		this.createRowHeading(CMgs.format(langBundle, "fieldBasics"), sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
 		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "description"), "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
@@ -1514,7 +1531,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 			moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
 	   			try {
 	   				var propControl = new moduleClass(fName, propertyContainerEl, this.self.form, type);
-	   				propControl.render(value, fn);
+	   				propControl.render(value, fn, fName);
 	   			} 
 		   		catch (e) {
 				}	
