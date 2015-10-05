@@ -53,6 +53,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en", {
     dashletRecentDeployColURL: "URL",
     dashletRecentDeployColEndpoint: "Server",
     dashletRecentDeployColDeployBy: "Published By",
+    dashletRecentDeployColMyLastEdit: "My Last Edit",
 
     dashletMyRecentActivityTitle: "My Recent Activity",
     dashletMyRecentActivityHideLiveItems: "Hide Live Items",
