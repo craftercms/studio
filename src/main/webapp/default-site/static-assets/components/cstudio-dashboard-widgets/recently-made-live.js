@@ -51,7 +51,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletRecentDeployColURL"),"maximize")+
             WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+
             "<th id='fullUri' class='width0'></th>"+
-            WcmDashboardWidgetCommon.getSortableRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMyLastEdit"),"ttThColLast alignRight minimize");
+            WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColLastEdited"),"ttThColLast alignRight minimize");
 
         return header;
     };
