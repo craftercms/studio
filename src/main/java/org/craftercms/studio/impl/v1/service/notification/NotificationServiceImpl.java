@@ -601,7 +601,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
             userEmailAddress=adminEmailAddress;
 */
 
-        if(userEmailAddress == null || "".equals(userEmailAddress)) {
+        if(StringUtils.isEmpty(userEmailAddress)) {
             Map<String, String> profile = securityService.getUserProfile(toUser);
             userEmailAddress = profile.get("email");
         }
@@ -629,9 +629,11 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         boolean isDocument = false;
         boolean isExternalDocument = false;
         String documentUrl = "";
+        String browserUri = "";
         ContentItemTO contentItem = contentService.getContentItem(site, relativeUrl, 0);
         if (contentItem != null) {
             itemName = contentItem.getInternalName();
+            browserUri = contentItem.getBrowserUri();
 
             if (contentItem.isPreviewable() && contentItem.isDocument()) {
                 isDocument = true;
@@ -657,7 +659,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         String absolutePath = contentService.expandRelativeSitePath(site, relativeUrl);
         DmPathTO path = new DmPathTO(absolutePath);
         String name = path.getName();
-        String browserUri = contentItem.getBrowserUri();
+
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativeUrl.replace("/" + name, "") : relativeUrl;
         String internalName = folderPath;
         int index = folderPath.lastIndexOf('/');
