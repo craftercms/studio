@@ -1043,9 +1043,12 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-            if (!document.isVersionSeriesCheckedOut()) {
-                document.checkOut();
+            ObjectType type = cmisObject.getBaseType();
+            if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
+                org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                if (!document.isVersionSeriesCheckedOut()) {
+                    document.checkOut();
+                }
             }
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
@@ -1073,7 +1076,7 @@ implements SecurityProvider {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
                 ObjectType type = cmisObject.getBaseType();
-                if ("cmis:document".equals(type.getId())) {
+                if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     String pwcId = document.getVersionSeriesCheckedOutId();
                     if (StringUtils.isNotEmpty(pwcId)) {
@@ -1084,9 +1087,9 @@ implements SecurityProvider {
                     }
                 }
             } catch (CmisBaseException err) {
-                logger.error("Error while locking content at path " + cleanPath, err);
+                logger.error("Error while unlocking content at path " + cleanPath, err);
             } catch (Throwable err) {
-                logger.error("Error while locking content at path " + cleanPath, err);
+                logger.error("Error while unlocking content at path " + cleanPath, err);
             }
         }
         long duration = System.currentTimeMillis() - startTime;
