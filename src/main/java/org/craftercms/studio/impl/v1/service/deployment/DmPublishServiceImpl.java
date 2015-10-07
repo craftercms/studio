@@ -170,7 +170,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         List<String> childrenPaths = new ArrayList<String>();
         ContentItemTO item = contentService.getContentItem(site, path, 2);
         if (item != null) {
-            childrenPaths.add(item.getUri());
+            if (!item.isFolder()) {
+                childrenPaths.add(item.getUri());
+            }
             if (item.getUri().endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, item.getUri())) {
                 getAllMandatoryChildren(site, item, childrenPaths);
             } else {
@@ -181,15 +183,17 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
         List<String> pathsToPublish = new ArrayList<String>();
         for (String childPath : childrenPaths) {
-            pathsToPublish.add(childPath);
+            if (!pathsToPublish.contains(childPath)) {
+                pathsToPublish.add(childPath);
+            }
             getAllDependenciesRecursive(site, childPath, pathsToPublish);
         }
         Date launchDate = new Date();
-        String approver = securityService.getCurrentUser();
-        String comment = "Bulk Go Live invoked by " + approver;
+        String aprover = securityService.getCurrentUser();
+        String comment = "Bulk Go Live invoked by " + aprover;
             logger.debug("Deploying " + pathsToPublish.size() + " items");
         try {
-            deploymentService.deploy(site, environment, pathsToPublish, launchDate, approver, comment);
+            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment);
         } catch (DeploymentException e) {
             logger.error("Error while running bulk Go Live operation", e);
         } finally {
@@ -203,7 +207,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             if (!dependencyPaths.contains(depPath)) {
                 if (contentService.contentExists(site, depPath)) {
                     if (objectStateService.isUpdatedOrNew(site, depPath)) {
-                        dependencyPaths.add(depPath);
+                        if (!dependencyPaths.contains(depPath)) {
+                            dependencyPaths.add(depPath);
+                        }
                         getAllDependenciesRecursive(site, depPath, dependencyPaths);
                     }
                 }
@@ -215,7 +221,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         if (item != null) {
             for (ContentItemTO child : item.getChildren()) {
                 child = contentService.getContentItem(site, child.getUri(), 2);
-                pathsToPublish.add(child.getUri());
+                if (!child.isFolder()) {
+                    pathsToPublish.add(child.getUri());
+                }
                 if (child.getChildren() != null && child.getChildren().size() > 0) {
                     getAllMandatoryChildren(site, child, pathsToPublish);
                 }
