@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -490,6 +491,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
 			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
+            // set permissions for groups
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addConfigWritePermission("/cstudio/config/sites/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_author");
+
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
@@ -814,6 +820,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public DistributedPeerEBusFacade getDistributedPeerEBusFacade() { return distributedPeerEBusFacade; }
     public void setDistributedPeerEBusFacade(DistributedPeerEBusFacade distributedPeerEBusFacade) { this.distributedPeerEBusFacade = distributedPeerEBusFacade; }
 
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -835,6 +844,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected DistributedPeerEBusFacade distributedPeerEBusFacade;
+    protected SecurityProvider securityProvider;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
