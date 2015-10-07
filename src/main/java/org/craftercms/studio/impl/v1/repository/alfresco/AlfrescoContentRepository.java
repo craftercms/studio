@@ -654,6 +654,9 @@ implements SecurityProvider {
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
+                if (StringUtils.isEmpty(folderPath)) {
+                    folderPath = "/";
+                }
                 CmisObject folderCmisObject = null;
                 if (contentExists(folderPath)) {
                     folderCmisObject = session.getObjectByPath(folderPath);
