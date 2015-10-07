@@ -22,7 +22,9 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
@@ -1321,6 +1323,41 @@ implements SecurityProvider {
         String reponsePath = "";
         reponsePath = new File(fullPath).getPath();
         return reponsePath;
+    }
+
+    @Override
+    public void addContentWritePermission(String path, String group) {
+        setWritePermission(path, group);
+    }
+
+    private void setWritePermission(String path, String group) {
+        Session session = getCMISSession();
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        if (contentExists(cleanPath)) {
+            try {
+                CmisObject cmisObject = session.getObjectByPath(cleanPath);
+
+                List<String> permissions = new LinkedList<String>();
+                permissions.add("{http://www.alfresco.org/model/content/1.0}cmobject.Collaborator");
+                Ace addAce = session.getObjectFactory().createAce("GROUP_"+group, permissions);
+                List<Ace> addAces = new LinkedList<Ace>();
+                addAces.add(addAce);
+                cmisObject.addAcl(addAces, AclPropagation.PROPAGATE);
+            } catch (CmisBaseException err) {
+                logger.error("Error while setting permissions for content at path " + cleanPath, err);
+            } catch (Throwable err) {
+                logger.error("Error while setting permissions for content at path " + cleanPath, err);
+
+            }
+        }
+    }
+
+    @Override
+    public void addConfigWritePermission(String path, String group) {
+        setWritePermission(path, group);
     }
 
     protected String alfrescoUrl;

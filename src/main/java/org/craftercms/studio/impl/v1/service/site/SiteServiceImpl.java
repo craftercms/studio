@@ -488,6 +488,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
 			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
+            // set permissions for groups
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addConfigWritePermission("/cstudio/config/sites/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_author");
+
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 

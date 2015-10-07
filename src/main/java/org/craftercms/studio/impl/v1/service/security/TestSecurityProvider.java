@@ -163,4 +163,14 @@ public class TestSecurityProvider implements SecurityProvider {
         activeUser.remove("ticket");
         return true;
     }
+
+    @Override
+    public void addContentWritePermission(String path, String group) {
+        // do nothing
+    }
+
+    @Override
+    public void addConfigWritePermission(String path, String group) {
+        // do nothing
+    }
 }
