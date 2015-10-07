@@ -51,8 +51,14 @@ public class EnvironmentStoreDeployer implements Deployer{
     }
 */
     private void writeFile(String site, String path, String environment, InputStream content) {
-        File file = new File(getDestinationPath(site, path, environment));
+
         try {
+            if (content == null || content.available() < 0) {
+                logger.warn("Not able to write empty content to environment store for site: {0}, path: {1}, environment: {2}", site, path, environment);
+                return;
+            }
+            File file = new File(getDestinationPath(site, path, environment));
+            logger.debug("Writing file: " + file.getAbsolutePath());
             FileUtils.copyInputStreamToFile(content, file);
         } catch (IOException e) {
             logger.error("Error while saving content to environment store [site: {0}] [path: {1}] [envirnonment: {2}", site, path, environment);
