@@ -583,6 +583,10 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     confTabSiteConf: "Site Configuration",
     confTabSiteConfDesc: "Defines the general site configuration",
     confTabWorkflowConf: "Workflow Configuration",
-    confTabWorkflowConfDesc: "Defines workflows available in the system"
+    confTabWorkflowConfDesc: "Defines workflows available in the system",
+
+    /* Errors */
+    errorTitle: ". Please fill every title for fields and datasources.",
+    errorName: ". Please fill variable name for: "
 
 });
