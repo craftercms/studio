@@ -137,4 +137,14 @@ public class CachedSecurityProvider implements SecurityProvider {
 
         return globalCache;        
     }
+
+    @Override
+    public void addContentWritePermission(String path, String group) {
+        provider.addContentWritePermission(path, group);
+    }
+
+    @Override
+    public void addConfigWritePermission(String path, String group) {
+        provider.addConfigWritePermission(path, group);
+    }
 }
