@@ -681,6 +681,7 @@ implements SecurityProvider {
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
                 folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
@@ -857,6 +858,7 @@ implements SecurityProvider {
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
+            session.clear();
         } catch (CmisBaseException err) {
             logger.error("Failed to create  folder in {0}", err, fullPath);
         }
@@ -907,6 +909,7 @@ implements SecurityProvider {
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
+            session.clear();
         } catch (CmisBaseException err) {
             logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
@@ -946,6 +949,7 @@ implements SecurityProvider {
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyChildren(targetFolder, sourceFolder);
                     }
+                    session.clear();
                     long duration = System.currentTimeMillis() - startTime;
                     logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
                     return true;
