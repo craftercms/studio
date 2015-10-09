@@ -94,7 +94,8 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 
 							var onclickFn = function() {
 								var formSaveCb = { 
-									success: function(formName, name, value) {
+									success: function(contentTO, a, b, c) {
+										var name = contentTO.item.uri;
 										var id = name.substring(name.lastIndexOf("/")+1).replace(".xml", "");
 										
 										if(!model['rteComponents']) {

@@ -53,6 +53,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en", {
     dashletRecentDeployColURL: "URL",
     dashletRecentDeployColEndpoint: "Server",
     dashletRecentDeployColDeployBy: "Published By",
+    dashletRecentDeployColLastEdited: "Last Edited",
 
     dashletMyRecentActivityTitle: "My Recent Activity",
     dashletMyRecentActivityHideLiveItems: "Hide Live Items",
@@ -582,6 +583,10 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     confTabSiteConf: "Site Configuration",
     confTabSiteConfDesc: "Defines the general site configuration",
     confTabWorkflowConf: "Workflow Configuration",
-    confTabWorkflowConfDesc: "Defines workflows available in the system"
+    confTabWorkflowConfDesc: "Defines workflows available in the system",
+
+    /* Errors */
+    errorTitle: ". Please fill every title for fields and datasources.",
+    errorName: ". Please fill variable name for: "
 
 });

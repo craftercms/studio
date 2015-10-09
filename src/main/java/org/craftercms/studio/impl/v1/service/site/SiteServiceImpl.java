@@ -28,10 +28,7 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
-import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
-import org.craftercms.studio.api.v1.ebus.DistributedPeerEBusFacade;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -49,6 +46,7 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -490,6 +488,11 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
 			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
+            // set permissions for groups
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addConfigWritePermission("/cstudio/config/sites/"+siteId, "crafter_" + siteId + "_admin");
+            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_author");
+
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
@@ -610,6 +613,13 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
  		try {
  			contentRepository.deleteContent("/wem-projects/"+siteId);
  			contentRepository.deleteContent("/cstudio/config/sites/" + siteId);
+
+            RepositoryEventMessage message = new RepositoryEventMessage();
+            message.setSite(siteId);
+            String sessionTicket = securityProvider.getCurrentToken();
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            message.setRepositoryEventContext(repositoryEventContext);
+            repositoryReactor.notify(EBusConstants.REPOSITORY_DELETE_SITE_EVENT, Event.wrap(message));
 
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
@@ -802,9 +812,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
-    public Reactor getRepositoryRector() { return repositoryRector; }
-    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
-
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
@@ -813,6 +820,12 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     public DistributedPeerEBusFacade getDistributedPeerEBusFacade() { return distributedPeerEBusFacade; }
     public void setDistributedPeerEBusFacade(DistributedPeerEBusFacade distributedPeerEBusFacade) { this.distributedPeerEBusFacade = distributedPeerEBusFacade; }
+
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+
+    public Reactor getRepositoryReactor() { return repositoryReactor; }
+    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
@@ -835,6 +848,8 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected DistributedPeerEBusFacade distributedPeerEBusFacade;
+    protected SecurityProvider securityProvider;
+    protected Reactor repositoryReactor;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

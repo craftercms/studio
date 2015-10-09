@@ -203,27 +203,29 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
                         throws IOException {
 
-                    RepositoryItem item = new RepositoryItem();
-                    item.name = visitPath.toFile().getName();
+                    if (!visitPath.equals(constructRepoPath(finalPath))) {
+                        RepositoryItem item = new RepositoryItem();
+                        item.name = visitPath.toFile().getName();
 
 
-                    String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
-                    //Path visitFolder = constructRepoPath(visitFolderPath);
-                    item.isFolder = visitPath.toFile().isDirectory();
-                    int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
-                    if (lastIdx > 0) {
-                        item.path = visitFolderPath.substring(0, lastIdx);
-                    }
-                    //item.path = visitFolderPath.replace("/" + item.name, "");
-                    item.path = item.path.replace(getRootPath().replace("/", File.separator), "");
-                    item.path = item.path.replace(File.separator + ".xml", "");
-                    item.path = item.path.replace(File.separator, "/");
+                        String visitFolderPath = visitPath.toString();//.replace("/index.xml", "");
+                        //Path visitFolder = constructRepoPath(visitFolderPath);
+                        item.isFolder = visitPath.toFile().isDirectory();
+                        int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                        if (lastIdx > 0) {
+                            item.path = visitFolderPath.substring(0, lastIdx);
+                        }
+                        //item.path = visitFolderPath.replace("/" + item.name, "");
+                        item.path = item.path.replace(getRootPath().replace("/", File.separator), "");
+                        item.path = item.path.replace(File.separator + ".xml", "");
+                        item.path = item.path.replace(File.separator, "/");
 
-                    if (!".DS_Store".equals(item.name)) {
-                        logger.debug("ITEM NAME: {0}", item.name);
-                        logger.debug("ITEM PATH: {0}", item.path);
-                        logger.debug("ITEM FOLDER: ({0}): {1}", visitFolderPath, item.isFolder);
-                        retItems.add(item);
+                        if (!".DS_Store".equals(item.name)) {
+                            logger.debug("ITEM NAME: {0}", item.name);
+                            logger.debug("ITEM PATH: {0}", item.path);
+                            logger.debug("ITEM FOLDER: ({0}): {1}", visitFolderPath, item.isFolder);
+                            retItems.add(item);
+                        }
                     }
 
                     return FileVisitResult.CONTINUE;
@@ -281,10 +283,25 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             logger.error("error while getting history for content item " + path);
             logger.debug("error while getting history for content item " + path, err);
         }
+        final List<VersionTO> finalVersionList = new ArrayList<VersionTO>();
+        if (versionList.size() > 0) {
+            Collections.sort(versionList);
+            VersionTO latest = versionList.get(versionList.size() - 1);
+            String latestVersionLabel = latest.getVersionNumber();
+            int temp = latestVersionLabel.indexOf(".");
+            String currentMajorVersion = latestVersionLabel.substring(0, temp);
 
-        Collections.sort(versionList);
-        VersionTO[] versions = new VersionTO[versionList.size()];
-        versions = versionList.toArray(versions);
+            for (int i = versionList.size(); i > 0; i--) {
+                VersionTO v = versionList.get(i - 1);
+                String versionId = v.getVersionNumber();
+                boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
+                if (condition) continue;
+                finalVersionList.add(v);
+            }
+        }
+        //Collections.reverse(versionList);
+        VersionTO[] versions = new VersionTO[finalVersionList.size()];
+        versions = finalVersionList.toArray(versions);
         return versions;
     }
 
@@ -324,7 +341,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return versionId;
     }
 
-    /** 
+    @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
+        return createVersion(path, majorVersion);
+    }
+
+    /**
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on

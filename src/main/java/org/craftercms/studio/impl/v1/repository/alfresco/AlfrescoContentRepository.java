@@ -22,7 +22,9 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
@@ -149,6 +151,17 @@ implements SecurityProvider {
      */
     @Override
     public String createVersion(String path, boolean majorVersion) {
+        return createVersion(path, null, majorVersion);
+    }
+
+    /**
+     * create a version
+     * @param path location of content
+     * @param majorVersion true if major
+     * @return the created version ID or null on failure
+     */
+    @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -175,7 +188,7 @@ implements SecurityProvider {
                         }
                         org.apache.chemistry.opencmis.client.api.Document workingCopy = (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
                         ContentStream contentStream = workingCopy.getContentStream();
-                        objId = workingCopy.checkIn(majorVersion, null, contentStream, null);
+                        objId = workingCopy.checkIn(majorVersion, null, contentStream, comment);
                         session.removeObjectFromCache(document.getId());
                         session.removeObjectFromCache(objId);
                     }
@@ -580,7 +593,7 @@ implements SecurityProvider {
                     item.name = child.getName();
 
                     if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
-                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document)child;
+                        org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) child;
                         item.path = document.getPaths().get(0);
                         Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
                         if (secundaryTypes != null) {
@@ -589,6 +602,9 @@ implements SecurityProvider {
                                 isWorkingCopy = true;
                             }
                         }
+                    } else if (BaseTypeId.CMIS_FOLDER.equals(child.getBaseTypeId())) {
+                        Folder childFolder = (Folder)child;
+                        item.path = childFolder.getPath();
                     } else {
                         item.path = fullPath;
                     }
@@ -640,6 +656,9 @@ implements SecurityProvider {
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
+                if (StringUtils.isEmpty(folderPath)) {
+                    folderPath = "/";
+                }
                 CmisObject folderCmisObject = null;
                 if (contentExists(folderPath)) {
                     folderCmisObject = session.getObjectByPath(folderPath);
@@ -662,6 +681,7 @@ implements SecurityProvider {
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
                 folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
@@ -728,12 +748,18 @@ implements SecurityProvider {
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
+                    String currentVersion = doc.getVersionLabel();
+                    int temp = currentVersion.indexOf(".");
+                    String currentMajorVersion = currentVersion.substring(0, temp);
                     if (versionsCMIS != null && versionsCMIS.size() > 0) {
                         versions = new VersionTO[versionsCMIS.size()];
                     }
                     int idx = 0;
                     for (org.apache.chemistry.opencmis.client.api.Document version : versionsCMIS) {
                         VersionTO versionTO = new VersionTO();
+                        String versionId = version.getVersionLabel();
+                        boolean condition = !versionId.startsWith(currentMajorVersion) && !versionId.endsWith(".0");
+                        if (condition) continue;
                         versionTO.setVersionNumber(version.getVersionLabel());
                         versionTO.setLastModifier(version.getLastModifiedBy());
                         versionTO.setLastModifiedDate(version.getLastModificationDate().getTime());
@@ -832,6 +858,7 @@ implements SecurityProvider {
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
+            session.clear();
         } catch (CmisBaseException err) {
             logger.error("Failed to create  folder in {0}", err, fullPath);
         }
@@ -882,6 +909,7 @@ implements SecurityProvider {
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
             }
+            session.clear();
         } catch (CmisBaseException err) {
             logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
@@ -921,6 +949,7 @@ implements SecurityProvider {
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyChildren(targetFolder, sourceFolder);
                     }
+                    session.clear();
                     long duration = System.currentTimeMillis() - startTime;
                     logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
                     return true;
@@ -1023,9 +1052,12 @@ implements SecurityProvider {
         }
         try {
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
-            org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
-            if (!document.isVersionSeriesCheckedOut()) {
-                document.checkOut();
+            ObjectType type = cmisObject.getBaseType();
+            if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
+                org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                if (!document.isVersionSeriesCheckedOut()) {
+                    document.checkOut();
+                }
             }
         } catch (CmisBaseException err) {
             logger.error("Error while locking content at path " + cleanPath, err);
@@ -1053,7 +1085,7 @@ implements SecurityProvider {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
                 ObjectType type = cmisObject.getBaseType();
-                if ("cmis:document".equals(type.getId())) {
+                if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document = (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     String pwcId = document.getVersionSeriesCheckedOutId();
                     if (StringUtils.isNotEmpty(pwcId)) {
@@ -1064,9 +1096,9 @@ implements SecurityProvider {
                     }
                 }
             } catch (CmisBaseException err) {
-                logger.error("Error while locking content at path " + cleanPath, err);
+                logger.error("Error while unlocking content at path " + cleanPath, err);
             } catch (Throwable err) {
-                logger.error("Error while locking content at path " + cleanPath, err);
+                logger.error("Error while unlocking content at path " + cleanPath, err);
             }
         }
         long duration = System.currentTimeMillis() - startTime;
@@ -1295,6 +1327,41 @@ implements SecurityProvider {
         String reponsePath = "";
         reponsePath = new File(fullPath).getPath();
         return reponsePath;
+    }
+
+    @Override
+    public void addContentWritePermission(String path, String group) {
+        setWritePermission(path, group);
+    }
+
+    private void setWritePermission(String path, String group) {
+        Session session = getCMISSession();
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+        if (contentExists(cleanPath)) {
+            try {
+                CmisObject cmisObject = session.getObjectByPath(cleanPath);
+
+                List<String> permissions = new LinkedList<String>();
+                permissions.add("{http://www.alfresco.org/model/content/1.0}cmobject.Collaborator");
+                Ace addAce = session.getObjectFactory().createAce("GROUP_"+group, permissions);
+                List<Ace> addAces = new LinkedList<Ace>();
+                addAces.add(addAce);
+                cmisObject.addAcl(addAces, AclPropagation.PROPAGATE);
+            } catch (CmisBaseException err) {
+                logger.error("Error while setting permissions for content at path " + cleanPath, err);
+            } catch (Throwable err) {
+                logger.error("Error while setting permissions for content at path " + cleanPath, err);
+
+            }
+        }
+    }
+
+    @Override
+    public void addConfigWritePermission(String path, String group) {
+        setWritePermission(path, group);
     }
 
     protected String alfrescoUrl;

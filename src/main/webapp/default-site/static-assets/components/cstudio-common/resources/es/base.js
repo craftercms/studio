@@ -53,6 +53,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "es", {
     dashletRecentDeployColURL: "URL",
     dashletRecentDeployColEndpoint: "Servidor",
     dashletRecentDeployColDeployBy: "Publicado por",
+    dashletRecentDeployColLastEdited: "Última Edición",
 
     dashletMyRecentActivityTitle: "Mi actividad reciente",
     dashletMyRecentActivityHideLiveItems: "Enconder Artículos en Vivo",
@@ -568,5 +569,9 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     confTabSiteConf: "Configuración del Sitio",
     confTabSiteConfDesc: "Define la configuración general del sitio",
     confTabWorkflowConf: "Configuración del Flujo de Trabajo",
-    confTabWorkflowConfDesc: "Define los flujos de trabajo disponibles en el sistema"
+    confTabWorkflowConfDesc: "Define los flujos de trabajo disponibles en el sistema",
+
+    /* Errors */
+    errorTitle: ". Rellene todos los títulos de los campos y fuentes de datos.",
+    errorName: ". Por favor, rellene el nombre de variable para: "
 });

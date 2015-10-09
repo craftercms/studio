@@ -902,8 +902,8 @@ treeNode.getHtml = function() {
                     retTransferObj.internalName = "Section Defaults";
                 }
 
-                if (treeItem.newFile) {
-                    retTransferObj.label = retTransferObj.internalName + "*";
+                if (treeItem.isNew) {
+                    retTransferObj.label = retTransferObj.internalName + " *";
                 } else {
                     retTransferObj.label = retTransferObj.internalName;
                 }
@@ -1085,9 +1085,10 @@ treeNode.getHtml = function() {
 										var contextMenuItems = [];
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
-		
-			                            if (collection.count > 0 && isContainer) {
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
 			                            	this.args.addItems([ menuItems.pasteOption ]);
+                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
 			                            }
 		
 			                            this.args.render();
@@ -1241,9 +1242,10 @@ treeNode.getHtml = function() {
 										var contextMenuItems = [];
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
-		
-			                            if (collection.count > 0 && isContainer) {
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
 			                            	this.args.addItems([ menuItems.pasteOption ]);
+                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
 			                            }
 										
 			                            if(isUserAllowed) {
@@ -1620,7 +1622,8 @@ treeNode.getHtml = function() {
              */
             pasteContent: function(sType, args, tree) {
                 //Check source and destination paths.
-                if (Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) {
+                if ((Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) ||
+                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri)){
                     alert("Source and destination path are same");
                     return false;
                 }
@@ -1697,6 +1700,7 @@ treeNode.getHtml = function() {
                     activeNode: oCurrentTextNode
                 };
                 Self.copiedItem = Self.myTree.getNodeByProperty("path", oCurrentTextNode.data.path);
+                Self.copiedItem ? null : Self.copiedItem = oCurrentTextNode;
                 
                 
                 // if the tree does not have child do not open the copy dialoge
