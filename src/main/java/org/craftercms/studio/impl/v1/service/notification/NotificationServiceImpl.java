@@ -603,7 +603,14 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
         if(StringUtils.isEmpty(userEmailAddress)) {
             Map<String, String> profile = securityService.getUserProfile(toUser);
-            userEmailAddress = profile.get("email");
+            if (profile != null) {
+                userEmailAddress = profile.get("email");
+            }
+        }
+
+        if (StringUtils.isEmpty(userEmailAddress)) {
+            logger.error("Not able to find valid email address for user " + toUser + ", not sending any email");
+            return;
         }
 
         Map<String, String> fromProfile = securityService.getUserProfile(fromUser);
