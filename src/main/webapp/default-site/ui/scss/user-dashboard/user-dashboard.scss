@@ -64,9 +64,10 @@ $icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
     }
 
     #language{
-      width: 45%;
+      width: 42%;
       display: inline-block;
       margin-top: 20px;
+      max-width: 370px;
     }
 
 }
