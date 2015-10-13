@@ -331,16 +331,12 @@
 
                     treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
                     if (treeNodeTO.isLevelDescriptor || treeNodeTO.isComponent ||
-                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml') {
+                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml' ||
+                        (treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') ||
+                        treeNodeTO.previewable == false) {
                         treeNodeTO.style += " no-preview";
-                    }
-                    
-                    if(treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') {
-                        treeNodeTO.style += " no-preview";
-                    }
-
-                    if(treeNodeTO.previewable == false) {
-                        treeNodeTO.style += " no-preview";
+                    }else{
+                        treeNodeTO.style += " preview";
                     }
                     
                     renderChild = true;
@@ -906,6 +902,12 @@ treeNode.getHtml = function() {
                     retTransferObj.label = retTransferObj.internalName + " *";
                 } else {
                     retTransferObj.label = retTransferObj.internalName;
+                }
+
+                if (treeItem.previewable == false) {
+                    retTransferObj.style += " no-preview";
+                }else{
+                    retTransferObj.style += " preview";
                 }
 
                 if (treeItem.container == true) {
