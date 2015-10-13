@@ -53,6 +53,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.impl.v1.deployment.PreviewSync;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -256,7 +257,8 @@ public class ContentServiceImpl implements ContentService {
             String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
-            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            previewSync.syncPath(site, relativePath, repositoryEventContext);
+            //repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -1343,6 +1345,7 @@ public class ContentServiceImpl implements ContentService {
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
+    protected PreviewSync previewSync;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1385,4 +1388,7 @@ public class ContentServiceImpl implements ContentService {
 
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
+
+    public PreviewSync getPreviewSync() { return previewSync; }
+    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
 }
