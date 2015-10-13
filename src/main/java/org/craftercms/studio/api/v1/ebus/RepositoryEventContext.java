@@ -18,7 +18,9 @@
 
 package org.craftercms.studio.api.v1.ebus;
 
-public class RepositoryEventContext {
+import java.io.Serializable;
+
+public class RepositoryEventContext implements Serializable {
 
     private static ThreadLocal<RepositoryEventContext> threadLocal = new ThreadLocal<>();
 

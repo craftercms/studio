@@ -68,6 +68,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+        <property name="previewSync" ref="previewSync"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -863,4 +864,5 @@
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
 </beans>
