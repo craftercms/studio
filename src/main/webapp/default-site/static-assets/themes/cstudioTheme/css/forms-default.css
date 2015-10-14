@@ -849,7 +849,7 @@
 }
 
 /* --- Controls --- */
-.cstudio-form-field-container .checkbox-group { display: inline-block; width: 600px; }
+.cstudio-form-field-container .checkbox-group { display: inline-block; width: 600px; margin: 2px 0 0 20px;}
 .checkbox-group > .checkbox { display:inline-block; width: 300px; }
 .checkbox-group > .checkbox input { cursor: pointer; vertical-align: text-top; }
 .checkbox-group > .checkbox span { display: inline-block; margin-left: 5px; }
