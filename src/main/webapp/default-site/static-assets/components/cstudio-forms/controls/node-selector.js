@@ -133,7 +133,6 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
         }
 
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
