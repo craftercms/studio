@@ -24,11 +24,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.ebus.annotations.EventHandler;
 import org.craftercms.commons.ebus.annotations.EventSelectorType;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.*;
+import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
+import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
+import org.craftercms.studio.api.v1.ebus.DistributedPeerEBusFacade;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -51,6 +56,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -75,14 +81,11 @@ import java.util.regex.Pattern;
  * This service provides access to site configuration
  * @author russdanner
  */
-public class SiteServiceImpl extends ConfigurableServiceBase implements SiteService {
+public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
-	@Override
-	public void register() {
-		this._servicesManager.registerService(SiteService.class, this);
-	}
+    private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
 	
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) {
@@ -103,75 +106,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @seeorg.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#
-	 * getConfigurationById(java.lang.String)
-	 */
-	protected TimeStamped getConfigurationById(String key) {
-		// key is not being used here
-		return sitesConfig;
-	}
-
-	@Override
-	protected void removeConfiguration(String key) {
-		if (!StringUtils.isEmpty(key)) {
-			sitesConfig = null;
-		}
-	}
-
-	/*
-      * (non-Javadoc)
-      *
-      * @seeorg.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#
-      * loadConfiguration(java.lang.String)
-      */
-	@SuppressWarnings("unchecked")
-	protected void loadConfiguration(String key) {
-		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
-				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
-		configLocation = configLocation + "/" + configFileName;
-		Document document = null;
-		try {
-			document = contentService.getContentAsDocument(configLocation);
-		} catch (DocumentException e) {
-			e.printStackTrace();
-		}
-		if (document != null) {
-			Element root = document.getRootElement();
-			SitesConfigTO config = new SitesConfigTO();
-			Map<String, String> sitesMenu = loadMap(root.selectNodes("sites-menu/menu-item"));
-			config.setSitesMenu(sitesMenu);
-			Map<String, String> siteTypes = loadMap(root.selectNodes("site-types/site-type"));
-			config.setSiteTypes(siteTypes);
-			Map<String, String> repositoryTypes = loadMap(root.selectNodes("repository-types/repository-type"));
-			config.setRepositoryTypes(repositoryTypes);
-			config.setSitesLocation(root.valueOf("sites-location"));
-			config.setLastUpdated(new Date());
-			sitesConfig = config;
-		}
-	}
-
-	/**
-	 * create a map from the given list of nodes
-	 *
-	 * @param nodes
-	 * @return a map of key and value pairs
-	 */
-	protected Map<String, String> loadMap(List<Node> nodes) {
-		if (nodes != null && nodes.size() > 0) {
-			Map<String, String> mapping = new HashMap<String, String>();
-			for (Node node : nodes) {
-				String key = node.valueOf("@key");
-				String value = node.getText();
-				mapping.put(key, value);
-			}
-			return mapping;
-		} else {
-			return new HashMap<String, String>(0);
-		}
-	}
 
 	/**
 	 * given a site ID return the configuration as a document
@@ -278,82 +212,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 		return map;
 	}
 
-	/**
-	 * check if any of site configuration is updated and reload it
-	 */
-	protected void checkForUpdates() {
-        /*
-		if (sitesMappings == null) {
-			loadSitesMappings();
-		} else {
-			if (this.sitesMappings != null) {
-				for (String site : this.sitesMappings.keySet()) {
-					if (site != null) {
-						if (servicesConfig.isUpdated(site)) {
-							logger.debug("[SITESERVICE] " + site + " configuration is updated. reloading it.");
-
-							if (servicesConfig.siteExists(site) && this.sitesMappings.containsKey(site)) {
-								SiteTO siteConfig = this.sitesMappings.get(site);
-								loadSiteConfig(site, siteConfig);
-							} else {
-								this.sitesMappings.remove(site);
-							}
-						}
-						if (environmentConfig.isUpdated(site)) {
-							logger.debug("[SITESERVICE] " + site
-									+ " environment configuration is updated. reloading it.");
-
-							if (environmentConfig.exists(site) && this.sitesMappings.containsKey(site)) {
-								SiteTO siteConfig = this.sitesMappings.get(site);
-								loadSiteEnvironmentConfig(site, siteConfig);
-							} else {
-								this.sitesMappings.remove(site);
-							}
-						}
-						if (deploymentEndpointConfig.isUpdated(site)) {
-							logger.debug("[SITESERVICE] " + site
-									+ " environment configuration is updated. reloading it.");
-						}
-						if (deploymentEndpointConfig.exists(site) && this.sitesMappings.containsKey(site)) {
-							SiteTO siteConfig = this.sitesMappings.get(site);
-							loadSiteDeploymentConfig(site, siteConfig);
-						}
-					}
-				}
-			}
-		}*/
-	}
-
-
-	/**
-	 * load sites mappings
-	 *//*
-	protected void loadSitesMappings() {
-		Map<String, SiteTO> sitesMapping = new HashMap<>();
-		ContentItemTO sitesTree = contentService.getContentItemTree(sitesConfigPath, 1);
-		if (sitesTree != null && sitesTree.children.size() > 0) {
-			for (ContentItemTO siteItem : sitesTree.children) {
-				String site = siteItem.getName();
-				logger.debug("[SITESERVICE] loading site configuration for " + site);
-
-				SiteTO siteConfig = new SiteTO();
-				siteConfig.setSite(site);
-				siteConfig.setEnvironment(this.environment);
-				this.loadSiteConfig(site, siteConfig);
-				this.loadSiteEnvironmentConfig(site, siteConfig);
-				this.loadSiteDeploymentConfig(site, siteConfig);
-				sitesMapping.put(site, siteConfig);
-			}
-			if (this.sitesMappings != null) {
-				this.sitesMappings.clear();
-				this.sitesMappings = null;
-			}
-			this.sitesMappings = sitesMapping;
-		} else {
-			logger.warn("[SITESERVICE] no sites found at : " + this.sitesConfigPath);
-		}
-	}
-*/
 	/**
 	 * load site configuration info (not environment specific)
 	 *
@@ -614,13 +472,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
  			contentRepository.deleteContent("/wem-projects/"+siteId);
  			contentRepository.deleteContent("/cstudio/config/sites/" + siteId);
 
-            RepositoryEventMessage message = new RepositoryEventMessage();
-            message.setSite(siteId);
-            String sessionTicket = securityProvider.getCurrentToken();
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            message.setRepositoryEventContext(repositoryEventContext);
-            repositoryReactor.notify(EBusConstants.REPOSITORY_DELETE_SITE_EVENT, Event.wrap(message));
-
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
 			activityService.deleteActivitiesForSite(siteId);
@@ -668,17 +519,10 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
         return environmentConfig.getAdminEmailAddress(site);
     }
 
-    @Override
-    protected String getConfigFullPath(String key) {
-        return null;
-    }
 
     @Override
     public void reloadSiteConfigurations() {
         reloadGlobalConfiguration();
-        if (this.sitesMappings == null) {
-            this.sitesMappings = new HashMap<String, SiteTO>();
-        }
         Set<String> sites = getAllAvailableSites();
 
         if (sites != null && sites.size() > 0) {
@@ -708,39 +552,24 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 
     @Override
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
-        if (this.sitesMappings == null) {
-            this.sitesMappings = new HashMap<String, SiteTO>();
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
         }
         SiteTO siteConfig = new SiteTO();
-        if (this.sitesMappings.containsKey(site)) {
-            if (servicesConfig.isUpdated(site)) {
-                logger.debug("[SITESERVICE] " + site + " configuration is updated. reloading it.");
-                siteConfig = this.sitesMappings.get(site);
-                loadSiteConfig(site, siteConfig);
-            }
-            if (environmentConfig.isUpdated(site)) {
-                logger.debug("[SITESERVICE] " + site + " environment configuration is updated. reloading it.");
-                siteConfig = this.sitesMappings.get(site);
-                environmentConfig.reloadConfiguration(site);
-                loadSiteEnvironmentConfig(site, siteConfig);
-            }
-            if (deploymentEndpointConfig.isUpdated(site)) {
-                logger.debug("[SITESERVICE] " + site + " deployment configuration is updated. reloading it.");
-                siteConfig = this.sitesMappings.get(site);
-                deploymentEndpointConfig.reloadConfiguration(site);
-                loadSiteDeploymentConfig(site, siteConfig);
-            }
-        } else {
-            logger.debug("[SITESERVICE] loading site configuration for " + site);
-            siteConfig.setSite(site);
-            siteConfig.setEnvironment(this.environment);
-            this.loadSiteConfig(site, siteConfig);
-            environmentConfig.reloadConfiguration(site);
-            this.loadSiteEnvironmentConfig(site, siteConfig);
-            deploymentEndpointConfig.reloadConfiguration(site);
-            this.loadSiteDeploymentConfig(site, siteConfig);
-            this.sitesMappings.put(site, siteConfig);
-        }
+        siteConfig.setSite(site);
+        siteConfig.setEnvironment(this.environment);
+        servicesConfig.reloadConfiguration(site);
+        loadSiteConfig(site, siteConfig);
+        environmentConfig.reloadConfiguration(site);
+        loadSiteEnvironmentConfig(site, siteConfig);
+        deploymentEndpointConfig.reloadConfiguration(site);
+        loadSiteDeploymentConfig(site, siteConfig);
+        cacheService.put(cacheContext, cacheKey, siteConfig);
         notificationService.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
@@ -752,6 +581,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
             distributedEventMessage.setMessage(message);
             distributedPeerEBusFacade.notifyCluster(distributedEventMessage);
         }
+        cacheService.put(cacheContext, cacheKey, siteConfig);
     }
 
     @Override
@@ -812,6 +642,9 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
+    public Reactor getRepositoryRector() { return repositoryRector; }
+    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
+
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
@@ -824,8 +657,8 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
@@ -849,7 +682,7 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
     protected ContentTypeService contentTypeService;
     protected DistributedPeerEBusFacade distributedPeerEBusFacade;
     protected SecurityProvider securityProvider;
-    protected Reactor repositoryReactor;
+    protected CacheTemplate cacheTemplate;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
@@ -858,7 +691,6 @@ public class SiteServiceImpl extends ConfigurableServiceBase implements SiteServ
 	/**
 	 * a map of site key and site information
 	 */
-	protected Map<String, SiteTO> sitesMappings;
 
 	protected SitesConfigTO sitesConfig = null;
 }

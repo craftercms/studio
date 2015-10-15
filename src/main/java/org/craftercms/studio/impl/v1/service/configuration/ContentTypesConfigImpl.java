@@ -19,6 +19,9 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -26,6 +29,7 @@ import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
@@ -40,16 +44,9 @@ import java.util.regex.Pattern;
 /**
  * @author Dejan Brkic
  */
-public class ContentTypesConfigImpl extends ConfigurableServiceBase implements ContentTypesConfig {
+public class ContentTypesConfigImpl implements ContentTypesConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentTypesConfigImpl.class);
-
-    @Override
-    public ContentTypeConfigTO getContentTypeConfig(String site, String contentType) {
-        String key = createKey(site, contentType);
-        //checkForUpdate(key);
-        return contentTypeMap.get(key);
-    }
 
     /**
      * create configuration key using the site and the content type given
@@ -65,35 +62,32 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     }
 
     @Override
-    protected void loadConfiguration(String key) {
-        String configFileFullPath = null;
-        if (!StringUtils.isEmpty(key)) {
-            // key is a combination of site,content-type
-            String [] keys = key.split(",");
-            if (keys.length == 2) {
-                String site = keys[0];
-                String contentType = keys[1];
-                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                        .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-                configFileFullPath = siteConfigPath + "/" + configFileName;
-            } else {
-                logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
+    public ContentTypeConfigTO getContentTypeConfig(final String site, final String contentType) {
+        if (StringUtils.isNotEmpty(contentType)) {
+            CacheService cacheService = cacheTemplate.getCacheService();
+            StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+            String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
+                    .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+            Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
             }
+            ContentTypeConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<ContentTypeConfigTO>() {
+                @Override
+                public ContentTypeConfigTO execute() {
+                    return loadConfiguration(site, contentType);
+                }
+            }, site, configPath.replaceAll(CStudioConstants.PATTERN_SITE, site).replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType), configFileName);
+            return config;
         } else {
-            logger.error("Key cannot be empty. site, content type is expected.");
-        }
-        if (configFileFullPath != null) {
-            ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configFileFullPath);
-            this.addContentType(key, contentTypeConfig);
+            return null;
         }
     }
 
-    /**
-     * load configuration from the configuration noderef
-     * @param configFileFullPath
-     */
-    @SuppressWarnings("unchecked")
-    protected ContentTypeConfigTO loadConfigurationFile(String configFileFullPath) {
+    public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
+        String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
+                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        String configFileFullPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         try {
             document = contentService.getContentAsDocument(configFileFullPath);
@@ -238,30 +232,25 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     /**
      * add a content type to the mapping
      *
-     * @param key
+     * @param site
+     * @param contentType
      * @param contentTypeConfig
      */
-    protected void addContentType(String key, ContentTypeConfigTO contentTypeConfig) {
-        if (!StringUtils.isEmpty(key) && contentTypeConfig != null) {
-            if (contentTypeMap.get(key) != null) {
-                removeConfiguration(key);
-            }
-            contentTypeMap.put(key, contentTypeConfig);
-            //_contentTypeNodeMap.put(nodeRef.toString(), key);
-            addToPathMapping(key, contentTypeConfig);
+    protected void addContentType(String site, String contentType, ContentTypeConfigTO contentTypeConfig) {
+        if (!StringUtils.isEmpty(site) && !StringUtils.isEmpty(contentType) && contentTypeConfig != null) {
+            addToPathMapping(site, contentType, contentTypeConfig);
         }
     }
 
     /**
      * add configuration to path mapping
      *
-     * @param key
+     * @param site
+     * @param contentType
      * @param configToAdd
      */
-    protected void addToPathMapping(String key, ContentTypeConfigTO configToAdd) {
-        logger.debug("Adding a path configuration to mapping with key: " + key);
-        String [] values = key.split(",");
-        String site = values[0];
+    protected void addToPathMapping(String site, String contentType, ContentTypeConfigTO configToAdd) {
+        String key = createKey(site, contentType);
         SiteContentTypePathsTO paths = this.pathMapping.get(site);
         if (paths != null) {
             boolean added = false;
@@ -313,38 +302,6 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
         return pathTO;
     }
 
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-        return contentTypeMap.get(key);
-    }
-
-    @Override
-    protected void removeConfiguration(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            ContentTypeConfigTO contentTypeConfig = contentTypeMap.get(key);
-            if (contentTypeConfig != null) {
-                contentTypeMap.remove(key);
-                //contentTypeNodeMap.remove(contentTypeConfig.getNodeRef());
-                removeFromPathMapping(key, contentTypeConfig);
-            }
-        }
-    }
-
-    protected void removeFromPathMapping(String key, ContentTypeConfigTO configToRemove) {
-        String [] values = key.split(",");
-        String site = values[0];
-        SiteContentTypePathsTO paths = this.pathMapping.get(site);
-        if (paths != null) {
-            for (String pathInclude : configToRemove.getPathIncludes()) {
-                for (ContentTypePathTO pathTO : paths.getConfigs()) {
-                    if (pathTO.getPathInclude().equalsIgnoreCase(pathInclude)) {
-                        pathTO.removeAllowedContentTypes(key);
-                    }
-                }
-            }
-            paths.setLastUpdated(new Date());
-        }
-    }
 
     /**
      *
@@ -372,73 +329,28 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
 
     }
 
-    public ContentTypeConfigTO loadConfiguration(String site, String configPath) {
-        String key = contentTypeNodeMap.get(site + "," + ContentUtils.getParentUrl(configPath));
-        // if key is found, check the timestamp
-        if (!StringUtils.isEmpty(key)) {
-            ContentTypeConfigTO contentTypeConfig = contentTypeMap.get(key);
-            if (contentTypeConfig != null) {
-                Date modifiedDate = contentRepository.getModifiedDate(contentService.expandRelativeSitePath(site, configPath));
-                if (! (modifiedDate.after(contentTypeConfig.getLastUpdated()))) {
-                    // if the node modified date is not after the timestamp, no need to load again
-                    logger.debug("Skipping loading " + key + " since it is previsouly loaded and no change was made.");
-                    return contentTypeConfig;
-                }
-            }
-        }
-        logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
-        return reloadConfiguration(site, configPath);
-    }
 
     @Override
-    public ContentTypeConfigTO reloadConfiguration(String site, String configPath) {
-        String key = contentTypeNodeMap.get(site + "," + ContentUtils.getParentUrl(configPath));
-        logger.debug("Loading configuration from " + key + " since it is not loaded or configuration file is updated.");
-
-        // otherwise load the configuration file
-        ContentTypeConfigTO contentTypeConfig = loadConfigurationFile(configPath);
-        key = this.createKey(site, contentTypeConfig.getName());
-        this.addContentType(key, contentTypeConfig);
-        return contentTypeConfig;
+    public ContentTypeConfigTO reloadConfiguration(String site, String contentType) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
+                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        ContentTypeConfigTO config = loadConfiguration(site, contentType);
+        cacheService.put(cacheContext, cacheKey, config);
+        this.addContentType(site, contentType, config);
+        return config;
     }
 
     @Override
     public SiteContentTypePathsTO getPathMapping(String site) {
         return pathMapping.get(site);
-    }
-
-    @Override
-    public ContentTypeConfigTO getContentTypeConfig(String key) {
-        //checkForUpdate(key);
-        return contentTypeMap.get(key);
-    }
-
-    @Override
-    protected String getConfigFullPath(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            // key is a combination of site,content-type
-            String [] keys = key.split(",");
-            if (keys.length == 2) {
-                String site = keys[0];
-                String contentType = keys[1];
-                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                        .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-                String siteConfigFullPath = siteConfigPath + "/" + configFileName;
-                return siteConfigFullPath;
-            } else {
-                logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
-
-            }
-        } else {
-            logger.error("Key cannot be empty. site, content type is expected.");
-
-        }
-        return null;
-    }
-
-    @Override
-    public void register() {
-        this.getServicesManager().registerService(ContentTypesConfig.class, this);
     }
 
     public Map<String, SiteContentTypePathsTO> getPathMapping() { return pathMapping; }
@@ -447,9 +359,18 @@ public class ContentTypesConfigImpl extends ConfigurableServiceBase implements C
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    protected Map<String, ContentTypeConfigTO> contentTypeMap = new HashMap<String, ContentTypeConfigTO>();
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
     protected Map<String, SiteContentTypePathsTO> pathMapping = new HashMap<String, SiteContentTypePathsTO>();
-    /** a map of noderefs as string and keys (site, content-type-name) **/
-    protected Map<String, String> contentTypeNodeMap = new HashMap<String, String>();
     protected ContentService contentService;
+    protected String configPath;
+    protected String configFileName;
+    protected CacheTemplate cacheTemplate;
 }

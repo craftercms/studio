@@ -211,7 +211,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      */
     protected List<DmDependencyTO> getDependencyItems(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependecinesOnly, boolean recursive, boolean isDraftContent) {
         List<DmDependencyTO> items = new ArrayList<>(paths.size());
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
                 continue;
@@ -738,7 +737,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 return new HashMap<>();
             }
 
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
             StringBuffer buffer = new StringBuffer(XmlUtils.convertDocumentToString(document));
             List<String> assets = getDependentFileNames(site, buffer, false, servicesConfig.getAssetPatterns(site));
             List<String> components = getDependentFileNames(site, buffer, false, servicesConfig.getComponentPatterns(site));
