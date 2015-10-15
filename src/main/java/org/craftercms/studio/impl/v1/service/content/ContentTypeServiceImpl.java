@@ -44,7 +44,7 @@ import java.util.*;
 /**
  * @author Dejan Brkic
  */
-public class ContentTypeServiceImpl extends ConfigurableServiceBase implements ContentTypeService {
+public class ContentTypeServiceImpl implements ContentTypeService {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceImpl.class);
 
@@ -122,13 +122,18 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                 Set<String> allowedContentTypes = pathConfig.getAllowedContentTypes();
                 if (CollectionUtils.isNotEmpty(allowedContentTypes)) {
                     for (String key : allowedContentTypes) {
-                            logger.debug("Checking an allowed content type: " + key);
-                            ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(key);
-                            if (typeConfig != null) {
-                                // if a match is found, populate the content type information
-                                logger.debug("adding " + key + " to content types.");
-                                contentTypes.add(typeConfig);
+                        logger.debug("Checking an allowed content type: " + key);
+                        if (StringUtils.isNotEmpty(key)) {
+                            String[] tokens = key.split(",");
+                            if (tokens.length == 2) {
+                                ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(tokens[0], tokens[1]);
+                                if (typeConfig != null) {
+                                    // if a match is found, populate the content type information
+                                    logger.debug("adding " + key + " to content types.");
+                                    contentTypes.add(typeConfig);
+                                }
                             }
+                        }
                     }
                 }
             }
@@ -139,67 +144,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         }
     }
 
-    protected List<ContentTypeConfigTO> getAllContentTypes_old(String site) {
-        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
-        RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
-        List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
-        if (folders != null) {
-            for (int i = 0; i < folders.length; i++) {
-                getContentTypeConfigForChildren(site, folders[i], contentTypes);
-            }
-        }
-        return contentTypes;
-    }
-
-    /**
-     * Traverse file folder -- recursive!, searching for config.xml
-     *  @param site
-     * @param node
-     */
-    protected void getContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
-        String fullPath = node.path + "/" + node.name;
-        logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
-        RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
-        if (folders != null) {
-            for (int i = 0; i < folders.length; i++) {
-                if (folders[i].isFolder) {
-                    String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
-                    if (contentService.contentExists(configPath)) {
-                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configPath);
-                        if (config != null) {
-                            contentTypes.add(config);
-                        }
-                    }
-                    // traverse the children file-folder structure
-
-                    getContentTypeConfigForChildren(site, folders[i], contentTypes);
-                }
-            }
-        }
-    }
-
-    @Override
-    protected String getConfigFullPath(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
-        return siteConfigPath + "/" + configFileName;
-    }
-
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-        // not used
-        return null;
-    }
-
-    @Override
-    protected void removeConfiguration(String key) {
-        // not used
-    }
-
-    @Override
-    protected void loadConfiguration(String key) {
-        // not used
-    }
 
     @Override
     public List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException {
@@ -218,27 +163,32 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                         for (String key : allowedContentTypes) {
                             if (!contentKeys.contains(key)) {
                                 logger.debug("Checking an allowed content type: " + key);
-                                ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(key);
-                                if (typeConfig != null) {
-                                    boolean isMatch = true;
-                                    if (typeConfig.getPathExcludes() != null) {
-                                        for (String excludePath : typeConfig.getPathExcludes()) {
-                                            if (relativePath.matches(excludePath)) {
-                                                logger.debug(relativePath + " matches an exclude path: " + excludePath);
-                                                isMatch = false;
-                                                break;
+                                if (StringUtils.isNotEmpty(key)) {
+                                    String[] tokens = key.split(",");
+                                    if (tokens.length == 2) {
+                                        ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(tokens[0], tokens[1]);
+                                        if (typeConfig != null) {
+                                            boolean isMatch = true;
+                                            if (typeConfig.getPathExcludes() != null) {
+                                                for (String excludePath : typeConfig.getPathExcludes()) {
+                                                    if (relativePath.matches(excludePath)) {
+                                                        logger.debug(relativePath + " matches an exclude path: " + excludePath);
+                                                        isMatch = false;
+                                                        break;
+                                                    }
+                                                }
                                             }
+                                            if (isMatch) {
+                                                // if a match is found, populate the content type information
+                                                logger.debug("adding " + key + " to content types.");
+                                                addContentTypes(site, userRoles, typeConfig, contentTypes);
+                                            }
+                                        } else {
+                                            logger.warn("no configuration found for " + key);
                                         }
+                                        contentKeys.add(key);
                                     }
-                                    if (isMatch) {
-                                        // if a match is found, populate the content type information
-                                        logger.debug("adding " + key + " to content types.");
-                                        addContentTypes(site, userRoles, typeConfig, contentTypes);
-                                    }
-                                } else {
-                                    logger.warn("no configuration found for " + key);
                                 }
-                                contentKeys.add(key);
                             } else {
                                 logger.debug(key + " is already added. skipping the content type.");
                             }
@@ -308,6 +258,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     }
 
     protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
+        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + "/" + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
@@ -316,7 +267,7 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
                 if (folders[i].isFolder) {
                     String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
                     if (contentService.contentExists(configPath)) {
-                        ContentTypeConfigTO config = contentTypesConfig.loadConfiguration(site, configPath);
+                        ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("" + configFileName, ""));
                         if (config != null) {
                             contentTypes.add(config);
                         }
@@ -329,10 +280,6 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
         }
     }
 
-    @Override
-    public void register() {
-        getServicesManager().registerService(ContentTypeService.class, this);
-    }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -349,9 +296,17 @@ public class ContentTypeServiceImpl extends ConfigurableServiceBase implements C
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected ContentTypesConfig contentTypesConfig;
     protected SecurityService securityService;
     protected ContentRepository contentRepository;
+    protected String configPath;
+    protected String configFileName;
 }
