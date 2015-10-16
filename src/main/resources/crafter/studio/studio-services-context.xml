@@ -68,6 +68,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+        <property name="previewSync" ref="previewSync"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -104,6 +105,7 @@
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -142,16 +144,15 @@
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
      </bean>
 
-     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl"
-            parent="cstudioRegistrableService">
+     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="configPath"><value>${notificationService.configPath}</value></property>
         <property name="configFileName"><value>${notificationService.configFileName}</value></property>
-         <property name="contentRepository" ref="cstudioContentRepository"/>
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="siteService" ref="cstudioSiteServiceSimple"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
+         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
      </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -159,31 +160,29 @@
             <property name="translationProvider" ref="demoTranslationProvider" />
         </bean>
 
-    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl"
-          parent="cstudioRegistrableService">
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
         <property name="configPath"><value>${serviceConfig.configPath}</value></property>
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
-    <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl"
-          parent="cstudioRegistrableService">
+    <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
         <property name="configPath"><value>${environmentConfig.configPath}</value></property>
         <property name="configFileName"><value>${environmentConfig.configFileName}</value></property>
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
-    <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl"
-          parent="cstudioRegistrableService">
+    <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
         <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
         <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
@@ -220,11 +219,10 @@
         <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
         <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
-    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl"
-          parent="cstudioRegistrableService">
+    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
@@ -234,12 +232,11 @@
         <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
-    <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl"
-          parent="cstudioRegistrableService">
+    <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl" >
         <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
         <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
@@ -863,4 +860,5 @@
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
 </beans>
