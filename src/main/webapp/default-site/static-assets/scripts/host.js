@@ -261,10 +261,13 @@
             var strPageParam = strPage[1].split('&');
             str = strPage[0] + '?';
             for (var i=0; i < strPageParam.length; i++){
-                if((strPageParam[i].indexOf('site') == -1) && (i != strPageParam.length-1)){
-                    str = str + strPageParam[i]+"&"
-                }else{
+                if((strPageParam[i].indexOf('site') != -1) && (i == strPageParam.length-1)){
                     str = str + '&' + strPageParam[i];
+                }else{
+                    str = str + strPageParam[i];
+                    if(i != strPageParam.length-1){
+                        str = str + '&';
+                    }
                 }
             }
             str = str.split('&&');
