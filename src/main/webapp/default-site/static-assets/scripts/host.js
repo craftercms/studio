@@ -256,15 +256,37 @@
             param;
 
         str = str.substr(str.indexOf('?') + 1);
-        str = str.split('&');
+        if(str.indexOf('?') != -1){
+            var strPage = str.split('?');
+            var strPageParam = strPage[1].split('&');
+            str = strPage[0] + '?';
+            for (var i=0; i < strPageParam.length; i++){
+                if((strPageParam[i].indexOf('site') == -1) && (i != strPageParam.length-1)){
+                    str = str + strPageParam[i]+"&"
+                }else{
+                    str = str + '&' + strPageParam[i];
+                }
+            }
+            str = str.split('&&');
+        }else{
+            str = str.split('&');
+        }
 
         for (var i = 0; i < str.length; ++i) {
-            param = str[i].split('=');
+            param = splitOnce(str[i], '=');
             params[param[0]] = param[1];
         }
 
         return params;
 
+    }
+
+    function splitOnce(input, splitBy) {
+        var fullSplit = input.split(splitBy);
+        var retVal = [];
+        retVal.push( fullSplit.shift() );
+        retVal.push( fullSplit.join( splitBy ) );
+        return retVal;
     }
 
     window.addEventListener("hashchange", function (e) {
