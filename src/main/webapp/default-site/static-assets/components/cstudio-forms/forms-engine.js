@@ -671,7 +671,7 @@ var CStudioForms = CStudioForms || function() {
 
                                                                 try {
                                                                     dom = (new window.DOMParser()).parseFromString(content, "text/xml");
-                                                                    dom = dom.children[0];
+                                                                    dom = dom.documentElement;
                                                                 } catch(err) {
                                                                     alert(CMgs.format(formsLangBundle, "errFailedToLoadContent", "parse: "+err));
                                                                 }

@@ -6342,8 +6342,14 @@ var parentSaveCb = {
                     expires = (YAHOO.env.ua.ie) ? (new Date( (new Date()).getTime() + CStudioAuthoring.Utils.Cookies.durationHours(0.5) )).toGMTString() : "";
                 }
                 domainVal = (CStudioAuthoringContext.cookieDomain != 'localhost') ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
-                document.cookie =
-                    [name, "=", value, "; expires=", expires, "; path=/; " + domainVal].join("");
+                if(expires){
+                    document.cookie =
+                        [name, "=", value, "; expires=", expires, "; path=/; " + domainVal].join("");
+                }else{
+                    document.cookie =
+                        [name, "=", value, "; path=/; " + domainVal].join("");
+                }
+
             },
             /**
              * read a cookie
