@@ -19,32 +19,33 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
-import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
 import java.util.Map;
-import java.io.File;
 import java.util.*;
 
 /**
  * @author Dejan Brkic
  */
-public class SecurityServiceImpl extends ConfigurableServiceBase implements SecurityService {
+public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
@@ -69,16 +70,28 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     }
 
     @Override
-    public Set<String> getUserPermissions(String site, String path, String user, List<String> groups) {
-        // determine whether to refresh the config
-        //checkForUpdate(site);
+    public Set<String> getUserPermissions(final String site, String path, String user, List<String> groups) {
 
         Set<String> permissions = new HashSet<String>();
 
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
         if (StringUtils.isNotEmpty(site)) {
-            // get the config files from the permissionsConfigMap based on the key
-            PermissionsConfigTO rolesConfig = permissionsConfigMap.get(getPermissionsKey(site, roleMappingsFileName));
-            PermissionsConfigTO permissionsConfig = permissionsConfigMap.get(getPermissionsKey(site, permissionsFileName));
+            PermissionsConfigTO rolesConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
+                @Override
+                public PermissionsConfigTO execute() {
+                    return loadConfiguration(site, roleMappingsFileName);
+                }
+            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
+            PermissionsConfigTO permissionsConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
+                @Override
+                public PermissionsConfigTO execute() {
+                    return loadConfiguration(site, permissionsFileName);
+                }
+            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
             Set<String> roles = new HashSet<String>();
             addUserRoles(roles, site, user);
             addGroupRoles(roles, site, groups, rolesConfig);
@@ -102,8 +115,19 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             }
         }
 
-        PermissionsConfigTO globalRolesConfig = permissionsConfigMap.get("###GLOBAL###:"+globalRoleMappingsFileName);
-        PermissionsConfigTO globalPermissionsConfig = permissionsConfigMap.get("###GLOBAL###:"+globalPermissionsFileName);
+        StudioCacheContext globalCacheContext = new StudioCacheContext("###GLOBAL###", true);
+        PermissionsConfigTO globalRolesConfig = cacheTemplate.getObject(globalCacheContext, new Callback<PermissionsConfigTO>() {
+            @Override
+            public PermissionsConfigTO execute() {
+                return loadGlobalRolesConfiguration();
+            }
+        }, "###GLOBAL###", globalConfigPath, globalRoleMappingsFileName);
+        PermissionsConfigTO globalPermissionsConfig = cacheTemplate.getObject(globalCacheContext, new Callback<PermissionsConfigTO>() {
+            @Override
+            public PermissionsConfigTO execute() {
+                return loadGlobalPermissionsConfiguration();
+            }
+        }, "###GLOBAL###", globalConfigPath, globalPermissionsFileName);
         Set<String> roles = new HashSet<String>();
         addGlobalUserRoles(user, roles, globalRolesConfig);
         addGlobalGroupRoles(roles, groups, globalRolesConfig);
@@ -214,7 +238,7 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
 	 * (java.lang.String, java.lang.String)
 	 */
     @Override
-    public Set<String> getUserRoles(String site, String user) {
+    public Set<String> getUserRoles(final String site, String user) {
 
         Set<String> groups = securityProvider.getUserGroups(user);
         if (groups != null && groups.size() > 0) {
@@ -222,7 +246,17 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             // determine whether to refresh the config
             //checkForUpdate(site);
             // get the config files from the permissionsConfigMap based on the key
-            PermissionsConfigTO rolesConfig = permissionsConfigMap.get(getPermissionsKey(site, roleMappingsFileName));
+            StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+            CacheService cacheService = cacheTemplate.getCacheService();
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+            PermissionsConfigTO rolesConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
+                @Override
+                public PermissionsConfigTO execute() {
+                    return loadConfiguration(site, roleMappingsFileName);
+                }
+            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
             Set<String> userRoles = new HashSet<String>();
             if (rolesConfig != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
@@ -318,18 +352,18 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         return permissions;
     }
 
-    @Override
-    protected void loadConfiguration(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, getSiteFromKey(key));
-        String siteConfigFullPath = siteConfigPath + "/" + getFilenameFromKey(key);
+    protected PermissionsConfigTO loadConfiguration(String site, String filename) {
+        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+        String siteConfigFullPath = siteConfigPath + "/" + filename;
         Document document = null;
+        PermissionsConfigTO config = null;
         try {
             document = contentService.getContentAsDocument(siteConfigFullPath);
         } catch (DocumentException e) {
-            logger.error("Permission mapping not found for " + key);
+            logger.error("Permission mapping not found for " + site + ":" + filename);
         }
         if (document != null) {
-            PermissionsConfigTO config = new PermissionsConfigTO();
+            config = new PermissionsConfigTO();
             config.setMapping(document);
             Element root = document.getRootElement();
 
@@ -339,13 +373,13 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             // permissions file
             loadPermissions(root, config);
 
-            config.setKey(key);
+            config.setKey(site + ":" + filename);
             config.setLastUpdated(new Date());
 
-            permissionsConfigMap.put(key, config);
         } else {
-            logger.error("Permission mapping not found for " + key);
+            logger.error("Permission mapping not found for " + site + ":" + filename);
         }
+        return config;
     }
 
     @SuppressWarnings("unchecked")
@@ -401,14 +435,6 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         }
     }
 
-    protected String getSiteFromKey(String key) {
-        if (key.contains(":")) {
-            return key.substring(0, key.indexOf(":"));
-        } else {
-            return key;
-        }
-    }
-
     @Override
     public void addUserGroup(String groupName) {
         securityProvider.addUserGroup(groupName);
@@ -424,96 +450,18 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
         securityProvider.addUserToGroup(groupName, user);
     }
 
-    protected String getFilenameFromKey(String key) {
-        return key.substring(key.indexOf(":") + 1);
-    }
 
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-        return permissionsConfigMap.get(key);
-    }
-
-    @Override
-    protected void removeConfiguration(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            permissionsConfigMap.remove(key);
-        }
-    }
-
-    /*
-	 * Checks for updates to both the role & permission mappings files
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.craftercms.crafter.alfresco.service.impl.ConfigurableServiceBase#
-	 * checkForUpdate(java.lang.String)
-	 */
-    @Override
-    protected void checkForUpdate(String site) {
-        if (StringUtils.isNotEmpty(site)) {
-            super.checkForUpdate(getPermissionsKey(site, roleMappingsFileName));
-            super.checkForUpdate(getPermissionsKey(site, permissionsFileName));
-        }
-        if (isGlobalPermissionsConfigUpdated()) {
-            loadGlobalPermissionsConfiguration();
-        }
-        if (isGlobalRolesConfigUpdated()) {
-            loadGlobalRolesConfiguration();
-        }
-    }
-
-    protected boolean isGlobalRolesConfigUpdated() {
-        String globalRolesKey = "###GLOBAL###:" + globalRoleMappingsFileName;
-        TimeStamped config = getConfigurationById(globalRolesKey);
-        if (config == null) {
-            return true;
-        } else {
-            String siteConfigFullPath =  globalConfigPath + "/" + globalRoleMappingsFileName;
-            if (contentRepository.contentExists(siteConfigFullPath)) {
-                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
-                if (modifiedDate == null) {
-                    return false;
-                } else {
-                    return modifiedDate.after(config.getLastUpdated());
-                }
-            } else {
-                removeConfiguration(globalRolesKey);
-                return true;
-            }
-        }
-    }
-
-    protected boolean isGlobalPermissionsConfigUpdated() {
-        String globalPermissionsKey = "###GLOBAL###:" + globalPermissionsFileName;
-        TimeStamped config = getConfigurationById(globalPermissionsKey);
-        if (config == null) {
-            return true;
-        } else {
-            String siteConfigFullPath =  globalConfigPath + "/" + globalPermissionsFileName;
-            if (contentRepository.contentExists(siteConfigFullPath)) {
-                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
-                if (modifiedDate == null) {
-                    return false;
-                } else {
-                    return modifiedDate.after(config.getLastUpdated());
-                }
-            } else {
-                removeConfiguration(globalPermissionsKey);
-                return true;
-            }
-        }
-    }
-
-    protected void loadGlobalPermissionsConfiguration() {
+    protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
         String globalPermissionsConfigPath = globalConfigPath + "/" + globalPermissionsFileName;
         Document document = null;
+        PermissionsConfigTO config = null;
         try {
             document = contentService.getContentAsDocument(globalPermissionsConfigPath);
         } catch (DocumentException e) {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
         }
         if (document != null) {
-            PermissionsConfigTO config = new PermissionsConfigTO();
+            config = new PermissionsConfigTO();
             config.setMapping(document);
             Element root = document.getRootElement();
 
@@ -524,22 +472,23 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             config.setKey(globalPermissionsKey);
             config.setLastUpdated(new Date());
 
-            permissionsConfigMap.put(globalPermissionsKey, config);
         } else {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
         }
+        return config;
     }
 
-    protected void loadGlobalRolesConfiguration() {
+    protected PermissionsConfigTO loadGlobalRolesConfiguration() {
         String globalRolesConfigPath = globalConfigPath + "/" + globalRoleMappingsFileName;
         Document document = null;
+        PermissionsConfigTO config = null;
         try {
             document = contentService.getContentAsDocument(globalRolesConfigPath);
         } catch (DocumentException e) {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
         }
         if (document != null) {
-            PermissionsConfigTO config = new PermissionsConfigTO();
+            config = new PermissionsConfigTO();
             config.setMapping(document);
             Element root = document.getRootElement();
 
@@ -550,55 +499,52 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
             config.setKey(globalRolesKey);
             config.setLastUpdated(new Date());
 
-            permissionsConfigMap.put(globalRolesKey, config);
         } else {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
         }
+        return config;
     }
 
-    @Override
-    protected String getConfigFullPath(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            // key is a combination of site,content-type
-            String [] keys = key.split(":");
-            if (keys.length == 2) {
-                String site = keys[0];
-                String fileName = keys[1];
-                String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
-                String siteConfigFullPath = siteConfigPath + "/" + fileName;
-                return siteConfigFullPath;
-            } else {
-                logger.error("Invalid content type config key provided: " + key + " site, content type is expected.");
-
-            }
-        } else {
-            logger.error("Key cannot be empty. site, content type is expected.");
-
-        }
-        return null;
-    }
 
     @Override
     public void reloadConfiguration(String site) {
-        loadConfiguration(getPermissionsKey(site, permissionsFileName));
-        loadConfiguration(getPermissionsKey(site, roleMappingsFileName));
-
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
+        Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, permissionsKey);
+            cacheService.remove(cacheContext, rolesKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, permissionsFileName);
+        PermissionsConfigTO rolesConfigTO = loadConfiguration(site, roleMappingsFileName);
+        cacheService.put(cacheContext, permissionsKey, permissionsConfigTO);
+        cacheService.put(cacheContext, rolesKey, rolesConfigTO);
     }
 
     @Override
     public void reloadGlobalConfiguration() {
-        loadGlobalPermissionsConfiguration();
-        loadGlobalRolesConfiguration();
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext("###GLOBAL###", true);
+        Object permissionsKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalPermissionsFileName);
+        Object rolesKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalRoleMappingsFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, permissionsKey);
+            cacheService.remove(cacheContext, rolesKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        PermissionsConfigTO permissionsConfigTO = loadGlobalPermissionsConfiguration();
+        PermissionsConfigTO rolesConfigTO = loadGlobalRolesConfiguration();
+        cacheService.put(cacheContext, permissionsKey, permissionsConfigTO);
+        cacheService.put(cacheContext, rolesKey, rolesConfigTO);
     }
 
     @Override
     public boolean logout() {
         return securityProvider.logout();
-    }
-
-    @Override
-    public void register() {
-        getServicesManager().registerService(SecurityService.class, this);
     }
 
     public String getRoleMappingsFileName() { return roleMappingsFileName; }
@@ -625,7 +571,12 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    protected Map<String, PermissionsConfigTO> permissionsConfigMap = new HashMap<String, PermissionsConfigTO>();
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
     protected String roleMappingsFileName;
     protected String permissionsFileName;
     protected String globalConfigPath;
@@ -634,4 +585,6 @@ public class SecurityServiceImpl extends ConfigurableServiceBase implements Secu
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
+    protected String configPath;
+    protected CacheTemplate cacheTemplate;
 }
