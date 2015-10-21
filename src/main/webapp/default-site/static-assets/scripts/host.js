@@ -1,6 +1,10 @@
 (function ($, window, amplify, CStudioAuthoring) {
     'use strict';
 
+    if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+
     var cstopic = crafter.studio.preview.cstopic;
     var Topics = crafter.studio.preview.Topics;
     var origin = window.location.origin; // 'http://127.0.0.1:8080';
