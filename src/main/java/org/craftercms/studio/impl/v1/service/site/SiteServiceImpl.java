@@ -30,10 +30,7 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
-import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
-import org.craftercms.studio.api.v1.ebus.DistributedPeerEBusFacade;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -56,6 +53,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,16 +88,24 @@ public class SiteServiceImpl implements SiteService {
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) {
 		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
-        reloadSiteConfiguration(site);
+        clearConfigurationCache.clearConfigurationCache(site);
         return toRet;
 	}
 
 	@Override	
 	public boolean writeConfiguration(String path, InputStream content) {
 		boolean toRetrun = contentRepository.writeContent(path, content);
-        reloadSiteConfigurations();
+        String site = extractSiteFromConfigurationPath(path);
+        clearConfigurationCache.clearConfigurationCache(site);
         return toRetrun;
 	}
+
+    private String extractSiteFromConfigurationPath(String configurationPath) {
+        String var = configurationPath.replace("/cstudio/config/sites/", "");
+        int idx = var.indexOf("/");
+        String site = var.substring(0, idx);
+        return site;
+    }
 
 	@Override
 	public Map<String, Object> getConfiguration(String path) {
@@ -121,7 +127,6 @@ public class SiteServiceImpl implements SiteService {
 
 	@Override
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
-		//
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
 			configPath = this.configRoot + path;
@@ -370,7 +375,8 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
             deploymentService.syncAllContentToPreview(siteId);
-            reloadSiteConfiguration(siteId);
+            clearConfigurationCache.clearConfigurationCache(siteId);
+            //reloadSiteConfiguration(siteId);
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -527,7 +533,8 @@ public class SiteServiceImpl implements SiteService {
 
         if (sites != null && sites.size() > 0) {
             for (String site : sites) {
-                reloadSiteConfiguration(site);
+                clearConfigurationCache.clearConfigurationCache(site);
+                //reloadSiteConfiguration(site);
             }
         } else {
             logger.error("[SITESERVICE] no sites found");
@@ -660,6 +667,9 @@ public class SiteServiceImpl implements SiteService {
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
+    public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
+    public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -683,6 +693,7 @@ public class SiteServiceImpl implements SiteService {
     protected DistributedPeerEBusFacade distributedPeerEBusFacade;
     protected SecurityProvider securityProvider;
     protected CacheTemplate cacheTemplate;
+    protected ClearConfigurationCache clearConfigurationCache;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

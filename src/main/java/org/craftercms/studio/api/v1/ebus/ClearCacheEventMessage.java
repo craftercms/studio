@@ -21,7 +21,9 @@ package org.craftercms.studio.api.v1.ebus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ClearCacheEventMessage {
+import java.io.Serializable;
+
+public class ClearCacheEventMessage implements Serializable {
 
     @JsonCreator
     public ClearCacheEventMessage(@JsonProperty("site")String site) {

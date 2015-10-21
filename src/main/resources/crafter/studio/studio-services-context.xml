@@ -106,6 +106,7 @@
         <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
