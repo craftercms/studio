@@ -3,6 +3,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     $.noConflict(true);
 
+    if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+
     var origin = window.location.origin; // 'http://127.0.0.1:8080';
     var Topics = crafter.studio.preview.Topics;
     var communicator = new Communicator({window: window.parent, origin: origin}, origin);

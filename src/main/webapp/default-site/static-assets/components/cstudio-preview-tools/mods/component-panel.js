@@ -55,7 +55,7 @@
                 amplify.subscribe('/page-model/loaded', function (data) { 
 
                     var dom = (new window.DOMParser())
-                        .parseFromString(data.model, "text/xml").children[0];
+                        .parseFromString(data.model, "text/xml").documentElement;
 
                     var contentMap = CStudioForms.Util.xmlModelToMap(dom);
 
@@ -1142,7 +1142,7 @@
                             amplify.subscribe('/page-model/loaded', function (data) {
 
                                 var dom = (new window.DOMParser())
-                                    .parseFromString(data.model, "text/xml").children[0];
+                                    .parseFromString(data.model, "text/xml").documentElement;
                                 var contentMap = CStudioForms.Util.xmlModelToMap(dom);
                                 initialContentModel = amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
                                 amplify.publish('/operation/completed');
