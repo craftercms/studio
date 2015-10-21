@@ -323,6 +323,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
+    public boolean isFolderLive(String site, String folderPath) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("folderPath", folderPath + "%");
+        return objectStateMapper.isFolderLive(params) > 0;
+    }
+
+    @Override
     public boolean isScheduled(String site, String path) {
         ObjectState state = getObjectState(site, path);
         if (state != null) {

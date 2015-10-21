@@ -102,4 +102,5 @@ public interface ObjectStateService {
 
     void deleteObjectStatesForSite(String site);
 
+    boolean isFolderLive(String site, String uri);
 }
