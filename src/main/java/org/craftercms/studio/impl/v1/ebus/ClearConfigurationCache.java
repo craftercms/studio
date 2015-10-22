@@ -52,7 +52,6 @@ public class ClearConfigurationCache {
     }
 
     public void clearConfigurationCache(String site) {
-        DebugUtils.addDebugStack(logger);
         ClearCacheEventMessage message = new ClearCacheEventMessage(site);
         message.setSite(site);
 
