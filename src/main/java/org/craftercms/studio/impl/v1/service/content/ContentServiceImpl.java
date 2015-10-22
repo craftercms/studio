@@ -68,6 +68,7 @@ import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -761,8 +762,8 @@ public class ContentServiceImpl implements ContentService {
                 item.isPreviewable = item.previewable;
             }
         } else {
-            FileNameMap fileNameMap = URLConnection.getFileNameMap();
-            String mimeType = fileNameMap.getContentTypeFor(item.getUri());
+            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+            String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                 item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig.getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
@@ -775,8 +776,8 @@ public class ContentServiceImpl implements ContentService {
         ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             if (item.isFolder()) {
-                boolean liveFolder = !objectStateService.isFolderLive(site, item.getUri());
-                item.setNew(liveFolder);
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
                 item.setLive(liveFolder);
             } else {
                 item.setNew(org.craftercms.studio.api.v1.service.objectstate.State.isNew(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
@@ -794,9 +795,11 @@ public class ContentServiceImpl implements ContentService {
             item.isInFlight = item.isInFlight();
         } else {
             if (item.isFolder()) {
-                boolean liveFolder = !objectStateService.isFolderLive(site, item.getUri());
-                item.setNew(liveFolder);
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
                 item.setLive(liveFolder);
+                item.isNew = item.isNew();
+                item.isLive = item.isLive();
             }
         }
     }
