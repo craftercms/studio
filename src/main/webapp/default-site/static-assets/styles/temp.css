@@ -15198,6 +15198,9 @@ address {
 .studio-view .view-caption,
 .studio-dialog .view-caption {
   margin: 0 0 20px; }
+.studio-view .action-wrapper,
+.studio-dialog .action-wrapper {
+  float: right; }
 .studio-view table.item-listing,
 .studio-dialog table.item-listing {
   width: 100%;
