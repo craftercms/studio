@@ -211,7 +211,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      */
     protected List<DmDependencyTO> getDependencyItems(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependecinesOnly, boolean recursive, boolean isDraftContent) {
         List<DmDependencyTO> items = new ArrayList<>(paths.size());
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
                 continue;
@@ -563,7 +562,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     // if no parent found, there is no mandatory parent (e.g. download content)
                 }
             }
-        }
+        }/*
         boolean found = false;
         int position = -1;
         // add a new item as a child if the new item is a sub folder
@@ -595,15 +594,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }
-        }
+        }*/
         // if not, add the new item to the top level item list
-        if (!found) {
+        //if (!found) {
             //EMO-11523 dont include page dependencies for delete flow
             if(!deleteDependencies) {
                 populatePageDependencies(site, item, true);
             }
             items.add(item);
-        }
+        //}
         includedItems.add(item.getUri());
     }
 
@@ -738,7 +737,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 return new HashMap<>();
             }
 
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
             StringBuffer buffer = new StringBuffer(XmlUtils.convertDocumentToString(document));
             List<String> assets = getDependentFileNames(site, buffer, false, servicesConfig.getAssetPatterns(site));
             List<String> components = getDependentFileNames(site, buffer, false, servicesConfig.getComponentPatterns(site));

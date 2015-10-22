@@ -243,6 +243,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.jgroups</groupId>
+            <artifactId>jgroups</artifactId>
+            <version>3.6.6.Final</version>
+        </dependency>
+
         <!-- testing -->
         <dependency>
             <groupId>org.testng</groupId>

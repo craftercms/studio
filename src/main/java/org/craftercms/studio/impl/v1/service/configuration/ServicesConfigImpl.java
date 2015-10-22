@@ -20,6 +20,9 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -27,6 +30,7 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -43,7 +47,7 @@ import java.util.*;
  * 
  * 
  */
-public class ServicesConfigImpl extends AbstractRegistrableService implements ServicesConfig {
+public class ServicesConfigImpl implements ServicesConfig {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServicesConfigImpl.class);
     
@@ -90,11 +94,6 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * configuration file name
 	 */
 	protected String configFileName;
-
-	/**
-	 * site configuration mapping
-	 */
-	protected Map<String, SiteConfigTO> siteMapping = new HashMap<String, SiteConfigTO>();
 	
 	/**
 	 * content types configuration
@@ -108,94 +107,30 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 
 	protected ContentRepository contentRepository;
 
-    @Override
-    public void register() {
-        this._servicesManager.registerService(ServicesConfig.class, this);
+    protected CacheTemplate cacheTemplate;
+
+    protected SiteConfigTO getSiteConfig(final String site) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        SiteConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<SiteConfigTO>() {
+            @Override
+            public SiteConfigTO execute() {
+                return loadConfiguration(site);
+            }
+        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        return config;
     }
-
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getContentType(java.lang.String)
-      */
-	/*public QName getContentType(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO siteConfig = _siteMapping.get(site);
-		if (siteConfig != null) {
-			String name = siteConfig.getDefaultContentType();
-			ContentTypeConfigTO typeConfig = _contentTypesConfig.getContentTypeConfig(site, name);
-			if (typeConfig != null) {
-				typeConfig.getContentType();
-			}
-		}
-		return null;
-	}*/
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getTypeByNamespace(java.lang.String, java.lang.String)
-	 */
-	/*
-	public QName getTypeByNamespace(String site, String namespace) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null && config.getNamespaceToTypeMap() != null) {
-			return config.getNamespaceToTypeMap().get(namespace);
-		}
-		return null;
-	}*/
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getModelConfig(
-	 * java.lang.String)
-	 */
-	/*
-	public Map<QName, ModelConfigTO> getModelConfig(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null) {
-			return config.getModelConfig();
-		}
-		return null;
-	}*/
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getSearchColumnsConfig(java.lang.String)
-	 */
-	/*
-	public Map<String, QName> getSearchColumnsConfig(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null) {
-			String contentType = config.getDefaultContentType();
-			ContentTypeConfigTO contentTypeConfig = _contentTypesConfig.getContentTypeConfig(site, contentType);
-			if (contentTypeConfig != null) {
-				return contentTypeConfig.getSearchConfig().getSearchColumnMap();
-			}
-		}
-		return null;
-	}*/
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getWebProject(java.lang.String)
 	 */
 	public String getWemProject(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getWemProject() != null) {
 			return config.getWemProject();
 		}
@@ -204,10 +139,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 
     @Override
     public List<DmFolderConfigTO> getFolders(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = siteMapping.get(site);
+        SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getFolders();
         }
@@ -219,10 +151,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
       * @see org.craftercms.cstudio.alfresco.wcm.service.api.WcmServicesConfig#getRootPrefix(java.lang.String)
       */
 	public String getRootPrefix(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRootPrefix();
 		}
@@ -242,10 +171,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getAssetPatterns(java.lang.String)
 	 */
 	public List<String> getAssetPatterns(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getAssetPatterns();
 		}
@@ -281,10 +207,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getComponentPatterns(java.lang.String)
 	 */
 	public List<String> getComponentPatterns(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getComponentPatterns();
 		}
@@ -296,10 +219,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getPagePatterns(java.lang.String)
 	 */
 	public List<String> getPagePatterns(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPagePatterns();
 		}
@@ -311,10 +231,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
       * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getRenderingTemplatePatterns(java.lang.String)
       */
     public List<String> getRenderingTemplatePatterns(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = siteMapping.get(site);
+        SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getRenderingTemplatePatterns();
         }
@@ -326,10 +243,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
       * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorPatterns(java.lang.String)
       */
     public List<String> getLevelDescriptorPatterns(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = siteMapping.get(site);
+        SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getLevelDescriptorPatterns();
         }
@@ -342,10 +256,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDocumentPatterns(java.lang.String)
 	 */
 	public List<String> getDocumentPatterns(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDocumentPatterns();
 		}
@@ -354,76 +265,22 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getCategoryRootPath(java.lang.String, java.lang.String)
-	 */
-	/*
-	public String getCategoryRootPath(String site, String category) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null && config.getRepositoryConfig() != null) {
-			return config.getRepositoryConfig().getCategoryRootPath(category);
-		}
-		return null;
-	}*/
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorName(java.lang.String)
 	 */
 	public String getLevelDescriptorName(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
 		}
 		return null;
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDefaultSearchConfig(java.lang.String)
-	 */
-	/*
-	public SearchConfigTO getDefaultSearchConfig(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null) {
-			return config.getDefaultSearchConfig();
-		}
-		return null;
-	}*/
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getExcludePaths(java.lang.String)
-	 */
-	/*
-	public List<String> getExcludePaths(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null && config.getRepositoryConfig().getExcludePaths() != null) {
-			return config.getRepositoryConfig().getExcludePaths();
-		}
-		return null;
-	}*/
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDisplayInWidgetPathPatterns(java.lang.String)
 	 */
 	public List<String> getDisplayInWidgetPathPatterns(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDisplayPatterns();
 		}
@@ -435,10 +292,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDefaultTimezone(java.lang.String)
 	 */
 	public String getDefaultTimezone(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = siteMapping.get(site);
+		SiteConfigTO config = getSiteConfig(site);
 		if (config != null) {
 			return config.getTimezone();
 		} else {
@@ -446,154 +300,47 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getTemplateConfig(java.lang.String)
-	 */
-	/*
-	public TemplateConfigTO getTemplateConfig(String site) {
-		if (isConfigUpdated(site)) {
-			loadConfiguration(site);
-		}
-		SiteConfigTO config = _siteMapping.get(site);
-		if (config != null) {
-			return config.getRepositoryConfig().getTemplateConfig();
-		} else {
-			return new TemplateConfigTO();
-		}
-	}*/
-
-	/*
-    @Override
-    public String getRepositoryRootPath(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = _siteMapping.get(site);
-        if (config != null) {
-            StringBuilder sbRepoPath = new StringBuilder(WEM_PROJECTS_PATH);
-            sbRepoPath.append("/").append(config.getWemProject());
-            sbRepoPath.append("/").append(config.getSiteName());
-            sbRepoPath.append(WORK_AREA_PATH);
-            return sbRepoPath.toString();
-        }
-        return null;
-    }*/
-
-	/*
-    @Override
-    public String getLiveRepositoryPath(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = _siteMapping.get(site);
-        if (config != null) {
-            StringBuilder sbRepoPath = new StringBuilder(WEM_PROJECTS_PATH);
-            sbRepoPath.append("/").append(config.getWemProject());
-            sbRepoPath.append("/").append(config.getSiteName());
-            sbRepoPath.append("/").append(DmConstants.DM_LIVE_REPO_FOLDER);
-            return sbRepoPath.toString();
-        }
-        return null;
-    }*/
-
-
-    @Override
-	public boolean isUpdated(String site) {
-		return isConfigUpdated(site);
-	}
-
-	/**
-	 * is configuration file updated?
-	 * 
-	 * @return
-	 */
-	protected boolean isConfigUpdated(String site) {
-		SiteConfigTO config = siteMapping.get(site);
-		if (config == null) {
-			return true;
-		} else {
-			String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
-			String siteConfigFullPath = siteConfigPath + "/" + configFileName;
-			if (contentRepository.contentExists(siteConfigFullPath)) {
-				Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
-				if (modifiedDate == null) {
-					return false;
-				} else {
-					return modifiedDate.after(config.getLastUpdated());
-				}
-			} else {
-				if (!contentRepository.contentExists(siteConfigPath)) {
-					siteMapping.remove(site);
-				}
-			}
-			return true;
-		}
-	}
 
 	/**
 	 * load services configuration
 	 * 
 	 */
 	 @SuppressWarnings("unchecked")
-	protected void loadConfiguration(String site) {
-		String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
-		//PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+     protected SiteConfigTO loadConfiguration(String site) {
+         String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
 
-		 Document document = null;
-		 try {
-			 document = contentService.getContentAsDocument(siteConfigPath + "/" + configFileName);
-		 } catch (DocumentException e) {
-			 LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
-		 }
-		 if (document != null) {
-			Element root = document.getRootElement();
-			Node configNode = root.selectSingleNode("/site-config");
-			String name = configNode.valueOf("display-name");
-			SiteConfigTO siteConfig = new SiteConfigTO();
-			siteConfig.setName(name);
-            //siteConfig.setSiteName(configNode.valueOf("name"));
-            siteConfig.setWemProject(configNode.valueOf("wem-project"));
-			//siteConfig.setDefaultContentType(configNode.valueOf("default-content-type"));
-			//String assetUrl = configNode.valueOf("assets-url");
-			siteConfig.setTimezone(configNode.valueOf("default-timezone"));
-			//siteConfig.setAssetUrl(assetUrl);
-			//loadNamespaceToTypeMap(siteConfig, configNode.selectNodes("namespace-to-type-map/namespace"));
-			//loadModelConfig(siteConfig, configNode.selectNodes("models/model"));
-			//SearchConfigTO searchConfig = _contentTypesConfig.loadSearchConfig(configNode.selectSingleNode("search"));
-			//siteConfig.setDefaultSearchConfig(searchConfig);
-            loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
-			// set the last updated date
-			siteConfig.setLastUpdated(new Date());
-			siteMapping.put(site, siteConfig);
-		} else {
-			LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
-		}
-	}
+         Document document = null;
+         SiteConfigTO siteConfig = null;
+         try {
+             document = contentService.getContentAsDocument(siteConfigPath + "/" + configFileName);
+         } catch (DocumentException e) {
+             LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
+         }
+         if (document != null) {
+             Element root = document.getRootElement();
+             Node configNode = root.selectSingleNode("/site-config");
+             String name = configNode.valueOf("display-name");
+             siteConfig = new SiteConfigTO();
+             siteConfig.setName(name);
+             //siteConfig.setSiteName(configNode.valueOf("name"));
+             siteConfig.setWemProject(configNode.valueOf("wem-project"));
+             //siteConfig.setDefaultContentType(configNode.valueOf("default-content-type"));
+             //String assetUrl = configNode.valueOf("assets-url");
+             siteConfig.setTimezone(configNode.valueOf("default-timezone"));
+             //siteConfig.setAssetUrl(assetUrl);
+             //loadNamespaceToTypeMap(siteConfig, configNode.selectNodes("namespace-to-type-map/namespace"));
+             //loadModelConfig(siteConfig, configNode.selectNodes("models/model"));
+             //SearchConfigTO searchConfig = _contentTypesConfig.loadSearchConfig(configNode.selectSingleNode("search"));
+             //siteConfig.setDefaultSearchConfig(searchConfig);
+             loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
+             // set the last updated date
+             siteConfig.setLastUpdated(new Date());
+         } else {
+             LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
+         }
+         return siteConfig;
+     }
 
-	/**
-	 * load namespaces to types mapping
-	 * 
-	 * @param siteConfig
-	 * @param nodes
-	 */
-	/*
-	protected void loadNamespaceToTypeMap(SiteConfigTO siteConfig, List<Node> nodes) {
-		if (nodes != null && nodes.size() > 0) {
-			Map<String, QName> namespaceToTypeMap = new FastMap<String, QName>();
-			PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-			for (Node node : nodes) {
-				String namespace = node.valueOf("@name");
-				QName type = persistenceManagerService.createQName(node.getText());
-				if (!StringUtils.isEmpty(namespace) && type != null) {
-					namespaceToTypeMap.put(namespace, type);
-				}
-			}
-			siteConfig.setNamespaceToTypeMap(namespaceToTypeMap);
-		} else {
-			siteConfig.setNamespaceToTypeMap(new FastMap<String, QName>(0));
-		}
-	}*/
 
     /**
      * load the web-project configuration
@@ -625,23 +372,6 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         siteConfig.setRepositoryConfig(repoConfigTO);
     }
 
-    /**
-     * load common prototype configuration
-     *
-     * @param repoConfig
-     * @param node
-     */
-	/*
-    protected void loadTemplateConfig(RepositoryConfigTO repoConfig, Node node) {
-        TemplateConfigTO templateConfig = new TemplateConfigTO();
-        if (node != null) {
-            List<String> excludedPaths = getStringList(node.selectNodes("excluded-on-convert-paths/excluded-on-convert-path"));
-            List<String> multiValuedPaths = getStringList(node.selectNodes("multi-valued-on-convert-paths/multi-valued-on-convert-path"));
-            templateConfig.setExcludedPathsOnConvert(excludedPaths);
-            templateConfig.setMultiValuedPathsOnConvert(multiValuedPaths);
-        }
-        repoConfig.setTemplateConfig(templateConfig);
-    }*/
 
 	/**
 	 * get a list of string values
@@ -662,36 +392,6 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 		return items;
 	}
 
-	/**
-	 * load models from the given nodes
-	 * 
-	 * @param nodes
-	 * @return model configuration
-	 */
-	/*
-	protected void loadModelConfig(SiteConfigTO config, List<Node> nodes) {
-		Map<QName, ModelConfigTO> models = new FastMap<QName, ModelConfigTO>();
-		if (nodes != null && nodes.size() > 0) {
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-			for (Node node : nodes) {
-				String name = node.valueOf(ATTR_NAME);
-				QName type = persistenceManagerService.createQName(name);
-				if (type != null) {
-					int depth = 1;
-					try {
-						depth = Integer.parseInt(node.valueOf(ATTR_DEPTH));
-					} catch (NumberFormatException e) {
-						// do nothing
-					}
-					String path = node.valueOf(ATTR_PATH);
-					String displayName = node.valueOf(ATTR_DISPLAY_NAME);
-					String namespace = node.valueOf(ATTR_NAMESPACE);
-					models.put(type, new ModelConfigTO(path, depth, displayName, namespace));
-				}
-			}
-		}
-		config.setModelConfig(models);
-	}*/
 
     /**
      * load page/component/assets patterns configuration
@@ -764,51 +464,8 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
         }
     }
 
-
-    @Override
-    public Set<String> getAllAvailableSites() {
-        Set<String> siteNames = siteMapping.keySet();
-        return siteNames;
-    }
-
-	/**
-	 * Return if we check for renaming for the given site.
-	 * 
-	 * @param site
-	 * @return true if we check for renames, false otherwise
-	 */
-	/*
-	public boolean isCheckForRename(String site) {
-		return _siteMapping.get(site).getRepositoryConfig().isCheckForRenamed();
-	}*/
-	
-	
-	/**
-	 * set configuration path
-	 * 
-	 * @param configPath
-	 */
-	/*
-	public void setConfigPath(String configPath) {
-		this._configPath = configPath;
-	}*/
-
-	/**
-	 * set configuration file name
-	 * 
-	 * @param configFileName
-	 */
-	/*
-	public void setConfigFileName(String configFileName) {
-		this._configFileName = configFileName;
-	}
-*/
-
     public List<String> getPreviewableMimetypesPaterns(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
-        }
-        SiteConfigTO config = siteMapping.get(site);
+        SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
         }
@@ -816,12 +473,20 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
     }
 
     @Override
-    public boolean siteExists(String site) {
-        if (siteMapping == null) return false;
-        return siteMapping.get(site) != null;
+    public void reloadConfiguration(String site) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        SiteConfigTO config = loadConfiguration(site);
+        cacheService.put(cacheContext, cacheKey, config);
     }
 
-	public void setContentService(ContentService contentService) {
+    public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
 
@@ -843,4 +508,7 @@ public class ServicesConfigImpl extends AbstractRegistrableService implements Se
 
 	public ContentRepository getContentRepository() { return contentRepository; }
 	public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 }

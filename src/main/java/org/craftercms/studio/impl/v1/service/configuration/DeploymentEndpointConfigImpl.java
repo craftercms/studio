@@ -19,6 +19,11 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.service.Context;
+import org.craftercms.core.store.ContentStoreAdapter;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -29,25 +34,23 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.DeploymentConfigTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
 import java.util.*;
 
-public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implements DeploymentEndpointConfig {
+public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DeploymentEndpointConfigImpl.class);
 
-    /** sites and environments mapping **/
-    protected Map<String, DeploymentConfigTO> siteMapping = new HashMap<String, DeploymentConfigTO>();
 
-
-    @Override
-    protected void loadConfiguration(String key) {
+    protected DeploymentConfigTO loadConfiguration(String key) {
         String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
         siteConfigPath = siteConfigPath + "/" + configFileName;
         Document document = null;
+        DeploymentConfigTO config = null;
         try {
             document = contentService.getContentAsDocument(siteConfigPath);
         } catch (DocumentException e) {
@@ -55,7 +58,7 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
         }
         if (document != null) {
             Element root = document.getRootElement();
-            DeploymentConfigTO config = new DeploymentConfigTO();
+            config = new DeploymentConfigTO();
             List<Element> endpoints = root.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ROOT);
             for (Element endpointElm : endpoints) {
                 DeploymentEndpointConfigTO endpointConfig = new DeploymentEndpointConfigTO();
@@ -121,69 +124,72 @@ public class DeploymentEndpointConfigImpl extends ConfigurableServiceBase implem
             }
 
             config.setLastUpdated(new Date());
-            siteMapping.put(key, config);
         }
+        return config;
     }
 
     @Override
-    protected String getConfigFullPath(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
-        return siteConfigPath + "/" + configFileName;
-    }
-
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-        return siteMapping.get(key);
-    }
-
-    @Override
-    protected void removeConfiguration(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            siteMapping.remove(key);
-        }
-    }
-
-    @Override
-    public void register() {
-        getServicesManager().registerService(DeploymentEndpointConfig.class, this);
-    }
-
-    @Override
-    public DeploymentEndpointConfigTO getDeploymentConfig(String site, String endpoint) {
+    public DeploymentEndpointConfigTO getDeploymentConfig(final String site, final String endpoint) {
         //checkForUpdate(site);
-        if (siteMapping.containsKey(site)) {
-            DeploymentConfigTO config = siteMapping.get(site);
-            if (config != null) {
-                return config.getEndpoint(endpoint);
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
+            @Override
+            public DeploymentConfigTO execute() {
+                return loadConfiguration(site);
             }
+        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (config != null) {
+            return config.getEndpoint(endpoint);
         }
         return null;
     }
 
-    @Override
-    public boolean isUpdated(String site) {
-        return super.isConfigUpdated(site);
-    }
 
     @Override
-    public boolean exists(String site) {
-        if (siteMapping == null) return false;
-        return siteMapping.get(site) != null;
-    }
-
-    @Override
-    public DeploymentConfigTO getSiteDeploymentConfig(String site) {
+    public DeploymentConfigTO getSiteDeploymentConfig(final String site) {
         //checkForUpdate(site);
-        return siteMapping.get(site);
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
+            @Override
+            public DeploymentConfigTO execute() {
+                return loadConfiguration(site);
+            }
+        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        return config;
     }
 
     @Override
     public void reloadConfiguration(String site) {
-        loadConfiguration(site);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        DeploymentConfigTO config = loadConfiguration(site);
+        cacheService.put(cacheContext, cacheKey, config);
     }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
     protected ContentService contentService;
+    protected CacheTemplate cacheTemplate;
+    protected String configPath;
+    protected String configFileName;
 }
