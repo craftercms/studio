@@ -1,4 +1,4 @@
-define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-controller'], function (crafter, $, Communicator, ICEOverlay, DnDController) {
+define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-controller'], function (crafter, $, Communicator, ICEOverlay, DnDController, CStudioAuthoring) {
     'use strict';
 
     $.noConflict(true);
@@ -78,6 +78,20 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
             alert("Region " + message.region + " could not be found");
         }
     });
+
+    function setRegionsCookie() {
+        sessionStorage.setItem("ice-tools-content", '');
+        var elts = document.querySelectorAll('[data-studio-ice]'),
+            regions = [];
+        if (elts.length > 0) {
+            for (var i = 0; i <= (elts.length) - 1; i++) {
+                regions.push({id: elts[i].getAttribute('data-studio-ice'), formId: elts[i].getAttribute('data-studio-ice'), label: elts[i].getAttribute('data-studio-ice-label')});
+            }
+        }
+
+        sessionStorage.setItem("ice-tools-content", JSON.stringify(regions));
+
+    };
 
     function initICETarget(elem) {
 
@@ -169,5 +183,8 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
     if (!!(sessionStorage.getItem('ice-on'))) {
         initICERegions();
     }
+
+    setRegionsCookie();
+    window.parent.initRegCookie();
 
 });
