@@ -120,6 +120,17 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
                 String statusUrl = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_STATUS_URL);
                 endpointConfig.setStatusUrl(statusUrl);
 
+                String orderStr = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ORDER);
+                if (StringUtils.isNotEmpty(orderStr)) {
+                    try {
+                        int orderVal = Integer.parseInt(orderStr);
+                        endpointConfig.setOrder(orderVal);
+                    } catch (NumberFormatException exc) {
+                        LOGGER.info(String.format("Order not defined in deployment endpoint (%s) config [path: %s]", name, siteConfigPath));
+                        LOGGER.info(String.format("Default order value (%d) will be used for endpoint [%s]", endpointConfig.getOrder(), name));
+                    }
+                }
+
                 config.addEndpoint(endpointConfig);
             }
 

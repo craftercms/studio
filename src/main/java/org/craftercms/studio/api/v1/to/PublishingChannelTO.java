@@ -46,6 +46,10 @@ public class PublishingChannelTO implements Serializable {
         this.updateStatus = updateStatus;
     }
 
+    protected int order = Integer.MAX_VALUE;
+    public int getOrder() { return order; }
+    public void setOrder(int order) { this.order = order; }
+
     @Override
     public boolean equals(Object object) {
         if (this == object) {
