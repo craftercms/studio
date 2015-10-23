@@ -870,3 +870,5 @@
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
 input[disabled]{background-color: whitesmoke;}
+
+body.yui-skin-cstudioTheme.masked{overflow: hidden;}
