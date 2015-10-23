@@ -844,6 +844,9 @@ public class ContentServiceImpl implements ContentService {
                 item.setLastEditDate(metadata.getModified());
                 item.setEventDate(metadata.getModified());
             }
+            if (StringUtils.isNotEmpty(metadata.getSubmissionComment())) {
+                item.setSubmissionComment(metadata.getSubmissionComment());
+            }
         } else {
             item.setLockOwner("");
         }
