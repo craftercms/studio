@@ -230,6 +230,19 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                         }
                     }
                 }
+                node = element.selectSingleNode("order");
+                if (node != null) {
+                    String orderStr = node.getText();
+                    if (StringUtils.isNotEmpty(orderStr)) {
+                        try {
+                            int orderVal = Integer.parseInt(orderStr);
+                            pcgConfigTo.setOrder(orderVal);
+                        } catch (NumberFormatException exc) {
+                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]", pcgConfigTo.getName(), configLocation));
+                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]", pcgConfigTo.getOrder(), pcgConfigTo.getName()));
+                        }
+                    }
+                }
                 config.getPublishingChannelGroupConfigs().put(pcgConfigTo.getName(), pcgConfigTo);
             }
 
