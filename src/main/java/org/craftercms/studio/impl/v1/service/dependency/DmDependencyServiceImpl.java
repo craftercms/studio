@@ -168,10 +168,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 items = getDependencies(site, submittedItems, comparator, false, deleteDependencies);
             }
             StringBuilder sb = new StringBuilder();
+            Set<String> submissionComments = new HashSet<String>();
             for (ContentItemTO item : items) {
                 String comment = item.getSubmissionComment();
                 if (StringUtils.isNotEmpty(comment)) {
-                    sb.append(comment).append("\n");
+                    if (!submissionComments.contains(comment)) {
+                        sb.append(comment).append("\n");
+                        submissionComments.add(comment);
+                    }
                 }
             }
             Map<String, Object> result = new HashMap<>();
