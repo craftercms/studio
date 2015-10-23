@@ -68,6 +68,7 @@ import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -729,6 +730,9 @@ public class ContentServiceImpl implements ContentService {
             if (!item.isFolder() || item.isContainer()) {
                 populateWorkflowProperties(site, item);
                 //item.setLockOwner("");
+            } else {
+                item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
+                item.isNew = item.isNew();
             }
         }
         catch(Exception err) {
@@ -758,8 +762,8 @@ public class ContentServiceImpl implements ContentService {
                 item.isPreviewable = item.previewable;
             }
         } else {
-            FileNameMap fileNameMap = URLConnection.getFileNameMap();
-            String mimeType = fileNameMap.getContentTypeFor(item.getUri());
+            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+            String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                 item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig.getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
@@ -771,9 +775,15 @@ public class ContentServiceImpl implements ContentService {
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
         ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
-            item.setNew(org.craftercms.studio.api.v1.service.objectstate.State.isNew(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            if (item.isFolder()) {
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
+                item.setLive(liveFolder);
+            } else {
+                item.setNew(org.craftercms.studio.api.v1.service.objectstate.State.isNew(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+                item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            }
             item.isNew = item.isNew();
-            item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isLive = item.isLive();
             item.setInProgress(!item.isLive());
             item.isInProgress = item.isInProgress();
@@ -783,6 +793,14 @@ public class ContentServiceImpl implements ContentService {
             item.isSubmitted = item.isSubmitted();
             item.setInFlight(state.getSystemProcessing() == 1);
             item.isInFlight = item.isInFlight();
+        } else {
+            if (item.isFolder()) {
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
+                item.setLive(liveFolder);
+                item.isNew = item.isNew();
+                item.isLive = item.isLive();
+            }
         }
     }
 

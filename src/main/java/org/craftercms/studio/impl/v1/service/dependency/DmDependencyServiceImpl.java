@@ -562,7 +562,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     // if no parent found, there is no mandatory parent (e.g. download content)
                 }
             }
-        }
+        }/*
         boolean found = false;
         int position = -1;
         // add a new item as a child if the new item is a sub folder
@@ -594,15 +594,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
                 }
             }
-        }
+        }*/
         // if not, add the new item to the top level item list
-        if (!found) {
+        //if (!found) {
             //EMO-11523 dont include page dependencies for delete flow
             if(!deleteDependencies) {
                 populatePageDependencies(site, item, true);
             }
             items.add(item);
-        }
+        //}
         includedItems.add(item.getUri());
     }
 

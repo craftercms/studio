@@ -720,7 +720,7 @@ implements SecurityProvider {
                         doc.cancelCheckOut();
                     }
                 }
-                cmisObject.delete(true);
+                org.apache.chemistry.opencmis.client.util.FileUtils.delete(cmisObject.getId(), session);
                 session.removeObjectFromCache(cmisObject.getId());
                 result = true;
             }
@@ -948,6 +948,9 @@ implements SecurityProvider {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                         copyChildren(targetFolder, sourceFolder);
+                    }
+                    if (isCut) {
+                        deleteContentCMIS(cleanFromPath);
                     }
                     session.clear();
                     long duration = System.currentTimeMillis() - startTime;

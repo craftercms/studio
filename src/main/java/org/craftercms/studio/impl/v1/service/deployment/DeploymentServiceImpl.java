@@ -555,7 +555,14 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected List<String> getPublishingChannels(String site) {
         List<String> channels = new ArrayList<String>();
         Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigTOs.values()) {
+        List<PublishingChannelGroupConfigTO> channelGroupConfigs = new ArrayList<>(channelGroupConfigTOs.values());
+        Collections.sort(channelGroupConfigs, new Comparator<PublishingChannelGroupConfigTO>() {
+            @Override
+            public int compare(PublishingChannelGroupConfigTO o1, PublishingChannelGroupConfigTO o2) {
+                return o1.getOrder() - o2.getOrder();
+            }
+        });
+        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
             channels.add(configTO.getName());
         }
         return channels;
