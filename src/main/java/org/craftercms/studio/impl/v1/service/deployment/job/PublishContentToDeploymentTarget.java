@@ -232,6 +232,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                 targetItem.setBucketSize(endpoint.getBucketSize());
                                 targetItem.setSiteId(endpoint.getSiteId());
                                 targetItem.setSendMetadata(endpoint.isSendMetadata());
+                                targetItem.setOrder(endpoint.getOrder());
                                 targets.add(targetItem);
 
                                 targetMap.put(endpoint.getName(), targetItem);

@@ -363,17 +363,18 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 destinationUri = ContentUtils.getParentUrl(destinationUri);
             }
             destinationUri = destinationUri + "/" + ContentUtils.getPageName(path.replace("/" + DmConstants.INDEX_FILE, ""));
-
+            String destinationFinalUri = destinationUri;
             if(contentService.contentExists(site, destinationUri)){
                 throw new ServiceException("Content already exists [" + site + ":" + destinationUri +"]");
             }else{
                 dmRenameService.rename(site, path, destinationUri, false);
                 updateFileWithNewNavOrder(site, destinationUri);//only for cut/paste will need to provide new navorder value right here since it doesnt go through FormContentProcessor
                 //fullPath = servicesConfig.getRepositoryRootPath(site) + destinationUri;
-                ContentItemTO itemTO = contentService.getContentItem(destinationUri);
+                ContentItemTO itemTO = contentService.getContentItem(site, destinationUri);
+                destinationFinalUri = itemTO.getUri();
                 objectStateService.transition(site, itemTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
             }
-            objectStateService.setSystemProcessing(site, destinationUri, false);
+            objectStateService.setSystemProcessing(site, destinationFinalUri, false);
         }
         return null;
     }

@@ -430,6 +430,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                     contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 }
             } else {
+                if (!contentService.contentExists(dstFullPath)) {
+                    contentService.createFolder(site, ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+                }
                 contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
             }
 

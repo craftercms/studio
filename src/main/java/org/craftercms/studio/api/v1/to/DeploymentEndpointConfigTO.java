@@ -124,4 +124,8 @@ public class DeploymentEndpointConfigTO {
     public void setEnvironments(List<String> environments) { this.environments = environments; }
     public void addEnvironment(String environment) { this.environments.add(environment); }
     public void removeEnvironment(String environment) { this.environments.remove(environment); }
+
+    protected int order = Integer.MAX_VALUE;
+    public int getOrder() { return order; }
+    public void setOrder(int order) { this.order = order; }
 }

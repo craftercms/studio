@@ -46,4 +46,8 @@ public class PublishingChannelGroupConfigTO {
     public void setChannels(List<PublishingChannelConfigTO> channels) {
         this.channels = channels;
     }
+
+    private int order = Integer.MAX_VALUE;
+    public int getOrder() { return order; }
+    public void setOrder(int order) { this.order = order; }
 }
