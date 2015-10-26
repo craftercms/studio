@@ -107,6 +107,19 @@
         <property name="securityProvider" ref="securityProvider" />
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
+        <property name="importService" ref=""/>
+    </bean>
+
+    <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="xmlChainName"><value>${importService.xmlChainName}</value></property>
+        <property name="assetChainName"><value>${importService.assetChainName}</value></property>
+        <property name="assignee"><value>${importService.assignee}</value></property>
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">

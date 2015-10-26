@@ -40,10 +40,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
@@ -596,6 +593,11 @@ public class SiteServiceImpl implements SiteService {
         securityService.reloadGlobalConfiguration();
     }
 
+    @Override
+    public void importSite(String config) {
+
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -670,6 +672,9 @@ public class SiteServiceImpl implements SiteService {
     public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
     public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
 
+    public ImportService getImportService() { return importService; }
+    public void setImportService(ImportService importService) { this.importService = importService; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -694,6 +699,7 @@ public class SiteServiceImpl implements SiteService {
     protected SecurityProvider securityProvider;
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
+    protected ImportService importService;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
