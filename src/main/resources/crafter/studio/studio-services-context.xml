@@ -107,7 +107,7 @@
         <property name="securityProvider" ref="securityProvider" />
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
-        <property name="importService" ref=""/>
+        <property name="importService" ref="cstudioImportService"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
