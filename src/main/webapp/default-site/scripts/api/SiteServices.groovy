@@ -86,4 +86,9 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.reloadSiteConfiguration(site)
     }
+
+    static importSite(context, config) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.importSite(config)
+    }
 }

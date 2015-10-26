@@ -128,4 +128,6 @@ public interface SiteService {
     void reloadSiteConfiguration(String site, boolean triggerEvent);
 
     void reloadGlobalConfiguration();
+
+    void importSite(String config);
 }
