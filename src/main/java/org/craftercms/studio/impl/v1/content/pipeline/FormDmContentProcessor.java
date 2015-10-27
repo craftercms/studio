@@ -337,10 +337,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
             }
 
-            fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName, 0);
+            fileItem = contentService.getContentItem(site, parentItem.getUri() + "/" + fileName, 0);
             return fileItem;
         } else {
-            String parentPath = contentService.expandRelativeSitePath(site, parentItem.getPath());
+            String parentPath = contentService.expandRelativeSitePath(site, parentItem.getUri());
             throw new ContentNotFoundException(parentPath + " does not exist in site: " + site);
         }
     }
