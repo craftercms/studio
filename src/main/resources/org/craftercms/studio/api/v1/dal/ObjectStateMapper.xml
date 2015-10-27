@@ -134,6 +134,6 @@
     </delete>
 
     <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
-        SELECT count(*) FROM cstudio_objectstate where site=#{site} and path like #{folderPath} and state like 'EXISTING%';
+        SELECT count(*) FROM cstudio_objectstate where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
     </select>
 </mapper>
