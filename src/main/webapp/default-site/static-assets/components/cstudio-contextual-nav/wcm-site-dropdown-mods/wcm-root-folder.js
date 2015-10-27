@@ -6,6 +6,7 @@
 		storage = CStudioAuthoring.Storage,		
 		counter = 0, // Used to identify the contextmenu for each instances. May be used for any other purpose while numberic chronological order is maintained
 		Self = null; // Local reference to CStudioAuthoring.ContextualNav.WcmRootFolder initialized by CStudioAuthoring.register call
+        treeFlag = false;
 
 		if(YAHOO.lang && !YAHOO.lang.escapeHTML) {
 			// YUI version conflicts
@@ -292,7 +293,12 @@
                 }
 
 				instance.firstDraw = true;
-            Self.myTree = tree;
+
+                if(!treeFlag){
+                    Self.myTree = tree;
+                    treeFlag = true;
+                }
+
             },
             /**
              * render method called on sub root level elements
@@ -761,9 +767,10 @@ treeNode.getHtml = function() {
 		var copiedItemNode = Self.copiedItem;
 		var node = tree.getNodeByProperty("path", treeNode.treeNodeTO.path);
 		if (copiedItemNode != null && treeNode.data.path == copiedItemNode.data.path) {
-			node = tree.getNodeByProperty("path", treeNode.parent.data.path);
-			Self.copiedItem = null;
-		}
+                node = tree.getNodeByProperty("path", treeNode.parent.data.path);
+                Self.copiedItem = null;
+        }
+
         if(node) {
     		if (node.isLeaf) node.isLeaf = false;
         }
@@ -1088,10 +1095,14 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
-			                            	this.args.addItems([ menuItems.pasteOption ]);
-                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
-			                            }
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+                                            if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0])){
+                                                if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]);
+                                        }
 		
 			                            this.args.render();
 										menuId.removeChild(d);
@@ -1245,9 +1256,13 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
-			                            	this.args.addItems([ menuItems.pasteOption ]);
-                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+			                            	if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0])){
+                                                if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]);
 			                            }
 										
 			                            if(isUserAllowed) {
@@ -1625,7 +1640,8 @@ treeNode.getHtml = function() {
             pasteContent: function(sType, args, tree) {
                 //Check source and destination paths.
                 if ((Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) ||
-                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri)){
+                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri) ||
+                    (Self.copiedItem != null && Self.copiedItem.parent.contentElId == oCurrentTextNode.contentElId)){
                     alert("Source and destination path are same");
                     return false;
                 }
