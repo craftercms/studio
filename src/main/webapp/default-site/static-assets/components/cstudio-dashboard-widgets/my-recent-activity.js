@@ -201,18 +201,18 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
         WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
        	
         var itemRow = [
-			'<td colspan="2">',
-				'<div class="dashlet-cell-wrp">',
-                    '<div class="dashlet-ident">',
-                        '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
-                        '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
-                            '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
-                                itemNameForDisplay,  (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
-                            '</a>',
-                        '</span>',
-                    '</div>',
+			'<td style="padding-right:0px">',
+				'<div class="dashlet-ident">',
+                    '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
                 '</div>',
 			'</td>',
+            '<td style="padding-left:0px">' +
+                '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
+                    '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
+                    itemNameForDisplay,  (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
+                    '</a>',
+                '</span>',
+            '</td>',
 			'<td id="' + editLinkId + '"></td>',
 			'<td title="', browserUri, '">', displayBrowserUri, '</td>',
 			'<td title="fullUri" class="width0">', fullUri, '</td>',
