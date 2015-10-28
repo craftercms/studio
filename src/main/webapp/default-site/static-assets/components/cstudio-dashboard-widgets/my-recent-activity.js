@@ -207,7 +207,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
                 '</div>',
 			'</td>',
             '<td style="padding-left:0px">' +
-                '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
+                '<span class="', itemIconStatus, (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
                     '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
                     itemNameForDisplay,  (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
                     '</a>',

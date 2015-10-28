@@ -920,6 +920,10 @@ treeNode.getHtml = function() {
                     retTransferObj.style += " preview";
                 }
 
+                if (treeItem.disabled == true) {
+                    retTransferObj.style += " disabled";
+                }
+
                 if (treeItem.container == true) {
                     retTransferObj.fileName = treeItem.name;
                 } else {
