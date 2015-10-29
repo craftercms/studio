@@ -10,7 +10,7 @@
 	<pageNavOrder>false</pageNavOrder>
 	<placeInNav>false</placeInNav>
 	<orderDefault_f>-1</orderDefault_f>
-	<disable>false</disable>
+	<disabled>false</disabled>
 	<zone1/>
 	<zone2>	<item>	<key>/site/components/page/1fcf/1fcf62b6-36f4-7000-2f1e-91b4e04edd99/704ea5c8-0ad5-1322-8797-92250f33a21f.xml</key>
 	<value>Clean Code</value>
