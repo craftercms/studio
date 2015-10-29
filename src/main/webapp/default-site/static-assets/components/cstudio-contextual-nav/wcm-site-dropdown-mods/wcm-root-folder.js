@@ -28,6 +28,8 @@
             CUT_STYLE: "#9FB6CD",
 			searchesToWire: [],
             myTree: null,
+            myTreePages: null,
+            myTreeComp: null,
             copiedItem: null,
             cutItem: null,
             instanceCount: 0,
@@ -294,9 +296,10 @@
 
 				instance.firstDraw = true;
 
-                if(!treeFlag){
-                    Self.myTree = tree;
-                    treeFlag = true;
+                if(instance.label == "Pages"){
+                    Self.myTreePages = tree;
+                }else{
+                    Self.myTreeComp = tree;
                 }
 
             },
@@ -917,6 +920,10 @@ treeNode.getHtml = function() {
                     retTransferObj.style += " preview";
                 }
 
+                if (treeItem.disabled == true) {
+                    retTransferObj.style += " disabled";
+                }
+
                 if (treeItem.container == true) {
                     retTransferObj.fileName = treeItem.name;
                 } else {
@@ -1095,13 +1102,19 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
+                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
                                         if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
-                                            if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0])){
-                                                if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]).parent.contentElId != oCurrentTextNode.contentElId){
+                                            if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
                                                     this.args.addItems([ menuItems.pasteOption ]);
                                                 }
                                             }
-                                            Self.copiedItem = Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]);
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
                                         }
 		
 			                            this.args.render();
@@ -1256,13 +1269,19 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
+                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
                                         if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
-			                            	if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0])){
-                                                if(Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]).parent.contentElId != oCurrentTextNode.contentElId){
+			                            	if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
                                                     this.args.addItems([ menuItems.pasteOption ]);
                                                 }
                                             }
-                                            Self.copiedItem = Self.myTree.getNodeByProperty("path", collection.item[0].uri.split("//")[0]);
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
 			                            }
 										
 			                            if(isUserAllowed) {
@@ -1717,6 +1736,13 @@ treeNode.getHtml = function() {
 
                     activeNode: oCurrentTextNode
                 };
+
+                if(oCurrentTextNode.instance.label == "Pages"){
+                    Self.myTree = Self.myTreePages;
+                }else{
+                    Self.myTree = Self.myTreeComp;
+                }
+
                 Self.copiedItem = Self.myTree.getNodeByProperty("path", oCurrentTextNode.data.path);
                 Self.copiedItem ? null : Self.copiedItem = oCurrentTextNode;
                 
