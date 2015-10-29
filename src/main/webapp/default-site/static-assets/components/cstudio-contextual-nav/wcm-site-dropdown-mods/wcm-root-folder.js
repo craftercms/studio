@@ -296,10 +296,13 @@
 
 				instance.firstDraw = true;
 
-                if(instance.label == "Pages"){
+                if(treeFlag == false){
                     Self.myTreePages = tree;
+                    instance.type = "Pages";
+                    treeFlag = true;
                 }else{
                     Self.myTreeComp = tree;
+                    instance.type = "Components";
                 }
 
             },
@@ -1102,7 +1105,7 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                        if(oCurrentTextNode.instance.type == "Pages"){
                                             Self.myTree = Self.myTreePages;
                                         }else{
                                             Self.myTree = Self.myTreeComp;
@@ -1269,7 +1272,7 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                        if(oCurrentTextNode.instance.type == "Pages"){
                                             Self.myTree = Self.myTreePages;
                                         }else{
                                             Self.myTree = Self.myTreeComp;
