@@ -164,8 +164,10 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "kr", {
 
 CStudioAuthoring.Messages.registerBundle("siteDropdown", "kr", {
     pages: "페이지",
+    Pages: "페이지",
     page: "페이지",
     components: "구성 요소들",
+    Components: "구성 요소들",
     component: "구성 요소",
     staticassets: "고정 자산",
     templates: "템플릿",
