@@ -112,9 +112,9 @@
 				</field>
 				<field>
 					<type>checkbox</type>
-					<id>disable</id>
+					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disable</title>
+					<title>Disabled</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
