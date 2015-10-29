@@ -140,6 +140,7 @@
 .studio-dialog {
 
   &.history-view{
+
     table.item-listing{
       thead,tbody{
         display: block;
@@ -160,6 +161,10 @@
 
   .view-caption {
     margin: 0 0 20px;
+  }
+
+  .action-wrapper{
+    float: right;
   }
 
   table.item-listing {
@@ -325,3 +330,5 @@ table.scroll-body {
 .studio-view input.schedulingMode{
   margin: 0 0 0 -20px;
 }
+
+

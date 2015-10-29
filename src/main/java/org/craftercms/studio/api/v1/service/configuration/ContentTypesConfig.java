@@ -38,12 +38,6 @@ public interface ContentTypesConfig {
 	 */
 	//public SearchConfigTO loadSearchConfig(Node node);
 
-	/**
-	 * get content type configuration for the key given
-	 * @param key
-	 * @return content type configuration
-	 */
-	ContentTypeConfigTO getContentTypeConfig(String key);
 	
 	/**
 	 * get content type configuration for the given site and the content type
@@ -51,7 +45,7 @@ public interface ContentTypesConfig {
 	 * @param contentType
 	 * @return content type configuration
 	 */
-	public ContentTypeConfigTO getContentTypeConfig(String site, String contentType);
+	ContentTypeConfigTO getContentTypeConfig(String site, String contentType);
 
 	/**
 	 * load configuration from the noderRef given
@@ -60,9 +54,9 @@ public interface ContentTypesConfig {
 	 * @param nodeRef
 	 * @return 
 	 */
-	ContentTypeConfigTO loadConfiguration(String site, String configPath);
+	ContentTypeConfigTO loadConfiguration(String site, String contentType);
 
-    ContentTypeConfigTO reloadConfiguration(String site, String configPath);
+    ContentTypeConfigTO reloadConfiguration(String site, String contentType);
 
     /**
 	 * get path to content types mapping

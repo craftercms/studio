@@ -6,6 +6,7 @@
 		storage = CStudioAuthoring.Storage,		
 		counter = 0, // Used to identify the contextmenu for each instances. May be used for any other purpose while numberic chronological order is maintained
 		Self = null; // Local reference to CStudioAuthoring.ContextualNav.WcmRootFolder initialized by CStudioAuthoring.register call
+        treeFlag = false;
 
 		if(YAHOO.lang && !YAHOO.lang.escapeHTML) {
 			// YUI version conflicts
@@ -27,6 +28,8 @@
             CUT_STYLE: "#9FB6CD",
 			searchesToWire: [],
             myTree: null,
+            myTreePages: null,
+            myTreeComp: null,
             copiedItem: null,
             cutItem: null,
             instanceCount: 0,
@@ -292,7 +295,13 @@
                 }
 
 				instance.firstDraw = true;
-            Self.myTree = tree;
+
+                if(instance.label == "Pages"){
+                    Self.myTreePages = tree;
+                }else{
+                    Self.myTreeComp = tree;
+                }
+
             },
             /**
              * render method called on sub root level elements
@@ -331,16 +340,12 @@
 
                     treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
                     if (treeNodeTO.isLevelDescriptor || treeNodeTO.isComponent ||
-                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml') {
+                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml' ||
+                        (treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') ||
+                        treeNodeTO.previewable == false) {
                         treeNodeTO.style += " no-preview";
-                    }
-                    
-                    if(treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') {
-                        treeNodeTO.style += " no-preview";
-                    }
-
-                    if(treeNodeTO.previewable == false) {
-                        treeNodeTO.style += " no-preview";
+                    }else{
+                        treeNodeTO.style += " preview";
                     }
                     
                     renderChild = true;
@@ -765,9 +770,10 @@ treeNode.getHtml = function() {
 		var copiedItemNode = Self.copiedItem;
 		var node = tree.getNodeByProperty("path", treeNode.treeNodeTO.path);
 		if (copiedItemNode != null && treeNode.data.path == copiedItemNode.data.path) {
-			node = tree.getNodeByProperty("path", treeNode.parent.data.path);
-			Self.copiedItem = null;
-		}
+                node = tree.getNodeByProperty("path", treeNode.parent.data.path);
+                Self.copiedItem = null;
+        }
+
         if(node) {
     		if (node.isLeaf) node.isLeaf = false;
         }
@@ -906,6 +912,16 @@ treeNode.getHtml = function() {
                     retTransferObj.label = retTransferObj.internalName + " *";
                 } else {
                     retTransferObj.label = retTransferObj.internalName;
+                }
+
+                if (treeItem.previewable == false) {
+                    retTransferObj.style += " no-preview";
+                }else{
+                    retTransferObj.style += " preview";
+                }
+
+                if (treeItem.disabled == true) {
+                    retTransferObj.style += " disabled";
                 }
 
                 if (treeItem.container == true) {
@@ -1086,10 +1102,20 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
-			                            	this.args.addItems([ menuItems.pasteOption ]);
-                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
-			                            }
+                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+                                            if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
+                                        }
 		
 			                            this.args.render();
 										menuId.removeChild(d);
@@ -1243,9 +1269,19 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri){
-			                            	this.args.addItems([ menuItems.pasteOption ]);
-                                            Self.copiedItem = collection.item[0].uri.replace(/\/\//g,"/");
+                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+			                            	if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
 			                            }
 										
 			                            if(isUserAllowed) {
@@ -1623,7 +1659,8 @@ treeNode.getHtml = function() {
             pasteContent: function(sType, args, tree) {
                 //Check source and destination paths.
                 if ((Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) ||
-                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri)){
+                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri) ||
+                    (Self.copiedItem != null && Self.copiedItem.parent.contentElId == oCurrentTextNode.contentElId)){
                     alert("Source and destination path are same");
                     return false;
                 }
@@ -1699,6 +1736,13 @@ treeNode.getHtml = function() {
 
                     activeNode: oCurrentTextNode
                 };
+
+                if(oCurrentTextNode.instance.label == "Pages"){
+                    Self.myTree = Self.myTreePages;
+                }else{
+                    Self.myTree = Self.myTreeComp;
+                }
+
                 Self.copiedItem = Self.myTree.getNodeByProperty("path", oCurrentTextNode.data.path);
                 Self.copiedItem ? null : Self.copiedItem = oCurrentTextNode;
                 

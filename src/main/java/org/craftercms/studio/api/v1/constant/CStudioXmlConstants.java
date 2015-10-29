@@ -103,4 +103,5 @@ public class CStudioXmlConstants {
     public static final String DOCUMENT_ELM_ENDPOINT_BUCKET_SIZE = "bucket-size";
     public static final String DOCUMENT_ELM_ENDPOINT_STATUS_URL = "status-url";
     public static final String DOCUMENT_ELM_ENDPOINT_VERSION_URL = "version-url";
+    public static final String DOCUMENT_ELM_ENDPOINT_ORDER = "order";
 }

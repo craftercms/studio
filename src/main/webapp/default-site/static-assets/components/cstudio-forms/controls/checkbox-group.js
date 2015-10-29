@@ -176,7 +176,8 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
                     // we might need to create something on the datasource
                     // to get the value based on the list of possible value holding properties
                     // using datasource.getSupportedProperties
-                    textEl.innerHTML = item.value || item.value_f;
+                    textEl.innerHTML = item.value || item.value_f || item.value_smv || item.value_imv
+                        || item.value_fmv || item.value_dtmv || item.value_htmlmv;
 
                     inputEl = document.createElement("input");
                     inputEl.type = "checkbox";

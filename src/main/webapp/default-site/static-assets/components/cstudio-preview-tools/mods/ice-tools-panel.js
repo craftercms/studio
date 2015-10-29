@@ -1,7 +1,7 @@
 CStudioAuthoring.Utils.addJavascript("/static-assets/modules/editors/tiny_mce/tiny_mce.js");
 CStudioAuthoring.Utils.addJavascript("/static-assets/components/cstudio-forms/forms-engine.js");
 
-
+var initRegCookie;
 /**
  * editor tools
  */
@@ -86,17 +86,16 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         wrapper.appendChild(templateButtonEl);
         container.appendChild(wrapper);
 
-        window.frames['engineWindow'].addEventListener("load", function(){
+        initRegCookie = function(){
 
             try {
-                var inside = this.contentDocument.querySelectorAll('[data-studio-ice]'),
-                    regions = [];
+                var regions = JSON.parse(sessionStorage.getItem('ice-tools-content'));
 
-                if (inside.length > 0) {
+                for (i = 0; i < regionSelectEl.length; i++) {
+                    regionSelectEl.options[i] = null;
+                }
 
-                    for (var i = 0; i <= (inside.length) - 1; i++) {
-                        regions.push({id: inside[i].getAttribute('data-studio-ice'), formId: inside[i].getAttribute('data-studio-ice'), label: inside[i].getAttribute('data-studio-ice-label')});
-                    }
+                if (regions.length > 0) {
 
                     regionSelectEl.options[0] = new Option(CMgs.format(previewLangBundle, "jumpToRegion"), "0", true, false);
                     for (var i = 0; i < regions.length; i++) {
@@ -121,13 +120,12 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                     regionSelectEl.options[0] = new Option("No Regions", "0", true, false);
                 }
             }
-            catch(err){
-                if( window.console && window.console.log) {
+            catch (err) {
+                if (window.console && window.console.log) {
                     console.log(err);
                 }
             }
-
-        });
+        }
 
         templateButtonEl.onclick = function() {
 			var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
@@ -170,6 +168,12 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
 		if(iceOn) {
 			CStudioAuthoring.IceTools.turnEditOn();
 		}
+
+        // Create the event
+        var event = new CustomEvent("name-of-event", { "detail": "Example of an event" });
+
+// Dispatch/Trigger/Fire the event
+        document.dispatchEvent(event);
 	}
 }
 

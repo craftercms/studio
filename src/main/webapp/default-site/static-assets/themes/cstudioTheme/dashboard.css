@@ -161,3 +161,9 @@ div.dashlet div.detail-list-item.first-item
 	text-decoration: none;
 	cursor: pointer;
 }
+
+#GoLiveQueue th:nth-child(2), #approvedScheduledItems th:nth-child(2), #recentlyMadeLive th:nth-child(2), #MyRecentActivity th:nth-child(2){
+    padding-left:0px
+}
+
+

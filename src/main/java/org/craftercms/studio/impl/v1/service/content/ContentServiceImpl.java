@@ -53,6 +53,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.impl.v1.deployment.PreviewSync;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -67,6 +68,7 @@ import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -256,7 +258,8 @@ public class ContentServiceImpl implements ContentService {
             String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
-            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            previewSync.syncPath(site, relativePath, repositoryEventContext);
+            //repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -727,6 +730,9 @@ public class ContentServiceImpl implements ContentService {
             if (!item.isFolder() || item.isContainer()) {
                 populateWorkflowProperties(site, item);
                 //item.setLockOwner("");
+            } else {
+                item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
+                item.isNew = item.isNew();
             }
         }
         catch(Exception err) {
@@ -756,8 +762,8 @@ public class ContentServiceImpl implements ContentService {
                 item.isPreviewable = item.previewable;
             }
         } else {
-            FileNameMap fileNameMap = URLConnection.getFileNameMap();
-            String mimeType = fileNameMap.getContentTypeFor(item.getUri());
+            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+            String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                 item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig.getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
@@ -769,9 +775,15 @@ public class ContentServiceImpl implements ContentService {
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
         ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
-            item.setNew(org.craftercms.studio.api.v1.service.objectstate.State.isNew(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            if (item.isFolder()) {
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
+                item.setLive(liveFolder);
+            } else {
+                item.setNew(org.craftercms.studio.api.v1.service.objectstate.State.isNew(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+                item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
+            }
             item.isNew = item.isNew();
-            item.setLive(org.craftercms.studio.api.v1.service.objectstate.State.isLive(org.craftercms.studio.api.v1.service.objectstate.State.valueOf(state.getState())));
             item.isLive = item.isLive();
             item.setInProgress(!item.isLive());
             item.isInProgress = item.isInProgress();
@@ -781,6 +793,14 @@ public class ContentServiceImpl implements ContentService {
             item.isSubmitted = item.isSubmitted();
             item.setInFlight(state.getSystemProcessing() == 1);
             item.isInFlight = item.isInFlight();
+        } else {
+            if (item.isFolder()) {
+                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
+                item.setNew(!liveFolder);
+                item.setLive(liveFolder);
+                item.isNew = item.isNew();
+                item.isLive = item.isLive();
+            }
         }
     }
 
@@ -823,6 +843,9 @@ public class ContentServiceImpl implements ContentService {
                 item.eventDate = metadata.getModified();
                 item.setLastEditDate(metadata.getModified());
                 item.setEventDate(metadata.getModified());
+            }
+            if (StringUtils.isNotEmpty(metadata.getSubmissionComment())) {
+                item.setSubmissionComment(metadata.getSubmissionComment());
             }
         } else {
             item.setLockOwner("");
@@ -1343,6 +1366,7 @@ public class ContentServiceImpl implements ContentService {
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
+    protected PreviewSync previewSync;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1385,4 +1409,7 @@ public class ContentServiceImpl implements ContentService {
 
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
+
+    public PreviewSync getPreviewSync() { return previewSync; }
+    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
 }

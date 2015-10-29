@@ -76,7 +76,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return root prefix
 	 */
-	public String getRootPrefix(final String site);
+	String getRootPrefix(final String site);
 	
 	/**
 	 * get the name of the web project for the given site
@@ -84,7 +84,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return web project name
 	 */
-	public String getWemProject(final String site);
+	String getWemProject(final String site);
 
     /**
      * get a list of folder configuration. The top folders are used to as the
@@ -94,7 +94,7 @@ public interface ServicesConfig {
      * @param site
      * @return a list of folder configuration
      */
-    public List<DmFolderConfigTO> getFolders(final String site);
+    List<DmFolderConfigTO> getFolders(final String site);
 
 	/**
 	 * get DM content type configuration by the given site and name
@@ -102,49 +102,49 @@ public interface ServicesConfig {
 	 * @param name
 	 * @return content type
 	 */
-	public ContentTypeConfigTO getContentTypeConfig(String site, String name);
+	ContentTypeConfigTO getContentTypeConfig(String site, String name);
 	
 	/**
 	 * get component item URI patterns
 	 * 
 	 * @return component item URI patterns
 	 */
-	public List<String> getComponentPatterns(String site);
+	List<String> getComponentPatterns(String site);
 
 	/**
 	 * get asset item URI patterns
 	 * 
 	 * @return asset item URI patterns
 	 */
-	public List<String> getAssetPatterns(String site);
+	List<String> getAssetPatterns(String site);
 	
 	/**
 	 * get page item URI patterns
 	 * 
 	 * @return page item URI patterns
 	 */
-	public List<String> getPagePatterns(String site);
+	List<String> getPagePatterns(String site);
 
 	/**
 	 * get document item URI patterns
 	 * 
 	 * @return document item URI patterns
 	 */
-	public List<String> getDocumentPatterns(String site);
+	List<String> getDocumentPatterns(String site);
 
     /**
      * get rendering template item URI patterns
      *
      * @return rendering template item URI patterns
      */
-    public List<String> getRenderingTemplatePatterns(String site);
+    List<String> getRenderingTemplatePatterns(String site);
 
     /**
      * get level descriptor item URI patterns
      *
      * @return level descriptor item URI patterns
      */
-    public List<String> getLevelDescriptorPatterns(String site);
+    List<String> getLevelDescriptorPatterns(String site);
 
 	/**
 	 * get the category root path specified for each category (e.g. /site/websites for Pages)
@@ -161,7 +161,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return level descriptor name
 	 */
-	public String getLevelDescriptorName(String site);
+	String getLevelDescriptorName(String site);
 
 	
 	/**
@@ -170,7 +170,7 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return delete dependencys patterns
 	 */
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site, String contentType);
+	List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site, String contentType);
 	
 	/**
 	 * get the copy dependencies pattern for a content type
@@ -179,7 +179,7 @@ public interface ServicesConfig {
 	 * @param contentType
 	 * @return
 	 */
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType);
+	List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType);
 	
 	/**
 	 * get the default search configuration for all content types
@@ -203,22 +203,15 @@ public interface ServicesConfig {
 	 * @param site
 	 * @return a list of paths to display in widgets
 	 */
-	public List<String> getDisplayInWidgetPathPatterns(String site);
+	List<String> getDisplayInWidgetPathPatterns(String site);
 
 	/**
 	 * get the default timezone value
 	 * @param site
 	 * @return default timezone
 	 */
-	public String getDefaultTimezone(String site);
-	
-	/**
-	 * is configuration for the site updated?
-	 * 
-	 * @param site
-	 * @return
-	 */
-	public boolean isUpdated(String site);
+	String getDefaultTimezone(String site);
+
 	
 	/**
 	 * 
@@ -239,10 +232,6 @@ public interface ServicesConfig {
     
     List<String> getPreviewableMimetypesPaterns(String site);
 
+    void reloadConfiguration(String site);
 
-    //public String getLiveRepositoryPath(String site);
-    
-    public boolean siteExists(String site);
-
-    Set<String> getAllAvailableSites();
 }

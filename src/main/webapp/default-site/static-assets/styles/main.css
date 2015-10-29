@@ -6279,9 +6279,10 @@ a[ng-click] {
   .user-display .name {
     font-size: 1.5em; }
   .user-display #language {
-    width: 45%;
+    width: 42%;
     display: inline-block;
-    margin-top: 20px; }
+    margin-top: 20px;
+    max-width: 370px; }
 
 small .text-sm {
   font-size: 40%; }
