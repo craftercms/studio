@@ -171,8 +171,10 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "en", {
 
 CStudioAuthoring.Messages.registerBundle("siteDropdown", "en", {
     pages: "Pages",
+    Pages: "Pages",
     page: "Page",
     components: "Components",
+    Components: "Components",
     component: "Component",
     staticassets: "Static Assets",
     templates: "Templates",
