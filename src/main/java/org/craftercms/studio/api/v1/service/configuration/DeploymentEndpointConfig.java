@@ -25,10 +25,6 @@ public interface DeploymentEndpointConfig {
 
     DeploymentEndpointConfigTO getDeploymentConfig(String site, String endpoint);
 
-    boolean isUpdated(String site);
-
-    boolean exists(String site);
-
     DeploymentConfigTO getSiteDeploymentConfig(String site);
 
     void reloadConfiguration(String site);

@@ -183,6 +183,12 @@ public class CachedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public String createVersion(String path, String comment, boolean majorVersion) {
+        // nothing to cache
+        return wrappedRepo.createVersion(path, comment, majorVersion);
+    }
+
+    @Override
     public boolean revertContent(String path, String label, boolean major, String comment) {
         // nothing to cache
         return wrappedRepo.revertContent(path, label, major, comment);

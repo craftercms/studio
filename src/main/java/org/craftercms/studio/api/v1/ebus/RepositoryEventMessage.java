@@ -21,12 +21,14 @@ package org.craftercms.studio.api.v1.ebus;
 
 import org.craftercms.commons.http.RequestContext;
 
+import java.io.Serializable;
+
 /**
  * Repository event message.
  *
  * @author Dejan Brkic
  */
-public class RepositoryEventMessage {
+public class RepositoryEventMessage implements Serializable {
 
     private String site;
     private String path;

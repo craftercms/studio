@@ -334,8 +334,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	 */
 	protected ContentItemTO createActivityItem(String site, JSONObject feedObject, String id) {
 		try {
-			ContentItemTO item = null;
-			if(!contentService.contentExists(site, id)) {
+			ContentItemTO item = contentService.getContentItem(site, id, 0);
+			if(item == null || item.isDeleted()) {
 				item = contentService.createDummyDmContentItemForDeletedNode(site, id);
 				String modifier = (feedObject.containsKey(ACTIVITY_PROP_FEEDUSER)) ? feedObject.getString(ACTIVITY_PROP_FEEDUSER) : "";
 				if(modifier != null && !modifier.isEmpty()) {
@@ -364,9 +364,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 					item.browserUri = browserUri;
 				}
                 item.setLockOwner("");
-			} else {
-                item = contentService.getContentItem(site, id, 0);
-            }
+			}
 			String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ? feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
 			Date editedDate = ContentUtils.getEditedDate(postDate);
 			item.eventDate = editedDate;

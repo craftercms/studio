@@ -45,6 +45,35 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 			];
 			CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 	},
+
+    titleNameValidation: function(formDef) {
+        var sections = formDef.sections;
+        var datasources = formDef.datasources;
+        var idError = [];
+        var flagTitleError = false;
+
+        for(var i = 0; i<sections.length; i++){
+            for(var j = 0; j<sections[i].fields.length; j++){
+                if(!sections[i].fields[j].title || sections[i].fields[j].title == ''){
+                    flagTitleError = true;
+                }
+                if ( (!sections[i].fields[j].id || sections[i].fields[j].id == '') && (sections[i].fields[j].title && sections[i].fields[j].title != '')){
+                    idError.push(sections[i].fields[j].title);
+                }
+            }
+        }
+
+        for(var i = 0; i<datasources.length; i++){
+            if(!datasources[i].title || datasources[i].title == ''){
+                flagTitleError = true;
+            }
+            if ( (!datasources[i].id || datasources[i].id == '') && (datasources[i].title && datasources[i].title != '')){
+                idError.push(datasources[i].title);
+            }
+        }
+
+        return {flagTitleError:flagTitleError, idError:idError}
+    },
 	
 	openExistingItemRender: function(contentType) {
 		var _self = this;
@@ -61,30 +90,42 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 				
 				// render save bar
 				CStudioAdminConsole.CommandBar.render([{label:CMgs.format(langBundle, "save"), fn: function() {
-							var xml = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.serializeDefinitionToXml(formDef);
 
-							var cb = { success: function() { 
-											CStudioAdminConsole.isDirty = false; 
-											alert(CMgs.format(langBundle, "saved"));
-									  }, 
-							           failure: function() { 
-							           		alert(CMgs.format(langBundle, "saveFailed"));
-							           },
-							           CMgs: CMgs,
-							           langBundle: langBundle
-									};
-							
-	   				var defPath = '/cstudio/config/sites/' + 
-							          CStudioAuthoringContext.site +
-							          '/content-types' + formDef.contentType +
-							          '/form-definition.xml';
-							          
-                    var url = "/api/1/services/api/1/site/write-configuration.json" +
-                        "?path=" + defPath;
+                            var validation = _self.titleNameValidation(formDef);
 
-							YAHOO.util.Connect.setDefaultPostHeader(false);
-							YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-							YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, xml);
+                            if(validation.flagTitleError){
+                                alert(CMgs.format(langBundle, "saveFailed") + CMgs.format(langBundle, "errorTitle"));
+                            }else{
+                                if(validation.idError.length > 0){
+                                    alert(CMgs.format(langBundle, "saveFailed") + CMgs.format(langBundle, "errorName") + validation.idError.toString().replace(/,/g,", "));
+                                }else {
+
+                                    var xml = CStudioAdminConsole.Tool.ContentTypes.FormDefMain.serializeDefinitionToXml(formDef);
+
+                                    var cb = { success: function () {
+                                        CStudioAdminConsole.isDirty = false;
+                                        alert(CMgs.format(langBundle, "saved"));
+                                    },
+                                        failure: function () {
+                                            alert(CMgs.format(langBundle, "saveFailed"));
+                                        },
+                                        CMgs: CMgs,
+                                        langBundle: langBundle
+                                    };
+
+                                    var defPath = '/cstudio/config/sites/' +
+                                        CStudioAuthoringContext.site +
+                                        '/content-types' + formDef.contentType +
+                                        '/form-definition.xml';
+
+                                    var url = "/api/1/services/api/1/site/write-configuration.json" +
+                                        "?path=" + defPath;
+
+                                    YAHOO.util.Connect.setDefaultPostHeader(false);
+                                    YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
+                                    YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, xml);
+                                }
+                            }
 						}	
 					},
 					{label:"Cancel", fn: function() {
@@ -1233,8 +1274,12 @@ CStudioAdminConsole.PropertySheet.prototype = {
 
 	renderDatasourcePropertySheet: function(item, sheetEl) {
 
-		function getSelectedOption(valueArray) {
+		function getSelectedOption(valueArray, isString) {
 			var val = null;
+
+            if( isString && typeof valueArray === 'string' ) {
+                valueArray = JSON.parse(valueArray);
+            }
 
             [].forEach.call(valueArray, function(obj) {
 	            if (obj.selected) {
@@ -1273,8 +1318,14 @@ CStudioAdminConsole.PropertySheet.prototype = {
 		var valueSelected, defaultSelected;
 
 		this.createRowHeading(CMgs.format(langBundle, "datasourceBasics"), sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "", "string",  sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn(CMgs.format(langBundle, "name"),  "name", item.id, "", "string",  sheetEl,  function(e, el) { item.id = el.value; });
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "", "variable",  sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
+		this.createRowFn(CMgs.format(langBundle, "name"),  "name", item.id, "", "variable",  sheetEl,  function(e, el) { item.id = el.value; });
 
 		this.createRowHeading(CMgs.format(langBundle, "properties"), sheetEl);
 		var type = CStudioAdminConsole.Tool.ContentTypes.datasources[item.type];
@@ -1299,7 +1350,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				} else {
 					// Default value is an array (e.g. key-value-list)
 					// Update the value in case the default value has changed
-					valueSelected = getSelectedOption(itemProperty.value);
+					valueSelected = getSelectedOption(itemProperty.value, true);
 					defaultSelected = getSelectedOption(property.defaultValue);
 
 					value = updateSelected(property.defaultValue, defaultSelected, valueSelected);
@@ -1338,7 +1389,6 @@ CStudioAdminConsole.PropertySheet.prototype = {
 				sheetEl, 
 				function(e, el) { updatePropertyFn(el.fieldName, el.value); });
 		}
-
 	},
 
 	renderSectionPropertySheet: function(item, sheetEl) {
@@ -1362,8 +1412,14 @@ CStudioAdminConsole.PropertySheet.prototype = {
         if(item.id == undefined){item.id = "";}
 
 		this.createRowHeading("Repeat Group Basics", sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "",  "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title, "",  "variable", sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
+		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "variable", sheetEl, function(e, el) { item.id = el.value; });
 		
 		this.createRowFn(CMgs.format(langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "description"), "description", item.description, "", "string",  sheetEl,  function(e, el) { item.description = el.value; });
@@ -1374,8 +1430,14 @@ CStudioAdminConsole.PropertySheet.prototype = {
 	renderFieldPropertySheet: function(item, sheetEl) {
 
 		this.createRowHeading(CMgs.format(langBundle, "fieldBasics"), sheetEl);
-		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title,  "", "string", sheetEl, function(e, el) { item.title = el.value; } );
-		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "string", sheetEl, function(e, el) { item.id = el.value; });
+		this.createRowFn(CMgs.format(langBundle, "title"), "title", item.title,  "", "variable", sheetEl, function(e, el) {
+            if(YDom.hasClass(el,"property-input-title")) {
+                item.title = el.value;
+            }else{
+                item.id = el.value;
+            }
+        } );
+		this.createRowFn(CMgs.format(langBundle, "variableName"), "id", item.id,  "", "variable", sheetEl, function(e, el) { item.id = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "iceGroup"), "iceGroup", item.iceId,  "", "string", sheetEl,  function(e, el) { item.iceId = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "description"), "description", item.description, "",  "string", sheetEl,  function(e, el) { item.description = el.value; });
 		this.createRowFn(CMgs.format(langBundle, "defaultValue"), "defaultValue", item.defaultValue, "", "string", sheetEl,  function(e, el) { item.defaultValue = el.value; });
@@ -1510,7 +1572,7 @@ CStudioAdminConsole.PropertySheet.prototype = {
 			moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
 	   			try {
 	   				var propControl = new moduleClass(fName, propertyContainerEl, this.self.form, type);
-	   				propControl.render(value, fn);
+	   				propControl.render(value, fn, fName);
 	   			} 
 		   		catch (e) {
 				}	

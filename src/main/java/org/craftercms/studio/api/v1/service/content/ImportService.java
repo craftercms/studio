@@ -14,25 +14,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.api.v1.ebus;
+package org.craftercms.studio.api.v1.service.content;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+public interface ImportService {
 
-import java.io.Serializable;
-
-public class ClearCacheEventMessage implements Serializable {
-
-    @JsonCreator
-    public ClearCacheEventMessage(@JsonProperty("site")String site) {
-        super();
-        this.site = site;
-    }
-
-    private String site;
-
-    public String getSite() { return site; }
-    public void setSite(String site) { this.site = site; }
+    void importSite(String configLocation);
 }

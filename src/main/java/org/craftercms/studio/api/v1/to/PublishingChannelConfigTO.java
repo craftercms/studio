@@ -20,34 +20,28 @@ package org.craftercms.studio.api.v1.to;
 public class PublishingChannelConfigTO {
 
     /** publishing channel ID **/
-    protected String _id;
-    public String getId() {
-        return _id;
-    }
-    public void setId(String id) {
-        this._id = id;
-    }
+    protected String id;
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     /** publishing channel name **/
-    protected String _name;
-    public String getName() {
-        return _name;
-    }
-    public void setName(String name) {
-        this._name = name;
-    }
+    protected String name;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     /** publishing channel type **/
-    protected String _type;
-    public String getType() {
-        return _type;
-    }
-    public void setType(String type) {
-        this._type = type;
-    }
-	@Override
+    protected String type;
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    /** publishing channel order **/
+    protected int order = Integer.MAX_VALUE;
+    public int getOrder() { return order; }
+    public void setOrder(int order) { this.order = order; }
+
+    @Override
 	public String toString() {
-		return _name;
+		return name;
 	}
 
 }

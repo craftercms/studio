@@ -126,4 +126,16 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(providerType);
         return provider.logout();
     }
+
+    @Override
+    public void addContentWritePermission(String path, String group) {
+        SecurityProvider provider = lookupProvider(providerType);
+        provider.addContentWritePermission(path, group);
+    }
+
+    @Override
+    public void addConfigWritePermission(String path, String group) {
+        SecurityProvider provider = lookupProvider(providerType);
+        provider.addContentWritePermission(path, group);
+    }
 }

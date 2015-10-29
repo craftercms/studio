@@ -65,7 +65,7 @@ class CommonLifecycleApi {
         } else if (contentLifecycleParams.contentLifecycleOperation == "DUPLICATE") {
             onDuplicate(contentLifecycleParams.site, contentLifecycleParams.path);
         } else if (contentLifecycleParams.contentLifecycleOperation == "NEW") {
-            onNew(scontentLifecycleParams.ite, contentLifecycleParams.path);
+            onNew(contentLifecycleParams.site, contentLifecycleParams.path);
         } else if (contentLifecycleParams.contentLifecycleOperation == "RENAME") {
             onRename(contentLifecycleParams.site, contentLifecycleParams.path);
         } else if (contentLifecycleParams.contentLifecycleOperation == "REVERT") {

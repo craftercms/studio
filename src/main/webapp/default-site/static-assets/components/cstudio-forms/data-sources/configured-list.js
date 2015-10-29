@@ -12,16 +12,18 @@ function(id, form, properties, constraints)  {
 		if(property.name == "listName") {
 			var cb = { 
 				success: function(config) {
-					var values = config.values.item;
-			  		if(!values.length) {
-						values = [ values.item ];
-					}
-					
-					_self.list = values;
-					
-					for(var j=0; j<_self.callbacks.length; j++) {
-						_self.callbacks[j].success(values);
-					}
+					if(config){
+                        var values = config.values.item;
+                        if(!values.length) {
+                            values = [ values.item ];
+                        }
+
+                        _self.list = values;
+
+                        for(var j=0; j<_self.callbacks.length; j++) {
+                            _self.callbacks[j].success(values);
+                        }
+                    }
 				},
 				failure: function() {
 				}

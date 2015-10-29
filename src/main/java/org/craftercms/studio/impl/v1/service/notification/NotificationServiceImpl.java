@@ -18,6 +18,9 @@
 package org.craftercms.studio.impl.v1.service.notification;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -29,6 +32,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -43,7 +47,7 @@ import java.util.*;
  * @author hyanghee
  *
  */
-public class NotificationServiceImpl extends ConfigurableServiceBase implements NotificationService {
+public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
@@ -66,6 +70,9 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     protected SiteService siteService;
     protected SecurityService securityService;
     protected ContentService contentService;
+    protected String configPath;
+    protected String configFileName;
+    protected CacheTemplate cacheTemplate;
 
     public String getPreviewBaseUrl() {
         return previewBaseUrl;
@@ -83,9 +90,6 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         this.liveBaseUrl = liveBaseUrl;
     }
 
-    /** site notification configuration mapping **/
-    protected Map<String, NotificationConfigTO> notificationConfigMap = new HashMap<String, NotificationConfigTO>();
-
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
@@ -98,15 +102,19 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    @Override
-    public void register() {
-        this._servicesManager.registerService(NotificationService.class, this);
-    }
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
     @Override
     public boolean sendNotice(String site, String action) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Boolean sendNotice = config.getSendNoticeMapping().get(action);
             if (sendNotice != null) {
@@ -117,10 +125,26 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         return true;
     }
 
+    protected NotificationConfigTO getNotificationConfig(final String site) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        NotificationConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<NotificationConfigTO>() {
+            @Override
+            public NotificationConfigTO execute() {
+                return loadConfiguration(site);
+            }
+        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        return config;
+    }
+
     @Override
     public String getGeneralMessage(String site, String key) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getMessages();
             if (messages != null) {
@@ -133,7 +157,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     @Override
     public List<MessageTO> getCannedRejectionReasons(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, List<MessageTO>> messages = config.getCannedMessages();
             if (messages != null) {
@@ -145,7 +169,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -157,7 +181,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -169,7 +193,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -181,7 +205,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -193,7 +217,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -205,7 +229,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -217,7 +241,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -229,7 +253,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -241,7 +265,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
             if (messages != null) {
@@ -254,7 +278,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     @Override
     public String getCompleteMessage(final String site, final String key) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getCompleteMessages();
             if (messages != null) {
@@ -267,7 +291,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     @Override
     public String getErrorMessage(String site, String key, Map<String, String> params) {
         //checkForUpdate(site);
-        NotificationConfigTO config = notificationConfigMap.get(site);
+        NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getErrorMessages();
             if (messages != null) {
@@ -348,8 +372,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     public void sendGenericNotification(String site, String path, String to, String from, String key, Map<String,String> params) {
         try {
             EmailMessageTemplateTO template = null;
-            checkForUpdate(site);
-            NotificationConfigTO config = notificationConfigMap.get(site);
+            NotificationConfigTO config = getNotificationConfig(site);
             if (config != null) {
                 Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
                 if (messages != null)
@@ -374,16 +397,15 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
     }
 
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void loadConfiguration(final String key) {
-
-        String configFullPath = getConfigFullPath(key);
+    protected NotificationConfigTO loadConfiguration(final String site) {
+        String configFullPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+        configFullPath = configFullPath + "/" + configFileName;
+        NotificationConfigTO config = null;
         try {
             Document document = contentService.getContentAsDocument(configFullPath);
             if (document != null) {
                 Element root = document.getRootElement();
-                NotificationConfigTO config = new NotificationConfigTO();
+                config = new NotificationConfigTO();
                 Node configNode = root.selectSingleNode("/notification-config");
                 if (configNode != null) {
                     loadCannedMessages(config, configNode.selectNodes("canned-messages/messages"));
@@ -396,17 +418,16 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
                     config.setMessages(generalMessages);
                     Map<String, Boolean> noticeMapping = loadSendNoticeMapping(configNode.selectSingleNode("send-notifications"));
                     config.setSendNoticeMapping(noticeMapping);
-                    config.setSite(key);
+                    config.setSite(site);
                     config.setLastUpdated(new Date());
-                    notificationConfigMap.put(key, config);
                 } else {
-                    logger.error("Notification config is not found for " + key);
+                    logger.error("Notification config is not found for " + site);
                 }
             }
         } catch (Exception ex) {
-            logger.error("Notification config is not found for " + key, ex);
+            logger.error("Notification config is not found for " + site, ex);
         }
-
+        return config;
     }
 
 
@@ -458,11 +479,6 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         return null;
     }
 
-    @Override
-    protected String getConfigFullPath(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
-        return siteConfigPath + "/" + configFileName;
-    }
 
     /**
      * load canned messages from the configuration file
@@ -510,15 +526,6 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
                 }
             }
             config.setEmailMessageTemplates(messageMap);
-        }
-    }
-
-
-
-    @Override
-    protected void removeConfiguration(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            notificationConfigMap.remove(key);
         }
     }
  
@@ -601,9 +608,16 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
             userEmailAddress=adminEmailAddress;
 */
 
-        if(userEmailAddress == null || "".equals(userEmailAddress)) {
+        if(StringUtils.isEmpty(userEmailAddress)) {
             Map<String, String> profile = securityService.getUserProfile(toUser);
-            userEmailAddress = profile.get("email");
+            if (profile != null) {
+                userEmailAddress = profile.get("email");
+            }
+        }
+
+        if (StringUtils.isEmpty(userEmailAddress)) {
+            logger.error("Not able to find valid email address for user " + toUser + ", not sending any email");
+            return;
         }
 
         Map<String, String> fromProfile = securityService.getUserProfile(fromUser);
@@ -629,9 +643,11 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         boolean isDocument = false;
         boolean isExternalDocument = false;
         String documentUrl = "";
+        String browserUri = "";
         ContentItemTO contentItem = contentService.getContentItem(site, relativeUrl, 0);
         if (contentItem != null) {
             itemName = contentItem.getInternalName();
+            browserUri = contentItem.getBrowserUri();
 
             if (contentItem.isPreviewable() && contentItem.isDocument()) {
                 isDocument = true;
@@ -657,7 +673,7 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
         String absolutePath = contentService.expandRelativeSitePath(site, relativeUrl);
         DmPathTO path = new DmPathTO(absolutePath);
         String name = path.getName();
-        String browserUri = contentItem.getBrowserUri();
+
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativeUrl.replace("/" + name, "") : relativeUrl;
         String internalName = folderPath;
         int index = folderPath.lastIndexOf('/');
@@ -701,13 +717,16 @@ public class NotificationServiceImpl extends ConfigurableServiceBase implements 
 
     @Override
     public void reloadConfiguration(String site) {
-        if (isConfigUpdated(site)) {
-            loadConfiguration(site);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
         }
+        NotificationConfigTO config = loadConfiguration(site);
+        cacheService.put(cacheContext, cacheKey, config);
     }
 
-    @Override
-    protected TimeStamped getConfigurationById(String key) {
-        return notificationConfigMap.get(key);
-    }
 }

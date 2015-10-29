@@ -80,14 +80,6 @@ public interface SiteEnvironmentConfig {
 	 * @return
 	 */
 	public EnvironmentConfigTO getEnvironmentConfig(String site);
-	
-	/**
-	 * check if the site environment configuration is updated
-	 * 
-	 * @param site
-	 * @return
-	 */
-	public boolean isUpdated(String site);
 
     /**
      * get Publishing Channels configuration

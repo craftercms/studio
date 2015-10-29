@@ -48,6 +48,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "kr", {
     dashletRecentDeployColURL: "URL",
     dashletRecentDeployColEndpoint: "서버",
     dashletRecentDeployColDeployBy: "에 의해 게시",
+    dashletRecentDeployColLastEdited: "최근 편집",
 
     dashletMyRecentActivityTitle: "내 최근 활동",
     dashletMyRecentActivityHideLiveItems: "라이브 항목 숨기기",
@@ -543,7 +544,9 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
     confTabSiteConf: "사이트 구성",
     confTabSiteConfDesc: "일반 사이트 구성을 정의",
     confTabWorkflowConf: "워크 플로우 구성",
-    confTabWorkflowConfDesc: "시스템에서 사용할 수있는 워크 플로우를 정의"
+    confTabWorkflowConfDesc: "시스템에서 사용할 수있는 워크 플로우를 정의",
 
-
+    /* Errors */
+    errorTitle: ". 필드와 데이터 소스에 대한 모든 제목을 입력 해주세요.",
+    errorName: ". 대한 변수 이름을 기입하십시오: "
 });

@@ -45,4 +45,8 @@ public interface SecurityProvider {
     void addUserToGroup(String groupName, String user);
 
     boolean logout();
+
+    void addContentWritePermission(String path, String group);
+
+    void addConfigWritePermission(String path, String group);
 }

@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,6 +33,7 @@ import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -37,16 +41,17 @@ import org.dom4j.Node;
 
 import java.util.*;
 
-public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implements SiteEnvironmentConfig {
+public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SiteEnvironmentConfigImpl.class);
 
-            /** sites and environments mapping **/
-    protected Map<String, EnvironmentConfigTO> siteMapping = new HashMap<String, EnvironmentConfigTO>();
 	/** environment key (e.g. dev, qa, staging..) **/
 	protected String environment;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
+    protected String configPath;
+    protected String configFileName;
+    protected CacheTemplate cacheTemplate;
 
 	public ServicesConfig getServicesConfig() { return servicesConfig; }
 	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
@@ -54,19 +59,34 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	public ContentService getContentService() { return contentService; }
 	public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-	@Override
-    public void register() {
-        this._servicesManager.registerService(SiteEnvironmentConfig.class, this);
-    }
+    public String getConfigPath() { return configPath; }
+    public void setConfigPath(String configPath) { this.configPath = configPath; }
+
+    public String getConfigFileName() { return configFileName; }
+    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
     /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getEnvironmentConfig(java.lang.String)
-      */
+              * (non-Javadoc)
+              * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getEnvironmentConfig(java.lang.String)
+              */
 	@Override
-	public EnvironmentConfigTO getEnvironmentConfig(String site) {
-		//checkForUpdate(site);
-		return siteMapping.get(site);
+	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        EnvironmentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<EnvironmentConfigTO>() {
+            @Override
+            public EnvironmentConfigTO execute() {
+                return loadConfiguration(site);
+            }
+        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        return config;
 	}
 
 
@@ -76,7 +96,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 */
 	public String getPreviewServerUrl(String site) {
 		//checkForUpdate(site);
-		EnvironmentConfigTO config = siteMapping.get(site);
+		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			String previewServerUrl = config.getPreviewServerUrl();
 			if (!StringUtils.isEmpty(previewServerUrl)) {
@@ -91,7 +111,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	
 	public String getLiveServerUrl(String site) {
 		//checkForUpdate(site);
-		EnvironmentConfigTO config = siteMapping.get(site);
+		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getLiveServerUrl();
 		}
@@ -100,7 +120,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	
 	public String getAdminEmailAddress(String site) {
 		//checkForUpdate(site);
-		EnvironmentConfigTO config = siteMapping.get(site);
+		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAdminEmailAddress();
 		}
@@ -114,7 +134,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 */
 	public String getAuthoringServerUrl(String site) {
 		//checkForUpdate(site);
-		EnvironmentConfigTO config = siteMapping.get(site);
+		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAuthoringServerUrl();
 		}
@@ -127,7 +147,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 	 */
 	public String getFormServerUrl(String site) {
 		//checkForUpdate(site);
-		EnvironmentConfigTO config = siteMapping.get(site);
+		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getFormServerUrlPattern();
 		}
@@ -140,35 +160,17 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 		return null;
 	}
 
-	@Override
-	public boolean isUpdated(String site) {
-		return super.isConfigUpdated(site);
-	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#getConfigurationById(java.lang.String)
-	 */
-	protected TimeStamped getConfigurationById(String key) {
-		return siteMapping.get(key);
-	}
-
-    @Override
-    protected void removeConfiguration(String key) {
-        if (!StringUtils.isEmpty(key)) {
-            siteMapping.remove(key);
-        }
-    }
 
     /*
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#loadConfiguration(java.lang.String)
       */
-	protected void loadConfiguration(String key) {
+	protected EnvironmentConfigTO loadConfiguration(String key) {
 		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
 				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
 		configLocation = configLocation + "/" + configFileName;
-
+        EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
 			document = contentService.getContentAsDocument(configLocation);
@@ -177,7 +179,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 		}
 		if (document != null) {
             Element root = document.getRootElement();
-			EnvironmentConfigTO config = new EnvironmentConfigTO();
+			config = new EnvironmentConfigTO();
 			String previewServerUrl = root.valueOf("preview-server-url");
 			config.setPreviewServerUrl(previewServerUrl);
 			
@@ -228,6 +230,19 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
                         }
                     }
                 }
+                node = element.selectSingleNode("order");
+                if (node != null) {
+                    String orderStr = node.getText();
+                    if (StringUtils.isNotEmpty(orderStr)) {
+                        try {
+                            int orderVal = Integer.parseInt(orderStr);
+                            pcgConfigTo.setOrder(orderVal);
+                        } catch (NumberFormatException exc) {
+                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]", pcgConfigTo.getName(), configLocation));
+                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]", pcgConfigTo.getOrder(), pcgConfigTo.getName()));
+                        }
+                    }
+                }
                 config.getPublishingChannelGroupConfigs().put(pcgConfigTo.getName(), pcgConfigTo);
             }
 
@@ -235,14 +250,22 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
             config.setPreviewDeploymentEndpoint(previewDeploymentEndpoint);
             
 			config.setLastUpdated(new Date());
-			
-			siteMapping.put(key, config);
 		}
+        return config;
 	}
 
     @Override
     public void reloadConfiguration(String site) {
-        loadConfiguration(site);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        if (cacheService.hasScope(cacheContext)) {
+            cacheService.remove(cacheContext, cacheKey);
+        } else {
+            cacheService.addScope(cacheContext);
+        }
+        EnvironmentConfigTO config = loadConfiguration(site);
+        cacheService.put(cacheContext, cacheKey, config);
     }
 
     /**
@@ -262,7 +285,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
     @Override
     public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
         //checkForUpdate(site);
-        EnvironmentConfigTO config = siteMapping.get(site);
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPublishingChannelGroupConfigs();
         }
@@ -272,7 +295,7 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
     @Override
     public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site) {
         //checkForUpdate(site);
-        EnvironmentConfigTO config = siteMapping.get(site);
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getLiveEnvironmentPublishingGroup();
         }
@@ -281,23 +304,18 @@ public class SiteEnvironmentConfigImpl extends ConfigurableServiceBase implement
 
     @Override
     public boolean exists(String site) {
-        if (siteMapping == null) return false;
-        return siteMapping.get(site) != null;
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
+        return config != null;
     }
 
     @Override
     public String getPreviewDeploymentEndpoint(String site) {
         //checkForUpdate(site);
-        EnvironmentConfigTO config = siteMapping.get(site);
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPreviewDeploymentEndpoint();
         }
         return null;
     }
 
-    @Override
-    protected String getConfigFullPath(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
-        return siteConfigPath + "/" + configFileName;
-    }
 }

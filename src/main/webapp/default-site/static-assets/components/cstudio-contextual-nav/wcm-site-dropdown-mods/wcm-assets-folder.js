@@ -270,6 +270,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
             if(treeNodeTO.previewable == false) {
                 treeNode.labelStyle += " no-preview";
+            }else{
+                treeNode.labelStyle += " preview";
             }
             treeNode.labelStyle+= "  yui-resize-label";
             treeNode.nodeType = "CONTENT";
@@ -360,8 +362,10 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
      * method fired when tree item is clicked
      */
     onTreeNodeClick: function(node)	{
-        if (!node.data.isLevelDescriptor && !node.data.isContainer) {
-            CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
+        if (node.data.previewable == true) {
+            if (!node.data.isLevelDescriptor && !node.data.isContainer) {
+                CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
+            }
         }
 
         return false;
@@ -407,8 +411,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             retTransferObj.internalName = "Section Defaults";
         }
 
-        if(treeItem.newFile) {
-            retTransferObj.label = retTransferObj.internalName + "*";
+        if(treeItem.isNew) {
+            retTransferObj.label = retTransferObj.internalName + " *";
         }
         else {
             retTransferObj.label = retTransferObj.internalName;

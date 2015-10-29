@@ -3317,6 +3317,9 @@ a:hover.editLink {
 .no-preview {
   color: #808080 !important; }
 
+.preview {
+    color: #52779b; }
+
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\000033362}}
 .cs-input {
   background-color: white;
