@@ -856,6 +856,7 @@
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <!-- Application Listeners -->
