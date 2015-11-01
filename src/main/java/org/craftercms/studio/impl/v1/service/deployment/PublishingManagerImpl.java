@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
@@ -44,6 +45,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -489,19 +491,22 @@ public class PublishingManagerImpl implements PublishingManager {
         List<CopyToEnvironment> mandatoryDependencies = new ArrayList<CopyToEnvironment>();
         String site = item.getSite();
         String path = item.getPath();
+
         if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.NEW) || StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
-            String helpPath = path.replace("/" + indexFile, "");
-            int idx = helpPath.lastIndexOf("/");
-            String parentPath = helpPath.substring(0, idx) + "/" + indexFile;
-            if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */ ) {
-                String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
-                if (!missingDependenciesPaths.contains(parentFullPath) && !pathsToDeploy.contains(parentFullPath)) {
-                    deploymentService.cancelWorkflow(site, parentPath);
-                    missingDependenciesPaths.add(parentFullPath);
-                    CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
-                    processItem(parentItem);
-                    mandatoryDependencies.add(parentItem);
-                    mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+            if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
+                String helpPath = path.replace("/" + indexFile, "");
+                int idx = helpPath.lastIndexOf("/");
+                String parentPath = helpPath.substring(0, idx) + "/" + indexFile;
+                if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
+                    String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
+                    if (!missingDependenciesPaths.contains(parentFullPath) && !pathsToDeploy.contains(parentFullPath)) {
+                        deploymentService.cancelWorkflow(site, parentPath);
+                        missingDependenciesPaths.add(parentFullPath);
+                        CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
+                        processItem(parentItem);
+                        mandatoryDependencies.add(parentItem);
+                        mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                    }
                 }
             }
 
@@ -586,6 +591,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -598,6 +606,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
     protected NotificationService notificationService;
+    protected ServicesConfig servicesConfig;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

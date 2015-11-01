@@ -14,6 +14,7 @@ CStudioForms.Controls.UUID = CStudioForms.Controls.UUID  ||
 		this.form = form;
 		this.id = id;
 		this.readonly = readonly;
+		this.hidden = false;
 
 		return this;
 	}
@@ -56,6 +57,7 @@ YAHOO.extend(CStudioForms.Controls.UUID, CStudioForms.CStudioFormField, {
 		// we need to make the general layout of a control inherit from common
 		// you should be able to override it -- but most of the time it wil be the same
 		containerEl.id = this.id;
+		var prop = config.properties[0];
 
 		var titleEl = document.createElement("span");
 
@@ -78,6 +80,12 @@ YAHOO.extend(CStudioForms.Controls.UUID, CStudioForms.CStudioFormField, {
 
 		YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
 		YAHOO.util.Event.on(inputEl, 'blur', this._onChange, this);
+
+		if(prop.value == "true") {
+			this.inputEl.setAttribute("type","hidden")
+			YAHOO.util.Dom.addClass(titleEl, 'hidden');
+		}
+
 		this.readonly = true;
 		inputEl.disabled = true;
 		inputEl.size = 40
@@ -97,7 +105,6 @@ YAHOO.extend(CStudioForms.Controls.UUID, CStudioForms.CStudioFormField, {
 		}
 		this.value = value;
 		this.inputEl.value = value;
-		//this.count(null, this.countEl, this.inputEl);
 		this._onChange(null, this);
 	},
 
@@ -107,16 +114,13 @@ YAHOO.extend(CStudioForms.Controls.UUID, CStudioForms.CStudioFormField, {
 
 	getSupportedProperties: function() {
 		return [
-			//{ label: "Display Size", name: "size", type: "int", defaultValue: "50" },
-			//{ label: "Max Length", name: "maxlength", type: "int",  defaultValue: "50" },
-			//{ label: "Readonly", name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "Hidden"), name: "hidden", type: "boolean" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
-			//{ label: "Match Pattern", name: "pattern", type: "string" },
+			//{ label: "Required", name: "required", type: "boolean" },
 		];
 	},
    generateUUID : function () {
