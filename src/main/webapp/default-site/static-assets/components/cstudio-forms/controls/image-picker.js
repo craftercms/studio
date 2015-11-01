@@ -144,7 +144,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                         '<div class="formDesc">' + Message + '</div> ' +
                         '<div class="leftControls">' +
                             '<div class="cropContainer">' +
-                                '<img src="'+imageData.previewUrl+'">' +
+                                '<img src="'+imageData.previewUrl+'?+'+ new Date().getTime()+'">' +
                             '</div>' +
                             '<div class="cropMethods">' +
                                 '<div class="btn-group">' +
@@ -223,6 +223,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         var widthConstrains = JSON.parse(self.width);
         var heightConstrains = JSON.parse(self.height);
         var flag;
+        var boxResizable = false;
 
         var $dataX = $('#dataX');
         var $dataY = $('#dataY');
@@ -251,6 +252,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             flag = 'exact';
         }else{
             flag = 'variable';
+            boxResizable = true;
             if(widthConstrains.min){
                 minWidthCropBox = widthConstrains.min;
             }
@@ -280,7 +282,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         $image.cropper({
             minCropBoxWidth: this,
             dragCrop: false,
-            cropBoxResizable: false,
+            cropBoxResizable: boxResizable,
             preview: '.img-preview',
             crop: function(e) {
                 // Output the result data for cropping image.
@@ -293,12 +295,12 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                         $('#zoomMessage').removeClass("hidden");
                         $dataWidth.addClass("error");
                         $dataHeight.addClass("error");
-                        $('#cropButton').prop('disabled',true);
+                        //$('#cropButton').prop('disabled',true);
                     }else{
                         $('#zoomMessage').addClass("hidden");
                         $dataWidth.removeClass("error");
                         $dataHeight.removeClass("error");
-                        $('#cropButton').prop('disabled',false);
+                        //$('#cropButton').prop('disabled',false);
                     }
                 }else{
                     inputValidation(parseInt(minHeightCropBox), parseInt(maxHeightCropBox), $dataHeight, $dataWidth);
@@ -313,7 +315,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 $('#zoomMessage').addClass("hidden");
                 $dataHeight.removeClass("error");
                 $dataWidth.removeClass("error");
-                $('#cropButton').prop('disabled',false);
+                //$('#cropButton').prop('disabled',false);
             }
         });
 
@@ -336,14 +338,14 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 ((!min && max) && (input.val() <= max))){
                 $('#zoomMessage').addClass("hidden");
                 input.removeClass("error");
-                $('#cropButton').prop('disabled',false);
+                //$('#cropButton').prop('disabled',false);
             }else{
                 $('#zoomMessage').removeClass("hidden");
                 input.addClass("error");
-                $('#cropButton').prop('disabled',true);
+               // $('#cropButton').prop('disabled',true);
             }
             if(input.hasClass("error") || auxInput.hasClass("error")){
-                $('#cropButton').prop('disabled',true);
+                //$('#cropButton').prop('disabled',true);
                 $('#zoomMessage').removeClass("hidden");
             }
         }
@@ -356,7 +358,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, {
                     success: function(content) {
                         var imagePicker = self;
-                        self.setImageData(imagePicker, imageData);
+                        self.setImageData(imagePicker, imageData)
                         self.cropPopupCancel();
                     },
                     failure: function(message) {
@@ -383,7 +385,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         imagePicker.inputEl.value = imageData.relativeUrl;
 
 
-        imagePicker.previewEl.src = imageData.previewUrl;
+        imagePicker.previewEl.src = imageData.previewUrl+ "?" +new Date().getTime();
         imagePicker.urlEl.innerHTML = imageData.relativeUrl;
         imagePicker.downloadEl.href = imageData.previewUrl;
 
