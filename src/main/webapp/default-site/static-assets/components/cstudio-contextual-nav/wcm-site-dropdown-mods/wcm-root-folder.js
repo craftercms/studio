@@ -89,7 +89,7 @@
                 var parentFolderEl = document.createElement("div");
                 var parentFolderLinkEl = document.createElement("a");
                 parentFolderLinkEl.id = instance.label.toLowerCase() + "-tree"; // should be part of class no?
-                parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, (instance.label).toLowerCase());
+                parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, instance.label);
                 parentFolderLinkEl.onclick = Self.onRootFolderClick;
                 parentFolderLinkEl.componentInstance = instance;
 
@@ -296,10 +296,13 @@
 
 				instance.firstDraw = true;
 
-                if(instance.label == "Pages"){
+                if(treeFlag == false){
                     Self.myTreePages = tree;
+                    instance.type = "Pages";
+                    treeFlag = true;
                 }else{
                     Self.myTreeComp = tree;
+                    instance.type = "Components";
                 }
 
             },
@@ -1102,7 +1105,7 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                        if(oCurrentTextNode.instance.type == "Pages"){
                                             Self.myTree = Self.myTreePages;
                                         }else{
                                             Self.myTree = Self.myTreeComp;
@@ -1269,7 +1272,7 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.label == "Pages"){
+                                        if(oCurrentTextNode.instance.type == "Pages"){
                                             Self.myTree = Self.myTreePages;
                                         }else{
                                             Self.myTree = Self.myTreeComp;

@@ -111,6 +111,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
     function initICERegions() {
         removeICERegions();
         var elems = document.querySelectorAll('[data-studio-ice]');
+
         for (var i = 0; i < elems.length; ++i) {
             initICETarget(elems[i]);
         }
@@ -150,10 +151,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     $document.on('click', '.studio-ice-indicator', function (e) {
 
-        var $i = $(this),
-            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
-            iceId = $e.data('studioIce'),
-            icePath = $e.data('studioIcePath');
+        var $i = $(this);
+        var $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger')));
+        var iceId = $e.data('studioIce');
+        var icePath = $e.data('studioIcePath');
 
         var position = $e.offset(),
             props = {
