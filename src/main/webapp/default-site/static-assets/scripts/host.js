@@ -34,23 +34,55 @@
             failure: function() {
             }  
         };
-        
+
         if (!message.itemId) {
             // base page edit
-            CStudioAuthoring.Operations.performSimpleIceEdit(
+            var editPermsCallback = {
+                success: function (response) {
+                    var par = [];
+                    var isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
+                    if(!isWrite){
+                        par.push({name : "readonly"});
+                    }
+                    CStudioAuthoring.Operations.performSimpleIceEdit(
+                        CStudioAuthoring.SelectedContent.getSelectedContent()[0],
+                        message.iceId, //field
+                        isWrite,
+                        editCb,
+                        par);
+                },
+                failure: function () {}
+            }
+
+            CStudioAuthoring.Service.getUserPermissions(
+                CStudioAuthoringContext.site,
                 CStudioAuthoring.SelectedContent.getSelectedContent()[0],
-                message.iceId, //field
-                true,
-                editCb, []);
+                editPermsCallback);
+
         } else {
             var getContentItemsCb = {
                 success: function (contentTO) {
-                    CStudioAuthoring.Operations.performSimpleIceEdit(
-                        contentTO.item,
-                        this.iceId, //field
-                        true,
-                        this.editCb,
-                        []);
+                    var editPermsCallback ={
+                        success: function (response) {
+                            var par = [];
+                            var isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
+                            if(!isWrite){
+                                par.push({name : "readonly"});
+                            }
+                            CStudioAuthoring.Operations.performSimpleIceEdit(
+                                contentTO.item,
+                                this.iceId, //field
+                                isWrite,
+                                this.editCb,
+                                par);
+                        },
+                        failure: function () {}
+                    }
+
+                    CStudioAuthoring.Service.getUserPermissions(
+                        CStudioAuthoringContext.site,
+                        message.itemId,
+                        editPermsCallback);
                 },
 
                 failure: function () {
@@ -59,11 +91,11 @@
                 iceId: message.iceId,
                 editCb: editCb
             };
-                    
+
             CStudioAuthoring.Service.lookupContentItem(
-                CStudioAuthoringContext.site, 
-                message.itemId, 
-                getContentItemsCb, 
+                CStudioAuthoringContext.site,
+                message.itemId,
+                getContentItemsCb,
                 false, false);
 
         }
