@@ -837,6 +837,10 @@ var CStudioForms = CStudioForms || function() {
                 if(iceId && iceId != "") {
                     var html = this._renderIceLayout(form);
                     form.containerEl.innerHTML = html;
+                    var readOnlyBannerEl = document.getElementById('cstudio-form-readonly-banner');
+                    if(form.readOnly == true) {
+                        YDom.removeClass(readOnlyBannerEl, "hidden");
+                    }
                     this._renderInContextEdit(form, iceId);
                 } else {
 
