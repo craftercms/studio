@@ -1,8 +1,7 @@
-CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||  
+CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||
 function(id, form, owner, properties, constraints, readonly)  {
 	this.owner = owner;
-	this.owner.registerField(this);
-	this.errors = []; 
+	this.errors = [];
 	this.properties = properties;
 	this.constraints = constraints;
 	this.dateEl = null;
@@ -11,6 +10,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.value = "_not-set";
 	this.form = form;
 	this.id = id;
+	this.timezoneId = this.id + "_tz";
 	this.readonly = readonly;
 	this.showTime = false;
 	this.showDate = false;
@@ -18,9 +18,113 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.populate = false;
 	this.timezone = "";
 	this.allowPastDate = false;
-	this.startDateTimeObj;		// Object storing the time when the form was loaded; will be used to adjust startTzDateTimeStr before the form is saved
-	this.startTzDateTimeStr;	// Time the form was loaded (adjusted to the site's timezone)
-	
+	this.useCustomTimezone = false;
+    this.startDateTimeObj = null; // Object storing the time when the form was loaded; will be used to adjust startTzDateTimeStr before the form is saved
+    this.startTzDateTimeStr = null;	// Time the form was loaded (adjusted to the site's timezone)
+    this.defaultTimezones = [
+        {key: 'Etc/GMT+12', value: '(GMT-12:00) International Date Line West'},
+        {key: 'Etc/GMT+11', value: '(GMT-11:00) Coordinated Universal Time-11'},
+        {key: 'Pacific/Honolulu', value: '(GMT-10:00) Hawaii'},
+        {key: 'America/Anchorage', value: '(GMT-09:00) Alaska'},
+        {key: 'America/Tijuana', value: '(GMT-08:00) Baja California'},
+        {key: 'America/Los_Angeles', value: '(GMT-08:00) Pacific Time (US & Canada)'},
+        {key: 'America/Phoenix', value: '(GMT-07:00) Arizona'},
+        {key: 'America/Chihuahua', value: '(GMT-07:00) Chihuahua, La Paz, Mazatlan'},
+        {key: 'America/Denver', value: '(GMT-07:00) Mountain Time (US & Canada)'},
+        {key: 'America/Guatemala', value: '(GMT-06:00) Central America'},
+        {key: 'America/Chicago', value: '(GMT-06:00) Central Time (US & Canada)'},
+        {key: 'America/Mexico_City', value: '(GMT-06:00) Guadalajara, Mexico City, Monterrey'},
+        {key: 'America/Regina', value: '(GMT-06:00) Saskatchewan'},
+        {key: 'America/Bogota', value: '(GMT-05:00) Bogota, Lima, Quito'},
+        {key: 'America/New_York', value: '(GMT-05:00) Eastern Time (US & Canada)'},
+        {key: 'America/Indianapolis', value: '(GMT-05:00) Indiana (East)'},
+        {key: 'America/Caracas', value: '(GMT-04:30) Caracas'},
+        {key: 'America/Asuncion', value: '(GMT-04:00) Asuncion'},
+        {key: 'America/Halifax', value: '(GMT-04:00) Atlantic Time (Canada)'},
+        {key: 'America/Cuiaba', value: '(GMT-04:00) Cuiaba'},
+        {key: 'America/La_Paz', value: '(GMT-04:00) Georgetown, La Paz, Manaus, San Juan'},
+        {key: 'America/Santiago', value: '(GMT-04:00) Santiago'},
+        {key: 'America/St_Johns', value: '(GMT-03:30) Newfoundland'},
+        {key: 'America/Sao_Paulo', value: '(GMT-03:00) Brasilia'},
+        {key: 'America/Buenos_Aires', value: '(GMT-03:00) Buenos Aires'},
+        {key: 'America/Cayenne', value: '(GMT-03:00) Cayenne, Fortaleza'},
+        {key: 'America/Godthab', value: '(GMT-03:00) Greenland'},
+        {key: 'America/Montevideo', value: '(GMT-03:00) Montevideo'},
+        {key: 'Etc/GMT+2', value: '(GMT-02:00) Coordinated Universal Time-02'},
+        {key: 'Etc/GMT+2', value: '(GMT-02:00) Mid-Atlantic'},
+        {key: 'Atlantic/Azores', value: '(GMT-01:00) Azores'},
+        {key: 'Atlantic/Cape_Verde', value: '(GMT-01:00) Cape Verde Is.'},
+        {key: 'Africa/Casablanca', value: '(GMT) Casablanca'},
+        {key: 'Etc/GMT', value: '(GMT) Coordinated Universal Time'},
+        {key: 'Europe/London', value: '(GMT) Dublin, Edinburgh, Lisbon, London'},
+        {key: 'Atlantic/Reykjavik', value: '(GMT) Monrovia, Reykjavik'},
+        {key: 'Europe/Berlin', value: '(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna'},
+        {key: 'Europe/Budapest', value: '(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague'},
+        {key: 'Europe/Paris', value: '(GMT+01:00) Brussels, Copenhagen, Madrid, Paris'},
+        {key: 'Europe/Warsaw', value: '(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb'},
+        {key: 'Africa/Lagos', value: '(GMT+01:00) West Central Africa'},
+        {key: 'Africa/Windhoek', value: '(GMT+02:00) Windhoek'},
+        {key: 'Asia/Amman', value: '(GMT+02:00) Amman'},
+        {key: 'Europe/Istanbul', value: '(GMT+02:00) Athens, Bucharest, Istanbul'},
+        {key: 'Asia/Beirut', value: '(GMT+02:00) Beirut'},
+        {key: 'Africa/Cairo', value: '(GMT+02:00) Cairo'},
+        {key: 'Asia/Damascus', value: '(GMT+02:00) Damascus'},
+        {key: 'Africa/Johannesburg', value: '(GMT+02:00) Harare, Pretoria'},
+        {key: 'Europe/Kiev', value: '(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius'},
+        {key: 'Asia/Jerusalem', value: '(GMT+02:00) Jerusalem'},
+        {key: 'Europe/Minsk', value: '(GMT+02:00) Minsk'},
+        {key: 'Asia/Baghdad', value: '(GMT+03:00) Baghdad'},
+        {key: 'Asia/Riyadh', value: '(GMT+03:00) Kuwait, Riyadh'},
+        {key: 'Africa/Nairobi', value: '(GMT+03:00) Nairobi'},
+        {key: 'Asia/Tehran', value: '(GMT+03:30) Tehran'},
+        {key: 'Europe/Moscow', value: '(GMT+03:00) Moscow, St. Petersburg, Volgograd'},
+        {key: 'Asia/Dubai', value: '(GMT+04:00) Abu Dhabi, Muscat'},
+        {key: 'Asia/Baku', value: '(GMT+04:00) Baku'},
+        {key: 'Indian/Mauritius', value: '(GMT+04:00) Port Louis'},
+        {key: 'Asia/Tbilisi', value: '(GMT+04:00) Tbilisi'},
+        {key: 'Asia/Yerevan', value: '(GMT+04:00) Yerevan'},
+        {key: 'Asia/Kabul', value: '(GMT+04:30) Kabul'},
+        {key: 'Asia/Karachi', value: '(GMT+05:00) Islamabad, Karachi'},
+        {key: 'Asia/Tashkent', value: '(GMT+05:00) Tashkent'},
+        {key: 'Asia/Calcutta', value: '(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi'},
+        {key: 'Asia/Colombo', value: '(GMT+05:30) Sri Jayawardenepura'},
+        {key: 'Asia/Katmandu', value: '(GMT+05:45) Kathmandu'},
+        {key: 'Asia/Yekaterinburg', value: '(GMT+05:00) Ekaterinburg'},
+        {key: 'Asia/Almaty', value: '(GMT+06:00) Astana'},
+        {key: 'Asia/Dhaka', value: '(GMT+06:00) Dhaka'},
+        {key: 'Asia/Rangoon', value: '(GMT+06:30) Yangon (Rangoon)'},
+        {key: 'Asia/Novosibirsk', value: '(GMT+06:00) Novosibirsk'},
+        {key: 'Asia/Bangkok', value: '(GMT+07:00) Bangkok, Hanoi, Jakarta'},
+        {key: 'Asia/Krasnoyarsk', value: '(GMT+07:00) Krasnoyarsk'},
+        {key: 'Asia/Shanghai', value: '(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi'},
+        {key: 'Asia/Singapore', value: '(GMT+08:00) Kuala Lumpur, Singapore'},
+        {key: 'Australia/Perth', value: '(GMT+08:00) Perth'},
+        {key: 'Asia/Taipei', value: '(GMT+08:00) Taipei'},
+        {key: 'Asia/Ulaanbaatar', value: '(GMT+08:00) Ulaanbaatar'},
+        {key: 'Asia/Irkutsk', value: '(GMT+08:00) Irkutsk'},
+        {key: 'Asia/Tokyo', value: '(GMT+09:00) Osaka, Sapporo, Tokyo'},
+        {key: 'Asia/Seoul', value: '(GMT+09:00) Seoul'},
+        {key: 'Australia/Adelaide', value: '(GMT+09:30) Adelaide'},
+        {key: 'Australia/Darwin', value: '(GMT+09:30) Darwin'},
+        {key: 'Asia/Yakutsk', value: '(GMT+09:00) Yakutsk'},
+        {key: 'Australia/Brisbane', value: '(GMT+10:00) Brisbane'},
+        {key: 'Australia/Sydney', value: '(GMT+10:00) Canberra, Melbourne, Sydney'},
+        {key: 'Pacific/Port_Moresby', value: '(GMT+10:00) Guam, Port Moresby'},
+        {key: 'Australia/Hobart', value: '(GMT+10:00) Hobart'},
+        {key: 'Asia/Vladivostok', value: '(GMT+10:00) Vladivostok'},
+        {key: 'Pacific/Guadalcanal', value: '(GMT+11:00) Solomon Is., New Caledonia'},
+        {key: 'Asia/Magadan', value: '(GMT+11:00) Magadan'},
+        {key: 'Pacific/Auckland', value: '(GMT+12:00) Auckland, Wellington'},
+        {key: 'Etc/GMT-12', value: '(GMT+12:00) Coordinated Universal Time+12'},
+        {key: 'Pacific/Fiji', value: '(GMT+12:00) Fiji, Marshall Is.'},
+        {key: 'Asia/Kamchatka', value: '(GMT+12:00) Petropavlovsk-Kamchatsky - Old'},
+        {key: 'Pacific/Tongatapu', value: '(GMT+13:00) Nuku\'alofa'},
+        {key: 'Pacific/Apia', value: '(GMT-11:00) Samoa'}
+    ];
+    this.timezones = this.defaultTimezones;
+
+    this.owner.registerField(this);
+
 	return this;
 }
 
@@ -36,7 +140,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			valid;
 
 		if (obj.required) {
-			if ((obj.showDate && dateValue == "") || 
+			if ((obj.showDate && dateValue == "") ||
 				(obj.showTime && timeValue == "")) {
 				obj.setError("required", "Field is Required");
 				obj.renderValidation(true);
@@ -47,18 +151,18 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				valid = true;
 			}
 		} else {
-			// Date check: if show and date fields are present, the time value is populated, 
-			// but the date value isn't, then give an error.  
+			// Date check: if show and date fields are present, the time value is populated,
+			// but the date value isn't, then give an error.
 			if (dateCheck && obj.showDate && obj.showTime && timeValue != "" && dateValue == "") {
 				obj.displayMessage("Date field must be filled in.", "date-required", "warning");
 				obj.setError("required", "Field is Required");
 				obj.renderValidation(true);
 				valid = false;
 			}
-			// Date check: if show and date fields are present, and the date value is populated, 
+			// Date check: if show and date fields are present, and the date value is populated,
 			// OR if show and date fields are present, and the date and the time values are empty
 			// then clear any previos errors
-			else if (dateCheck && obj.showDate && obj.showTime && dateValue != "" || 
+			else if (dateCheck && obj.showDate && obj.showTime && dateValue != "" ||
 					  dateCheck && obj.showDate && obj.showTime && timeValue == "" && dateValue == "") {
 				obj.removeMessage("date-required");
 				obj.clearError("required");
@@ -82,8 +186,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 		if (this.validate(null, this)) {
 
-			// If dateValue == "", then it must be because only the date field is 
-			// displayed; otherwise, validation should not have allowed the user get this far 
+			// If dateValue == "", then it must be because only the date field is
+			// displayed; otherwise, validation should not have allowed the user get this far
 			dateVal = (dateValue != "") ? dateValue : nowObj.date;
 
 			if (timeValue != "") {
@@ -116,8 +220,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			} else {
 				return "";	// The date/time fields are empty
 			}
-		} 
-		// If the form doesn't validate, it should trigger errors when the fields are blurred so 
+		}
+		// If the form doesn't validate, it should trigger errors when the fields are blurred so
 		// in theory, it should never reach this point (because this function -getFieldValue- should be called on beforeSave).
 		return false;
 	},
@@ -144,7 +248,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
         this.setDateTime(mm + '/' + dd + '/' + yyyy, 'date');
         calendarObj.hide();
 	},
-	
+
 	createServiceUri: function(time, srcTimezone, destTimezone, dateFormat){
 		var baseUrl = CStudioAuthoringContext.authoringAppBaseUri;
 		var serviceUrl = "/api/1/services/util/time/convert-time.json?";
@@ -154,7 +258,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		url += "&srcTimezone=" + srcTimezone;
 		url += "&destTimezone="  + destTimezone;
 		url += "&dateFormat=" + dateFormat;
-		
+
 		return url;
 	},
 
@@ -171,11 +275,11 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 							       "" + time;
 		return dateTimeStr;
 	},
-	
+
 	// TO-DO: improvement
-	// Currently this is making a synchronous call to get the UTC representation of a date. The size of the transfer of 
-	// information made through this call is small so it shouldn't affect UX considerably. This call is synchronous because 
-	// we want to store the UTC representation of a date before the form closes. The form engine offers the possibility to 
+	// Currently this is making a synchronous call to get the UTC representation of a date. The size of the transfer of
+	// information made through this call is small so it shouldn't affect UX considerably. This call is synchronous because
+	// we want to store the UTC representation of a date before the form closes. The form engine offers the possibility to
 	// register "beforeSave" callbacks, but these are assumed to be synchronous (forms-engine.js, onBeforeSave method)
 	convertDateTimeSync: function(date, time, srcTimezone, destTimezone, callback) {
 		var xhrObj;
@@ -196,7 +300,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	convertDateTime: function(date, time, srcTimezone, destTimezone, callback){
 		var format = this.getConvertFormat(date),
 			convertString = this.getDateTimeString(date, time);
-		
+
 		var service = this.createServiceUri(convertString, srcTimezone, destTimezone, format);
 		YAHOO.util.Connect.initHeader("Content-Type", "application/json; charset=utf-8");
 		YAHOO.util.Connect.asyncRequest('GET', service, callback);
@@ -321,7 +425,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 			}
 		];
-		
+
 		//Parses a string to figure out the time it represents
 		function parseTimeString(s) {
 			for (var i = 0; i < timeParsePatterns.length; i++) {
@@ -336,7 +440,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 		//parse the value using patterns and retrive the date with format
 		var inputTime = parseTimeString(this.timeEl.value);
-		
+
 		if(inputTime == undefined) {
 			if(this.timeEl.value != ""){
 			    alert('( '+this.timeEl.value+' ) is not a valid time format, please provide a valid time');
@@ -376,7 +480,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	 * create timepicker increment and decrement helper
 	 * that increse the input time
 	 */
-	
+
 	textFieldTimeIncrementHelper : function(triggerEl, targetEl, event, keyCode) {
 
 	    var incrementHandler = function(type, args) {
@@ -442,7 +546,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
                       timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
                   }
               };
-						
+
 		YEvent.addListener(triggerEl, event, incrementHandler);
 
 		if (keyCode) {
@@ -451,7 +555,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		    klInc.enable();
 		}
 	},
-	
+
 	/**
 	 * create timepicker decrement and decrement helper
 	 * that decrese the input time
@@ -528,7 +632,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
                       timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
                   }
               };
-						
+
 		YEvent.addListener(triggerEl, event, decrementHandler);
 
               if (keyCode) {
@@ -588,6 +692,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				if (typeof val == "string") {
 					_self.value = val;
 					_self.form.updateModel(_self.id, _self.value);
+					_self.form.updateModel(_self.timezoneId, _self.timezone);
 				} else {
 					alert("Unable to save Date/Time field. Please contact your system administrator");
 				}
@@ -598,11 +703,11 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 		for(var i=0; i<config.properties.length; i++) {
 		    var prop = config.properties[i];
-		
+
 	        if(prop.name == "showTime" && prop.value == "true") {
 		       this.showTime =  true;
 	        }
-	
+
 	        if(prop.name == "showDate" && prop.value == "true") {
 	        	this.showDate = true;
 		    }
@@ -618,10 +723,16 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	        if(prop.name == "allowPastDate" && prop.value == "true") {
 		       this.allowPastDate = true;
 		    }
-		    				
-		    if((prop.name == "readonly" && prop.value == "true") || 
+
+		    if((prop.name == "readonly" && prop.value == "true") ||
 		    	(prop.name == "readonlyEdit" && prop.value == "true" && window.location.search.indexOf("edit=true") >= 1)){
 				this.readonly = true;
+			}
+
+			if (prop.name == "useCustomTimezone" && prop.value == "true") {
+				this.useCustomTimezone = true;
+
+				this.form.registerDynamicField(this.timezoneId);
 			}
 	    }
 
@@ -636,7 +747,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 	        YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 		    titleEl.innerHTML = config.title;
-		
+
 		var controlWidgetContainerEl = document.createElement("div");
 		    YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'date-time-container');
 		    if (this.readonly) {
@@ -647,7 +758,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			YAHOO.util.Dom.addClass(validEl, 'validation-hint');
 		    YAHOO.util.Dom.addClass(validEl, 'cstudio-form-control-validation');
 		    controlWidgetContainerEl.appendChild(validEl);
-		
+
 		    if(this.showDate) {
 					var dateEl = document.createElement("input");
 
@@ -660,15 +771,15 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 					controlWidgetContainerEl.appendChild(dateEl);
 
-				YAHOO.util.Event.on(dateEl, 'blur', function(e, _this) { 
+				YAHOO.util.Event.on(dateEl, 'blur', function(e, _this) {
 					_this.validate(e, _this, true);
 				}, this);
 
 				if (this.readonly)	{
-					dateEl.disabled = true;	
-				} 
+					dateEl.disabled = true;
+				}
             }
-		
+
 		    if (this.showTime) {
 		    	var timeWrapper, timeEl, incrementControlEl, decrementControlEl, timezoneEl;
 
@@ -699,15 +810,15 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	       		}
 
 	            timeWrapper.appendChild(timeEl);
-	            controlWidgetContainerEl.appendChild(timeWrapper);		           
-	           
+	            controlWidgetContainerEl.appendChild(timeWrapper);
+
 	            if (this.readonly){
 		           timeEl.disabled = true;
 	            }
 
 	            //Subscriptions
 		       	YAHOO.util.Event.addListener(timeEl, 'blur', this.updateTime, this, true);
-		     	
+
 		     	YAHOO.util.Event.addListener(timeEl, 'click', function(e) {
 		     		var caretPos = this.saveCaretPosition(timeEl);
 		     		timeEl.setAttribute("data-cursor", caretPos);
@@ -723,9 +834,22 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 					this.textFieldTimeDecrementHelper(decrementControlEl.id, timeEl.id, 'click');
 				}
 
-				timezoneEl = document.createElement("span");
-				timezoneEl.id = divPrefix + "timezoneCode";
-				controlWidgetContainerEl.appendChild(timezoneEl);
+				if (this.useCustomTimezone) {
+	                timezoneEl = document.createElement("select");
+	                this.addTimezoneOptions(timezoneEl);
+
+	                YAHOO.util.Event.addListener(timezoneEl, 'change', function (e) {
+	                    var value = this.getFieldValue();
+
+	                    this.timezone = this.getSelectedTimezone(timezoneEl);
+	                    this._setValue(value, this.timezone);
+	                }, timezoneEl, this);
+	            } else {
+	                timezoneEl = document.createElement("span");
+	            }
+
+	            timezoneEl.id = divPrefix + "timezoneCode";
+	            controlWidgetContainerEl.appendChild(timezoneEl);
 		    }
 
 		    if (this.showNowLink && !this.readonly) {
@@ -747,7 +871,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			     		this.setDateTime('', 'date');
 			     		this.setDateTime('', 'time');
 					}, clearDateEl, this);
-						
+
 					controlWidgetContainerEl.appendChild(clearDateEl);
 		    }
 
@@ -756,8 +880,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	    var descriptionEl = document.createElement("span");
 	    	YAHOO.util.Dom.addClass(descriptionEl, 'description');
 		    YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
-		    descriptionEl.innerHTML = config.description;		
-		
+		    descriptionEl.innerHTML = config.description;
+
 		var calEl = document.createElement("div");
 		    calEl.id = divPrefix + "calendarContainer";
 		    YAHOO.util.Dom.addClass(calEl, 'cstudio-form-field-calendar');
@@ -794,7 +918,19 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
        }
 	},
 
-	saveCaretPosition: function (inputEl) {		
+	addTimezoneOptions: function (selectEl) {
+        for (var i = 0; i < this.timezones.length; i++)  {
+            var timezone = this.timezones[i];
+
+            var optionEl = document.createElement("option");
+                optionEl.setAttribute("value", timezone.key);
+                optionEl.appendChild(document.createTextNode(timezone.value));
+
+            selectEl.appendChild(optionEl);
+        }
+    },
+
+	saveCaretPosition: function (inputEl) {
 		var iCaretPos = 0;
 
 		// IE Support
@@ -858,7 +994,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			};
 		}
 		return dateObj;
-	}, 
+	},
 
 	displayMessage: function (msgStr, msgType, msgClass) {
 		var msgContainer = YAHOO.util.Selector.query(".date-time-container", this.containerEl, true),
@@ -901,7 +1037,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			dateVal, timeVal, emptyDate, emptyTime, refDateVal, refTimeVal, dtValues, timezoneNowObj, cb;
 
 		if (value != "" && value != "_not-set") {
-			// If a value already exists for the date/time field, then convert this value (in UTC) to the site's timezone	
+			// If a value already exists for the date/time field, then convert this value (in UTC) to the site's timezone
 			cb = {
 				success: function(response) {
 					//Set date and time values in the UI
@@ -914,16 +1050,16 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 							// Get the current date/time to fill the fields that are empty
 							timezoneNowObj = _self.getFormattedDateTimeObject(_self.startTzDateTimeStr, true);
 						}
-						
+
 						if (emptyDate) {
-							// The time was calculated using refDateVal so the date field should really be 
+							// The time was calculated using refDateVal so the date field should really be
 							// blank or be populated with the current date; this is for backwards compatibility since
 							// before it was possible to save only the date or only the time.
 							tzDateTimeObj.date = (_self.populate) ? timezoneNowObj.date : "";
 						}
 
 						if (emptyTime) {
-							// The date was calculated using refTimeVal so the time field should really be 
+							// The date was calculated using refTimeVal so the time field should really be
 							// blank or be populated with the current date; this is for backwards compatibility since
 							// before it was possible to save only the date or only the time.
 							tzDateTimeObj.time = (_self.populate) ? timezoneNowObj.time : "";
@@ -954,8 +1090,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				timeVal = dtValues[1];
 			} else {
 				// Backwards compatibility
-				// Previous method of storing values. This method allowed storing only the date or only the time. 
-				// The problem with this is that if one of the fields was missing, the other one risked being 
+				// Previous method of storing values. This method allowed storing only the date or only the time.
+				// The problem with this is that if one of the fields was missing, the other one risked being
 				// calculated incorrectly.
 				refDateVal = nowObj.date;
 				refTimeVal = "00:00:00";
@@ -1018,26 +1154,60 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		this.startDateTimeObj = nowObj;
 		this.getCurrentDateTime(nowObj, configTimezone, cb);
 	},
-	
-	setValue: function(value) {		
-		var timezoneCb = {
-			context: this,
-			
-			success: function(config){
-				var timezoneStr;
-				this.context.timezone = config['default-timezone'];
-				timezoneStr = this.context.timezone.substr(0, 3);
-				if (this.context.showTime) {
-					YDom.get(this.context.id + "-timezoneCode").innerHTML = timezoneStr;
-				}
-				this.context._setValue(value, this.context.timezone);
-			},
-				
-			failure: function(){
-			}
-		}
-		CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);	
+
+	setValue: function(value) {
+		if (this.useCustomTimezone) {
+            this.timezone = this.form.getModelValue(this.timezoneId);
+            if (this.timezone) {
+                this.setSelectedTimezone(this.timezone);
+            } else {
+                this.timezone = this.getSelectedTimezone();
+            }
+
+            this._setValue(value, this.timezone);
+        } else {
+            var timezoneCb = {
+                context: this,
+
+                success: function (config) {
+                    this.context.timezone = config['default-timezone'];
+                    var timezoneStr = this.context.timezone.substr(0, 3);
+
+                    if (this.context.showTime) {
+                        YDom.get(this.context.id + "-timezoneCode").innerHTML = timezoneStr;
+                    }
+
+                    this.context._setValue(value, this.context.timezone);
+                },
+
+                failure: function () {
+                }
+            };
+
+            CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);
+        }
 	},
+
+	getSelectedTimezone: function(selectEl) {
+        if (!selectEl) {
+            selectEl = YDom.get(this.id + "-timezoneCode");
+        }
+
+        return selectEl.options[selectEl.selectedIndex].value;
+    },
+
+    setSelectedTimezone: function(timezone, selectEl) {
+        if (!selectEl) {
+            selectEl = YDom.get(this.id + "-timezoneCode");
+        }
+
+        var options = selectEl.options;
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value == timezone) {
+                selectEl.selectedIndex = i;
+            }
+        }
+    },
 
 	setDateTime: function(value, type) {
 
@@ -1052,7 +1222,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	getName: function() {
 		return "date-time";
 	},
-	
+
 	getSupportedProperties: function() {
 		return [
 		        { label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
@@ -1060,6 +1230,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
 				{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
 				{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },
+				{label: CMgs.format(langBundle, "useCustomTimezone"), name: "useCustomTimezone", type: "boolean", defaultValue: "false"},
 				{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
 				{ label: CMgs.format(langBundle, "readonlyOnEdit"), name: "readonlyEdit", type: "boolean", defaultValue: "false" }
 			];
