@@ -6288,7 +6288,7 @@ var parentSaveCb = {
                     // For IE9, creating a cookie with an expire value set to half an hour (0.5 hours)
                     expire = (YAHOO.env.ua.ie == 9) ? (new Date( (new Date()).getTime() + CStudioAuthoring.Utils.Cookies.durationHours(0.5) )).toGMTString() : "";
                 }
-                domainVal = (CStudioAuthoringContext.cookieDomain != 'localhost') ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
+                domainVal = (CStudioAuthoringContext.cookieDomain.indexOf(".") > -1) ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
                 document.cookie = CStudioAuthoring.StringUtils.format(
                     "{0}={1}; expires={2}; path=/; " + domainVal,
                     name,
@@ -6341,7 +6341,7 @@ var parentSaveCb = {
                     // For IE, creating a cookie with an expire value set to half an hour (0.5 hours)
                     expires = (YAHOO.env.ua.ie) ? (new Date( (new Date()).getTime() + CStudioAuthoring.Utils.Cookies.durationHours(0.5) )).toGMTString() : "";
                 }
-                domainVal = (CStudioAuthoringContext.cookieDomain != 'localhost') ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
+                domainVal = (CStudioAuthoringContext.cookieDomain.indexOf(".") > -1) ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
                 if(expires){
                     document.cookie =
                         [name, "=", value, "; expires=", expires, "; path=/; " + domainVal].join("");
@@ -6368,7 +6368,7 @@ var parentSaveCb = {
              * destroy a cookie
              */
             eraseCookie: function(name) {
-                var domainVal = (CStudioAuthoringContext.cookieDomain != 'localhost') ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
+                var domainVal = (CStudioAuthoringContext.cookieDomain.indexOf(".") > -1) ? "domain=" + CStudioAuthoringContext.cookieDomain : "";
                 document.cookie = name + "=null; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/; " + domainVal;
             }
         },
