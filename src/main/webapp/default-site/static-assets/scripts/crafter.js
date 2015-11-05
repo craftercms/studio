@@ -49,6 +49,8 @@
                 "CHANGE_GUEST_REQUEST": "CHANGE_GUEST_REQUEST",
 
                 "ICE_ZONE_ON": "ICE_ZONE_ON",
+                "ICE_ZONES": "ICE_ZONES",
+                "ICE_TOOLS_INDICATOR": "ICE_TOOLS_INDICATOR",
                 "START_DRAG_AND_DROP": "START_DRAG_AND_DROP",
                 "STOP_DRAG_AND_DROP": "STOP_DRAG_AND_DROP",
                 "SAVE_DRAG_AND_DROP": "SAVE_DRAG_AND_DROP",

@@ -47,6 +47,14 @@
   background-position: 3px 3px;
 }
 
+.#{$ice-class-prefix}-indicator.lock{
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit_block.png');
+}
+
+.#{$ice-class-prefix}-indicator.read{
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit_off.png');
+}
+
 /* Look & feel / Theme Styles */
 
 .#{$ice-class-prefix}-overlay {
