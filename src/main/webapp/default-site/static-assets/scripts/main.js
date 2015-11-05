@@ -238,7 +238,7 @@
             this.setCookie = function(cookieGenName, value){
                 //$cookies[cookieName] = site.siteId;
                 var domainVal;
-                domainVal = (document.location.hostname != 'localhost') ? "domain=" + document.location.hostname : "";
+                domainVal = (document.location.hostname.indexOf(".") > -1) ? "domain=" + document.location.hostname : "";
                 document.cookie =
                     [cookieGenName, "=", value, "; path=/; " + domainVal].join("");
             }
