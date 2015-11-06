@@ -34,7 +34,7 @@ YAHOO.extend(CStudioForms.Datasources.ImgDesktopUpload, CStudioForms.CStudioForm
 		var callback = { 
 			success: function(imageData) {
 				var url = this.context.createPreviewUrl(path + "/" + imageData.fileName);
-				imageData.previewUrl = url
+				imageData.previewUrl = url + "?" + new Date().getTime();
 				imageData.relativeUrl = path + "/" + imageData.fileName
 				insertCb.success(imageData);
 			}, 

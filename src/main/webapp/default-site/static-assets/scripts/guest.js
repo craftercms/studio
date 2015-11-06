@@ -97,20 +97,43 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
         var $elem = $(elem),
             position = $elem.offset(),
-            iceRef = $elem.data('studioIce') + '-' + count++;
+            iceRef = $elem.data('studioIce') + '-' + count++,
+            path = $elem.data('studioIcePath'),
+            params = {
+                path: path,
+                iceRef: iceRef,
+                position: position
+            };
 
         $elem.attr('data-studio-ice-target', iceRef);
 
-        $(crafter.String('<i class="studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(iceRef)).css({
-            top: position.top,
-            left: position.left
-        }).appendTo('body');
-
+        communicator.publish(Topics.ICE_ZONES, params);
     }
+
+    communicator.on(Topics.ICE_TOOLS_INDICATOR, function (message) {
+        var flag = false;
+        $('.studio-ice-indicator').each(function( index ) {
+            if( $(this).data("studioIceTrigger") == message.iceRef){
+                flag = true;
+            }
+        });
+        if(!flag){
+            var aux = $(crafter.String('<i class="studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(message.iceRef)).css({
+                top: message.position.top,
+                left: message.position.left
+            });
+            if(message.class){
+                aux.addClass(message.class);
+            }
+            aux.appendTo('body');
+        }
+
+    });
 
     function initICERegions() {
         removeICERegions();
         var elems = document.querySelectorAll('[data-studio-ice]');
+
         for (var i = 0; i < elems.length; ++i) {
             initICETarget(elems[i]);
         }
@@ -138,7 +161,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
         var $i = $(this),
             $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
-            iceId = $e.data('studioIce');
+            iceId = $e.data('studio-ice-indicator');
 
         initOverlay($e);
 
@@ -150,10 +173,10 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     $document.on('click', '.studio-ice-indicator', function (e) {
 
-        var $i = $(this),
-            $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger'))),
-            iceId = $e.data('studioIce'),
-            icePath = $e.data('studioIcePath');
+        var $i = $(this);
+        var $e = $(crafter.String('[data-studio-ice-target="%@"]').fmt($i.data('studioIceTrigger')));
+        var iceId = $e.data('studioIce');
+        var icePath = $e.data('studioIcePath');
 
         var position = $e.offset(),
             props = {
@@ -172,11 +195,28 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     });
 
-    $window.resize(function () {
-        if (!!(sessionStorage.getItem('ice-on'))) {
-            initICERegions();
+    var rtime;
+    var timeout = false;
+    var delta = 200;
+    $(window).resize(function() {
+        removeICERegions();
+        rtime = new Date();
+        if (timeout === false) {
+            timeout = true;
+            setTimeout(resizeEnd, delta);
         }
     });
+
+    function resizeEnd() {
+        if (new Date() - rtime < delta) {
+            setTimeout(resizeEnd, delta);
+        } else {
+            timeout = false;
+            if (!!(sessionStorage.getItem('ice-on'))) {
+                initICERegions();
+            }
+        }
+    }
 
     loadCss('/studio/static-assets/styles/guest.css');
 

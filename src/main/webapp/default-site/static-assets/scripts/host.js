@@ -27,46 +27,123 @@
 
     communicator.subscribe(Topics.ICE_ZONE_ON, function (message, scope) {
 
-        var editCb = { 
-            success:function() {
-                CStudioAuthoring.Operations.refreshPreview(); 
-            }, 
-            failure: function() {
-            }  
-        };
-        
-        if (!message.itemId) {
-            // base page edit
-            CStudioAuthoring.Operations.performSimpleIceEdit(
-                CStudioAuthoring.SelectedContent.getSelectedContent()[0],
-                message.iceId, //field
-                true,
-                editCb, []);
-        } else {
-            var getContentItemsCb = {
-                success: function (contentTO) {
-                    CStudioAuthoring.Operations.performSimpleIceEdit(
-                        contentTO.item,
-                        this.iceId, //field
-                        true,
-                        this.editCb,
-                        []);
-                },
-
-                failure: function () {
-                    callback.failure();
-                },
-                iceId: message.iceId,
-                editCb: editCb
-            };
-                    
-            CStudioAuthoring.Service.lookupContentItem(
-                CStudioAuthoringContext.site, 
-                message.itemId, 
-                getContentItemsCb, 
-                false, false);
-
+        var isWrite = false;
+        var par = [];
+        var isLockOwner = function (lockOwner){
+            if (lockOwner != '' && lockOwner != null) {
+                par = [];
+                isWrite = false;
+                par.push({name: "readonly"});
+            }
         }
+        var editCb = {
+            success:function() {
+                CStudioAuthoring.Operations.refreshPreview();
+            },
+            failure: function() {
+            }
+        };
+        var currentPath = (message.itemId) ? message.itemId : CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri;
+        var editPermsCallback = {
+            success: function (response) {
+                isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
+                if (!isWrite) {
+                    par.push({name: "readonly"});
+                }
+
+                if (!message.itemId) {
+                    // base page edit
+                            isLockOwner(CStudioAuthoring.SelectedContent.getSelectedContent()[0].lockOwner);
+                            CStudioAuthoring.Operations.performSimpleIceEdit(
+                                CStudioAuthoring.SelectedContent.getSelectedContent()[0],
+                                message.iceId, //field
+                                isWrite,
+                                editCb,
+                                par);
+
+                } else {
+                    var getContentItemsCb = {
+                        success: function (contentTO) {
+                            isLockOwner(contentTO.item.lockOwner);
+                            CStudioAuthoring.Operations.performSimpleIceEdit(
+                                        contentTO.item,
+                                        this.iceId, //field
+                                        isWrite,
+                                        this.editCb,
+                                        par);
+                        },
+                        failure: function () {
+                            callback.failure();
+                        },
+                        iceId: message.iceId,
+                        editCb: editCb
+                    };
+
+                    CStudioAuthoring.Service.lookupContentItem(
+                        CStudioAuthoringContext.site,
+                        message.itemId,
+                        getContentItemsCb,
+                        false, false);
+
+                }
+            }, failure: function () {}
+        }
+
+        CStudioAuthoring.Service.getUserPermissions(
+            CStudioAuthoringContext.site,
+            currentPath,
+            editPermsCallback);
+
+    });
+
+    communicator.subscribe(Topics.ICE_ZONES, function (message) {
+
+        var params = {
+            iceRef: message.iceRef,
+            position: message.position
+        }
+        var currentPath = (message.path) ? message.path : CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri;
+        var isLockOwner = function (lockOwner){
+            if (lockOwner != '' && lockOwner != null) {
+                params.class = 'lock';
+            }
+        }
+
+        var permsCallback = {
+            success: function (response) {
+                var isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
+
+                if (!message.path) {
+                    if (isWrite) {
+                        isLockOwner(CStudioAuthoring.SelectedContent.getSelectedContent()[0].lockOwner);
+                    }else {
+                        params.class = 'read';
+                    }
+                } else {
+                    var itemCallback = {
+                        success: function (contentTO) {
+                            isLockOwner(contentTO.item.lockOwner);
+                        },failure: function () {}
+                    }
+
+                    if (isWrite) {
+                        CStudioAuthoring.Service.lookupContentItem(
+                            CStudioAuthoringContext.site,
+                            currentPath,
+                            itemCallback,
+                            false, false);
+                    } else {
+                        params.class = 'read';
+                    }
+                }
+                communicator.publish(Topics.ICE_TOOLS_INDICATOR, params);
+            },failure: function () {}
+        }
+
+        CStudioAuthoring.Service.getUserPermissions(
+            CStudioAuthoringContext.site,
+            currentPath,
+            permsCallback);
 
     });
 
