@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
@@ -34,6 +35,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -681,6 +683,41 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
+    public List<PublishToTarget> getSyncTargetQueue(String site, String endpoint, long targetVersion) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("version", targetVersion);
+        params.put("environments", getEndpontEnvironments(site, endpoint));
+        return publishToTargetMapper.getItemsReadyForTargetSync(params);
+    }
+
+    protected Set<String> getEndpontEnvironments(String site, String endpoint) {
+        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        Set<String> environments = new HashSet<String>();
+        Map<String, DeploymentEndpointConfigTO> targetMap = new HashMap<String, DeploymentEndpointConfigTO>();
+        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
+            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
+                List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
+                if (channelConfigTOs != null && channelConfigTOs.size() > 0) {
+                    for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
+                        DeploymentEndpointConfigTO endpointTO = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
+                        if (endpointTO != null && StringUtils.equals(endpoint, endpointTO.getName())) {
+                            environments.add(groupConfigTO.getName());
+                        }
+                    }
+                }
+            }
+        }
+        return environments;
+    }
+
+    @Override
+    public List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site) {
+        DeploymentConfigTO config = deploymentEndpointConfig.getSiteDeploymentConfig(site);
+        return new ArrayList<>(config.getEndpointMapping().values());
+    }
+
+    @Override
     public boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
@@ -742,6 +779,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
+    public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
+    public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -754,6 +794,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeployerFactory deployerFactory;
     protected Reactor repositoryReactor;
     protected DmPublishService dmPublishService;
+    protected DeploymentEndpointConfig deploymentEndpointConfig;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

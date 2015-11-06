@@ -343,8 +343,14 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     setStatedDialogSystemProcessing: "System Processing",
 
     setQueueDialogTitle: "Select States",
+    setDeploymentQueue: "Deployment Queue",
+    setDeploymentEndpoints: "Deployment Endpoints",
     setQueueDialogCancelDeployment: "Cancel Deployment",
     setQueueDialogSystemProcessing: "System Processing",
+
+    deploymentTabSelectEndpoint: "Select Endpoint",
+    deploymentTabEndpointProperty: "Property",
+    deploymentTabEndpointValue: "Value",
 
     currentPage: "Current Page"
 
@@ -520,11 +526,14 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     setQueueTabSelectAll: "Select All",
     setQueueTabID: "ID",
     setQueueTabPath: "Path",
+    setQueueTabOldPath: "Old Path",
     setQueueTabEnvironment: "Environment",
     setQueueTabUser: "User",
     setQueueTabState: "State",
+    setQueueTabVersion: "Version",
     setQueueTabAction: "Action",
     setQueueTabScheduledDate: "Scheduled Date",
+    setQueueTabContentTypeClass: "Content Type Class",
 
     /*Jobs Workflow*/
     jobWorkflowTabAct: "Act",

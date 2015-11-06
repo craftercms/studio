@@ -31,3 +31,10 @@
 #dlg {
 	width: 33em !important;
 }
+
+.cs-endpoint-list {
+    left: 250px;
+    position: relative;
+    right: auto;
+    top: 85px;
+}
