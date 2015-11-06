@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 	// document
@@ -72,6 +73,10 @@ public interface DeploymentService {
     void syncAllContentToPreview(String site) throws ServiceException;
 
     List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
+
+    List<PublishToTarget> getSyncTargetQueue(String site, String endpoint, long targetVersion);
+
+    List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site);
 
     boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 
