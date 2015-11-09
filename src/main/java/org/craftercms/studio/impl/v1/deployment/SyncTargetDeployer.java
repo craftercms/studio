@@ -190,7 +190,7 @@ public class SyncTargetDeployer implements Deployer {
         if (sbDeletedFiles.length() > 0) {
             formParts.add(new StringPart(DELETED_FILES_REQUEST_PARAMETER, sbDeletedFiles.toString()));
         }
-        logger.debug("Create http request to deploy content for target {0}", endpointConfig.getName());
+        logger.debug("Create http request to deploy content for target {0} ({1})", endpointConfig.getName(), endpointConfig.getTarget());
         PostMethod postMethod = null;
         HttpClient client = null;
         try {
