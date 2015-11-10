@@ -14,6 +14,7 @@ var YDom = YAHOO.util.Dom;
 var YConnect = YAHOO.util.Connect;
 var JSON = YAHOO.lang.JSON;
 var YEvent = YAHOO.util.Event;
+var ApproveType = false;
 
 /* Removing this check because,
  * 401 error is returning some other cases apart from Authentication failed case.
@@ -433,7 +434,7 @@ var YEvent = YAHOO.util.Event;
          */
         Operations: {
 
-            _showDialogueView: function(oRequest, setZIndex, dialogWidth){
+            _showDialogueView: function(oRequest, setZIndex, dialogWidth, ApproveTypeParam){
                 var width = (dialogWidth) ? dialogWidth : "602px";
                 var Loader = CSA.Env.Loader,
                     moduleid = oRequest.controller;
@@ -465,6 +466,7 @@ var YEvent = YAHOO.util.Event;
                                 }
                                 oRequest.callback && oRequest.callback.call(view, dialogue);
                                 dialogue.centreY();
+                                ApproveType = ApproveTypeParam;
                             }
                         },
                         fixedcenter: true,
@@ -579,7 +581,7 @@ var YEvent = YAHOO.util.Event;
                 }, true);
             },
 
-            approveCommon: function (site, items) {
+            approveCommon: function (site, items, approveType) {
 
                 CSA.Operations._showDialogueView({
                     fn: CSA.Service.getApproveView,
@@ -594,7 +596,7 @@ var YEvent = YAHOO.util.Event;
                         });
 
                     }
-                }, true, '800px');
+                }, true, '800px', approveType);
 
             },
 
