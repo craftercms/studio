@@ -451,6 +451,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             for (final Map<String, String> pasteItem : pasteItems) {
                 DmPasteItemTO dmPasteItem = new DmPasteItemTO();
                 String pasteItemUri = pasteItem.get("uri");
+                pasteItemUri = pasteItemUri.replaceAll("//", "/");
                 dmPasteItem.setUri(pasteItemUri);
                 dmPasteItem.setDeep(Boolean.parseBoolean(pasteItem.get("deep")));
                 if (hasSameChild(pasteItemUri, destItem, site)) {
@@ -587,11 +588,13 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         String originalDirectoryFullPath = contentService.expandRelativeSitePath(site, originalDirectory);
         String srcFullPath = contentService.expandRelativeSitePath(site, srcPath);
         //FileInfo srcFileInfo = persistenceManagerService.getFileInfo(srcFullPath);
-        if (/*!srcFileInfo.isFolder() && */!srcPath.endsWith(DmConstants.INDEX_FILE)) {
+        if (/*!srcFileInfo.isFolder() && */!srcPath.endsWith("/" + DmConstants.INDEX_FILE)) {
             originalDirectoryFullPath = srcFullPath;
         }
         for (ContentItemTO child : itemTree.getChildren()) {
-            if(originalDirectoryFullPath.endsWith("/" + child.getName())) {
+            String childUri = child.getUri().replace("/" + DmConstants.INDEX_FILE, "");
+            String childName = ContentUtils.getPageName(childUri);
+            if(originalDirectoryFullPath.endsWith("/" + childName)) {
                 return true;
             }
         }

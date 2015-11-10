@@ -3110,6 +3110,8 @@ var parentSaveCb = {
                         callback.success(results);
                     },
                     failure: function(response) {
+                        var errorResponse = eval("(" + response.responseText + ")");
+                        alert(errorResponse.error);
                         callback.failure(response);
                     }
                 };
