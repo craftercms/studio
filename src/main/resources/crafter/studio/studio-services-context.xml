@@ -156,6 +156,7 @@
          <property name="deployerFactory" ref="cstudioDeployerFactory"/>
          <property name="repositoryReactor" ref="repositoryReactor"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
+         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >

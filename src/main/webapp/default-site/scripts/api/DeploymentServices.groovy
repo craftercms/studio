@@ -47,6 +47,16 @@ class DeploymentServices {
         return deploymentServicesImpl.getDeploymentQueue(site);
     }
 
+    static getSyncTargetQueue(context, site, endpoint, targetVersion) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getSyncTargetQueue(site, endpoint, targetVersion);
+    }
+
+    static getDeploymentEndpoints(context, site) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getDeploymentEndpoints(site);
+    }
+
     static cancelDeployment(context, site, path, deploymentId) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.cancelDeployment(site, path, deploymentId);
