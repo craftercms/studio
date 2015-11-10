@@ -658,7 +658,9 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 option.onclick = function() {
                                     CStudioAuthoring.Operations.approveCommon(
                                         CStudioAuthoringContext.site,
-                                        CStudioAuthoring.SelectedContent.getSelectedContent());
+                                        CStudioAuthoring.SelectedContent.getSelectedContent(),
+                                        (option.name == "Schedule") ? true : false
+                                    );
                                 };
                                 
                                 var renderFlag = true;
