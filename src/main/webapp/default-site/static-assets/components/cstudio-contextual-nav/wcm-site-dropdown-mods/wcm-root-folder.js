@@ -1083,19 +1083,23 @@ treeNode.getHtml = function() {
 					var checkPermissionsCb = {
                         success: function(results) {
                             var isCreateFolder = CStudioAuthoring.Service.isCreateFolder(results.permissions);
+                            var isCreateContentAllowed = CStudioAuthoring.Service.isCreateContentAllowed(results.permissions);
+                            var isChangeContentTypeAllowed = CStudioAuthoring.Service.isChangeContentTypeAllowed(results.permissions);
                             // check if the user is allowed to edit the content
                             var isUserAllowed = CStudioAuthoring.Service.isUserAllowed(results.permissions);
                             var isDeleteAllowed = CStudioAuthoring.Service.isDeleteAllowed(results.permissions) && !isOpen;
-                        
+
 		                    if(isLocked == true && isWrite == true) {
 		                    	p_aArgs.addItems([ menuItems.viewOption ]);
 
                         		if (isContainer == true) {
-		                        	p_aArgs.addItems([ menuItems.newContentOption ]);
+                                    if (isCreateContentAllowed) {
+                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                    }
 		                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
-		                        }		                   		
+		                        }
 	                        	p_aArgs.addItems([ menuItems.separator ]);
-	                        	//The item is locked 
+	                        	//The item is locked
 								//p_aArgs.addItems([ menuItems.cutOption ]);
 	                        	p_aArgs.addItems([ menuItems.copyOption ]);
 
@@ -1119,7 +1123,7 @@ treeNode.getHtml = function() {
                                             }
                                             Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
                                         }
-		
+
 			                            this.args.render();
 										menuId.removeChild(d);
 			                        },
@@ -1131,7 +1135,7 @@ treeNode.getHtml = function() {
 			                        itemInProgress: isInProgress,
 			                        item: oCurrentTextNode.data
 			                    };
-			                    
+
 			                    CStudioAuthoring.Clipboard.getClipboardContent(checkClipboardCb);
 
 			                    p_aArgs.render();
@@ -1139,6 +1143,49 @@ treeNode.getHtml = function() {
 		                    }
 		                   	else if(!isWrite) {
 		                   		p_aArgs.addItems([ menuItems.viewOption ]);
+
+                                if (isComponent == true || isLevelDescriptor == true) {
+                                    if (formPath == "" || formPath == undefined) {
+                                    } else {
+                                        if (!isUserAllowed) {
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
+                                        } else {
+                                            if (!isFolder && isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (formPath == "" || formPath == undefined) {
+                                        if (isUserAllowed) {
+                                            if (isContainer == true) {
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
+                                            }
+                                            if (!isFolder && isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
+                                        }
+                                    } else {
+                                        if (isContainer == true) {
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
+                                            if (isUserAllowed) {
+                                                if (!isFolder && isChangeContentTypeAllowed) {
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
 		                   		p_aArgs.render();
 								menuId.removeChild(d);
 		                   	}
@@ -1146,8 +1193,8 @@ treeNode.getHtml = function() {
 			                    if (isComponent == true || isLevelDescriptor == true) {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
-			                        	if (isUserAllowed) { 
-					                        
+			                        	if (isUserAllowed) {
+
                                             if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
@@ -1157,28 +1204,34 @@ treeNode.getHtml = function() {
 			                        	if (isUserAllowed) {
 				                        	p_aArgs.addItems([ menuItems.editOption ]);
 				                        	p_aArgs.addItems([ menuItems.viewOption ]);
-	
-				                        	p_aArgs.addItems([ menuItems.separator ]);
+
+				                        	if(isDeleteAllowed ||!isFolder && isChangeContentTypeAllowed ){
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                            }
 				                        	if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 				                        	}
-                                            if (!isFolder) {
+                                            if (!isFolder && isChangeContentTypeAllowed) {
                                                 p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                             }
-				                        	
+
 				                        	p_aArgs.addItems([ menuItems.separator ]);
 				                        	p_aArgs.addItems([ menuItems.cutOption ]);
 				                        	p_aArgs.addItems([ menuItems.copyOption ]);
 			                        	} else {
 				                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
 			                        	}
 			                        }
 			                    } else {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	if (isCreateFolder == true) {
 			                        		if (isContainer == true) {
-					                        	p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 					                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 					                        }
 				                        	if (isUserAllowed) {
@@ -1186,10 +1239,10 @@ treeNode.getHtml = function() {
 				                        		if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-                                                if (!isFolder) {
+                                                if (!isFolder && isChangeContentTypeAllowed) {
                                                     p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                 }
-	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
@@ -1197,7 +1250,9 @@ treeNode.getHtml = function() {
 				                        }
 			                        	else {
 			                        		if (isContainer == true) {
-				                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 				                        	} else if (isUserAllowed) {
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 				                        		p_aArgs.addItems([ menuItems.deleteOption ]);
@@ -1209,53 +1264,61 @@ treeNode.getHtml = function() {
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
-			
+
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	if (isDeleteAllowed) {
 						                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 						                        	}
-						                        	if (!isFolder) {
+						                        	if (!isFolder && isChangeContentTypeAllowed) {
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
-		
+
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	p_aArgs.addItems([ menuItems.cutOption ]);
 						                        	p_aArgs.addItems([ menuItems.copyOption ]);
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 						                        }
 					                        } else {
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
-		
-						                        	p_aArgs.addItems([ menuItems.separator ]);
-						                        	if (!isFolder) {
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
+
+						                        	if (!isFolder && isChangeContentTypeAllowed) {
+                                                        p_aArgs.addItems([ menuItems.separator ]);
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        }
 					                        }
 					                    } else {
 				                        	if (isUserAllowed) {
 					                        	p_aArgs.addItems([ menuItems.editOption ]);
 					                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-					                        	if (!isFolder) {
+					                        	if (!isFolder && isChangeContentTypeAllowed) {
                                                     p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                 }
-					                        	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
