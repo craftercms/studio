@@ -30,31 +30,31 @@ class CommonLifecycleApi {
     }
 
     def onCopy(site, path) {
-        logger.info("running copy operation event on " + site + ":" + path);
+        logger.debug("running copy operation event on " + site + ":" + path);
     }
 
     def onDelete(site, path) {
-        logger.info("running delete operation event on " + site + ":" + path);
+        logger.debug("running delete operation event on " + site + ":" + path);
     }
 
     def onDuplicate(site, path) {
-        logger.info("running duplicate operation event on " + site + ":" + path);
+        logger.debug("running duplicate operation event on " + site + ":" + path);
     }
 
     def onNew(site, path) {
-        logger.info("running new operation event on " + site + ":" + path);
+        logger.debug("running new operation event on " + site + ":" + path);
     }
 
     def onRename(site, path) {
-        logger.info("running rename operation event on " + site + ":" + path);
+        logger.debug("running rename operation event on " + site + ":" + path);
     }
 
     def onRevert(site, path) {
-        logger.info("running revert operation event on " + site + ":" + path);
+        logger.debug("running revert operation event on " + site + ":" + path);
     }
 
     def onUpdate(site, path) {
-        logger.info("running update operation event on " + site + ":" + path);
+        logger.debug("running update operation event on " + site + ":" + path);
     }
 
     def execute () {
@@ -73,7 +73,7 @@ class CommonLifecycleApi {
         } else if (contentLifecycleParams.contentLifecycleOperation == "UPDATE") {
             onUpdate(contentLifecycleParams.site, contentLifecycleParams.path);
         } else {
-            logger.log("Unkown operation: " + contentLifecycleParams.contentLifecycleOperation + " for " + contentLifecycleParams.site + ":" + contentLifecycleParams.path);
+            logger.info("Unkown operation: " + contentLifecycleParams.contentLifecycleOperation + " for " + contentLifecycleParams.site + ":" + contentLifecycleParams.path);
         }
     }
 }
