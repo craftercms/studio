@@ -584,7 +584,11 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			   			var resultsHTML = "";
 			        	var contentItem = results.objectList[i],
                             _item = contentItem.item;
-			        	contentItem.resultId = CStudioSearch.pathToId(_item.uri);
+
+                        _item.uri = _item.localId;
+						_item.form = _item.contentType;
+
+			        	contentItem.resultId = CStudioSearch.pathToId(_item.localId);
 			        	
 			        	/********************************************************************************
 			        	 * handling duplicate item issue due to indexing.
@@ -689,15 +693,32 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				      			if(this.checked) {
 				      				if(searchContext.selectLimit != -1){
 				      					if(CStudioAuthoring.SelectedContent.getSelectedContentCount() < searchContext.selectLimit) {
-							      			CStudioAuthoring.SelectedContent.selectContent(this.contentTO.item);
+							      			
+							      			var selectCb = {
+							      				success : function(contentTO) {
+													CStudioAuthoring.SelectedContent.selectContent(contentTO.item);
+							      				},
+							      				failure: function() {
+							      				}
+							      			};
+
+                    						CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);
 				      					}
 				      					else {
 				      						this.checked = false;
 				      					}
 				      				}
 				      				else {
-						      			CStudioAuthoring.SelectedContent.selectContent(this.contentTO.item);
-				      				}
+										var selectCb = {
+						      				success : function(contentTO) {
+												CStudioAuthoring.SelectedContent.selectContent(contentTO.item);
+						      				},
+						      				failure: function() {
+						      				}
+						      			};
+
+                						CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);				      				
+                					}
 				      			}
 				      			else {
 				      				CStudioAuthoring.SelectedContent.unselectContent(this.contentTO.item);

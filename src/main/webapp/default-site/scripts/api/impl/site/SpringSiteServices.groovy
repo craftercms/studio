@@ -76,7 +76,10 @@ class SpringSiteServices {
         return springBackedService.getAvailableBlueprints()
     }
 
-
+    def reloadSiteConfiguration(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.reloadSiteConfiguration(site)
+    }
 
     def importSite(config) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")

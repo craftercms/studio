@@ -1,10 +1,25 @@
 def DEFAULT_SLIDE_SET = siteItemService.getSiteItem("/site/components/slider-sets/default.xml")
-model.slideSet = DEFAULT_SLIDE_SET
+def lang = "en"
 
-def profileSegment = (profile) ? profile.getAttribute("segment") : "all"
+try {
+lang =request.getRequestURI().substring(request.getContextPath().length()).substring(1,3)
+}
+catch(err){}
+
+model.x ="" 
+ 
+model.slideSet = DEFAULT_SLIDE_SET
+profile = request.session.getAttribute("_cr_profile_state")
+
+//def profileSegment = (profile) ? profile.getAttribute("segment") : "all"
+def profileSegment = (profile) ? profile.get("segment") : "all"
 profileSegment = (profileSegment) ? profileSegment : "all"
 
-def queryStatement = 'crafterSite:"pluton" AND content-type:"/component/slider-set" AND ((segment.item.key:"' + profileSegment  + '")^10 OR segment.item.key:"all")'
+def queryStatement = 'crafterSite:"pluton" ' +
+                     'AND content-type:"/component/slider-set" ' +
+                     'AND ((segment.item.key:"' + profileSegment  + '")^10 OR segment.item.key:"all") '+
+                     'AND localId:*/' + lang + '*'
+                     
 
 def query = searchService.createQuery()
 query = query.setQuery(queryStatement)

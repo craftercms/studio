@@ -30,8 +30,11 @@
 
 <#macro browserGeoLocationSupport cookie=true>
 	<#if siteContext.overlayCallback??>
+    <#assign profile = fprofile />
 		<#if profile??>
-			<#assign browserCoords = profile.attributes['geo']!"" />	
+			
+ <#assign browserCoords = profile['geo']!"" />
+ <!--#assign browserCoords = profile.attributes['geo']!"" /-->
 		<#else>
 			<#assign browserCoords = "" />
 		</#if>
