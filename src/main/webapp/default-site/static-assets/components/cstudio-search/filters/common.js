@@ -307,7 +307,7 @@ CStudioSearch.FilterRenderer.Common.ContentTypeCol = function() {
 	 */
 	column.prepareColFromUrl = function(queryString) {
 
-		var value = CStudioAuthoring.Utils.getQueryVariable(queryString, "cstudio-core:contentType");
+		var value = CStudioAuthoring.Utils.getQueryVariable(queryString, "content-type");
 
 		if((!value) || value == "all") {
 			this.self.contentTypeEl.innerHTML = "All";
@@ -324,7 +324,7 @@ CStudioSearch.FilterRenderer.Common.ContentTypeCol = function() {
 		var value = this.self.contentTypeEl.innerHTML;
 
 		if (value != null && value != "All") {
-			searchContext.filters.push({ qname: "cstudio-core:contentType",  value: value, useWildCard: true });
+			searchContext.filters.push({ qname: "content-type",  value: "'"+value+"'", useWildCard: true });
 		}
 
 		return searchContext;

@@ -8,6 +8,20 @@
     <namespace-to-type-map>
     </namespace-to-type-map>
 
+
+<baseSite>SITENAME</baseSite>
+    <translation>
+        <sourceLanguage>us-en</sourceLanguage>
+        <targetSites>
+            <targetSite>
+                <label>Japanese</label>
+                <id>pluton</id>
+                <basePath>/</basePath>
+                <targetLanguage>ja</targetLanguage>
+            </targetSite>
+        </targetSites>
+    </translation>
+
     <!-- we should get rid of this invarient config -->
     <assets-url>/cstudio/content/get-content-asset?site=${site}&amp;id=${id}&amp;contentType=${contentType}&amp;assetType=${assetType}&amp;assetName=${assetName}&amp;edit=false</assets-url>
 

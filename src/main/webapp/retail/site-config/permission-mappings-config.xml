@@ -9,6 +9,8 @@
                     <permission>Delete</permission>
                     <permission>Create Folder</permission>
                     <permission>Publish</permission>
+                    <permission>Create Content</permission>
+                    <permission>Change Content Type</permission>
                 </allowed-permissions>
             </rule>
         </role>
