@@ -24,7 +24,7 @@
               <div class="da-slide"  >
               
                   <h2 <@studio.iceAttr path=slideSet.storeUrl iceGroup="banners"/> class="fittext2">${banner.headline!''}</h2>
-                  <h4 >${banner.subheadline!''}</h4>
+                  <h4 >${banner.subheadline!''} ${x}</h4>
                   <p>${banner.explaination!''}</p>
                   <a href="#" class="da-link button">Read more</a>
                   <div class="da-img">

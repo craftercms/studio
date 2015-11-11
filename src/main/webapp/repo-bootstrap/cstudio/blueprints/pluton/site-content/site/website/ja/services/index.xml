@@ -10,14 +10,17 @@
 	<pageNavOrder>false</pageNavOrder>
 	<placeInNav>false</placeInNav>
 	<orderDefault_f>-1</orderDefault_f>
-	<disabled>false</disabled>
+	<disable>false</disable>
 	<zone1/>
 	<zone2>	<item>	<key>/site/components/page/1fcf/1fcf62b6-36f4-7000-2f1e-91b4e04edd99/704ea5c8-0ad5-1322-8797-92250f33a21f.xml</key>
 	<value>Clean Code</value>
 	<include>/site/components/page/1fcf/1fcf62b6-36f4-7000-2f1e-91b4e04edd99/704ea5c8-0ad5-1322-8797-92250f33a21f.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></zone2>
-	<zone3/>
+	<zone3>	<item>	<value>Closest Store </value>
+	<key>/site/components/page/closest-store/2a728032-cd29-80e2-658d-540b3aaac82b.xml</key>
+	<include>/site/components/page/closest-store/2a728032-cd29-80e2-658d-540b3aaac82b.xml</include>
+	</item></zone3>
 	<zone4>	<item>	<value>Modern Design</value>
 	<key>/site/components/page/1fcf/1fcf62b6-36f4-7000-2f1e-91b4e04edd99/ce8bce2e-6496-752d-c302-7718f1f65c77.xml</key>
 	<include>/site/components/page/1fcf/1fcf62b6-36f4-7000-2f1e-91b4e04edd99/ce8bce2e-6496-752d-c302-7718f1f65c77.xml</include>

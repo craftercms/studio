@@ -5,6 +5,5 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <display-template xsi:nil="false">/templates/system/common/component.ftl</display-template>
     <merge-strategy>inherit-levels</merge-strategy>
-    <file-name>crafter-component.xml</file-name>
     <hideInAuthoring>true</hideInAuthoring>
 </page>

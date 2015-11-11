@@ -16,5 +16,4 @@
     </script-group-->
   <descriptor-mapper>hierarchical-mapper</descriptor-mapper>
   <content-type>/component/level-descriptor</content-type>
-    <file-name>crafter-level-descriptor.level.xml</file-name>
  </levelDescriptor>
