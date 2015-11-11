@@ -1109,7 +1109,7 @@ public class ContentServiceImpl implements ContentService {
             long startTime = System.currentTimeMillis();
             ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
             long duration = System.currentTimeMillis() - startTime;
-            logger.warn("Write Duration: {0}", duration);
+            logger.debug("Write Duration: {0}", duration);
             return to;
         } finally {
             long end = System.currentTimeMillis();

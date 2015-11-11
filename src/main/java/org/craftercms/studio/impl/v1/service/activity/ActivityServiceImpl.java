@@ -214,14 +214,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 	private long insertFeedEntry(ActivityFeed activityFeed) {
 		DebugUtils.addDebugStack(logger);
-		logger.info("Insert activity " + activityFeed.getContentId());
+		logger.debug("Insert activity " + activityFeed.getContentId());
 		Long id = activityFeedMapper.insertActivityFeed(activityFeed);
 		return (id != null ? id : -1);
 	}
 
 	private void updateFeedEntry(ActivityFeed activityFeed) {
 		DebugUtils.addDebugStack(logger);
-		logger.info("Update activity " + activityFeed.getContentId());
+		logger.debug("Update activity " + activityFeed.getContentId());
 		activityFeedMapper.updateActivityFeed(activityFeed);
 
 	}
@@ -253,7 +253,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	@Override
 	public void renameContentId(String site, String oldUrl, String newUrl) {
 		DebugUtils.addDebugStack(logger);
-		logger.info("Rename " + oldUrl + " to " + newUrl);
+		logger.debug("Rename " + oldUrl + " to " + newUrl);
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("newPath", newUrl);
 		params.put("site", site);
