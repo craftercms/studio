@@ -3872,6 +3872,26 @@ var parentSaveCb = {
                 return false;
             },
 
+            // is this really a service and not a util, can we rename it to something descriptive?
+            isCreateContentAllowed: function(permissions) {
+                for (var i = 0; i < permissions.length; i++) {
+                    if(permissions[i] == "create content") {
+                        return true;
+                    }
+                }
+                return false;
+            },
+
+            // is this really a service and not a util, can we rename it to something descriptive?
+            isChangeContentTypeAllowed: function(permissions) {
+                for (var i = 0; i < permissions.length; i++) {
+                    if(permissions[i] == "change content type") {
+                        return true;
+                    }
+                }
+                return false;
+            },
+
             /**
              * lookup content type metadata
              */

@@ -1067,6 +1067,8 @@ CStudioAuthoringContext.site,
 				var checkPermissionsCb = {
                        success: function(results) {
                            var isCreateFolder = CStudioAuthoring.Service.isCreateFolder(results.permissions);
+                           var isCreateContentAllowed = CStudioAuthoring.Service.isCreateContentAllowed(results.permissions);
+                           var isChangeContentTypeAllowed = CStudioAuthoring.Service.isChangeContentTypeAllowed(results.permissions);
                            // check if the user is allowed to edit the content
                            var isUserAllowed = CStudioAuthoring.Service.isUserAllowed(results.permissions);
                            var isDeleteAllowed = CStudioAuthoring.Service.isDeleteAllowed(results.permissions);
@@ -1091,6 +1093,49 @@ CStudioAuthoringContext.site,
 	                    }
 	                   	else if(!isWrite) {
 	                   		p_aArgs.addItems([ menuItems.viewOption ]);
+
+                            if (isComponent == true || isLevelDescriptor == true) {
+                                if (formPath == "" || formPath == undefined) {
+                                } else {
+                                    if (!isUserAllowed) {
+                                        if (isCreateContentAllowed) {
+                                            p_aArgs.addItems([ menuItems.newContentOption ]);
+                                        }
+                                    } else {
+                                        if (isChangeContentTypeAllowed) {
+                                            p_aArgs.addItems([ menuItems.separator ]);
+                                            p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (formPath == "" || formPath == undefined) {
+                                    if (isUserAllowed) {
+                                        if (isContainer == true) {
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
+                                        }
+                                        if (isChangeContentTypeAllowed) {
+                                            p_aArgs.addItems([ menuItems.separator ]);
+                                            p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                        }
+                                    }
+                                } else {
+                                    if (isContainer == true) {
+                                        if (isCreateContentAllowed) {
+                                            p_aArgs.addItems([ menuItems.newContentOption ]);
+                                        }
+                                        if (isUserAllowed) {
+                                            if (isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
 	                   		p_aArgs.render();
 							menuId.removeChild(d);
 	                   	}
@@ -1105,7 +1150,9 @@ CStudioAuthoringContext.site,
 			                 		}
 			                 		else {
 
-					                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                        if (isCreateContentAllowed) {
+                                            p_aArgs.addItems([ menuItems.newContentOption ]);
+                                        }
 					                    if (isDeleteAllowed) {
 				                        	p_aArgs.addItems([ menuItems.separator ]);
 			                        		p_aArgs.addItems([ menuItems.deleteOption ]);
@@ -1127,7 +1174,9 @@ CStudioAuthoringContext.site,
                                             if (isDeleteAllowed) {
                                                 p_aArgs.addItems([ menuItems.deleteOption ]);
                                             }
-                                            p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            if (isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
 
 			    	                    	
 			        	                	p_aArgs.addItems([ menuItems.separator ]);
@@ -1141,7 +1190,9 @@ CStudioAuthoringContext.site,
 				                 		}
 				                 		else {
 			    	                    	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
 				                 		}
 		                        	}
 		                        }
@@ -1155,7 +1206,9 @@ CStudioAuthoringContext.site,
 			                        if (formPath == "" || formPath == undefined) {
 			                        	if (isCreateFolder == true) {
 			                        		if (isContainer == true) {
-					                        	p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 					                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 					                        }
 				                        	if (isUserAllowed) {
@@ -1163,7 +1216,9 @@ CStudioAuthoringContext.site,
 				                        		if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-					                        	p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                if (isChangeContentTypeAllowed) {
+                                                    p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                }
 	
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
@@ -1172,7 +1227,9 @@ CStudioAuthoringContext.site,
 				                        }
 			                        	else {
 			                        		if (isContainer == true) {
-				                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 				                        	} else if (isUserAllowed && isDeleteAllowed) {
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 				                        		p_aArgs.addItems([ menuItems.deleteOption ]);
@@ -1184,34 +1241,46 @@ CStudioAuthoringContext.site,
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	if (isDeleteAllowed) {
 						                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 						                        	}
-						                        	p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                    if (isChangeContentTypeAllowed) {
+                                                        p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                    }
 		
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	p_aArgs.addItems([ menuItems.cutOption ]);
 						                        	p_aArgs.addItems([ menuItems.copyOption ]);
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 						                        }
 					                        } else {
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 		
 						                        	p_aArgs.addItems([ menuItems.separator ]);
-						                        	p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                    if (isChangeContentTypeAllowed) {
+                                                        p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                    }
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        }
 					                        }
 					                    } else {
@@ -1223,7 +1292,9 @@ CStudioAuthoringContext.site,
 					                        	if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-					                        	p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                if (isChangeContentTypeAllowed) {
+                                                    p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                }
 					                        	
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
