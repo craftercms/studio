@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
@@ -254,23 +255,26 @@ public class DeploymentServiceImpl implements DeploymentService {
                 DeploymentSyncHistory entry = deployReports.get(index);
                 ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
                 if (deployedItem != null) {
-                    deployedItem.eventDate = entry.getSyncDate();
-                    deployedItem.endpoint = entry.getTarget();
-                    String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
-                    if (tasks.size() > 0) {
-                        DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
-                        String lastDeployedLabel = lastTask.getInternalName();
-                        if (lastDeployedLabel.equals(deployedLabel)) {
-                            // add to the last task if it is deployed on the same day
-                            lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
-                            lastTask.getChildren().add(deployedItem);
+                    Set<String> permissions = securityService.getUserPermissions(site, deployedItem.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
+                    if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                        deployedItem.eventDate = entry.getSyncDate();
+                        deployedItem.endpoint = entry.getTarget();
+                        String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
+                        if (tasks.size() > 0) {
+                            DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
+                            String lastDeployedLabel = lastTask.getInternalName();
+                            if (lastDeployedLabel.equals(deployedLabel)) {
+                                // add to the last task if it is deployed on the same day
+                                lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
+                                lastTask.getChildren().add(deployedItem);
+                            } else {
+                                tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                            }
                         } else {
                             tasks.add(createDeploymentTask(deployedLabel, deployedItem));
                         }
-                    } else {
-                        tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                        count++;
                     }
-                    count++;
                 }
             }
         }
@@ -370,7 +374,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
         for (CopyToEnvironment deploymentItem : deploying) {
             String fullPath = contentService.expandRelativeSitePath(site, deploymentItem.getPath());
-            addScheduledItem(site, deploymentItem.getScheduledDate(), format, fullPath, results, comparator, subComparator, displayPatterns, filterType);
+            Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(), securityService.getCurrentUser(), Collections.<String>emptyList());
+            if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                addScheduledItem(site, deploymentItem.getScheduledDate(), format, fullPath, results, comparator, subComparator, displayPatterns, filterType);
+            }
         }
         return results;
     }
@@ -782,6 +789,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
     public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
 
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -795,6 +805,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected Reactor repositoryReactor;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
+    protected SecurityService securityService;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

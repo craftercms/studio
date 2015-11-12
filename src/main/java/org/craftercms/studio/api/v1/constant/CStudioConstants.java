@@ -75,4 +75,5 @@ public interface CStudioConstants {
  
  	public static final String PERMISSION_VALUE_READ = "read";
  	public static final String PERMISSION_VALUE_NOT_ALLOWED= "not allowed";
+    public static final String PERMISSION_VALUE_PUBLISH= "publish";
 }

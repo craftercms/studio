@@ -343,20 +343,13 @@ public class WorkflowServiceImpl implements WorkflowService {
 	public Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
 		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
 		List<ContentItemTO> items = getGoLiveItems(site, comparator);
-		/*
-		JSONObject jsonObject = new JSONObject();
-		*/
+
 		int total = 0;
 		if (items != null) {
 			for (ContentItemTO item : items) {
 				total += item.getNumOfChildren();
 			}
-		}/*
-		jsonObject.put(CStudioConstants.PROPERTY_TOTAL, total);
-		jsonObject.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
-		jsonObject.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
-		jsonObject.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
-		*/
+		}
 		Map<String, Object> result = new HashMap<>();
 		result.put(CStudioConstants.PROPERTY_TOTAL, total);
 		result.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
@@ -426,7 +419,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
 	public void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
-		//List<NodeRef> changeSet = searchService.findNodes(CStudioConstants.STORE_REF, getSubmittedItemsQuery(site));
 		List<ObjectState> changeSet = objectStateService.getSubmittedItems(site);
 		// TODO: implement list changed all
 
@@ -437,7 +429,10 @@ public class WorkflowServiceImpl implements WorkflowService {
 			for (ObjectState state : changeSet) {
 				try {
 					ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
-					addToQueue(site, goLiveQueue, inProcessQueue, item, state);
+                    Set<String> permissions = securityService.getUserPermissions(site, item.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
+                    if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                        addToQueue(site, goLiveQueue, inProcessQueue, item, state);
+                    }
 				} catch (Exception e) {
 					logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());
 				}
@@ -473,19 +468,13 @@ public class WorkflowServiceImpl implements WorkflowService {
 			for (ContentItemTO item : items) {
 				total += item.getNumOfChildren();
 			}
-		}/*
-		jsonObject.put(CStudioConstants.PROPERTY_TOTAL, total);
-		jsonObject.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
-		jsonObject.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
-		jsonObject.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
-		*/
+		}
 		Map<String, Object> result = new HashMap<>();
 		result.put(CStudioConstants.PROPERTY_TOTAL, total);
 		result.put(CStudioConstants.PROPERTY_SORTED_BY, sort);
 		result.put(CStudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
 		result.put(CStudioConstants.PROPERTY_DOCUMENTS, items);
 		return result;
-		//return jsonObject.toString();
 	}
 
 	protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator, final boolean inProgressOnly) throws ServiceException {
@@ -496,7 +485,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
 		long st = System.currentTimeMillis();
-		//List<NodeRef> changeSet = persistenceManagerService.getChangeSet(site);
 		List<ObjectState> changeSet = objectStateService.getChangeSet(site);
 
 		logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
