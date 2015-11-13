@@ -35,8 +35,11 @@ public class TestSecurityProvider implements SecurityProvider {
         adminGroups.add("crafter-create-sites");
         Set<String> authorGroups = new HashSet<String>();
         authorGroups.add("crafter-author");
+        Set<String> approverGroups = new HashSet<String>();
+        approverGroups.add("crafter-approver");
         put("admin", adminGroups);
         put("author", authorGroups);
+        put("approver", approverGroups);
     }};
 
     private final static Map<String, Map<String, String>> USER_PROFILES = new HashMap<String, Map<String, String>>() {{
@@ -52,14 +55,22 @@ public class TestSecurityProvider implements SecurityProvider {
         authorProfile.put("firstName", "Joe");
         authorProfile.put("lastName", "Author");
 
+        Map<String, String> approverProfile = new HashMap<String, String>();
+        authorProfile.put("username", "approver");
+        authorProfile.put("email", "evalapprover@craftersoftware.com");
+        authorProfile.put("firstName", "Joe");
+        authorProfile.put("lastName", "Approver");
+
         put("admin", adminProfile);
         put("author", authorProfile);
+        put("approver", approverProfile);
         put(null, new HashMap<String, String>());
     }};
 
     private final static List<String> USER_FAKETICKETS = new ArrayList<String>() {{
         add("admin_FAKETICKET");
         add("author_FAKETICKET");
+        add("approver_FAKETICKET");
     }};
 
     public Set<String> getUserGroups(String user) {
