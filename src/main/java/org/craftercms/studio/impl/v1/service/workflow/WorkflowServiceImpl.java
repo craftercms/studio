@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -827,14 +828,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
-                JSONObject item = items.optJSONObject(index);
                 DmDependencyTO submittedItem = null;
-				/*
-                if (StringUtils.isNotEmpty(stringItem)) {
-                    submittedItem = dmDependencyService.getDependencies(site, stringItem, false, true);
-                } else {
-                    submittedItem = getSubmittedItem(site, item, format, scheduledDate);
-                }*/
+
 				submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate);
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
@@ -843,7 +838,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 submittedItems.add(submittedItem);
                 submittedItems.addAll(submitForDeleteChildren);
             }
-            // AuthenticationUtil.setFullyAuthenticatedUser(approver);
             switch (operation) {
                 case GO_LIVE:
                     if (scheduledDate != null && isNow == false) {
@@ -1123,27 +1117,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 child = getSubmittedItem(site, child.getUri(), format, globalSchDate);
             }
         }
-
-		if (submittedItem.getUri().endsWith(DmConstants.XML_PATTERN)) {
-
-			/**
-			 * get sendEmail property if it is there
-			 */
-        /* TODO: implement send email
-            try {
-                String fullPath = contentService.expandRelativeSitePath(site, submittedItem.getUri());
-                Serializable sendEmailValue = persistenceManagerService.getProperty(persistenceManagerService.getNodeRef(fullPath), CStudioContentModel.PROP_WEB_WF_SEND_EMAIL);
-                boolean sendEmail = (sendEmailValue != null) ? Boolean.parseBoolean(sendEmailValue.toString()) : false;
-                submittedItem.setSendEmail(sendEmail);
-
-                String user = item.getString(JSON_KEY_USER);
-                submittedItem.setSubmittedBy(user);
-            } catch (Exception e) {
-                e.printStackTrace(); // To change body of catch statement use
-                // File | Settings | File Templates.
-            }
-            */
-		}
 
 		return submittedItem;
 	}
@@ -1504,30 +1477,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
             }
-			/*
-			 * List<DmDependencyTO> deps =
-			 * submittedItem.getDirectDependencies(); if (deps != null) {
-			 * Iterator<DmDependencyTO> depItr = deps.iterator(); while
-			 * (depItr.hasNext()) { DmDependencyTO dep = depItr.next(); String
-			 * depPath = siteRoot + dep.getUri(); ObjectStateService.State
-			 * depState = persistenceManagerService.getObjectState(depPath); if
-			 * (ObjectStateService.State.isUpdateOrNew(depState)) { Date
-			 * pageDate = dep.getScheduledDate(); if ( (date==null &&
-			 * pageDate!=null) || (date!=null && !date.equals(pageDate))) {
-			 * childAndReferences.add(dep); dep.setReference(false);
-			 * depItr.remove(); if (removeInPages) { String uri = dep.getUri();
-			 * List<DmDependencyTO> pages = submittedItem.getPages(); if (pages
-			 * != null) { Iterator<DmDependencyTO> pagesIter = pages.iterator();
-			 * while (pagesIter.hasNext()) { DmDependencyTO page =
-			 * pagesIter.next(); if (page.getUri().equals(uri)) {
-			 * pagesIter.remove(); } } } } } }
-			 * childAndReferences.addAll(getRefAndChildOfDiffDateFromParent
-			 * (site, dep.getDirectDependencies(), removeInPages)); } }
-			 */
-            DependencyRules rule = new DependencyRules(site);
-            rule.setContentService(contentService);
-            rule.setObjectStateService(objectStateService);
-            childAndReferences.addAll(rule.applySubmitRule(submittedItem));
+
+            Set<String> dependenciesPaths = deploymentDependencyRule.applyRule(site, submittedItem.getUri());
+            for (String depPath : dependenciesPaths) {
+                childAndReferences.add(dmDependencyService.getDependencies(site, depPath, false, true));
+            }
         }
         return childAndReferences;
     }
@@ -2220,6 +2174,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
+    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
+    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+
     private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
 	protected ServicesConfig servicesConfig;
@@ -2238,6 +2195,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String customContentTypeNotificationPattern;
     protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;
+    protected DependencyRule deploymentDependencyRule;
 
     public static class SubmitPackage {
         protected String pathPrefix;

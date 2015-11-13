@@ -302,6 +302,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 */
+
+    @Override
+    public boolean isUpdated(String site, String path) {
+        ObjectState state = getObjectState(site, path);
+        if (state != null) {
+            return State.isUpdated(State.valueOf(state.getState()));
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public boolean isUpdatedOrNew(String site, String path) {
         ObjectState state = getObjectState(site, path);

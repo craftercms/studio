@@ -184,6 +184,10 @@ public enum State {
         return EDITED_STATES.contains(state) || NEW_STATES.contains(state);
     }
 
+    public static boolean isUpdated(State state) {
+        return EDITED_STATES.contains(state);
+    }
+
     public static boolean isSubmitted(State state) {
         return SUBMITTED_STATES.contains(state);
     }
