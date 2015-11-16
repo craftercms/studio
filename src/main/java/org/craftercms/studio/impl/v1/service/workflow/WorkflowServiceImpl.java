@@ -954,6 +954,180 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    protected ResultTO approve_new(String site, String request, Operation operation) {
+        String approver = securityService.getCurrentUser();
+        ResultTO result = new ResultTO();
+        try {
+            JSONObject requestObject = JSONObject.fromObject(request);
+            JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
+            String scheduledDate = null;
+            if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
+                scheduledDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
+            }
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+
+            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
+            JSONObject jsonObjectStatus = requestObject.getJSONObject(JSON_KEY_STATUS_SET);
+            String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
+            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
+            MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
+            if(operation != Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
+                ResultTO toReturn = new ResultTO();
+                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
+                String channels = StringUtils.join(channelsList, " ");
+                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
+                toReturn.setSuccess(false);
+                toReturn.setInvalidateCache(false);
+                return toReturn;
+            }
+
+            int length = items.size();
+            if (length == 0) {
+                throw new ServiceException("No items provided to go live.");
+            }
+
+            List<String> submittedPaths = new ArrayList<String>();
+            String responseMessageKey = null;
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            List<DmDependencyTO> submittedItems = new ArrayList<>();
+            for (int index = 0; index < length; index++) {
+                String stringItem = items.optString(index);
+
+                submittedPaths.add(stringItem);
+                DmDependencyTO submittedItem = null;
+
+                submittedItem = getSubmittedItem_new(site, stringItem, format, scheduledDate);
+                List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
+                if (submittedItem.isReference()) {
+                    submittedItem.setReference(false);
+                }
+                submittedItems.add(submittedItem);
+                submittedItems.addAll(submitForDeleteChildren);
+            }
+            switch (operation) {
+                case GO_LIVE:
+                    if (scheduledDate != null && isNow == false) {
+                        responseMessageKey = NotificationService.COMPLETE_SCHEDULE_GO_LIVE;
+                    } else {
+                        responseMessageKey = NotificationService.COMPLETE_GO_LIVE;
+                    }
+                    List<DmDependencyTO> submitToDeleteItems = new ArrayList<>();
+                    List<DmDependencyTO> goLiveItems = new ArrayList<>();
+                    List<DmDependencyTO> renameItems = new ArrayList<>();
+                    for (DmDependencyTO item : submittedItems) {
+                        if (item.isSubmittedForDeletion()) {
+                            submitToDeleteItems.add(item);
+                        } else {
+                            if (!dmRenameService.isItemRenamed(site, item)) {
+                                goLiveItems.add(item);
+                            } else {
+                                renameItems.add(item);
+                            }
+                        }
+                    }
+
+                    if (!submitToDeleteItems.isEmpty()) {
+                        doDelete(site, submitToDeleteItems, approver);
+                    }
+
+                    if (!goLiveItems.isEmpty()) {
+                        List<DmDependencyTO> references = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, true);
+                        List<DmDependencyTO> children = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, false);
+                        goLiveItems.addAll(references);
+                        goLiveItems.addAll(children);
+                        List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
+                        goLiveItems.addAll(dependencies);
+                        List<String> goLivePaths = new ArrayList<>();
+                        for (DmDependencyTO goLiveItem : goLiveItems) {
+                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                        }
+                        for (String fullPath : goLivePaths) {
+                            String path = contentService.getRelativeSitePath(site, fullPath);
+                            String lockId = site + ":" + path;
+                            generalLockService.lock(lockId);
+
+                        }
+                        try {
+                            goLive(site, goLiveItems, approver, mcpContext);
+                        } finally {
+                            for (String fullPath : goLivePaths) {
+                                String path = contentService.getRelativeSitePath(site, fullPath);
+                                String lockId = site + ":" + path;
+                                generalLockService.unlock(lockId);
+                            }
+                        }
+                    }
+
+                    if (!renameItems.isEmpty()) {
+                        List<String> renamePaths = new ArrayList<>();
+                        List<DmDependencyTO> renamedChildren = new ArrayList<>();
+                        for (DmDependencyTO renameItem : renameItems) {
+                            renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
+                            String fullPath = contentService.expandRelativeSitePath(site, renameItem.getUri());
+                            renamePaths.add(fullPath);
+                            objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
+                        }
+                        for (DmDependencyTO renamedChild : renamedChildren) {
+                            String fullPath = contentService.expandRelativeSitePath(site, renamedChild.getUri());
+                            renamePaths.add(fullPath);
+                            objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
+                        }
+                        renameItems.addAll(renamedChildren);
+                        //Set proper information of all renameItems before send them to GoLive
+                        for(int i=0;i<renameItems.size();i++){
+                            DmDependencyTO renamedItem = renameItems.get(i);
+                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().after(new Date())) {
+                                renamedItem.setNow(false);
+                            } else {
+                                renamedItem.setNow(true);
+                            }
+                            renameItems.set(i, renamedItem);
+                        }
+
+                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                    }
+
+                    break;
+                case DELETE:
+                    responseMessageKey = NotificationService.COMPLETE_DELETE;
+                    List<String> deletePaths = new ArrayList<>();
+                    List<String> nodeRefs = new ArrayList<String>();
+                    for (DmDependencyTO deletedItem : submittedItems) {
+                        String fullPath = contentService.expandRelativeSitePath(site, deletedItem.getUri());
+                        //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
+                        deletePaths.add(fullPath);
+                        ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
+                        if (contentItem != null) {
+                            //nodeRefs.add(nodeRef.getId());
+                        }
+                    }
+                    doDelete(site, submittedItems, approver);
+            }
+            result.setSuccess(true);
+            result.setStatus(200);
+            result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+
+        } catch (JSONException e) {
+            logger.error("error performing operation " + operation + " " + e);
+
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+        } catch (ServiceException e) {
+            logger.error("error performing operation " + operation + " " + e);
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    /**
      * get a submitted item from a JSON item
      *
      * @param site
@@ -1120,6 +1294,26 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 		return submittedItem;
 	}
+
+    protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
+        DmDependencyTO submittedItem = dmDependencyService.getDependencies(site, itemPath, false, true);
+        // TODO: check scheduled date to make sure it is not null when isNow =
+        // true and also it is not past
+        Date scheduledDate = null;
+        if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
+            scheduledDate = getScheduledDate(site, format, globalSchDate);
+        } else {
+            if (submittedItem.getScheduledDate() != null) {
+                scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+            }
+        }
+        if (scheduledDate == null) {
+            submittedItem.setNow(true);
+        }
+        submittedItem.setScheduledDate(scheduledDate);
+
+        return submittedItem;
+    }
 
     /**
      * get submitted items from JSON request
@@ -1486,6 +1680,64 @@ public class WorkflowServiceImpl implements WorkflowService {
         return childAndReferences;
     }
 
+    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent_new(String site, List<DmDependencyTO> submittedItems, boolean removeInPages) {
+        List<DmDependencyTO> childAndReferences = new ArrayList<>();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            List<DmDependencyTO> children = submittedItem.getChildren();
+            Date date = submittedItem.getScheduledDate();
+            if (children != null) {
+                Iterator<DmDependencyTO> childItr = children.iterator();
+                while (childItr.hasNext()) {
+                    DmDependencyTO child = childItr.next();
+                    Date pageDate = child.getScheduledDate();
+                    if ((date == null && pageDate != null) || (date != null && !date.equals(pageDate))) {
+                        if (!submittedItem.isNow()) {
+                            child.setNow(false);
+                            if (date != null && (pageDate != null && pageDate.before(date))) {
+                                child.setScheduledDate(date);
+                            }
+                        }
+                        childAndReferences.add(child);
+                        List<DmDependencyTO> childDeps = child.flattenChildren();
+                        for (DmDependencyTO childDep : childDeps) {
+                            if (objectStateService.isUpdatedOrNew(site, childDep.getUri())) {
+                                childAndReferences.add(childDep);
+                            }
+                        }
+                        child.setReference(false);
+                        childItr.remove();
+                        if (removeInPages) {
+                            String uri = child.getUri();
+                            List<DmDependencyTO> pages = submittedItem.getPages();
+                            if (pages != null) {
+                                Iterator<DmDependencyTO> pagesIter = pages.iterator();
+                                while (pagesIter.hasNext()) {
+                                    DmDependencyTO page = pagesIter.next();
+                                    if (page.getUri().equals(uri)) {
+                                        pagesIter.remove();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return childAndReferences;
+    }
+
+    protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
+        List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
+        Set<String> dependenciesPaths = new HashSet<String>();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+        }
+        for (String depPath : dependenciesPaths) {
+            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate));
+        }
+        return dependencies;
+    }
+
     protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths) {
         String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
         if (!submittedPaths.contains(fullPath)) {
@@ -1602,7 +1854,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         generalLockService.lock(lockKey);
         try {
             try {
-                return approve(site, request, Operation.GO_LIVE);
+                return approve_new(site, request, Operation.GO_LIVE);
             } catch (RuntimeException e) {
                 logger.error("error making go live", e);
                 throw e;
