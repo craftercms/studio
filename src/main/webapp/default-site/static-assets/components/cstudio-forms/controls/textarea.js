@@ -41,6 +41,10 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		obj.owner.notifyValidation();
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
 
 	/**
 	 * perform count calculation on keypress
@@ -108,7 +112,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 			YAHOO.util.Dom.addClass(inputEl, 'cstudio-form-control-input');
 			inputEl.value = (this.value = "_not-set") ? config.defaultValue : this.value;
 
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			YAHOO.util.Event.on(inputEl, 'blur', this._onChange, this);
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
 
@@ -178,6 +182,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		this.inputEl.value = value;
 		this.count(null, this.countEl, this.inputEl);
 		this._onChange(null, this);
+        this.edited = false;
 	},
 		
 	getName: function() {

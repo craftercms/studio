@@ -22,6 +22,7 @@ var CStudioForms = CStudioForms || function() {
         var CMgs = CStudioAuthoring.Messages;
         var formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
         var cstopic = crafter.studio.preview.cstopic;
+        var repeatEdited = false;
 
         // private methods
 
@@ -1068,7 +1069,19 @@ var CStudioForms = CStudioForms || function() {
                 };
 
                 var cancelFn = function() {
-                    if(showWarnMsg){
+                    var flag = false;
+                    if(form.sections.length){
+                        for(var j=0; j < form.sections.length; j++){
+                            if(form.sections[j].fields.length){
+                                for(var i=0; i < form.sections[j].fields.length; i++){
+                                    if(form.sections[j].fields[i].edited == true){
+                                        flag = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(showWarnMsg && (flag || repeatEdited)){
                         var dialogEl = document.getElementById("closeUserWarning");
                         if(!dialogEl){
                             var dialog = new YAHOO.widget.SimpleDialog("closeUserWarning",
@@ -1201,7 +1214,7 @@ var CStudioForms = CStudioForms || function() {
                     cancelButtonEl.value = CMgs.format(formsLangBundle, "cancel");
                     formButtonContainerEl.appendChild(cancelButtonEl);
 
-                    YAHOO.util.Event.addListener(window, "beforeunload", beforeUnloadFn, this);
+                    //YAHOO.util.Event.addListener(window, "beforeunload", beforeUnloadFn, this);
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(cancelButtonEl, "click", cancelFn, this);
                 } else {
@@ -1213,7 +1226,7 @@ var CStudioForms = CStudioForms || function() {
                     formButtonContainerEl.appendChild(closeButtonEl);
                     YDom.setStyle(formButtonContainerEl,"text-align","center");
 
-                    YAHOO.util.Event.addListener(window, "beforeunload", beforeUnloadFn, this);
+                    //YAHOO.util.Event.addListener(window, "beforeunload", beforeUnloadFn, this);
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(closeButtonEl, "click", cancelFn, this);
                 }
@@ -1448,6 +1461,7 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
                             containerEl.reRender(containerEl);
+                            repeatEdited = true;
                         }
                     }
 
@@ -1468,6 +1482,7 @@ var CStudioForms = CStudioForms || function() {
                             itemArray.splice(repeatArrayIndex, 1);
                             itemArray.splice(repeatArrayIndex-1, 0, itemToMove);
                             containerEl.reRender(containerEl);
+                            repeatEdited = true;
                         }
                     }
 
@@ -1488,6 +1503,7 @@ var CStudioForms = CStudioForms || function() {
                             itemArray.splice(repeatArrayIndex, 1);
                             itemArray.splice(repeatArrayIndex+1, 0, itemToMove);
                             containerEl.reRender(containerEl);
+                            repeatEdited = true;
                         }
                     }
 
@@ -1505,6 +1521,7 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex, 1);
                             containerEl.reRender(containerEl);
+                            repeatEdited = true;
                         }
                     }
 

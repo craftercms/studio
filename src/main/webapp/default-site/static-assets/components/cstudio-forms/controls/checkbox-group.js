@@ -55,6 +55,10 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
         this.owner.notifyValidation();
     },
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+    },
+
     onDatasourceLoaded: function ( data ) {
         if (this.datasourceName === data.name && !this.datasource) {
             var datasource = this.form.datasourceMap[this.datasourceName];
@@ -275,6 +279,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
         this.form.updateModel(this.id, this.getValue());
         this.hiddenEl.value = this.valueToString();
         this.validate();
+        this._onChangeVal(evt, this);
     },
 
     onChange: function(evt, el) {
@@ -289,6 +294,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
         this.form.updateModel(this.id, this.getValue());
         this.hiddenEl.value = this.valueToString();
         this.validate();
+        this._onChangeVal(evt, this);
     },
 
     isSelected: function(key) {

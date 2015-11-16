@@ -71,6 +71,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		return valid;
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+    },
+
 	// Get the UTC date representation for what is currently in the UI fields (date/time)
 	// Returns a date/time value in a string (see getConvertFormat for value format)
 	getFieldValue: function () {
@@ -143,6 +147,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
         this.setDateTime(mm + '/' + dd + '/' + yyyy, 'date');
         calendarObj.hide();
+        this._onChangeVal(null, this)
 	},
 	
 	createServiceUri: function(time, srcTimezone, destTimezone, dateFormat){
@@ -571,6 +576,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 			};
 			this.getCurrentDateTime(nowObj, this.timezone, cb);
+            this._onChangeVal(null, this);
 
 		}, this, true);
 		containerEl.appendChild(dl);
@@ -666,7 +672,9 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 				if (this.readonly)	{
 					dateEl.disabled = true;	
-				} 
+				}
+
+                YAHOO.util.Event.on(dateEl, 'change',  this._onChangeVal, this);
             }
 		
 		    if (this.showTime) {
@@ -688,11 +696,13 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		            incrementControlEl.type="button";
 		            incrementControlEl.id=divPrefix + "timeIncrementButton";
 		            incrementControlEl.className = "time-increment";
+                    YAHOO.util.Event.on(incrementControlEl, 'click',  this._onChangeVal, this);
 
 		       		decrementControlEl = document.createElement("input");
 		            decrementControlEl.type="button";
 		            decrementControlEl.id=divPrefix + "timeDecrementButton";
 		            decrementControlEl.className = "time-decrement";
+                    YAHOO.util.Event.on(decrementControlEl, 'click',  this._onChangeVal, this);
 
 		            timeWrapper.appendChild(incrementControlEl);
 		            timeWrapper.appendChild(decrementControlEl);
@@ -712,6 +722,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		     		var caretPos = this.saveCaretPosition(timeEl);
 		     		timeEl.setAttribute("data-cursor", caretPos);
 				}, timeEl, this);
+
+                YAHOO.util.Event.on(timeEl, 'change',  this._onChangeVal, this);
 
 				YAHOO.util.Event.addListener(timeEl, 'keyup', function(e) {
 					var caretPos = this.saveCaretPosition(timeEl);
@@ -744,6 +756,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
       		YAHOO.util.Event.addListener(clearDateEl, 'click', function(e) {
       				YAHOO.util.Event.preventDefault(e);
+                    this._onChangeVal(null, this);
 			     		this.setDateTime('', 'date');
 			     		this.setDateTime('', 'time');
 					}, clearDateEl, this);
@@ -1019,7 +1032,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		this.getCurrentDateTime(nowObj, configTimezone, cb);
 	},
 	
-	setValue: function(value) {		
+	setValue: function(value) {
+        this.edited = false;
 		var timezoneCb = {
 			context: this,
 			
