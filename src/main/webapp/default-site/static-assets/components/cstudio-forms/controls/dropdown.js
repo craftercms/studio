@@ -45,6 +45,11 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        obj._onChange(evt,obj);
+    },
+
 	onDatasourceLoaded: function ( data ) {
 		if (this.datasourceName === data.name && !this.datasource) {
     		var datasource = this.form.datasourceMap[this.datasourceName];
@@ -129,7 +134,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 						}
 			
 						YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, _self);
-						YAHOO.util.Event.on(inputEl, 'change', _self._onChange, _self);
+						YAHOO.util.Event.on(inputEl, 'change', _self._onChangeVal, _self);
 
 					_self.renderHelp(config, controlWidgetContainerEl);
 								
@@ -168,6 +173,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
         if(this.inputEl)
 		    this.inputEl.value = value;
 		this._onChange(null, this);
+        this.edited = false;
 	},
 	
 	getName: function() {

@@ -43,17 +43,25 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 		}
 	},
 
+    _onChangeVal: function(evt, obj, changeEvt) {
+        obj.edited = true;
+        if(changeEvt){
+            this._onChange(evt,obj);
+        }
+    },
+
 	showEditPosition: function() {
 		if (this.dropdownEl.value == 'true') {
 			this.editPositionEl.style.display = "inline";
 			if(!this.orderValue || this.orderValue === -1){
 				this.setOrderValue();
+                this._onChangeVal(null, this, false);
 			}else{
-				this._onChange(null, this);
+				this._onChangeVal(null, this, true);
 			}
 		} else {
 			this.editPositionEl.style.display = "none";
-			this._onChange(null, this);
+			this._onChangeVal(null, this, true);
 		}
 	},
 
@@ -217,6 +225,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 	
 	setValue: function(value) {
 		this.value = value;
+        this.edited = false;
 		
 		if( value === "true" || value === true){
 			this.dropdownEl.value = "true";

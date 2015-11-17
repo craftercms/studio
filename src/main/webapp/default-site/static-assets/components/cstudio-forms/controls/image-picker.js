@@ -51,6 +51,11 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         obj.form.updateModel(obj.id, obj.getValue());
     },
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
+
     /**
      * perform count calculation on keypress
      * @param evt event
@@ -398,7 +403,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
         imagePicker.adjustImage();
 
-        imagePicker._onChange(null, imagePicker);
+        imagePicker._onChangeVal(null, imagePicker);
     },
 
     addImage: function(){
@@ -568,7 +573,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             YAHOO.util.Dom.setStyle(this.imageEl,  'width', this.previewBoxWidth + "px");
             YAHOO.util.Dom.setStyle(this.imageEl,  'height', this.previewBoxHeight + "px");
 
-            this._onChange(null, this);
+            this._onChangeVal(null, this);
         }
     },
 
@@ -904,6 +909,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             image.src = CStudioAuthoringContext.previewAppBaseUri + value + "?" + (new Date().getTime());
         }
         this._onChange(null, this);
+        this.edited = false;
     },
 
     getName: function() {
