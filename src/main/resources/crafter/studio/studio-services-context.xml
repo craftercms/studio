@@ -141,6 +141,7 @@
         <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
         <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -859,6 +860,18 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <!-- Dependency Rules -->
+    <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="contentSpecificDependencies">
+            <list>
+                <value>/components/page/.*</value>
+                <value>/static-assets/page/.*</value>
+            </list>
+        </property>
     </bean>
 
     <!-- Application Listeners -->
