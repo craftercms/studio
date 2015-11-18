@@ -45,6 +45,11 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
         obj.form.updateModel(obj.id, obj.getValue());
     },
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
+
     /**
      * perform count calculation on keypress
      * @param evt event
@@ -188,7 +193,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
                             this.flashPicker.downloadEl.style.display = "inline-block";
                             this.flashPicker.zoomEl.style.display = "inline-block";
 
-                            this.flashPicker._onChange(null, this.flashPicker);
+                            this.flashPicker._onChangeVal(null, this.flashPicker);
                         }
                     },
                     failure: function(message) {
@@ -213,7 +218,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
             this.downloadEl.style.display = "none";
             this.zoomEl.style.display = "none";
 
-            this._onChange(null, this);
+            this._onChangeVal(null, this);
         }
     },
 
@@ -399,6 +404,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
         }
 
         this._onChange(null, this);
+        this.edited = false;
     },
 
     getName: function() {

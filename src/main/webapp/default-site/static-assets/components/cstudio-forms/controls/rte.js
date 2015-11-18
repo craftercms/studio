@@ -128,6 +128,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
             this._onChange(null, this);
         }
 		this.updateModel(value);
+        this.edited = false;
 	},
 
 	updateModel: function(value) {
@@ -346,7 +347,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			rteMarginLeft = 230,
 			rteContainerWidth,
 			fieldContainerWidth,
-			width;
+			width,
+            _self = this;
 
 		containerEl.id = this.id;
 		this.containerEl = containerEl;
@@ -393,7 +395,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		containerEl.appendChild(controlWidgetContainerEl);
 		controlWidgetContainerEl.appendChild(descriptionEl);
 
-		YEvent.on(inputEl, 'change', this._onChange, this);
+		YEvent.on(inputEl, 'change', this._onChangeVal, this);
 		
 		for(var i=0; i<config.properties.length; i++) {
 			var prop = config.properties[i];
@@ -517,6 +519,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			        });
 			        ed.onChange.add(function(ed, l) {
 			        	ed.contextControl.resizeEditor(ed);
+                        _self.edited = true;
 		            });
 
 		            ed.onInit.add(function(ed) {
@@ -801,6 +804,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		obj.owner.notifyValidation();
 		obj.count(evt, obj.countEl, obj.inputEl);
 	},
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt, obj);
+    },
 	
 	/**
 	 * perform count calculation on keypress

@@ -39,6 +39,11 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        obj._onChange(evt, obj);
+    },
+
     	
 	render: function(config, containerEl) {
 		// we need to make the general layout of a control inherit from common
@@ -79,7 +84,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
 
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			
 			if(this.readonly == true){
 				inputEl.disabled = true;
@@ -105,6 +110,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		this.value = value;
 		this.inputEl.checked =  (this.value == "true" || this.value ==  true)?true:false;
 		this._onChange(null, this);
+        this.edited = false;
 	},
 
 	getName: function() {
