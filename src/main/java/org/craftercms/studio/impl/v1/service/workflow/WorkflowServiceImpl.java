@@ -302,7 +302,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         dmWorkflowListener.postSubmitToGolive(site, dependencyTO);
         if (notifyAdmin) {
             boolean isPreviewable = item.isPreviewable();
-            notificationService.sendContentSubmissionNotification(site, "admin", dependencyTO.getUri(), user, scheduledDate, isPreviewable, submitForDeletion);
+
+            notificationService.sendContentSubmissionNotificationToApprovers(site, "admin", dependencyTO.getUri(), user, scheduledDate, isPreviewable, submitForDeletion);
         }
 
     }
@@ -577,7 +578,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 					_cancelWorkflow(site, path);
 				}
                 long duration = System.currentTimeMillis() - startTime;
-                logger.warn("_cancelWorkflow Duration 111: {0}", duration);
+                logger.debug("_cancelWorkflow Duration 111: {0}", duration);
 /*
                 startTime = System.currentTimeMillis();
 				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);

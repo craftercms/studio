@@ -88,8 +88,10 @@ public interface NotificationService {
 	 * @param from
 	 */
 	public void sendApprovalNotification(final String site,final String to,final String url,String from);
-	
-	/**
+
+    void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete);
+
+    /**
 	 * send deletion notifcation 
 	 * 
 	 * @param site
