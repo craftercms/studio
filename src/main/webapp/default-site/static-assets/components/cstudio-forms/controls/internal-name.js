@@ -76,6 +76,11 @@ YAHOO.extend(CStudioForms.Controls.InternalName, CStudioForms.CStudioFormField, 
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt, obj);
+    },
+
 	/**
 	 * perform count calculation on keypress
 	 * @param evt event
@@ -145,7 +150,7 @@ YAHOO.extend(CStudioForms.Controls.InternalName, CStudioForms.CStudioFormField, 
 
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
 			
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			YAHOO.util.Event.on(inputEl, 'blur', this._onChange, this);
 			
 		for(var i=0; i<config.properties.length; i++) {
@@ -205,6 +210,7 @@ YAHOO.extend(CStudioForms.Controls.InternalName, CStudioForms.CStudioFormField, 
 		this.inputEl.value = value;
 		this.count(null, this.countEl, this.inputEl);
 		this._onChange(null, this);
+        this.edited = false;
 	},
 	
 	getName: function() {

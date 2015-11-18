@@ -45,6 +45,11 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         obj.form.updateModel(obj.id, obj.getValue());
     },
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
+
     /**
      * perform count calculation on keypress
      * @param evt event
@@ -214,7 +219,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
                             this.videoPicker.delEl.disabled = false;
                             YAHOO.util.Dom.removeClass(this.videoPicker.delEl, 'cstudio-button-disabled');
 
-                            this.videoPicker._onChange(null, this.videoPicker);
+                            this.videoPicker._onChangeVal(null, this.videoPicker);
                         }
                     },
                     failure: function(message) {
@@ -242,7 +247,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             this.delEl.disabled = true;
             YAHOO.util.Dom.addClass(this.delEl, 'cstudio-button-disabled');
 
-            this._onChange(null, this);
+            this._onChangeVal(null, this);
         }
     },
 
@@ -444,6 +449,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         }
 
         this._onChange(null, this);
+        this.edited = false;
     },
 
     getName: function() {

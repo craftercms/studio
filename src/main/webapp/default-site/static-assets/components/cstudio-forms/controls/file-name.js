@@ -79,6 +79,11 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         }
     },
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
+
     /**
      * perform count calculation on keypress
      * @param evt event
@@ -241,7 +246,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
         var Event = YAHOO.util.Event, me = this;
         Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
-        Event.on(inputEl, 'change', this._onChange, this);
+        Event.on(inputEl, 'change', this._onChangeVal, this);
         Event.on(inputEl, 'blur', this._onChange, this);
         Event.on(inputEl, 'keyup', this.processKey, inputEl);
         Event.on(inputEl, 'paste', function (evt, el) {
@@ -345,6 +350,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         }
         this.count(null, this.countEl, this.inputEl);
         this._onChange(null, this);
+        this.edited = false;
     },
 
     _getValue: function() {

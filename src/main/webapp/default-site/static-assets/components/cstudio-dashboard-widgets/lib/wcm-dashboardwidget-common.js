@@ -485,7 +485,7 @@ WcmDashboardWidgetCommon.init = function (instance) {
             getPermsCb.success(WcmDashboardWidgetCommon.cachedPerms);
         }
         else {
-            CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "/", getPermsCb);
+            CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "~DASHBOARD~", getPermsCb);
         }
 
 

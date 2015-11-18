@@ -202,7 +202,7 @@
             allHaveSameDate = traverse(contentItems, reference);
 
         if (allHaveSameDate) {
-            if (reference === '' || reference === null) {
+            if ((reference === '' || reference === null) && !ApproveType) {
                 //YDom.get('globalSetToNow').checked = true;
                 this.$('[name="schedulingMode"]')[0].checked = true;
                 this.$('[name="schedulingMode"]')[1].checked = false;

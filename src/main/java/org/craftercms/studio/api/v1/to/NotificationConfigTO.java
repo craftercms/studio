@@ -49,6 +49,8 @@ public class NotificationConfigTO implements TimeStamped {
 	/** configuration time stamp **/
 	protected Date _lastUpdated = null;
 
+    protected Map<String, String> submitNotificationsMapping = null;
+
 	/**
 	 * @return the site
 	 */
@@ -163,4 +165,12 @@ public class NotificationConfigTO implements TimeStamped {
 	public void setSendNoticeMapping(Map<String, Boolean> sendNoticeMapping) {
 		this._sendNoticeMapping = sendNoticeMapping;
 	}
+
+    public Map<String, String> getSubmitNotificationsMapping() {
+        return submitNotificationsMapping;
+    }
+
+    public void setSubmitNotificationsMapping(Map<String, String> submitNotificationsMapping) {
+        this.submitNotificationsMapping = submitNotificationsMapping;
+    }
 }

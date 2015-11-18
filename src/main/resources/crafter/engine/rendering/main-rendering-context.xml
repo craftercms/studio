@@ -77,8 +77,9 @@
             <list>
                 <bean class="org.craftercms.engine.view.CrafterPageViewResolver">
                     <property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
-                    <property name="urlTransformerName" value="renderUrlToStoreUrl" />
-                    <property name="fullHttpsUrlTransformerName" value="toFullHttpsUrl" />
+                    <property name="renderUrlToStoreUrlTransformerName" value="renderUrlToTargetedStoreUrl" />
+                    <property name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl" />
+                    <property name="toFullHttpsUrlTransformerName" value="toFullHttpsUrl" />
                     <property name="urlTransformationService" ref="crafter.urlTransformationService" />
                     <property name="cacheTemplate" ref="crafter.cacheTemplate" />
                     <property name="siteItemService" ref="crafter.siteItemService" />
