@@ -40,6 +40,8 @@ import org.dom4j.Node;
 import javax.swing.text.html.parser.ContentModel;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -348,6 +350,143 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
+        try {
+
+            NotificationConfigTO config = getNotificationConfig(site);
+            if (config != null && config.getSubmitNotificationsMapping() != null) {
+
+                Map<String, String> rules = config.getSubmitNotificationsMapping();
+                String toAddress = StringUtils.EMPTY;
+                for (String rule : rules.keySet()) {
+                    Pattern p = Pattern.compile(rule);
+                    Matcher m = p.matcher(browserUrl);
+                    if (m.matches()) {
+                        toAddress = rules.get(rule);
+                        break;
+                    }
+                }
+
+                if (StringUtils.isNotEmpty(toAddress)) {
+                    EmailMessageTemplateTO template = null;
+                    if (isDelete) {
+                        if (isPreviewable) {
+                            template = getContentSubmissionForDeleteEmailMessageTemplate(site);
+                        } else {
+                            template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
+                        }
+                    } else {
+                        if (isPreviewable) {
+                            template = getContentSubmissionEmailMessageTemplate(site);
+                        } else {
+                            template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
+                        }
+                    }
+
+                    String subject = "Contributer submitted a content for approval.";
+                    String message = "Contributer submitted a content for approval.\n";
+                    if (isDelete) {
+                        subject = "Contributer submitted a content for delete.";
+                        message = "Contributer submitted a content for delete.\n";
+                    }
+
+                    if (template != null) {
+                        subject = template.getSubject();
+                        message = template.getMessage();
+                    }
+                    if (scheduledDate != null) {
+                        subject += ", At requested [";
+                        subject += getDateInSpecificTimezone(scheduledDate, site);
+                        subject += (isDelete ? "] (Scheduled for Delete)" : "] (Scheduled Go Live)");
+                    } else {
+                        subject += ", As soon as possible ";
+                    }
+
+                    logger.debug("Notifying user:" + toAddress);
+
+                    if (previewBaseUrl == null) {
+                        previewBaseUrl = siteService.getPreviewServerUrl(site);
+                    }
+                    if (liveBaseUrl == null) {
+                        liveBaseUrl = siteService.getLiveServerUrl(site);
+                    }
+
+
+                    Map<String, String> fromProfile = securityService.getUserProfile(from);
+                    final String userFirstName = fromProfile.get("firstName");
+                    final String userLastName = fromProfile.get("lastName");
+                    final String replyTo = fromProfile.get("email");
+                    String fromPersonalName = "";
+                    if (userFirstName != null) {
+                        fromPersonalName = userFirstName + " ";
+                    }
+                    if (userLastName != null) {
+                        fromPersonalName += userLastName;
+                    }
+                    EmailMessageTO emailMessage= new EmailMessageTO(subject,message,toAddress);
+                    emailMessage.setPreviewBaseUrl(previewBaseUrl);
+                    emailMessage.setLiveBaseUrl(liveBaseUrl);
+
+                    // reading item internal-name for email title
+                    String itemName = "";
+                    boolean isDocument = false;
+                    boolean isExternalDocument = false;
+                    String documentUrl = "";
+                    String browserUri = "";
+                    ContentItemTO contentItem = contentService.getContentItem(site, browserUrl, 0);
+                    if (contentItem != null) {
+                        itemName = contentItem.getInternalName();
+                        browserUri = contentItem.getBrowserUri();
+
+                        if (contentItem.isPreviewable() && contentItem.isDocument()) {
+                            isDocument = true;
+                        }
+                    }
+
+                    String absolutePath = contentService.expandRelativeSitePath(site, browserUrl);
+                    DmPathTO path = new DmPathTO(absolutePath);
+                    String name = path.getName();
+
+                    String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? browserUrl.replace("/" + name, "") : browserUrl;
+                    String internalName = folderPath;
+                    int index = folderPath.lastIndexOf('/');
+                    if(index != -1) {
+                        internalName = folderPath.substring(index + 1);
+                    }
+                    internalName = StringUtils.isEmpty(itemName) ? internalName : itemName;
+                    emailMessage.setPersonalFromName(fromPersonalName);
+                    emailMessage.setTitle(internalName);
+                    //emailMessage.setAdminEmail(adminEmailAddress);
+                    // set browser URL
+                    if (isDocument) {
+                        if (isExternalDocument) {
+                            emailMessage.setBrowserUrlForExternalDocument(documentUrl);
+                        } else {
+                            emailMessage.setBrowserUrl(documentUrl);
+                        }
+                    } else {
+                        emailMessage.setBrowserUrl(browserUri);
+                    }
+
+                    if(replyTo != null)
+                        emailMessage.setReplyTo(replyTo);
+
+                    logger.debug("Queuing notification email request for user:" + toAddress);
+                    emailMessages.addEmailMessage(emailMessage);
+                } else {
+                    sendContentSubmissionNotification(site, to, browserUrl, from, scheduledDate, isPreviewable, isDelete);
+                }
+
+
+            } else {
+                sendContentSubmissionNotification(site, to, browserUrl, from, scheduledDate, isPreviewable, isDelete);
+            }
+        } catch (Exception e) {
+            logger.error("Could not queue the content submission notification:",e);
+        }
+    }
+
+    @Override
     public void sendDeleteApprovalNotification(String site, String to, String browserUrl, String from)
     {
         try {
@@ -418,6 +557,8 @@ public class NotificationServiceImpl implements NotificationService {
                     config.setMessages(generalMessages);
                     Map<String, Boolean> noticeMapping = loadSendNoticeMapping(configNode.selectSingleNode("send-notifications"));
                     config.setSendNoticeMapping(noticeMapping);
+                    Map<String, String> submitNotificationRules = loadSubmitNotificationRules(configNode.selectSingleNode("submit-notifications"));
+                    config.setSubmitNotificationsMapping(submitNotificationRules);
                     config.setSite(site);
                     config.setLastUpdated(new Date());
                 } else {
@@ -428,6 +569,28 @@ public class NotificationServiceImpl implements NotificationService {
             logger.error("Notification config is not found for " + site, ex);
         }
         return config;
+    }
+
+    protected Map<String,String> loadSubmitNotificationRules(Node node) {
+        Map<String, String> submitNotificationMapping = new HashMap<String, String>();
+        if (node != null) {
+            Element element = (Element) node;
+            List<Element> childElements = element.elements();
+
+            if (childElements != null && childElements.size() > 0) {
+                for (Element childElement : childElements) {
+                    String regex = childElement.attributeValue("regex");
+                    Node addressNode = childElement.selectSingleNode("email");
+                    String value = addressNode.getText();
+                    // default to true
+                    //Boolean sendNotice = (!StringUtils.isEmpty(value) && value.equals("false")) ? false : true;
+                    if (!StringUtils.isEmpty(regex) && !StringUtils.isEmpty(value)) {
+                        submitNotificationMapping.put(regex, value);
+                    }
+                }
+            }
+        }
+        return submitNotificationMapping;
     }
 
 
