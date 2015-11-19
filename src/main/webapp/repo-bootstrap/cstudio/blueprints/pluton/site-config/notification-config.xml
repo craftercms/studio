@@ -74,6 +74,12 @@
 			<message>An item has been submitted to delete by $user-name. Once approved, please push this item to delete:</message>			
 		</email-message-template>
 	</email-message-templates>
+<!--
+    <submit-notifications>
+        <rule regex=".*">
+            <email>address@mail.com</email>
+        </rule>
+    </submit-notifications> -->
 		
 	<!--  EMAIL TEMPLATE
 	

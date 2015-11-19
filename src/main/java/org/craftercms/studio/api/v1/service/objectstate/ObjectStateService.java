@@ -64,9 +64,11 @@ public interface ObjectStateService {
 */
     void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing);
 
-    public void updateObjectPath(String site, String oldPath, String newPath);
+    void updateObjectPath(String site, String oldPath, String newPath);
 
-    public boolean isUpdatedOrNew(String site, String path);
+    boolean isUpdated(String site, String path);
+
+    boolean isUpdatedOrNew(String site, String path);
 /*
     public boolean isUpdatedOrNew(NodeRef nodeRef);
 
