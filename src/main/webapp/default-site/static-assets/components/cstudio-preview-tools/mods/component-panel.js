@@ -124,6 +124,10 @@
                     self.init();
                 });
 
+                amplify.subscribe(cstopic('DND_ZONES_MODEL_REQUEST'), function (item) {
+                    self.getPageModel(item.path, 'init-components', true, false);
+                });
+
                 var interval = setInterval(function () {
                     if (CStudioAuthoringContext.previewCurrentPath) {
                         self.init();
@@ -134,7 +138,7 @@
             }
         },
 
-        ondrop: function (type, path, isNew, tracking, zones) {
+        ondrop: function (type, path, isNew, tracking, zones, compPath) {
 
             if (isNew) {
                 CStudioAuthoring.Operations.performSimpleIceEdit({
@@ -171,22 +175,28 @@
                             trackingNumber: tracking
                         });
 
-                        ComponentsPanel.save(isNew, zones);
+                        ComponentsPanel.save(isNew, zones, compPath);
 
                     }
                 });
 
             } else {
-                ComponentsPanel.save(isNew, zones);
+                ComponentsPanel.save(isNew, zones, compPath);
             }
         },
 
-        save: function (isNew, zones){
+        save: function (isNew, zones, compPath){
             ComponentsPanel.zones = zones;
-            CStudioAuthoring.ComponentsPanel.getPageModel(
-                CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                    CStudioAuthoringContext.previewCurrentPath),
-                (isNew ? 'save-components-new' : 'save-components'), true, false);
+            if(compPath){
+                CStudioAuthoring.ComponentsPanel.getPageModel(
+                    compPath,
+                    (isNew ? 'save-components-new' : 'save-components'), true, false);
+            }else {
+                CStudioAuthoring.ComponentsPanel.getPageModel(
+                    CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                        CStudioAuthoringContext.previewCurrentPath),
+                    (isNew ? 'save-components-new' : 'save-components'), true, false);
+            }
         },
 
         init: function (){
