@@ -345,6 +345,7 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     setQueueDialogTitle: "Select States",
     setDeploymentQueue: "Deployment Queue",
     setDeploymentEndpoints: "Deployment Endpoints",
+    setDeploymentJobs: "Deployment Jobs",
     setQueueDialogCancelDeployment: "Cancel Deployment",
     setQueueDialogSystemProcessing: "System Processing",
 

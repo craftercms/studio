@@ -71,4 +71,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.bulkDelete(site, path);
     }
+
+    static getDeploymentJobs(context) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getDeploymentJobs();
+    }
 }

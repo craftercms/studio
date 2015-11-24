@@ -159,6 +159,8 @@
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
+         <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
+         <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >

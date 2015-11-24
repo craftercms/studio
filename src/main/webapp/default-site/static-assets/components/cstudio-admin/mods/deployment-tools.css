@@ -38,3 +38,10 @@
     right: auto;
     top: 85px;
 }
+
+.deployment-jobs-window {
+    left: 250px;
+    position: relative;
+    right: auto;
+    top: 85px;
+}

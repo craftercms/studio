@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import org.craftercms.studio.api.v1.to.DeploymentJobTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
@@ -83,4 +84,6 @@ public interface DeploymentService {
     void bulkGoLive(String site, String environment, String path);
 
     void bulkDelete(String site, String path);
+
+    List<DeploymentJobTO> getDeploymentJobs();
 }
