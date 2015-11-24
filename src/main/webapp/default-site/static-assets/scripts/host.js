@@ -179,18 +179,29 @@
             message.path,
             message.isNew,
             message.trackingNumber,
-            message.zones);
+            message.zones,
+            message.compPath
+        );
     });
 
     communicator.subscribe(Topics.SAVE_DRAG_AND_DROP, function (message) {
         amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
             message.isNew,
-            message.zones);
+            message.zones,
+            message.compPath
+        );
     });
 
     communicator.subscribe(Topics.INIT_DRAG_AND_DROP, function (message) {
         amplify.publish(cstopic('INIT_DRAG_AND_DROP'),
             message.zones);
+    });
+
+    communicator.subscribe(Topics.DND_ZONES_MODEL_REQUEST, function (message) {
+        amplify.publish(cstopic('DND_ZONES_MODEL_REQUEST'),
+                message.aNotFound
+            );
+
     });
 
     amplify.subscribe(cstopic('REFRESH_PREVIEW'), function () {

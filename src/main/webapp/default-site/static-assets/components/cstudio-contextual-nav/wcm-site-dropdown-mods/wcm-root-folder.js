@@ -42,6 +42,31 @@
                 if (config.name == "wcm-root-folder") {
                     var instance = new CStudioAuthoring.ContextualNav.WcmRootFolderInstance(config);
                     instance.cannedSearchCache = [];
+                    instance.excludeCache = [];
+
+                    if(config.params.excludes) {
+                        if ( (typeof(config.params.excludes) == "object")  
+                        && (typeof(config.params.excludes.exclude) != "array")) {
+                            if (config.params.excludes.exclude != undefined) {
+                                var path = config.params.excludes.exclude;
+                                if (!instance.excludeCache[path]) {
+                                    instance.excludeCache[path] = [];
+                                }
+                                instance.excludeCache[path].push(config.params.excludes.exclude);
+                            }
+                        } 
+                        else { 
+                            for (var i = 0; i < config.params.excludes.exclude.length; i++) {
+                                var path = config.params.excludes.exclude[i];
+                                if (!instance.excludeCache[path]) {
+                                    instance.excludeCache[path] = [];
+                                }
+                                instance.excludeCache[path].push(config.params.excludes.exclude[i]);
+                            }
+                        }                    
+                    }
+
+
                     // cache the searches by name so they can be checked quickly when building the nav
                     if (config.params.cannedSearches) {
                     	// not an array
@@ -188,6 +213,12 @@
                 }
 
                 for (var i = 0; i < treeItems.length; i++) {
+                    var exclude = false;
+                    if(instance.excludeCache[treeItems[i].path]) {
+                        exclude = true;
+                    }
+
+
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
 
@@ -203,7 +234,7 @@
                         }
                     }
 
-                    if (!isSearch) {
+                    if (!isSearch && exclude == false) {
                         var treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
 
                         var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot());
@@ -340,6 +371,10 @@
                 }
 
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
+                    var exclude = false;
+                    if(instance.excludeCache[treeItems[i].path]) {
+                        exclude = true;
+                    }
 
                     treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
                     if (treeNodeTO.isLevelDescriptor || treeNodeTO.isComponent ||
@@ -357,7 +392,7 @@
                         renderChild = false;
                     }
 
-                    if (renderChild) {
+                    if (renderChild && exclude == false) {
                         var itemCannedSearch = instance.cannedSearchCache[treeNodeTO.path];
 
                         if (itemCannedSearch && itemCannedSearch.length != 0 && itemCannedSearch[0].insertAs != "append") {
