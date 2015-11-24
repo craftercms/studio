@@ -29,7 +29,7 @@ var queueItems = [];
  * Overarching class that drives the content type tools
  */
 YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool, {
-	renderWorkarea: function() {
+    renderWorkarea: function() {
 		var workareaEl = document.getElementById("cstudio-admin-console-workarea");
 		
 		workareaEl.innerHTML = 
@@ -56,8 +56,10 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
 
     renderDeploymentQueue: function () {
         var queueListEl = document.getElementById("deployment-tool-area");
+        var me = this;
         queueListEl.innerHTML =
-            "<table id='queueTable' class='cs-statelist'>" +
+            "<div class='cs-statelist'><button id='btnCancelTop' type='button' >" + CMgs.format(formsLangBundle, "setQueueDialogCancelDeployment") + "</button>" +
+            "<table id='queueTable'>" +
             "<tr>" +
             "<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.DeploymentTools.selectAll(); return false;'>"+CMgs.format(langBundle, "setQueueTabSelectAll")+"</a></th>" +
             "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabID")+"</th>" +
@@ -68,7 +70,18 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
             "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabAction")+"</th>" +
             "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabScheduledDate")+"</th>" +
             "</tr>" +
-            "</table>";
+            "</table><button type='button' id='btnCancelBot'>" + CMgs.format(formsLangBundle, "setQueueDialogCancelDeployment") + "</button></div>" ;
+
+        var btnTopEl = document.getElementById("btnCancelTop");
+        var btnBotEl = document.getElementById("btnCancelBot");
+
+        btnTopEl.addEventListener("click", function(){
+            me.cancelDeployment();
+        });
+        btnBotEl.addEventListener("click", function(){
+            me.cancelDeployment();
+        });
+
 
         cb = {
             success: function(response) {
@@ -117,52 +130,6 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
 
         var endpointSelEl = document.getElementById("endpoint-list");
         this.context.loadDeploymentEndpoints(endpointSelEl);
-        /*
-        queueListEl.innerHTML =
-            "<table id='queueTable' class='cs-statelist'>" +
-            "<tr>" +
-            "<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.DeploymentQueues.selectAll(); return false;'>"+CMgs.format(langBundle, "setQueueTabSelectAll")+"</a></th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabID")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabPath")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabEnvironment")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabUser")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabState")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabAction")+"</th>" +
-            "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabScheduledDate")+"</th>" +
-            "</tr>" +
-            "</table>";
-
-        cb = {
-            success: function(response) {
-                var queue = eval("(" + response.responseText + ")");
-                queueItems = queue.items;
-
-                var queueTableEl = document.getElementById("queueTable");
-                for(var i=0; i<queue.items.length; i++) {
-                    var item = queue.items[i];
-                    var trEl = document.createElement("tr");
-
-                    var rowHTML =
-                        "<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+item.id+"' /></td>" +
-                        "<td class='cs-statelist-detail-id'>" + item.id + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.path + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.environment + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.user + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.state + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.action + "</td>" +
-                        "<td class='cs-statelist-detail'>" + item.scheduledDate + "</td>";
-                    trEl.innerHTML = rowHTML;
-                    queueTableEl.appendChild(trEl);
-                }
-            },
-            failure: function(response) {
-            },
-            self: this
-        };
-
-        var serviceUri = "/api/1/services/api/1/deployment/get-deployment-queue.json?site="+CStudioAuthoringContext.site;
-
-        YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);*/
     },
 
     /*
@@ -334,7 +301,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
 	renderQueueTable: function () {
 		var queueListEl = document.getElementById("queue-list");
 		queueListEl.innerHTML =
-		"<table id='queueTable' class='cs-statelist'>" +
+            "<div class='cs-statelist'><button id='btnCancelTop' type='button'>" + CMgs.format(formsLangBundle, "setQueueDialogCancelDeployment") + "</button>" +
+		    "<table id='queueTable' >" +
 			 	"<tr>" +
 				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.DeploymentTools.selectAll(); return false;'>"+CMgs.format(langBundle, "setQueueTabSelectAll")+"</a></th>" +
 				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabID")+"</th>" +
@@ -345,7 +313,18 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
                     "<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabAction")+"</th>" +
 				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setQueueTabScheduledDate")+"</th>" +
 				 "</tr>" + 
-			"</table>";
+			"</table><button type='button' id=''btnCancelBot>" + CMgs.format(formsLangBundle, "setQueueDialogCancelDeployment") + "</button></div>";
+
+        var btnTopEl = document.getElementById("btnCancelTop");
+        var btnBotEl = document.getElementById("btnCancelBot");
+
+        btnTopEl.addEventListener("click", function(){
+            me.cancelDeployment();
+        });
+        btnBotEl.addEventListener("click", function(){
+            me.cancelDeployment();
+        });
+
 	
 			cb = {
 				success: function(response) {
@@ -381,6 +360,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
 	},
 
     cancelDeployment: function() {
+        alert("BRLE!");
         var items = document.getElementsByClassName('act');
 
         for(var idx=0; idx<items.length; idx++) {
@@ -409,14 +389,66 @@ YAHOO.extend(CStudioAdminConsole.Tool.DeploymentTools, CStudioAdminConsole.Tool,
             YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
         }
     },
-			
 
+    renderDeploymentJobs: function () {
+        var containerEl = document.getElementById("deployment-tool-area");
+        containerEl.innerHTML =
+            "<div id='jobsDetails' class='deployment-jobs-window'>" +
+            "</div>";
+        this.context.loadDeploymentJobs();
+    },
+
+    /*
+     * populate the list of deployment jobs
+     */
+    loadDeploymentJobs: function () {
+
+        var loadJobsCb = {
+            success: function(response) {
+                var jobsResponse = eval("(" + response.responseText + ")");
+                jobs = jobsResponse.jobs;
+                var containerEl = document.getElementById("jobsDetails");
+                if (jobs.length) {
+                    //var index = 1;
+                    for (var index = 0; index < jobs.length; index++) {
+                        var job = jobs[index];
+                        var jobHTML =
+                            "<span>ID:&nbsp;</span>" + job.id + "<br/>" +
+                            "<span>Name:&nbsp;</span>" + job.name + "<br/>" +
+                            "<span>Host:&nbsp;</span>" + job.host + "<br/>" +
+                            "<span>Enabled:&nbsp;</span>" + job.enabled + "<br/>" +
+                            "<span>Running:&nbsp;</span>" + job.running + "<br/><hr/>";
+                        containerEl.innerHTML = containerEl.innerHTML + jobHTML;
+                    }
+                } else {
+                    var job = jobs[0];
+                    var jobHTML =
+                        "<span>ID:&nbsp;</span>" + job.id + "<br/>" +
+                        "<span>Name:&nbsp;</span>" + job.name + "<br/>" +
+                        "<span>Host:&nbsp;</span>" + job.host + "<br/>" +
+                        "<span>Enabled:&nbsp;</span>" + job.enabled + "<br/>" +
+                        "<span>Running:&nbsp;</span>" + job.running + "<br/>";
+                    containerEl.innerHTML = jobHTML;
+                }
+            },
+            failure: function() {
+                alert("Failed to load jobs");
+            },
+            self: this
+        };
+
+        var serviceUri = "/api/1/services/api/1/deployment/get-deployment-jobs.json?site="+CStudioAuthoringContext.site;
+
+        YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), loadJobsCb);
+
+    },
 
     renderDeploymentTools: function() {
 
         var actions = [
             { name: CMgs.format(formsLangBundle, "setDeploymentQueue"), context: this, method: this.renderDeploymentQueue },
-            { name: CMgs.format(formsLangBundle, "setDeploymentEndpoints"), context: this, method: this.renderDeploymentEndpoints }
+            { name: CMgs.format(formsLangBundle, "setDeploymentEndpoints"), context: this, method: this.renderDeploymentEndpoints },
+            { name: CMgs.format(formsLangBundle, "setDeploymentJobs"), context: this, method: this.renderDeploymentJobs }
         ];
         CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 
