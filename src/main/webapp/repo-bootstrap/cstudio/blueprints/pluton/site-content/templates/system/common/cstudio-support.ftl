@@ -3,6 +3,7 @@
   <#if siteContext.overlayCallback??>
    <script src="/studio/static-assets/libs/requirejs/require.js"
            data-main="/studio/overlayhook?site=NOTUSED&page=NOTUSED&cs.js"></script>
+   <script>document.domain = "${Request.serverName}"; </script>
    </#if>
 </#macro>
 
