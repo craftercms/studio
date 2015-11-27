@@ -65,9 +65,11 @@ public interface NotificationService {
 	 * @param key
 	 * @return message
 	 */
-	public String getGeneralMessage(String site, String key);	
-	
-	/**
+	public String getGeneralMessage(String site, String key);
+
+    void sendDeploymentFailureNotification(String site, Throwable error);
+
+    /**
 	 * send rejection notification
 	 * 
 	 * @param site

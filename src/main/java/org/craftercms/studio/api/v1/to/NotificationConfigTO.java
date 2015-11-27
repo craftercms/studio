@@ -51,6 +51,8 @@ public class NotificationConfigTO implements TimeStamped {
 
     protected Map<String, String> submitNotificationsMapping = null;
 
+    protected List<String> deploymentFailureNotifications = null;
+
 	/**
 	 * @return the site
 	 */
@@ -172,5 +174,13 @@ public class NotificationConfigTO implements TimeStamped {
 
     public void setSubmitNotificationsMapping(Map<String, String> submitNotificationsMapping) {
         this.submitNotificationsMapping = submitNotificationsMapping;
+    }
+
+    public List<String> getDeploymentFailureNotifications() {
+        return deploymentFailureNotifications;
+    }
+
+    public void setDeploymentFailureNotifications(List<String> deploymentFailureNotifications) {
+        this.deploymentFailureNotifications = deploymentFailureNotifications;
     }
 }
