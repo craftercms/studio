@@ -470,6 +470,7 @@
         <property name="mandatoryDependenciesCheckEnabled" value="${deployContentToEnvironmentJob.mandatoryDependenciesCheckEnabled}" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentService" ref="cstudioContentService" />
+        <property name="notificationService" ref="cstudioNotificationService"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -478,6 +479,7 @@
         <property name="maxTolerableRetries" value="${syncTargetsJob.maxTolerableRetries}" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="publishingManager" ref="cstudioPublishingManager" />
+        <property name="notificationService" ref="cstudioNotificationService"/>
     </bean>
 
     <!-- scheduled actions -->
