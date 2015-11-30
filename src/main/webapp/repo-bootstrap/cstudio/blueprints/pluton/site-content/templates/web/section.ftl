@@ -28,14 +28,14 @@
                     <!--Simple description for section goes here. -->
                 </div>
                 <div class="row-fluid">
-                    <div class="span4" <@studio.componentContainerAttr target="zone2" />>
+                    <div class="span4" <@studio.componentContainerAttr target="zone2" objectId=model.objectId />>
 						<#if model.zone2?? && model.zone2.item??>
                           <#list model.zone2.item as module>
                               <@renderComponent component=module />
                           </#list>
                         </#if>
 					</div>
-                    <div class="span4" <@studio.componentContainerAttr target="zone3"/>>
+                    <div class="span4" <@studio.componentContainerAttr target="zone3" objectId=model.objectId />>
                        
 						<#if model.zone3?? && model.zone3.item??>
                           <#list model.zone3.item as module>
@@ -44,7 +44,7 @@
                         </#if>
                         
                     </div>
-                    <div class="span4" <@studio.componentContainerAttr target="zone4"/>>
+                    <div class="span4" <@studio.componentContainerAttr target="zone4" objectId=model.objectId/>>
 						<#if model.zone4?? && model.zone4.item??>
                           <#list model.zone4.item as module>
                               <@renderComponent component=module />
