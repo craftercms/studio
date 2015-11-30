@@ -353,40 +353,46 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function componentsModelLoad(data) {
-        var aNotFound = [];
-        var me = this;
+        var aNotFound = [],
+            me = this,
+            noObjectid = 0;
         $('[data-studio-components-target]').each(function () {
             var $el = $(this),
-                //target = $el.attr('data-studio-components-target').split('_'),
-                //name = target[1],
                 objectId = $el.attr('data-studio-components-objectid'),
                 tracking = $el.attr('data-studio-zone-tracking'),
                 name = $el.attr('data-studio-components-target'),
                 path = $el.parents('[data-studio-component-path]').attr('data-studio-component-path'),
                 id = objectId + "-" + name;
-            if(!found[id] || objectId == data['objectId']){
-                if ((data[name] || data[name] == "") && objectId == data['objectId']) { ///objid?
-                    found[id] = true;
-                    $el.find('> [data-studio-component]').each(function (i, el) {
-                        $(this).data('model', data[name][i]);
-                    });
-                } else {
-                    var repeated = false;
-                    for(var j=0; j<aNotFound.length ; j++){
-                        if(aNotFound[j].path == path && aNotFound[j].name == name){
-                            repeated = true;
+            if(objectId){
+                if(!found[id] || objectId == data['objectId']){
+                    if ((data[name] || data[name] == "") && objectId == data['objectId']) { ///objid?
+                        found[id] = true;
+                        $el.find('> [data-studio-component]').each(function (i, el) {
+                            $(this).data('model', data[name][i]);
+                        });
+                    } else {
+                        var repeated = false;
+                        for(var j=0; j<aNotFound.length ; j++){
+                            if(aNotFound[j].path == path && aNotFound[j].name == name){
+                                repeated = true;
+                            }
+                        }
+                        if(!repeated){
+                            aNotFound.push({path: path, name:name});
                         }
                     }
-                    if(!repeated){
-                        aNotFound.push({path: path, name:name});
-                    }
                 }
+            }else{
+                noObjectid++
             }
         });
         if(aNotFound.length){
             publish.call(this, Topics.DND_ZONES_MODEL_REQUEST, {
                 aNotFound: aNotFound[0]
             });
+        }
+        if(noObjectid > 0){
+            alert('Object Id is missing. Drag and Drop is not going to work properly.');
         }
     }
 
