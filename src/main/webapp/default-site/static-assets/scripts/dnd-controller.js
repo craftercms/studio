@@ -179,6 +179,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         });
 
         $(DROPPABLE_SELECTION).sortable({
+            me: this,
             items: '[data-studio-component]',
             cursor: 'move',
             forceHelperSize: true,
@@ -200,8 +201,15 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             },
             update: function (e, ui) {
                 var $dropZone = $(this),
-                    $component = ui.item;
+                    $component = ui.item,
+                    zonePath = $component.attr('data-studio-component-path'),
+                    compPath = $dropZone.parents('[data-studio-component-path="'+zonePath+'"]').attr('data-studio-component-path');
+                if(compPath != zonePath){
                     componentDropped.call(me, $dropZone, $component);
+                }else{
+                    $(DROPPABLE_SELECTION).sortable( "cancel" );
+                }
+
             }
         });
 
@@ -209,8 +217,10 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $(this).attr('data-studio-tracking-number', crafter.guid());
         });
 
-        $('[data-studio-components-target]').each(function () {
-            $(this).attr('data-studio-zone-tracking', crafter.guid());
+        $('[data-studio-components-target]').each(function (i) {
+            var $me = $(this);
+            $me.attr('data-studio-zone-tracking', crafter.guid());
+            //$me.attr('data-studio-components-target', i + '_' + $me.attr('data-studio-components-target'));
         });
 
         componentsModelLoad.call(me, initialComponentModel);
@@ -219,24 +229,36 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             var delControl = createDeleteControl('removeComp');
             delControl.onclick = function() {
                 var compPath = $(this).parent().parents('[data-studio-component-path]').attr('data-studio-component-path');
+                var objectId = $(this).parent().parents('[data-studio-components-target]').attr('data-studio-components-objectid');
+                var compTracking = $(this).parent().parents('[data-studio-component-path]').attr('data-studio-tracking-number');
+                var dropName = $($(this).parent().parents('[data-studio-components-target]')[0]).attr('data-studio-components-target');
                 removeComponent(this, function () {
                     var zones = {};
+                    var conRepeat = 0;
                     setTimeout(function () {
 
                         $('[data-studio-components-target]').each(function () {
-                            var $el = $(this),
-                                zoneName = $el.attr('data-studio-components-target');
-                            zones[zoneName] = [];
-                            $el.find('> [data-studio-component]').each(function (i, el) {
-                                var $comp = $(this);
-                                zones[zoneName].push($comp.data('model') || tracking);
-                            });
+                            if(objectId == $(this).attr('data-studio-components-objectid')){
+                                if(dropName == $(this).attr('data-studio-components-target')){
+                                    conRepeat++;
+                                }
+                                if( compTracking == $(this).parents('[data-studio-component-path]').attr('data-studio-tracking-number')) {
+                                    var $el = $(this),
+                                        zoneName = $el.attr('data-studio-components-target');
+                                    zones[zoneName] = [];
+                                    $el.find('> [data-studio-component]').each(function (i, el) {
+                                        var $comp = $(this);
+                                        zones[zoneName].push($comp.data('model') || tracking);
+                                    });
+                                }
+                            }
                         });
 
                         publish.call(me, Topics.SAVE_DRAG_AND_DROP, {
                             isNew: false,
                             zones: zones,
-                            compPath: compPath
+                            compPath: compPath,
+                            conComp: (conRepeat > 1) ? true : false
                         });
 
                     });
@@ -256,6 +278,10 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
         var iceOn = !!(sessionStorage.getItem('ice-on'));
         var compPath = $dropZone.parents('[data-studio-component-path]').attr('data-studio-component-path');
+        var compTracking = $dropZone.parents('[data-studio-component-path]').attr('data-studio-tracking-number');
+        var objectId = $dropZone.attr('data-studio-components-objectid');
+        var trackingZone = $dropZone.attr('data-studio-zone-tracking');
+        var dropName = $dropZone.attr('data-studio-components-target');
 
         if(iceOn){
             amplify.publish(Topics.ICE_TOOLS_ON);
@@ -282,17 +308,24 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
         // DOM Reorganization hasn't happened at this point,
         // need a timeout to grab out the updated DOM structure
+        var conRepeat = 0;
         setTimeout(function () {
 
-
             $('[data-studio-components-target]').each(function () {
-                var $el = $(this),
-                    zoneName = $el.attr('data-studio-components-target');
-                zones[zoneName] = [];
-                $el.find('> [data-studio-component]').each(function (i, el) {
-                    var $comp = $(this);
-                    zones[zoneName].push($comp.data('model') || tracking);
-                });
+                if(objectId == $(this).attr('data-studio-components-objectid')){
+                    if(dropName == $(this).attr('data-studio-components-target')){
+                        conRepeat++;
+                    }
+                    if( compTracking == $(this).parents('[data-studio-component-path]').attr('data-studio-tracking-number')) {
+                        var $el = $(this),
+                            zoneName = $el.attr('data-studio-components-target');
+                        zones[zoneName] = [];
+                        $el.find('> [data-studio-component]').each(function (i, el) {
+                            var $comp = $(this);
+                            zones[zoneName].push($comp.data('model') || tracking);
+                        });
+                    }
+                }
             });
 
             publish.call(me, Topics.COMPONENT_DROPPED, {
@@ -301,7 +334,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                 isNew: isNew,
                 zones: zones,
                 trackingNumber: tracking,
-                compPath: compPath
+                compPath: compPath,
+                conComp: (conRepeat > 1) ? true : false
             });
 
         });
@@ -316,19 +350,29 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         var me = this;
         $('[data-studio-components-target]').each(function () {
             var $el = $(this),
-                /*target = $el.attr('data-studio-components-target').split('_'),
-                 name = target[1],
-                 objId = target[0],*/
+                //target = $el.attr('data-studio-components-target').split('_'),
+                //name = target[1],
+                objectId = $el.attr('data-studio-components-objectid'),
+                tracking = $el.attr('data-studio-zone-tracking'),
                 name = $el.attr('data-studio-components-target'),
-                path = $el.parents('[data-studio-component-path]').attr('data-studio-component-path');
-            if(!found[name]){
-                if ((data[name] || data[name] == "")) {
-                    found[name] = true;
-                    $el.find('[data-studio-component]').each(function (i, el) {
+                path = $el.parents('[data-studio-component-path]').attr('data-studio-component-path'),
+                id = objectId + "-" + name;
+            if(!found[id] || objectId == data['objectId']){
+                if ((data[name] || data[name] == "") && objectId == data['objectId']) { ///objid?
+                    found[id] = true;
+                    $el.find('> [data-studio-component]').each(function (i, el) {
                         $(this).data('model', data[name][i]);
                     });
                 } else {
-                    aNotFound.push({path: path, name:name});
+                    var repeated = false;
+                    for(var j=0; j<aNotFound.length ; j++){
+                        if(aNotFound[j].path == path && aNotFound[j].name == name){
+                            repeated = true;
+                        }
+                    }
+                    if(!repeated){
+                        aNotFound.push({path: path, name:name});
+                    }
                 }
             }
         });

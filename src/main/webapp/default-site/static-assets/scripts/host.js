@@ -180,7 +180,8 @@
             message.isNew,
             message.trackingNumber,
             message.zones,
-            message.compPath
+            message.compPath,
+            message.conComp
         );
     });
 
@@ -188,7 +189,8 @@
         amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
             message.isNew,
             message.zones,
-            message.compPath
+            message.compPath,
+            message.conComp
         );
     });
 

@@ -18,7 +18,7 @@
 
 		<@renderComponent componentPath="/site/components/headers/global-header.xml" />
 
-		<div  <@studio.componentContainerAttr target="col1Modules" />>
+		<div  <@studio.componentContainerAttr target="col1Modules" objectId=model.objectId />>
           <#list model.col1Modules.item as module>
               <@renderComponent component=module />
           </#list>
