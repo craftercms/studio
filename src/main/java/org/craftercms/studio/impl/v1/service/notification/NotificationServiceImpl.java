@@ -17,7 +17,9 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.notification;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
@@ -63,6 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected static final String MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION = "contentNoPreviewableSubmission";
     protected static final String MESSAGE_CONTENT_SUBMISSION_FOR_DELETE = "contentSubmissionForDelete";
     protected static final String MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE = "contentNoPreviewableSubmissionForDelete";
+    protected static final String MESSAGE_DEPLOYMENT_FAILURE = "deploymentFailure";
     protected static final String MESSAGE_CONTENT_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss z";
     protected static final String DOCUMENT_EXTERNAL_URL_PROPERTY = "cstudio-core:documentExternalUrl";
     protected EmailMessageQueueTo emailMessages;
@@ -307,6 +310,18 @@ public class NotificationServiceImpl implements NotificationService {
         return "";
     }
 
+    public EmailMessageTemplateTO getDeploymentFailureMessage(final String site) {
+        //checkForUpdate(site);
+        NotificationConfigTO config = getNotificationConfig(site);
+        if (config != null) {
+            Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
+            if (messages != null) {
+                return messages.get(MESSAGE_DEPLOYMENT_FAILURE);
+            }
+        }
+        return null;
+    }
+
     @Override
     public void sendContentSubmissionNotification(String site,String to,String browserUrl,String from,Date scheduledDate,boolean isPreviewable,boolean isDelete) {
         try {
@@ -535,6 +550,41 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @Override
+    public void sendDeploymentFailureNotification(String site, Throwable error) {
+        try {
+            EmailMessageTemplateTO template = getDeploymentFailureMessage(site);
+            if (template == null) {
+                throw new RuntimeException("No email-message-template for deployment failure");
+            } else {
+                String subject = template.getSubject();
+                String message = template.getMessage();
+
+                StringBuilder sb = new StringBuilder(message);
+                sb.append("\n\n").append(ExceptionUtils.getFullStackTrace(error));
+                message = sb.toString();
+
+                List<String> toAdrresses = getNotificationConfig(site).getDeploymentFailureNotifications();
+                if (CollectionUtils.isNotEmpty(toAdrresses)) {
+                    for (String toAddress : toAdrresses) {
+                        logger.debug("Sending notification to :" + toAddress);
+                        if (StringUtils.isEmpty(toAddress)) {
+                            logger.error("to User is empty or Null, not sending any email");
+                            return;
+                        }
+
+                        EmailMessageTO emailMessage = new EmailMessageTO(subject, message, toAddress);
+
+                        logger.debug("Queuing notification email to: " + toAddress);
+                        emailMessages.addEmailMessage(emailMessage);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Could not queue the notification:", e);
+        }
+    }
+
 
     protected NotificationConfigTO loadConfiguration(final String site) {
         String configFullPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
@@ -559,6 +609,8 @@ public class NotificationServiceImpl implements NotificationService {
                     config.setSendNoticeMapping(noticeMapping);
                     Map<String, String> submitNotificationRules = loadSubmitNotificationRules(configNode.selectSingleNode("submit-notifications"));
                     config.setSubmitNotificationsMapping(submitNotificationRules);
+                    List<String> deploymentFailureNotifications = loadDeploymentFailureNotifications(configNode.selectSingleNode("deployment-failure"));
+                    config.setDeploymentFailureNotifications(deploymentFailureNotifications);
                     config.setSite(site);
                     config.setLastUpdated(new Date());
                 } else {
@@ -593,6 +645,23 @@ public class NotificationServiceImpl implements NotificationService {
         return submitNotificationMapping;
     }
 
+    protected List<String> loadDeploymentFailureNotifications(Node node) {
+        List<String> deploymentFailureNotifications = new ArrayList<String>();
+        if (node != null) {
+            Element element = (Element) node;
+            List<Element> childElements = element.elements();
+
+            if (childElements != null && childElements.size() > 0) {
+                for (Element childElement : childElements) {
+                    String value = childElement.getText();
+                    if (!StringUtils.isEmpty(value) && !StringUtils.isEmpty(value)) {
+                        deploymentFailureNotifications.add(value);
+                    }
+                }
+            }
+        }
+        return deploymentFailureNotifications;
+    }
 
     /**
      * load send notice mapping

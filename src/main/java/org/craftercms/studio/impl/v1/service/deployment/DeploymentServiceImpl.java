@@ -60,6 +60,8 @@ import reactor.core.Reactor;
 import reactor.event.Event;
 
 import javax.servlet.http.HttpSession;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -741,6 +743,37 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
+    public List<DeploymentJobTO> getDeploymentJobs() {
+        List<DeploymentJobTO> jobList = new ArrayList<DeploymentJobTO>();
+
+        DeploymentJobTO copyToEnvStoreJob = new DeploymentJobTO();
+        copyToEnvStoreJob.setId(deployContentToEnvironmentStoreJob.getClass().getCanonicalName());
+        copyToEnvStoreJob.setName(deployContentToEnvironmentStoreJob.getClass().getSimpleName());
+        copyToEnvStoreJob.setEnabled(deployContentToEnvironmentStoreJob.isMasterPublishingNode());
+        copyToEnvStoreJob.setRunning(false);
+        try {
+            copyToEnvStoreJob.setHost(InetAddress.getLocalHost().toString());
+        } catch (UnknownHostException e) {
+            logger.debug("Error while getting host information");
+        }
+        jobList.add(copyToEnvStoreJob);
+
+        DeploymentJobTO publishToTargetJob = new DeploymentJobTO();
+        publishToTargetJob.setId(publishContentToDeploymentTargetJob.getClass().getCanonicalName());
+        publishToTargetJob.setName(publishContentToDeploymentTargetJob.getClass().getSimpleName());
+        publishToTargetJob.setEnabled(publishContentToDeploymentTargetJob.isMasterPublishingNode());
+        publishToTargetJob.setRunning(false);
+        try {
+            publishToTargetJob.setHost(InetAddress.getLocalHost().toString());
+        } catch (UnknownHostException e) {
+            logger.debug("Error while getting host information");
+        }
+        jobList.add(publishToTargetJob);
+
+        return jobList;
+    }
+
+    @Override
     public void bulkDelete(String site, String path) {
         dmPublishService.bulkDelete(site, path);
     }
@@ -792,6 +825,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
+    public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() { return deployContentToEnvironmentStoreJob; }
+    public void setDeployContentToEnvironmentStoreJob(DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) { this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob; }
+
+    public PublishContentToDeploymentTarget getPublishContentToDeploymentTargetJob() { return publishContentToDeploymentTargetJob; }
+    public void setPublishContentToDeploymentTargetJob(PublishContentToDeploymentTarget publishContentToDeploymentTargetJob) { this.publishContentToDeploymentTargetJob = publishContentToDeploymentTargetJob; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -806,6 +845,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;
+
+    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
+    protected PublishContentToDeploymentTarget publishContentToDeploymentTargetJob;
 
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

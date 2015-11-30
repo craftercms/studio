@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.*;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.transaction.TransactionService;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -84,25 +85,18 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
 
     public void processJobs() {
 
-
         try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
-                //tx.commit();
                 if (siteNames != null && siteNames.size() > 0) {
                     for (String site : siteNames) {
                         try {
                             logger.debug("Starting publishing for site \"{0}\"", site);
-                            //tx = _transactionService.getTransaction();
-                            //tx.begin();
                             Set<DeploymentEndpointConfigTO> targets = getAllTargetsForSite(site);
-                            //tx.commit();
 
                             for (DeploymentEndpointConfigTO target : targets) {
                                 logger.debug("Starting publishing on target \"{0}\", site \"{1}\"", target.getName(), site);
                                 if (target.getEnvironments() == null || target.getEnvironments().isEmpty()) continue;
                                 if (publishingManager.checkConnection(target)) {
-                                    //tx = _transactionService.getTransaction();
-                                    //tx.begin();
 
                                     logger.debug("Getting target version (target: \"{0}\", site: \"{1}\"", target.getName(), site);
                                     long targetVersion = publishingManager.getTargetVersion(target, site);
@@ -130,6 +124,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                                 logger.debug("Inserting deployment history for \"{0}\" items on target \"{1}\", site \"{2}\"", filteredItems.size(), target.getName(), site);
                                                 publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
                                             } catch (UploadFailedException err) {
+                                                notificationService.sendDeploymentFailureNotification(site, err);
                                                 Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
                                                 if (counters == null) {
                                                     counters = new HashMap<String, Integer>();
@@ -148,7 +143,6 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                                 }
                                                 counters.put(err.getTarget(), count);
                                                 _publishingFailureCounters.put(err.getSite(), counters);
-                                                //tx.rollback();
                                                 continue;
                                             }
 
@@ -164,7 +158,6 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                         // for example the features we need are not supported
                                         logger.error("cannot negotiate a version for deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
                                     }
-                                    //tx.commit();
                                 } else {
                                     // TODO: update target status
                                     logger.warn("cannot connect to deployment agent \"{0}\" for site \"{1}\"", target.getName(), site);
@@ -192,17 +185,17 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                             counters.put(err.getTarget(), count);
                             _publishingFailureCounters.put(err.getSite(), counters);
                             logger.info("Continue executing deployment for other sites.");
-                            //tx.rollback();
                         } catch (Exception err) {
                             logger.error("error while processing items to be published for site: " + site, err);
+                            notificationService.sendDeploymentFailureNotification(site, err);
                             logger.info("Continue executing deployment for other sites.");
-                            //tx.rollback();
                         }
                     }
                 }
         }
         catch(Exception err) {
             logger.error("error while processing items to be published", err);
+            notificationService.sendDeploymentFailureNotification("UNKNOWN", err);
         }
     }
 
@@ -310,8 +303,12 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
     public PublishingManager getPublishingManager() { return publishingManager; }
     public void setPublishingManager(PublishingManager publishingManager) { this.publishingManager = publishingManager; }
 
+    public NotificationService getNotificationService() { return notificationService; }
+    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
+
     protected Integer maxTolerableRetries;
     protected boolean masterPublishingNode;
     protected SiteService siteService;
     protected PublishingManager publishingManager;
+    protected NotificationService notificationService;
 }
