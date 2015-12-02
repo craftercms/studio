@@ -64,6 +64,7 @@
                 "ICE_TOOLS_OFF": "ICE_TOOLS_OFF",
                 "ICE_TOOLS_REGIONS": "ICE_TOOLS_REGIONS",
                 "REFRESH_PREVIEW": "REFRESH_PREVIEW",
+                "START_DIALOG": "START_DIALOG",
 
                 "": ""
             },
