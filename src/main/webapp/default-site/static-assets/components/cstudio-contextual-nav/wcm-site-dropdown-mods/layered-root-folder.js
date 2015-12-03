@@ -392,7 +392,7 @@ CStudioAuthoringContext.site,
 					LSelf.nodeHoverEffects(this);
 				} else {
 	                //CStudioAuthoring.Service.lookupSiteContent(site, rootPath, 1, "default", {
-	                lookupSiteContent(rootPath, {
+	                LSelf.lookupSiteContent(rootPath, {
                         openToPath: pathToOpen,
 	                    success: function(treeData) { 
 	                	
