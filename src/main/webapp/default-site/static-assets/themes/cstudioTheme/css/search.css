@@ -276,6 +276,7 @@ div#cstudio-wcm-search-pagination-controls {
 
 .cstudio-wcm-browse-main .cstudio-search-result .cstudio-search-result-body{
     font-size: 0.95em;
+    max-width: 85%;
 }
 
 .cstudio-wcm-browse-main a.cstudio-search-download-link{
