@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.to;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentService;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,8 +32,9 @@ import java.util.Set;
  * @author Dejan Brkic
  *
  */
-public class GoLiveDeleteCandidates {
+public class GoLiveDeleteCandidates implements Serializable {
 
+    private static final long serialVersionUID = -8844670158916016139L;
     // hold the page paths
     protected Set<String> _paths = new HashSet<String>();
 

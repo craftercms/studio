@@ -24,10 +24,10 @@ import java.io.Serializable;
  */
 public class RenderingTemplateTO implements Serializable {
 
-	/**
+    private static final long serialVersionUID = 4526518334082983302L;
+    /**
 	 * 
 	 */
-	protected static final long serialVersionUID = 2L;
 
 	public String uri;
 	public String name;	

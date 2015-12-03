@@ -19,8 +19,11 @@
 
 package org.craftercms.studio.api.v1.to;
 
-public class DeploymentJobTO {
+import java.io.Serializable;
 
+public class DeploymentJobTO implements Serializable {
+
+    private static final long serialVersionUID = -6030660115801345737L;
     private String id;
     private String name;
     private String host;

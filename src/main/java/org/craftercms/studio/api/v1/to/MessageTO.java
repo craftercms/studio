@@ -17,9 +17,12 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
-public class MessageTO {
+import java.io.Serializable;
 
-	/** message title **/
+public class MessageTO implements Serializable {
+
+    private static final long serialVersionUID = 2139304695120112701L;
+    /** message title **/
 	protected String _title;
 	/** message body **/
 	protected String _body;

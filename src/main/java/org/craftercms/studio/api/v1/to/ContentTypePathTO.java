@@ -17,13 +17,15 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import javolution.util.FastSet;
 
-public class ContentTypePathTO {
+public class ContentTypePathTO implements Serializable {
 
-	/** allowed path **/
+    private static final long serialVersionUID = -5834736713844363865L;
+    /** allowed path **/
 	protected String pathInclude;
 	/** allowed content types without excluded paths **/
 	protected Set<String> allowedContentTypes;
