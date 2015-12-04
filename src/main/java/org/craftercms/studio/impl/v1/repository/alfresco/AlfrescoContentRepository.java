@@ -48,6 +48,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
@@ -403,7 +404,7 @@ implements SecurityProvider {
 
         if(params != null) {
             for(String key : params.keySet()) {
-                uri = uri.replace("{"+key+"}", URLEncoder.encode(params.get(key), "utf-8"));
+                uri = uri.replace("{"+key+"}", URIUtil.encodeQuery(params.get(key), "utf-8"));
             }
         }
 
