@@ -123,8 +123,14 @@ CStudioAuthoring.Module.requireModule(
 									
 									initEditorFn();
 
+                                    var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
+                                    var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
+                                    var filenameH2 = document.createElement("p");
+                                    filenameH2.id = 'fileName';
+                                    filenameH2.innerHTML = filename;
+                                    templateEditorToolbarVarElt.appendChild(filenameH2);
+
 									if(templatePath.indexOf(".ftl") != -1) {
-										var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
 										var variableLabel = document.createElement("label");
 										variableLabel.innerHTML = CMgs.format(contextNavLangBundle, "variableLabel");
 										templateEditorToolbarVarElt.appendChild(variableLabel);
@@ -177,7 +183,7 @@ CStudioAuthoring.Module.requireModule(
 										addButton.onclick = function() {
 									    	editorEl.codeMirrorEditor.replaceRange(selectList.options[selectList.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
 										};
-									}	
+									}
 
 									var cancelEl = document.getElementById('template-editor-cancel-button');
 									cancelEl.onclick = function() {
