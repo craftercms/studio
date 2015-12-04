@@ -105,68 +105,62 @@
         this.disableActions();
         this.fire("submitStart");
         //var data = this.getData(),
-        var _this = this;
-        CStudioAuthoring.Service.request({
-            method: "POST",
-            data: JSON.stringify(data),
-            resetFormState: true,
-            url: CStudioAuthoringContext.baseUri + "/api/1/services/api/1/workflow/go-live.json?site="+CStudioAuthoringContext.site+"&user="+CStudioAuthoringContext.user,
-            callback: {
-                success: function(oResponse) {
-                    _this.enableActions();
-                    var oResp = JSON.parse(oResponse.responseText);
-                    _this.fire("submitComplete", oResp);
-                    _this.fire("submitEnd", oResp);
-                },
-                failure: function(oResponse) {
-                    var oResp = JSON.parse(oResponse.responseText);
-                    _this.fire("submitEnd", oResp);
-                    _this.enableActions();
-                }
+        var _this = this,
+        data = JSON.stringify(data),
+        callback = {
+            success: function(oResponse) {
+                _this.enableActions();
+                var oResp = JSON.parse(oResponse.responseText);
+                _this.fire("submitComplete", oResp);
+                _this.fire("submitEnd", oResp);
+            },
+            failure: function(oResponse) {
+                var oResp = JSON.parse(oResponse.responseText);
+                _this.fire("submitEnd", oResp);
+                _this.enableActions();
             }
-        });
+        };
+
+        CStudioAuthoring.Service.getGoLive(callback, data);
 
     }
 
     function loadItems(data) {
-        var me = this;
-        CStudioAuthoring.Service.request({
-            method: "POST",
-            data: CStudioAuthoring.Utils.createContentItemsJson(data),
-            resetFormState: true,
-            url: CStudioAuthoringContext.baseUri + '/api/1/services/api/1/dependency/get-dependencies.json?site='+ CStudioAuthoringContext.site,
-            callback: {
-                success: function(oResponse) {
-                    var respJson = oResponse.responseText;
-                    try {
-                        var dependencies = eval("(" + respJson + ")");
-                        var submissionCommentElem = me.getComponent('.submission-comment');
-                        submissionCommentElem.value = dependencies.submissionComment + ' ' + submissionCommentElem.value;
-                        //var scheduledDate = this.getTimeInJsonObject(dependencies.items, browserUri);
-                        me.renderItems(dependencies.items);
-                        verifyMixedSchedules(dependencies.items)
+        var me = this,
+        data = CStudioAuthoring.Utils.createContentItemsJson(data),
+        callback = {
+            success: function(oResponse) {
+                var respJson = oResponse.responseText;
+                try {
+                    var dependencies = eval("(" + respJson + ")");
+                    var submissionCommentElem = me.getComponent('.submission-comment');
+                    submissionCommentElem.value = dependencies.submissionComment + ' ' + submissionCommentElem.value;
+                    //var scheduledDate = this.getTimeInJsonObject(dependencies.items, browserUri);
+                    me.renderItems(dependencies.items);
+                    verifyMixedSchedules(dependencies.items)
 
-                    } catch(err) {
-                        var error = err;
-                    }/*
-                     var responseData = {
-                     submissionComment: 'Blah',
-                     items: [
-                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: 'Now' },
-                     { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: '2015-02-02 5:50pm' }
-                     ]
-                     };
+                } catch(err) {
+                    var error = err;
+                }/*
+                 var responseData = {
+                 submissionComment: 'Blah',
+                 items: [
+                 { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: 'Now' },
+                 { internalName: 'Home', uri: '/site/website/index.xml', scheduleDateString: '2015-02-02 5:50pm' }
+                 ]
+                 };
 
-                     var submissionCommentElem = me.getComponent('.submission-comment');
-                     submissionCommentElem.value = responseData.submissionComment + ' ' + submissionCommentElem.value;
+                 var submissionCommentElem = me.getComponent('.submission-comment');
+                 submissionCommentElem.value = responseData.submissionComment + ' ' + submissionCommentElem.value;
 
-                     me.renderItems(responseData.items);*/
-                },
-                failure: function(oResponse) {
+                 me.renderItems(responseData.items);*/
+            },
+            failure: function(oResponse) {
 
-                }
             }
-        });
+        };
+
+        CStudioAuthoring.Service.loadItems(callback, data);
     }
 
     function traverse (items, referenceDate) {
@@ -225,13 +219,9 @@
 
 
     function loadPublishingChannels() {
-        var me = this;
-        CStudioAuthoring.Service.request({
-            method: "GET",
-            resetFormState: true,
-            url: CStudioAuthoringContext.baseUri + '/api/1/services/api/1/deployment/get-available-publishing-channels.json?site='+ CStudioAuthoringContext.site,
-            callback: {
-                success: function(oResponse) {
+        var me = this,
+            callback = {
+                success: function (oResponse) {
                     var respJson = oResponse.responseText;
                     var allChannels = eval("(" + respJson + ")");
                     var channels = allChannels.availablePublishChannels;
@@ -260,11 +250,11 @@
                      me.renderItems(responseData.items);*/
                     populatePublishingOptions.call(me, channels);
                 },
-                failure: function(oResponse) {
+                failure: function (oResponse) {
 
                 }
-            }
-        });
+            };
+        CStudioAuthoring.Service.getAvailablePublishingChannels(callback);
     }
 
     function renderItems(items) {
