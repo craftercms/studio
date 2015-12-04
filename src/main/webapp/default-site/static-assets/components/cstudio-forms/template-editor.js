@@ -137,7 +137,7 @@ CStudioAuthoring.Module.requireModule(
 										    {label:"Dynamic navigation", value:"<#include \"/templates/web/navigation/navigation.ftl\">\r\n\t...\r\n\t<@renderNavigation \"/site/website\", 1 />"},
 
 										    {label:"Incontext editing attribute (pencil)", value:"<@studio.iceAttr iceGroup=\"ICEGROUID\"/>"},
-										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" />"},
+										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" objectId=model.objectId />"},
 										    {label:"Component attribute", value:"<@studio.componentAttr path=model.storeUrl ice=false />"},
 										    {label:"Render list of components", value:"<#list model.VARIABLENAME.item as module>\r\n\t<@renderComponent component=module />\r\n</#list>"},
 										    {label:"Iterate over a list of items and load content item", value:"<#list model.VARIABLENAME.item as myItem>\r\n\t<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />\r\n\t${myContentItem.variableName}\r\n</#list>"},
