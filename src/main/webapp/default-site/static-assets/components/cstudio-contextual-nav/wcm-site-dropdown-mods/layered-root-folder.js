@@ -208,7 +208,7 @@ CStudioAuthoringContext.site,
                 };
 
                 var newPath = path.replace("/ja", "/en")
-                CStudioAuthoringContext.baseSite = "pluton"
+                CStudioAuthoringContext.baseSite = site;
                 CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.baseSite, newPath, level, action, {  
                     success: function(treeData, args) {
                         
