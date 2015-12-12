@@ -17,10 +17,12 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DmPasteItemTO {
+public class DmPasteItemTO implements Serializable {
 
+    private static final long serialVersionUID = -8894929242693343887L;
     /** uri of this item **/
     protected String _uri;
     public String getUri() {

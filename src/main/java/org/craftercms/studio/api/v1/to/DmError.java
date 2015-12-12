@@ -17,8 +17,11 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
-public class DmError {
-    
+import java.io.Serializable;
+
+public class DmError implements Serializable {
+
+    private static final long serialVersionUID = -1276175491559890255L;
     protected String _site;
     protected String _path;
     protected Exception _e;

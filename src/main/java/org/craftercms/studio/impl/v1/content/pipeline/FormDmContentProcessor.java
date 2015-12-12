@@ -183,7 +183,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // if the parent content name is the same as the file name
                 // update the content
                 // look up the path content first
-                if (contentService.contentExists(site, path)) {
+                if (parentItem.getName().equals(fileName)) {
                     ContentItemTO item = contentService.getContentItem(site, path, 0);
                     InputStream existingContent = contentService.getContent(site, path);
 

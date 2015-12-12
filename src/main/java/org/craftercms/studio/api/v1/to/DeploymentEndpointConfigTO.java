@@ -17,11 +17,13 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeploymentEndpointConfigTO {
+public class DeploymentEndpointConfigTO implements Serializable {
 
+    private static final long serialVersionUID = 3734304150869645266L;
     protected String name;
     public String getName() {
         return name;

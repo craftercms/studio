@@ -17,8 +17,11 @@
  */
 package org.craftercms.studio.api.v1.to;
 
-public class PublishingChannelConfigTO {
+import java.io.Serializable;
 
+public class PublishingChannelConfigTO implements Serializable {
+
+    private static final long serialVersionUID = -3800738241727318928L;
     /** publishing channel ID **/
     protected String id;
     public String getId() { return id; }

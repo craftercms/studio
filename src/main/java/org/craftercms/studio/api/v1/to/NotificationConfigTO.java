@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,10 @@ import javolution.util.FastMap;
  * @author hyanghee
  * 
  */
-public class NotificationConfigTO implements TimeStamped {
+public class NotificationConfigTO implements TimeStamped, Serializable {
 
-	/** site key **/
+    private static final long serialVersionUID = 5995281689437086341L;
+    /** site key **/
 	protected String _site = null;
 	/** canned messages **/
 	protected Map<String, List<MessageTO>> _cannedMessages = null;

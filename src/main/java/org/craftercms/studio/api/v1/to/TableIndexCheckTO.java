@@ -17,8 +17,11 @@
 package org.craftercms.studio.api.v1.to;
 
 
-public class TableIndexCheckTO {
+import java.io.Serializable;
 
+public class TableIndexCheckTO implements Serializable {
+
+    private static final long serialVersionUID = 1784663045325803027L;
     protected String table;
     public String getTable() {
         return table;

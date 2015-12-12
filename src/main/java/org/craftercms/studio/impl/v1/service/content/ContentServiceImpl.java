@@ -27,6 +27,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.commons.lang.Callback;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -54,6 +57,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -625,10 +629,12 @@ public class ContentServiceImpl implements ContentService {
                     item.container = true;
                 }
 
+                List<ContentItemTO> children = new ArrayList<>();
                 logger.debug("Checking if {0} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
-                        if (item.uri.indexOf("/index.xml") == -1) {
+                        if (!item.uri.contains("/index.xml")) {
+                            item.path = item.uri;
                             item.uri = item.uri + "/index.xml";
                         }
                         item.numOfChildren--;
@@ -636,11 +642,15 @@ public class ContentServiceImpl implements ContentService {
                     }
                     else {
                         String childPath = getRelativeSitePath(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name);
-                        item.children.add(getContentItem(item.site, childPath, depth-1));
+                        if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
+                            children.add(getContentItem(item.site, childPath+ "/index.xml", depth - 1));
+                        } else {
+                            children.add(getContentItem(item.site, childPath, depth - 1));
+                        }
                     }
                 }
 
-                if(indexFound == false) {
+                if(!indexFound) {
                     // ITEM IS A FOLDER
                     item.folder = true;
                     item.isContainer = true;
@@ -662,7 +672,8 @@ public class ContentServiceImpl implements ContentService {
                     // nav pages by order
                     // floating pages via Alpha
                 Comparator<ContentItemTO> comparator = new ContentItemOrderComparator("default", true, true, true);
-                Collections.sort(item.children, comparator);
+                Collections.sort(children, comparator);
+                item.children = children;
 
             } else {
                 // ITEM HAS NO CHILDREN
@@ -699,40 +710,27 @@ public class ContentServiceImpl implements ContentService {
         long startTime = System.currentTimeMillis();
 
         try {
-            item = createNewContentItemTO(site, contentPath);
+            if (contentExists(site, path)) {
+                // get item from cache
+                item = getCachedContentItem(site, path);
 
-            if(depth!=0) {
-                item = populateItemChildren(item, depth);
-            }
+                if (depth != 0) {
+                    item = populateItemChildren(item, depth);
+                }
 
-            if(item.uri.endsWith(".xml")) {
-                item = populateContentDrivenProperties(site, item);
+                // POPULATE LOCK STATUS
+                populateMetadata(site, item);
+
+                // POPULATE WORKFLOW STATUS
+                if (!item.isFolder() || item.isContainer()) {
+                    populateWorkflowProperties(site, item);
+                    //item.setLockOwner("");
+                } else {
+                    item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
+                    item.isNew = item.isNew();
+                }
             } else {
-                item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
-                item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
-                item.isPage = item.page;
-                item.previewable = item.page;
-                item.isPreviewable = item.previewable;
-                item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
-                item.isAsset = item.asset;
-                item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site));
-                item.isComponent = item.component;
-                item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
-                item.isDocument = item.document;
-            }
-
-            loadContentTypeProperties(site, item, item.contentType);
-
-            // POPULATE LOCK STATUS
-            populateMetadata(site, item);
-
-            // POPULATE WORKFLOW STATUS
-            if (!item.isFolder() || item.isContainer()) {
-                populateWorkflowProperties(site, item);
-                //item.setLockOwner("");
-            } else {
-                item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
-                item.isNew = item.isNew();
+                item = createDummyDmContentItemForDeletedNode(site, path);
             }
         }
         catch(Exception err) {
@@ -741,6 +739,50 @@ public class ContentServiceImpl implements ContentService {
         
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item [{0}] retrieved in {1} milis", fullContentPath, executionTime);
+        return item;
+    }
+
+    protected ContentItemTO getCachedContentItem(final String site, final String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        Object cacheKey = cacheTemplate.getKey(site, path);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        ContentItemTO item = cacheTemplate.getObject(cacheContext, new Callback<ContentItemTO>() {
+            @Override
+            public ContentItemTO execute() {
+                return loadContentItem(site, path);
+            }
+        }, site, path);
+        return item;
+    }
+
+    protected ContentItemTO loadContentItem(String site, String path) {
+        ContentItemTO item = createNewContentItemTO(site, path);
+
+        if (item.uri.endsWith(".xml")) {
+
+            try {
+                item = populateContentDrivenProperties(site, item);
+            } catch (Exception err) {
+                logger.error("error constructing item for object at path '{0}'", err, expandRelativeSitePath(site, path));
+            }
+        } else {
+            item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
+            item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
+            item.isPage = item.page;
+            item.previewable = item.page;
+            item.isPreviewable = item.previewable;
+            item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
+            item.isAsset = item.asset;
+            item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site));
+            item.isComponent = item.component;
+            item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
+            item.isDocument = item.document;
+        }
+
+        loadContentTypeProperties(site, item, item.contentType);
         return item;
     }
 
@@ -1367,6 +1409,7 @@ public class ContentServiceImpl implements ContentService {
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected PreviewSync previewSync;
+    protected CacheTemplate cacheTemplate;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1412,4 +1455,7 @@ public class ContentServiceImpl implements ContentService {
 
     public PreviewSync getPreviewSync() { return previewSync; }
     public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 }
