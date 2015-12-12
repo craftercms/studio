@@ -670,17 +670,22 @@ body.yui-skin-cstudioTheme .mask{
 }
 
 #closeUserWarning .bd{
-  height: 74px!important;
+  height: 63px!important;
   padding: 24px;
 }
 
 #closeUserWarning .hd{
   border-radius: 6px 6px 0 0;
   font-size: 15px;
+  padding: 7px 10px;
 }
 
 #closeUserWarning .ft{
   border-radius: 0 0 6px 6px;
+}
+
+#closeUserWarning .ft span.button-group{
+    margin: 12px 0 6px;
 }
 
 .newTempText{

@@ -76,8 +76,8 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 						            '</table></div>' +
                                 '</div>' +
 						        '<div class="contentTypePopupBtn"> ' +
-						            '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
-                                    '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
+						            '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" disabled />' +
+                                    '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel"  /></div>' +
 						        '</form></div>' +
 						   '<div><div  style="visibility:hidden; margin-bottom:1.5em;" id="indicator">Uploading...</div>' + 
                            '</div> ' +
@@ -104,6 +104,9 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 								
 		// Render the Dialog
 		upload_dialog.render();
+
+        var filenameInput = document.getElementById("uploadFileNameId");
+        YAHOO.util.Event.addListener(filenameInput, "change", this.uploadFileEvent);
 		
 		var eventParams = {
 			self: this
@@ -120,6 +123,19 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		
 		return upload_dialog;
 	},
+
+    /**
+     * event fired when the uploadFileNameId is changed
+     */
+    uploadFileEvent: function(event) {
+        var uploadButton = document.getElementById("uploadButton");
+        if(this.value != ""){
+            uploadButton.disabled = false;
+        }else{
+            uploadButton.disabled = true;
+        }
+
+    },
 		
 	/**
 	 * event fired when the ok is pressed - checks if the file already exists and has edit permission or not 

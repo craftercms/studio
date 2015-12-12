@@ -392,7 +392,9 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             });
         }
         if(noObjectid > 0){
-            alert('Object Id is missing. Drag and Drop is not going to work properly.');
+            publish.call(me, Topics.START_DIALOG, {
+                message: 'Object Id is missing. Drag and Drop is not going to work properly.'
+            });
         }
     }
 
