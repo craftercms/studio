@@ -33,4 +33,8 @@
           class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
         <property name="configLocation" value="classpath:crafter/studio/cache/studio-ehcache-config.xml"/>
     </bean>
+
+    <bean id="crafter.cacheStoreAdapter" class="org.craftercms.studio.impl.v1.cache.StudioEhCacheStoreAdapter">
+        <property name="clusterEnabled" value="${crafter.studio.cluster.enabled}"/>
+    </bean>
 </beans>

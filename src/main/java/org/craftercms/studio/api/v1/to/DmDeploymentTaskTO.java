@@ -19,10 +19,12 @@ package org.craftercms.studio.api.v1.to;
 
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DmDeploymentTaskTO {
+public class DmDeploymentTaskTO implements Serializable {
 
+    private static final long serialVersionUID = 432422778157179373L;
     /** the name of task specified by the creator **/
     protected String internalName;
 

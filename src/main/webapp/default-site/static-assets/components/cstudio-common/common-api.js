@@ -1524,6 +1524,17 @@ var ApproveType = false;
                 CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: callback});
             },
 
+            getloadItems: function(data) {
+                var callback = {
+                    success: function(oResponse) {
+                    },
+                    failure: function (oResponse) {
+
+                    }
+                }
+                CStudioAuthoring.Service.getImageRequest({ url:data.url, callback: callback});
+            },
+
             /**
              * create content for a given site, at a given path
              * opens a dialog if needed or goes directly to the form if no
@@ -2299,6 +2310,10 @@ var parentSaveCb = {
                 CSA.Service.getViewCommon(data.url, data.callback);
             },
 
+            getLoadItemsRequest: function(data) {
+                CSA.Service.getViewCommon(data.url, data.callback);
+            },
+
             // constants
             defaultNavContext: "default",
             
@@ -2370,6 +2385,7 @@ var parentSaveCb = {
             createWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/create-jobs.json",
             getWorkflowJobsServiceUrl: "/api/1/services/api/1/workflow/get-active-jobs.json",
             rejectContentServiceUrl: "/api/1/services/api/1/workflow/reject.json",
+            getGoLiveServiceUrl: "/api/1/services/api/1/workflow/go-live.json",
 
             // Clipboard
             copyServiceUrl: "/api/1/services/api/1/clipboard/copy-item.json",
@@ -2386,6 +2402,12 @@ var parentSaveCb = {
 
             // Crop Image
             cropImageServiceUri: "/api/1/services/api/1/content/crop-image.json",
+
+            // Load Items
+            loadItemsServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json",
+
+            // Publishing Channels
+            getAvailablePublishingChannelsServiceUri: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
 
             // not ported yet
             // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
@@ -3180,6 +3202,45 @@ var parentSaveCb = {
                     }
                 };
                 YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+            },
+
+            /**
+             * load items
+             */
+            loadItems: function(callback, data) {
+                 var serviceUrl = this.loadItemsServiceUri;
+                 serviceUrl += "?site=" + CStudioAuthoringContext.site;
+                CStudioAuthoring.Service.request({
+                    method: "POST",
+                    data: data,
+                    resetFormState: true,
+                    url: CStudioAuthoringContext.baseUri + serviceUrl,
+                    callback: callback
+                });
+            },
+
+            getGoLive: function(callback, data) {
+                var serviceUrl = this.getGoLiveServiceUrl;
+                serviceUrl += "?site=" + CStudioAuthoringContext.site;
+                serviceUrl += "&user="+CStudioAuthoringContext.user;
+                CStudioAuthoring.Service.request({
+                    method: "POST",
+                    data: data,
+                    resetFormState: true,
+                    url: CStudioAuthoringContext.baseUri + serviceUrl,
+                    callback: callback
+                });
+            },
+
+            getAvailablePublishingChannels: function(callback) {
+                var serviceUrl = this.getAvailablePublishingChannelsServiceUri;
+                serviceUrl += "?site=" + CStudioAuthoringContext.site;
+                CStudioAuthoring.Service.request({
+                    method: "GET",
+                    resetFormState: true,
+                    url: CStudioAuthoringContext.baseUri + serviceUrl,
+                    callback: callback
+                });
             },
 
             getUserPermissions: function(site, path, callback) {

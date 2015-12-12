@@ -18,12 +18,14 @@
 package org.craftercms.studio.api.v1.to;
 
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DeploymentConfigTO implements TimeStamped {
+public class DeploymentConfigTO implements TimeStamped, Serializable {
 
+    private static final long serialVersionUID = -8719141163113755269L;
     /** the last updated date of this configuration **/
     protected Date lastUpdated;
 

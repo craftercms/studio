@@ -3,6 +3,7 @@
   <#if siteContext.overlayCallback??>
    <script src="/studio/static-assets/libs/requirejs/require.js"
            data-main="/studio/overlayhook?site=NOTUSED&page=NOTUSED&cs.js"></script>
+   <script>document.domain = "${Request.serverName}"; </script>
    </#if>
 </#macro>
 
@@ -18,8 +19,8 @@
   </#if> 
 </#macro>
 
-<#macro componentContainerAttr target>
-   <#if siteContext.overlayCallback??> data-studio-components-target="${target}" </#if>
+<#macro componentContainerAttr target objectId="">
+    <#if siteContext.overlayCallback??> data-studio-components-target="${target}" data-studio-components-objectId="${objectId}"</#if>
 </#macro>
 
 <#macro iceAttr iceGroup="" path="">

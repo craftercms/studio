@@ -17,13 +17,15 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class EmailMessageTO {
+public class EmailMessageTO implements Serializable {
 
-	
-	protected String subject;
+
+    private static final long serialVersionUID = -509714280274105998L;
+    protected String subject;
 	protected String content;
 	protected String to;
 	protected String personalFromName;

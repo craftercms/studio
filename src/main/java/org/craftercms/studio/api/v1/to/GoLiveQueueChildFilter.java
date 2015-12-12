@@ -18,8 +18,10 @@
 package org.craftercms.studio.api.v1.to;
 
 
+import java.io.Serializable;
 
-public class GoLiveQueueChildFilter implements ContentItemTO.ChildFilter {
+public class GoLiveQueueChildFilter implements ContentItemTO.ChildFilter, Serializable {
+    private static final long serialVersionUID = 5970064155790748918L;
     public GoLiveQueue queue;
 
     public GoLiveQueueChildFilter(GoLiveQueue queue) {

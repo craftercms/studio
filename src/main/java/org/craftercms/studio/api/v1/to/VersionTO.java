@@ -17,14 +17,16 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Scanner;
 
 /**
  * a version record
  */
-public class VersionTO implements Comparable<VersionTO> {
+public class VersionTO implements Comparable<VersionTO>, Serializable {
 
+    private static final long serialVersionUID = 2451314126621963140L;
     protected Date lastModifiedDate;
     protected String lastModifier;
     protected String versionNumber;

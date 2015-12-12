@@ -430,10 +430,16 @@ public class WorkflowServiceImpl implements WorkflowService {
 			// add all content items from each task if task is the review task
 			for (ObjectState state : changeSet) {
 				try {
-					ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
-                    Set<String> permissions = securityService.getUserPermissions(site, item.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
-                    if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                        addToQueue(site, goLiveQueue, inProcessQueue, item, state);
+                    if (contentService.contentExists( state.getSite(), state.getPath())) {
+                        ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
+                        Set<String> permissions = securityService.getUserPermissions(site, item.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
+                        if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                            addToQueue(site, goLiveQueue, inProcessQueue, item, state);
+                        }
+                    } else {
+                        _cancelWorkflow(site, state.getPath());
+                        objectStateService.deleteObjectStateForPath(site, state.getPath());
+                        objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
 				} catch (Exception e) {
 					logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());

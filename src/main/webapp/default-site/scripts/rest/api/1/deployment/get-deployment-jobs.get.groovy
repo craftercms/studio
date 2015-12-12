@@ -1,3 +1,4 @@
+
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2015 Crafter Software Corporation.
@@ -14,45 +15,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-package org.craftercms.studio.api.v1.to;
-
-import java.io.Serializable;
-
-/**
- * holds the configuration for copy dependency
- * 
- * @author Shankar Krishnan
  *
  */
-public class CopyDependencyConfigTO implements Serializable {
 
-    private static final long serialVersionUID = 3853790978445959968L;
-    protected String pattern;
-	
-	protected String target;
+import scripts.api.DeploymentServices;
 
-	
-	public CopyDependencyConfigTO(String pattern, String target) {
-		super();
-		this.pattern = pattern;
-		this.target = target;
-	}
+// extract parameters
+def result = [:];
 
-	public String getPattern() {
-		return pattern;
-	}
+def context = DeploymentServices.createContext(applicationContext, request)
+def jobs = DeploymentServices.getDeploymentJobs(context);
 
-	public void setPattern(String pattern) {
-		this.pattern = pattern;
-	}
-
-	public String getTarget() {
-		return target;
-	}
-
-	public void setTarget(String target) {
-		this.target = target;
-	}
-	
-}
+result.jobs = jobs;
+return result;

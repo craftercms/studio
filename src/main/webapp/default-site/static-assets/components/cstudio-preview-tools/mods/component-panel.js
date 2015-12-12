@@ -79,12 +79,13 @@
                         case "save-components-new":
                             CStudioForms.Util.loadFormDefinition(contentMap['content-type'], {
                                 success: function (formDefinition) {
-                                    $.extend(contentMap, self.zones);
+                                    $.extend(contentMap, data.zones ? data.zones : self.zones);
                                     amplify.publish('components/form-def/loaded', {
                                         contentMap: contentMap,
                                         pagePath: data.pagePath,
                                         formDefinition: formDefinition,
-                                        isNew: (data.operation === 'save-components-new') ? true : false
+                                        isNew: (data.operation === 'save-components-new') ? true : false,
+                                        conComp: data.conComp
                                     });
                                 },
                                 failure: function () {
@@ -100,7 +101,7 @@
 
                 amplify.subscribe('components/form-def/loaded', function (data) {
                     amplify.publish('/operation/started');
-                    self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true, data.isNew);
+                    self.saveModel(data.pagePath, data.formDefinition, data.contentMap, false, true, data.isNew, data.conComp);
                 });
 
                 amplify.subscribe(cstopic('COMPONENT_DROPPED'), function () {
@@ -124,6 +125,10 @@
                     self.init();
                 });
 
+                amplify.subscribe(cstopic('DND_ZONES_MODEL_REQUEST'), function (item) {
+                    self.getPageModel(item.path, 'init-components', true, false);
+                });
+
                 var interval = setInterval(function () {
                     if (CStudioAuthoringContext.previewCurrentPath) {
                         self.init();
@@ -134,7 +139,7 @@
             }
         },
 
-        ondrop: function (type, path, isNew, tracking, zones) {
+        ondrop: function (type, path, isNew, tracking, zones, compPath, conComp) {
 
             if (isNew) {
                 CStudioAuthoring.Operations.performSimpleIceEdit({
@@ -171,22 +176,28 @@
                             trackingNumber: tracking
                         });
 
-                        ComponentsPanel.save(isNew, zones);
+                        ComponentsPanel.save(isNew, zones, compPath, conComp);
 
                     }
                 });
 
             } else {
-                ComponentsPanel.save(isNew, zones);
+                ComponentsPanel.save(isNew, zones, compPath, conComp);
             }
         },
 
-        save: function (isNew, zones){
+        save: function (isNew, zones, compPath, conComp){
             ComponentsPanel.zones = zones;
-            CStudioAuthoring.ComponentsPanel.getPageModel(
-                CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
-                    CStudioAuthoringContext.previewCurrentPath),
-                (isNew ? 'save-components-new' : 'save-components'), true, false);
+            if(compPath){
+                CStudioAuthoring.ComponentsPanel.getPageModel(
+                    compPath,
+                    (isNew ? 'save-components-new' : 'save-components'), true, false, zones, conComp);
+            }else {
+                CStudioAuthoring.ComponentsPanel.getPageModel(
+                    CStudioAuthoring.ComponentsPanel.getPreviewPagePath(
+                        CStudioAuthoringContext.previewCurrentPath),
+                    (isNew ? 'save-components-new' : 'save-components'), true, false, zones, conComp);
+            }
         },
 
         init: function (){
@@ -224,7 +235,7 @@
          complete in this function -ie. the operation continues in another function)
          * @publish event: /components/model/loaded
          */
-        getPageModel: function (pagePath, operation, start, complete) {
+        getPageModel: function (pagePath, operation, start, complete, zones, conComp) {
 
             if (start) {
                 amplify.publish('/operation/started');
@@ -235,7 +246,9 @@
                     amplify.publish('/page-model/loaded', {
                         model: model,
                         pagePath: pagePath,
-                        operation: operation
+                        operation: operation,
+                        zones: zones,
+                        conComp: conComp
                     });
                     if (complete) {
                         amplify.publish('/operation/completed');
@@ -290,7 +303,7 @@
             // console.log("initial model ", contentMap);
         },
 
-        saveModel: function (pagePath, formDefinition, contentMap, start, complete, isNew) {
+        saveModel: function (pagePath, formDefinition, contentMap, start, complete, isNew, conComp) {
 
             if (start) {
                 amplify.publish('/operation/started');
@@ -306,8 +319,10 @@
                     success: function () {
                         if (complete) {
                             amplify.publish('/operation/completed');
-                            if(isNew){
-                                amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            if(isNew || conComp){
+                                setTimeout(function () {
+                                    amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                });
                             }
 
                         }

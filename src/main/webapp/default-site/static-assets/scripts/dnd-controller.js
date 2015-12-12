@@ -21,6 +21,9 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     var $body       = $('body:first');
     var $document   = $(document);
     var $window     = $(window);
+    var found = {};
+    var componentsModelLoadPath;
+
 
     function DnDController(config) {
 
@@ -176,6 +179,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         });
 
         $(DROPPABLE_SELECTION).sortable({
+            me: this,
             items: '[data-studio-component]',
             cursor: 'move',
             forceHelperSize: true,
@@ -197,8 +201,22 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             },
             update: function (e, ui) {
                 var $dropZone = $(this),
-                    $component = ui.item;
+                    $component = ui.item,
+                    compPath = $component.attr('data-studio-component-path'),
+                    zonePath = $dropZone.parents('[data-studio-component-path="' + compPath + '"]').attr('data-studio-component-path'),
+                    orgZoneComp = ui.item.parents('[data-studio-components-target]').parents('[data-studio-component-path]'),
+                    destZoneComp = $dropZone.parents('[data-studio-component-path]');
+                if (compPath != zonePath && ((orgZoneComp.attr('data-studio-component-path') != destZoneComp.attr('data-studio-component-path') ||
+                    (orgZoneComp.attr('data-studio-component-path') == destZoneComp.attr('data-studio-component-path') &&
+                        $dropZone.attr('data-studio-components-objectid') != ui.item.parents('[data-studio-components-target]').attr('data-studio-components-objectid')) ||
+                    (orgZoneComp.attr('data-studio-component-path') == destZoneComp.attr('data-studio-component-path') &&
+                        orgZoneComp.attr('data-studio-tracking-number') == destZoneComp.attr('data-studio-tracking-number') &&
+                        $dropZone.attr('data-studio-components-objectid') == ui.item.parents('[data-studio-components-target]').attr('data-studio-components-objectid'))))) {
                     componentDropped.call(me, $dropZone, $component);
+                } else {
+                    $(DROPPABLE_SELECTION).sortable("cancel");
+                }
+
             }
         });
 
@@ -206,28 +224,48 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             $(this).attr('data-studio-tracking-number', crafter.guid());
         });
 
-        componentsModelLoad(initialComponentModel);
+        $('[data-studio-components-target]').each(function (i) {
+            var $me = $(this);
+            $me.attr('data-studio-zone-tracking', crafter.guid());
+            //$me.attr('data-studio-components-target', i + '_' + $me.attr('data-studio-components-target'));
+        });
+
+        componentsModelLoad.call(me, initialComponentModel);
 
         $( ".ui-sortable-handle" ).each(function( index ) {
             var delControl = createDeleteControl('removeComp');
             delControl.onclick = function() {
+                var compPath = $(this).parent().parents('[data-studio-component-path]').attr('data-studio-component-path');
+                var objectId = $(this).parent().parents('[data-studio-components-target]').attr('data-studio-components-objectid');
+                var compTracking = $(this).parent().parents('[data-studio-component-path]').attr('data-studio-tracking-number');
+                var dropName = $($(this).parent().parents('[data-studio-components-target]')[0]).attr('data-studio-components-target');
                 removeComponent(this, function () {
                     var zones = {};
+                    var conRepeat = 0;
                     setTimeout(function () {
 
                         $('[data-studio-components-target]').each(function () {
-                            var $el = $(this),
-                                zoneName = $el.attr('data-studio-components-target');
-                            zones[zoneName] = [];
-                            $el.find('[data-studio-component]').each(function (i, el) {
-                                var $comp = $(this);
-                                zones[zoneName].push($comp.data('model') || tracking);
-                            });
+                            if(objectId == $(this).attr('data-studio-components-objectid')){
+                                if(dropName == $(this).attr('data-studio-components-target')){
+                                    conRepeat++;
+                                }
+                                if( compTracking == $(this).parents('[data-studio-component-path]').attr('data-studio-tracking-number')) {
+                                    var $el = $(this),
+                                        zoneName = $el.attr('data-studio-components-target');
+                                    zones[zoneName] = [];
+                                    $el.find('> [data-studio-component]').each(function (i, el) {
+                                        var $comp = $(this);
+                                        zones[zoneName].push($comp.data('model') || tracking);
+                                    });
+                                }
+                            }
                         });
 
                         publish.call(me, Topics.SAVE_DRAG_AND_DROP, {
                             isNew: false,
-                            zones: zones
+                            zones: zones,
+                            compPath: compPath,
+                            conComp: (conRepeat > 1) ? true : false
                         });
 
                     });
@@ -246,6 +284,11 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     function componentDropped($dropZone, $component) {
 
         var iceOn = !!(sessionStorage.getItem('ice-on'));
+        var compPath = $dropZone.parents('[data-studio-component-path]').attr('data-studio-component-path');
+        var compTracking = $dropZone.parents('[data-studio-component-path]').attr('data-studio-tracking-number');
+        var objectId = $dropZone.attr('data-studio-components-objectid');
+        var trackingZone = $dropZone.attr('data-studio-zone-tracking');
+        var dropName = $dropZone.attr('data-studio-components-target');
 
         if(iceOn){
             amplify.publish(Topics.ICE_TOOLS_ON);
@@ -272,17 +315,24 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
 
         // DOM Reorganization hasn't happened at this point,
         // need a timeout to grab out the updated DOM structure
+        var conRepeat = 0;
         setTimeout(function () {
 
-
             $('[data-studio-components-target]').each(function () {
-                var $el = $(this),
-                    zoneName = $el.attr('data-studio-components-target');
-                zones[zoneName] = [];
-                $el.find('[data-studio-component]').each(function (i, el) {
-                    var $comp = $(this);
-                    zones[zoneName].push($comp.data('model') || tracking);
-                });
+                if(objectId == $(this).attr('data-studio-components-objectid')){
+                    if(dropName == $(this).attr('data-studio-components-target')){
+                        conRepeat++;
+                    }
+                    if( compTracking == $(this).parents('[data-studio-component-path]').attr('data-studio-tracking-number')) {
+                        var $el = $(this),
+                            zoneName = $el.attr('data-studio-components-target');
+                        zones[zoneName] = [];
+                        $el.find('> [data-studio-component]').each(function (i, el) {
+                            var $comp = $(this);
+                            zones[zoneName].push($comp.data('model') || tracking);
+                        });
+                    }
+                }
             });
 
             publish.call(me, Topics.COMPONENT_DROPPED, {
@@ -290,7 +340,9 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
                 type: type,
                 isNew: isNew,
                 zones: zones,
-                trackingNumber: tracking
+                trackingNumber: tracking,
+                compPath: compPath,
+                conComp: (conRepeat > 1) ? true : false
             });
 
         });
@@ -301,12 +353,49 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
     }
 
     function componentsModelLoad(data) {
+        var aNotFound = [],
+            me = this,
+            noObjectid = 0;
         $('[data-studio-components-target]').each(function () {
-            var $el = $(this), name = $el.attr('data-studio-components-target');
-            $el.find('[data-studio-component]').each(function (i, el) {
-                $(this).data('model', data[name][i]);
-            });
+            var $el = $(this),
+                objectId = $el.attr('data-studio-components-objectid'),
+                tracking = $el.attr('data-studio-zone-tracking'),
+                name = $el.attr('data-studio-components-target'),
+                path = $el.parents('[data-studio-component-path]').attr('data-studio-component-path'),
+                id = objectId + "-" + name;
+            if(objectId){
+                if(!found[id] || objectId == data['objectId']){
+                    if ((data[name] || data[name] == "") && objectId == data['objectId']) { ///objid?
+                        found[id] = true;
+                        $el.find('> [data-studio-component]').each(function (i, el) {
+                            $(this).data('model', data[name][i]);
+                        });
+                    } else {
+                        var repeated = false;
+                        for(var j=0; j<aNotFound.length ; j++){
+                            if(aNotFound[j].path == path && aNotFound[j].name == name){
+                                repeated = true;
+                            }
+                        }
+                        if(!repeated){
+                            aNotFound.push({path: path, name:name});
+                        }
+                    }
+                }
+            }else{
+                noObjectid++
+            }
         });
+        if(aNotFound.length){
+            publish.call(this, Topics.DND_ZONES_MODEL_REQUEST, {
+                aNotFound: aNotFound[0]
+            });
+        }
+        if(noObjectid > 0){
+            publish.call(me, Topics.START_DIALOG, {
+                message: 'Object Id is missing. Drag and Drop is not going to work properly.'
+            });
+        }
     }
 
     function publish(topic, message, com) {

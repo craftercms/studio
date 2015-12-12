@@ -26,13 +26,21 @@
 }
 
 #template-editor-toolbar{
-  height: 40px;
+  height: 61px;
   background: #f8f8f8;
   border-bottom: 1px solid #e7e7e7;
 }
 
 #template-editor-toolbar-variable{
-  padding: 5px 0 0 45px;
+  padding: 2px 0 0 45px;
+}
+
+#template-editor-toolbar-variable #fileName{
+    font-weight: bold;
+    color: #6d90b2;
+    font-size: 16px;
+    margin: -8px 0 0;
+    padding-bottom: 0;
 }
 
 #template-editor-toolbar-variable label{

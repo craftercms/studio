@@ -404,7 +404,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
             //destination paths
             String dstFullPath = dstOrgFullPath;
-            if(dstFullPath.endsWith(DmConstants.INDEX_FILE)){
+            if(dstFullPath.endsWith(DmConstants.XML_PATTERN)){
                 dstFullPath = ContentUtils.getParentUrl(dstFullPath);
             }
             if (dstFullPath == null) {
@@ -430,10 +430,17 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                     contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 }
             } else {
-                if (!contentService.contentExists(dstFullPath)) {
-                    contentService.createFolder(site, ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+                if (dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                    if (!contentService.contentExists(site, dstPath)) {
+                        contentService.createFolder(site, dstNodeParentPath, dstNodeName);
+                    }
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
+                } else {
+                    if (!contentService.contentExists(site, dstPath)) {
+                        contentService.createFolder(site, ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+                    }
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 }
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
             }
 
             ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));

@@ -17,11 +17,13 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class EnvironmentConfigTO implements TimeStamped {
+public class EnvironmentConfigTO implements TimeStamped,Serializable {
 
-	/** preview server URL **/
+    private static final long serialVersionUID = -8009424857607808612L;
+    /** preview server URL **/
 	protected String _previewServerUrl = "";
 	/** authoring server URL **/
 	protected String _authoringServerUrl = "";

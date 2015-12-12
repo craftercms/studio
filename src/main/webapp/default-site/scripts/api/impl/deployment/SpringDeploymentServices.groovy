@@ -74,4 +74,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
         return springBackedService.bulkGoLive(site, path);
     }
+
+    def getDeploymentJobs() {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.getDeploymentJobs();
+    }
 }

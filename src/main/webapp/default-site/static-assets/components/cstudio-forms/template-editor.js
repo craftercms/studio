@@ -123,8 +123,14 @@ CStudioAuthoring.Module.requireModule(
 									
 									initEditorFn();
 
+                                    var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
+                                    var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
+                                    var filenameH2 = document.createElement("p");
+                                    filenameH2.id = 'fileName';
+                                    filenameH2.innerHTML = filename;
+                                    templateEditorToolbarVarElt.appendChild(filenameH2);
+
 									if(templatePath.indexOf(".ftl") != -1) {
-										var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
 										var variableLabel = document.createElement("label");
 										variableLabel.innerHTML = CMgs.format(contextNavLangBundle, "variableLabel");
 										templateEditorToolbarVarElt.appendChild(variableLabel);
@@ -137,7 +143,7 @@ CStudioAuthoring.Module.requireModule(
 										    {label:"Dynamic navigation", value:"<#include \"/templates/web/navigation/navigation.ftl\">\r\n\t...\r\n\t<@renderNavigation \"/site/website\", 1 />"},
 
 										    {label:"Incontext editing attribute (pencil)", value:"<@studio.iceAttr iceGroup=\"ICEGROUID\"/>"},
-										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" />"},
+										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" objectId=model.objectId />"},
 										    {label:"Component attribute", value:"<@studio.componentAttr path=model.storeUrl ice=false />"},
 										    {label:"Render list of components", value:"<#list model.VARIABLENAME.item as module>\r\n\t<@renderComponent component=module />\r\n</#list>"},
 										    {label:"Iterate over a list of items and load content item", value:"<#list model.VARIABLENAME.item as myItem>\r\n\t<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />\r\n\t${myContentItem.variableName}\r\n</#list>"},
@@ -177,7 +183,7 @@ CStudioAuthoring.Module.requireModule(
 										addButton.onclick = function() {
 									    	editorEl.codeMirrorEditor.replaceRange(selectList.options[selectList.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
 										};
-									}	
+									}
 
 									var cancelEl = document.getElementById('template-editor-cancel-button');
 									cancelEl.onclick = function() {

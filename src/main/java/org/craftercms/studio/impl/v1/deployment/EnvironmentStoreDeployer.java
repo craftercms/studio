@@ -61,7 +61,7 @@ public class EnvironmentStoreDeployer implements Deployer{
             logger.debug("Writing file: " + file.getAbsolutePath());
             FileUtils.copyInputStreamToFile(content, file);
         } catch (IOException e) {
-            logger.error("Error while saving content to environment store [site: {0}] [path: {1}] [envirnonment: {2}", site, path, environment);
+            logger.error("Error while saving content to environment store [site: {0}] [path: {1}] [envirnonment: {2}]", e, site, path, environment);
         }
     }
 

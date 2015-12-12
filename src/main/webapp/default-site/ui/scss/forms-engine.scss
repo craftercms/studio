@@ -26,6 +26,24 @@ header {
   position: relative;
 }
 
+// minyMCE
+.mceListBoxMenu.cstudio-rteSkin{
+  width: 175px !important;
+  overflow: hidden !important;
+
+  .mceListBoxMenu{
+    width: 175px !important;
+    overflow: auto!important;
+    //overflow-x: hidden!important;
+
+    table{
+      width: 175px !important;
+    }
+
+  }
+
+}
+
 // Reset and dependencies
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/print";

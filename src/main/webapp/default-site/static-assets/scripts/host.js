@@ -179,18 +179,73 @@
             message.path,
             message.isNew,
             message.trackingNumber,
-            message.zones);
+            message.zones,
+            message.compPath,
+            message.conComp
+        );
+    });
+
+    communicator.subscribe(Topics.START_DIALOG, function (message) {
+        var newdiv = document.createElement("div");
+
+        newdiv.setAttribute("id", "cstudio-wcm-popup-div");
+        newdiv.className = "yui-pe-content";
+        newdiv.innerHTML = '<div class="contentTypePopupInner" id="warning">' +
+            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
+            '<div class="contentTypePopupHeader">Warning</div> ' +
+            '<div class="contentTypeOuter">'+
+            '<div>'+message.message+'</div> ' +
+            '<div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="contentTypePopupBtn"> ' +
+            '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="cancelButton" value="Cancel" />' +
+            '</div>' +
+            '</div>';
+
+        document.body.appendChild(newdiv);
+
+        var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", {
+            width: "400px",
+            height: "199px",
+            fixedcenter: true,
+            visible: false,
+            modal: true,
+            close: false,
+            constraintoviewport: true,
+            underlay: "none",
+            autofillheight: null,
+            buttons: [{ text:"Cancel", handler: function() { $(this).destroy(); }, isDefault:true }]
+        });
+
+        dialog.render();
+        dialog.show();
+        dialog.cfg.setProperty("zIndex", 100001); // Update the z-index value to make it go over the site content nav
+
+        YAHOO.util.Event.addListener("cancelButton", "click", function() { dialog.destroy(); });
+
+        return dialog;
     });
 
     communicator.subscribe(Topics.SAVE_DRAG_AND_DROP, function (message) {
         amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
             message.isNew,
-            message.zones);
+            message.zones,
+            message.compPath,
+            message.conComp
+        );
     });
 
     communicator.subscribe(Topics.INIT_DRAG_AND_DROP, function (message) {
         amplify.publish(cstopic('INIT_DRAG_AND_DROP'),
             message.zones);
+    });
+
+    communicator.subscribe(Topics.DND_ZONES_MODEL_REQUEST, function (message) {
+        amplify.publish(cstopic('DND_ZONES_MODEL_REQUEST'),
+                message.aNotFound
+            );
+
     });
 
     amplify.subscribe(cstopic('REFRESH_PREVIEW'), function () {

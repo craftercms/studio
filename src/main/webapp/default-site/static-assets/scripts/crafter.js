@@ -59,10 +59,12 @@
                 "COMPONENT_MOVED": "COMPONENT_MOVED",
                 "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",
                 "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
+                "DND_ZONES_MODEL_REQUEST": "DND_ZONES_MODEL_REQUEST",
                 "ICE_TOOLS_ON": "ICE_TOOLS_ON",
                 "ICE_TOOLS_OFF": "ICE_TOOLS_OFF",
                 "ICE_TOOLS_REGIONS": "ICE_TOOLS_REGIONS",
                 "REFRESH_PREVIEW": "REFRESH_PREVIEW",
+                "START_DIALOG": "START_DIALOG",
 
                 "": ""
             },

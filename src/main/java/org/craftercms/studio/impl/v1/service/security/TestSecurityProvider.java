@@ -45,19 +45,19 @@ public class TestSecurityProvider implements SecurityProvider {
     private final static Map<String, Map<String, String>> USER_PROFILES = new HashMap<String, Map<String, String>>() {{
         Map<String, String> adminProfile = new HashMap<String, String>();
         adminProfile.put("username", "admin");
-        adminProfile.put("email", "evaladmin@craftersoftware.com");
+        adminProfile.put("email", "evaladmin@example.com");
         adminProfile.put("firstName", "Joe");
         adminProfile.put("lastName", "Admin");
         
         Map<String, String> authorProfile = new HashMap<String, String>();
         authorProfile.put("username", "author");
-        authorProfile.put("email", "evalauthor@craftersoftware.com");
+        authorProfile.put("email", "evalauthor@example.com");
         authorProfile.put("firstName", "Joe");
         authorProfile.put("lastName", "Author");
 
         Map<String, String> approverProfile = new HashMap<String, String>();
         authorProfile.put("username", "approver");
-        authorProfile.put("email", "evalapprover@craftersoftware.com");
+        authorProfile.put("email", "evalapprover@example.com");
         authorProfile.put("firstName", "Joe");
         authorProfile.put("lastName", "Approver");
 
