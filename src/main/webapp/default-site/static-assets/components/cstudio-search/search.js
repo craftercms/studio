@@ -721,7 +721,16 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
                 					}
 				      			}
 				      			else {
-				      				CStudioAuthoring.SelectedContent.unselectContent(this.contentTO.item);
+				      				//CStudioAuthoring.SelectedContent.unselectContent(this.contentTO.item);
+                                    var selectCb = {
+                                        success : function(contentTO) {
+                                            CStudioAuthoring.SelectedContent.unselectContent(contentTO.item);
+                                        },
+                                        failure: function() {
+                                        }
+                                    };
+
+                                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);
 				      			}
 				      			//enable disable Add Item button based on selection
 				      			if(document.getElementById("submission-controls")) {
