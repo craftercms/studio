@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
+
 /**
  * This class represents the sorting order of DM Content Item
  * 
@@ -24,9 +26,10 @@ package org.craftercms.studio.api.v1.to;
  * @author Dejan Brkic
  * 
  */
-public class DmOrderTO implements Comparable<DmOrderTO> {
+public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 
-	protected String _id;
+    private static final long serialVersionUID = -7831644335720471414L;
+    protected String _id;
 	protected double _order;
 	protected String _name;
 	protected String _disabled;

@@ -17,15 +17,18 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
+
 /**
  * holds the configuration for copy dependency
  * 
  * @author Shankar Krishnan
  *
  */
-public class CopyDependencyConfigTO {
+public class CopyDependencyConfigTO implements Serializable {
 
-	protected String pattern;
+    private static final long serialVersionUID = 3853790978445959968L;
+    protected String pattern;
 	
 	protected String target;
 

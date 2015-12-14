@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,10 @@ import org.dom4j.Node;
  * @author Sandra O'Keeffe
  * @author Sweta Chalasani
  */
-public class PermissionsConfigTO implements TimeStamped {
+public class PermissionsConfigTO implements TimeStamped, Serializable {
 
-	/** site-filename key **/
+    private static final long serialVersionUID = -8150776631439025097L;
+    /** site-filename key **/
 	protected String key = null;
 	/** mappings Document object containing either permissions or role mapping details **/
 	protected Document mapping = null;

@@ -207,8 +207,10 @@ CStudioAuthoringContext.site,
                     return treeData;
                 };
 
+                // NEED TO USE CONFIG ^
                 var newPath = path.replace("/ja", "/en")
-                CStudioAuthoringContext.baseSite = site;
+                CStudioAuthoringContext.baseSite = CStudioAuthoringContext.site;
+                
                 CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.baseSite, newPath, level, action, {  
                     success: function(treeData, args) {
                         

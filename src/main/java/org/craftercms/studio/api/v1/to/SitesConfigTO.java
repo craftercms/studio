@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ import java.util.Map;
  * @author hyanghee
  *
  */
-public class SitesConfigTO implements TimeStamped {
+public class SitesConfigTO implements TimeStamped, Serializable {
 
 	/** the sites drop-down menu items **/
 	protected Map<String, String> _sitesMenu;

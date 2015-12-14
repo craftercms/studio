@@ -17,6 +17,8 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
+
 /**
  * 
  * holds the configuration for delete dependency
@@ -24,9 +26,10 @@ package org.craftercms.studio.api.v1.to;
  * @author Shankar Krishnan
  *
  */
-public class DeleteDependencyConfigTO {
-	
-	protected String pattern;
+public class DeleteDependencyConfigTO implements Serializable {
+
+    private static final long serialVersionUID = -8726953181196086267L;
+    protected String pattern;
 	
 	protected boolean removeEmptyFolder;
 

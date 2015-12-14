@@ -17,13 +17,15 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
 
-public class SiteContentTypePathsTO implements TimeStamped {
+public class SiteContentTypePathsTO implements TimeStamped, Serializable {
 
-	/** content type path configuration **/
+    private static final long serialVersionUID = 1034702203309615732L;
+    /** content type path configuration **/
 	protected List<ContentTypePathTO> _configs = null;
 	/** last updated date of this configuration **/
 	protected Date _lastUpdated = null;

@@ -19,10 +19,12 @@ package org.craftercms.studio.api.v1.to;
 
 import javolution.util.FastList;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PublishingChannelGroupConfigTO {
+public class PublishingChannelGroupConfigTO implements Serializable {
 
+    private static final long serialVersionUID = 2775150585198082982L;
     private String name;
     public String getName() {
         return name;

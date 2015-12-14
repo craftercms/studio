@@ -17,6 +17,8 @@
  */
 package org.craftercms.studio.api.v1.to;
 
+import java.io.Serializable;
+
 /**
  * DmFolderConfig that specifies how each folder in UI maps to the folder
  * structure in DM web project
@@ -25,8 +27,9 @@ package org.craftercms.studio.api.v1.to;
  * @author Dejan Brkic
  *
  */
-public class DmFolderConfigTO {
+public class DmFolderConfigTO implements Serializable {
 
+    private static final long serialVersionUID = 8918826498122949858L;
     protected boolean _attachRootPrefix;
     protected boolean _readDirectChildren;
     protected String _path;
