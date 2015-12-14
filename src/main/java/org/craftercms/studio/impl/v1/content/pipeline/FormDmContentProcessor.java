@@ -163,7 +163,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
         boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
-        boolean overwrite = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_OVERWRITE));
 
         String fullPath = contentService.expandRelativeSitePath(site, path);
         String parentContentPath = fullPath;
@@ -222,7 +221,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                     String fileRelativePath = contentService.getRelativeSitePath(site, fullPath);
                     boolean fileExists = contentService.contentExists(site, fileRelativePath);
-                    if (fileExists && overwrite) {
+                    if (fileExists) {
                         ContentItemTO contentItem = contentService.getContentItem(site, fileRelativePath, 0);
                         InputStream existingContent = contentService.getContent(site, fileRelativePath);
                         String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
@@ -469,17 +468,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         for (String level : levels) {
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
                 String currentPath = parentPath + "/" + level;
-
-                //fullPath = (isPreview) ? DmUtils.getPreviewPath(fullPath) : fullPath;
-                lastItem = contentService.getContentItem(site, currentPath, 0);
-                if (lastItem == null) {
-                    //parentFullPath = (isPreview) ? DmUtils.getPreviewPath(parentFullPath) : parentFullPath;
+                if (!contentService.contentExists(site, currentPath)) {
                     contentService.createFolder(site, parentPath, level);
-                    lastItem = contentService.getContentItem(site, currentPath, 0);
                 }
                 parentPath = currentPath;
             }
         }
+        lastItem = contentService.getContentItem(site, parentPath, 0);
         return lastItem;
     }
 
@@ -496,7 +491,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         int index = path.lastIndexOf("/");
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();
-        String folderName = parentFileName.substring(0, parentFileName.indexOf("."));
+        int dotIndex = parentFileName.indexOf(".");
+        String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
         contentService.createFolder(site, folderPath, folderName);
         folderPath = folderPath + "/" + folderName;
         contentService.moveContent(site, path, folderPath + "/" + DmConstants.INDEX_FILE);
