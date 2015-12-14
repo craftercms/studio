@@ -17,7 +17,9 @@
    
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/search.js"></script>
     <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js"></script> 
+    <script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js"></script>
+    <script src="/studio/static-assets/scripts/crafter.js"></script>
+    <script src="/studio/static-assets/scripts/animator.js"></script>
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/yui/assets/skins/sam/calendar.css" />
     <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css" />
 
@@ -29,7 +31,7 @@
        <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/image.js"></script>   
        <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/xhtml.js"></script>   
        <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/flash.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/content-type.js"></script>  
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/content-type.js"></script>
 
   <!-- result templates -->
    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>
@@ -47,6 +49,7 @@
     <script>
       CMgs = CStudioAuthoring.Messages;
       langBundle = CMgs.getBundle("search", CStudioAuthoringContext.lang);
+      formsLangBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
       siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
