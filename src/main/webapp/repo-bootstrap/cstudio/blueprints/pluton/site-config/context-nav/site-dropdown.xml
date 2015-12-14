@@ -19,8 +19,82 @@
 										<path>/site/website</path>
 										<showRootItem>true</showRootItem>
 										<onClick>preview</onClick>
+									    <excludes>
+                                        	<exclude>/site/website/ja</exclude>
+                                        </excludes>
+                                  </params>
+								</modulehook>
+
+								<!-- JA Site IA PAGES -->
+								<modulehook>
+									<name>layered-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Japanese Site</label>
+										<path>/site/website/ja</path>
+										<showRootItem>true</showRootItem>
+										<onClick>preview</onClick>
+                                    </params>
+								</modulehook>
+                                
+								<!--modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Slider Sets</label>
+										<path>/site/components/titles</path>
+										<showRootItem>true</showRootItem>
+										<onClick>preview</onClick>
+
+										<cannedSearches> 
+                                            <cannedSearch> <label>Slider Sets</label> 
+											<path>/site/components/titles</path> 
+                                            <insertAs>replace</insertAs> 
+                                            <newPath>/site/components/slider-sets</newPath> 
+											<queryParams> 
+                                              <queryParam> 
+                                                <name>context</name> 
+                                                <value>content-type</value> 
+											  </queryParam> 
+                                              <queryParam> 
+                                              <name>mode</name> 
+                                               <value>act</value> 
+                                            </queryParam>
+											<queryParam> 
+                                               <name>content-type</name> 
+                                               <value>/component/slider-sets</value> 
+                                            </queryParam> 
+											<queryParam> 
+                                               <name>selection</name> 
+                                               <value>-1</value> 
+                                            </queryParam> 
+                                            <queryParam> 
+											  <name>presearch</name> 
+                                              <value>true</value> 
+                                           </queryParam> 
+                                         </queryParams> 
+                                       </cannedSearch> 
+								     </cannedSearches>
+										<roles>
+											<role>admin</role>
+										</roles>
+                                    </params>
+								</modulehook-->
+                             
+
+								<!-- Taxonomies -->
+                                <!--
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Taxonomies</label>
+										<path>/site/components/taxonomies</path>
+										<showRootItem>true</showRootItem>
 									</params>
 								</modulehook>
+                                -->
+
 								<!-- COMPONENTS -->
 								<modulehook>
 									<name>wcm-root-folder</name>
@@ -29,16 +103,9 @@
 										<label>Components</label>
 										<path>/site/components</path>
 										<showRootItem>true</showRootItem>
-										<!--cannedSearches> <cannedSearch> <label>All Shout Boxes</label> 
-											<path>/site/components/shout-box</path> <insertAs>replace</insertAs> <newPath>/site/components/shout-box</newPath> 
-											<queryParams> <queryParam> <name>context</name> <value>/demo/component/shoutbox</value> 
-											</queryParam> <queryParam> <name>mode</name> <value>act</value> </queryParam> 
-											<queryParam> <name>selection</name> <value>-1</value> </queryParam> <queryParam> 
-											<name>presearch</name> <value>true</value> </queryParam> </queryParams> </cannedSearch> 
-											</cannedSearches -->
-
 									</params>
 								</modulehook>
+
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -60,7 +127,6 @@
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
-
 
 								<modulehook>
 									<name>wcm-assets-folder</name>
