@@ -128,20 +128,24 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         }
 
         templateButtonEl.onclick = function() {
-			var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
-			
-			// if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
-			// 		contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
-			// 			"-" + CStudioAuthoringContext.channel + ".ftl"; 
-			// }
+            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates.length > 0) {
+                var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 
-			CStudioAuthoring.Operations.openTemplateEditor(contentType, "default", {
-                success: function() {
-                    CStudioAuthoring.Operations.refreshPreview();     
-                },
-                failure: function() {
-                }
-            });
+                // if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
+                // 		contentType = contentType.substring(0, contentType.lastIndexOf(".ftl")) +
+                // 			"-" + CStudioAuthoringContext.channel + ".ftl";
+                // }
+
+                CStudioAuthoring.Operations.openTemplateEditor(contentType, "default", {
+                    success: function () {
+                        CStudioAuthoring.Operations.refreshPreview();
+                    },
+                    failure: function () {
+                    }
+                });
+            }else{
+                alert("There is no template");
+            }
 		};
         var contextNavImg = YDom.get("acn-ice-tools-image");
         var cstopic = crafter.studio.preview.cstopic;
