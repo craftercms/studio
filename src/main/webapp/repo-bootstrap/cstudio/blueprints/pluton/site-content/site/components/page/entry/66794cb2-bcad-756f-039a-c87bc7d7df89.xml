@@ -20,7 +20,7 @@
 &lt;p&gt;"I&amp;#39;ve worked too hard and too long to let anything stand in the way of my goals. I will not let my teammates down and I will not let myself down."&lt;/p&gt;
 &lt;div class="whopic"&gt;
 &lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
-&lt;img class="centered" src="http://localhost:9090/static-assets/images/Client1.png" alt="client 1" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client1.png" alt="client 1" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="span4"&gt;
@@ -28,7 +28,7 @@
 &lt;p&gt;"In motivating people, you&amp;#39;ve got to engage their minds and their hearts. I motivate people, I hope, by example - and perhaps by excitement, by having productive ideas to make others feel involved."&lt;/p&gt;
 &lt;div class="whopic"&gt;
 &lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
-&lt;img class="centered" src="http://localhost:9090/static-assets/images/Client2.png" alt="client 2" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client2.png" alt="client 2" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="span4"&gt;
@@ -36,7 +36,7 @@
 &lt;p&gt;"Determine never to be idle. No person will have occasion to complain of the want of time who never loses any. It is wonderful how much may be done if we are always doing."&lt;/p&gt;
 &lt;div class="whopic"&gt;
 &lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
-&lt;img class="centered" src="http://localhost:9090/static-assets/images/Client3.png" alt="client 3" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client3.png" alt="client 3" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -53,17 +53,18 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;ul id="clint-slider" class="row client-slider"&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo01.png" alt="client logo 1" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo02.png" alt="client logo 2" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo03.png" alt="client logo 3" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo04.png" alt="client logo 4" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo05.png" alt="client logo 5" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo02.png" alt="client logo 6" /&gt; &lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="http://localhost:9090/static-assets/images/clients/ClientLogo04.png" alt="client logo 7" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo01.png" alt="client logo 1" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo02.png" alt="client logo 2" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo03.png" alt="client logo 3" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo04.png" alt="client logo 4" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo05.png" alt="client logo 5" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo02.png" alt="client logo 6" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo04.png" alt="client logo 7" /&gt; &lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</content_html>
 	<createdDate>6/5/2015 19:0:17</createdDate>
-	<lastModifiedDate>6/5/2015 19:18:13</lastModifiedDate>
+	<lastModifiedDate>12/14/2015 3:51:54</lastModifiedDate>
+	<lastModifiedDate_dt>12/14/2015 3:51:54</lastModifiedDate_dt>
 </component>

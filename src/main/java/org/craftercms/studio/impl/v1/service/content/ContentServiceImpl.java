@@ -172,7 +172,7 @@ public class ContentServiceImpl implements ContentService {
             // configurable weather or not to blow up the entire write?
             logger.error("Failed to create version for object at path: " + path, err);
         }
-
+        removeItemFromCache(getSiteFromFullPath(path),getRelativeSitePath(path));
        return writeSuccess;
     }
 
@@ -395,7 +395,9 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean createFolder(String site, String path, String name) {
-        return _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
+        boolean toRet = _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
+        removeItemFromCache(site, path + "/" + name);
+        return toRet;
     }
 
     @Override
@@ -412,6 +414,8 @@ public class ContentServiceImpl implements ContentService {
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
+
+        removeItemFromCache(site, path);
 
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
@@ -756,6 +760,16 @@ public class ContentServiceImpl implements ContentService {
             }
         }, site, path);
         return item;
+    }
+
+    protected void removeItemFromCache(String site, String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        Object cacheKey = cacheTemplate.getKey(site, path);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        cacheService.remove(cacheContext, cacheKey);
     }
 
     protected ContentItemTO loadContentItem(String site, String path) {
