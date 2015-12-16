@@ -222,7 +222,13 @@
         dialog.show();
         dialog.cfg.setProperty("zIndex", 100001); // Update the z-index value to make it go over the site content nav
 
-        YAHOO.util.Event.addListener("cancelButton", "click", function() { dialog.destroy(); });
+        YAHOO.util.Event.addListener("cancelButton", "click", function() {
+            dialog.destroy();
+            var masks = YAHOO.util.Dom.getElementsByClassName("mask");
+            for (var i =0; i < masks.length; i++){
+                YAHOO.util.Dom.getElementsByClassName("mask")[0].parentElement.removeChild(YAHOO.util.Dom.getElementsByClassName("mask")[0]);
+            }
+        });
 
         return dialog;
     });
@@ -365,7 +371,7 @@
         });
 
         var path = hash.page;
-        
+
         if(path.indexOf(".") != -1) {
         	if(path.indexOf(".html") != -1 || path.indexOf(".xml") != -1 ) {
         		path = ('/site/website/'+ hash.page).replace('//','/');
@@ -375,7 +381,7 @@
         else {
         	path = ('/site/website/'+ hash.page+'/index.xml').replace('//','/');
         }
-        
+
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
             success: function(content) {
                 CStudioAuthoring.SelectedContent.setContent(content.item);
