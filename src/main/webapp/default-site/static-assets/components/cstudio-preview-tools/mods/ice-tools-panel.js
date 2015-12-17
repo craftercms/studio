@@ -70,6 +70,7 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         container.appendChild(wrapper);
 
         wrapper = document.createElement('div');
+        YDom.addClass(wrapper, "edit-code template");
 		var templateButtonEl = document.createElement("button");
 		var templateImageEl = document.createElement("img");
 		var templateLabelEl = document.createElement("span");
@@ -81,9 +82,30 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         YDom.addClass(templateButtonEl, 'btn btn-default btn-block');
         YDom.addClass(templateLabelEl, 'acn-ptools-ice-label');
 
-		templateButtonEl.appendChild(templateImageEl);
+        templateButtonEl.appendChild(templateImageEl);
         templateButtonEl.appendChild(templateLabelEl);
+        wrapper.style.marginleft = "4px";
         wrapper.appendChild(templateButtonEl);
+
+        container.appendChild(wrapper);
+
+        wrapper = document.createElement('div');
+        YDom.addClass(wrapper, "edit-code");
+        var controllerButtonEl = document.createElement("button");
+        var controllerImageEl = document.createElement("img");
+        var controllerLabelEl = document.createElement("span");
+
+        controllerImageEl.src = CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/themes/cstudioTheme/images/icons/code-edit.gif";
+        controllerLabelEl.innerHTML = CMgs.format(previewLangBundle, "editController");
+
+        // YDom.addClass(wrapper, 'form-group');
+        YDom.addClass(controllerButtonEl, 'btn btn-default btn-block');
+        YDom.addClass(controllerLabelEl, 'acn-ptools-ice-label');
+
+        controllerButtonEl.appendChild(controllerImageEl);
+        controllerButtonEl.appendChild(controllerLabelEl);
+        wrapper.appendChild(controllerButtonEl);
+
         container.appendChild(wrapper);
 
         initRegCookie = function(){
@@ -144,9 +166,27 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                     }
                 });
             }else{
-                alert("There is no template");
+                alert("No template found");
             }
 		};
+
+        controllerButtonEl.onclick = function() {
+            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0].contentType) {
+                var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].contentType.split("/");
+                var path = "/scripts/pages/" + contentType[contentType.length - 1] + ".groovy";
+
+                CStudioAuthoring.Operations.openTemplateEditor(path, "default", {
+                    success: function () {
+                        //CStudioAuthoring.Operations.refreshPreview();
+                        location.reload();
+                    },
+                    failure: function () {
+                    }
+                });
+            }else{
+                alert("No controller found");
+            }
+        };
         var contextNavImg = YDom.get("acn-ice-tools-image");
         var cstopic = crafter.studio.preview.cstopic;
 
