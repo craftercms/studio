@@ -1,4 +1,4 @@
-/* Site-wide Styles */
+/* Site-wide Styles * /
 body
 {
    font-family: Arial, sans-serif;
@@ -251,7 +251,7 @@ select,
 input[type="text"],
 textarea
 {
-   border: 1px solid #C5D6E2;
+   /*border: 1px solid #C5D6E2;*/
    font-weight: normal;
 }
 

@@ -11,7 +11,7 @@ CStudioForms.Datasources.KeyValueList = CStudioForms.Datasources.KeyValueList ||
 YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Static Key Value pairs";
+        return CMgs.format(langBundle, "staticKeyValuePairs");
     },
 
     add: function(control) {
@@ -89,7 +89,7 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
         }
 
         if (cb != null && cb != undefined) {
-            cb.success(value);
+            cb.success(eval(value));
         } else {
             return value;
         }
@@ -112,7 +112,8 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
         this.properties.forEach( function(prop) {
             if (prop.name == "dataType") {
                 // return the value of the option currently selected
-                prop.value.forEach( function(opt) {
+                var value = JSON.parse(prop.value);
+                value.forEach( function(opt) {
                     if (opt.selected) {
                         val = opt.value;
                     }
@@ -128,7 +129,7 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
 
     getSupportedProperties: function() {
         return [{
-            label: "Data Type",
+            label: CMgs.format(langBundle, "dataType"),
             name: "dataType",
             type: "dropdown",
             defaultValue: [{    // Update this array if the dropdown options need to be updated
@@ -137,31 +138,31 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
                 selected: true
             }, {
                 value: "value_s",
-                label: "String",
+                label: CMgs.format(langBundle, "string"),
                 selected: false
             }, {
                 value: "value_i",
-                label: "Integer",
+                label: CMgs.format(langBundle, "integer"),
                 selected: false
             },{
                 value: "value_f",
-                label: "Float",
+                label: CMgs.format(langBundle, "float"),
                 selected: false
             },{
                 value: "value_dt",
-                label: "Date",
+                label: CMgs.format(langBundle, "date"),
                 selected: false
             },{
                 value: "value_html",
-                label: "HTML",
+                label: CMgs.format(langBundle, "HTML"),
                 selected: false
             }]
         }, {
-            label: "Options",
+            label: CMgs.format(langBundle, "options"),
             name: "options",
             type: "keyValueMap"
         }, {
-            label: "Show keys (item sel. only)",
+            label: CMgs.format(langBundle, "showKeys"),
             name: "showkeys",
             type: "boolean"
         }];
@@ -169,7 +170,7 @@ YAHOO.extend(CStudioForms.Datasources.KeyValueList, CStudioForms.CStudioFormData
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 

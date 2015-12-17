@@ -17,12 +17,13 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 			this.initialized = true;
 				
 			var dropdownInnerEl = config.containerEl;
-			
 			var siteSelectorEl = document.createElement("select");
 			siteSelectorEl.id = "acn-site-dropdown";
-			siteSelectorEl.style.height = "20px";
-			
-			dropdownInnerEl.appendChild(siteSelectorEl);
+
+            YDom.addClass(dropdownInnerEl, 'studio-view');
+            YDom.addClass(siteSelectorEl, 'form-control');
+
+            dropdownInnerEl.appendChild(siteSelectorEl);
 
 			/* check first child of dropdown element,
 			 * site select drop down should alway at top.
@@ -46,7 +47,7 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 
 		var sites = CStudioAuthoring.Service.retrieveSitesList({
 			success: function(sites) {
-				sites.push({label: "My Dashboard", link: ""});
+				sites.push({name: CMgs.format(siteDropdownLangBundle, "allSites"), siteId: "_ALL_SITES_"});
 
 				for (var i=0; i < sites.length; i++) {
 					var curSite = sites[i];
@@ -54,12 +55,12 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 					if(curSite != undefined) {
 						var option = document.createElement("option");
 				
-						option.text = "View: " + curSite.label;
-						option.value = curSite.shortName;
+						option.text = curSite.name;
+						option.value = curSite.siteId;
 						sitesNavSelect.options.add(option);
 				
 						// Find out what dashboard we are on and select based on that.
-						if (curSite.link.indexOf(CStudioAuthoringContext.homeUri) != -1){
+						if (curSite.siteId == CStudioAuthoringContext.site){
 							sitesNavSelect.selectedIndex = i;
 						}
 					}
@@ -71,8 +72,14 @@ CStudioAuthoring.ContextualNav.SiteSelector = CStudioAuthoring.ContextualNav.Sit
 					var shortName = sitesNavSelect.options[selectedIndex].value;
 
 					// set the cookie for preview and then redirect
-					CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
-					window.location =CStudioAuthoringContext.authoringAppBaseUri + "/site-dashboard?site="+shortName;
+					if(shortName != "_ALL_SITES_") {
+						CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
+						window.location = CStudioAuthoringContext.authoringAppBaseUri + "/preview";
+					}
+					else {
+						CStudioAuthoring.Utils.Cookies.createCookie("crafterSite", shortName);
+						window.location = CStudioAuthoringContext.authoringAppBaseUri + "/#/sites";
+					}						
 				};
 			},
 			failure: function() {

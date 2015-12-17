@@ -32,7 +32,9 @@ CStudioAuthoring.Module.requireModule(
 					workareaEl.innerHTML = 
 						"<div id='config-area'>" +
 						"</div>";
-						var actions = [];
+						var actions = [
+                            { name: CMgs.format(formsLangBundle, "clearCache"), context: this, method: this.clearCache }
+                        ];
 						CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 						this.renderJobsList();
 			},
@@ -44,7 +46,7 @@ CStudioAuthoring.Module.requireModule(
 				containerEl.innerHTML = 
 					"<div class='configuration-window'>" +
 						"<select id='config-list'>" +
-					 		" <option value='' >Select Configuration</option>" +
+					 		" <option value='' >"+CMgs.format(langBundle, "confTabSelectConf")+"</option>" +
 						"</select>" +
 						"<div id='edit-area'>" + 
 							"<div id='menu-area'>" + 
@@ -95,19 +97,19 @@ CStudioAuthoring.Module.requireModule(
 					CStudioAuthoringContext.site, 
 					"/administration/config-list.xml", {
 						success: function(config) {
-							if (config.files && config.files.length) {
+							if (config.files.file && config.files.file.length) {
 								var index = 1;
-								for (var fileIndex in config.files) {
-									var fileConfig = config.files[fileIndex];
-									var option = new Option(fileConfig.title, fileConfig.path, false, false);
-									option.setAttribute("description", fileConfig.description);
+								for (var fileIndex in config.files.file) {
+									var fileConfig = config.files.file[fileIndex];
+									var option = new Option(CMgs.format(langBundle, fileConfig.title), fileConfig.path, false, false);
+									option.setAttribute("description", CMgs.format(langBundle, fileConfig.description));
 									option.setAttribute("sample", fileConfig.samplePath);
 									itemSelectEl.options[index++] = option;
 								}
 							} else if (config.files.file) {
 								var fileConfig = config.files.file;
-								var option = new Option(fileConfig.title, fileConfig.path, false, false);
-								option.setAttribute("description", fileConfig.description);
+								var option = new Option(CMgs.format(langBundle, fileConfig.title), fileConfig.path, false, false);
+								option.setAttribute("description", CMgs.format(langBundle, fileConfig.description));
 								option.setAttribute("sample", fileConfig.samplePath);
 								itemSelectEl.options[1] = option;
 							}
@@ -126,7 +128,7 @@ CStudioAuthoring.Module.requireModule(
 						var descriptionEl = document.getElementById("config-description");
 						descriptionEl.innerHTML = itemSelectEl[selectedIndex].getAttribute("description");
 						// load configuration into editor
-						var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+						var url = '/studio/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
 							          CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
 						var getConfigCb = {
 							success: function(response) {
@@ -146,7 +148,7 @@ CStudioAuthoring.Module.requireModule(
 						var samplePath = itemSelectEl[selectedIndex].getAttribute("sample");
 						var viewSampleButtonEl = document.getElementById("view-sample-button");
 						if (samplePath != 'undefined' && samplePath != '') {
-							var url = '/studio/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+							var url = '/studio/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
 								    CStudioAuthoringContext.site + itemSelectEl[selectedIndex].getAttribute("sample");
 							var getSampleCb = {
 								success: function(response) {
@@ -209,9 +211,9 @@ CStudioAuthoring.Module.requireModule(
 			*/
 			addButtons: function (containerEl, itemSelectEl, editor) {
 				containerEl.innerHTML = 
-					"<button type='submit' id='save-button' class='edit-button'>Save</button>" + 
-					"<button type='submit' id='view-sample-button' class='edit-button'>View Sample</button>" + 
-					"<button type='submit' id='hide-sample-button' class='edit-button'>Hide Sample</button>";
+					"<button type='submit' id='save-button' class='btn btn-primary' style='margin-right:5px;'>"+CMgs.format(formsLangBundle, "save")+"</button>" +
+					"<button type='submit' id='view-sample-button' class='btn btn-primary'>"+CMgs.format(formsLangBundle, "viewSample")+"</button>" +
+					"<button type='submit' id='hide-sample-button' class='btn btn-primary'>"+CMgs.format(formsLangBundle, "hideSample")+"</button>";
 
 				// add button actions
 				var saveButtonEl = document.getElementById("save-button");
@@ -224,12 +226,18 @@ CStudioAuthoring.Module.requireModule(
 					var xml = editor.getValue();
 					var savePath = itemSelectEl[selectedIndex].value;
 					if (savePath != 'undefined' && savePath != '') {
-						var url = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
-							CStudioAuthoringContext.site + itemSelectEl[selectedIndex].value;
+						
+						var defPath =  '/cstudio/config/sites/' + 
+							CStudioAuthoringContext.site + 
+							itemSelectEl[selectedIndex].value;
+
+						var url = "/api/1/services/api/1/site/write-configuration.json" +
+                        "?path=" + defPath;
+
 
 						YAHOO.util.Connect.setDefaultPostHeader(false);
 						YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-						YAHOO.util.Connect.asyncRequest('POST', url, saveCb, xml);
+						YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), saveCb, xml);
 					} else {
 						alert("No configuration path is defined.");
 					}
@@ -262,7 +270,23 @@ CStudioAuthoring.Module.requireModule(
 			
 			shrinkEditor: function(editor) {
 				editor.setSize(this.width/2, this.height);
-			}
+			},
+
+            clearCache: function() {
+                var serviceUri = "/api/1/services/api/1/site/clear-configuration-cache.json?site="+CStudioAuthoringContext.site;
+
+                var clearCacheCb = {
+                    success: function() {
+                        alert("Configuration cache cleared");
+                    },
+
+                    failure: function() {
+                        alert("Failed to clear configuration cache");
+                    }
+                };
+
+                YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), clearCacheCb);
+            }
 			
 		});
 

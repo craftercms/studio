@@ -123,7 +123,7 @@ CStudioAuthoring.CampaignsPanel = CStudioAuthoring.CampaignsPanel || {
 
       CStudioAuthoring.Module.requireModule(
           "salesforce-report-"+reportId,
-          "/proxy/alfresco/cstudio/services/content/content-at-path" +
+          "/api/1/services/api/1/content/get-content-at-path.bin" +
           "?path=/cstudio/config/sites/" + site  + "/salesforce/reports/" + reportId + ".js",
           moduleConfig, reportCb);
 

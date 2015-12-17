@@ -60,6 +60,9 @@
   padding: .4em .2em .4em .4em;
   white-space: pre !important;
   cursor: default;
+  min-width: 55px;
+  font-size: 13px;
+  line-height: 14px;
 }
 .CodeMirror-lines {
   padding: .4em;
@@ -102,6 +105,8 @@
   border-left: 1px solid black;
   border-right: none;
   width: 0;
+  border-right: 1px solid black;
+  height: 14px;
 }
 .cm-keymap-fat-cursor pre.CodeMirror-cursor {
   width: auto;

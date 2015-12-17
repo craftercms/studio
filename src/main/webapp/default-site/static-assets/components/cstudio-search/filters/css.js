@@ -23,3 +23,4 @@ CStudioSearch.FilterRenderer.CSS = function() {
 
 // register this filter renderer
 CStudioSearch.filterRenderers["css"] = new CStudioSearch.FilterRenderer.CSS();
+CStudioAuthoring.Module.moduleLoaded("search-filter-css", CStudioSearch.filterRenderers["css"]);

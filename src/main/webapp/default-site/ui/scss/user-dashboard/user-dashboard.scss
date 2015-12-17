@@ -1,0 +1,79 @@
+
+@import "../variables";
+
+$icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
+
+// bower:scss
+@import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/_bootstrap.scss";
+// endbower
+
+@import "../util/util";
+
+@import "type";
+@import "layout";
+@import "navbar";
+
+@import "views";
+
+.modal-backdrop {
+    height: 100%;
+    background-color: #444;
+}
+
+.login-view,
+.recover-view {
+
+    .pad {
+        padding: 20px;
+    }
+
+    h2 {
+        margin-top: 0;
+    }
+
+  .alert-danger{ 
+    padding: 7px 15px;
+  }
+
+}
+
+.settings-view{
+  .row{
+    padding: 0 25px;
+  }
+}
+
+.panel {
+
+    .alert {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+
+}
+
+.user-display {
+
+    padding: 0 20px 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #f2f2f2;
+
+    .name {
+        font-size: 1.5em;
+    }
+
+    #language{
+      width: 42%;
+      display: inline-block;
+      margin-top: 20px;
+      max-width: 370px;
+    }
+
+}
+
+small {
+    .text-sm {
+        font-size: 40%;
+    }
+}

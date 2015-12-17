@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/article</content-type>	<display-template>/templates/web/interior.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<lastModifiedDate>04/23/2013 10:53:42</lastModifiedDate>
+	<pageIdGroup>600</pageIdGroup>
+	<pageId>603</pageId>
+	<lastModifiedBy>admin</lastModifiedBy>
+	<file-name>index.xml</file-name>
+	<internal-name>Resources</internal-name>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>1000</orderDefault_f>
+	<orders>	<item>	<order-name>default</order-name>
+	<order-value>1</order-value>
+	</item></orders>
+	<status>true</status>
+	<body>&lt;div class="span8"&gt;
+        &lt;h2&gt;Can big data deliver on the promise of real-time risk management?&lt;/h2&gt;
+        &lt;p&gt;Turiae nonse odioriam aut qui que etus ea consecte sumquo eaquiae. Ut acimpero totat ellestio doloren
+        ihicipsumeni dolum eosam qui sus entio exeribus apistrum sa iditati ntorrum est, officil laborum cusdandunt aut
+        eos necaecto consento eaquam vitis consequis il ipsuntet.&lt;/p&gt;
+        &lt;h3&gt;Estiam ipiduciet rerum laborum&lt;/h3&gt;
+        &lt;p&gt;Quatin prorro dessiminus etur soluptas int facipsundae pla quis quisit, qui totatur, qui rempostion
+        eume ipis acienes aut lignat pores expe non con exces magnam et minisimo et as exero bea coriore rnamus estiasp
+        erchill aceptas ende maxime voles sitiunt mo dis doloraes enectumentis quatque vollabo. Odigenisquam et ea nos
+        arum ulpariam et velliatiis maio tem idis non re conserum non nempel illent adit quam dolut odit aut optatur,
+        sedicimus dolori bla volum apicatur si accus dolo ea con nisqui ommodior solo volupta tiatur, tota nonsequiat.&lt;/p&gt;
+        &lt;blockquote&gt;
+        &lt;p&gt;occus as et maximus modi odis dis eum ent aciant iscidest, corepudae vel eicid eum lante net quist ad
+        ex explique autatur alique nos numquide volut dolum, quia volorrum nobist&lt;/p&gt;
+        &lt;/blockquote&gt;
+        &lt;h4&gt;Berem ationes sitesequam et&lt;/h4&gt;
+        &lt;p&gt;occus as et maximus modi odis dis eum ent aciant iscidest, corepudae vel eicid eum lante net quist ad
+        ex explique autatur alique nos numquide volut dolum, quia volorrum nobist, solestiur re nest la venduntia vent
+        audandis illignim fuga. Dictore volesequas veligenis enecessita quam quis mi, con re vendis videro inciur?&lt;/p&gt;
+        &lt;p&gt;&lt;a href="about"&gt;This is what a link will look like&lt;/a&gt;. Ut fugiatis est, consectem eatur
+        sus, sincias doluptaquia con re core latiorendis eritae modis ex eiciiste imolupta que venet harchicit volorem
+        volor sequia assit am vel id quidit, od qui quas nonseque esendus est, unt od eum, id molor sus volupti sus
+        seculpa et quatem estio verum atas quaerep ersperum rerum et derrum fuga. Lorem earchitatur?&lt;/p&gt;
+        &lt;/div&gt;</body>
+	<template-version>1.0</template-version>
+	<title>Big Data for Risk Reduction</title>
+	<meta-description/>
+	<corporateKeywords/>
+	<meta-keywords/>
+	<language/>
+	<descriptor-mapper>hierarchical-mapper</descriptor-mapper>
+	<components/>
+	<objectGroupId>39f5</objectGroupId>
+	<objectId>39f56670-f330-3360-a79f-4899d85f2d89</objectId>
+	<folder-name>resources</folder-name>
+	<pageTitle/>
+	<description/>
+	<keywords/>
+	<author>Mike Vertal</author>
+	<authorImages/>
+	<authorImage>/static-assets/images/mvertal-author.png</authorImage>
+	<body_html>&lt;h2&gt;Can big data deliver on the promise of real-time risk management?&lt;/h2&gt;
+&lt;p&gt;Turiae nonse odioriam aut qui que etus ea consecte sumquo eaquiae. Ut acimpero totat ellestio doloren ihicipsumeni dolum eosam qui sus entio exeribus apistrum sa iditati ntorrum est, officil laborum cusdandunt aut eos necaecto consento eaquam vitis consequis il ipsuntet.&lt;/p&gt;
+&lt;h3&gt;Estiam ipiduciet rerum laborum&lt;/h3&gt;
+&lt;p&gt;Quatin prorro dessiminus etur soluptas int facipsundae pla quis quisit, qui totatur, qui rempostion eume ipis acienes aut lignat pores expe non con exces magnam et minisimo et as exero bea coriore rnamus estiasp erchill aceptas ende maxime voles sitiunt mo dis doloraes enectumentis quatque vollabo. Odigenisquam et ea nos arum ulpariam et velliatiis maio tem idis non re conserum non nempel illent adit quam dolut odit aut optatur, sedicimus dolori bla volum apicatur si accus dolo ea con nisqui ommodior solo volupta tiatur, tota nonsequiat.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;occus as et maximus modi odis dis eum ent aciant iscidest, corepudae vel eicid eum lante net quist ad ex explique autatur alique nos numquide volut dolum, quia volorrum nobist&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;Berem ationes sitesequam et&lt;/h4&gt;
+&lt;p&gt;occus as et maximus modi odis dis eum ent aciant iscidest, corepudae vel eicid eum lante net quist ad ex explique autatur alique nos numquide volut dolum, quia volorrum nobist, solestiur re nest la venduntia vent audandis illignim fuga. Dictore volesequas veligenis enecessita quam quis mi, con re vendis videro inciur?&lt;/p&gt;
+&lt;p&gt;&lt;a href="/share/page/site/test/about"&gt;This is what a link will look like&lt;/a&gt;. Ut fugiatis est, consectem eatur sus, sincias doluptaquia con re core latiorendis eritae modis ex eiciiste imolupta que venet harchicit volorem volor sequia assit am vel id quidit, od qui quas nonseque esendus est, unt od eum, id molor sus volupti sus seculpa et quatem estio verum atas quaerep ersperum rerum et derrum fuga. Lorem earchitatur?&lt;/p&gt;</body_html>
+	<createdDate>04/23/2013 01:36:16</createdDate>
+	<publishDate_dt>01/01/2014 05:00:00</publishDate_dt>
+</page>

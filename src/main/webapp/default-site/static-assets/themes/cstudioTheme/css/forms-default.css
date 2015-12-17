@@ -155,6 +155,10 @@
     width: 600px;
 }
 
+.cstudio-form-control-file-name-container input.cstudio-form-control-file-name{
+  width: 301px;
+}
+
 .cstudio-form-container {
     margin: 20px auto 0 auto;
     padding-bottom: 90px;
@@ -209,8 +213,10 @@
     display: block;
     float: left;
     height: 30px;
-    margin-right: 10px;
+  margin-right: 5px;
     width: 12px;
+  position: relative;
+  top: -7px;
 }
 
 .cstudio-form-section-widget-closed {
@@ -220,9 +226,11 @@
 .cstudio-form-section-indicator {
     background: url("../images/cstudio-accordion-section-alert-inactive.png") no-repeat scroll 0 50% transparent;
     display: block;
-    float: left;
+    float: right;
     height: 30px;
     width: 20px;
+  position: relative;
+  top: -7px;
  }
  
 .cstudio-form-section-invalid {
@@ -252,24 +260,27 @@
 		margin-left: 10px;
 }
 .cstudio-form-section-body {
-	background: scroll 0 0 #F0F0F0;
+	background: #fff;
 	padding-bottom: 20px;
 }
 
 .cstudio-form-controls-container {
-    background: url("../images/bg/bar_bg.gif") repeat-x scroll 0 0 #F0F0F0;
-    border-top: 1px solid #A1A1A1;
-    bottom: 0;
-    height: 30px;
+    background: #f8f8f8;
+    border-top: 1px solid #e7e7e7;
+  height: 50px;
+  bottom: 0;
     position: fixed;
     width: 100%;
-    z-index: 20;
+    z-index: 45;
+  padding: 10px 0 0;
 }
 
 .cstudio-form-controls-button-container {
-    margin-left: auto;
-    margin-right: auto;
-    width: 300px;
+    text-align: center;
+}
+
+.cstudio-form-controls-button-container input {
+  margin-right: 10px;
 }
 
 .cstudio-form-field-container {
@@ -286,6 +297,10 @@
     margin-right: 21px;
     text-align: right;
     width: 24%;
+}
+
+.cstudio-form-field-title.label {
+  color: #000;
 }
 
 .cstudio-form-field-description {
@@ -318,31 +333,43 @@
 #help-dialog {
 	display: block;
 	position: fixed;
-	color: white;
-	width: 50%;
+	color: black;
+	width: 32%;
 	top: 20%;
-	left: 50%;
+	left: 57%;
 	margin-left: -25%;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: none;
+    border: 1px solid #EEE;
+    z-index: 1036;
 }
 
 #help-dialog .dialog-title {
 	font-weight: bold;
-	font-size: 15px;
-    margin: 10px;
-	text-align: center;
+    font-size: 21px;
+    padding: 10px;
+	text-align: left;
+    border-bottom: 1px solid #DDD;
 }
 
 #help-dialog .dialog-body {
-    padding: 5px 15px;
+    padding: 30px 15px;
     height: auto;
     max-height: 300px;
     overflow-y: auto;
+    border-bottom: 1px solid #DDD;
 }
 
 #help-dialog .dialog-button-bar {
-	margin: 10px 10px 5px 0px;
+	margin: 20px 15px 20px 0px;
 	text-align: right;
 }
+
+#help-dialog .btn{
+    display: inline-block;
+}
+
 
 #help-dialog .dialog-button {
 	background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green-button.png");
@@ -400,6 +427,18 @@
 #help-dialog center          { text-align: center }
 #help-dialog :link, #help-dialog :visited { text-decoration: underline }
 #help-dialog :focus          { outline: thin dotted invert }
+
+.dialog-dialog-mask{
+    background-color: rgb(68, 68, 68) !important;
+    opacity: 0.5 !important;
+    z-index: 1031 !important;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
 /* -- End Help Dialog -- */
 
 
@@ -569,7 +608,7 @@
 
 .rte-image-prop-altlink-container {
     margin-left: 30px;
-    margin-top: 10px;
+    margin-top: 0;
     padding: 10px;
     width: 125px;
     float: left;
@@ -577,8 +616,8 @@
 
 .rte-image-prop-layout-container {
     margin-left: 30px;
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 15px;
+    padding: 7px 10px 10px;
     width: 125px;
     float: left;
 }
@@ -624,8 +663,11 @@
 .rte-image-prop-size-container {
    	float: left;
     padding: 10px;
-    width: 170px;
+    width: 184px;
     float: left;
+}
+.rte-image-prop-size-container tr{
+  padding: 5px 0;
 }
 .rte-image-prop-size-container .img-flow > td:first-child {
     vertical-align: middle;
@@ -635,9 +677,11 @@
 
 .rte-image-prop-size-input {
     border: 1px solid #CCCCCC;
-    width: 30px;
+    width: 36px;
     margin-left: 10px;
     margin-top: 10px;
+    padding: 6px 3px;
+    text-align: center;
 }
 
 .rte-image-prop-layout-image {
@@ -648,33 +692,36 @@
 
 .rte-image-prop-layout-input {
     border: 1px solid #CCCCCC;
-    width: 30px;
+    width: 36px;
+    padding: 6px 3px;
+    text-align: center;
 }
 
 .rte-image-prop-layout-leftm {
 	margin-right: 5px;
     position: relative;
-    top: -18px;
+    top: 0;
 }
 
 .rte-image-prop-layout-rightm {
 	margin-left: 5px;
     position: relative;
-    top: -18px;
+    top: 0;
 }
 
 .rte-image-prop-layout-topm {
     margin-bottom: 5px;
-    margin-left: 10px;
+    margin-left: 8px;
 }
 
 .rte-image-prop-layout-bottomm {
-   margin-left: 10px;
+   margin-left: 8px;
+   margin-top: 6px;
 }
 
 .rte-panel {
     color: #CCCCCC;
-    height: 150px;
+    height: 207px;
     position: fixed;
     top: 0;
     width: 100%;
@@ -716,17 +763,23 @@
 }
 
 .cstudio-form-control-asset-picker-zoom-button {
-	background: url("../images/magnify.png") no-repeat scroll 0 0;
-	top: -7px;
-	width: 21px;
-	margin-left: -39px;
-	position: relative;
-	cursor: pointer;
+    background: url("/studio/static-assets/themes/cstudioTheme/images/magnify.png") no-repeat scroll 0 0;
+    width: 21px;
+    cursor: pointer;
+    border: none;
+    position: absolute;
+    top: 0;
+    right: 16px;
+}
+
+.cstudio-form-control-asset-picker-zoom-button.video-zoom {
+    right: 17px;
 }
 
 .cstudio-form-control-asset-picker-download-button {
-	position: relative;
-	top: -3px;
+	position: absolute;
+	top: 0;
+    right: 0;
 }
 
 .cstudio-form-control-asset-picker-zoom-cancel-button {
@@ -742,6 +795,10 @@
 
 .cstudio-rteSkin span.mce_insertComponent {
 	background: url("../../../themes/cstudioTheme/images/icons/icon_strip_vertical.gif") no-repeat scroll 2px -980px !important;
+}
+
+.cstudio-rteSkin span.mce_insertStub {
+    background: url("../../../themes/cstudioTheme/images/icons/icon_strip_vertical.gif") no-repeat scroll 2px -521px !important;
 }
 
 .cstudio-rteSkin span.mce_csLink {
@@ -792,7 +849,7 @@
 }
 
 /* --- Controls --- */
-.cstudio-form-field-container .checkbox-group { display: inline-block; width: 600px; }
+.cstudio-form-field-container .checkbox-group { display: inline-block; width: 600px; margin: 2px 0 0 20px;}
 .checkbox-group > .checkbox { display:inline-block; width: 300px; }
 .checkbox-group > .checkbox input { cursor: pointer; vertical-align: text-top; }
 .checkbox-group > .checkbox span { display: inline-block; margin-left: 5px; }
@@ -800,15 +857,18 @@
 .checkbox-group > .select-all span { color: #888888; }
 
 .cstudio-form-field-container .date-time-container { display: inline-block; position: relative; }
-.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 94px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
+.date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 103px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
 .date-time-container > .date-link,
 .date-time-container > .clear-link { display: inline-block; margin-left: 6px; text-decoration: underline; }
 .date-time-container > .date-link:hover,
 .date-time-container > .clear-link:hover { text-decoration: none; }
 .date-time-container .time-container { display: inline-block; position: relative; margin-right: 3px; }
-.date-time-container .time-control { background-color: #FFFFFF; width: 92px; border: 1px solid #C5D6E2; color: #000000; margin: 0 2px 0 0; padding: 2px 3px; }
-.date-time-container .time-increment { background: url(../images/bg/up.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 9px; width: 15px; position: absolute; right: 3px; top: 1px; }
-.date-time-container .time-decrement { background: url(../images/bg/down.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 9px; width: 15px; position: absolute; right: 3px; bottom: 1px; }
+.date-time-container .time-control { background-color: #FFFFFF; width: 100px; border: 1px solid #C5D6E2; color: #000000; margin: 0 2px 0 0; padding: 2px 3px; }
+.date-time-container .time-increment { background: url(../images/bg/up.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 10.5px; width: 19px; position: absolute; right: 3px; top: 2px; background-size: 18px;}
+.date-time-container .time-decrement { background: url(../images/bg/down.gif) no-repeat left top; border: 0 none; cursor: pointer; height: 10.5px; width: 19px; position: absolute; right: 3px; bottom: 1px; background-size: 18px;}
 .date-time-container .warning { font-size: 11px; color: #D50; width: 100%; }
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
+input[disabled]{background-color: whitesmoke;}
+
+body.yui-skin-cstudioTheme.masked{overflow: hidden;}

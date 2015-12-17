@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.ActivityFeedMapper">
+    <resultMap id="ActivityFeedMap" type="org.craftercms.studio.api.v1.dal.ActivityFeed">
+        <id property="id" column="id"/>
+        <result property="modifiedDate" column="modified_date"/>
+        <result property="creationDate" column="creation_date"/>
+        <result property="summary" column="summary"/>
+        <result property="summaryFormat" column="summary_format"/>
+        <result property="contentId" column="content_id"/>
+        <result property="siteNetwork" column="site_network"/>
+        <result property="type" column="activity_type"/>
+        <result property="contentType" column="content_type"/>
+        <result property="userId" column="post_user_id"/>
+    </resultMap>
+
+    <cache/>
+
+    <select id="getDeletedActivity" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select *
+        from cstudio_activity
+        where site_network = #{siteNetwork}
+        and content_id = #{contentId}
+        and activity_type = #{activityType}
+        order by modified_date DESC
+    </select>
+
+
+    <select id="selectUserFeedEntries" databaseId="oracle" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from (
+            select *
+            from cstudio_activity
+            where post_user_id = #{userId}
+            and site_network = #{siteNetwork}
+            and summary_format = #{summaryFormat}
+            <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+            </if>
+            order by modified_date desc
+        )
+        where rownum between #{startPos} and (#{startPos} + #{feedSize})
+    </select>
+
+    <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap" databaseId="derby">
+        select *
+        from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+        </if>
+        order by modified_date desc
+        offset #{startPos} rows fetch next #{feedSize} rows only
+    </select>
+
+    <select id="selectUserFeedEntries" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+        </if>
+        and [id] in
+          (select top (#{feedSize}) [id] from cstudio_activity
+          where post_user_id = #{userId}
+          and site_network = #{siteNetwork}
+          and summary_format = #{summaryFormat}
+          <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+          </if>
+          and id not in
+            (select top (#{startPos}) [id]
+            from cstudio_activity
+            where post_user_id = #{userId}
+            and site_network = #{siteNetwork}
+            and summary_format = #{summaryFormat}
+            <if test="contentType != null and contentType != 'all' ">
+              and content_type = #{contentType}
+            </if>
+            order by modified_date desc)
+          order by modified_date desc)
+        order by modified_date desc
+    </select>
+
+    <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select *
+        from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+        </if>
+        order by modified_date desc limit #{startPos},#{feedSize}
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" databaseId="oracle" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from (
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+	      order by act.modified_date desc
+	    )
+	    where rownum between #{startPos} and (#{startPos} + #{feedSize});
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and act.[id] in
+          (select top (#{feedSize}) [id] from cstudio_activity
+          where post_user_id = #{userId}
+          and site_network = #{siteNetwork}
+          and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+          and id not in
+            (select top (#{startPos}) [id]
+            from cstudio_activity
+            where post_user_id = #{userId}
+            and site_network = #{siteNetwork}
+            and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+            order by modified_date desc)
+          order by modified_date desc)
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+      order by act.modified_date desc
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap"
+            databaseId="derby">
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        order by act.modified_date desc
+        offset #{startPos} rows fetch next #{feedSize} rows only
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        order by act.modified_date desc limit #{startPos},#{feedSize}
+    </select>
+
+    <select id="getCountUserContentFeedEntries" parameterType="java.util.Map" resultType="int">
+        select count(*)
+        from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and content_id = #{contentId}
+    </select>
+
+    <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
+        insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
+        modified_date, site_network,content_id,content_type)
+        values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
+        #{siteNetwork},#{contentId},#{contentType})
+    </insert>
+
+    <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
+        update cstudio_activity set activity_type=#{type},
+   	    summary=#{summary},
+   	    modified_date=#{modifiedDate},
+   	    content_type=#{contentType}
+   	    where content_id = #{contentId} and post_user_id=#{userId} and site_network=#{siteNetwork}
+    </update>
+
+    <update id="renameContent" parameterType="java.util.Map" flushCache="true">
+        update cstudio_activity
+        set content_id = #{newPath}
+        where site_network = #{site}
+        and content_id = #{oldPath}
+    </update>
+
+    <delete id="deleteActivitiesForSite" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM cstudio_activity
+        WHERE site_network = #{site}
+    </delete>
+</mapper>

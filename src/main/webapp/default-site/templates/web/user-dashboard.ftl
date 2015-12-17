@@ -5,12 +5,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable = no">
 
-    <title>Cloud.CrafterCMS.com</title>
+    <title>Crafter Studio</title>
 
-    <link rel="stylesheet" href="/studio/static-assets//styles/cloud-site-main.css">
-    <link rel="stylesheet" href="/studio/static-assets//styles/user-dashboard.css">
+    <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css">
+    <link rel="stylesheet" href="/studio/static-assets/styles/user-dashboard.css">
     <script src="/studio/static-assets//libs/modernizr/modernizr.js"></script>
 
+    <script>
+        CStudioAuthoring = {
+            cookieDomain: "${cookieDomain}"
+        }
+    </script>
 </head>
 <body>
 
@@ -271,10 +276,6 @@
         </table>
     </div>
 
-    {{#view App.UpgradeButtonView}}
-        Upgrade
-    {{/view}}
-
     <div class="reveal-modal" data-reveal data-iframe-revert>
         <iframe data-src="http://ur.goes.here"></iframe>
         <a class="close-reveal-modal">&times;</a>
@@ -381,55 +382,23 @@
 
 <div id="app"></div>
 
-<footer class="main-footer">
-    <div class="row links">
-        <div class="columns medium-3">
-            <h5>Products</h5>
-            <a href="http://craftersoftware.com/products/overview">Overview</a>
-            <a href="http://craftersoftware.com/products/crafter-studio">Crafter Studio</a>
-            <a href="http://craftersoftware.com/products/crafter-engine">Crafter Engine</a>
-            <a href="http://craftersoftware.com/products/crafter-profile">Crafter Profile</a>
-            <a href="http://craftersoftware.com/products/crafter-social">Crafter Social</a>
-        </div>
-        <div class="columns medium-3">
-            <h5>Services</h5>
-            <a href="http://craftersoftware.com/services/software-support">Software Support</a>
-            <a href="http://craftersoftware.com/services/training">Training</a>
-            <a href="http://craftersoftware.com/services/consulting">Consulting</a>
-        </div>
-        <div class="columns medium-3">
-            <h5>Resources</h5>
-            <a href="http://craftersoftware.com/resources/white-papers">White Papers</a>
-            <a href="http://craftersoftware.com/resources/case-studies">Case Studies</a>
-            <a href="http://craftersoftware.com/resources/e-books">E-Books</a>
-            <a href="/http://craftersoftware.comresources/webcasts">Webcasts</a>
-            <a href="http://blog.craftersoftware.com">Blog</a>
-            <a href="http://craftercms.org">CrafterCMS.org</a>
-        </div>
-        <div class="columns medium-3">
-            <h5>About</h5>
-            <a href="http://craftersoftware.com/about/company">Company Overview</a>
-            <a href="http://craftersoftware.com/about/customers">Our Customers</a>
-            <a href="http://craftersoftware.com/about/partners">Our Partners</a>
-            <a href="http://craftersoftware.com/about/awards">Awards</a>
-            <a href="/about/news">News</a>
-            <a href="http://craftersoftware.com/about/events">Events</a>
-            <a href="http://craftersoftware.com/about/team">Leadership Team</a>
-            <a href="http://craftersoftware.com/about/contact">Contact Us</a>
-        </div>
-    </div>
-    <div class="row">
-        <div class="columns small-12">
-            <div class="copyright left">
-                &copy; Crafter Software Corp. 2014 |
-                <a href="javascript:void(0);">Privacy Policy</a>
-            </div>
-            <a class="button radius tiny right" data-slide-to="1">top</a>
-        </div>
-    </div>
+<footer class="text-center">
+    &copy; CrafterCMS 2015
 </footer>
 
-<script src="/studio/static-assets//scripts/user-dashboard.js"></script>
+<!-- build:js static-assets/scripts/user-dashboard.js -->
+<!-- bower:js -->
+<script src="/studio/static-assets/libs/jquery/jquery.js"></script>
+<script src="/studio/static-assets/libs/jquery-cookie/jquery.cookie.js"></script>
+<script src="/studio/static-assets/libs/jquery.browser/dist/jquery.browser.js"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.js"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.topbar.js"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.reveal.js"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.equalizer.js"></script>
+<script src="/studio/static-assets/libs/handlebars/handlebars.js"></script>
+<script src="/studio/static-assets/libs/ember/ember.prod.js"></script>
+<script src="/studio/static-assets/scripts/user-dashboard.js"></script>
+<!-- endbuild -->
 
 </body>
 </html>

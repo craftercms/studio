@@ -114,45 +114,49 @@ CStudioSearch.determineSearchContextFromUrl = function() {
  * alfresco service for search purpose, as alfresco services need these info.  
  * It will also initialise the sort dropdown getting data from the filter pagelet
  */
-CStudioSearch.init = function(){
-	
-	// initialize seach context	
-	CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
+CStudioSearch.init = function() {
 
-	// initialize filter
-	CStudioSearch.initializeSearchFilter(); // moved to content-type-map-load
-	//CStudioSearch.loadContentTypeMap();
+	CStudioSearch.loadFiltersAndResultTemplates({
+		success: function() {
+			
+			// initialize seach context	
+			CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
 
-    var searchCallback = function() {
-		
-		CStudioSearch.updateSearchContextWithBaseOptions();
-		CStudioSearch.searchContext = CStudioSearch.augmentContextWithActiveFilter(CStudioSearch.searchContext);
-		CStudioSearch.searchContext.page = null;
-		
- 		CStudioAuthoring.Operations.openSearch(
- 			CStudioSearch.searchContext.contextName,
- 			CStudioSearch.searchContext, 
- 			CStudioSearch.searchContext.selectLimit, 
- 			CStudioSearch.searchContext.interactMode,
- 			false,
-			null,
-			CStudioSearch.searchContext.searchId);
-    };
+			// initialize filter
+			CStudioSearch.initializeSearchFilter(); // moved to content-type-map-load
+			//CStudioSearch.loadContentTypeMap();
 
-    var keywordTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-keyword-textbox");
-    var keywordEnterKeyListener = new YAHOO.util.KeyListener(keywordTextBox , { keys:13 }, searchCallback , "keydown"  ); 
-    keywordEnterKeyListener.enable();
-    
-    var paginationTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-item-per-page-textbox");    
-    var paginationEnterKeyListener = new YAHOO.util.KeyListener(paginationTextBox , { keys:13 }, searchCallback , "keydown"  ); 
-    paginationEnterKeyListener.enable();
-    paginationTextBox.onkeyup = function() {
-    	CStudioSearch.checkIfNumeric();
-	};
-	
-    YAHOO.util.Event.addListener("cstudio-wcm-search-button", "click", searchCallback);
-    YAHOO.util.Event.addListener("cstudio-wcm-search-sort-dropdown", "change", searchCallback);
+		    var searchCallback = function() {
+				
+				CStudioSearch.updateSearchContextWithBaseOptions();
+				CStudioSearch.searchContext = CStudioSearch.augmentContextWithActiveFilter(CStudioSearch.searchContext);
+				CStudioSearch.searchContext.page = null;
+				
+		 		CStudioAuthoring.Operations.openSearch(
+		 			CStudioSearch.searchContext.contextName,
+		 			CStudioSearch.searchContext, 
+		 			CStudioSearch.searchContext.selectLimit, 
+		 			CStudioSearch.searchContext.interactMode,
+		 			false,
+					null,
+					CStudioSearch.searchContext.searchId);
+		    };
 
+		    var keywordTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-keyword-textbox");
+		    var keywordEnterKeyListener = new YAHOO.util.KeyListener(keywordTextBox , { keys:13 }, searchCallback , "keydown"  ); 
+		    keywordEnterKeyListener.enable();
+		    
+		    var paginationTextBox = YAHOO.util.Dom.get("cstudio-wcm-search-item-per-page-textbox");    
+		    var paginationEnterKeyListener = new YAHOO.util.KeyListener(paginationTextBox , { keys:13 }, searchCallback , "keydown"  ); 
+		    paginationEnterKeyListener.enable();
+		    paginationTextBox.onkeyup = function() {
+		    	CStudioSearch.checkIfNumeric();
+			};
+			
+		    YAHOO.util.Event.addListener("cstudio-wcm-search-button", "click", searchCallback);
+		    YAHOO.util.Event.addListener("cstudio-wcm-search-sort-dropdown", "change", searchCallback);
+		}
+	});
 }
 
 CStudioSearch.checkIfNumeric = function() {
@@ -176,9 +180,9 @@ CStudioSearch.determineFilterRendererFromUrl = function() {
 	var paramContext = unescape(CStudioAuthoring.Utils.getQueryVariable(queryString, "context"));
 	var paramSearchId = unescape(CStudioAuthoring.Utils.getQueryVariable(queryString, "searchId"));
 
-	CStudioSearch.searchContext.contextName = paramContext;
+	CStudioSearch.searchContext.contextName = (paramContext=="") ? "default" :  paramContext;
 
-	var filterRenderer = CStudioSearch.filterRenderers[paramContext];
+	var filterRenderer = CStudioSearch.filterRenderers[CStudioSearch.searchContext.contextName];
 	
 	if(!filterRenderer) {
 		//CStudioSearch.searchContext.contextName = "default";
@@ -193,7 +197,7 @@ CStudioSearch.determineFilterRendererFromUrl = function() {
 
         var moduleConfig = { };
 
-		var modulePath = "/proxy/alfresco/cstudio/services/content/content-at-path" +
+		var modulePath = "/api/1/services/api/1/content/get-content-at-path.bin" +
             "?path=/cstudio/config/sites/" + CStudioAuthoringContext.site + "/search/filters/" + paramContext + ".js";
             
 		CStudioAuthoring.Module.requireModule(
@@ -233,7 +237,7 @@ CStudioSearch.initializeSearchFilter = function(filter) {
 		}
 	}
 	else {
-		sortBySelectEl.options[0] = new Option("Relevance", "relevance");
+		sortBySelectEl.options[0] = new Option(CMgs.format(langBundle, "sortRelevance"), "relevance");
 	}
 	
 	// render filter body 
@@ -341,7 +345,7 @@ CStudioSearch.renderCommonResultWrapper = function(contentTO, resultBody) {
 
 	return "<div class='cstudio-search-result'>" +
 				"<div id='result-select-" + contentTO.resultId + "' class='cstudio-search-select-container'></div>" +
-				"<div id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 32px;'></div>" +
+				"<div class='result-status' id='result-status" + contentTO.resultId + "' style='float: left !important; margin-left: 15px;'></div>" +
 				"<div style='margin-top: -16px'>"+
 					"<div class='cstudio-search-result-body'>" +
 						resultBody +
@@ -359,9 +363,9 @@ CStudioSearch.emptyResultMessage = function(searchContext, searchFailed, failCau
 	var msg = "<br />";
 	
 	if (searchFailed) {
-		msg += "Search Failed.  Failure reason "+ failCause +".  You may try adjusting your filters in less Search space or contact Administrator";
+		msg += CMgs.format(langBundle, "errSearchFailed", failCause);
 	} else {
-		msg += "<p align='center'><strong>Your search returned no results.</strong></p>";
+		msg += "<p align='center'><strong>"+CMgs.format(langBundle, "errNoResults")+"</strong></p>";
 	}
 	return msg;
 }
@@ -392,7 +396,7 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		var endItem   = (parseInt(startItem) + parseInt(searchContext.itemsPerPage) -1);
 		if( endItem > resultCount) 
 			endItem  = resultCount;  
-		resultHeaderCount.innerHTML = "(Showing "+startItem+"-"+endItem+" of "+resultCount+")";
+		resultHeaderCount.innerHTML = CMgs.format(langBundle, "showing", startItem, endItem, resultCount);
 	}
 	
 	// construct previous control
@@ -400,12 +404,12 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 
 	if(previousDisabled) { // this can be done by disbaling the link+ccs right?
 		previousEl = document.createElement("span");
-  	    previousEl.innerHTML = "&laquo; Previous &nbsp;";
+  	    previousEl.innerHTML = "&laquo; "+CMgs.format(langBundle, "pagePrevious")+" &nbsp;";
 		YDom.addClass(previousEl, "disabled");
 	}
 	else {
 	    previousEl = document.createElement("a");
-		previousEl.innerHTML = "&laquo; Previous &nbsp;";
+		previousEl.innerHTML = "&laquo; "+CMgs.format(langBundle, "pagePrevious")+" &nbsp;";
 		previousEl.className = "cstudio-wcm-search-pagination-number";
 
 		previousEl.onclick = function() {
@@ -427,12 +431,12 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		
 	if(nextDisabled) { 
 		nextEl = document.createElement("span");
-		nextEl.innerHTML = "&nbsp; Next &raquo;";
+		nextEl.innerHTML = "&nbsp; "+CMgs.format(langBundle, "pageNext")+" &raquo;";
 		YDom.addClass(nextEl, "disabled");
 	}
 	else {
 		nextEl = document.createElement("a");
-		nextEl.innerHTML = "Next &raquo;";
+		nextEl.innerHTML = "&nbsp;&nbsp;&nbsp;" +CMgs.format(langBundle, "pageNext")+" &raquo;";
 		nextEl.className = "cstudio-wcm-search-pagination-number";
 
 		nextEl.onclick = function() {
@@ -464,7 +468,7 @@ CStudioSearch.renderPagination = function(resultCount, pageCount, searchContext,
 		
 		if(parseInt(i+1) == parseInt(CStudioSearch.searchContext.currentPage)) {
 			var pageEl = document.createElement("span");
-			pageEl.innerHTML = "&nbsp;" + (i+1) + "&nbsp;&nbsp;&nbsp;";
+			pageEl.innerHTML = "&nbsp;" + (i+1);
 			pageEl.pageNumber = i+1;
 			pageEl.className = "disabled";
 		} else {
@@ -550,7 +554,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			    paginationTextBox.disabled = "";
 			    sortDropDown.disabled = "";
 			    
-				CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_OPEN);
+				CStudioSearch.toggleResultDetail(CStudioSearch.DETAIL_CLOSED);
 				
 				//var resultHeaderInProgress = YDom.get("cstudio-wcm-search-result-in-progress");  
 				//resultHeaderInProgress.innerHTML = "";
@@ -573,13 +577,18 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			        	}
 			        	return false;
 			        }
+                    var formsLangBundle = CMgs.getBundle("search", CStudioAuthoringContext.lang);
 					
 					/* render results */
 			        for(var i=0; i<results.objectList.length; i++) {
 			   			var resultsHTML = "";
 			        	var contentItem = results.objectList[i],
                             _item = contentItem.item;
-			        	contentItem.resultId = CStudioSearch.pathToId(_item.uri);
+
+                        _item.uri = _item.localId;
+						_item.form = _item.contentType;
+
+			        	contentItem.resultId = CStudioSearch.pathToId(_item.localId);
 			        	
 			        	/********************************************************************************
 			        	 * handling duplicate item issue due to indexing.
@@ -614,6 +623,8 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			        	}
 				      	
 				      	resultEl.innerHTML = resultsHTML;
+                        var elements = document.querySelectorAll('[data-translation]');
+                        CStudioAuthoring.Operations.translateContent(langBundle);
 	
 						var resultStatusIconStyle = CStudioAuthoring.Utils.getIconFWClasses(_item),
                             resultStatusEl = YDom.get("result-status"+contentItem.resultId),
@@ -626,7 +637,9 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				      		titleEl.style.color = "#0176B1";
 				      	}
 
-                        YDom.addClass(resultStatusEl, resultStatusIconStyle);
+                        //Removing it for the release 2.5.0
+                        //YDom.addClass(resultStatusEl, resultStatusIconStyle);
+                        resultStatusEl.style.padding = "1px";
 
 					//Add Tool tip information for item
 					var searReultItem = resultStatusEl.nextSibling;
@@ -634,6 +647,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 						var itemTitle = CStudioAuthoring.Utils.getTooltipContent(contentItem.item);
 						var oSpan = document.createElement("div");
 						oSpan.setAttribute("id", "search-item-tt-" + contentItem.resultId);
+                        oSpan.setAttribute("class","cstudio-search-result-cont");
 						oSpan.setAttribute("title", itemTitle);
 						searReultItem.parentNode.insertBefore(oSpan, searReultItem);
 						oSpan.appendChild(resultStatusEl);
@@ -679,18 +693,44 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				      			if(this.checked) {
 				      				if(searchContext.selectLimit != -1){
 				      					if(CStudioAuthoring.SelectedContent.getSelectedContentCount() < searchContext.selectLimit) {
-							      			CStudioAuthoring.SelectedContent.selectContent(this.contentTO.item);
+							      			
+							      			var selectCb = {
+							      				success : function(contentTO) {
+													CStudioAuthoring.SelectedContent.selectContent(contentTO.item);
+							      				},
+							      				failure: function() {
+							      				}
+							      			};
+
+                    						CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);
 				      					}
 				      					else {
 				      						this.checked = false;
 				      					}
 				      				}
 				      				else {
-						      			CStudioAuthoring.SelectedContent.selectContent(this.contentTO.item);
-				      				}
+										var selectCb = {
+						      				success : function(contentTO) {
+												CStudioAuthoring.SelectedContent.selectContent(contentTO.item);
+						      				},
+						      				failure: function() {
+						      				}
+						      			};
+
+                						CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);				      				
+                					}
 				      			}
 				      			else {
-				      				CStudioAuthoring.SelectedContent.unselectContent(this.contentTO.item);
+				      				//CStudioAuthoring.SelectedContent.unselectContent(this.contentTO.item);
+                                    var selectCb = {
+                                        success : function(contentTO) {
+                                            CStudioAuthoring.SelectedContent.unselectContent(contentTO.item);
+                                        },
+                                        failure: function() {
+                                        }
+                                    };
+
+                                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, this.contentTO.item.uri, selectCb, false, false);
 				      			}
 				      			//enable disable Add Item button based on selection
 				      			if(document.getElementById("submission-controls")) {
@@ -791,7 +831,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 			    sortDropDown.disabled = "";
 
 				//	var searchFailedFlag = ,"searchFailed":false,"failCause":"",		        
-			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>Unable to Retrieve Search Result. Please Try again.</strong><br><br><br><i>If this is consistent, please contact Crafter Studio Administrator.</i></p>";//+"<br><br><p align='center'>For Developers only, will be removed later.  <br></p><br><br><br>" + o.responseText + "<br>";
+			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>"+CMgs.format(langBundle, "errSearchFailed", "")+"</strong></i></p>";
 			},
 			        
 			searchContext: searchContext		
@@ -817,11 +857,11 @@ CStudioSearch.toggleResultDetail = function(state){
 	}
 	if(state == CStudioSearch.DETAIL_OPEN) {
 		YAHOO.util.Dom.removeClass(elements, cssClass);		
-		link.set("innerHTML", "Hide Descriptions");
+		link.set("innerHTML", CMgs.format(langBundle, "showDescriptions"));
 	}
-	else if(state == CStudioSearch.DETAIL_CLOSE) {
+	else if(state == CStudioSearch.DETAIL_CLOSED) {
 		YAHOO.util.Dom.addClass(elements, cssClass);
-		link.set("innerHTML", "Show Descriptions");		
+		link.set("innerHTML", CMgs.format(langBundle, "hideDescriptions"));		
 	}
 	else {
 		
@@ -1065,11 +1105,133 @@ CStudioSearch.loadContentTypeMap = function() {
 	}
 }
 
+CStudioSearch.loadFiltersAndResultTemplates = function(callback) {
+	var triggerOnCompleteCb = {
+		onCompleteCb: callback,
+		templatesFlag: false,
+		filtersFlag: false,
+
+		templatesComplete: function() {
+			this.templatesFlag = true;
+			if(this.templatesFlag == true && this.filtersFlag == true) {
+				this.onCompleteCb.success();
+			}
+		},
+
+		filtersComplete: function() {
+			this.filtersFlag = true;
+			if(this.templatesFlag == true && this.filtersFlag == true) {
+				this.onCompleteCb.success();
+			}
+		}
+	};
+
+	CStudioAuthoring.Service.lookupConfigurtion(
+		CStudioAuthoringContext.site, 
+		"/search/config.xml", {
+			success: function(config) {
+				if(config){
+					if(config.filters && config.filters.filter) {
+						this.context.loadFilters(config.filters.filter, triggerOnCompleteCb);
+					}
+					else {
+						this.context.loadFilters([], triggerOnCompleteCb);
+					}
+
+					if(config.resultTemplates && config.resultTemplates.template) {
+						this.context.loadResultTemplates(config.resultTemplates.template, triggerOnCompleteCb);
+					}
+					else {
+						this.context.loadResultTemplates([], triggerOnCompleteCb);
+					}
+				}
+				else {
+					triggerOnCompleteCb.filtersComplete();
+					triggerOnCompleteCb.templatesComplete();
+
+				}
+			},
+			
+			failure: function() {
+			},
+			
+			context: this
+	});		
+}
+
+CStudioSearch.loadFilters = function(filters, callback) {
+	var filterWaitList = [];
+	for(var i=0; i<filters.length; i++) {
+		filterWaitList[i] = "search-filter-"+filters[i].name;
+	}
+
+	var cb = {
+		moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
+			var i = this.filterWaitList.indexOf(moduleName);
+			if(i != -1) {
+				this.filterWaitList.splice(i, 1);
+			}
+
+			if(this.filterWaitList.length == 0) {
+				this.callback.filtersComplete();
+			}
+		},
+
+		filterWaitList: filterWaitList,
+		callback: callback,
+		context: this
+	};
+
+	for(var j=0; j<filters.length; j++) {
+	CStudioAuthoring.Module.requireModule(
+		"search-filter-"+filters[j].name,
+		'/static-assets/components/cstudio-search/filters/' + filters[j].name + ".js",
+		{ config: filters[j] },
+		cb);
+
+	}
+};
+
+
+CStudioSearch.loadResultTemplates = function(templates, callback) {
+	var templateWaitList = [];
+	for(var i=0; i<templates.length; i++) {
+		templateWaitList[i] = "search-result-"+templates[i].name;
+	}
+
+	var cb = {
+		moduleLoaded: function(moduleName, moduleClass, moduleConfig) {
+			var i = this.templateWaitList.indexOf(moduleName);
+			if(i != -1) {
+				this.templateWaitList.splice(i, 1);
+			}
+
+			if(this.templateWaitList.length == 0) {
+				this.callback.templatesComplete();
+			}
+		},
+
+		templateWaitList: templateWaitList,
+		callback: callback,
+		context: this
+	};
+
+	for(var j=0; j<templates.length; j++) {
+	CStudioAuthoring.Module.requireModule(
+		"search-result-"+templates[j].name,
+		'/static-assets/components/cstudio-search/results/' + templates[j].name + ".js",
+		{ config: templates[j] },
+		cb);
+
+	}
+};
+
+
 CStudioSearch.getContentTypeName = function(ctype) {
 	if (CStudioAuthoring.Utils.isEmpty(ctype)) 
-		return "Unknown Type";
+		return '<span data-translation="resultsUnknownType">Unknown Type</span>';
 	var ctypeName = CStudioSearch.ContentTypeConfigMap[ctype]; 
-	return (CStudioAuthoring.Utils.isEmpty(ctypeName)) ? ("["+ctype+"] Template") : ctypeName;
+	return (CStudioAuthoring.Utils.isEmpty(ctypeName)) ? ("["+ctype+"] <span data-translation='resultsTemplate'>Template</span>") : ctypeName;
 }
 
 /**
@@ -1111,10 +1273,10 @@ CStudioSearch.ContentTypeConfigMap = [];
 CStudioSearch.toggleDescriptionLink =  function(){	
 	var link = YDom.get('cstudio-wcm-search-description-toggle-link');
 	if(link){
-		if(link.innerHTML == 'Show Descriptions'){		
-			link.innerHTML =  "Hide Descriptions";			
+		if(link.innerHTML == CMgs.format(langBundle, "hideDescriptions")){
+			link.innerHTML =  CMgs.format(langBundle, "showDescriptions");
 		}else{		
-			link.innerHTML = "Show Descriptions";			
+			link.innerHTML = CMgs.format(langBundle, "hideDescriptions");
 		}	
 	}	
 }

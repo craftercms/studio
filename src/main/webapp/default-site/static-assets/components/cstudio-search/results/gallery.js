@@ -4,15 +4,11 @@ CStudioSearch.ResultRenderer.Gallery = {
 			var path = contentTO.item.uri;
 			
 			// TODO: Fix Styles for maginify icon if image width > 300
-			mediaTag = "<img src='"+CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site="+ 
-				CStudioAuthoringContext.site+"&path="+path +
-				"&edit=false&createFolders=false' alt='"+contentTO.item.internalName+"' "+
+			mediaTag = "<img src='"+CStudioAuthoringContext.previewAppBaseUri+path+"'alt='"+contentTO.item.internalName+"' "+
 				"class='cstudio-search-banner-image' onload='CStudioSearch.ResultRenderer.Gallery.hideMagnifyIcon(this);'/> " +
 				"<img src='"+CStudioAuthoringContext.baseUri+"/themes/cstudioTheme/images/magnify.jpg' style='margin-left:-20px;'" +
 				"onclick ='CStudioSearch.magnifyBannerImage(\"" +
-				CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site=" +
-				CStudioAuthoringContext.site+"&path="+path +
-				"&edit=false&createFolders=false" +
+				CStudioAuthoringContext.previewAppBaseUri+path +
 				"\");' />";
 
 			var url = contentTO.item.uri;
@@ -75,3 +71,4 @@ CStudioSearch.resultRenderers["gif"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["png"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["ico"] = CStudioSearch.ResultRenderer.Gallery;
 CStudioSearch.resultRenderers["jpeg"] = CStudioSearch.ResultRenderer.Gallery;
+CStudioAuthoring.Module.moduleLoaded("search-result-gallery", CStudioSearch.resultRenderers["jpg"]);

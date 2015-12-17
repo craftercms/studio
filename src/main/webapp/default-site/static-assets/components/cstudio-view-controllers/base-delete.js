@@ -32,8 +32,8 @@
             var _this = this,
                 loadFn;
             loadFn = function() {
-                _this.getComponent("div.dependencies-listing").innerHTML =
-                        '<tr><td><i>Loading, please wait&hellip;</i></td></tr></table>';
+                _this.getComponent("table.item-listing tbody").innerHTML =
+                        '<tr><td colspan="3"><i>Loading, please wait&hellip;</i></td></tr>';
                 CStudioAuthoring.Service.lookupContentDependencies(
                     CStudioAuthoringContext.site,
                     selection, {
@@ -50,8 +50,8 @@
                         }
                     },
                     failure: function(){
-                        _this.getComponent("div.dependencies-listing").innerHTML =
-                                '<tr><td>Unable to load dependencies. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr></table>';
+                        _this.getComponent("table.item-listing tbody").innerHTML =
+                                '<tr><td colspan="3">Unable to load dependencies. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr> ';
                         Event.addListener(_this.getComponent("a.retry-dependency-load"), "click", loadFn);
                     }
                 });
@@ -60,7 +60,7 @@
         },
         checkSelectedItems: function(selection) {
             eachfn(selection, function(i, item){
-                var uri = item.browserUri,
+                var uri = item.browserUri || item.uri,
                     el = Dom.get(uri);
                 el.checked = true;
                 eachfn(this.getComponents('input[parentid="'+uri+'"]'), function(i, e){
@@ -152,24 +152,12 @@
                     datefield = this.getComponent("input.date-picker"),
                     timefield = this.getComponent("input.time-picker");
                 datefield.value = [oDate.getMonth()+1, oDate.getDate(), oDate.getFullYear()].join("/");
-                /*
-                if (timefield.value == "Time...") {
-                    var hours = oDate.getHours(),
-                        mins = oDate.getMinutes(),
-                        secs = oDate.getSeconds();
-                    timefield.value = [
-                        !hours ? "12" : hours > 12 ? hours : "0" + (hours - 12),
-                        mins.length == 2 ? mins : "0" + mins,
-                        secs.length == 2 ? secs : "0" + secs
-                    ].join(":") + " a.m.";
-                }
-                */
                 overlay.hide();
                 Event.removeListener(document, "click", fn);
             }, null, this);
         },
         initCheckRules: function() {
-            Event.addListener(this.getComponent("div.dependencies-listing"), "click", function(e){
+            Event.addListener(this.getComponent("table.item-listing"), "click", function(e){
                 var el = (e.target),
                     tag = el.tagName.toLowerCase();
                 if (tag == "input") {
@@ -220,10 +208,8 @@
             });
             if (someChecked) {
                 this.enableActions(this.actions[0]);
-                //this.getComponent(".items-feedback").style.display = "none";
             } else {
                 this.disableActions(this.actions[0]);
-                //this.getComponent(".items-feedback").style.display = "";
             }
         },
 

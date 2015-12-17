@@ -18,11 +18,12 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 	/**
 	 * show dialog
 	 */
-	showDialog: function(cb, config) {	
-		this.config = config;
+	showDialog: function(cb, path) {
+		//this.config = config;
 		this._self = this;
 		this.cb = cb;
-		this.dialog = this.createDialog();
+        this.path = path;
+        this.dialog = this.createDialog(path);
 		this.dialog.show();
 		document.getElementById("cstudio-wcm-popup-div_h").style.display = "none";
 		
@@ -38,7 +39,7 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
     /**
 	 * create dialog
 	 */
-	createDialog: function() {
+	createDialog: function(path) {
 		YDom.removeClass("cstudio-wcm-popup-div", "yui-pe-content");
 
 		var newdiv = YDom.get("cstudio-wcm-popup-div");
@@ -53,25 +54,30 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Create Template</div> ' +
-                           '<div>'+
-                             '<div>Provide a filename for the template</div>'+
-							 '<input id="templateName" size="50"><br/>' +
-                           '<div>' +
-
+                           '<div class="contentTypeOuter">'+
+                               '<div>'+
+                                 '<div class="newTempText">Provide a filename for the template</div>'+
+                                 '<input type="text" id="templateName" size="50"><br/>' +
+                               '</div>' +
+                           '</div> ' +
 						   '<div class="contentTypePopupBtn"> ' +
-						   '<input type="button" class="cstudio-button ok" id="createButton" value="Create" />' +
-                           '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
+						       '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="Create" />' +
+                               '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="Cancel"/>' +
                            '</div>' +
 
                            '</div> ' +
                            '</div>';
 		
 		document.getElementById("upload-popup-inner").style.width = "350px";
-		document.getElementById("upload-popup-inner").style.height = "150px";
+		document.getElementById("upload-popup-inner").style.height = "250px";
 
 		 var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
-								  height : "160px",	
+								  height : "250px",
+                                  effect:{
+                                     effect: YAHOO.widget.ContainerEffect.FADE,
+                                     duration: 0.25
+                                  },
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,
@@ -85,9 +91,11 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		
 		var eventParams = {
 			self: this,
-			nameEl: document.getElementById('templateName')
+			nameEl: document.getElementById('templateName'),
+            path: path
 		};
 		
+		YAHOO.util.Event.addListener("templateName", "keypress", this.limitInput, eventParams);
 
 		YAHOO.util.Event.addListener("createButton", "click", this.createClick, eventParams);
 
@@ -97,30 +105,46 @@ CStudioAuthoring.Dialogs.NewTemplate = CStudioAuthoring.Dialogs.NewTemplate || {
 		return dialog;
 	},
 
+	limitInput: function(event, params) {
+		var value = params.nameEl.value;
+		value = value.replace(" ", "-");
+		value = value.replace(/[^a-zA-Z0-9-\._]/g, '')
+		params.nameEl.value = value;
+	},
+
 	/** 
 	 * create clicked 
 	 */
 	createClick: function(event, params) {
 		var _self = CStudioAuthoring.Dialogs.NewTemplate;
 		var name = params.nameEl.value;
-		var templatePath = "/templates/web/"+name;
+		var templatePath
+        params.path ? templatePath = params.path : templatePath = "/templates/web";
 		
-		if(templatePath.indexOf(".ftl") == -1) {
-			templatePath += ".ftl";
+		if(name.indexOf(".ftl") == -1) {
+			name = name + ".ftl";
 		}
-		
-		var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-		+ "?site=" + CStudioAuthoringContext.site 
-		+ "&path=" + templatePath;
+
+	     var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+	            "?site=" + CStudioAuthoringContext.site +
+	            "&phase=onSave" +
+	            "&path=" + templatePath +
+	            "&fileName=" + name +
+	            "&user=" + CStudioAuthoringContext.user +
+	            "&unlock=true";
 
 		var saveSvcCb = {
 			success: function() {
 				CStudioAuthoring.Dialogs.NewTemplate.closeDialog();
 				
 				CStudioAuthoring.Operations.openTemplateEditor
-					(templatePath, "default", { 
+					(templatePath+"/"+name, "default", { 
 						success: function() { 
-							_self.cb.success(templatePath); 
+							if(_self.cb.success){
+                                _self.cb.success(templatePath+"/"+name);
+                            }else{
+                                _self.cb(templatePath+"/"+name);
+                            }
 						}, 
 						failure: function() {
 						}

@@ -9,9 +9,9 @@
     CStudioAuthoring.register("TemplateHolder.Delete", {
         ROOT_ROW: [
             '<tr>',
-                '<td>',
+                '<td class="medium">',
                     '<div class="item">',
-                        '<input class="item-check" id="{id}" type="checkbox" json="{data}" {checked} scheduleddate="{scheduledDate}" /> ',
+                        '<input class="item-check" id="{id}" type="checkbox" json="{data}" uri="{uri}" {checked} scheduleddate="{scheduledDate}" /> ',
                         '<label for="{id}" class="{class}" title="{internalName}">{displayName}</label>',
                     '</div>',
                 '</td>',
@@ -20,7 +20,7 @@
                         '{displayURL}',
                     '</div>',
                 '</td>',
-                '<td>',
+                '<td class="small">',
                     '<div class="item-sch">',
                         '<a class="when" href="javascript:" checkid="{id}">{scheduledDateText}</a>',
                     '</div>',
@@ -29,9 +29,9 @@
         ].join(""),
         SUB_ROW: [
             '<tr>',
-                '<td>',
+                '<td class="large">',
                     '<div class="item sub-item">',
-                        '<input class="item-check" id="{id}" type="checkbox" json="{data}" parentid="{parent}" scheduleddate="{scheduledDate}" {checked} /> ',
+                        '<input class="item-check" id="{id}" type="checkbox" json="{data}" parentid="{parent}" uri="{uri}" scheduleddate="{scheduledDate}" {checked} /> ',
                         '<label for="{id}" class="{class}" title="{internalName}">{displayName}</label>',
                     '</div>',
                 '</td>',
@@ -66,7 +66,7 @@
             '<h1 class="view-title">Submittal Complete</h1>',
             '<div class="msg-area" style="height:100px;margin-top:15px;color:#000;">{msg}</div>',
             '<div class="action-wrapper acnSubmitButtons">',
-                '<input type="button" value="OK" style="width:80px;" class="action-complete-close1" onClick="CStudioAuthoring.Operations.pageReload(\'deleteSchedule\');" />',
+                '<input type="button" value="OK" style="width:80px;" class="action-complete-close1 btn btn-primary" />',
             '</div>'
         ].join("")
     });

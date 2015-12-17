@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/product</content-type>
+	<content-type>/page/product</content-type>
+	<display-template>/templates/web/product.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>e2c7</objectGroupId>
+	<objectId>e2c7003f-4c44-01db-825e-1503254d7e2f</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>details</folder-name>
+	<internal-name>Details</internal-name>
+	<headerTitle>Womens Jeans</headerTitle>
+	<createdDate>04/22/2013 01:00:56</createdDate>
+	<lastModifiedDate>04/22/2013 01:00:56</lastModifiedDate>
+</page>

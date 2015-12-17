@@ -1,4 +1,7 @@
 var YDom = YAHOO.util.Dom;
+// YConnect.setDefaultPostHeader(false);
+//                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
+//                YConnect.
 var YEvent = YAHOO.util.Event;
 
 CStudioAuthoring.Dialogs = CStudioAuthoring.Dialogs || {};
@@ -62,30 +65,36 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
                            '<div class="contentTypePopupHeader">Upload</div> ' +
-                           '<div>Please select a file to upload</div> ' +
 						   '<div><form id="asset_upload_form">' +
-						   '<div><table><tr><td><input type="hidden" name="site" value="' + site + '"/></td>' +
-						   '<td><input type="hidden" name="path" value="' + path + '"/></td></tr>' +
-						   '<tr><td>File:</td><td><input type="file" name="file" id="uploadFileNameId"/></td></tr>' +
-//						   '<tr><td>Title:</td><td><input type="text" name="title" /></td></tr>' +
-//						   '<tr><td>Description:</td><td><input type="text" name="desc" /></td></tr>' +
-						   '</table></div>' +
-						   '<div class="contentTypePopupBtn"> ' +
-						        '<input type="button" class="cstudio-xform-button ok" id="uploadButton" value="Upload" />' +
-                                '<input type="button" class="cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
-						   '</form></div>' +
+                                '<div class="contentTypeOuter">'+
+                                    '<div class="formDesc">Please select a file to upload</div> ' +
+                                    '<div><table><tr><td><input type="hidden" name="site" value="' + site + '"/></td>' +
+						            '<td><input type="hidden" name="path" value="' + path + '"/></td></tr>' +
+						            '<tr><td>File:</td><td><input type="file" name="file" id="uploadFileNameId"/></td></tr>' +
+//						            '<tr><td>Title:</td><td><input type="text" name="title" /></td></tr>' +
+//						            '<tr><td>Description:</td><td><input type="text" name="desc" /></td></tr>' +
+						            '</table></div>' +
+                                '</div>' +
+						        '<div class="contentTypePopupBtn"> ' +
+						            '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="uploadButton" value="Upload" disabled />' +
+                                    '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel"  /></div>' +
+						        '</form></div>' +
 						   '<div><div  style="visibility:hidden; margin-bottom:1.5em;" id="indicator">Uploading...</div>' + 
                            '</div> ' +
                            '</div>';
 		
 		document.getElementById("upload-popup-inner").style.width = "350px";
-		document.getElementById("upload-popup-inner").style.height = "165px";
+		document.getElementById("upload-popup-inner").style.height = "180px";
 
 		 // Instantiate the Dialog
 		upload_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
-								  height : "175px",	
-								  fixedcenter : true,
+								  height : "242px",
+                                  effect:{
+                                      effect: YAHOO.widget.ContainerEffect.FADE,
+                                      duration: 0.25
+                                  },
+                                  fixedcenter : true,
 								  visible : false,
 								  modal:true,
 								  close:false,
@@ -95,11 +104,14 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 								
 		// Render the Dialog
 		upload_dialog.render();
+
+        var filenameInput = document.getElementById("uploadFileNameId");
+        YAHOO.util.Event.addListener(filenameInput, "change", this.uploadFileEvent);
 		
 		var eventParams = {
 			self: this
 		};
-		
+
 		if (isUploadOverwrite == "upload") {
 			YAHOO.util.Event.addListener("uploadButton", "click", this.uploadPopupSubmit, eventParams);
 		} else {
@@ -111,6 +123,19 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		
 		return upload_dialog;
 	},
+
+    /**
+     * event fired when the uploadFileNameId is changed
+     */
+    uploadFileEvent: function(event) {
+        var uploadButton = document.getElementById("uploadButton");
+        if(this.value != ""){
+            uploadButton.disabled = false;
+        }else{
+            uploadButton.disabled = true;
+        }
+
+    },
 		
 	/**
 	 * event fired when the ok is pressed - checks if the file already exists and has edit permission or not 
@@ -118,8 +143,13 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 	 */
 	uploadPopupSubmit: function(event, args) {
 		var path = args.self.path;
-		
+		var filename = document.getElementById("uploadFileNameId").value.replace('C:\\fakepath\\',"");
+		var basePath = path;
+			path=basePath+filename;
+
 		var serviceCallback = {
+			path: path,
+			basePath: basePath,
 			exists: function(jsonResponse) {
 				//Get user permissions to get read write operations
 				
@@ -137,7 +167,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 					failure: function() { }
 	        	};
 				
-				CStudioAuthoring.Clipboard.getPermissions(path, checkPermissionsCb);
+				CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, this.basePath, checkPermissionsCb);
 			},
 			failure: function(response) {		
 				CStudioAuthoring.Dialogs.UploadDialog.uploadFile(args);
@@ -145,28 +175,28 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 		};
 
 		YAHOO.util.Dom.setStyle('indicator', 'visibility', 'visible');
-		CStudioAuthoring.Service.contentExists(args.self.path, serviceCallback);
+		CStudioAuthoring.Service.contentExists(path, serviceCallback);
 	},
 	
    /**
 	 * upload file when upload pressed
 	 */
 	uploadFile: function(args) {
-		var serviceUri = CStudioAuthoring.Service.createServiceUri(args.self.serviceUri);
+		var serviceUri = CStudioAuthoring.Service.createServiceUri("/asset-upload");
 
 		var uploadHandler = {
 			upload: function(o) {
-				//console.log(o.responseText);
+				//console.log('responseText '+o.responseText);
 				YAHOO.util.Dom.setStyle('indicator', 'visibility', 'hidden');
 				var r = eval('(' + o.responseText + ')');
-				if(r.hasError){
+				if(r && r.hasError){
 					var errorString = '';
 					for(var i=0; i < r.errors.length; i++){
 						errorString += r.errors[i];
 					}
 					alert(errorString);
 				}else{
-					CStudioAuthoring.Dialogs.UploadDialog.closeDialog();				
+					CStudioAuthoring.Dialogs.UploadDialog.closeDialog();
 					args.self.callback.success(r);
 				}
 			}
@@ -191,12 +221,8 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 						//console.log(o.responseText);
 						YAHOO.util.Dom.setStyle('indicator', 'visibility', 'hidden');
 						var r = eval('(' + o.responseText + ')');
-						if(r.hasError){
-							var errorString = '';
-							for(var i=0; i < r.errors.length; i++){
-								errorString += r.errors[i];
-							}
-							alert(errorString);
+						if(r.success){
+							alert(r.message);
 						}else{
 							CStudioAuthoring.Dialogs.UploadDialog.closeDialog();				
 						    args.self.callback.success(r);

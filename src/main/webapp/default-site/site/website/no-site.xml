@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+    <content-type>/acme-com/page/entry</content-type>
+    <file-name valid="true">index.xml</file-name>
+    <internal-name>Acme Home</internal-name>
+    <display-template>/templates/web/no-site.ftl</display-template>
+    <merge-strategy>inherit-levels</merge-strategy>
+</page>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>c0bf</objectGroupId>
+	<objectId>c0bfaae3-5fd5-b01f-2d34-42c464dcd6ab</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>c0bfaae3-5fd5-b01f-2d34-42c464dcd6ab</folder-name>
+	<image>/static-assets/page/images/{groupid}/{objectid}/malewinter.jpeg</image>
+	<alttext>hello</alttext>
+	<createdDate>09/10/2013 07:53:23</createdDate>
+	<lastModifiedDate>09/10/2013 07:53:23</lastModifiedDate>
+</component>

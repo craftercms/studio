@@ -1,6 +1,6 @@
 (function(){
 
-    CStudioAuthoring.register("Env.ModuleMap", {
+    CStudioAuthoring.register('Env.ModuleMap', {
         moduleInfo: {},
         map: function(moduleId, classRef) {
             this.moduleInfo[moduleId] = classRef;
@@ -23,13 +23,13 @@
     var CStudioLoader,
         CustomEvent = YAHOO.util.CustomEvent;
 
-    CStudioAuthoring.register("Component.Loader", function(usrCfg) {
+    CStudioAuthoring.register('Component.Loader', function(usrCfg) {
 
         CStudioAuthoring.Component.Loader.superclass.constructor.apply(
                 this, arguments);
 
-        this.loadStartEvt = new CustomEvent("loader.event.loadstart", this);
-        this.loadCompleteEvt = new CustomEvent("loader.event.loadcomplete", this);
+        this.loadStartEvt = new CustomEvent('loader.event.loadstart', this);
+        this.loadCompleteEvt = new CustomEvent('loader.event.loadcomplete', this);
 
         var onSuccess = this.onSuccess;
         var _this = this;
@@ -37,7 +37,7 @@
             onSuccess && onSuccess.apply(this, arguments);
             _this.onEnd && _this.onEnd();
             _this.onEnd = null;
-            _this.fire("loadComplete");
+            _this.fire('loadComplete');
         }
 
     });
@@ -60,31 +60,31 @@
             this.insert();
         },
         insert: function(o, type) {
-            this.fire("loadStart");
+            this.fire('loadStart');
             CStudioLoader.superclass.insert.apply(this, arguments);
         },
         on: function(evt, handler, context){
-            var e = this[evt + "Evt"];
+            var e = this[evt + 'Evt'];
             e && e.subscribe(handler, context);
             return !!e;
         },
         fire: function(evt){
-            var e = this[evt + "Evt"];
+            var e = this[evt + 'Evt'];
             e && e.fire();
         }
     });
 
-    CStudioAuthoring.Env.ModuleMap.map("component-loader", CStudioLoader);
+    CStudioAuthoring.Env.ModuleMap.map('component-loader', CStudioLoader);
 
 })();
 
 (function(){
     
-    CStudioAuthoring.namespace("Env.Loader");
+    CStudioAuthoring.namespace('Env.Loader');
 
     CStudioAuthoring.Env.Loader = new CStudioAuthoring.Component.Loader({
         loadOptional: true,
-        base: CStudioAuthoringContext.baseUri + "/static-assets/components/"
+        base: CStudioAuthoringContext.baseUri + '/static-assets/'
     });
 
     var Env = CStudioAuthoring.Env,
@@ -92,132 +92,185 @@
         emptyArray = [];
 
     Loader.addModule({
-        type: "js",
-        name:"component-dialogue",
-        path: "cstudio-components/dialogue.js",
+        type: 'js',
+        name:'component-dialogue',
+        path: 'components/cstudio-components/dialogue.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"component-templateagent",
-        path: "cstudio-components/template-agent.js",
+        type: 'js',
+        name:'component-templateagent',
+        path: 'components/cstudio-components/template-agent.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name: "component-dropbox",
-        path: "cstudio-components/dropbox.js",
+        type: 'js',
+        name: 'component-dropbox',
+        path: 'components/cstudio-components/dropbox.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"template-schedulefordelete",
-        path: "cstudio-templates/schedule-for-delete.js",
+        type: 'js',
+        name:'template-submitfordelete',
+        path: 'components/cstudio-templates/submit-for-delete.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"template-delete",
-        path: "cstudio-templates/delete.js",
+        type: 'js',
+        name:'template-delete',
+        path: 'components/cstudio-templates/delete.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"template-incontextedit",
-        path: "cstudio-templates/in-context-edit.js",
+        type: 'js',
+        name:'template-incontextedit',
+        path: 'components/cstudio-templates/in-context-edit.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"template-history",
-        path: "cstudio-templates/history.js",
+        type: 'js',
+        name:'template-history',
+        path: 'components/cstudio-templates/history.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-base",
-        path: "cstudio-view-controllers/base.js",
+        type: 'js',
+        name:'template-approve',
+        path: 'components/cstudio-templates/approve.js',
         requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-basedelete",
-        path: "cstudio-view-controllers/base-delete.js",
-        requires: ["viewcontroller-base"]
+        type: 'js',
+        name:'viewcontroller-base',
+        path: 'components/cstudio-view-controllers/base.js',
+        requires: emptyArray
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-schedulefordelete",
-        path: "cstudio-view-controllers/schedule-for-delete.js",
+        type: 'js',
+        name:'viewcontroller-basedelete',
+        path: 'components/cstudio-view-controllers/base-delete.js',
+        requires: ['viewcontroller-base']
+    });
+
+    Loader.addModule({
+        type: 'js',
+        name:'viewcontroller-submitfordelete',
+        path: 'components/cstudio-view-controllers/submit-for-delete.js',
         requires: [
-            "viewcontroller-basedelete",
-            "component-templateagent",
-            "template-schedulefordelete"
+            'viewcontroller-basedelete',
+            'component-templateagent',
+            'template-submitfordelete'
         ]
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-delete",
-        path: "cstudio-view-controllers/delete.js",
+        type: 'js',
+        name:'viewcontroller-delete',
+        path: 'components/cstudio-view-controllers/delete.js',
         requires: [
-            "viewcontroller-basedelete",
-            "component-templateagent",
-            "template-delete"
+            'viewcontroller-basedelete',
+            'component-templateagent',
+            'template-delete'
         ]
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-in-context-edit",
-        path: "cstudio-view-controllers/in-context-edit.js",
+        type: 'js',
+        name:'viewcontroller-in-context-edit',
+        path: 'components/cstudio-view-controllers/in-context-edit.js',
         requires: [
-            "viewcontroller-base",
-            "component-templateagent",
-            "template-incontextedit"
+            'viewcontroller-base',
+            'component-templateagent',
+            'template-incontextedit'
         ]
     });
 
     Loader.addModule({
-        type: "js",
-        name:"viewcontroller-history",
-        path: "cstudio-view-controllers/history.js",
+        type: 'js',
+        name:'viewcontroller-history',
+        path: 'components/cstudio-view-controllers/history.js',
         requires: [
-            "viewcontroller-base",
-            "component-templateagent",
-            "template-history"
+            'viewcontroller-base',
+            'component-templateagent',
+            'template-history'
+        ]
+    });
+
+    Loader.addModule({
+        type: 'js',
+        name:'viewcontroller-approve',
+        path: 'components/cstudio-view-controllers/approve.js',
+        requires: [
+            'viewcontroller-base',
+            'component-templateagent',
+            'template-approve',
+            'jquery-datetimepicker'
         ]
     });
 
     Loader.addModule({
         type: 'js',
         name: 'dialog-bulkupload',
-        path: 'cstudio-dialogs/bulk-upload.js',
+        path: 'components/cstudio-dialogs/bulk-upload.js',
         requires: ['component-dropbox']
     });
 
     Loader.addModule({
-        type: "js",
-        name:"template-cancel-workflow",
-        path: "cstudio-templates/cancel-workflow.js",
+        type: 'js',
+        name:'template-cancel-workflow',
+        path: 'components/cstudio-templates/cancel-workflow.js',
         requires: ['component-templateagent']
     });
 
     Loader.addModule({
         type: 'js',
         name:'viewcontroller-cancel-workflow',
-        path: 'cstudio-view-controllers/cancel-workflow.js',
+        path: 'components/cstudio-view-controllers/cancel-workflow.js',
         requires: ['viewcontroller-base', 'template-cancel-workflow']
     });
+
+    Loader.addModule({
+        type: 'js',
+        name:'viewcontroller-requestpublish',
+        path: 'components/cstudio-view-controllers/request-publish.js',
+        requires: ['viewcontroller-base', 'jquery-datetimepicker']
+    });
+
+    Loader.addModule({
+        type: 'js',
+        name:'viewcontroller-requestdelete',
+        path: 'components/cstudio-view-controllers/request-delete.js',
+        requires: ['viewcontroller-base']
+    });
+    
+    Loader.addModule({
+        type: 'js',
+        name:'jquery-datetimepicker',
+        path: 'libs/datetimepicker/jquery.datetimepicker.js',
+        requires: ['jquery-datetimepicker-css', 'jquery']
+    });
+
+    Loader.addModule({
+        type: 'js',
+        name:'jquery',
+        path: 'libs/jquery/dist/jquery.js'
+    });
+
+    Loader.addModule({
+        type: 'css',
+        name:'jquery-datetimepicker-css',
+        path: 'libs/datetimepicker/jquery.datetimepicker.css',
+        requires: emptyArray
+    })
 
 })();
  

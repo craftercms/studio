@@ -1088,9 +1088,11 @@
 					};
 				}
 
-				for (i = 0; i < parents.length; i++) {
-					if (func(parents[i]))
-						return parents[i];
+				if(parents) {
+					for (i = 0; i < parents.length; i++) {
+						if (func(parents[i]))
+							return parents[i];
+					}
 				}
 			};
 

@@ -21,26 +21,24 @@ CStudioAuthoring.Module.requireModule(
 					return this;
 				}
 
+				
+				var CMgs = CStudioAuthoring.Messages;
+            	var contextNavLangBundle = CMgs.getBundle("contextnav", CStudioAuthoringContext.lang);
+
 				CStudioForms.TemplateEditor.prototype = {
 
 					render: function(templatePath, channel, onSaveCb) {
-						
-						var serviceUri = CStudioAuthoringContext.baseUri
-						    + "/proxy/alfresco/cstudio/wcm/content/get-content" 
-							+ "?site=" + CStudioAuthoringContext.site 
-							+ "&path=" + templatePath 
-							+ "&edit=true";
-					
+	
 						var getContentCb = {
 							success: function(response) {
-								this.context.renderTemplateEditor(templatePath, response.responseText, onSaveCb);
+								this.context.renderTemplateEditor(templatePath, response, onSaveCb);
 							},
 							failure: function() {
 							},
 							context: this
 						};
 						
-						YAHOO.util.Connect.asyncRequest('GET', serviceUri, getContentCb);				
+						CStudioAuthoring.Service.getContent(templatePath, true, getContentCb, false);			
 					},
 					
 					renderTemplateEditor: function(templatePath, content, onSaveCb) {
@@ -59,18 +57,21 @@ CStudioAuthoring.Module.requireModule(
 									modalEl.appendChild(containerEl);
 									
 									var formHTML = 
+										"<div id='template-editor-toolbar'><div id='template-editor-toolbar-variable'></div></div>" +
 										"<div id='editor-container'>"+
 										"</div>" + 
 										"<div id='template-editor-button-container'>";
 										
 									if(isWrite == true) {
 										formHTML += 
-				 						    "<div  id='template-editor-update-button' class='cstudio-template-editor-button'>Update</div>" + 
-											"<div  id='template-editor-cancel-button' style='right: 120px;' class='cstudio-template-editor-button'>Cancel</div>";
+											"<div class='edit-buttons-container'>" +
+				 						    	"<div  id='template-editor-update-button' class='btn btn-primary cstudio-template-editor-button'>Update</div>" + 
+												"<div  id='template-editor-cancel-button' class='btn btn-default cstudio-template-editor-button'>Cancel</div>" +
+											"<div/>";
 									}
 									else {
 										formHTML +=
-											"<div  id='template-editor-cancel-button' style='right: 120px;' class='cstudio-template-editor-button'>Close</div>";							
+											"<div  id='template-editor-cancel-button' style='right: 120px;' class='btn btn-default cstudio-template-editor-button'>Close</div>";							
 									}
 
 									formHTML +=
@@ -84,6 +85,7 @@ CStudioAuthoring.Module.requireModule(
 									editorEl.style.backgroundColor= "white";
 									editorEl.value= content;
 									editorContainerEl.appendChild(editorEl);
+									
 									
 									var initEditorFn = function() {
 										if(typeof CodeMirror === "undefined" ) {
@@ -121,9 +123,71 @@ CStudioAuthoring.Module.requireModule(
 									
 									initEditorFn();
 
+                                    var templateEditorToolbarVarElt = document.getElementById("template-editor-toolbar-variable");
+                                    var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
+                                    var filenameH2 = document.createElement("p");
+                                    filenameH2.id = 'fileName';
+                                    filenameH2.innerHTML = filename;
+                                    templateEditorToolbarVarElt.appendChild(filenameH2);
+
+									if(templatePath.indexOf(".ftl") != -1) {
+										var variableLabel = document.createElement("label");
+										variableLabel.innerHTML = CMgs.format(contextNavLangBundle, "variableLabel");
+										templateEditorToolbarVarElt.appendChild(variableLabel);
+
+										//Create array of options to be added
+										var variableOpts = [
+											{label:"Content variable", value:"${model.VARIABLENAME}"},
+										    {label:"Request parameter", value:"${RequestParameters[\"PARAMNAME\"]!\"DEFAULT\"}"},
+										    {label:"Studio support", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n\t...\r\n\t<@studio.toolSupport />"},
+										    {label:"Dynamic navigation", value:"<#include \"/templates/web/navigation/navigation.ftl\">\r\n\t...\r\n\t<@renderNavigation \"/site/website\", 1 />"},
+
+										    {label:"Incontext editing attribute (pencil)", value:"<@studio.iceAttr iceGroup=\"ICEGROUID\"/>"},
+										    {label:"Component DropZone attribute", value:"<@studio.componentContainerAttr target=\"TARGETID\" objectId=model.objectId />"},
+										    {label:"Component attribute", value:"<@studio.componentAttr path=model.storeUrl ice=false />"},
+										    {label:"Render list of components", value:"<#list model.VARIABLENAME.item as module>\r\n\t<@renderComponent component=module />\r\n</#list>"},
+										    {label:"Iterate over a list of items and load content item", value:"<#list model.VARIABLENAME.item as myItem>\r\n\t<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />\r\n\t${myContentItem.variableName}\r\n</#list>"},
+										    {label:"Iterate over repeat group", value:"<#list model.VARIABLENAME.item as row>\r\n\t${row.VARIABLENAME}\r\n</#list>"},
+
+
+										    {label:"Freemarker value assignment", value:"<#assign imageSource = model.image!\"\" />"},
+										    {label:"Freemarker value IF", value:"<#if CONDITION>\r\n\t...\r\n</#if>"},
+										    {label:"Freemarker value LOOP", value:"<#list ARRAY as value>\r\n\t${value_index}: ${value}\r\n</#list>"},
+										    {label:"Freemarker Fragment include", value:"<#include \"/templates/PATH\" />"},
+										    {label:"Freemarker Library import", value:"<#import \"/templates/PATH\" as NAMESPACE />"},
+
+											{label:"HTML Page", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n<html lang=\"en\">\r\n<head>\r\n\t</head>\r\n\t<body>\r\n\t\t<h1>CONTENT HERE</h1>\r\n\t<@studio.toolSupport/>\r\n\t</body>\r\n</html>"},
+											{label:"HTML Component", value:"<#import \"/templates/system/common/cstudio-support.ftl\" as studio />\r\n<div <@studio.componentAttr path=model.storeUrl ice=false /> >\r\nCOMPONENT MARKUP</div>"},
+
+										 ];
+
+										//Create and append select list
+										var selectList = document.createElement("select");
+										selectList.id = "variable";
+										templateEditorToolbarVarElt.appendChild(selectList);
+
+										//Create and append the options
+										for (var i = 0; i < variableOpts.length; i++) {
+										    var option = document.createElement("option");
+										    option.value = variableOpts[i].value;
+										    option.text = variableOpts[i].label;
+										    selectList.appendChild(option);
+										}
+
+										var addButton = document.createElement("button");
+										addButton.id = "addButtonVar";
+										addButton.innerHTML = "Add Code";
+										addButton.className = "btn btn-primary";
+										templateEditorToolbarVarElt.appendChild(addButton);
+
+										addButton.onclick = function() {
+									    	editorEl.codeMirrorEditor.replaceRange(selectList.options[selectList.selectedIndex].value, editorEl.codeMirrorEditor.getCursor());
+										};
+									}
+
 									var cancelEl = document.getElementById('template-editor-cancel-button');
 									cancelEl.onclick = function() {
-							            var cancelEditServiceUrl = "/proxy/alfresco/cstudio/wcm/content/cancel-editing"
+							            var cancelEditServiceUrl = "/api/1/services/api/1/content/unlock-content.json"
 							                + "?site=" + CStudioAuthoringContext.site
 							                + "&path=" + templatePath;
 
@@ -151,11 +215,18 @@ CStudioAuthoring.Module.requireModule(
 										saveEl.onclick = function() {
 											editorEl.codeMirrorEditor.save();
 											var value = editorEl.value;
-										
-											var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content-asset"
-											                    + "?site=" + CStudioAuthoringContext.site 
-											                    + "&path=" + templatePath;
-											                    
+											var path = templatePath.substring(0, templatePath.lastIndexOf("/"));
+											var filename = templatePath.substring(templatePath.lastIndexOf("/")+1);
+
+                    var writeServiceUrl = "/api/1/services/api/1/content/write-content.json" +
+                        "?site=" + CStudioAuthoringContext.site +
+                        "&phase=onSave" +
+                        "&path=" + path +
+                        "&fileName=" + filename +
+                        "&user=" + CStudioAuthoringContext.user +
+                        "&unlock=true";
+
+					                    
 											YAHOO.util.Connect.setDefaultPostHeader(false);
 											YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
 											YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), saveSvcCb, value);

@@ -1,0 +1,95 @@
+
+@import url(http://fonts.googleapis.com/css?family=Raleway:400,500,700);
+
+@import "../variables";
+@import "../util/animate";
+@import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
+
+@import "elements";
+// @import "foundation";
+
+/* Structural & Behavioural Styles */
+
+[#{$ice-attribute-name}] {
+
+}
+
+.studio-view {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $text-color;
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/type";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/scaffolding";
+  @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/buttons";
+}
+
+.#{$ice-class-prefix}-overlay,
+.#{$ice-class-prefix}-indicator {
+  cursor: pointer;
+}
+
+.#{$ice-class-prefix}-overlay {
+  @extend .animated;
+  position: absolute;
+  border-style: solid;
+  border-width: 2px;
+}
+
+.#{$ice-class-prefix}-indicator {
+  position: absolute;
+  border-radius: 0 0 5px 0;
+  width: $ice-indicator-size;
+  height: $ice-indicator-size;
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit.png');
+  background-repeat: no-repeat;
+  background-position: 3px 3px;
+}
+
+.#{$ice-class-prefix}-indicator.lock{
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit_block.png');
+}
+
+.#{$ice-class-prefix}-indicator.read{
+  background-image: url('/studio/static-assets/themes/cstudioTheme/images/edit_off.png');
+}
+
+/* Look & feel / Theme Styles */
+
+.#{$ice-class-prefix}-overlay {
+  border-color: $brand-danger;
+  box-shadow: inset 0 0 10px 5px rgba($brand-danger, .4);
+  z-index:9999;
+}
+
+.#{$ice-class-prefix}-indicator {
+  background-color: rgba(#fff, .7);
+  z-index: 9999;
+}
+
+.#{$class-prefix}-dnd-controller-overlay {
+  z-index: 1;
+  display: none;
+  position: absolute;
+  background: rgba(#555, .7);
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
+  &.fadeIn {
+    display: block;
+  }
+}
+
+body {
+
+  transition: padding .5s, transform .5s;
+
+  &.#{$class-prefix}-dnd-enabled {
+    padding-right: 265px !important;
+  }
+
+}
+
+@import "components-panel";

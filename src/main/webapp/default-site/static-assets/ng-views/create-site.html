@@ -1,0 +1,72 @@
+<div class="create-site-view">
+    <div class="p20" ui-view>
+
+        <h2 class="page-header">Create Site</h2>
+
+        <form name="createNameForm" novalidate class="ng-dirty ng-invalid ng-invalid-required">
+
+            <div class="form-group">
+                <label for="name">Site Name</label>
+                <input id="name" name="name" type="text" class="form-control" ng-model="site.siteName"
+                       ng-change="setSiteId()" required/>
+
+                <div class="error-container"
+                     ng-show="(createNameForm.name.$dirty && createNameForm.name.$invalid) || (createNameForm.name.$touched && createNameForm.name.$invalid)">
+                    <small class="error"
+                           ng-show="createNameForm.name.$error.required">
+                        Site name is required.
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Site Id</label>
+                <input id="siteId" name="siteId" type="text" class="form-control" ng-model="site.siteId" required/>
+
+                <div class="error-container"
+                     ng-show="(createNameForm.name.$dirty && createNameForm.name.$invalid) || (createNameForm.name.$touched && createNameForm.name.$invalid)">
+                    <small class="error"
+                           ng-show="createNameForm.name.$error.required">
+                        Site Id is required.
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="desc" ng-model="site.description"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="blueprint">Blueprint</label>
+                <select id="blueprint"
+                        name="blueprint"
+                        class="form-control"
+                        ng-model="site.blueprint"
+                        ng-options="opt as opt.label for opt in blueprints">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary"
+                        ng-click="create()" ng-disabled="createNameForm.$invalid">
+                    Create
+                </button>
+                <button ui-sref="home.sites" class="btn btn-default">
+                    Cancel
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/ng-template" id="creatingSiteConfirmation.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Creating Site</h3>
+    </div>
+    <div class="modal-body">
+        <img class="creatingSpinner" src="/studio/static-assets/img/spinner_tra.gif" />
+    </div>
+</script>

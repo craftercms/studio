@@ -4,7 +4,7 @@
  * @author: Roy Art
  * @date: 03.01.2011
  **/
-(function(){
+(function () {
 
     var History,
         Dom = YAHOO.util.Dom,
@@ -13,116 +13,109 @@
         TemplateAgent = CStudioAuthoring.Component.TemplateAgent,
         template = CStudioAuthoring.TemplateHolder.History;
 
-    CStudioAuthoring.register("ViewController.History", function() {
+    CStudioAuthoring.register('ViewController.History', function () {
         CStudioAuthoring.ViewController.History.superclass.constructor.apply(this, arguments);
     });
 
     History = CStudioAuthoring.ViewController.History;
     YAHOO.extend(History, CStudioAuthoring.ViewController.Base, {
-        events: ["wipeAndRevert","view","restore","compare","revert","wipeRecent"],
-        actions: [".close-button"],
-        //startup: [""],
 
+        events: ['wipeAndRevert', 'view', 'restore', 'compare', 'revert', 'wipeRecent'],
 
-        loadHistory: function(selection) {
+        actions: ['.close-button'],
+
+        loadHistory: function (selection) {
             var _this = this,
+                colspan = 5,
                 loadFn;
-            loadFn = function() {
-                _this.getComponent("div.history-listing").innerHTML =
-                         '<table class="history-tbl history-listing"><tr><td><i>Loading, please wait&hellip;</i></td></tr></table>';
+            loadFn = function () {
+
+                var tbody = _this.getComponent('table.item-listing tbody');
+                tbody.innerHTML = '<tr><td colspan="5"><i>'+CMgs.format(formsLangBundle, "historyDialogLoadingWait")+'&hellip;</i></td></tr>';
+
                 CStudioAuthoring.Service.getVersionHistory(
                     CStudioAuthoringContext.site,
                     selection, {
-                        success: function(history) {
+                        success: function (history) {
 
                             var versions = history.versions;
 
-                            var itemStateEl = _this.getComponent("span.show-for-item");
-
-                            Dom.addClass(itemStateEl, CStudioAuthoring.Utils.getIconFWClasses( history.item));
-
+                            var itemStateEl = _this.getComponent('span.show-for-item');
+                            Dom.addClass(itemStateEl, CStudioAuthoring.Utils.getIconFWClasses(history.item));
                             itemStateEl.innerHTML = history.item.internalName;
 
-                            var diffButtonEl = _this.getComponent("input.compare-checked");
-                            diffButtonEl.parentNode.removeChild(diffButtonEl);
-
-                            if(versions.length == 0) {
-                                _this.getComponent("div.history-listing").innerHTML =
-                                    '<table class="history-tbl history-listing"><tr><td>No Versions.</td></tr></table>';
+                            if (versions.length == 0) {
+                                tbody.innerHTML = '<tr><td colspan="5"><i>'+CMgs.format(formsLangBundle, "historyDialogNoVersionsFound")+'</i></td></tr>';
                             } else {
 
-                                _this.getComponent("a.wipe-out-and-revert").innerHTML = "";
-                                _this.getComponent("div.history-listing").innerHTML =  '<table class="history-tbl history-listing"></table>';
+                                tbody.innerHTML = '';
 
-                                for(var i=0; i<versions.length; i++) {
+                                for (var i = 0; i < versions.length; i++) {
 
-                                    var version = versions[i];
+                                    var version = versions[i],
+                                        rowEl = document.createElement("tr"),
+                                        tdEl,
+                                        col2El,
+                                        col3El,
+                                        col4El,
+                                        col5El,
+                                        col6El,
+                                        revertActionEl;
 
-                                    var rowEl = document.createElement("tr");
-                                    var col1El = document.createElement("td");
-                                    Dom.addClass(col1El, "c1");
-                                    col1El.innerHTML = "&nbsp;";
-                                    rowEl.appendChild(col1El);
-
-                                    var col2El = document.createElement("td");
+                                    col2El = document.createElement('div');
                                     Dom.addClass(col2El, "c2");
                                     col2El.innerHTML = version.versionNumber;
-                                    rowEl.appendChild(col2El);
+                                    tdEl = document.createElement('td');
+                                    tdEl.appendChild(col2El);
+                                    rowEl.appendChild(tdEl);
 
-                                    var col3El = document.createElement("td");
+                                    col3El = document.createElement('div');
                                     Dom.addClass(col3El, "c3");
                                     col3El.innerHTML = CStudioAuthoring.Utils.formatDateFromString(version.lastModifiedDate, "tooltipformat");
-                                    rowEl.appendChild(col3El);
+                                    tdEl = document.createElement('td');
+                                    tdEl.appendChild(col3El);
+                                    rowEl.appendChild(tdEl);
 
-                                    var col4El = document.createElement("td");
+                                    col4El = document.createElement('div');
                                     Dom.addClass(col4El, "c4");
                                     col4El.innerHTML = version.lastModifier;
-                                    rowEl.appendChild(col4El);
+                                    tdEl = document.createElement('td');
+                                    tdEl.appendChild(col4El);
+                                    rowEl.appendChild(tdEl);
 
-                                    var col6El = document.createElement("td");
+                                    col6El = document.createElement('div');
                                     Dom.addClass(col6El, "c6");
-                                    col6El.innerHTML = (version.comment)
-                                        ? version.comment
-                                        : "&nbsp;";
-                                    rowEl.appendChild(col6El);
+                                    col6El.innerHTML = (version.comment) ? version.comment : "&nbsp;";
+                                    tdEl = document.createElement('td');
+                                    tdEl.appendChild(col6El);
+                                    rowEl.appendChild(tdEl);
 
-                                    var col5El = document.createElement("td");
+                                    col5El = document.createElement('div');
                                     Dom.addClass(col5El, "c5");
-                                    rowEl.appendChild(col5El);
+                                    tdEl = document.createElement('td');
+                                    tdEl.appendChild(col5El);
+                                    rowEl.appendChild(tdEl);
 
-                                    //var viewActionEl = document.createElement("a");
-                                    //viewActionEl.innerHTML = "View";
-                                    //viewActionEl.onclick = function() { alert("view"); };
-                                    //col5El.appendChild(viewActionEl);
-
-                                    //var dividerEl = document.createElement("span");
-                                    //dividerEl.innerHTML = "&nbsp;|&nbsp";
-                                    //col5El.appendChild(dividerEl);
-
-                                    var revertActionEl = document.createElement("a");
-                                    revertActionEl.innerHTML = "Revert";
-
-                                    var revertFn = function() {
+                                    revertActionEl = document.createElement("a");
+                                    revertActionEl.innerHTML = CMgs.format(formsLangBundle, "historyDialogRevert");
+                                    revertActionEl.item = selection;
+                                    revertActionEl.version = version.versionNumber;
+                                    col5El.appendChild(revertActionEl);
+                                    Event.addListener(revertActionEl, "click", function () {
                                         CStudioAuthoring.Service.revertContentItem(
                                             CStudioAuthoringContext.site,
                                             this.item,
                                             this.version, {
-                                                success: function() {
+                                                success: function () {
                                                     window.location.reload(true);
                                                 },
-                                                failure: function() {
+                                                failure: function () {
                                                     alert("revert failed");
                                                 }
                                             });
-                                    };
+                                    });
 
-                                    revertActionEl.item = versions[0].contentItem;
-                                    revertActionEl.version = version.versionNumber;
-
-                                    Event.addListener(revertActionEl, "click", revertFn);
-                                    col5El.appendChild(revertActionEl);
-
-                                    _this.getComponent("table.history-listing").appendChild(rowEl);
+                                    tbody.appendChild(rowEl);
 
                                 }
                             }
@@ -133,42 +126,35 @@
                                 CStudioAuthoring.Utils.setDefaultFocusOn(oSubmitBtn);
                             }
                         },
-                        failure: function(){
-                            _this.getComponent("div.history-listing").innerHTML =
-                                '<table class="history-tbl history-listing"><tr><td>Unable to load version history. <a class="retry-dependency-load" href="javascript:">Try again</a></td></tr></table>';
+                        failure: function () {
+                            tbody.innerHTML = '<tr><td>'+CMgs.format(formsLangBundle, "historyDialogUnable")+' <a class="retry-dependency-load" href="javascript:">'+CMgs.format(formsLangBundle, "historyDialogTryAgain")+'</a></td></tr>';
                             Event.addListener(_this.getComponent("a.retry-dependency-load"), "click", loadFn);
                         }
                     });
-            }
+            };
             loadFn();
         },
 
-        wipeRecentEdits: function() {
-
+        wipeRecentEdits: function () {
             this.fire("wipeRecent");
         },
-        
-        revertToLive: function() {
 
+        revertToLive: function () {
             this.fire("revert");
         },
-        wipeAndRevert: function() {
-
+        wipeAndRevert: function () {
             this.fire("wipeAndRevert");
         },
-        view: function() {
-
+        view: function () {
             this.fire("view");
         },
-        restore: function() {
-
+        restore: function () {
             this.fire("restore");
         },
-        compare: function() {
-
+        compare: function () {
             this.fire("compare");
         },
-        closeButtonActionClicked: function() {
+        closeButtonActionClicked: function () {
             this.end();
         }
     });

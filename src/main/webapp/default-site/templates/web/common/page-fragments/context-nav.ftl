@@ -1,9 +1,12 @@
 <script>
-CStudioAuthoring.OverlayRequiredResources.loadRequiredResources();
-CStudioAuthoring.OverlayRequiredResources.loadContextNavCss();
+    (function (CStudioAuthoring) {
 
-CStudioAuthoring.Events.contextNavLoaded.subscribe(function() {
-	CStudioAuthoring.ContextualNav.hookNavOverlayFromAuthoring();
-	CStudioAuthoring.InContextEdit.autoInitializeEditRegions();
-});		
+        CStudioAuthoring.OverlayRequiredResources.loadRequiredResources();
+        CStudioAuthoring.OverlayRequiredResources.loadContextNavCss();
+        CStudioAuthoring.Events.contextNavLoaded.subscribe(function() {
+            CStudioAuthoring.ContextualNav.hookNavOverlayFromAuthoring();
+            CStudioAuthoring.InContextEdit.autoInitializeEditRegions();
+        });
+
+    }) (CStudioAuthoring);
 </script>

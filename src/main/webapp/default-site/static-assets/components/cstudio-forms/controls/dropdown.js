@@ -20,7 +20,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Dropdown";
+        return CMgs.format(langBundle, "dropdown");
     },
     
 	_onChange: function(evt, obj) {
@@ -45,6 +45,11 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        obj._onChange(evt,obj);
+    },
+
 	onDatasourceLoaded: function ( data ) {
 		if (this.datasourceName === data.name && !this.datasource) {
     		var datasource = this.form.datasourceMap[this.datasourceName];
@@ -67,8 +72,8 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 				
 				if(prop.name == "datasource") {
 					if(prop.value && prop.value != "") {
-						this.datasourceName = (Array.isArray(prop.value))?prop.value[0]:prop.value;	
-					}
+					this.datasourceName = (Array.isArray(prop.value)) ? prop.value[0] : prop.value;
+                    this.datasourceName = this.datasourceName.replace("[\"","").replace("\"]","");					}
 				}
 				
 				if(prop.name == "emptyvalue"){
@@ -86,7 +91,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 				success: function(list) {
 					keyValueList = list;
 					var titleEl = document.createElement("span");
-			  		    YAHOO.util.Dom.addClass(titleEl, 'label');
+
 			  		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 						titleEl.innerHTML = config.title;
 					
@@ -129,7 +134,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 						}
 			
 						YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, _self);
-						YAHOO.util.Event.on(inputEl, 'change', _self._onChange, _self);
+						YAHOO.util.Event.on(inputEl, 'change', _self._onChangeVal, _self);
 
 					_self.renderHelp(config, controlWidgetContainerEl);
 								
@@ -168,6 +173,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
         if(this.inputEl)
 		    this.inputEl.value = value;
 		this._onChange(null, this);
+        this.edited = false;
 	},
 	
 	getName: function() {
@@ -176,15 +182,15 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [ 
-		   	{ label: "Data Source", name: "datasource", type: "datasource:item" },
-		    { label: "Allow Empty Value", name: "emptyvalue", type: "boolean" },
-			{ label: "Readonly", name: "readonly", type: "boolean" }
+		   	{ label: CMgs.format(langBundle, "datasource"), name: "datasource", type: "datasource:item" },
+		    { label: CMgs.format(langBundle, "allowEmptyValue"), name: "emptyvalue", type: "boolean" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	}
 

@@ -107,7 +107,8 @@ CStudioSearch.init = function(){
 	CStudioSearch.searchContext = CStudioSearch.determineSearchContextFromUrl();
 
 	// initialize filter
-	CStudioSearch.initializeSearchFilter(); 
+	CStudioSearch.initializeSearchFilter();
+
 }
 
 
@@ -214,7 +215,7 @@ CStudioSearch.renderCommonResultWrapper = function(contentTO, resultBody) {
 
 	return "<div class='cstudio-search-result'>" +
 				"<div id='result-select-" + contentTO.resultId + "' class='cstudio-search-select-container'></div>" +
-				"<div id='result-status" + contentTO.resultId + "' style='float: left; margin-left: 32px;'></div>" +
+				"<div class='browse-icon' id='result-status" + contentTO.resultId + "' style='float: left; margin-left: 32px;'></div>" +
 				"<div>"+
 					"<div class='cstudio-search-result-body'>" +
 						resultBody +
@@ -393,6 +394,7 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 						      			}else {
 						      				document.getElementById("submission-controls").firstChild.disabled = "disabled";
 						      			}
+
 					      			}
 					      		};
 					      	}
@@ -457,8 +459,20 @@ CStudioSearch.fireSearchRequest = function(searchContext) {
 				
 				if(fileResultCount==0) {
 				YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>There are no files at this path.</i></p>";
-				} 
-			},
+				}
+
+                var formSaveButton = YDom.get('formSaveButton');
+                var formCancelButton = YDom.get('formCancelButton');
+
+                YDom.addClass(formSaveButton, 'btn btn-primary');
+                YDom.addClass(formCancelButton, 'btn btn-default');
+
+                var FilterControlsEl = YDom.get('cstudio-wcm-search-filter-controls');
+                var SearchResultEl = YDom.get('cstudio-wcm-search-result');
+
+                FilterControlsEl.style.height = SearchResultEl.clientHeight + "px";
+
+            },
 	        failure: function(o) {
 			    YDom.get('cstudio-wcm-search-result').innerHTML =  "<p align='center'><strong>Unable to Retrieve Search Result. Please Try again.</strong><br><br><br><i>If this is consistent, please contact System Administrator.</i></p>";
 			},
@@ -519,6 +533,7 @@ CStudioSearch.publicPrivateIcon = function(pnpText) {
  * through parameter
  * */
 CStudioSearch.magnifyBannerImage = function(imgSrc) {
+    self = this;
 	try {
 		var width = 0;
 		var height = 0;
@@ -564,18 +579,15 @@ CStudioSearch.magnifyBannerImage = function(imgSrc) {
 		imageContent.style.borderWidth = "10px 10px 50px";
 		imageContent.style.borderColor = "#DADADA";
 		imageContent.style.borderStyle = "solid";
-		containerDiv.style.width = (imageContent.width + 20) + "px";
-		containerDiv.style.height = (imageContent.height + 60) + "px";
-		containerDiv.style.borderWidth = "5px";
-		containerDiv.style.borderColor = "black";
-		containerDiv.style.borderStyle = "solid";
+        imageContent.style.borderRadius = "6px";
 		
 		var buttonHolderDiv = document.createElement("div");
-		buttonHolderDiv.style.textAlign = "center";
-		buttonHolderDiv.style.marginTop = "-35px";
+		buttonHolderDiv.style.textAlign = "right";
+		buttonHolderDiv.style.margin = "-40px 8px 0 0";
 		
 		var closeButton = document.createElement("input");
 		closeButton.setAttribute("type","button");
+        closeButton.setAttribute("class","btn btn-default");
 		closeButton.value = "Close";
 		closeButton.onclick = function () {
 			document.body.removeChild(containerDiv);
@@ -592,13 +604,34 @@ CStudioSearch.magnifyBannerImage = function(imgSrc) {
 		
 		document.body.appendChild(containerDiv);
 		document.body.appendChild(maskingDiv);
-		
-		/**
-		** render pop up in the center of the screen.
-		**/
-		var imagePopUp = new YAHOO.widget.Overlay("cstudio-wcm-search-banner-image-pop-up");
-		imagePopUp.center();
-		imagePopUp.render();
+        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+            imageContent.style.maxWidth = "700px";
+            containerDiv.style.width = (imageContent.width + 20) + "px";
+            containerDiv.style.height = (imageContent.height + 60) + "px";
+            containerDiv.style.borderRadius = "6px";
+            /**
+             ** render pop up in the center of the screen.
+             **/
+            var imagePopUp = new YAHOO.widget.Overlay("cstudio-wcm-search-banner-image-pop-up");
+            imagePopUp.center();
+            imagePopUp.render();
+        }else{
+            imageContent.addEventListener('load', popupMag, false);
+        }
+
+        function popupMag(){
+            imageContent.style.maxWidth = "700px";
+            containerDiv.style.width = (imageContent.width + 20) + "px";
+            containerDiv.style.height = (imageContent.height + 60) + "px";
+            containerDiv.style.borderRadius = "6px";
+
+            /**
+             ** render pop up in the center of the screen.
+             **/
+            var imagePopUp = new YAHOO.widget.Overlay("cstudio-wcm-search-banner-image-pop-up");
+            imagePopUp.center();
+            imagePopUp.render();
+        }
 		
 		//disable scroll bars for the window.
 		document.getElementsByTagName("body")[0].style.overflow = "hidden";
@@ -722,7 +755,7 @@ CStudioSearch.loadContentTypeMap = function() {
 			
 			failure: function() {
 				CStudioSearch.initializeSearchFilter();
-			},
+			}
 		};
 		try {
 			CStudioAuthoring.Service.getAllContentTypesForSite(CStudioAuthoringContext.site, contentTypeCallback);

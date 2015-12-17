@@ -17,7 +17,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.rteLinkStyles = [];
 	this.rteLinkTargets = [];
 	this.readonly = readonly;
-	this.codeModeXreduction = 50;	// Amount of pixels deducted from the total width value of the RTE in code mode
+	this.codeModeXreduction = 130;	// Amount of pixels deducted from the total width value of the RTE in code mode
 	this.codeModeYreduction = 130;	// Amount of pixels deducted from the total height value of the RTE in code mode
 	this.rteWidth;
 	this.delayedInit = true; 	// Flag that indicates that this control takes a while to initialize 
@@ -40,7 +40,7 @@ CStudioAuthoring.Module.requireModule(
 YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Rich Text Editor";
+        return CMgs.format(langBundle, "richTextEditor");
     },
     
     /**
@@ -65,7 +65,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		CStudioForms.Controls.RTEManager.getRteConfiguration(configuration, "no-role-support", {
 			success: function(rteConfig) {
 
-				_thisControl._loadPlugins(rteConfig.rteModules, {
+				_thisControl._loadPlugins(rteConfig.rteModules.module, {
 					success: function() {
 						this.control._initializeRte(this.controlConfig, this.rteConfig, this.containerEl);
 						
@@ -90,7 +90,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 				});
 				_thisControl.rteTables = rteConfig.rteTables;
 				_thisControl.rteTableStyles = rteConfig.rteTablestyles;
-				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles;
+				_thisControl.rteLinkStyles = rteConfig.rteLinkStyles.style;
 				_thisControl.rteLinkTargets = rteConfig.rteLinkTargets;
 			},
 			failure: function() {
@@ -128,6 +128,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
             this._onChange(null, this);
         }
 		this.updateModel(value);
+        this.edited = false;
 	},
 
 	updateModel: function(value) {
@@ -146,17 +147,17 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	 */
 	getSupportedProperties: function() {
 		return [
-			{ label: "Width", name: "width", type: "int" },
-			{ label: "Height", name: "height", type: "int" },
-			{ label: "Max Length", name: "maxlength", type: "int" },
-			{ label: "Allow Resize", name: "allowResize", type: "boolean" },
-			{ label: "Force Root Block p Tag", name: "forceRootBlockPTag", type: "boolean", defaultValue: "true" },
-			{ label: "Force p tags New Lines", name: "forcePTags", type: "boolean", defaultValue: "true" },
-			{ label: "Force br New Lines", name: "forceBRTags", type: "boolean", defaultValue: "false" },
-			{ label: "Require Image Alt Tag", name: "forceImageAlts", type: "boolean", defaultValue: "false" },						
-			{ label: "Supported Channels", name: "supportedChannels", type: "supportedChannels" },
-			{ label: "RTE Configuration", name: "rteConfiguration", type: "string", defaultValue: "generic" },			
-			{ label: "Image Manager", name: "imageManager", type: "datasource:image" }
+			{ label: CMgs.format(langBundle, "width"), name: "width", type: "int" },
+			{ label: CMgs.format(langBundle, "height"), name: "height", type: "int" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int" },
+			{ label: CMgs.format(langBundle, "allowResize"), name: "allowResize", type: "boolean" },
+			{ label: CMgs.format(langBundle, "forceRootBlockP"), name: "forceRootBlockPTag", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "forcePNewLines"), name: "forcePTags", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "forceBRNewLines"), name: "forceBRTags", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "requireImageAlt"), name: "forceImageAlts", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "supportedChannels"), name: "supportedChannels", type: "supportedChannels" },
+			{ label: CMgs.format(langBundle, "RTEConfiguration"), name: "rteConfiguration", type: "string", defaultValue: "generic" },
+			{ label: CMgs.format(langBundle, "imageManager"), name: "imageManager", type: "datasource:image" }
 		];
 	},
 
@@ -165,7 +166,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	 */
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	},
 
@@ -346,7 +347,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			rteMarginLeft = 230,
 			rteContainerWidth,
 			fieldContainerWidth,
-			width;
+			width,
+            _self = this;
 
 		containerEl.id = this.id;
 		this.containerEl = containerEl;
@@ -358,7 +360,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		// we need to make the general layout of a control inherit from common
 		// you should be able to override it -- but most of the time it wil be the same
 		var titleEl = document.createElement("span");
-			YDom.addClass(titleEl, 'label');
+
   		    YDom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
@@ -393,7 +395,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		containerEl.appendChild(controlWidgetContainerEl);
 		controlWidgetContainerEl.appendChild(descriptionEl);
 
-		YEvent.on(inputEl, 'change', this._onChange, this);
+		YEvent.on(inputEl, 'change', this._onChangeVal, this);
 		
 		for(var i=0; i<config.properties.length; i++) {
 			var prop = config.properties[i];
@@ -411,6 +413,10 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
                     break;
 				case "height" : 
 					var height = (prop.value === undefined) ? 140 : (Array.isArray(prop.value)) ? 140 : Math.max(+(prop.value), 50);
+					if (isNaN(height)) {
+						height = 140;
+					}
+					
 					break;
 				case "maxlength" :
 					inputEl.maxlength = prop.value;
@@ -428,9 +434,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		}
 
 		var pluginList = "paste, noneditable, cs_table, cs_contextmenu, cs_inlinepopups, ";
-		for(var l=0; l<rteConfig.rteModules.length; l++) {
+		for(var l=0; l<rteConfig.rteModules.module.length; l++) {
 			// mce plugin names cannot have a - in them
-			pluginList += "-"+rteConfig.rteModules[l].replace(/-/g,"")+",";
+			pluginList += "-"+rteConfig.rteModules.module[l].replace(/-/g,"")+",";
 		}
 
 		var toolbarConfig1 = (rteConfig.toolbarItems1 && rteConfig.toolbarItems1.length !=0) ? 
@@ -449,8 +455,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 	        width : width,
 	        height: height,
 	        encoding : "xml",
-            valid_children : "+body[style]",
-	        paste_auto_cleanup_on_paste : true,
+            valid_elements :"+*[*]",
+            extended_valid_elements :"+*[*]",
+            valid_children : "+*[*]",
+			valid_elements :"+*[*]",
+	        paste_auto_cleanup_on_paste : true,	        paste_auto_cleanup_on_paste : true,
 			relative_urls : false,
 
 			readonly: _thisControl.readonly,
@@ -510,6 +519,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			        });
 			        ed.onChange.add(function(ed, l) {
 			        	ed.contextControl.resizeEditor(ed);
+                        _self.edited = true;
 		            });
 
 		            ed.onInit.add(function(ed) {
@@ -682,8 +692,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		var stylesheets  = "/studio/static-assets/themes/cstudioTheme/css/forms-rte.css";
 		var rteConfig = this.rteConfig;
 		
-		for(var i=0; i<rteConfig.rteStylesheets.length; i++) {
-			var item = rteConfig.rteStylesheets[i];
+		for(var i=0; i<rteConfig.rteStylesheets.link.length; i++) {
+			var item = rteConfig.rteStylesheets.link[i];
 			if(!item.appliesToChannel 
 					|| (!channel && item.appliesToChannel == "default")
 					|| (channel && item.appliesToChannel.indexOf(channel) != -1 )) {				
@@ -794,6 +804,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		obj.owner.notifyValidation();
 		obj.count(evt, obj.countEl, obj.inputEl);
 	},
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt, obj);
+    },
 	
 	/**
 	 * perform count calculation on keypress

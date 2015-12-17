@@ -23,10 +23,7 @@ CStudioSearch.ResultRenderer.Default = {
 					CStudioSearch.getContentTypeName(contentTO.item.contentType) + 
 				"</span>" +
 				"<br />"+
-				"<div class='cstudio-search-result-detail'>" +
-					"<span class='cstudio-search-description'>" +
-						contentTO.item.metaDescription + 
-					"</span>";
+				"<div class='cstudio-search-result-detail'>";
 					
 					if(contentTO.item.previewable && contentTO.item.previewable == true) {
 						result +=
@@ -35,9 +32,9 @@ CStudioSearch.ResultRenderer.Default = {
 					
 			result +=
 				"</div>"+
-				"<span class='cstudio-search-download-additional'>Edited "+ 
-					CStudioAuthoring.Utils.formatDateFromString(contentTO.item.eventDate, "simpleformat") + 
-					" by " + CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
+				"<span class='cstudio-search-download-additional'><span data-translation='resultsEdited'>Edited</span> "+
+					CStudioAuthoring.Utils.formatDateFromString(contentTO.item.eventDate, "simpleformat") +
+					" <span data-translation='resultsBy'>by</span> " + CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
 				"</span>";
 				
 		return CStudioSearch.renderCommonResultWrapper(contentTO, result);
@@ -46,3 +43,4 @@ CStudioSearch.ResultRenderer.Default = {
 
 // register renderer
 CStudioSearch.resultRenderers["default"] = CStudioSearch.ResultRenderer.Default;
+CStudioAuthoring.Module.moduleLoaded("search-result-default", CStudioSearch.resultRenderers["default"]);

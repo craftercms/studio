@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/moduleBasedSection</content-type>	<display-template>/templates/web/moduleSectionPage.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>d8fc</objectGroupId>
+	<objectId>d8fc4881-9d9e-c301-e735-fd3efa5d303a</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>mens</folder-name>
+	<internal-name>Mens</internal-name>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>4000</orderDefault_f>
+	<createdDate>04/22/2013 01:01:46</createdDate>
+	<lastModifiedDate>11/11/2014 14:6:18</lastModifiedDate>
+	<disabled>false</disabled>
+	<modules>	<item>	<key>/site/components/modules/f9e7e9f9-bbbe-9d0b-d36e-8d708d1d2748/index.xml</key>
+	<value>Shorts Evening Daily</value>
+	<fileType_s>undefined</fileType_s>
+	<include>/site/components/modules/f9e7e9f9-bbbe-9d0b-d36e-8d708d1d2748/index.xml</include>
+	</item>	<item>	<key>/site/components/forms/ebea2d1f-890b-e7af-29e4-96ddb053accc/index.xml</key>
+	<value>New Recipe</value>
+	<include>/site/components/forms/ebea2d1f-890b-e7af-29e4-96ddb053accc/index.xml</include>
+	</item>	<item>	<key>/site/components/modules/d5f4334e-8ea7-50f5-1da0-0fbac9e31271/index.xml</key>
+	<value>Mens Collection</value>
+	<fileType_s>undefined</fileType_s>
+	<include>/site/components/modules/d5f4334e-8ea7-50f5-1da0-0fbac9e31271/index.xml</include>
+	</item>	<item>	<key>/site/components/modules/2c325244-0867-04b5-196f-98de1fb9551a/index.xml</key>
+	<value>Sport Jackets</value>
+	<fileType_s>undefined</fileType_s>
+	<include>/site/components/modules/2c325244-0867-04b5-196f-98de1fb9551a/index.xml</include>
+	</item></modules>
+</page>

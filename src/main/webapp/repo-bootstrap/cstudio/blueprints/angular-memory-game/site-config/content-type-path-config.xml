@@ -1,0 +1,11 @@
+<!--  mapping for which content types are allowed at which paths -->
+<content-type-path-mapping>
+	<path>
+		<!--  no path-include means match everything -->
+		<path-includes/>
+		<path-excludes/>
+		<content-types>
+			
+		</content-types>
+	</path>
+</content-type-path-mapping>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/home-page-scenario</content-type>	<content-type>/component/home-page-scenario</content-type>
+	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>c673</objectGroupId>
+	<objectId>c6737550-3c26-61f3-4502-e099b1db01a9</objectId>
+	<tiles>	<item>	<mouseOverText/>
+	<url/>
+	<height>380</height>
+	<width>380</width>
+	<top>0</top>
+	<left>343</left>
+	<image>/static-assets/images/home/titles/park.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText/>
+	<url/>
+	<height>300</height>
+	<width>330</width>
+	<top>305</top>
+	<left>0</left>
+	<image>/static-assets/images/home/titles/walking.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText/>
+	<url/>
+	<height>125</height>
+	<width>330</width>
+	<top>617</top>
+	<left>0</left>
+	<image>/static-assets/images/home/titles/jeans.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText>f</mouseOverText>
+	<url/>
+	<height>350</height>
+	<width>209</width>
+	<top>387</top>
+	<left>343</left>
+	<image>/static-assets/images/home/titles/forest.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText/>
+	<url/>
+	<height>351</height>
+	<width>165</width>
+	<top>387</top>
+	<left>558</left>
+	<image>/static-assets/images/home/titles/women.jpg</image>
+	<field/>
+	</item></tiles>
+	<file-name>female-young-us-ne-fall.xml</file-name>
+	<internal-name>Female Young US NE Fall</internal-name>
+	<mainTileText>Fall In Love</mainTileText>
+	<mainTileHeight>300</mainTileHeight>
+	<mainTileWidth>330</mainTileWidth>
+	<mainTileCta1ButtonText>Shop Fall Fashions</mainTileCta1ButtonText>
+	<mainTileImage>/static-assets/images/home/titles/fallscene.jpg</mainTileImage>
+	<gender>	<item>	<key>Female</key>
+	<value>Female</value>
+	</item></gender>
+	<season/>
+	<mainTileCta1ButtonTop>80</mainTileCta1ButtonTop>
+	<mainTileCta1ButtonLeft>0</mainTileCta1ButtonLeft>
+	<mobileMainTileText>Fall In Love</mobileMainTileText>
+	<mobileMainTileHeight>380</mobileMainTileHeight>
+	<mobileMainTileWidth>330</mobileMainTileWidth>
+	<mobileMainTileImage>/static-assets/images/home/titles/park.jpg</mobileMainTileImage>
+	<folder-name/>
+	<mainTileCta1ButtonUrl/>
+	<mainTileCta2ButtonText/>
+	<mainTileCta2ButtonUrl/>
+	<mainTileCta2ButtonTop/>
+	<mainTileCta2ButtonLeft/>
+	<mobileMainTileCta1ButtonUrl/>
+	<mobileMainTileCta1ButtonTop/>
+	<mobileMainTileCta1ButtonLeft/>
+	<mobileMainTileCta2ButtonText/>
+	<mobileMainTileCta2ButtonUrl/>
+	<mobileMainTileCta2ButtonTop/>
+	<mobileMainTileCta2ButtonLeft/>
+	<createdDate>05/30/2013 08:00:18</createdDate>
+	<lastModifiedDate>4/15/2015 12:9:2</lastModifiedDate>
+</component>

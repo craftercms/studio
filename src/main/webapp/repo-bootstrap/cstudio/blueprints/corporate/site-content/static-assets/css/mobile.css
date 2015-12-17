@@ -1,0 +1,168 @@
+@import "bootstrap-responsive.css";
+
+body, html {
+	margin: 0;
+	padding: 0;
+}
+
+header {
+	
+}
+
+header .logo-bar {
+	background-color: #236791;
+	padding: 2px 5px;
+}
+
+header .logo-bar ul {
+	list-style: none;
+	margin: 0;
+}
+
+header .logo-bar li {
+	float: left;
+}
+
+header .logo-bar li {
+	border-radius: 10px;
+	margin: 0 5px 0 0;
+	background: #0b5481 url('../images/moptions-bg.png') 0 0 repeat-x;
+}
+
+header .logo-bar a {
+	color: #fff;
+	padding: 0 10px;
+}
+
+#brand {
+	background: url('../images/logo-mob.png') 0 0 no-repeat;
+	padding: 5px 0 5px 25px;
+	display: block;
+	float: left;
+	line-height: 1em;
+	color: #fff;
+}
+
+.home #hero {
+ background: url("../images/mheader-bg.png") no-repeat scroll 0 0 transparent;
+    height: 225px;
+}
+
+.article-page #hero {
+	background: url('../images/marticle-headerbg.png') center 0 no-repeat;
+	min-height: 81px;
+	overflow: auto;
+}
+
+.home #hero .slogan {
+	color: #005684;
+	margin: 10px auto auto 95px;
+	position: absolute;
+}
+
+.article-page #hero .title {
+	color: #fff;
+	font-size: 30px;
+	text-align: center;
+	position: relative;
+	margin: 25px 0 0 0;
+}
+
+.navbar,
+.navbar-inner,
+.navbar .container {
+	background: #e7e7e8;
+}
+
+nav .nav li {
+	border-radius: 25px;
+	overflow: hidden;
+}
+
+nav .nav li a {
+	background: #fff url('../images/mnav-bg.png') 0 bottom repeat-x;
+	border-radius: 25px;
+	color: #005684 !important;
+	position: relative;
+}
+
+nav .nav li .arrow {
+	position: absolute;
+	height: 24px;
+	width: 25px;
+	top: 50%;
+	right: 10px;
+	margin-top: -12px;
+}
+
+.navbar {
+	margin: 0;
+}
+
+.article-page nav {
+	background: #fff url('../images/mnav-bg.png') 0 bottom repeat-x;
+}
+
+.article-page nav ul {
+	margin: 0;
+}
+
+.article-page nav ul li {
+	border-right: 1px solid #cccdcf;
+}
+
+.article-page nav ul li:first-child {
+	border-left: none;
+}
+
+.article-page nav ul li:last-child {
+	border-right: none;
+}
+
+.article-page nav ul li {
+	border-left: 1px solid #cccdcf;
+	width: 62px;
+}
+
+.article-page nav ul li a {
+	padding: 5px 0;
+	text-align: center;
+	font-size: 10px;
+	line-height: 1em;
+	vertical-align: middle;
+}
+
+.mobile .content {
+	min-height: 100px;
+	padding: 10px;
+	font-size: 11px;
+}
+
+.mobile h1 {
+	font-size: 2em;
+	line-height: 1em;
+	margin: 0 0 5px 0;
+}
+
+.mobile h1,
+.mobile h2,
+.mobile h3,
+.mobile h4 {
+	color: #005684;
+}
+
+@media (min-width: 900px) {
+
+	nav .nav li .arrow {
+		display: none;
+	}
+	
+}
+
+@media (max-width: 900px) {
+	
+	nav .nav li {
+		margin: 10px 0;
+	}
+	
+}

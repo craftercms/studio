@@ -1,0 +1,11 @@
+<content-type name="/component/slider-set" is-wcm-type="true">
+	<label>Slider Set</label>
+	<form>/component/slider-set</form>
+	<form-path>simple</form-path>
+	<model-instance-path>not-used</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>false</content-as-folder>
+	<previewable>false</previewable>
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail></image-thumbnail>
+</content-type>

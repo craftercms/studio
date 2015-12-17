@@ -1,0 +1,82 @@
+<personas>
+    <persona>
+        <name>Anonymous</name>
+        <description>User is unknown to Acme.com.</description>
+        <thumb>anon.jpg</thumb>
+        <settings>
+        </settings>
+   </persona>
+    <persona>
+        <name>Lead</name>
+        <description>User has expressed interest in ACME products and services.</description>
+        <thumb>lead.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>lead</value>
+            </property>
+            <property>
+            	<name>someProp</name>
+            	<label>Another Property</label>
+            	<value>Foo</value>
+            </property>
+            <property>
+            	<name>newOptIn</name>
+            	<label>Opt-in for newsletter</label>
+            	<value>true</value>
+            </property>
+        </settings>
+   </persona>
+    <persona>
+        <name>Customer</name>
+        <description>User is a customer of ACME products and Services.</description>
+        <thumb>customer.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>customer</value>
+            </property>
+            <property>
+            	<name>newOptIn</name>
+            	<label>Opt-in for newsletter</label>
+            	<value>true</value>
+            </property>
+        </settings>
+   </persona>
+    <persona>
+        <name>Partner</name>
+        <description>User is a partner of ACME</description>
+        <thumb>partner.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>partner</value>
+            </property>
+            <property>
+            	<name>newOptIn</name>
+            	<label>Opt-in for newsletter</label>
+            	<value>true</value>
+            </property>
+        </settings>
+   </persona>
+    <persona>
+        <name>Employee</name>
+        <description>User is an ACME employee.</description>
+        <thumb>employee.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>employee</value>
+            </property>
+            <property>
+            	<name>newOptIn</name>
+            	<label>Opt-in for newsletter</label>
+            	<value>false</value>
+            </property>
+        </settings>
+   </persona>
+</personas>

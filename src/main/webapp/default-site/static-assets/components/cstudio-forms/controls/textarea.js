@@ -18,7 +18,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Text Area";
+        return CMgs.format(langBundle, "textArea");
     },
     
 	_onChange: function(evt, obj) {
@@ -41,6 +41,10 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		obj.owner.notifyValidation();
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
+    },
 
 	/**
 	 * perform count calculation on keypress
@@ -90,7 +94,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		containerEl.id = this.id;
 		
 		var titleEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(titleEl, 'title');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
@@ -108,7 +112,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 			YAHOO.util.Dom.addClass(inputEl, 'cstudio-form-control-input');
 			inputEl.value = (this.value = "_not-set") ? config.defaultValue : this.value;
 
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			YAHOO.util.Event.on(inputEl, 'blur', this._onChange, this);
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
 
@@ -178,6 +182,7 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 		this.inputEl.value = value;
 		this.count(null, this.countEl, this.inputEl);
 		this._onChange(null, this);
+        this.edited = false;
 	},
 		
 	getName: function() {
@@ -186,17 +191,17 @@ YAHOO.extend(CStudioForms.Controls.Textarea, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Columns", name: "cols", type: "int", defaultValue: "50" },
-			{ label: "Rows", name: "rows", type: "int", defaultValue: "5" },
-			{ label: "Max Length", name: "maxlength", type: "int", defaultValue: "100000" },
-			{ label: "Allow Resize", name: "allowResize", type: "boolean", defaultValue: "true" },
-			{ label: "Readonly", name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "columns"), name: "cols", type: "int", defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "rows"), name: "rows", type: "int", defaultValue: "5" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int", defaultValue: "100000" },
+			{ label: CMgs.format(langBundle, "allowResize"), name: "allowResize", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
 			];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

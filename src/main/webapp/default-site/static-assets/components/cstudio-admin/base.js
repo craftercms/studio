@@ -34,13 +34,13 @@ CStudioAdminConsole = {
     		YDom.addClass(catEl, "work-area-active");
     	})
 
-	    	if(config.tools.tool) {
-	    		config.tools = [ config.tools.tool ];
+	    	if(!config.tools.tool.length) {
+	    		config.tools.tool = [ config.tools.tool ];
 	    	}
     	
-		if(config.tools.length) {
+		if(config.tools.tool.length) {
 			
-			for(var j=0; j<config.tools.length; j++) {
+			for(var j=0; j<config.tools.tool.length; j++) {
 				try {
 					var toolContainerEl = document.createElement("div");
 					this.toolContainerEls[this.toolContainerEls.length] = toolContainerEl;
@@ -68,9 +68,9 @@ CStudioAdminConsole = {
 
 			
 		    		CStudioAuthoring.Module.requireModule(
-                		"cstudio-console-tools-" + config.tools[j].name,
-                    	'/static-assets/components/cstudio-admin/mods/' + config.tools[j].name + ".js",
-                    	{ config: config.tools[j] },
+                		"cstudio-console-tools-" + config.tools.tool[j].name,
+                    	'/static-assets/components/cstudio-admin/mods/' + config.tools.tool[j].name + ".js",
+                    	{ config: config.tools.tool[j] },
                    	 	cb);
 				}
 				catch(err) { 
@@ -90,7 +90,7 @@ CStudioAdminConsole.Toolbar = function(containerEl) {
 
 CStudioAdminConsole.Toolbar.prototype = {
 	addToolbarItem: function(tool, toolContainerEl) {
-	   	toolContainerEl.innerHTML = tool.config.label;
+	   	toolContainerEl.innerHTML = CMgs.format(langBundle, tool.config.label);
 	   	YDom.addClass(toolContainerEl, "cstudio-admin-console-item");
 	   	
 	   	var onRenderWorkAreaFn =  function(evt, params) {

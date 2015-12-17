@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <import resource="classpath:crafter/studio/database-context.xml"/>
+    <import resource="classpath:crafter/studio/cstudio-dao-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-ebus-context.xml"/>
+
+
+      <!-- ////////////////////////////////////// -->
+      <!--         logging                        -->
+      <!-- ////////////////////////////////////// -->
+      <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider"
+            init-method="init">
+      </bean>
+
+
+       <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
+
+       <bean id="cstudioRegistrableService" class="org.craftercms.studio.api.v1.service.AbstractRegistrableService"
+             abstract="true" init-method="register">
+              <property name="servicesManager" ref="cstudioServicesManager" />
+       </bean>
+
+    <!--/////////////////////////// -->
+    <!-- Cache  -->
+    <!--/////////////////////////// -->
+
+    <bean id="cstudioCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerImpl">
+        <property name="ehCacheAdapter" ref="cstudioEhCache"/>
+    </bean>
+
+    <bean id="cstudioEHCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerFactoryBean">
+        <property name="configLocation">
+            <value>classpath:crafter/studio/cstudio-cache-config.xml</value>
+        </property>
+    </bean>
+
+    <bean id="cstudioEhCache" class="org.craftercms.studio.impl.v1.cache.EhCacheAdapter">
+        <property name="cache">
+            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+                <property name="cacheManager">
+                    <ref bean="cstudioEHCacheManager"/>
+                </property>
+                <property name="cacheName">
+                    <value>CStudioCache</value>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         Services                       -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
+          <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
+        <property name="dependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="repositoryReactor" ref="repositoryReactor"/>
+        <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+        <property name="previewSync" ref="previewSync"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
+
+
+    <bean id="cstudioTransactionServiceSimple" class="org.craftercms.studio.impl.v1.service.transaction.TransactionServiceImpl">
+        <property name="contentRepository" ref="cstudioContentRepository" />
+    </bean>
+
+    <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
+        <property name="siteServiceDAL">
+          <bean id="cstudioRepositorySiteServiceDAL" 
+                class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">
+              <property name="contentService" ref="cstudioContentService" />
+          </bean>
+        </property>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
+        <property name="environment"><value>${environmentConfig.environment}</value></property>
+        <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
+        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
+        <property name="configRoot"><value>${siteService.configPath}</value></property>
+        <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
+        <property name="securityProvider" ref="securityProvider" />
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
+        <property name="importService" ref="cstudioImportService"/>
+    </bean>
+
+    <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="xmlChainName"><value>${importService.xmlChainName}</value></property>
+        <property name="assetChainName"><value>${importService.assetChainName}</value></property>
+        <property name="assignee"><value>${importService.assignee}</value></property>
+    </bean>
+
+    <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
+        <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
+        <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
+        <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
+    </bean>
+
+     <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
+         <property name="contentService" ref="cstudioContentService"/>
+         <property name="activityService" ref="cstudioActivityService" />
+         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+         <property name="dmDependencyService" ref="cstudioDmDependencyService" />
+         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
+         <property name="siteService" ref="cstudioSiteServiceSimple" />
+         <property name="objectStateService" ref="cstudioObjectStateService" />
+         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+         <property name="contentRepository" ref="cstudioContentRepository"/>
+         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+         <property name="repositoryReactor" ref="repositoryReactor"/>
+         <property name="dmPublishService" ref="cstudioDmPublishService"/>
+         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
+         <property name="securityService" ref="cstudioSecurityService"/>
+         <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
+         <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
+     </bean>
+
+     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
+        <property name="emailMessages" ref="cstudioEmailMessageQueue" />
+        <property name="configPath"><value>${notificationService.configPath}</value></property>
+        <property name="configFileName"><value>${notificationService.configFileName}</value></property>
+         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+         <property name="securityService" ref="cstudioSecurityService"/>
+         <property name="contentService" ref="cstudioContentService"/>
+         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+     </bean>
+
+       <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
+            <property name="translationContentDAL" ref="cstudioTranslationContentDAL" />
+            <property name="translationProvider" ref="demoTranslationProvider" />
+        </bean>
+
+    <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
+        <property name="configPath"><value>${serviceConfig.configPath}</value></property>
+        <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
+        <property name="configPath"><value>${environmentConfig.configPath}</value></property>
+        <property name="configFileName"><value>${environmentConfig.configFileName}</value></property>
+        <property name="environment"><value>${environmentConfig.environment}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
+        <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
+        <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+    </bean>
+
+    <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
+    </bean>
+
+    <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
+          parent="cstudioRegistrableService" />
+
+    <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="configPath"><value>${permissionService.configPath}</value></property>
+        <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
+        <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
+        <property name="globalConfigPath"><value>${permissionService.globalConfigPath}</value></property>
+        <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
+        <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
+        <property name="configPath"><value>${contentTypeService.configPath}</value></property>
+        <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="contentRepository" ref="cstudioContentRepository" />
+    </bean>
+
+    <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl" >
+        <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
+        <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+    </bean>
+
+    <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
+          parent="cstudioRegistrableService">
+         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+    </bean>
+
+    <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="pageNavigationOrderIncrement" value="${PageNavigationOrderService.increment}" />
+    </bean>
+
+    <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="scriptLocation"><value>${ExtractMetadataProcessor.scriptLocation}</value></property>
+         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+    </bean>
+
+    <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
+          parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="scriptLocation"><value>${ContentLifeCycleProcessor.scriptLocation}</value></property>
+        <property name="scriptObjects">
+            <map>
+            </map>
+        </property>
+        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+    </bean>
+
+    <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
+            parent="cstudioRegistrableService">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmRenameService" ref="cstudioRenameService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="writeProcessor" ref="cstudioFormDmContentProcessor"/>
+        <property name="contentTypeService" ref="cstudioContentTypeService"/>
+        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+    </bean>
+
+    <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
+            parent="cstudioRegistrableService">
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService" />
+        <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--      Managers                          -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioObjectMetadataManager" class="org.craftercms.studio.impl.v1.service.content.ObjectMetadataManagerImpl">
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Content ID Generator                   -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="cstudioContentIdGenerator" class="org.craftercms.studio.impl.v1.service.content.ContentItemIdGeneratorImpl"
+          parent="cstudioRegistrableService"/>
+
+    <!-- ////////////////////// -->
+    <!-- Email  -->
+    <!-- ////////////////////// -->
+    <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.api.v1.to.EmailMessageQueueTo">
+    </bean>
+    
+    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
+        <property name="emailMessages" ref="cstudioEmailMessageQueue" />
+        <property name="emailService" ref="mailSenderImpl" />
+        <property name="defaultFromAddress"><value>${crafter.studio.mail.from.default}</value></property>
+    </bean>
+
+    <bean id="mailSenderImpl" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+      <property name="host" value="${crafter.studio.mail.host}" />
+      <property name="port" value="${crafter.studio.mail.port}" />
+      <property name="username" value="${crafter.studio.mail.username}" />
+      <property name="password" value="${crafter.studio.mail.password}" />
+      <property name="javaMailProperties">
+        <props>
+          <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
+          <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
+            <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
+            <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
+        </props>
+      </property>  
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         translation                    -->
+    <!-- ////////////////////////////////////// -->
+
+    <!-- translation vendor interface -->
+    <bean id="smartlingTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.smartling.SmartlingTranslationProvider">
+    </bean>
+
+    <bean id="demoTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.demo.DemoTranslationProvider">
+        <property name="translateElements">
+            <list>
+                <value>title</value>
+                <value>body</value>
+                <value>body_html</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioTranslationContentDAL" class="org.craftercms.studio.impl.v1.service.translation.dal.repository.RepositoryTranslationContentDAL">
+        <property name="contentService" ref="cstudioContentService" />
+    </bean>
+
+    <bean id="cstudioWorkflowManager" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowManager">
+        <property name="workflowService" ref="cstudioWorkflowService" />
+        <property name="jobStateHandlers" >
+            <map>
+                <entry key="submit-for-translate">
+                    <map>
+                        <entry key="created">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
+                            </bean>
+                        </entry>
+                        <entry key="started">
+                            <!-- determine what items for be translated for each child site and submit workflows then end -->
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.KickoffTranslationWorkflowForWaterfallItemsHandler">
+                                <property name="siteService" ref="cstudioSiteServiceSimple" />
+                                <property name="translationService" ref="cstudioTranslationService" />
+                                <!--property name="dependencyService" ref="cstudioDmDependencyService" /-->
+                            </bean>
+                        </entry>
+                        <entry key="ended">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
+                        </entry>
+                    </map>
+                </entry>
+                <entry key="translate">
+                    <map>
+                        <entry key="created">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
+                            </bean>
+                        </entry>
+                        <entry key="started">
+                            <!-- send item out for translation and start waiting for it to complete -->
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.SendItemOutForTranslationHandler">
+                                <property name="translationService" ref="cstudioTranslationService" />
+                            </bean>
+                        </entry>
+                        <entry key="WAITING-FOR-TRANSLATION">
+                            <!-- check translation status on item until it's complete -->
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateItemTranslationStatusHandler">
+                                <property name="translationService" ref="cstudioTranslationService" />
+                            </bean>
+                        </entry>
+                        <entry key="TRANSLATION-COMPLETE">
+                            <!-- retrieve item from translation provider, add to project and submit for review -->
+                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateProjectWithTranslationHandler">
+                                <property name="translationService" ref="cstudioTranslationService" />
+                            </bean>
+                        </entry>
+                        <entry key="SITE-UPDATED-WITH-TRANSLATED-CONTENT">
+                            <!-- retrieve item from translation provider, add to project and submit for review -->
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.SubmitContentforApprovalHandler"/>
+                        </entry>
+                        <entry key="ended">
+                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
+                        </entry>
+                    </map>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <!-- Jobs -->
+    <bean id="cstudioRepositoryJob" abstract="true" class="org.craftercms.studio.impl.v1.job.RepositoryJob">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="password" value="${repositoryJob.password}" />
+        <property name="userName" value="${repositoryJob.username}" />
+    </bean>
+    <bean id="cstudioProcessInFlightJobs" class="org.craftercms.studio.impl.v1.service.workflow.job.ProcessInFlightJobs">
+        <property name="workflowService" ref="cstudioWorkflowService" />
+        <property name="workflowManager" ref="cstudioWorkflowManager"/>
+        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
+         <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore"
+          parent="cstudioRepositoryJob">
+        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
+        <property name="publishingManager" ref="cstudioPublishingManager" />
+        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="processingChunkSize" value="${deployContentToEnvironmentJob.processingChunkSize}" />
+        <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
+        <property name="mandatoryDependenciesCheckEnabled" value="${deployContentToEnvironmentJob.mandatoryDependenciesCheckEnabled}" />
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="notificationService" ref="cstudioNotificationService"/>
+    </bean>
+
+    <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
+            parent="cstudioRepositoryJob">
+        <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
+        <property name="maxTolerableRetries" value="${syncTargetsJob.maxTolerableRetries}" />
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="publishingManager" ref="cstudioPublishingManager" />
+        <property name="notificationService" ref="cstudioNotificationService"/>
+    </bean>
+
+    <!-- scheduled actions -->
+    <bean id="cstudioProcessInFlightJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+              <property name="targetObject" ref="cstudioProcessInFlightJobs"/>
+               <property name="targetMethod" value="execute"/>
+            </bean>
+        </property>
+        <property name="repeatInterval" value="5000" />  
+        <property name="startDelay" value="1000" />  
+    </bean>
+
+    <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="cstudioDeployContentToEnvironmentJobs"/>
+                <property name="targetMethod" value="execute"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval" value="10000" />
+        <property name="startDelay" value="2000" />
+    </bean>
+
+    <bean id="cstudioPublishContentToDeploymentTargetJobSchedule" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="cstudioPublishContentToDeploymentTargetJob"/>
+                <property name="targetMethod" value="execute"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval" value="10000" />
+        <property name="startDelay" value="4000" />
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
+                <ref bean="cstudioPublishContentToDeploymentTargetJobSchedule" />
+            </list>
+        </property>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         workflow                       -->
+    <!-- ////////////////////////////////////// -->
+    <!-- DALs -->
+    <bean id="cstudioWorkflowJobDAL" class="org.craftercms.studio.impl.v1.service.workflow.dal.InMemoryWorkflowJobDAL"/>
+    <!--bean id="cstudioWorkflowJobDAL" class="org.craftercms.cstudio.impl.service.workflow.dal.DbWorkflowJobDAL"
+          init-method="initTable">
+        <property name="sqlMap" ref="cstudioWorkflowSqlMap"/>
+        <property name="initializeScriptPath" value="/workflow/${hibernate.dialect}/initialize.sql"/>
+    </bean-->
+
+    <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="dmPublishService" ref="cstudioDmPublishService"/>
+    </bean>
+
+    <bean id="cstudioWorkflowListener" class="org.craftercms.studio.impl.v1.listener.DmWorkflowListenerImpl">
+        <property name="cache" ref="cstudioCacheManager"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         repository layer               -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepository">
+        <property name="repositoryType" value="${repositoryType}"/>
+    </bean>
+
+    <bean id="cstudioContentRepositoryRegistration" 
+          abstract="true" 
+          class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepositoryRegistration"
+          init-method="registerRepository">
+        <property name="mappedContentRepository" ref="cstudioContentRepository"/>
+    </bean>
+    
+    <!-- default option -->
+    <bean id="cstudioDiskContentRepository" 
+        class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
+        init-method="bootstrap">
+        <property name="repositoryReactor" ref="repositoryReactor"/>
+        <property name="rootPath" value="${repository.diskImplementation.path}" />
+        <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
+    </bean>
+
+    <bean id="cstudioDiskContentRepositoryRegistration" 
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioDiskContentRepository"/>
+        <property name="repositoryType" value="default"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         Security layer               -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
+        <property name="providerType" value="${securityType}"/>
+    </bean>
+
+    <bean id="cstudioSecurityProviderRegistration" 
+          abstract="true" 
+          class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProviderRegistration"
+          init-method="registerProvider">
+        <property name="mappedSecurityProvider" ref="securityProvider"/>
+    </bean>
+
+    <bean id="cstudioFauxSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.TestSecurityProvider">
+    </bean>
+
+    <bean id="cstudioFauxSecurityProviderRegistration" 
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioFauxSecurityProvider"/>
+        <property name="providerType" value="default"/>
+    </bean>
+
+    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
+         do anything.  Remember another repostory may be configured for use and Alfresco 
+         may not exist on the server. I.e. evaluation
+     -->
+    <import resource="classpath*:crafter/studio/studio-alfresco-context.xml" />
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Object type filters                   -->
+    <!-- ////////////////////////////////////// -->
+    <!-- this should be refactored and moved in to repo based config -->
+    <!-- DM filters -->
+    <bean id="cstudioDmFilterWrapper" class="org.craftercms.studio.api.v1.util.filter.DmFilterWrapperImpl">
+        <property name="filterMap">
+            <map>
+                <entry key="pages">
+                    <ref bean="cstudioPagesFilter"/>
+                </entry>
+                <entry key="components">
+                    <ref bean="cstudioComponentsFilter"/>
+                </entry>
+                <entry key="documents">
+                    <ref bean="cstudioDocumentsFilter"/>
+                </entry>
+                <entry key="all">
+                    <ref bean="cstudioAllFilter"/>
+                </entry>
+            </map>
+        </property>
+        <property name="defaultFilter" ref="cstudioAllFilter"/>
+        <property name="servicesManager" ref="cstudioServicesManager" />
+    </bean>
+
+    <bean id="cstudioPagesFilter" class="org.craftercms.studio.api.v1.util.filter.PageFilter">
+        <property name="includePattern"><value>${cstudioPagesFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioComponentsFilter" class="org.craftercms.studio.api.v1.util.filter.ComponentFilter">
+        <property name="includePattern"><value>${cstudioComponentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioDocumentsFilter" class="org.craftercms.studio.api.v1.util.filter.DocumentFilter">
+        <property name="includePattern"><value>${cstudioDocumentsFilter.includePattern}</value></property>
+    </bean>
+
+    <bean id="cstudioAllFilter" class="org.craftercms.studio.api.v1.util.filter.AllFilter">
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--           Action Executors             -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioProcessContentExecutor" class="org.craftercms.studio.impl.v1.executor.ProcessContentExecutorImpl">
+        <property name="processorChains">
+            <map>
+                <entry key="assetContent"><ref bean="cstudioAssetContentProcessorPipeline"/></entry>
+                <entry key="assetContentCleanDraft"><ref bean="cstudioAssetCleanContentProcessorPipeline"/></entry>
+                <entry key="plainContent"><ref bean="cstudioPlainContentProcessorPipeline"/></entry>
+                <entry key="formContent"><ref bean="cstudioFormContentProcessorPipeline"/></entry>
+                <entry key="previewformContent"><ref bean="cstudioPreviewFormContentProcessorPipeline"/></entry>
+                <entry key="importContent"><ref bean="cstudioImportContentProcessorPipeline"/></entry>
+            </map>
+        </property>
+         <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Content processor pipelines      -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioAssetContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioFileFolderPathProcessor"></ref>
+                <ref bean="cstudioCheckImageSizeProcessor"></ref>
+                <ref bean="cstudioAssetDmContentProcessor"></ref>
+                <ref bean="cstudioExtractAssetDependencyProcessor"></ref>
+                <ref bean="cstudioPostActivityProcessor"></ref>
+                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioAssetCleanContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioFileFolderPathProcessor"></ref>
+                <ref bean="cstudioCheckImageSizeProcessor"></ref>
+                <ref bean="cstudioAssetDmContentProcessor"></ref>
+                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
+                <ref bean="cstudioPostActivityProcessor"></ref>
+                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioPlainContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioFileFolderPathProcessor"></ref>
+                <ref bean="cstudioFormDmContentProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioExtractParamsProcessor"></ref>
+                <ref bean="cstudioFormNavOrderProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"></ref>
+                <ref bean="cstudioCleanWorkContentProcessor"></ref>
+                <ref bean="cstudioFormDmContentProcessor"></ref>
+                <!--<ref bean="cstudioWcmSnapshotProcessor"></ref>-->
+                <ref bean="cstudioCleanPreviewContentProcessor"></ref>
+                <ref bean="cstudioExtractMetadataProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioDmWorkflowProcessor"></ref>
+                <ref bean="cstudioPostActivityProcessor"></ref>
+                <ref bean="cstudioContentLifeCycleProcessor"></ref>
+                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioPreviewFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioExtractParamsProcessor"></ref>
+                <ref bean="cstudioFormDmContentProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioImportContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
+        <property name="chain">
+            <list>
+                <ref bean="cstudioExtractParamsProcessor"></ref>
+                <ref bean="cstudioFormNavOrderProcessor"></ref>
+                <ref bean="cstudioFileFolderPathProcessor"></ref>
+                <ref bean="cstudioImportContentProcessor"></ref>
+                <ref bean="cstudioExtractMetadataProcessor"></ref>
+                <ref bean="cstudioExtractDependencyProcessor"></ref>
+                <ref bean="cstudioPostActivityProcessor"></ref>
+                <ref bean="cstudioContentLifeCycleProcessor"></ref>
+                <ref bean="cstudioInvalidateCacheProcessor"></ref>
+            </list>
+        </property>
+    </bean>
+    <!-- ///////////////////////////// -->
+    <!--       Content processors      -->
+    <!-- //////////////////////////// -->
+    <bean id="cstudioFileFolderPathProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FileFolderPathProcessor"/>
+
+    <bean id="cstudioCheckImageSizeProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CheckImageSizeProcessor"/>
+
+    <bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor">
+        <property name="assetsSystemPath" value="${AssetsContentProccessot.assetsSystemPath}" />
+        <property name="workflowService" ref="cstudioWorkflowService" />
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+    </bean>
+
+    <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+    </bean>
+
+    <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
+    </bean>
+
+    <bean id="cstudioCleanPreviewContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanPreviewContentProcessor">
+    </bean>
+
+    <bean id="cstudioFormDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormDmContentProcessor">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+    </bean>
+
+    <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">
+        <property name="params">
+            <map>
+                <entry><key><value>fileName</value></key><value>file-name</value></entry>
+                <entry><key><value>contentType</value></key><value>content-type</value></entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="cstudioFormNavOrderProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormNavOrderProcessor">
+        <property name="pageNavOrderService" ref="cstudioPageNavOrderService" />
+    </bean>
+
+    <bean id="cstudioCleanWorkContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanWorkContentProcessor"/>
+
+    <bean id="cstudioExtractMetadataProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractMetadataProcessor">
+        <property name="dmMetadataService" ref="cstudioDmMetadataService" />
+    </bean>
+
+    <bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+    </bean>
+
+    <bean id="cstudioDmWorkflowProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.DmWorkflowProcessor"/>
+
+    <bean id="cstudioContentLifeCycleProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ContentLifeCycleProcessor">
+        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
+    </bean>
+
+    <bean id="cstudioImportContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ImportDmContentProcessor">
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="workflowService" ref="cstudioWorkflowService"/>
+    </bean>
+
+    <!-- ///////////////////////////// -->
+    <!--       Deployers               -->
+    <!-- ///////////////////////////// -->
+    <bean id="cstudioDeployerFactory" class="org.craftercms.studio.impl.v1.deployment.DeployerFactory" scope="singleton">
+        <property name="defaultServer" value="${crafter.deployer.server}"/>
+        <property name="defaultPort" value="${crafter.deployer.port}"/>
+        <property name="defaultTarget" value="${crafter.deployer.target}"/>
+        <property name="defaultPassword" value="${crafter.deployer.password}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+    </bean>
+
+    <bean id="studioPreviewDeployer" factory-bean="cstudioDeployerFactory" factory-method="createPreviewDeployer"/>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         publishing manager             -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="cstudioPublishingManager" class="org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl">
+        <property name="indexFile" value="${publishingManager.indexFile}" />
+        <property name="importModeEnabled" value="${publishingManager.importModeEnabled}" />
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="objectStateService" ref="cstudioObjectStateService" />
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService" />
+        <property name="deploymentService" ref="cstudioDeploymentService"/>
+        <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="deployerFactory" ref="cstudioDeployerFactory"/>
+        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <!-- Dependency Rules -->
+    <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="contentSpecificDependencies">
+            <list>
+                <value>/components/page/.*</value>
+                <value>/static-assets/page/.*</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Application Listeners -->
+    <bean class="org.craftercms.studio.impl.v1.util.spring.context.SiteConfigurationLoader">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="adminUser" value="${repositoryJob.username}"/>
+        <property name="adminPassword" value="${repositoryJob.password}"/>
+    </bean>
+
+    <!-- Utilities -->
+    <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
+
+    <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
+        <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
+    </bean>
+
+    <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
+</beans>

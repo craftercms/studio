@@ -40,7 +40,8 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 	this.renderItemsHeading = function() {
 	
 		var widgetId = this._self.widgetId;
-		var header = WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColGoLiveDate"),"minimize")+
+		var header = WcmDashboardWidgetCommon.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize")+
+                     WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColGoLiveDate"),"minimize")+
                      WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColEdit"),"minimize")+
 		             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletApprovedSchedColURL"),"maximize")+
 		             "<th id='fullUri' class='width0'></th>"+
@@ -55,17 +56,18 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";		
 		liLoadingEl.appendChild(imgEl);
 		containerEl.appendChild(liLoadingEl);
-		var filterBydiv =  document.createElement("div");
-		YDom.addClass(filterBydiv, "widget-FilterBy");
+		var filterBydiv =  document.createElement("li");
+
 
 		var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
 										pageId,
 										widgetId,
 										"widgetFilterBy");
-		var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
+
+        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
 		containerEl.appendChild(filterBydiv);
-		filterBydiv.innerHTML = CMgs.format(langBundle, "dashletApprovedSchedShow")
-		filterByEl.style.marginLeft = "3px";
+		//filterBydiv.innerHTML = CMgs.format(langBundle, "dashletApprovedSchedShow");
+
 		filterBydiv.appendChild(filterByEl);
 		
 		filterByEl._self = this;
@@ -110,7 +112,7 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
 
         if (isFirst) {
 
-            html.push('<td>');
+            html.push('<td colspan="4">');
 
             if (item.numOfChildren > 0) {
                 var parentClass = ['wcm-table-parent-', name, '-', count].join("");
@@ -127,7 +129,7 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
                     displayName, ' (', item.numOfChildren, ')',
                 '</span>',
                 '</td>',
-                '<td colspan="4">&nbsp;</td>'
+                '<td colspan="1">&nbsp;</td>'
             ]);
 
         } else {
@@ -164,22 +166,21 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
                 lastEditTime = CStudioAuthoring.Utils.formatDateFromString(item.lastEditDateAsString);
             }
             
-            if(item.uri.indexOf(".xml") != -1) {
-                WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-            }
-
+  
+            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
+  
             html = html.concat([
-                '<td>',
-                    '<div class="dashlet-cell-wrp">',
-                        '<div class="dashlet-ident">',
+                '<td style="padding-right:0px">',
+                    '<div class="dashlet-ident">',
                             '<input type="checkbox" class="dashlet-item-check" id="', uri, '"', (item.inFlight ? ' disabled' : ''), ' />',
-                            '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
-                                '<a href="#" class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
-                                    displayName,
-                                '</a>',
-                            '</span>',
-                        '</div>',
                     '</div>',
+                '</td>',
+                '<td style="padding-left:0px">'+
+                    '<span class="', itemIconStatus, (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
+                        '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
+                            displayName, (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
+                        '</a>',
+                    '</span>',
                 '</td>',
                 '<td id="' + editLinkId + '"></td>',
                 "<td title='",browserUri,"'>", displayBrowserUri, "</td>",

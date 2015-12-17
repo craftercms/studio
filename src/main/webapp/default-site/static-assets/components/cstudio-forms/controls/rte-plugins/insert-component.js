@@ -40,7 +40,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 	    createControl: function(n, cm) {
 	    	var editor = cm.editor,
 				model = editor.contextControl.form.model,
-				rteWidgets = editor.contextControl.rteConfig.rteWidgets,
+				rteWidgets = editor.contextControl.rteConfig.rteWidgets.widget,
 				_self = this;
 
 			if (n == 'insertComponent') {
@@ -94,7 +94,8 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 
 							var onclickFn = function() {
 								var formSaveCb = { 
-									success: function(formName, name, value) {
+									success: function(contentTO, a, b, c) {
+										var name = contentTO.item.uri;
 										var id = name.substring(name.lastIndexOf("/")+1).replace(".xml", "");
 										
 										if(!model['rteComponents']) {
@@ -238,23 +239,19 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 			var componentEl = editor.dom.doc.getElementById(componentItem.id);
 			var _self = this;
 			
-			if(componentEl) {
+			if (componentEl) {
 				try {
 					componentEl.innerHTML = WAITING_IMG;
-					previewCb = {
-						success: function(content) {
-							componentEl.innerHTML = content;
-							YAHOO.util.Dom.addClass(componentEl, 'mceNonEditable');
-						},
-						
-						failure: function() {
-							componentEl.innerHTML = ERROR_IMG;
-						}
-					};
-					
-					CStudioAuthoring.Service.getComponentPreview(componentItem.contentId, previewCb);		
-				}
-				catch(err) {
+					CStudioAuthoring.Service.getComponentPreview(componentItem.contentId, {
+                        success: function(content) {
+                            componentEl.innerHTML = content;
+                            YAHOO.util.Dom.addClass(componentEl, 'mceNonEditable');
+                        },
+                        failure: function() {
+                            componentEl.innerHTML = ERROR_IMG;
+                        }
+                    });
+				} catch(err) {
 				}
 			}
 	    },

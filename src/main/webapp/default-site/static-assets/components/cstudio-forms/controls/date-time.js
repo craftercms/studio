@@ -27,7 +27,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Date / Time";
+        return CMgs.format(langBundle, "dateTime");
     },
 
 	validate: function(evt, obj, dateCheck) {
@@ -70,6 +70,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		}
 		return valid;
 	},
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+    },
 
 	// Get the UTC date representation for what is currently in the UI fields (date/time)
 	// Returns a date/time value in a string (see getConvertFormat for value format)
@@ -143,11 +147,12 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
         this.setDateTime(mm + '/' + dd + '/' + yyyy, 'date');
         calendarObj.hide();
+        this._onChangeVal(null, this)
 	},
 	
 	createServiceUri: function(time, srcTimezone, destTimezone, dateFormat){
 		var baseUrl = CStudioAuthoringContext.authoringAppBaseUri;
-		var serviceUrl = "/studio/api/1/services/util/time/convert-time.json?";
+		var serviceUrl = "/api/1/services/util/time/convert-time.json?";
 		var url = baseUrl;
 		url += serviceUrl;
 		url += "time=" + time;
@@ -571,6 +576,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 			};
 			this.getCurrentDateTime(nowObj, this.timezone, cb);
+            this._onChangeVal(null, this);
 
 		}, this, true);
 		containerEl.appendChild(dl);
@@ -633,7 +639,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		var divPrefix = this.id + "-";
 
 		var titleEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(titleEl, 'label');
+
 	        YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 		    titleEl.innerHTML = config.title;
 		
@@ -666,7 +672,9 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 				if (this.readonly)	{
 					dateEl.disabled = true;	
-				} 
+				}
+
+                YAHOO.util.Event.on(dateEl, 'change',  this._onChangeVal, this);
             }
 		
 		    if (this.showTime) {
@@ -688,11 +696,13 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		            incrementControlEl.type="button";
 		            incrementControlEl.id=divPrefix + "timeIncrementButton";
 		            incrementControlEl.className = "time-increment";
+                    YAHOO.util.Event.on(incrementControlEl, 'click',  this._onChangeVal, this);
 
 		       		decrementControlEl = document.createElement("input");
 		            decrementControlEl.type="button";
 		            decrementControlEl.id=divPrefix + "timeDecrementButton";
 		            decrementControlEl.className = "time-decrement";
+                    YAHOO.util.Event.on(decrementControlEl, 'click',  this._onChangeVal, this);
 
 		            timeWrapper.appendChild(incrementControlEl);
 		            timeWrapper.appendChild(decrementControlEl);
@@ -712,6 +722,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		     		var caretPos = this.saveCaretPosition(timeEl);
 		     		timeEl.setAttribute("data-cursor", caretPos);
 				}, timeEl, this);
+
+                YAHOO.util.Event.on(timeEl, 'change',  this._onChangeVal, this);
 
 				YAHOO.util.Event.addListener(timeEl, 'keyup', function(e) {
 					var caretPos = this.saveCaretPosition(timeEl);
@@ -744,6 +756,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
       		YAHOO.util.Event.addListener(clearDateEl, 'click', function(e) {
       				YAHOO.util.Event.preventDefault(e);
+                    this._onChangeVal(null, this);
 			     		this.setDateTime('', 'date');
 			     		this.setDateTime('', 'time');
 					}, clearDateEl, this);
@@ -1019,7 +1032,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		this.getCurrentDateTime(nowObj, configTimezone, cb);
 	},
 	
-	setValue: function(value) {		
+	setValue: function(value) {
+        this.edited = false;
 		var timezoneCb = {
 			context: this,
 			
@@ -1055,19 +1069,19 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-		        { label: "Show Date", name: "showDate", type: "boolean", defaultValue: "true" },
-				{ label: "Show Time", name: "showTime", type: "boolean" },
-				{ label: "Set Now Link", name: "showNowLink", type: "boolean", defaultValue: "false" },
-				{ label: "Populated", name: "populate", type: "boolean", defaultValue: "true" },
-				{ label: "Allow Past Date", name: "allowPastDate", type: "boolean", defaultValue: "false" },
-				{ label: "Readonly", name: "readonly", type: "boolean" },
-				{ label: "Readonly on Edit", name: "readonlyEdit", type: "boolean", defaultValue: "false" }
+		        { label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
+				{ label: CMgs.format(langBundle, "showTime"), name: "showTime", type: "boolean" },
+				{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
+				{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
+				{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },
+				{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
+				{ label: CMgs.format(langBundle, "readonlyOnEdit"), name: "readonlyEdit", type: "boolean", defaultValue: "false" }
 			];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	}
 });

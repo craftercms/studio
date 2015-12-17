@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/image</content-type>	<display-template>/templates/web/image-component.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5e7a</objectGroupId>
+	<objectId>5e7a026d-07ac-c0fb-5172-d6b1309f9d5b</objectId>
+	<file-name>5e7a026d-07ac-c0fb-5172-d6b1309f9d5b.xml</file-name>
+	<folder-name/>
+	<image>/static-assets/page/images/{groupid}/{objectid}/cms-fashionbloggers.png</image>
+	<alttext>New Looks</alttext>
+	<createdDate>02/09/2013 10:39:24</createdDate>
+	<lastModifiedDate>02/09/2013 10:39:24</lastModifiedDate>
+</component>

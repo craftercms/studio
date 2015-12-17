@@ -1,4 +1,4 @@
-CStudioAuthoring.Utils.addJavascript(CStudioAuthoringContext.authoringAppBaseUri + "/static-assets/yui/carousel/carousel-min.js");
+CStudioAuthoring.Utils.addJavascript('/static-assets/yui/carousel/carousel-min.js');
 
 CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
@@ -19,136 +19,121 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 	
 	firstExpand: function(containerEl, config) {
 
-		CStudioAuthoring.Service.lookupConfigurtion(
-				CStudioAuthoringContext.site, 
-				"/targeting/personas/personas-config.xml", 
-				{
-					success: function(config) {
-						var userRotateHtml = "<div id='preview-tools-panel-persona-selected' ></div><div id='preview-tools-panel-persona-selected-title' ></div><div id='container'><ol id=''> </ol> </div>";
+        CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/targeting/personas/personas-config.xml',  {
+            success: function(config) {
+                var userRotateHtml = '<div id="preview-tools-panel-persona-selected"></div><div id="preview-tools-panel-persona-selected-title" ></div><div id="container"><ol></ol></div>';
 
-                        userRotateContainerEl = document.createElement("div");
-                        userRotateContainerEl.innerHTML = userRotateHtml;
-						containerEl.appendChild(userRotateContainerEl);
+                userRotateContainerEl = document.createElement("div");
+                userRotateContainerEl.innerHTML = userRotateHtml;
+                containerEl.appendChild(userRotateContainerEl);
 
-						var sliderEl = document.getElementById('container');
-						
-						var personalListEl = document.createElement("OL");
-						personalListEl.id = "craftercmspersonacarousel";
-						sliderEl.appendChild(personalListEl);
-						
-						if(!config.length) {
-							config = [config.persona];
-						}
-						
-						for(var i=0; i<config.length; i++) {
-							var personaEl = document.createElement("LI");
-							var personaImgEl = document.createElement("IMG");
-							personaImgEl.style.height = "50px";
-							personaImgEl.style.width = "50px";
+                var sliderEl = document.getElementById('container');
 
-							personaEl.appendChild(personaImgEl);
+                var personalListEl = document.createElement("OL");
+                personalListEl.id = "craftercmspersonacarousel";
+                sliderEl.appendChild(personalListEl);
 
-							personaEl.personaName = config[i].name;
-							personaEl.personaDescription = config[i].description;
-							
-							if(config[i].settings) {
-								if(config[i].settings.property) {
-									if(config[i].settings.property.length) {
-										
-									}
-									else {
-										personaEl.personaProps = [];
-									}
-								}
-								else {
-									personaEl.personaProps = [];
-								}								
-							}
-							else {
-								personaEl.personaProps = [];
-							}
+                (config.persona) && (config = config.persona);
+                if(!config.length) {
+                    config = [config];
+                }
 
-							personaEl.personaDescription = config[i].description;
-							personaImgEl.src = CStudioAuthoringContext.baseUri + '/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
-							
-							personalListEl.appendChild(personaEl);
-						}
+                for (var i = 0; i < config.length; ++i) {
 
-						
-						
-						var spotlightEl = document.getElementById('preview-tools-panel-persona-selected');
-						var spotlightTitleEl = document.getElementById('preview-tools-panel-persona-selected-title');
+                    var personaEl = document.createElement("li");
+                    var personaImgEl = document.createElement("img");
+                    personaImgEl.style.height = "50px";
+                    personaImgEl.style.width = "50px";
 
-					    var carousel = new YAHOO.widget.Carousel(sliderEl, {
-					      isCircular: true,
-					      numVisible: 4
-					    });
+                    personaEl.appendChild(personaImgEl);
 
-						carousel.parentControl = this;
-						var getImageFn = function(parent) {
-							var el = parent.firstChild;
-  							while (el) {  
-    							if (el.nodeName.toUpperCase() == "IMG") { 	
-							      return el.src.replace(/_s\.jpg$/, "_m.jpg");
-    							}
-    							el = el.nextSibling;
-  							}
-							
-							return "";
-						};	
+                    personaEl.personaName = config[i].name;
+                    personaEl.personaDescription = config[i].description;
 
-						CStudioAuthoring.TargetingPanel.carousel = carousel;
-						carousel.getImageFn = getImageFn;
-						carousel.spotlightTitleEl = spotlightTitleEl;
-						carousel.spotlightEl = spotlightEl;
-						carousel.personas = config;
-						carousel.on("itemSelected", CStudioAuthoring.TargetingPanel.selectPersona);
-						 
-					    carousel.render();
-					    carousel.show();
+                    if (!(config[i].settings && config[i].settings.property && config[i].settings.property.length)) {
+                        personaEl.personaProps = [];
+                    }
+
+                    personaEl.personaDescription = config[i].description;
+                    personaImgEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/"+config[i].thumb;
+
+                    personalListEl.appendChild(personaEl);
+                }
+
+                var spotlightEl = document.getElementById('preview-tools-panel-persona-selected');
+                var spotlightTitleEl = document.getElementById('preview-tools-panel-persona-selected-title');
+
+                var carousel = new YAHOO.widget.Carousel(sliderEl, {
+                    isCircular: true,
+                    numVisible: 3
+                });
+
+                carousel.parentControl = this;
+                var getImageFn = function(parent) {
+                    var el = parent.firstChild;
+                    while (el) {
+                        if (el.nodeName.toUpperCase() == "IMG") {
+                            return el.src.replace(/_s\.jpg$/, "_m.jpg");
+                        }
+                        el = el.nextSibling;
+                    }
+
+                    return "";
+                };
+
+                CStudioAuthoring.TargetingPanel.carousel = carousel;
+                carousel.getImageFn = getImageFn;
+                carousel.spotlightTitleEl = spotlightTitleEl;
+                carousel.spotlightEl = spotlightEl;
+                carousel.personas = config;
+                carousel.on("itemSelected", CStudioAuthoring.TargetingPanel.selectPersona);
+
+                carousel.render();
+                carousel.show();
+
+                var leftArrow = document.getElementById('container').getElementsByTagName('button')[0];
+                leftArrow.innerHTML = "<";
+                var rightArrow = document.getElementById('container').getElementsByTagName('button')[1];
+                rightArrow.innerHTML = ">";
 
 
-					
-					var getCurrentCallback = {
-						success: function(oResponse) {
-							var json = oResponse.responseText;
-							var currentProfile = eval("(" + json + ")");
-							
-							for(var i=0; i<config.length; i++) {
-								if(config[i].name.toLowerCase() == currentProfile.username.toLowerCase()) {
-									carousel.activePersona = currentProfile;
-									CStudioAuthoring.TargetingPanel.selectPersona(i);
-									break;
-								}
-							}
-							
-							if(!carousel.activePersona) {
-								for(var i=0; i<config.length; i++) {
-									if(config[i].name.toLowerCase() == "anonymous") {
-										persona = config[i];
-										carousel.activePersona = {"username":"Anonymous"};
-										CStudioAuthoring.TargetingPanel.selectPersona(i);
-										break;		
-									}
-								}	
-							} 
 
-						},
-						failure: function() {
-						}
-					};
-					
-					var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get");
-					YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
+                var getCurrentCallback = {
+                    success: function(oResponse) {
+                        var json = oResponse.responseText;
+                        var currentProfile = eval("(" + json + ")");
+
+                        for(var i=0; i<config.length; i++) {
+                            if(config[i].name.toLowerCase() == currentProfile.username.toLowerCase()) {
+                                carousel.activePersona = currentProfile;
+                                CStudioAuthoring.TargetingPanel.selectPersona(i);
+                                break;
+                            }
+                        }
+
+                        if(!carousel.activePersona) {
+                            for(var i=0; i<config.length; i++) {
+                                if(config[i].name.toLowerCase() == "anonymous") {
+                                    persona = config[i];
+                                    carousel.activePersona = {"username":"Anonymous"};
+                                    CStudioAuthoring.TargetingPanel.selectPersona(i);
+                                    break;
+                                }
+                            }
+                        }
+
+                    },
+                    failure: CStudioAuthoring.Utils.noop
+                };
+
+                var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get");
+                YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
 
 
-					},
-				
-					failure: function() {
-					},
-				
-					context: this
-				});	
+            },
+            failure: CStudioAuthoring.Utils.noop,
+            context: this
+        });	
 	},
 	
 	
@@ -165,8 +150,9 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 		
 			reportContainerEl.style.position = "fixed";
 			reportContainerEl.style.width = "800px";
-			reportContainerEl.style.height = "300px";
-			reportContainerEl.style.top = "100px";
+			reportContainerEl.style.height = "auto";
+            reportContainerEl.style.minHeight = "300px";
+			reportContainerEl.style.top = "96px";
 		
 			var x = (window.innerWidth / 2) - (reportContainerEl.offsetWidth / 2) - 400;
 			reportContainerEl.style.left = x+"px";
@@ -188,8 +174,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							}
 						}
 					},
-					failure: function() {
-					}
+                    failure: CStudioAuthoring.Utils.noop
 				};
 				
 				var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get");
@@ -245,17 +230,17 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 							var overlayHtml = "";
 							if(reportContainerEl) {
 								overlayHtml = 
-									"<div style='color: white; font-weight: bold; font-size: 20px; font-family: Arial,Helvetica; margin: 15px;'>Persona: "+item.personaName;
+									"<div class='persona-container'><div style='font-weight: bold; font-size: 20px; margin: 15px;'>"+CMgs.format(previewLangBundle, "persona")+": "+item.personaName;
 									
 									if(carousel.activePersona.username == item.personaName) {
-										overlayHtml +=	" (Active) "
+										overlayHtml +=	" ("+CMgs.format(previewLangBundle, "active")+") "
 									}
 									
 								overlayHtml +=	
 									"</div>" +
-									"<img style='position: static; float: left; border:1px solid white; margin-left:15px; margin-right:15px;' width='150px' height='150px' src='" + carousel.getImageFn(item) + "'\>" +
-									"<div style='color: white; font-size: 15px; font-family: Arial,Helvetica; margin: 15px;'>"+item.personaDescription+"</div>" +
-									"<div style='color: white; font-weight: bold; font-size: 20px; font-family: Arial,Helvetica; margin: 15px;'>Properties</div>";
+									"<img src='" + carousel.getImageFn(item) + "'\>" +
+									"<div style='font-size: 15px; margin: 15px;'>"+item.personaDescription+"</div>" +
+									"<div style='font-weight: bold; font-size: 20px;'>"+CMgs.format(previewLangBundle, "properties")+"</div>";
 									
 									
 									
@@ -263,20 +248,20 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 										overlayHtml += "<table>";
 									 
 									if(persona.settings) {
-										if(persona.settings.property || persona.settings.length) {	
+										if(persona.settings.property || Array.isArray(persona.settings)) {	
 											if(!persona.settings.length) {
-												persona.settings = [persona.settings.property];
+												persona.settings = persona.settings.property;
 											}							
 											
 											for(var j=0; j<persona.settings.length; j++){
 												var property =  persona.settings[j];
 												
-												overlayHtml += "<tr style='color:white'>" +
-												     "<td style='font-weight:bold' >" + property.label + "</td>";
+												overlayHtml += "<tr>" +
+												     "<td style='font-weight:bold; padding: 5px 16px 5px 0'; >" + property.label + "</td>";
 												     
 												     if(carousel.activePersona.username == item.personaName) {
 												     	overlayHtml += 
-												     	 "<td><input id='crPersona_" + property.name +"' "+ 
+												     	 "<td><input type='text' class='form-control' id='crPersona_" + property.name +"' "+
 												     	        "value='" + carousel.activePersonaAttributes[property.name] + "'/></td>"; 
 												     }
 												     else {
@@ -296,20 +281,41 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 
 									if(carousel.activePersona.username != item.personaName) {
 										overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Assume</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>"+CMgs.format(previewLangBundle, "assume")+"</div>";
 									}
 									else {
 									overlayHtml +=	
-									"<div id='csupdatepersona' style='line-height: 30px; text-align: center; width: 120px; height: 30px; float: right; background-image: url("+CStudioAuthoringContext.baseUri +"/static-assets/themes/cstudioTheme/images/overlay-green-button.png); color: white; font-weight: bold; font-size: 16px; font-family: Arial,Helvetica; cursor: pointer;  bottom:0px; position:absolute; right:0px;'>Update</div>";
+									"<div id='csupdatepersona' class='btn btn-primary'>"+CMgs.format(previewLangBundle, "update")+"</div>";
 									}
+									//overlayHtml += "<div id='cscancel' class='btn btn-default'>Cancel</div>";
+
+                                    overlayHtml += "</div>";
 									
 									
 									reportContainerEl.innerHTML = overlayHtml;
+
+
+                                    var personaContainer = document.getElementsByClassName('persona-container')[0];
+                                    //console.log(personaContainer.offsetHeight);
+                                    if(personaContainer.offsetHeight > 462){
+                                        personaContainer.style.overflowY = "scroll";
+                                    }else{
+                                        personaContainer.style.overflowY = "initial";
+                                        personaContainer.style.paddingBottom = "10px";
+                                    }
 									
 									
 									//if(carousel.activePersona != item.personaName) {
 										var assumePersonaEl = document.getElementById("csupdatepersona");
+										//var cancelPersonaEl = document.getElementById("cscancel");
+										var reportContainerEl = document.getElementById("cstudioPreviewAnalyticsOverlay");
 										
+										/*cancelPersonaEl.onclick = function(e) {
+										
+											reportContainerEl.style.display = "none";
+											
+										}; */
+
 										//assumePersonaEl.toggleFn = this.parentControl.context.toggleFn;
 										assumePersonaEl.onclick = function(e) {
 	
@@ -319,8 +325,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 													//this.control.toggleFn(this.event);
 													window.location.reload();
 												},
-												failure: function() {
-												},
+                                                failure: CStudioAuthoring.Utils.noop,
 												
 												control: this,
 												

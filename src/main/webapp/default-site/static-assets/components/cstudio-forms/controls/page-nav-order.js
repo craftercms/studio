@@ -21,8 +21,12 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, {
 
+    getFixedId: function() {
+        return "pageNavOrder";
+    },
+
     getLabel: function() {
-        return "Page Order";
+        return CMgs.format(langBundle, "pageOrder");
     },
 
 	_onChange: function(evt, obj) {
@@ -39,21 +43,31 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 		}
 	},
 
+    _onChangeVal: function(evt, obj, changeEvt) {
+        obj.edited = true;
+        if(changeEvt){
+            this._onChange(evt,obj);
+        }
+    },
+
 	showEditPosition: function() {
 		if (this.dropdownEl.value == 'true') {
 			this.editPositionEl.style.display = "inline";
 			if(!this.orderValue || this.orderValue === -1){
 				this.setOrderValue();
+                this._onChangeVal(null, this, false);
 			}else{
-				this._onChange(null, this);
+				this._onChangeVal(null, this, true);
 			}
 		} else {
 			this.editPositionEl.style.display = "none";
-			this._onChange(null, this);
+			this._onChangeVal(null, this, true);
 		}
 	},
 
 	showEditPositionDialog: function() {
+        var CMgs = CStudioAuthoring.Messages;
+        var langBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
 	    //Disable Edit Position button to not allow double clicks
 	    this.editPositionEl.disabled = true;
 
@@ -63,7 +77,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 	    var callback = {
 		    success: function(contentTypes) {                    
-				    var query = location.search.substring(1); 
+				    var query = location.search.substring(1);
 				    var currentPath = CStudioAuthoring.Utils.getQueryVariable(query, 'path');
 				    var contentTypeSize = contentTypes.order.length;
 
@@ -72,7 +86,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 					    var orderId = contentTypes.order[i].id;
 
 					    if (orderId == currentPath) {
-							contentTypes.order[i].internalName = "This Page";
+							contentTypes.order[i].internalName = CMgs.format(langBundle, "currentPage");
 							contentTypes.order[i].order = this.parentControl.orderValue;
 							pageFound = 'true';
 							break;
@@ -80,7 +94,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 					}
 
 					if (pageFound == 'false') {
-						contentTypes.order.push({id:currentPath, order:this.parentControl.orderValue, internalName:"This Page"});
+						contentTypes.order.push({id:currentPath, order:this.parentControl.orderValue, internalName:CMgs.format(langBundle, "currentPage"), name:CMgs.format(langBundle, "currentPage")});
 					}
 
 				    panelId = 'panel1';
@@ -114,7 +128,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 		}
 		
 		var titleEl = document.createElement("span");
-  		    YAHOO.util.Dom.addClass(titleEl, 'label');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 
@@ -145,10 +159,11 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 		var editPositionEl = document.createElement("input");
 			this.editPositionEl = editPositionEl;
-			YAHOO.util.Dom.addClass(editPositionEl, 'cstudio-button');
+			YAHOO.util.Dom.addClass(editPositionEl, 'btn btn-primary');
 			editPositionEl.type = "button";
 			editPositionEl.value = "Edit Position";
-			editPositionEl.style.paddingLeft = "10px";
+			editPositionEl.style.padding = "1px 5px";
+            editPositionEl.style.marginLeft = "5px";
 			editPositionEl.style.display = "none";
 			controlWidgetContainerEl.appendChild(editPositionEl);
 
@@ -210,6 +225,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 	
 	setValue: function(value) {
 		this.value = value;
+        this.edited = false;
 		
 		if( value === "true" || value === true){
 			this.dropdownEl.value = "true";
@@ -236,13 +252,13 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 
 	getSupportedProperties: function() {
 		return [
-		   { label: "Readonly", name: "readonly", type: "boolean"}
+		   { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean"}
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

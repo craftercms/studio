@@ -52,40 +52,55 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		newdiv.className= "yui-pe-content";
         newdiv.innerHTML = '<div class="contentTypePopupInner" id="upload-popup-inner">' +
                            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
-                           '<div class="contentTypePopupHeader">Create Content Type</div> ' +
+                           '<div class="contentTypePopupHeader">'+CMgs.format(formsLangBundle, 'newContTypeDialogTitle')+'</div> ' +
                            '<div class="content">'+
-                             '<label for="contentTypeDisplayName"><span>Display Label:</span>'+
-                             '<input title="Provide a display label for this content type" id="contentTypeDisplayName" type="text"></label>' +
-                             '<label for="contentTypeName"><span>System Name:</span>'+
-                             '<input title="Provide a system name for this content type" id="contentTypeName" type="text"></label>' +
-                             '<div class="selectInput">' +
-                             '<label for="contentTypeObjectType">Type:</label>'+
-                             '<select title="Select the type for this content type" id="contentTypeObjectType">' + 
-                             '</select></div>' +
-                             '<label class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
-                             '<input id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
+                             '<div class="contentTypeOuter">'+
+                                '<label for="contentTypeDisplayName"><span>'+CMgs.format(formsLangBundle, 'newContTypeDialogDisplayLabel')+':</span>'+
+                                '<input title="'+CMgs.format(formsLangBundle, 'newContTypeDialogLabelMsg')+'" id="contentTypeDisplayName" type="text"></label>' +
+                                '<label for="contentTypeName"><span>'+CMgs.format(formsLangBundle, 'newContTypeDialogContentTypeName')+':</span>'+
+                                '<input style="disabled" title="'+CMgs.format(formsLangBundle, 'newContTypeDialogContentTypeNamelMsg')+'" id="contentTypeName" type="text"></label>' +
+                                '<div class="selectInput">' +
+                                '<label for="contentTypeObjectType">'+CMgs.format(formsLangBundle, 'newContTypeDialogType')+':</label>'+
+                                '<select title="'+CMgs.format(formsLangBundle, 'newContTypeDialogTypeMsg')+'" id="contentTypeObjectType">' +
+                                '</select></div>' +
+                                '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>'+
+                                '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
+                             '</div>' +
                              '<div class="contentTypePopupBtn"> ' +
-                               '<input type="button" class="cstudio-button ok" id="createButton" value="Create" disabled="disabled" />' +
-                               '<input type="button" class="cstudio-button" id="createCancelButton" value="Cancel"/>' +
+                               '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="' +CMgs.format(formsLangBundle, 'create')+'" disabled="disabled" />' +
+                               '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="' +CMgs.format(formsLangBundle, 'cancel')+'" />' +
                              '</div>' +
                            '</div>';
 
 		document.getElementById("upload-popup-inner").style.width = "350px";
 		document.getElementById("upload-popup-inner").style.height = "270px";
+
+        var objectTypes;
+
+        if(this.config.objectTypes.type != undefined){
+            objectTypes=this.config.objectTypes.type;
+        }else{
+            objectTypes=this.config.objectTypes[0];
+        }
 		
-		if(!this.config.objectTypes.length) {
-			this.config.objectTypes = [ this.config.objectTypes.type ];
+		if(!objectTypes.length) {
+            objectTypes = [ objectTypes ];
 		}
 		
 		var typeEl = document.getElementById("contentTypeObjectType");
-		for(var k=0; k<this.config.objectTypes.length; k++) {
-			var objectType = this.config.objectTypes[k];
-			typeEl.options[typeEl.options.length] = new Option(objectType.label, objectType.name);
+		for(var k=0; k<objectTypes.length; k++) {
+			var objectType = objectTypes[k];
+			typeEl.options[typeEl.options.length] = new Option(CMgs.format(formsLangBundle, objectType.label.toLowerCase()), objectType.name);
 		}
 
 		// Instantiate the Dialog
 		var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
 								{ width : "360px",
+                                  height: "306px",
+                                  effect:{
+                                      effect: YAHOO.widget.ContainerEffect.FADE,
+                                      duration: 0.25
+                                  },
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,
@@ -97,8 +112,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		// Render the Dialog
 		dialog.render();
 		
-		this.buttonValidator("createButton", { "contentTypeDisplayName" : [/^$/], 
-		                                       "contentTypeName" : [/^$/] });
+		this.buttonValidator("createButton", { "contentTypeDisplayName" : [/^$/] });
 		
 		var eventParams = {
 			self: this,
@@ -108,12 +122,31 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 			objectTypeEl: document.getElementById('contentTypeObjectType')
 		};
 		
+		YEvent.on("contentTypeObjectType", "change", function() {
+			 var type = document.getElementById('contentTypeObjectType').value;
+			 if(type=="page") {
+				 document.getElementById('contentTypeAsFolder').checked = true;
+			 }
+			 else {
+			 	document.getElementById('contentTypeAsFolder').checked = false;
+			 }
+		});
+
 		YEvent.on("contentTypeDisplayName", "keyup", function() {
                     YAHOO.Bubbling.fire("content-type.values.changed");
+					value = document.getElementById('contentTypeDisplayName').value;
+
+					var find = ' ';
+					var re = new RegExp(find, 'g');
+					value = value.replace(re, '-');
+					value = value.toLowerCase();
+
+                    document.getElementById('contentTypeName').value = value;
+
                 });
-                YEvent.on("contentTypeName", "keyup", function() {
-                    YAHOO.Bubbling.fire("content-type.values.changed");
-                });
+                //YEvent.on("contentTypeName", "keyup", function() {
+                //    YAHOO.Bubbling.fire("content-type.values.changed");
+                //});
 
 		YEvent.addListener("createButton", "click", this.createClick, eventParams);
 
@@ -133,7 +166,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 		var contentAsFolder = (
 			type == 'component' ? false : params.asFolderEl.checked
 		);
-		var baseServicePath = '/studio/proxy/alfresco/cstudio/wcm/config/write?path=/config/sites/' + 
+		var baseServicePath = '/api/1/services/api/1/site/write-configuration.json?path=/cstudio/config/sites/' + 
 			CStudioAuthoringContext.site +
 			'/content-types/' + type + '/' + name + 
 			'/';
@@ -169,6 +202,10 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 
 						var writeExtractionCb = {
 							success: function() {
+								var fileNameLabel = "Page URL";
+								if(type == "component") {
+									var fileNameLabel = "Component ID";
+								}
 								var formDefContent = 
 									'<form>\r\n'+
 									'<title>'+label+'</title>\r\n'+
@@ -183,19 +220,19 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 										"<type>string</type>\r\n"+					
 										"</property>\r\n";
 								
-								if(!this.context.config.objectTypes.length) {
-									this.context.config.objectTypes = [ this.context.config.objectTypes.type ];
+								if(!this.context.config.objectTypes.type.length) {
+									this.context.config.objectTypes.type = [ this.context.config.objectTypes.type ];
 								}
 								
-								for(var k=0; k<this.context.config.objectTypes.length; k++) {
-									var objectType = this.context.config.objectTypes[k];
+								for(var k=0; k<this.context.config.objectTypes.type.length; k++) {
+									var objectType = this.context.config.objectTypes.type[k];
 									
 									if(objectType.name == type) {
-										if(!objectType.properties.length) {
-											objectType.properties = [ objectType.properties.property ];
+										if(!objectType.properties.property.length) {
+											objectType.properties.property = [ objectType.properties.property];
 										}
 										
-										var typeProps = objectType.properties;
+										var typeProps = objectType.properties.property;
 										
 										for(var j=0; j<typeProps.length; j++) {
 											var typeProperty = typeProps[j];
@@ -220,6 +257,94 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 											'<description></description>\r\n' +
 											'<defaultOpen>true</defaultOpen>\r\n' +
 											'<fields>\r\n' +
+
+
+												'<field>\r\n' +
+													'<type>file-name</type>\r\n' +
+													'<id>file-name</id>\r\n' +
+													'<iceId></iceId>\r\n' +
+													'<title>'+fileNameLabel+'</title>\r\n' +
+													'<description></description>\r\n' +
+													'<defaultValue></defaultValue>\r\n' +
+													'<help></help>\r\n' +
+													'<properties>\r\n' +
+														'<property>\r\n' +
+															'<name>size</name>\r\n' +
+															'<value>50</value>\r\n' +
+															'<type>int</type>\r\n' +
+														'</property>\r\n' +
+														'<property>\r\n' +
+															'<name>maxlength</name>\r\n' +
+															'<value>50</value>\r\n' +
+															'<type>int</type>\r\n' +
+														'</property>\r\n' +
+														'<property>\r\n' +
+															'<name>readonly</name>\r\n' +
+															'<value></value>\r\n' +
+															'<type>boolean</type>\r\n' +
+														'</property>\r\n' +
+													'</properties>\r\n' +
+													'<constraints>\r\n' +
+													'</constraints>\r\n' +
+												'</field>\r\n' +
+												'<field>\r\n' +
+													'<type>input</type>\r\n' +
+													'<id>internal-name</id>\r\n' +
+													'<iceId></iceId>\r\n' +
+													'<title>Internal Name</title>\r\n' +
+													'<description></description>\r\n' +
+													'<defaultValue></defaultValue>\r\n' +
+													'<help></help>\r\n' +
+													'<properties>\r\n' +
+														'<property>\r\n' +
+															'<name>size</name>\r\n' +
+															'<value>50</value>\r\n' +
+															'<type>int</type>\r\n' +
+														'</property>\r\n' +
+														'<property>\r\n' +
+															'<name>maxlength</name>\r\n' +
+															'<value>50</value>\r\n' +
+															'<type>int</type>\r\n' +
+														'</property>\r\n' +
+													'</properties>\r\n' +
+													'<constraints>\r\n' +
+														'<constraint>\r\n' +
+															'<name>required</name>\r\n' +
+															'<value>true</value>\r\n' +
+															'<type>boolean</type>\r\n' +
+														'</constraint>\r\n' +
+													'</constraints>\r\n' +
+												'</field>\r\n';
+
+											if(type == "page") {
+												formDefContent +=
+													'<field>\r\n' +
+														'<type>page-nav-order</type>\r\n' +
+														'<id>placeInNav</id>\r\n' +
+														'<iceId></iceId>\r\n' +
+														'<title>Place in Nav</title>\r\n' +
+														'<description></description>\r\n' +
+														'<defaultValue></defaultValue>\r\n' +
+														'<help></help>\r\n' +
+														'<properties>\r\n' +
+															'<property>\r\n' +
+																'<name>readonly</name>\r\n' +
+																'<value>[]</value>\r\n' +
+																'<type>boolean</type>\r\n' +
+															'</property>\r\n' +
+														'</properties>\r\n' +
+														'<constraints>\r\n' +
+															'<constraint>\r\n' +
+																'<name>required</name>\r\n' +
+																'<value><![CDATA[]]></value>\r\n' +
+																'<type>boolean</type>\r\n' +
+															'</constraint>\r\n' +
+														'</constraints>\r\n' +
+													'</field>';
+
+											}
+
+								formDefContent +=
 											'</fields>\r\n' +
 										'</section>\r\n' +
 									'</sections>\r\n' +
@@ -262,7 +387,7 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
 	writeConfig: function(url, content, cb) {
 		YAHOO.util.Connect.setDefaultPostHeader(false);
 		YAHOO.util.Connect.initHeader("Content-Type", "application/xml; charset=utf-8");
-		YAHOO.util.Connect.asyncRequest('POST', url, cb, content);		
+		YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, content);		
 	},
 	
 	/**

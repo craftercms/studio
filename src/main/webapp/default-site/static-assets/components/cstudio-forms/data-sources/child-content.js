@@ -63,6 +63,9 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 							success: function(formName, name, value) {
 								control.insertItem(name, value);
 								control._renderItems();
+
+								//var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+								//CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 							},
 							failure: function() {
 							}	
@@ -76,9 +79,10 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 						false,
 						false,
 						{ 
-							success: function(formName, name, value) {
+							success: function(contentTO, editorId, name, value) {
 								control.insertItem(name, value);
 								control._renderItems();
+								CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 							},
 							failure: function() {
 							}	
@@ -105,6 +109,9 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 							var value = (item.internalName && item.internalName != "")?item.internalName:item.uri;
 							control.insertItem(item.uri, value);
 							control._renderItems();
+							
+							// var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+							// CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 						}					
 					}, 
 					failure: function() {
@@ -119,10 +126,12 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 			success: function(contentTO) {
 
 				var editCallback = {
-					success: function(formName, name, value) {
+					success: function(contentTO, editorId, name, value) {
                         if(control){
                             control.updateEditedItem(value);
+							CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                         }
+
 					},
 					failure: function() {
 					}
@@ -160,7 +169,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
     },
 
     getLabel: function() {
-        return "Child content";
+        return CMgs.format(langBundle, "childContent");
     },
 
    	getInterface: function() {
@@ -173,8 +182,8 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" },
-			{ label: "Default Type", name: "type", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" },
+			{ label: CMgs.format(langBundle, "defaultType"), name: "type", type: "string" }
 		];
 	},
 

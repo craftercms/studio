@@ -4,8 +4,7 @@ CStudioSearch.ResultRenderer.GalleryFlash = {
 		var path = contentTO.item.uri;
 		
 		mediaTag = "<div class='flash-banner-wrapper' style='margin-bottom: 5px;display:inline;'><span style='display:none;'>Flash is not installed</span><input type='hidden' value='" +
-					CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site="+ 
-					CStudioAuthoringContext.site+"&path="+contentTO.item.uri + "'/>" +
+					CStudioAuthoringContext.previewAppBaseUri+path + "'/>" +
 					"</div>";
 				
 		var url = contentTO.item.uri;
@@ -65,4 +64,5 @@ CStudioSearch.ResultRenderer.GalleryFlash = {
 
 // register renderer
 CStudioSearch.resultRenderers["swf"] = CStudioSearch.ResultRenderer.GalleryFlash;
-
+CStudioAuthoring.Module.moduleLoaded("search-result-gallery-flash", CStudioSearch.resultRenderers["swf"]);
+

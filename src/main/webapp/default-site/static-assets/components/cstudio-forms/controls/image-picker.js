@@ -12,6 +12,7 @@ CStudioForms.Controls.ImagePicker = CStudioForms.Controls.ImagePicker ||
         this.id = id;
         this.datasources = null;
         this.upload_dialog = null;
+        this.crop_dialog = null;
         this.validExtensions = ["jpg", "jpeg", "gif", "png", "tiff", "tif", "bmp", "svg", "JPG", "JPEG", "GIF", "PNG", "TIFF", "TIF", "BMP", "SVG"];
         this.readonly = readonly;
         this.originalWidth = null;
@@ -26,7 +27,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
 
     getLabel: function() {
-        return "Image";
+        return CMgs.format(langBundle, "image");
     },
 
     _onChange: function(evt, obj) {
@@ -48,6 +49,11 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
         obj.owner.notifyValidation();
         obj.form.updateModel(obj.id, obj.getValue());
+    },
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
     },
 
     /**
@@ -115,11 +121,289 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 buttons: [ { text:"OK", handler: function(){
                     this.destroy();
 
-                }, isDefault:true } ]
+                }, isDefault:false } ]
             });
         dialog.setHeader("CStudio Warning");
         dialog.render(document.body);
         dialog.show();
+    },
+
+    createCropDialog: function(Message, imageData, imagePickerCrop) {
+        self = this;
+        YDom.removeClass("cstudio-wcm-popup-div", "yui-pe-content");
+
+        var newdiv = YDom.get("cstudio-wcm-popup-div");
+        if (newdiv == undefined) {
+            newdiv = document.createElement("div");
+            document.body.appendChild(newdiv);
+        }
+
+        var divIdName = "cstudio-wcm-popup-div";
+        newdiv.setAttribute("id",divIdName);
+        newdiv.className= "yui-pe-content";
+        newdiv.innerHTML = '<div class="contentTypePopupInner" id="crop-popup-inner">' +
+            '<div class="contentTypePopupContent" id="contentTypePopupContent"> ' +
+                '<div class="contentTypePopupHeader">Crop Image</div> ' +
+                '<div>'+
+                    '<div class="contentTypeOuter clearfix">'+
+                        '<div class="formDesc">' + Message + '</div> ' +
+                        '<div class="leftControls">' +
+                            '<div class="cropContainer">' +
+                                '<img src="'+imageData.previewUrl+'?+'+ new Date().getTime()+'">' +
+                            '</div>' +
+                            '<div class="cropMethods">' +
+                                '<div class="btn-group">' +
+                                    '<button type="button" class="btn btn-primary" data-method="zoom" data-option="0.1" title="Zoom In" id="zoomIn">' +
+                                        '<span class="docs-tooltip" data-toggle="tooltip" title="Zoom In" data-original-title="Zoom In">' +
+                                            '<span class="status-icon zoom-in"></span>' +
+                                        '</span>' +
+                                    '</button>' +
+                                    '<button type="button" class="btn btn-primary" data-method="zoom" data-option="-0.1" title="Zoom Out" id="zoomOut">' +
+                                        '<span class="docs-tooltip" data-toggle="tooltip" title="Zoom Out" data-original-title="Zoom Out)">' +
+                                            '<span class="status-icon zoom-out"></span>' +
+                                        '</span>' +
+                                    '</button>' +
+                                '</div>' +
+                                '<button type="button" class="btn btn-primary refresh" data-method="getContainerData" data-option="" id="refresh">' +
+                                    '<span class="docs-tooltip" data-toggle="tooltip" title="Refresh" data-original-title="Refresh">' +
+                                        '<span class="status-icon refresh"></span>' +
+                                    '</span>' +
+                                '</button>' +
+                                '<span id="zoomMessage" class="hidden">Increasing zoom creates an image which is smaller than the constraints</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="rightControls">' +
+                            '<div class="img-preview preview-sm"></div>' +
+                            '<div class="docs-data">' +
+                                '<div class="input-group">' +
+                                    '<label class="input-group-addon" for="dataX">X</label>' +
+                                    '<input type="text" class="form-control" id="dataX" placeholder="x" disabled>' +
+                                    '<span class="input-group-addon">px</span>' +
+                                '</div>' +
+                                '<div class="input-group">' +
+                                    '<label class="input-group-addon" for="dataY">Y</label>' +
+                                    '<input type="text" class="form-control" id="dataY" placeholder="y" disabled>' +
+                                    '<span class="input-group-addon">px</span>' +
+                                '</div>' +
+                                '<div class="input-group">' +
+                                    '<label class="input-group-addon" for="dataWidth">Width</label>' +
+                                    '<input type="text" class="form-control" id="dataWidth" placeholder="width" disabled>' +
+                                    '<span class="input-group-addon">px</span>' +
+                                '</div>' +
+                                '<div class="input-group">' +
+                                    '<label class="input-group-addon" for="dataHeight">Height</label>' +
+                                    '<input type="text" class="form-control" id="dataHeight" placeholder="height" disabled>' +
+                                    '<span class="input-group-addon">px</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="contentTypePopupBtn"> ' +
+                        '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="cropButton" value="Crop" />' +
+                        '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
+                    '</div>' +
+                '</div> ' +
+            '</div>';
+
+        // Instantiate the Dialog
+        crop_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div",
+            {   width : "830px",
+                height : "492px",
+                effect:{
+                    effect: YAHOO.widget.ContainerEffect.FADE,
+                    duration: 0.25
+                },
+                fixedcenter : true,
+                visible : false,
+                modal:true,
+                close:false,
+                constraintoviewport : true,
+                underlay:"none"
+            });
+
+        // Render the Dialog
+        crop_dialog.render();
+
+        var $image = $('.cropContainer > img');
+        var widthConstrains = JSON.parse(self.width);
+        var heightConstrains = JSON.parse(self.height);
+        var flag;
+        var boxResizable = false;
+
+        var $dataX = $('#dataX');
+        var $dataY = $('#dataY');
+        var $dataHeight = $('#dataHeight');
+        var $dataWidth = $('#dataWidth');
+
+        var widthCropBox, minWidthCropBox, maxWidthCropBox, heightCropBox, minHeightCropBox, maxHeightCropBox;
+
+        function getPercentage(min, max){
+            var result;
+            if(min && max){
+                result = min + ((max -  min) / 2);
+            }else if(min){
+                result = min + 1;
+            }else{
+                result = max - 1;
+            }
+            return result;
+        }
+
+        if(widthConstrains.exact){
+            widthCropBox = widthConstrains.exact;
+            flag = 'exact';
+        }else if (!isNaN(widthConstrains)){
+            widthCropBox = widthConstrains;
+            flag = 'exact';
+        }else{
+            flag = 'variable';
+            boxResizable = true;
+            if(widthConstrains.min){
+                minWidthCropBox = widthConstrains.min;
+            }
+            if(widthConstrains.max){
+                maxWidthCropBox = widthConstrains.max;
+            }
+            if(minWidthCropBox || maxWidthCropBox){
+                widthCropBox = getPercentage(parseInt(minWidthCropBox), parseInt(maxWidthCropBox));
+            }
+        }
+        if(heightConstrains.exact){
+            heightCropBox = heightConstrains.exact;
+        }else if(!isNaN(heightConstrains)){
+            heightCropBox = heightConstrains;
+        }else{
+            if(heightConstrains.min){
+                minHeightCropBox = heightConstrains.min;
+            }
+            if(heightConstrains.max){
+                maxHeightCropBox = heightConstrains.max;
+            }
+            if(minHeightCropBox || maxHeightCropBox){
+                heightCropBox = getPercentage(parseInt(minHeightCropBox), parseInt(maxHeightCropBox));
+            }
+        }
+
+        $image.cropper({
+            minCropBoxWidth: this,
+            dragCrop: false,
+            cropBoxResizable: boxResizable,
+            preview: '.img-preview',
+            crop: function(e) {
+                // Output the result data for cropping image.
+                $dataX.val(Math.round(e.x));
+                $dataY.val(Math.round(e.y));
+                $dataHeight.val(Math.round(e.height));
+                $dataWidth.val(Math.round(e.width));
+                if(flag == "exact"){
+                    if (!($dataHeight.val() == heightCropBox) && !($dataWidth.val() == widthCropBox)){
+                        $('#zoomMessage').removeClass("hidden");
+                        $dataWidth.addClass("error");
+                        $dataHeight.addClass("error");
+                        //$('#cropButton').prop('disabled',true);
+                    }else{
+                        $('#zoomMessage').addClass("hidden");
+                        $dataWidth.removeClass("error");
+                        $dataHeight.removeClass("error");
+                        //$('#cropButton').prop('disabled',false);
+                    }
+                }else{
+                    inputValidation(parseInt(minHeightCropBox), parseInt(maxHeightCropBox), $dataHeight, $dataWidth);
+                    inputValidation(parseInt(minWidthCropBox), parseInt(maxWidthCropBox), $dataWidth, $dataHeight);
+                }
+
+            },
+            built: function () {
+                $image.cropper('setData', {"width":parseInt(widthCropBox),"height": parseInt(heightCropBox)});
+                $dataHeight.val(heightCropBox);
+                $dataWidth.val(widthCropBox);
+                $('#zoomMessage').addClass("hidden");
+                $dataHeight.removeClass("error");
+                $dataWidth.removeClass("error");
+                //$('#cropButton').prop('disabled',false);
+            }
+        });
+
+        $('#zoomIn').on('click', function () {
+            $image.cropper('zoom', 0.1);
+        });
+
+        $('#zoomOut').on('click', function () {
+            $image.cropper('zoom', -0.1);
+        });
+
+        $('#refresh').on('click', function () {
+            $image.cropper('reset');
+            $image.cropper('setData', {"width":parseInt(widthCropBox),"height": parseInt(heightCropBox)});
+        });
+
+        function inputValidation(min, max, input, auxInput){
+            if (((min && max) && (input.val() >= min) && (input.val() <= max)) ||
+                ((min && !max) && (input.val() >= min)) ||
+                ((!min && max) && (input.val() <= max))){
+                $('#zoomMessage').addClass("hidden");
+                input.removeClass("error");
+                //$('#cropButton').prop('disabled',false);
+            }else{
+                $('#zoomMessage').removeClass("hidden");
+                input.addClass("error");
+               // $('#cropButton').prop('disabled',true);
+            }
+            if(input.hasClass("error") || auxInput.hasClass("error")){
+                //$('#cropButton').prop('disabled',true);
+                $('#zoomMessage').removeClass("hidden");
+            }
+        }
+
+        function cropImage(){
+            var imageInformation = $image.cropper('getData', true),
+                path = imageData.relativeUrl,
+                site = CStudioAuthoringContext.site;
+            try {
+                CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, {
+                    success: function(content) {
+                        var imagePicker = self;
+                        self.setImageData(imagePicker, imageData)
+                        self.cropPopupCancel();
+                    },
+                    failure: function(message) {
+                        self.showAlert(JSON.parse(message.responseText).message);
+                        self.cropPopupCancel();
+                    }
+                });
+            } catch(err) {
+            }
+        }
+
+        YAHOO.util.Event.addListener("uploadCancelButton", "click", this.cropPopupCancel, this, true);
+        YAHOO.util.Event.addListener("cropButton", "click", cropImage, this, true);
+        this.crop_dialog = crop_dialog;
+        return crop_dialog;
+        upload_dialog.show();
+    },
+
+    cropPopupCancel: function(event) {
+        this.crop_dialog.destroy();
+    },
+
+    setImageData: function(imagePicker, imageData){
+        imagePicker.inputEl.value = imageData.relativeUrl;
+
+
+        imagePicker.previewEl.src = imageData.previewUrl+ "?" +new Date().getTime();
+        imagePicker.urlEl.innerHTML = imageData.relativeUrl;
+        imagePicker.downloadEl.href = imageData.previewUrl;
+
+        imagePicker.addEl.value = "Replace";
+
+        imagePicker.noPreviewEl.style.display = "none";
+        imagePicker.previewEl.style.display = "inline";
+        YAHOO.util.Dom.addClass(imagePicker.previewEl, 'cstudio-form-control-asset-picker-preview-content');
+
+
+        imagePicker.adjustImage();
+
+        imagePicker._onChangeVal(null, imagePicker);
     },
 
     addImage: function(){
@@ -138,7 +422,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                 this.addContainerEl = null;
                 this.ctrlOptionsEl.removeChild(addContainerEl);
             }
-            else {
+//            else {
                 addContainerEl = document.createElement("div")
                 this.ctrlOptionsEl.appendChild(addContainerEl);
                 YAHOO.util.Dom.addClass(addContainerEl, 'cstudio-form-control-image-picker-add-container');
@@ -158,7 +442,8 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                     var regexpr = new RegExp("(" + el.id + ")[\\s,]|(" + el.id + ")$"),
                         mapDatasource;
 
-                    if (imageManagerNames.search(regexpr) > -1) {
+                    //if (imageManagerNames.search(regexpr) > -1) {
+                        if (imageManagerNames.indexOf(el.id) != -1) {
                         mapDatasource = datasourceMap[el.id];
 
                         var itemEl = document.createElement("div");
@@ -176,14 +461,16 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                     }
                 }
                 datasourceDef.forEach(addMenuOption);
-            }
+            //}
         }
         else if(imageManagerNames != ""){
+            imageManagerNames = imageManagerNames.replace("[\"","").replace("\"]","");
             this._addImage(datasourceMap[imageManagerNames]);
         }
     },
 
     _addImage: function(datasourceEl) {
+        self = this;
         var datasource = datasourceEl;
         if(datasource) {
             if(datasource.insertImageAction) {
@@ -211,27 +498,31 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
                                 valid = imagePicker.isImageValid();
                                 if (!valid) {
-                                    message = "The uploaded file does not fulfill the width & height constraints";
+                                    var widthConstrains = JSON.parse(self.width);
+                                    var heightConstrains = JSON.parse(self.height);
+                                    message = "The uploaded file does not meet the specified width & height constraints";
                                     //imagePicker.deleteImage();
-                                    imagePicker.showAlert(message);
+                                    if((widthConstrains.min && imagePicker.originalWidth < widthConstrains.min)
+                                        || (heightConstrains.min && imagePicker.originalHeight < heightConstrains.min)
+                                        || (widthConstrains.exact && imagePicker.originalWidth < widthConstrains.exact)
+                                        || (heightConstrains.exact && imagePicker.originalHeight < heightConstrains.exact)
+                                        || (widthConstrains && imagePicker.originalWidth < widthConstrains)
+                                        || (heightConstrains && imagePicker.originalHeight < heightConstrains)){
+                                        message = "Image is smaller than the constraint size";
+                                        self.showAlert(message);
+                                    }else{
+                                        this.dialog = imagePicker.createCropDialog(message, imageData, this.imagePicker);
+                                        this.dialog.show();
+
+                                    }
+
+                                    //this.isUploadOverwrite = isUploadOverwrite;
                                 }else{
-                                    imagePicker.inputEl.value = imageData.relativeUrl;
-
-
-                                    imagePicker.previewEl.src = imageData.previewUrl;
-                                    imagePicker.urlEl.innerHTML = imageData.relativeUrl;
-                                    imagePicker.downloadEl.href = imageData.previewUrl;
-
-                                    imagePicker.addEl.value = "Replace";
-
-                                    imagePicker.noPreviewEl.style.display = "none";
-                                    imagePicker.previewEl.style.display = "inline";
-                                    YAHOO.util.Dom.addClass(imagePicker.previewEl, 'cstudio-form-control-asset-picker-preview-content');
-
-
-                                    imagePicker.adjustImage();
-
-                                    imagePicker._onChange(null, imagePicker);
+                                    if(this.setImageData){
+                                        this.setImageData(imagePicker, imageData)
+                                    }else{
+                                        self.setImageData(imagePicker, imageData)
+                                    }
                                 }
                             };
                             image.addEventListener('load', imageLoaded, false);
@@ -239,7 +530,10 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                 message = "Unable to load the selected image. Please try again or select another image";
                                 imagePicker.showAlert(message);
                             });
-                            image.src = imageData.previewUrl;
+                            CStudioAuthoring.Operations.getImageRequest({
+                                url: imageData.previewUrl,
+                                image: image
+                            });
 
 
                         }
@@ -279,7 +573,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             YAHOO.util.Dom.setStyle(this.imageEl,  'width', this.previewBoxWidth + "px");
             YAHOO.util.Dom.setStyle(this.imageEl,  'height', this.previewBoxHeight + "px");
 
-            this._onChange(null, this);
+            this._onChangeVal(null, this);
         }
     },
 
@@ -294,7 +588,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         // we need to make the general layout of a control inherit from common
         // you should be able to override it -- but most of the time it wil be the same
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -352,7 +646,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         downloadEl.href = inputEl.value;
         downloadEl.target = "_new";
         var downloadImageEl = document.createElement("img");
-        downloadImageEl.src = Alfresco.constants.URL_CONTEXT + "/static-assets/themes/cstudioTheme/images/download.png";
+        downloadImageEl.src = "/studio/static-assets/themes/cstudioTheme/images/download.png";
         downloadEl.appendChild(downloadImageEl);
         YAHOO.util.Dom.addClass(downloadEl, 'cstudio-form-control-asset-picker-download-button');
         downloadEl.style.display = "none";
@@ -615,6 +909,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             image.src = CStudioAuthoringContext.previewAppBaseUri + value + "?" + (new Date().getTime());
         }
         this._onChange(null, this);
+        this.edited = false;
     },
 
     getName: function() {
@@ -623,18 +918,18 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
     getSupportedProperties: function() {
         return [
-            { label: "Width", name: "width", type: "range" },
-            { label: "Height", name: "height", type: "range" },
-            { label: "Thumbnail Width", name: "thumbnailWidth", type: "int" },
-            { label: "Thumbnail Height", name: "thumbnailHeight", type: "int" },
-            { label: "Data Source", name: "imageManager", type: "datasource:image" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "width"), name: "width", type: "range" },
+            { label: CMgs.format(langBundle, "height"), name: "height", type: "range" },
+            { label: CMgs.format(langBundle, "thumbnailWidth"), name: "thumbnailWidth", type: "int" },
+            { label: CMgs.format(langBundle, "thumbnailHeight"), name: "thumbnailHeight", type: "int" },
+            { label: CMgs.format(langBundle, "datasource"), name: "imageManager", type: "datasource:image" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 });

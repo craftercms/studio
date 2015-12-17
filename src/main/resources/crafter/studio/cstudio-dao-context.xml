@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- ////////////////////////////////////// -->
+    <!--       Sequence Management Beans        -->
+    <!-- ////////////////////////////////////// -->
+<!--    
+    <bean id="cstudioSequenceDaoService" class="org.craftercms.cstudio.alfresco.sequence.SequenceDaoServiceImpl"
+            init-method="initIndexes">
+        <property name="sqlMapClient" ref="cstudioSequenceSqlMap" />
+        <property name="step"><value>100</value></property>
+        <property name="initializeScriptPath">
+            <value>alfresco/sequence/${hibernate.dialect}/initialize.sql</value>
+        </property>
+    </bean>
+
+    <bean id="cstudioSequenceSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/sequence/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioSequenceSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/sequence/Sequence.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+-->
+    <!-- //////////////////////////////////////////////////////////// -->
+    <!--       Page Navigation Order Sequence Management Beans        -->
+    <!-- //////////////////////////////////////////////////////////// -->
+<!--
+    <bean id="cstudioPageNavogationOrderSequenceDaoService" class="org.craftercms.cstudio.alfresco.pagenavigationordersequence.PageNavigationOrderSequenceDaoServiceImpl"
+            init-method="initIndexes">
+        <property name="sqlMapClient" ref="cstudioPageNavigationOrderSequenceSqlMap" />
+        <property name="initializeScriptPath">
+            <value>alfresco/pagenavigationordersequence/${hibernate.dialect}/initialize.sql</value>
+        </property>
+    </bean>
+
+    <bean id="cstudioPageNavigationOrderSequenceSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/pagenavigationordersequence/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioPageNavigationOrderSequenceSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/pagenavigationordersequence/PageNavigationOrderSequence.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+-->
+    <!-- ////////////////////////////////////// -->
+    <!--       Activity Service                 -->
+    <!-- ////////////////////////////////////// -->
+<!--
+    <bean id="cstudioCustomActivityService" class="org.craftercms.cstudio.alfresco.service.impl.CStudioActivityServiceImpl"
+          parent="cstudioRegistrableService">
+      <property name="feedDaoService" ref="cstudioCustomFeedDaoService"/>
+      <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
+   </bean>
+
+   <bean id="cstudioCustomFeedDaoService" class="org.craftercms.cstudio.alfresco.activityfeed.CStudioActivityFeedDaoServiceImpl"
+           init-method="initIndexes">
+        <property name="activityFeedTableName"><value>cstudio_activity</value></property>
+        <property name="sqlMapClient" ref="cstudioActivitySqlMap" />
+       <property name="initializeScriptPath">
+           <value>alfresco/cstudioactivities/${hibernate.dialect}/initialize.sql</value>
+       </property>
+   </bean>
+
+   <bean id="cstudioActivitySqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/cstudioactivities/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioActivitySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+          <props>
+            <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+            <prop key="hibernate.hbm2ddl.auto">update</prop>
+          </props>
+        </property>
+        <property name="mappingResources">
+          <list>
+            <value>alfresco/cstudioactivities/cstudioActivityFeed.hbm.xml</value>
+          </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioFeedGenerator" class="org.alfresco.repo.management.subsystems.SubsystemProxyFactory">
+        <property name="sourceApplicationContextFactory">
+            <ref bean="ActivitiesFeed"/>
+        </property>
+        <property name="sourceBeanName">
+            <value>cstudioFeedGenerator</value>
+        </property>
+        <property name="interfaces">
+            <list>
+                <value>org.alfresco.repo.activities.feed.FeedGenerator</value>
+            </list>
+        </property>
+    </bean>
+-->
+    <!-- ////////////////////////////////////// -->
+    <!--       Depencency Management Beans      -->
+    <!-- ////////////////////////////////////// -->
+<!--
+    <bean id="cstudioSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/dependency/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioDependencySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/dependency/Dependency.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cstudioDependencyDaoService" class="org.craftercms.cstudio.alfresco.dm.dependency.DependencyDaoServiceImpl"
+            init-method="initIndexes">
+        <property name="sqlMapClient" ref="cstudioSqlMap" />
+        <property name="initializeScriptPath">
+            <value>alfresco/dependency/${hibernate.dialect}/initialize.sql</value>
+        </property>
+    </bean>
+-->
+
+    <!-- //////////////////////////////////////////////////////////// -->
+    <!--       Object State Management Beans        -->
+    <!-- //////////////////////////////////////////////////////////// -->
+<!--
+    <bean id="cstudioObjectStateDaoService" class="org.craftercms.cstudio.alfresco.objectstate.ObjectStateDAOServiceImpl"
+          init-method="initIndexes">
+        <property name="sqlMapClient" ref="cstudioObjectStateSqlMap" />
+        <property name="bulkOperationBatchSize" value="${objectStateDAL.bulkOperationsBatchSize}" />
+        <property name="initializeScriptPath">
+            <value>alfresco/objectstate/${hibernate.dialect}/initialize.sql</value>
+        </property>
+    </bean>
+
+    <bean id="cstudioObjectStateSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/objectstate/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioObjectStateSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/objectstate/ObjectState.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+-->
+    <!-- //////////////////////////////////////////////////////////// -->
+    <!--       Deployment Management Beans        -->
+    <!-- //////////////////////////////////////////////////////////// -->
+<!--
+    <bean id="cstudioCopyToEnvironmentSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/deployment/DeploymentWorkersSqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioCopyToEnvironmentSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/deployment/Deployment.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+-->
+    <!--/////////////////////////// -->
+    <!-- Workflow  -->
+    <!--/////////////////////////// -->
+    <!-- commented out because currently using in memory DAL -->
+    <!--bean id="cstudioWorkflowSqlMap" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/workflow/SqlMapConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="cstudioWorkflowSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>alfresco/workflow/Workflow.hbm.xml</value>
+            </list>
+        </property>
+    </bean-->
+
+    <!--/////////////////////////// -->
+    <!-- Cache  -->
+    <!--/////////////////////////// -->
+<!-- before you uncomment this talk to russ. He wants to know why this is here
+    <bean id="cstudioCacheManager" class="org.craftercms.cstudio.alfresco.cache.EhCacheManagerImpl">
+        <property name="ehCacheAdapter" ref="cstudioEhCache"/>
+    </bean>
+
+
+    <bean id="cstudioEHCacheManager" class="org.alfresco.repo.cache.EhCacheManagerFactoryBean">
+        <property name="configLocation">
+            <value>classpath:alfresco/module/cstudioAmp/context/cstudio-cache-config.xml</value>
+        </property>
+    </bean>
+
+    <bean id="cstudioEhCache" class="org.alfresco.repo.cache.EhCacheAdapter">
+        <property name="cache">
+            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+                <property name="cacheManager">
+                    <ref bean="cstudioEHCacheManager"/>
+                </property>
+                <property name="cacheName">
+                    <value>CStudioCache</value>
+                </property>
+            </bean>
+        </property>
+    </bean>
+-->
+</beans>

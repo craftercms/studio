@@ -30,9 +30,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         var strValue = "";
 
         if(!Array.isArray(value) && value !== ""){
-           strValue = "Edit message...";
+           strValue = CMgs.format(langBundle, "editMessage")+"...";
         }else{
-           strValue = "Set message...";
+           strValue = CMgs.format(langBundle, "setMessage")+"...";
         }
 
         return strValue;
@@ -42,11 +42,15 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         var _self = this;
         var richTextDialogEl = document.getElementById("richTextDialog");
         if(!richTextDialogEl) {
+            var maskEl = document.createElement("div");
+            maskEl.id = 'keyValueDialogMask';
+            maskEl.style.display = 'block';
             richTextDialogEl = document.createElement("div");
             richTextDialogEl.id = 'richTextDialog';
 			YAHOO.util.Dom.addClass(richTextDialogEl, "rich-text-dialog");
             YAHOO.util.Dom.addClass(richTextDialogEl, "seethrough");
 
+            document.body.appendChild(maskEl);
             document.body.appendChild(richTextDialogEl);
 
             richTextDialogEl.value = "";
@@ -58,7 +62,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
 
         var titleEl = document.createElement("div");
         YAHOO.util.Dom.addClass(titleEl, "property-dialog-title");
-        titleEl.innerHTML = "Field Content";
+        titleEl.innerHTML = CMgs.format(formsLangBundle, "adminHelpDialogTitle");
         richTextDialogEl.appendChild(titleEl);
 
         var richTextDialogContainerEl = document.createElement("div");
@@ -73,9 +77,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         richTextDialogEl.appendChild(buttonContainerEl);
 
         var cancelEl = document.createElement("div");
-        cancelEl.style.right = "120px";
-        YAHOO.util.Dom.addClass(cancelEl, "cstudio-seethrough-dialog-button");
-        cancelEl.innerHTML = "Cancel";
+        cancelEl.style.marginRight = "6px";
+        YAHOO.util.Dom.addClass(cancelEl, "btn btn-default");
+        cancelEl.innerHTML = CMgs.format(formsLangBundle, "cancel");
         buttonContainerEl.appendChild(cancelEl);
 
         YAHOO.util.Event.on(cancelEl, 'click', function(evt) {
@@ -83,8 +87,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
         }, cancelEl);
 
         var saveEl = document.createElement("div");
-        YAHOO.util.Dom.addClass(saveEl, "cstudio-seethrough-dialog-button");
-        saveEl.innerHTML = "Save";
+        saveEl.style.marginRight = "16px";
+        YAHOO.util.Dom.addClass(saveEl, "btn btn-primary");
+        saveEl.innerHTML = CMgs.format(formsLangBundle, "save");
         buttonContainerEl.appendChild(saveEl);
         YAHOO.util.Event.on(saveEl, 'click', function(evt) {
             _self.context.save();
@@ -174,11 +179,14 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
 
     cancel: function() {
         var richTextDialogEl = document.getElementById("richTextDialog");
+        var keyValueDialogMaskEl = document.getElementById("keyValueDialogMask");
+        richTextDialogEl.parentNode.removeChild(keyValueDialogMaskEl);
         richTextDialogEl.parentNode.removeChild(richTextDialogEl);
     },
 
     save: function() {
         var richTextDialogEl = document.getElementById("richTextDialog");
+        var keyValueDialogMaskEl = document.getElementById("keyValueDialogMask");
         if(richTextDialogEl.editor) {
             richTextDialogEl.editor.save();
             richTextDialogEl.value = richTextDialogEl.inputEl.value;
@@ -186,6 +194,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.RichText, CStudi
 
         this.value = richTextDialogEl.value;
         this.valueEl.value = this.valueToString(this.value);
+        richTextDialogEl.parentNode.removeChild(keyValueDialogMaskEl);
         richTextDialogEl.parentNode.removeChild(richTextDialogEl);
         this.updateFn(null, { fieldName: this.fieldName, value: this.value });
     }

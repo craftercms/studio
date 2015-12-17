@@ -12,16 +12,18 @@ function(id, form, properties, constraints)  {
 		if(property.name == "listName") {
 			var cb = { 
 				success: function(config) {
-					var values = config.values;
-					if(!values.length) {
-						values = [ values.value ];
-					}
-					
-					_self.list = values;
-					
-					for(var j=0; j<_self.callbacks.length; j++) {
-						_self.callbacks[j].success(values);
-					}
+					if(config){
+                        var values = config.values.item;
+                        if(!values.length) {
+                            values = [ values.item ];
+                        }
+
+                        _self.list = values;
+
+                        for(var j=0; j<_self.callbacks.length; j++) {
+                            _self.callbacks[j].success(values);
+                        }
+                    }
 				},
 				failure: function() {
 				}
@@ -41,7 +43,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Configured List of Values";
+        return CMgs.format(langBundle, "configuredListOfPairs");
     },
 
    	getInterface: function() {
@@ -61,7 +63,8 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
         this.properties.forEach( function(prop) {
             if (prop.name == "dataType") {
                 // return the value of the option currently selected
-                prop.value.forEach( function(opt) {
+                var value = JSON.parse(prop.value); 
+                value.forEach( function(opt) {
                     if (opt.selected) {
                         val = opt.value;
                     }
@@ -77,7 +80,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 	
 	getSupportedProperties: function() {
 		return [{
-			label: "Data Type",
+			label: CMgs.format(langBundle, "dataType"),
 			name: "dataType",
 			type: "dropdown",
 			defaultValue: [{ // Update this array if the dropdown options need to be updated
@@ -86,27 +89,27 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 				selected: true
 			}, {
 				value: "value_s",
-				label: "String",
+				label: CMgs.format(langBundle, "string"),
 				selected: false
 			}, {
 				value: "value_i",
-				label: "Integer",
+				label: CMgs.format(langBundle, "integer"),
 				selected: false
 			}, {
 				value: "value_f",
-				label: "Float",
+				label: CMgs.format(langBundle, "float"),
 				selected: false
 			}, {
 				value: "value_dt",
-				label: "Date",
+				label: CMgs.format(langBundle, "date"),
 				selected: false
 			}, {
 				value: "value_html",
-				label: "HTML",
+				label: CMgs.format(langBundle, "HTML"),
 				selected: false
 			}]
 		}, {
-			label: "List Name",
+			label: CMgs.format(langBundle, "listName"),
 			name: "listName",
 			type: "string"
 		}];
@@ -114,7 +117,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	},
 	
@@ -125,7 +128,7 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 		else {
 			cb.success(this.list);
 		}
-	},
+	}
 	
 
 });

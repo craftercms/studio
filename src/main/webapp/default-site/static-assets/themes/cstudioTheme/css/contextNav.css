@@ -82,7 +82,115 @@
     width: 250px;
 }
 
-/* -- Preview Toolbar -- */
+/* Modal */
+
+body .mask{
+  background-color: rgb(68, 68, 68)!important;
+  opacity: 0.5!important;;
+  z-index: 1031!important;
+}
+
+.yui-dialog {
+  z-index: 100102!important;
+}
+
+.yui-dialog .yui-overlay.yui-panel{
+  border-radius: 6px;
+}
+
+.yui-dialog .yui-overlay.yui-panel .hd{
+    border-radius: 6px 6px 0 0;
+}
+
+.yui-dialog .yui-overlay.yui-panel .ft{
+    border-radius: 0 0 6px 6px;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner {
+  background: #fff;
+  background-color: #fff;
+  border: 1px solid #808080;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  transition: opacity 0.15s linear;
+  width: 100%!important;
+  height: 100%!important;
+  overflow: hidden;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupContent{
+  margin:15px 0;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupContent form > div{
+  padding-left: 20px;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupHeader{
+  border-bottom: solid 1px #ccc;
+  padding: 10px 15px 20px!important;
+  margin-bottom: 8px!important;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypeOuter{
+  border-bottom: solid 1px #ccc;
+  padding: 0 20px 20px;
+}
+
+.yui-dialog .yui-panel .contentTypePopupInner .contentTypePopupBtn{
+  float: right;
+  margin: 0 17px!important;
+}
+
+.yui-dialog .yui-panel .create-new-folder-dialog .contentTypePopupBtn,
+.yui-dialog .yui-panel .changeContent-type-dialog .contentTypePopupBtn{
+  margin-bottom: 20px!important;
+}
+
+.yui-dialog .yui-panel .changeContent-type-dialog .btn-primary,
+.yui-dialog .yui-panel .changeContent-type-dialog .btn-default{
+  width:auto;
+}
+
+.contentTypePopupInner input[type="text"]{
+  display: inline-block;
+  width: 100%;
+  height: 31px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  color: #555555;
+  background-color: white;
+  background-image: none;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+.contentTypePopupInner select{
+  display: inline-block;
+  width: 50%;
+  height: 31px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  color: #555555;
+  background-color: white;
+  background-image: none;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+/* -- Preview Toolbar -- * /
 #controls-overlay { display: block; position: absolute; left:0; z-index: 99999; }
 #controls-overlay div, #controls-overlay span, #controls-overlay select, #controls-overlay option, #controls-overlay a, #controls-overlay table td {
     cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none; font-stretch: normal;
@@ -193,11 +301,11 @@
 	text-align: center;
 }
 
-#ct_contentTypePopupInner .contentTypePopupBtn input,
+/*#ct_contentTypePopupInner .contentTypePopupBtn input,
 .contentTypePopupContent .contentTypePopupBtn input,
 #schedulePolicyPanel .schedulePolicySubmitButtons input,  
-#submitPanel .acnBox .acnSubmitButtons input, /* For confirmation dialogs */
-#acnVersionWrapper .acnSubmitButtons input,  /* Applies to Delete, Reject, Schedule and GoLive */
+#submitPanel .acnBox .acnSubmitButtons input, *//* For confirmation dialogs *//*
+#acnVersionWrapper .acnSubmitButtons input,  *//* Applies to Delete, Reject, Schedule and GoLive *//*
 #messageOverlay .acnSubmitButtons input,
 .acn-submit-buttons button {
 	background-color: #C0C0C0;
@@ -226,7 +334,7 @@
     color: #818181;
     border: 1px solid #838DAD;
     cursor: default;
-}
+}*/
 
 #acnVersionWrapper .publishing-channels .show { display: block; }
 #acnVersionWrapper .publishing-channels .hidden { display: none; }
@@ -285,7 +393,7 @@
 
 #cstudio-wcm-popup-div.yui-panel .templateName,
 #cstudio-wcm-popup-div.yui-panel .previewImage {
-    width:275px;
+    width:50%;
     float:left;
 }
 
@@ -335,12 +443,18 @@
     text-align: center;
 }
 #cstudio-wcm-popup-div .contentTypePopupBtn input {
-	margin-right: 10px;	
+	margin-right: 4px;
 }
 
 #cstudio-wcm-popup-div_h {
 	display: block;
 }
+
+/* Up load dialog */
+#upload-popup-inner .formDesc{
+  margin-bottom: 10px;
+}
+
 /* -- END Upload Overlay -- */
 
 /* -- Channels Publishing Overlay : appears when no publishing channels have been set up -- */
@@ -399,3 +513,255 @@
     width: 100%;
 }
 /* -- END Create Content Type Overlay -- */
+
+/* */
+
+/* Modal */
+body.yui-skin-cstudioTheme .mask{
+  background-color: rgb(68, 68, 68);
+  opacity: 0.5;
+}
+
+.yui-overlay.yui-panel{
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  background-color: white;
+
+}
+
+#cstudio-wcm-popup-div{
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .hd{
+  background-color: white;
+  font-size: 21px;
+  font-weight: 500;
+  text-align: left;
+  padding: 10px 10px;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd{
+  background-color: white;
+  border-bottom: solid 1px #ccc;
+  padding: 30px;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div{
+  width:100%!important;
+}
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .when-go-live-items{
+    margin:0;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .form-go-live-items .radio{
+    margin-top: 3px;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd .form-go-live-items .radio label{
+    padding-left: 10px;
+}
+
+.bd > #acnVersionWrapper{
+    width: 595px!important;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div select{
+  display: block;
+  width: 100%;
+  height: 31px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  color: #555555;
+  background-color: white;
+  background-image: none;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .ft{
+  background-color: white;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .ft .button-group{
+  text-align: right;
+  margin: 15px 0;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .ft .button-group span{
+  border:none!important;
+  background: none;
+  padding: 0!important;
+  margin:0;
+  background-color: white!important;
+}
+
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .ft .button-group span.first-child{
+  margin-right: 10px;
+}
+
+.yui-skin-cstudioTheme .yui-panel-container.shadow .underlay{
+  border-radius: 6px;
+}
+
+.container-close{
+  display:none;
+}
+
+.yui-module.yui-overlay.yui-panel button{
+  display: inline-block;
+  margin: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.42857;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: white;
+  background-color: #7e9dbb;
+  border-color: #6d90b2;
+  font-family: verdana;
+}
+
+.yui-module.yui-overlay.yui-panel button:hover{
+  color: white;
+  background-color: #5d84a9;
+  border-color: #4e7294; }
+
+.action-wrapper button.btn-default.close-button{
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.action-wrapper button.btn-default.close-button:hover{
+    background-color: #e6e6e6;
+    border-color: #adadad;
+    color: #333333;
+}
+
+.yui-module.yui-overlay.yui-panel .yui-button.default button{
+  color: #333333;
+  background-color: white;
+  border-color: #cccccc;
+}
+
+.yui-module.yui-overlay.yui-panel .yui-button.default button:hover{
+  color: #333333;
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+
+#closeUserWarning .bd{
+  height: 63px!important;
+  padding: 24px;
+}
+
+#closeUserWarning .hd{
+  border-radius: 6px 6px 0 0;
+  font-size: 15px;
+  padding: 7px 10px;
+}
+
+#closeUserWarning .ft{
+  border-radius: 0 0 6px 6px;
+}
+
+#closeUserWarning .ft span.button-group{
+    margin: 12px 0 6px;
+}
+
+.newTempText{
+  margin-bottom: 10px;
+}
+
+
+/*Crop Dialog*/
+
+#crop-popup-inner .contentTypePopupHeader{
+    padding-bottom: 10px!important;
+}
+
+#crop-popup-inner .contentTypeOuter{
+    margin: 14px 0 20px 0;
+    padding: 0 20px 10px;
+}
+
+#crop-popup-inner .cropMethods .refresh{
+    margin-left: 5px;
+}
+
+#crop-popup-inner .leftControls{
+    width: 70%;
+    float:left;
+}
+
+#crop-popup-inner .cropContainer{
+    width: 100%;
+    max-height:270px;
+    margin-bottom: 5px;
+
+}
+
+#crop-popup-inner .formDesc{
+    margin-bottom: 10px;
+}
+
+#crop-popup-inner .rightControls{
+    width: 30%;
+    height:268px;
+    float:left;
+}
+
+#crop-popup-inner .rightControls .img-preview > img {
+    max-width: 100%;
+}
+
+#crop-popup-inner .rightControls .preview-sm {
+    width: 189px;
+    height: 109px;
+    overflow: hidden;
+    float: right;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgb(204, 204, 204);
+}
+
+#crop-popup-inner .rightControls .docs-data{
+    clear: both;
+    padding: 10px 10px 10px 20px;
+}
+
+#crop-popup-inner .input-group{
+    padding-bottom: 5px;
+}
+
+#crop-popup-inner .input-group label{
+    min-width: 64px;
+}
+
+#crop-popup-inner #zoomMessage{
+    margin-left: 11px;
+}
+
+#crop-popup-inner .error{
+    border-color: rgba(169, 68, 66, 0.47);
+}
+

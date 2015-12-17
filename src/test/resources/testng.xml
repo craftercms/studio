@@ -1,0 +1,7 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="All" verbose="1">
+    <suite-files >
+        <suite-file path="rest-services.xml"/>
+        <suite-file path="ui.xml"/>
+    </suite-files>
+</suite>

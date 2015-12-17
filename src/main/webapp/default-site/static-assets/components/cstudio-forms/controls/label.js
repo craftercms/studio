@@ -18,7 +18,7 @@ function(id, form, owner, properties, constraints)  {
 YAHOO.extend(CStudioForms.Controls.Label, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Label";
+        return CMgs.format(langBundle, "label");
     },
     
 
@@ -28,7 +28,7 @@ YAHOO.extend(CStudioForms.Controls.Label, CStudioForms.CStudioFormField, {
 		containerEl.id = this.id;
 
 		var titleEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(titleEl, 'label');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = "&nbsp;";
 			containerEl.appendChild(titleEl);
@@ -61,7 +61,7 @@ YAHOO.extend(CStudioForms.Controls.Label, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Text", name: "text", type: "string" }
+			{ label: CMgs.format(langBundle, "text"), name: "text", type: "string" }
         ];
 	},
 

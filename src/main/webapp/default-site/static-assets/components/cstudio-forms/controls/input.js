@@ -20,7 +20,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Input";
+        return CMgs.format(langBundle, "input");
     },
 
 	_onChange: function(evt, obj) {
@@ -36,28 +36,31 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 			}
 			else {
 				obj.clearError("required");
-				validationExist = true;
+				//validationExist = true;
 			}
 		}
 
-        if (!validationExist || validationExist && validationResult) {
+        if ((!validationExist &&  obj.inputEl.value != "") || validationExist && validationResult) {
             for(var i=0; i<obj.constraints.length; i++) {
                 var constraint = obj.constraints[i];
                 if(constraint.name == 'pattern') {
                    var regex = constraint.value;
-                   if (obj.inputEl.value.match(regex)) {
-                      // only when there is no other validation mark it as passed
-                      obj.clearError("pattern");
-                      YAHOO.util.Dom.removeClass(obj.patternErrEl, 'on');
-                      validationExist = true;
-                   } else {
-                        if (obj.inputEl.value != '') {
-                            YAHOO.util.Dom.addClass(obj.patternErrEl, 'on');
-                        }
-                        obj.setError("pattern", "The value entered is not allowed in this field.");
-                        validationExist = true;
-                        validationResult = false;
-                   }
+                   if(regex != "") {
+	                   if (obj.inputEl.value.match(regex)) {
+	                      // only when there is no other validation mark it as passed
+	                      obj.clearError("pattern");
+	                      YAHOO.util.Dom.removeClass(obj.patternErrEl, 'on');
+	                      validationExist = true;
+	                   } else {
+	                        if (obj.inputEl.value != '') {
+	                            YAHOO.util.Dom.addClass(obj.patternErrEl, 'on');
+	                        }
+	                        obj.setError("pattern", "The value entered is not allowed in this field.");
+	                        validationExist = true;
+	                        validationResult = false;
+	                   }
+	               }
+	               
                    break;
                 }
             }
@@ -68,6 +71,11 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 		obj.owner.notifyValidation();
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt, obj);
+    },
 
 	/**
 	 * perform count calculation on keypress
@@ -117,7 +125,7 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 			containerEl.id = this.id;
 
 		var titleEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(titleEl, 'label');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
@@ -137,8 +145,8 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 			controlWidgetContainerEl.appendChild(inputEl);
 
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
-			
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+
+            YAHOO.util.Event.on(inputEl, 'change',  this._onChangeVal, this);
 			YAHOO.util.Event.on(inputEl, 'blur', this._onChange, this);
 			
 		for(var i=0; i<config.properties.length; i++) {
@@ -198,6 +206,7 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 		this.inputEl.value = value;
 		this.count(null, this.countEl, this.inputEl);
 		this._onChange(null, this);
+        this.edited = false;
 	},
 	
 	getName: function() {
@@ -206,16 +215,17 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Display Size", name: "size", type: "int", defaultValue: "50" },
-			{ label: "Max Length", name: "maxlength", type: "int",  defaultValue: "50" },
-			{ label: "Readonly", name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "displaySize"), name: "size", type: "int", defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int",  defaultValue: "50" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
+			{ label: "Tokenize for Indexing", name: "tokenize", type: "boolean",  defaultValue: "false" }
 			];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
-			{ label: "Match Pattern", name: "pattern", type: "string" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "matchPattern"), name: "pattern", type: "string" },
 		];
 	}
 

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2014 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.ObjectStateMapper">
+    <resultMap id="ObjectStateMap" type="org.craftercms.studio.api.v1.dal.ObjectState">
+        <id property="objectId" column="object_id"/>
+        <result property="site" column="site"/>
+        <result property="path" column="path"/>
+        <result property="state" column="state"/>
+        <result property="systemProcessing" column="system_processing"/>
+    </resultMap>
+
+    <cache/>
+
+    <select id="getObjectStateByStates" resultSetType="FORWARD_ONLY"
+            resultMap="ObjectStateMap" parameterType="java.util.Map">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE state in
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        and site=#{site}
+    </select>
+
+    <delete id="deleteObjectState" databaseId="oracle" parameterType="String">
+        DELETE FROM cstudio_objectstate
+        WHERE object_id = #{objectId};
+    </delete>
+
+    <delete id="deleteObjectState" parameterType="String">
+        DELETE FROM cstudio_objectstate
+        WHERE object_id = #{objectId}
+    </delete>
+
+    <select id="getObjectStateBySiteAndPath" parameterType="java.util.Map" resultMap="ObjectStateMap">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE site = #{site} AND path = #{path}
+    </select>
+
+    <update id="setSystemProcessingBySiteAndPath" databaseId="postgres" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET system_processing = case when (#{system_processing} = TRUE) then 1::bit when (#{system_processing} = FALSE) then 0::bit end
+        WHERE site = #{site} AND path = #{path}
+    </update>
+
+    <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET system_processing = #{systemProcessing}
+        WHERE site = #{site} AND path = #{path}
+    </update>
+
+    <insert id="insertEntry" databaseId="postgres" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true" >
+        INSERT INTO
+        cstudio_objectstate
+        (object_id, site, path, state, system_processing)
+        VALUES
+        (#{objectId}, #{site}, #{path}, #{state}, B'0')
+    </insert>
+
+    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
+        INSERT INTO
+        cstudio_objectstate
+        (object_id, site, path, state, system_processing)
+        VALUES
+        (#{objectId}, #{site}, #{path}, #{state}, 0)
+    </insert>
+
+    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET state = #{state}, system_processing = #{systemProcessing}
+        WHERE object_id = #{objectId}
+    </update>
+
+    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map" resultMap="ObjectStateMap">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE site = #{site}
+        AND path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
+
+    <update id="setObjectStateForSiteAndPaths" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET state = #{state}
+        WHERE site = #{site}
+        AND path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
+
+    <update id="updateObjectPath" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET path = #{newPath}
+        WHERE site = #{site}
+        AND path = #{oldPath}
+    </update>
+
+    <delete id="deleteObjectStatesForSite" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #{site}
+    </delete>
+
+    <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM cstudio_objectstate
+        WHERE site = #{site}
+        AND path = #{path}
+    </delete>
+
+    <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT count(*) FROM cstudio_objectstate where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
+    </select>
+</mapper>

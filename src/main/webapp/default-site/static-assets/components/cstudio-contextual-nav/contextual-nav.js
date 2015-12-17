@@ -13,10 +13,8 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
 	 * on success.
 	 */
 	hookNavOverlayFromAuthoring: function() {
-		
-		if(!this.intitialized) {
-			this.intitialized = true;
-			
+		if(!this.initialized) {
+			this.initialized = true;
 			this.updateContextualNavOverlay();
 		}
 	},
@@ -30,16 +28,13 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
 
 		context = (context) ? context : CStudioAuthoringContext.navContext;
 		CStudioAuthoring.Service.retrieveContextualNavContent(context, {
-			success: function(content) {
-
-				CStudioAuthoring.ContextualNav.addNavContent(navContent); 
-				
+			success: function(navContent) {
+				CStudioAuthoring.ContextualNav.addNavContent(navContent);
 				YAHOO.util.Event.onAvailable("authoringContextNavHeader", function() {
-                    document.domain=CStudioAuthoringContext.cookieDomain;
+                    document.domain = CStudioAuthoringContext.cookieDomain;
 					CStudioAuthoring.Events.contextNavReady.fire();
 				}, this);
 			},
-			
 			failure: function() {
 				YAHOO.log("Failed to hook context nav", "error", "authoring nav callback");
 			}
@@ -50,28 +45,22 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
 	 * add the contextual nav to the page - first time call
 	 */
 	addNavContent: function(navHtmlContent) {
-		
-		var _body = document.getElementsByTagName('body')[0];
 
-		var hdrDiv = document.createElement("div");
-		hdrDiv.id = "controls-overlay";
+		var bar = document.createElement("div");
 
-		hdrDiv.innerHTML = navHtmlContent;
-
-		var br = document.createElement("br");
-		YDom.insertBefore(br, YDom.getFirstChild(_body));
-		YDom.insertBefore(document.createElement("br"), br);
-
-		YDom.insertBefore(hdrDiv, YDom.getFirstChild(_body));
+		bar.id = "controls-overlay";
+		bar.innerHTML = navHtmlContent;
 
 		CStudioAuthoring.Service.retrieveContextNavConfiguration("default", {
 			success: function(config) {
-				this.context.buildModules(config)
+				var me = this;
+				var $ = jQuery || function(fn) { fn() };
+				$(function () {
+					document.body.appendChild(bar);
+					me.context.buildModules(config);
+				});
 			},
-			
-			failure: function() {
-			},
-			
+			failure: function() {},
 			context: this
 		});
 	},
@@ -80,10 +69,10 @@ CStudioAuthoring.ContextualNav = CStudioAuthoring.ContextualNav || {
      * given a dropdown configuration, build the nav
      */
     buildModules: function(navConfig) {
-		
-		if(navConfig.modules.length) {
-			for(var i=0; i<navConfig.modules.length; i++) {
-				var module = navConfig.modules[i];
+		// TODO console.log(navConfig.modules.module)
+		if(navConfig.modules.module.length) {
+			for(var i=0; i<navConfig.modules.module.length; i++) {
+				var module = navConfig.modules.module[i];
 				 
 				var cb = {
 					moduleLoaded: function(moduleName, moduleClass, moduleConfig) {

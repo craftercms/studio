@@ -1,0 +1,26 @@
+<personas>
+    <persona>
+        <name>Anonymous</name>
+        <description>User is unknown to Acme.com.</description>
+        <thumb>anon.jpg</thumb>
+        <settings>
+        </settings>
+   </persona>
+    <persona>
+        <name>Customer</name>
+        <description>User is a customer of Global Integrity products and Services.</description>
+        <thumb>customer.jpg</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>customer</value>
+            </property>
+            <property>
+            	<name>newOptIn</name>
+            	<label>Opt-in for newsletter</label>
+            	<value>true</value>
+            </property>
+        </settings>
+   </persona>
+</personas>

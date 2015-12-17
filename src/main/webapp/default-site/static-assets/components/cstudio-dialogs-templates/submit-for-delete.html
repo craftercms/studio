@@ -1,0 +1,47 @@
+<div class="studio-view delete-view">
+
+    <style>
+        .delete-view .item-desc {
+            white-space: nowrap;
+            overflow: hidden;
+            width: 310px;
+        }
+    </style>
+
+    <h3 class="view-title" data-translation="deleteSubmitDialogTitle">Submit for deletion</h3>
+    <div style="display:none;" class="form-group" data-translation="deleteSubmitDialogTime">
+        When would you like the checked item(s) to be deleted?
+    </div>
+
+    <div class="form-group">
+        <div  style="display:none;"  class="radio">
+        	<label>
+            <input id="now" type="radio" name="timing" class="asap" checked />
+            <span data-translation="deleteSubmitEmailMe">As soon as possible.</span>
+            </label>
+        </div>
+    </div>
+    <div class="form-group checkbox">
+    	<label>
+        <input class="email-notify" type="checkbox" checked /> <span data-translation="deleteSubmitEmailMe">Email me when my items are deleted</span>
+        </label>
+    </div>
+
+	<div class="form-group">
+		<table class="item-listing">
+			<thead>
+				<tr><th colspan="2" data-translation="deleteDialogPage">Page</th></tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+    <div class="form-group items-feedback" style="text-align:center;margin-top:-10px" data-translation="deleteDialogFeedBack">
+        Dependencies must be checked before you can submit
+    </div>
+
+    <div class="action-wrapper">
+        <button data-translation="submit" class="btn btn-primary submit-for-delete">Submit</button>
+        <button data-translation="cancel" class="btn btn-default cancel">Cancel</button>
+    </div>
+
+</div>

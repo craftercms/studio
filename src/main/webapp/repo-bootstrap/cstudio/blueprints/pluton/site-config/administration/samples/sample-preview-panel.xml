@@ -1,0 +1,18 @@
+<panel>
+   <modules>
+      <module><moduleName>ice-tools-panel</moduleName><title>In-Context Editing</title></module>
+	  <module><moduleName>component-panel</moduleName><title>Page Components</title></module>
+      <module><moduleName>static-assets-panel</moduleName><title>Static Assets</title></module>
+      <module><moduleName>medium-panel</moduleName><title>Publishing Channel</title>
+         <config>
+           <channels>
+             <channel><title>Web</title><value>browser</value></channel>
+             <channel><title>iPhone</title><value>iphone</value></channel>
+             <channel><title>iPad</title><value>ipad</value></channel>
+          </channels>
+         </config>
+      </module>
+     <module><moduleName>analytics-panel</moduleName><title>Analytics</title></module>
+     <module><moduleName>targeting-panel</moduleName><title>Targeting</title></module>
+   </modules>
+</panel>

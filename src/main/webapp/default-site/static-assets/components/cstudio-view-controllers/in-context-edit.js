@@ -7,14 +7,7 @@
 (function(){
 
     var InContextEdit,
-        Event = YAHOO.util.Event,
-        Dom = YAHOO.util.Dom,
-        JSON = YAHOO.lang.JSON,
-
-        eachfn = CStudioAuthoring.Utils.each,
-
-       TemplateAgent = CStudioAuthoring.Component.TemplateAgent,
-        template = CStudioAuthoring.TemplateHolder.History;
+        Dom = YAHOO.util.Dom;
 
     CStudioAuthoring.register("ViewController.InContextEdit", function() {
         CStudioAuthoring.ViewController.InContextEdit.superclass.constructor.apply(this, arguments);
@@ -28,91 +21,140 @@
         initialise: function(usrCfg) {
             Dom.setStyle(this.cfg.getProperty("context"), "overflow", "visible");
         },
-        
+
+        close: function() {
+            var editorId = this.editorId;
+            var iframeEl = window.top.document.getElementById("in-context-edit-editor-"+editorId);
+            iframeEl.parentNode.parentNode.style.display = "none";
+        },
+
         /**
-         * on initialization, go out and get the content and 
+         * on initialization, go out and get the content and
          * populate the dialog.
-         * 
+         *
          * on error, display the issue and then close the dialog
          */
-        initializeContent: function(item, field, site, isEdit, callback) {
-			var iframeEl = document.getElementById("in-context-edit-editor");
-			var dialogEl = document.getElementById("viewcontroller-in-context-edit_0_c");
-			var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit_0")
-			
-	
-				contentTypeCb = {
-					success: function(contentType) {
-						var windowUrl = "";
-						
-						if(contentType.formPath == "simple") {
-							// use the simple form server
-							windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit);
-						}
-						else {
-							// use the legacy form server
-							windowUrl = this.context.constructUrlWebFormLegacyFormServer(item, field, site);
-						}
+        initializeContent: function(item, field, site, isEdit, callback, $modal, aux, editorId) {
+            var iframeEl = window.top.document.getElementById("in-context-edit-editor-"+editorId);
+            var dialogEl = document.getElementById("viewcontroller-in-context-edit-"+editorId+"_0_c");
+            var dialogBodyEl = document.getElementById("viewcontroller-in-context-edit-"+editorId+"_0");
+            aux = (aux) ? aux : {};
 
-						this.iframeEl.src = windowUrl;
-						this.dialogEl.style.width = "auto";
-						this.dialogBodyEl.children[1].style.background = '#F0F0F0';					
-						window.iceCallback = callback;
-					},
-					failure: function() {
-					},
-					
-					iframeEl: iframeEl,
-					dialogEl: dialogEl,
-					dialogBodyEl: dialogBodyEl,
-					context: this
-				}
-				
-				CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, contentTypeCb);
+            CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, item.contentType, {
+                context: this,
+                iframeEl: iframeEl,
+                dialogEl: dialogEl,
+                failure: crafter.noop,
+                dialogBodyEl: dialogBodyEl,
+                success: function(contentType) {
+                    var windowUrl = "";
+                    windowUrl = this.context.constructUrlWebFormSimpleEngine(contentType, item, field, site, isEdit, aux, editorId);
+
+                    this.iframeEl.src = windowUrl;
+                    this.context.editorId = editorId;
+                    CStudioAuthoring.InContextEdit.registerDialog(editorId, this.context);
+
+                    this.iframeEl.onload = function () {
+
+                        var body = this.contentDocument.body,
+                            html = $(body).parents('html').get(0),
+                            count = 1,
+                            max;
+
+                        var interval = setInterval(function () {
+
+                            max = Math.max(
+                                body.scrollHeight,
+                                html.offsetHeight,
+                                html.clientHeight,
+                                html.scrollHeight,
+                                html.offsetHeight);
+
+                            if (max > $(window).height()) {
+                                max = $(window).height() - 100;
+                            }
+
+                            if (max > 350) {
+                                clearInterval(interval);
+                                $modal.height(max);
+                            }
+
+                            if (count++ > 10) {
+                                clearInterval(interval);
+                            }
+
+                        }, 1000);
+
+                    };
+
+                }
+            });
         },
-        
-        /** 
+
+        /**
          * get the content from the input and send it back to the server
          */
         updateContentActionClicked: function(buttonEl, evt) {
-			//not used         
+            //not used
         },
-        
+
         /**
          * cancel the dialog
          */
         cancelActionClicked: function(buttonEl, evt) {
-			//not used
+            //not used
         },
-        
+
         /**
          * construct URL for simple form server
          */
-        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit) {
-        	var windowUrl = "";
+        constructUrlWebFormSimpleEngine: function(contentType, item, field, site, isEdit, auxParams, editorId) {
+            var windowUrl = "";
+            var formId = contentType.form;
+            var readOnly = false;
 
-			windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
-					"/form?site=" + site + "&form=" +
-					contentType.form +
-					"&path=" + item.uri;
-					
-				if(field) {
-					windowUrl += "&iceId=" + field;
-				}
-				else {
-					windowUrl += "&iceComponent=true";
-				}
+            for(var j=0; j<auxParams.length; j++) {
+                if(auxParams[j].name=="changeTemplate") {
+                    formId = auxParams[j].value;
+                }
 
-				windowUrl += "&edit="+isEdit;
+                if(auxParams[j].name == "readonly") {
+                    readOnly = true;
+                }
+            }
+            
+            // double / can cause issues in some stores
+            item.uri = item.uri.replace("//", "/");
 
-        	return windowUrl;
+            windowUrl = CStudioAuthoringContext.authoringAppBaseUri +
+            "/form?site=" + site + 
+            "&form=" + formId +
+            "&path=" + item.uri;
+
+            if(field) {
+                windowUrl += "&iceId=" + field;
+            } else {
+                windowUrl += "&iceComponent=true";
+            }
+
+            if(isEdit == true || isEdit == "true"){
+                windowUrl += "&edit="+isEdit;
+            }
+            
+            if(readOnly == true) {
+                windowUrl += "&readonly=true";
+            }
+
+            windowUrl += "&editorId="+editorId;
+
+            return windowUrl;
         },
-        
+
         /**
-         * provide support for legacy form server 
+         * provide support for legacy form server
          */
         constructUrlWebFormLegacyFormServer: function(item, field, site) {
-			alert("legacy form server is no longer supported");			
+            alert("legacy form server is no longer supported");
         }
     });
 

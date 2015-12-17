@@ -21,7 +21,7 @@ CStudioForms.Controls.FlashPicker = CStudioForms.Controls.FlashPicker ||
 YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Flash";
+        return CMgs.format(langBundle, "flash");
     },
 
     _onChange: function(evt, obj) {
@@ -43,6 +43,11 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
 
         obj.owner.notifyValidation();
         obj.form.updateModel(obj.id, obj.getValue());
+    },
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
     },
 
     /**
@@ -188,7 +193,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
                             this.flashPicker.downloadEl.style.display = "inline-block";
                             this.flashPicker.zoomEl.style.display = "inline-block";
 
-                            this.flashPicker._onChange(null, this.flashPicker);
+                            this.flashPicker._onChangeVal(null, this.flashPicker);
                         }
                     },
                     failure: function(message) {
@@ -213,7 +218,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
             this.downloadEl.style.display = "none";
             this.zoomEl.style.display = "none";
 
-            this._onChange(null, this);
+            this._onChangeVal(null, this);
         }
     },
 
@@ -224,7 +229,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
         var datasource = null;
 
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -399,6 +404,7 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
         }
 
         this._onChange(null, this);
+        this.edited = false;
     },
 
     getName: function() {
@@ -408,13 +414,13 @@ YAHOO.extend(CStudioForms.Controls.FlashPicker, CStudioForms.CStudioFormField, {
     getSupportedProperties: function() {
         return [
             { label: "Data Source", name: "flashManager", type: "datasource:flash" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: Mgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Required", name: "required", type: "boolean" }
+            { label: Mgs.format(langBundle, "required"), name: "required", type: "boolean" }
         ];
     }
 });

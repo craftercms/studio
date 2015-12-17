@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/store-location</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>1a30</objectGroupId>
+	<objectId>1a307be4-0a8e-2201-fb3c-e58b63059121</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>1a307be4-0a8e-2201-fb3c-e58b63059121</folder-name>
+	<internal-name>Boston, MA</internal-name>
+	<storeName>Boston, MA</storeName>
+	<storeFrontImage>/static-assets/images/stores/boston-office.jpg</storeFrontImage>
+	<address>71 Chester St Allston, Ma 02134</address>
+	<geo_p>42.353146,-71.12792200000001</geo_p>
+	<createdDate>10/24/2013 12:50:28</createdDate>
+	<lastModifiedDate>9/9/2015 13:40:9</lastModifiedDate>
+	<lastModifiedDate_dt>9/9/2015 13:40:9</lastModifiedDate_dt>
+</component>

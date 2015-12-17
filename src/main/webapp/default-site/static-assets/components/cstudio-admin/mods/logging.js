@@ -36,7 +36,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 	setLoggingLevel: function (index, level) {
 		var logger = CStudioAdminConsole.Tool.Logging.loggers[index];
 		if(logger) {
-			var serviceUri = "/proxy/alfresco/cstudio/logging/set-level?logger="+logger.name+"&level="+level;
+			var serviceUri = "/api/1/services/api/1/server/set-logger-state.json?logger="+logger.name+"&level="+level;
 			var cb = {
 				success:function() {
 					CStudioAdminConsole.Tool.Logging.prototype.refreshLoggingLevels();
@@ -57,16 +57,16 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 			success: function(response) {
 				var loggerLisEl = document.getElementById("logger-list");
 		
-				var loggers = eval("(" + response.responseText + ")").loggers;
+				var loggers = eval("(" + response.responseText + ")");
 				CStudioAdminConsole.Tool.Logging.loggers = loggers;
 				// create the entire table HTML due to IE9 support
 				var jobsTableEl = document.getElementById("loggerTable");
 				var tableHTML = 
 					"<table id='loggerTable' class='cs-loggerlist'>" +
 						"<tr>" +
-						 	"<th class='cs-loggerlist-heading'>Logger</th>" +
-						 	"<th class='cs-loggerlist-heading'>Current Level</th>" +
-    					 	"<th class='cs-loggerlist-heading'>Change Level To</th>" +
+						 	"<th class='cs-loggerlist-heading'>"+CMgs.format(langBundle, "logginLevelsTabLogger")+"</th>" +
+						 	"<th class='cs-loggerlist-heading'>"+CMgs.format(langBundle, "logginLevelsTabCurrentLevel")+"</th>" +
+    					 	"<th class='cs-loggerlist-heading'>"+CMgs.format(langBundle, "logginLevelsTabChangeLevel")+"</th>" +
 						"</tr>";
 
 				for(var i=0; i<loggers.length; i++) {
@@ -74,12 +74,12 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 					var rowHTML =
 						"<tr>" +  				 	
 			 				"<td class='cs-loggerlist-detail'>" + logger.name + "</td>" +
-			 				"<td class='cs-loggerlist-detail'>" + logger.level + "</td>" +
+			 				"<td class='cs-loggerlist-detail'>" + CMgs.format(langBundle, logger.level) + "</td>" +
 			 				"<td class='cs-loggerlist-detail'>"+
-				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'debug\'); return false;\">debug</a>&nbsp;&nbsp;"+
-				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'warn\'); return false;\">warn</a>&nbsp;&nbsp;"+
-				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'info\'); return false;\">info</a>&nbsp;&nbsp;"+
-				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'error\'); return false;\">error</a>"+
+				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'debug\'); return false;\">"+CMgs.format(langBundle, "debug")+"</a>&nbsp;&nbsp;"+
+				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'warn\'); return false;\">"+CMgs.format(langBundle, "warn")+"</a>&nbsp;&nbsp;"+
+				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'info\'); return false;\">"+CMgs.format(langBundle, "info")+"</a>&nbsp;&nbsp;"+
+				 			  "<a onclick=\"CStudioAdminConsole.Tool.Logging.prototype.setLoggingLevel("+i+ ",\'error\'); return false;\">"+CMgs.format(langBundle, "error")+"</a>"+
 			 				"</td>" +
 			 			"</tr>";
 			 		tableHTML = tableHTML + rowHTML;
@@ -93,7 +93,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.Logging, CStudioAdminConsole.Tool, {
 			self: this
 		};
 			
-		var serviceUri = "/proxy/alfresco/cstudio/logging/loggers";
+		var serviceUri = "/api/1/services/api/1/server/get-loggers.json";
 
 		YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	}

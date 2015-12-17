@@ -33,8 +33,8 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		this.onSaveCallback = onSaveCallback;
 		this.asPopup = asPopup;			
 
-		this.updateAvailableTemplates(this.dialog, contentTypes.types);
-		this.setDefaultTemplate(contentTypes.types)
+		this.updateAvailableTemplates(this.dialog, contentTypes);
+		this.setDefaultTemplate(contentTypes);
 		this.dialog.show();
 	},
 	
@@ -58,26 +58,28 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		}
 
 		var divIdName = "cstudio-wcm-popup-div";
+        var CMgs = CStudioAuthoring.Messages;
+        var formsLangBundle = CStudioAuthoring.Messages.getBundle("forms", CStudioAuthoringContext.lang);
 		newdiv.setAttribute("id",divIdName);
 		newdiv.className= "yui-pe-content";
-		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:440px;">'+
+		newdiv.innerHTML = '<div class="contentTypePopupInner" id="ct_contentTypePopupInner" style="width:600px;height:501px;">'+
 								'<div class="contentTypePopupContent" id="ct_contentTypePopupContent"> '+
-									'<form name="contentFromWCM" action="submit.js"> '+
-									'<div class="contentTypePopupHeader">Choose Content Type</div> '+
-									'<div>The following starter templates are available for use within this section.</div> '+
+									'<form name="contentFromWCM" action=""> '+
+									'<div class="contentTypePopupHeader">'+CMgs.format(formsLangBundle, 'chooseContentType')+'</div> '+
+									'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypeBody')+'</div> '+
 									'<div class="contentTypeOuter"> '+
 										'<div class="templateName" id="templateName"> '+
 										'<div class="contentTypeDropdown">'+
-											'<div>Template Name: </div><select id="wcm-content-types-dropdown" size="16" class="cstudio-wcm-popup-select-control" style="width:273px; height:275px;"></select> '+
+											'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypeLabel')+'</div><select id="wcm-content-types-dropdown" size="16" class="cstudio-wcm-popup-select-control" style="width:273px; height:275px;"></select> '+
 										'</div></div>'+
 										'<div class="previewImage" id="previewImage">'+
 										'<div class="contentTypePreview">'+
-											'<div>Preview: </div><img src="'+CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
+											'<div>'+CMgs.format(formsLangBundle, 'chooseContentTypePreview')+'</div><img src="'+CStudioAuthoringContext.baseUri+'/static-assets/themes/cstudioTheme/images/default-contentType.jpg'+'" id="contentTypePreviewImg" width="267px" height="275px" /> '+
 										'</div></div>'+
 									'</div> '+
 									'<div class="contentTypePopupBtn"> '+
-										'<input type="submit" class="cstudio-xform-button ok" id="submitWCMPopup" value="OK" />' +
-										'<input type="submit" class="cstudio-xform-button cancel" id="closeWCMPopup" value="Cancel" />' +
+										'<input type="submit" class="btn btn-primary cstudio-xform-button ok" id="submitWCMPopup" value="' +CMgs.format(formsLangBundle, 'ok')+ '" />' +
+										'<input type="submit" class="btn btn-default cstudio-xform-button cancel" id="closeWCMPopup" value="' +CMgs.format(formsLangBundle, 'cancel')+ '" />' +
 									'</div>'+
 									'</form> '+
 								'</div> '+
@@ -87,7 +89,11 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		 // Instantiate the Dialog
 		content_type_dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div",
 								{ width : "610px",
-								  height : "450px",
+								  height : "501px",
+								  effect:{
+							        effect: YAHOO.widget.ContainerEffect.FADE,
+							        duration: 0.25
+							      }, 
 								  fixedcenter : true,
 								  visible : false,
 								  modal:true,
@@ -178,15 +184,18 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 		var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 
 		for(var k=0; k<contentTypes.length; k++) {
-			if(contentTypesSelect.value == contentTypes[k].formId){
-				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
-					contentTypePreviewImg.src = 
+			if(contentTypesSelect.value == contentTypes[k].form){
+				if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].imageThumbnail && contentTypes[k].imageThumbnail != "")){
+				
+				var imageName = (contentTypes[k].image && contentTypes[k].image != "") ? contentTypes[k].image : contentTypes[k].imageThumbnail;
+
+				contentTypePreviewImg.src = 
 						CStudioAuthoringContext.baseUri+
-						'/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
+						'/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
 						CStudioAuthoringContext.site + 
 						"/content-types" + 
 						contentTypesSelect.value + 
-						"/image.jpg";					
+						"/"+imageName;					
 				}
 				else{
 					contentTypePreviewImg.src = defaultSrc + defaultImg;
@@ -224,7 +233,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 			var label = contentTypes[j].label;
 			var option = document.createElement("option");
 			option.text = contentTypes[j].label;
-			option.value = contentTypes[j].formId;
+			option.value = contentTypes[j].form;
 			if(j == 0 ) option.selected = "selected";//first template will be selected. 
 			contentTypesSelect.options.add(option);
 		}
@@ -237,15 +246,18 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = CStudioAuthoring.Dialogs.Dial
 			var contentTypePreviewImg = YDom.get("contentTypePreviewImg");
 
 			for(var k=0; k<contentTypes.length; k++) {
-				if(this.value == contentTypes[k].formId){
-					if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].noThumbnail && contentTypes[k].noThumbnail == "false")){
-						contentTypePreviewImg.src = 			 
-							CStudioAuthoringContext.baseUri +
-							'/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/sites/' + 
-							CStudioAuthoringContext.site + 
-							"/content-types" + 
-							contentTypesSelect.value + 
-							"/image.jpg";
+				if(this.value == contentTypes[k].form){
+					if((contentTypes[k].image && contentTypes[k].image != "") || (contentTypes[k].imageThumbnail && contentTypes[k].imageThumbnail != "")){
+				
+						var imageName = (contentTypes[k].image && contentTypes[k].image != "") ? contentTypes[k].image : contentTypes[k].imageThumbnail;
+						
+						contentTypePreviewImg.src = 
+								CStudioAuthoringContext.baseUri+
+								'/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' +
+								CStudioAuthoringContext.site + 
+								"/content-types" + 
+								contentTypesSelect.value + 
+								"/"+imageName;
 					}
 					else{
 						contentTypePreviewImg.src = defaultSrc + defaultImg;

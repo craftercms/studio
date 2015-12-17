@@ -20,15 +20,16 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 		//YAHOO.namespace("cstudio.container");
 
 		reorderPanel = new YAHOO.widget.Panel(id, {
-					width : "610px",
-					height : "450px",
+					width : "600px",
+					height : "398px",
 					fixedcenter : true,
 					visible : true,
 					close : false,
 					underlay : "none",
 					draggable : false,
 					modal : true,
-					constraintoviewport : true
+					constraintoviewport : true,
+                    zindex : "1050"
 		} );		
 		reorderPanel.render();
 		reorderPanel.show();
@@ -65,6 +66,7 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 	   
 	   var reorderWrapperDiv = document.createElement('div');
        reorderWrapperDiv.id = "reorderWrapper";
+        reorderWrapperDiv.className = "reorderWrapperDialog";
        YAHOO.util.Dom.get(panelId).appendChild(reorderWrapperDiv);
 
        var reorderContainerDiv = document.createElement('div');
@@ -100,7 +102,10 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
 	// create the panel content for drag and drop
 	content: function(panelId, orderJson, config){
 
-		var query = location.search.substring(1); 
+       var CMgs = CStudioAuthoring.Messages;
+       var langBundle = CMgs.getBundle("forms", CStudioAuthoringContext.lang);
+
+	   var query = location.search.substring(1);
        // create object with thisPage
        var thisPageObject = {};
        thisPageObject.id = CStudioAuthoring.Utils.getQueryVariable (query, 'path');
@@ -108,16 +113,16 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
          thisPageObject.id = config.control.constructedPath;
        }
        thisPageObject.order = config.control.orderValue;
-       thisPageObject.internalName = "This Page";
+       thisPageObject.internalName = CMgs.format(langBundle, "currentPage");
 
-       var orderLen = orderJson.order.length;      
+       var orderLen = orderJson.order.length - 1;
        var orderToPageMap = {};
        var orderArray = new Array();
        var orderNum;
-       for (var i=0; i<orderLen; ++i) {
+       for (var i=0; i<=orderLen; ++i) {
     	 var orderDetails = {};
     	 orderDetails.id = orderJson.order[i].id;
-    	 orderDetails.internalName = orderJson.order[i].internalName;
+    	 orderDetails.internalName = orderJson.order[i].internalName ? orderJson.order[i].internalName : orderJson.order[i].name;
     	 if (orderJson.order[i].disabled && orderJson.order[i].disabled == 'true') {
     		 orderDetails.disabled = true;
     	 } else {
@@ -197,22 +202,18 @@ CStudioAuthoring.Dialogs.panelPageNavOrder = CStudioAuthoring.Dialogs.panelPageN
        YAHOO.util.Dom.get('reorderWrapper').appendChild(dndSubmitButtonsDiv);
 
        var dndOKButtonDiv = document.createElement('input'); 
-       dndOKButtonDiv.id = 'dndOKButton';       
-       dndOKButtonDiv.style.width = "70px";
-       dndOKButtonDiv.className = 'cstudio-xform-button';
+       dndOKButtonDiv.id = 'dndOKButton';
+       dndOKButtonDiv.className = 'cstudio-xform-button btn btn-primary';
        dndOKButtonDiv.setAttribute('type', 'submit');
        dndOKButtonDiv.setAttribute('value', 'OK');
-	   YAHOO.util.Dom.addClass(dndOKButtonDiv, 'cstudio-button');
        YAHOO.util.Dom.get('reorderButtonWrapper').appendChild(dndOKButtonDiv);
 
        var dndCancelButtonDiv = document.createElement('input');
        dndCancelButtonDiv.id = 'dndCancelButton';       
-       dndCancelButtonDiv.className = 'cstudio-xform-button';
-       dndCancelButtonDiv.style.width = "70px";
+       dndCancelButtonDiv.className = 'cstudio-xform-button btn btn-default';
        dndCancelButtonDiv.style.marginLeft = "15px";
        dndCancelButtonDiv.setAttribute('type', 'submit');
        dndCancelButtonDiv.setAttribute('value', 'Cancel');
-	   YAHOO.util.Dom.addClass(dndCancelButtonDiv, 'cstudio-button');
        YAHOO.util.Dom.get('reorderButtonWrapper').appendChild(dndCancelButtonDiv);
 		
 		if(config.control.readonly != true){

@@ -17,7 +17,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Check Box";
+        return CMgs.format(langBundle, "checkBox");
     },
 
 	_onChange: function(evt, obj) {
@@ -39,6 +39,11 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        obj._onChange(evt, obj);
+    },
+
     	
 	render: function(config, containerEl) {
 		// we need to make the general layout of a control inherit from common
@@ -56,7 +61,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		var _value = (_valueStr == "true" || _valueStr ==  true)?true:false;
 			
 		var titleEl = document.createElement("span");
-  		    YAHOO.util.Dom.addClass(titleEl, 'label');
+
   		    YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
 			titleEl.innerHTML = config.title;
 		
@@ -79,7 +84,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 
 			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
 
-			YAHOO.util.Event.on(inputEl, 'change', this._onChange, this);
+			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			
 			if(this.readonly == true){
 				inputEl.disabled = true;
@@ -105,6 +110,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 		this.value = value;
 		this.inputEl.checked =  (this.value == "true" || this.value ==  true)?true:false;
 		this._onChange(null, this);
+        this.edited = false;
 	},
 
 	getName: function() {
@@ -113,13 +119,13 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 	
 	getSupportedProperties: function() {
 			return [
-			{ label: "Readonly", name: "readonly", type: "boolean" }
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
 			 ];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" }
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" }
 		];
 	}
 

@@ -3,7 +3,7 @@ CStudioForms.Controls.RTE.InsertLayout = CStudioForms.Controls.RTE.InsertLayout 
         switch (n) {
             case 'insertLayout':
 				var config = tinyMCE.activeEditor.contextControl.rteConfig;
-				var layouts = config.rteLayouts;
+				var layouts = config.rteLayouts.layout;
 				
 				if(!layouts) {
 					layouts = [];

@@ -5,7 +5,8 @@ CStudioAdminConsole.Tool.WorkflowStates = CStudioAdminConsole.Tool.WorkflowState
 	this.types = [];
 	return this;
 }
-
+var list = [];
+var wfStates = [];
 /**
  * Overarching class that drives the content type tools
  */
@@ -27,7 +28,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 	renderJobsList: function() {
 		
 		var actions = [
-				{ name: "Set States", context: this, method: this.setStates }
+				{ name: CMgs.format(formsLangBundle, "setStatedDialogSetStates"), context: this, method: this.setStates }
 		];
 		CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
 			
@@ -40,28 +41,28 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 		stateLisEl.innerHTML = 
 		"<table id='statesTable' class='cs-statelist'>" +
 			 	"<tr>" +
-				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.WorkflowStates.selectAll(); return false;'>Select All</a></th>" +
-				 	"<th class='cs-statelist-heading'>ID</th>" +
-    			 	"<th class='cs-statelist-heading'>State</th>" +
-				 	"<th class='cs-statelist-heading'>System Processing</th>" +
+				 	"<th class='cs-statelist-heading'><a href='#' onclick='CStudioAdminConsole.Tool.WorkflowStates.selectAll(); return false;'>"+CMgs.format(langBundle, "setStatedTabSelectAll")+"</a></th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabID")+"</th>" +
+    			 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabState")+"</th>" +
+				 	"<th class='cs-statelist-heading'>"+CMgs.format(langBundle, "setStatedTabSystemProcessing")+"</th>" +
 				 "</tr>" + 
 			"</table>";
 	
 			cb = {
 				success: function(response) {
 					var states = eval("(" + response.responseText + ")");
-					CStudioAdminConsole.Tool.WorkflowStates.states = states;
+					wfStates = states.items;
 					
 					var statesTableEl = document.getElementById("statesTable");
-					for(var i=0; i<states.length; i++) {
-						var state = states[i];
+					for(var i=0; i<states.items.length; i++) {
+						var state = states.items[i];
 						var trEl = document.createElement("tr");
 						     
 						var rowHTML = 				 	
-							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.uri+"' /></td>" +
-				 			"<td class='cs-statelist-detail-id'>" + state.uri + "</td>" +
+							"<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='"+state.path+"' /></td>" +
+				 			"<td class='cs-statelist-detail-id'>" + state.path + "</td>" +
 				 			"<td class='cs-statelist-detail'>" + state.state + "</td>" +
-				 			"<td class='cs-statelist-detail'>" + state.isSystemProcessing + "</td>";
+				 			"<td class='cs-statelist-detail'>" + CMgs.format(langBundle, (state.systemProcessing=="1").toString()) + "</td>";
 				 		trEl.innerHTML = rowHTML;
 				 		statesTableEl.appendChild(trEl);
 					}
@@ -71,17 +72,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 				self: this
 			};
 			
-			var serviceUri = "/proxy/alfresco/cstudio/objectstate/get-items?site="+CStudioAuthoringContext.site+"&state=ALL";
+			var serviceUri = "/api/1/services/api/1/content/get-item-states.json?site="+CStudioAuthoringContext.site+"&state=ALL";
 
 			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 	},
-	
+			
 	setStates: function() {
 		var items = document.getElementsByClassName('act');
-		var list = [];
+
 		for(var i=0; i<items.length; i++) {
 			if(items[i].checked == true) {
-				list[list.length] = CStudioAdminConsole.Tool.WorkflowStates.states[i]; 
+				list[list.length] = wfStates[i]; 
 			}
 		}
 
@@ -125,7 +126,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 	    		"<option value='EXISTING_PUBLISHING_FAILED'>EXISTING_PUBLISHING_FAILED</option>" +
 	    		"<option value='EXISTING_DELETED'>EXISTING_DELETED</option>" +
 	    	"</select><br/>" +
-	    	"System Processing: <input id='setProcessing' type='checkbox' value='false'/>" +
+            CMgs.format(formsLangBundle, "setStatedDialogSystemProcessing")+": <input id='setProcessing' type='checkbox' value='false'/>" +
 	    "</div>";
 		
 		var handleSet = function() {
@@ -134,8 +135,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 			
 			for(var i=0;  i< list.length; i++) {
 				var item = list[i];
-				var path = item.uri;
-				var serviceUri = "/proxy/alfresco/cstudio/objectstate/set-object-state?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
+				var path = item.path;
+				var serviceUri = "/api/1/services/api/1/content/set-item-state.json?site="+CStudioAuthoringContext.site+"&path="+path+"&state="+state+"&systemprocessing="+processing;
 				
 				cb = { 
 						success:function() {
@@ -144,7 +145,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 						failure: function() {} 
 				};
 
-				YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+				YConnect.asyncRequest("POST", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 			}
 			
 			this.hide();
@@ -155,12 +156,12 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 		};
 
 		var myButtons = [
-    		{ text: "Set States", handler: handleSet },
-    		{ text:"Cancel", handler: handleCancel, isDefault:true}
+    		{ text: CMgs.format(formsLangBundle, "setStatedDialogSetStates"), handler: handleSet },
+    		{ text: CMgs.format(formsLangBundle, "cancel"), handler: handleCancel, isDefault:true}
 		];
 
 		mySimpleDialog.cfg.queueProperty("buttons", myButtons);
-		mySimpleDialog.setHeader("Select States");
+		mySimpleDialog.setHeader(CMgs.format(formsLangBundle, "setStatedDialogTitle"));
 		mySimpleDialog.setBody(html);
 		mySimpleDialog.render(document.body);
 		mySimpleDialog.show();
@@ -173,7 +174,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
 // add static function
 CStudioAdminConsole.Tool.WorkflowStates.selectAll = function() {
 	var items = document.getElementsByClassName('act');
-	var list = [];
+ 
 	for(var i=0; i<items.length; i++) {
 		items[i].checked = true; 
 	}

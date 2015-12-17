@@ -23,7 +23,7 @@ CStudioAuthoring.ContextualNav.AdminConsole = CStudioAuthoring.ContextualNav.Adm
             YDom.addClass(parentFolderLinkEl, "acn-admin-console");
 
             parentFolderLinkEl.id = "admin-console";
-            parentFolderLinkEl.innerHTML = "Admin Console";
+            parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, "adminConsole");
             parentFolderLinkEl.onclick = function() {
             document.location = CStudioAuthoringContext.authoringAppBaseUri +
                 "/admin-console?site=" + CStudioAuthoringContext.site;

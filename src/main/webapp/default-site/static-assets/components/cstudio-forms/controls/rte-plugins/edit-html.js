@@ -156,6 +156,7 @@ CStudioAuthoring.Module.requireModule(
 						},
 						onChange: function(ed) {
 							rteControl.resizeCodeMirror(ed);
+                            rteControl.edited = true;
 						}
 					});
 				} else {
@@ -185,12 +186,14 @@ CStudioAuthoring.Module.requireModule(
 				}, {
 					'element': YDom.get(editor.id + '_tbl'),
 					'styles': {
-						'width': 'auto'
+						'width': 'auto',
+						'height': 'auto'
 					}
 				}]);
 				editor.codeMirror.focus();
 				editor.codeMirror.scrollTo(0, 0); // Scroll to the top of the editor window
 				rteControl.scrollToTopOfElement(rteControl.containerEl, 30);
+                editor.codeMirror.onChange()
 			},
 
 			disableCodeView: function(editor) {

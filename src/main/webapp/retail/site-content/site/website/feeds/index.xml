@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/rss</content-type>	<display-template>/templates/web/one-call.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>787e</objectGroupId>
+	<objectId>787e3a01-637b-22ac-5f4d-325c9d9afccb</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>feeds</folder-name>
+	<internal-name>Feeds</internal-name>
+	<createdDate>10/24/2013 03:24:50</createdDate>
+	<lastModifiedDate>11/11/2014 14:5:43</lastModifiedDate>
+	<placeInNav>false</placeInNav>
+	<orderDefault_f>-1</orderDefault_f>
+</page>

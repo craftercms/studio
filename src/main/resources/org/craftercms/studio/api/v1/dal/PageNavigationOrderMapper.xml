@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2015 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.PageNavigationOrderMapper">
+    <resultMap id="PageNavigationOrderMap" type="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        <id property="folderId" column="folder_id"/>
+        <result property="site" column="site"/>
+        <result property="path" column="path"/>
+        <result property="maxCount" column="max_count"/>
+    </resultMap>
+
+    <cache/>
+
+    <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap"
+            resultMap="PageNavigationOrderMap">
+        SELECT folder_id, site, path, max_count
+        FROM cstudio_pagenavigationordersequence
+        WHERE site = #{site} AND path = #{path}
+    </select>
+
+    <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        INSERT INTO
+        cstudio_pagenavigationordersequence
+        (folder_id, site, path, max_count)
+        VALUES
+        (#{folderId}, #{site}, #{path}, #{maxCount})
+    </insert>
+
+    <update id="update" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        UPDATE
+        cstudio_pagenavigationordersequence
+        SET site= #{site}, path = #{path}, max_count = #{maxCount}
+        WHERE folder_id = #{folderId}
+    </update>
+
+    <delete id="deleteSequencesForSite" parameterType="java.util.Map">
+        DELETE FROM
+        cstudio_pagenavigationordersequence
+        WHERE site = #{site}
+    </delete>
+</mapper>

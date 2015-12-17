@@ -1,0 +1,47 @@
+.cs-statelist-heading {
+    background: none repeat scroll 0 0 black;
+    border: 1px solid black;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    border-color: black white black black;
+    padding: 5px;
+}
+
+.cs-statelist {
+   left: 250px;
+    position: relative;
+    right: auto;
+    top: 85px;
+}
+
+.cs-statelist-detail {
+    font-size: 12px;
+    border: 1px solid black;
+    padding: 5px;
+}
+
+.cs-statelist-detail-id {
+    font-size: 12px;
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+}
+
+#dlg {
+	width: 33em !important;
+}
+
+.cs-endpoint-list {
+    left: 250px;
+    position: relative;
+    right: auto;
+    top: 85px;
+}
+
+.deployment-jobs-window {
+    left: 250px;
+    position: relative;
+    right: auto;
+    top: 85px;
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/section</content-type>	<display-template>/templates/web/section.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>2244</objectGroupId>
+	<objectId>2244e5fc-629f-2c39-996e-d0dddc689a6c</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>womens</folder-name>
+	<internal-name>Womans</internal-name>
+	<placeInNav>true</placeInNav>
+	<bottomPromos/>
+	<createdDate>02/09/2013 04:20:29</createdDate>
+	<lastModifiedDate>9/23/2014 15:21:9</lastModifiedDate>
+	<bottomPromos3>	<item>	<key>/site/components/imgs/311b7df9-d864-4909-8d6a-5315d306f31e.xml</key>
+	<value>Image</value>
+	<include>/site/components/imgs/311b7df9-d864-4909-8d6a-5315d306f31e.xml</include>
+	</item></bottomPromos3>
+	<bottomPromos2/>
+	<bottomPromos1>	<item>	<key>/site/components/imgs/f6028d3a-394b-f5ad-ad8a-15b69c087044.xml</key>
+	<value>Image</value>
+	<include>/site/components/imgs/f6028d3a-394b-f5ad-ad8a-15b69c087044.xml</include>
+	</item></bottomPromos1>
+	<area1>	<item>	<key>/site/components/page/f2b8c335-5a98-975d-e29f-1080906c4559.xml</key>
+	<value>f2b8c335-5a98-975d-e29f-1080906c4559.xml</value>
+	<include>/site/components/page/f2b8c335-5a98-975d-e29f-1080906c4559.xml</include>
+	</item></area1>
+	<navLabel>Womens</navLabel>
+</page>

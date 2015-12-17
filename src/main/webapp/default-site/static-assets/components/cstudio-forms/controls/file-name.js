@@ -20,9 +20,14 @@ CStudioForms.Controls.FileName = CStudioForms.Controls.FileName ||
     }
 
 YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
+    
+    getFixedId: function() {
+        return "file-name";
+    },
+
 
     getLabel: function() {
-        return "File name";
+        return CMgs.format(langBundle, "fileName");
     },
 
     getRequirementCount: function() {
@@ -72,6 +77,11 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
             obj.form.updateModel("file-name", obj.inputEl.value+".xml");
             obj.form.updateModel("folder-name", "");
         }
+    },
+
+    _onChangeVal: function(evt, obj) {
+        obj.edited = true;
+        this._onChange(evt,obj);
     },
 
     /**
@@ -158,7 +168,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         var newPath = "";
         var path = this.getCurrentPath();
 
-        if(this.contentAsFolder == "true") {
+        if(this.contentAsFolder == true || this.contentAsFolder == "true") {
             newPath = this._getPath() + "/" + this.value + "/index.xml";
         }
         else {
@@ -169,7 +179,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
         var checkCb = {
             exists: function(exists) {
-                if(exists == 'true') {
+                if(exists == true) {
                     this.obj.setError("exists", "Path exists already");
                     this.obj.renderValidation(true, false);
                     YAHOO.util.Dom.addClass(this.obj.urlErrEl, 'on');
@@ -202,7 +212,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         containerEl.id = this.id;
         
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
+
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -222,9 +232,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         path = path.replace("//","/");
 
         var pathEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(pathEl, 'cstudio-form-field-description');
-		//should only show the parents path 
-        pathEl.innerHTML = path;
+        pathEl.innerHTML = path + ' ';
         controlWidgetContainerEl.appendChild(pathEl);
 
         var inputEl = document.createElement("input");
@@ -238,7 +246,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
         var Event = YAHOO.util.Event, me = this;
         Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
-        Event.on(inputEl, 'change', this._onChange, this);
+        Event.on(inputEl, 'change', this._onChangeVal, this);
         Event.on(inputEl, 'blur', this._onChange, this);
         Event.on(inputEl, 'keyup', this.processKey, inputEl);
         Event.on(inputEl, 'paste', function (evt, el) {
@@ -342,6 +350,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         }
         this.count(null, this.countEl, this.inputEl);
         this._onChange(null, this);
+        this.edited = false;
     },
 
     _getValue: function() {
@@ -379,7 +388,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         var path = this.getCurrentPath();
         var hasXmlFile = (path.indexOf(".xml") >= 0);
 
-        if(this.contentAsFolder == "true") {
+        if(this.contentAsFolder == true) {
             path = path.replace("/index.xml", "");
         }
 
@@ -399,9 +408,9 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
     getSupportedProperties: function() {
         return [
-            { label: "Size", name: "size", type: "int", defaultValue: "50" },
-            { label: "Max Length", name: "maxlength", type: "int", defaultValue: "50" },
-            { label: "Readonly", name: "readonly", type: "boolean" }
+            { label: CMgs.format(langBundle, "size"), name: "size", type: "int", defaultValue: "50" },
+            { label: CMgs.format(langBundle, "maxLength"), name: "maxlength", type: "int", defaultValue: "50" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" }
         ];
     },
 

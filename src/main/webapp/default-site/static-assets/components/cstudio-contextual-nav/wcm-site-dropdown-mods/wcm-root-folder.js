@@ -6,6 +6,7 @@
 		storage = CStudioAuthoring.Storage,		
 		counter = 0, // Used to identify the contextmenu for each instances. May be used for any other purpose while numberic chronological order is maintained
 		Self = null; // Local reference to CStudioAuthoring.ContextualNav.WcmRootFolder initialized by CStudioAuthoring.register call
+        treeFlag = false;
 
 		if(YAHOO.lang && !YAHOO.lang.escapeHTML) {
 			// YUI version conflicts
@@ -27,6 +28,8 @@
             CUT_STYLE: "#9FB6CD",
 			searchesToWire: [],
             myTree: null,
+            myTreePages: null,
+            myTreeComp: null,
             copiedItem: null,
             cutItem: null,
             instanceCount: 0,
@@ -39,10 +42,35 @@
                 if (config.name == "wcm-root-folder") {
                     var instance = new CStudioAuthoring.ContextualNav.WcmRootFolderInstance(config);
                     instance.cannedSearchCache = [];
+                    instance.excludeCache = [];
+
+                    if(config.params.excludes) {
+                        if ( (typeof(config.params.excludes) == "object")  
+                        && (typeof(config.params.excludes.exclude) != "array")) {
+                            if (config.params.excludes.exclude != undefined) {
+                                var path = config.params.excludes.exclude;
+                                if (!instance.excludeCache[path]) {
+                                    instance.excludeCache[path] = [];
+                                }
+                                instance.excludeCache[path].push(config.params.excludes.exclude);
+                            }
+                        } 
+                        else { 
+                            for (var i = 0; i < config.params.excludes.exclude.length; i++) {
+                                var path = config.params.excludes.exclude[i];
+                                if (!instance.excludeCache[path]) {
+                                    instance.excludeCache[path] = [];
+                                }
+                                instance.excludeCache[path].push(config.params.excludes.exclude[i]);
+                            }
+                        }                    
+                    }
+
+
                     // cache the searches by name so they can be checked quickly when building the nav
                     if (config.params.cannedSearches) {
                     	// not an array
-                    	if ( (typeof(config.params.cannedSearches) == "object") && (config.params.cannedSearches.length == undefined)) {
+                    	if ( (typeof(config.params.cannedSearches) == "object") && (config.params.cannedSearches.cannedSearch.length == undefined)) {
                     		if (config.params.cannedSearches.cannedSearch != undefined) {
                     			var searchPath = config.params.cannedSearches.cannedSearch.path;
                     			if (!instance.cannedSearchCache[searchPath]) {
@@ -51,12 +79,12 @@
                     			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches.cannedSearch);
                     		}
                     	} else { 
-                    		for (var i = 0; i < config.params.cannedSearches.length; i++) {
-                    			var searchPath = config.params.cannedSearches[i].path;
+                    		for (var i = 0; i < config.params.cannedSearches.cannedSearch.length; i++) {
+                    			var searchPath = config.params.cannedSearches.cannedSearch[i].path;
                     			if (!instance.cannedSearchCache[searchPath]) {
                     				instance.cannedSearchCache[searchPath] = [];
                     			}
-                    			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches[i]);
+                    			instance.cannedSearchCache[searchPath].push(config.params.cannedSearches.cannedSearch[i]);
                     		}
                     	}
                     }
@@ -86,7 +114,7 @@
                 var parentFolderEl = document.createElement("div");
                 var parentFolderLinkEl = document.createElement("a");
                 parentFolderLinkEl.id = instance.label.toLowerCase() + "-tree"; // should be part of class no?
-                parentFolderLinkEl.innerHTML = instance.label;
+                parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, instance.label);
                 parentFolderLinkEl.onclick = Self.onRootFolderClick;
                 parentFolderLinkEl.componentInstance = instance;
 
@@ -185,6 +213,12 @@
                 }
 
                 for (var i = 0; i < treeItems.length; i++) {
+                    var exclude = false;
+                    if(instance.excludeCache[treeItems[i].path]) {
+                        exclude = true;
+                    }
+
+
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
 
@@ -200,7 +234,7 @@
                         }
                     }
 
-                    if (!isSearch) {
+                    if (!isSearch && exclude == false) {
                         var treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
 
                         var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot());
@@ -292,7 +326,16 @@
                 }
 
 				instance.firstDraw = true;
-            Self.myTree = tree;
+
+                if(treeFlag == false){
+                    Self.myTreePages = tree;
+                    instance.type = "Pages";
+                    treeFlag = true;
+                }else{
+                    Self.myTreeComp = tree;
+                    instance.type = "Components";
+                }
+
             },
             /**
              * render method called on sub root level elements
@@ -328,19 +371,19 @@
                 }
 
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
+                    var exclude = false;
+                    if(instance.excludeCache[treeItems[i].path]) {
+                        exclude = true;
+                    }
 
                     treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
                     if (treeNodeTO.isLevelDescriptor || treeNodeTO.isComponent ||
-                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml') {
+                        treeNodeTO.container == false || treeNodeTO.name == 'index.xml' ||
+                        (treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') ||
+                        treeNodeTO.previewable == false) {
                         treeNodeTO.style += " no-preview";
-                    }
-                    
-                    if(treeNodeTO.isContainer == true && treeNodeTO.pathSegment != 'index.xml') {
-                        treeNodeTO.style += " no-preview";
-                    }
-
-                    if(treeNodeTO.previewable == false) {
-                        treeNodeTO.style += " no-preview";
+                    }else{
+                        treeNodeTO.style += " preview";
                     }
                     
                     renderChild = true;
@@ -349,7 +392,7 @@
                         renderChild = false;
                     }
 
-                    if (renderChild) {
+                    if (renderChild && exclude == false) {
                         var itemCannedSearch = instance.cannedSearchCache[treeNodeTO.path];
 
                         if (itemCannedSearch && itemCannedSearch.length != 0 && itemCannedSearch[0].insertAs != "append") {
@@ -472,7 +515,7 @@ treeNode.getHtml = function() {
                     
                     var treeNode = new YAHOO.widget.TextNode(treeNodeTO, root, false);
 
-                    treeNode.labelStyle = treeNodeTO.style + " yui-resize-label";
+                    treeNode.labelStyle = treeNodeTO.style + " yui-resize-label treenode-label";
                     treeNode.nodeType = "CONTENT";
                     treeNode.treeNodeTO = treeNodeTO;
                     treeNode.renderHidden = true;
@@ -677,11 +720,9 @@ treeNode.getHtml = function() {
 
 					searchEl.onclick = function() {
 
-						var url = CStudioAuthoringContext.authoringAppBaseUri + "/page" +
-								"/site/" + CStudioAuthoringContext.site +
-								"/cstudio-search?s=";
+						var url = CStudioAuthoringContext.authoringAppBaseUri + "/search?site=" + CStudioAuthoringContext.site +"&s=";
 
-						var queryParams = this.searchTO.queryParams;
+						var queryParams = this.searchTO.queryParams.queryParam;
 
 						for (var i = 0; i < queryParams.length; i++) {
 							url += "&" + encodeURIComponent(queryParams[i].name) +
@@ -767,11 +808,18 @@ treeNode.getHtml = function() {
 		var copiedItemNode = Self.copiedItem;
 		var node = tree.getNodeByProperty("path", treeNode.treeNodeTO.path);
 		if (copiedItemNode != null && treeNode.data.path == copiedItemNode.data.path) {
-			node = tree.getNodeByProperty("path", treeNode.parent.data.path);
-			Self.copiedItem = null;
-		}
-		if (node.isLeaf) node.isLeaf = false;
-		tree.removeChildren(node);
+                node = tree.getNodeByProperty("path", treeNode.parent.data.path);
+                Self.copiedItem = null;
+        }
+
+        if(node) {
+    		if (node.isLeaf) node.isLeaf = false;
+        }
+        else {
+           node = treeNode;
+        }
+        
+	   	tree.removeChildren(node);
 		var loadEl = $(".ygtvtp", node.getEl(), true);
 		loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
 		YDom.addClass(loadEl, "ygtvloading");
@@ -826,21 +874,16 @@ treeNode.getHtml = function() {
 			
 				if(node.data.isContainer == true && node.data.pathSegment != 'index.xml') {
 					// this is a false state coming from the back-end
-				}
-				else {
-					if (node.data.isLevelDescriptor == false) {
-						CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
-					}
-		
+				} else /*if (node.data.isLevelDescriptor == false)*/ {
+                    CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
 				}
 			}
-		} 
-		else if (node.nodeType == "SEARCH") {
+		}  else if (node.nodeType == "SEARCH") {
 			// wired on render
 		}
-			
-			
+
 		return false;
+
 	},
             /**
              * create a transfer object for a node
@@ -857,7 +900,7 @@ treeNode.getHtml = function() {
                 retTransferObj.nodeRef = treeItem.nodeRef;
                 retTransferObj.formId = treeItem.form;
                 retTransferObj.formPagePath = treeItem.formPagePath;
-                retTransferObj.isContainer = treeItem.container;
+                retTransferObj.isContainer = treeItem.container || treeItem.isContainer;
                 retTransferObj.isComponent = treeItem.component;
                 retTransferObj.isLevelDescriptor = treeItem.levelDescriptor;
                 retTransferObj.inFlight = treeItem.inFlight;
@@ -903,10 +946,20 @@ treeNode.getHtml = function() {
                     retTransferObj.internalName = "Section Defaults";
                 }
 
-                if (treeItem.newFile) {
-                    retTransferObj.label = retTransferObj.internalName + "*";
+                if (treeItem.isNew) {
+                    retTransferObj.label = retTransferObj.internalName + " *";
                 } else {
                     retTransferObj.label = retTransferObj.internalName;
+                }
+
+                if (treeItem.previewable == false) {
+                    retTransferObj.style += " no-preview";
+                }else{
+                    retTransferObj.style += " preview";
+                }
+
+                if (treeItem.disabled == true) {
+                    retTransferObj.style += " disabled";
                 }
 
                 if (treeItem.container == true) {
@@ -971,28 +1024,28 @@ treeNode.getHtml = function() {
 					[
                         "<table class='width100 acn-tooltip'>",
                             "<tr>",
-                                "<td class='tooltip-title'>{0}: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+": </td>",
                                 "<td class='acn-width200'>",
                                     "<div class='acn-width200' style='word-wrap: break-word;'>{1}</div>",
                                 "</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Status:</td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
                                 "<td class='acn-width200'>",
                                     "<span class='{2}'></span>",
-                                    "<span style='padding-left:2px;'>{3}</span>",
+                                    "<span style='padding-left:2px; position:relative; bottom:2px;'>{3}</span>",
                                 "</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Last Edited: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
                                 "<td class='acn-width200'>{4}</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Edited by: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
                                 "<td class='acn-width200'>{5}</td>",
                             "</tr>",
                             "<tr>",
-                                "<td class='tooltip-title'>Locked by: </td>",
+                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lockedBy")+": </td>",
                                 "<td class='acn-width200'>{6}</td>",
                             "</tr>",
                         "</table>"
@@ -1015,20 +1068,20 @@ treeNode.getHtml = function() {
                 return sutils.format([
 					"<table class='width100 acn-tooltip'>",
 						"<tr>",
-							"<td class='tooltip-title'>{0}:</td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+":</td>",
 							"<td class='acn-width200'><div class='acn-width200' style='word-wrap: break-word;'>{1}</div></td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Status:</td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
 							"<td class='acn-width200'><span class='{2}'></span>",
 							"<span style='padding-left:2px;'>{3}</span></td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Last Edited: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
 							"<td class='acn-width200'>{4}</td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Edited by: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
 							"<td class='acn-width200'>{5}</td>",
 						"</tr><tr>",
-							"<td class='tooltip-title'>Scheduled: </td>",
+							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "scheduled")+": </td>",
 							"<td class='acn-width200'>{6}</td>",
 						"</tr>",
 					"</table>"
@@ -1047,7 +1100,7 @@ treeNode.getHtml = function() {
                     p_aArgs.clearContent();
 					var d = document.createElement("div");
 					d.className = "bd context-menu-load-msg";
-					d.innerHTML = 'Loading&hellip;';
+					d.innerHTML = CMgs.format(siteDropdownLangBundle, "loading");
 					menuId.appendChild(d);
 
                     var formPath = oCurrentTextNode.data.formPagePath,
@@ -1065,37 +1118,47 @@ treeNode.getHtml = function() {
 					var checkPermissionsCb = {
                         success: function(results) {
                             var isCreateFolder = CStudioAuthoring.Service.isCreateFolder(results.permissions);
+                            var isCreateContentAllowed = CStudioAuthoring.Service.isCreateContentAllowed(results.permissions);
+                            var isChangeContentTypeAllowed = CStudioAuthoring.Service.isChangeContentTypeAllowed(results.permissions);
                             // check if the user is allowed to edit the content
                             var isUserAllowed = CStudioAuthoring.Service.isUserAllowed(results.permissions);
                             var isDeleteAllowed = CStudioAuthoring.Service.isDeleteAllowed(results.permissions) && !isOpen;
-                        
+
 		                    if(isLocked == true && isWrite == true) {
 		                    	p_aArgs.addItems([ menuItems.viewOption ]);
 
                         		if (isContainer == true) {
-		                        	p_aArgs.addItems([ menuItems.newContentOption ]);
+                                    if (isCreateContentAllowed) {
+                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                    }
 		                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
-		                        }		                   		
+		                        }
 	                        	p_aArgs.addItems([ menuItems.separator ]);
-	                        	//The item is locked 
+	                        	//The item is locked
 								//p_aArgs.addItems([ menuItems.cutOption ]);
 	                        	p_aArgs.addItems([ menuItems.copyOption ]);
-
-	                            if(CStudioAuthoringContext.role === "admin") {
-                   		           p_aArgs.addItems([ menuItems.separator ]);
-	                            	p_aArgs.addItems([ menuItems.unlockOption ]);
-                   	            }                   	                   				
 
 								var checkClipboardCb = {
 			                        success: function(collection) {
 										var contextMenuItems = [];
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
-		
-			                            if (collection.count > 0 && isContainer) {
-			                            	this.args.addItems([ menuItems.pasteOption ]);
-			                            }
-		
+
+                                        if(oCurrentTextNode.instance.type == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+                                            if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
+                                        }
+
 			                            this.args.render();
 										menuId.removeChild(d);
 			                        },
@@ -1107,7 +1170,7 @@ treeNode.getHtml = function() {
 			                        itemInProgress: isInProgress,
 			                        item: oCurrentTextNode.data
 			                    };
-			                    
+
 			                    CStudioAuthoring.Clipboard.getClipboardContent(checkClipboardCb);
 
 			                    p_aArgs.render();
@@ -1115,6 +1178,49 @@ treeNode.getHtml = function() {
 		                    }
 		                   	else if(!isWrite) {
 		                   		p_aArgs.addItems([ menuItems.viewOption ]);
+
+                                if (isComponent == true || isLevelDescriptor == true) {
+                                    if (formPath == "" || formPath == undefined) {
+                                    } else {
+                                        if (!isUserAllowed) {
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
+                                        } else {
+                                            if (!isFolder && isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (formPath == "" || formPath == undefined) {
+                                        if (isUserAllowed) {
+                                            if (isContainer == true) {
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
+                                            }
+                                            if (!isFolder && isChangeContentTypeAllowed) {
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                            }
+                                        }
+                                    } else {
+                                        if (isContainer == true) {
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
+                                            if (isUserAllowed) {
+                                                if (!isFolder && isChangeContentTypeAllowed) {
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.changeTemplateOption ]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
 		                   		p_aArgs.render();
 								menuId.removeChild(d);
 		                   	}
@@ -1122,9 +1228,9 @@ treeNode.getHtml = function() {
 			                    if (isComponent == true || isLevelDescriptor == true) {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
-			                        	if (isUserAllowed) { 
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
-					                        if (isDeleteAllowed) {
+			                        	if (isUserAllowed) {
+
+                                            if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
 			                        		}
@@ -1133,28 +1239,34 @@ treeNode.getHtml = function() {
 			                        	if (isUserAllowed) {
 				                        	p_aArgs.addItems([ menuItems.editOption ]);
 				                        	p_aArgs.addItems([ menuItems.viewOption ]);
-	
-				                        	p_aArgs.addItems([ menuItems.separator ]);
+
+				                        	if(isDeleteAllowed ||!isFolder && isChangeContentTypeAllowed ){
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                            }
 				                        	if (isDeleteAllowed) {
 				                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 				                        	}
-                                            if (!isFolder) {
+                                            if (!isFolder && isChangeContentTypeAllowed) {
                                                 p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                             }
-				                        	
+
 				                        	p_aArgs.addItems([ menuItems.separator ]);
 				                        	p_aArgs.addItems([ menuItems.cutOption ]);
 				                        	p_aArgs.addItems([ menuItems.copyOption ]);
 			                        	} else {
 				                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            if (isCreateContentAllowed) {
+                                                p_aArgs.addItems([ menuItems.newContentOption ]);
+                                            }
 			                        	}
 			                        }
 			                    } else {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	if (isCreateFolder == true) {
 			                        		if (isContainer == true) {
-					                        	p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 					                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 					                        }
 				                        	if (isUserAllowed) {
@@ -1162,10 +1274,10 @@ treeNode.getHtml = function() {
 				                        		if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-                                                if (!isFolder) {
+                                                if (!isFolder && isChangeContentTypeAllowed) {
                                                     p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                 }
-	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
@@ -1173,7 +1285,9 @@ treeNode.getHtml = function() {
 				                        }
 			                        	else {
 			                        		if (isContainer == true) {
-				                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                if (isCreateContentAllowed) {
+                                                    p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                }
 				                        	} else if (isUserAllowed) {
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 				                        		p_aArgs.addItems([ menuItems.deleteOption ]);
@@ -1185,53 +1299,61 @@ treeNode.getHtml = function() {
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
-			
+
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	if (isDeleteAllowed) {
 						                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 						                        	}
-						                        	if (!isFolder) {
+						                        	if (!isFolder && isChangeContentTypeAllowed) {
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
-		
+
 						                        	p_aArgs.addItems([ menuItems.separator ]);
 						                        	p_aArgs.addItems([ menuItems.cutOption ]);
 						                        	p_aArgs.addItems([ menuItems.copyOption ]);
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
 						                        }
 					                        } else {
 				                        		if (isUserAllowed) {
 						                        	p_aArgs.addItems([ menuItems.editOption ]);
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
-		
-						                        	p_aArgs.addItems([ menuItems.separator ]);
-						                        	if (!isFolder) {
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
+
+						                        	if (!isFolder && isChangeContentTypeAllowed) {
+                                                        p_aArgs.addItems([ menuItems.separator ]);
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        		p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    if (isCreateContentAllowed) {
+                                                        p_aArgs.addItems([ menuItems.newContentOption ]);
+                                                    }
 						                        }
 					                        }
 					                    } else {
 				                        	if (isUserAllowed) {
 					                        	p_aArgs.addItems([ menuItems.editOption ]);
 					                        	p_aArgs.addItems([ menuItems.viewOption ]);
-					                        	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	if (isDeleteAllowed) {
 					                        	    p_aArgs.addItems([ menuItems.deleteOption ]);
 					                        	}
-					                        	if (!isFolder) {
+					                        	if (!isFolder && isChangeContentTypeAllowed) {
                                                     p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                 }
-					                        	
+
 					                        	p_aArgs.addItems([ menuItems.separator ]);
 					                        	p_aArgs.addItems([ menuItems.cutOption ]);
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
@@ -1247,9 +1369,20 @@ treeNode.getHtml = function() {
 										var contextMenuItems = [];
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
-		
-			                            if (collection.count > 0 && isContainer) {
-			                            	this.args.addItems([ menuItems.pasteOption ]);
+
+                                        if(oCurrentTextNode.instance.type == "Pages"){
+                                            Self.myTree = Self.myTreePages;
+                                        }else{
+                                            Self.myTree = Self.myTreeComp;
+                                        }
+
+                                        if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
+			                            	if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
+                                                if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/")).parent.contentElId != oCurrentTextNode.contentElId){
+                                                    this.args.addItems([ menuItems.pasteOption ]);
+                                                }
+                                            }
+                                            Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
 			                            }
 										
 			                            if(isUserAllowed) {
@@ -1272,6 +1405,14 @@ treeNode.getHtml = function() {
 			                    CStudioAuthoring.Clipboard.getClipboardContent(checkClipboardCb);
 		                   	
 		                   	} // end of else
+
+                            if((oCurrentTextNode.data.lockOwner != ""
+                            && CStudioAuthoringContext.role === "admin") 
+                            || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
+                               p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.unlockOption ]);
+                            }                                                       
+
 		                   	
 	                 	},
                         failure: function() { }
@@ -1318,27 +1459,27 @@ treeNode.getHtml = function() {
                 var menuItems = {
                 	separator: { text: "<div>&nbsp;</div>", disabled:true, classname:"menu-separator" },
 
-					newContentOption: { text: "New&nbsp;Content", onclick: { fn: Self.createContent } },
+					newContentOption: { text: CMgs.format(siteDropdownLangBundle, "newContent"), onclick: { fn: Self.createContent } },
 
-					newFolderOption: { text: "New&nbsp;Folder", onclick: { fn: Self.createContainer } },
+					newFolderOption: { text: CMgs.format(siteDropdownLangBundle, "newFolder"), onclick: { fn: Self.createContainer } },
 
-					editOption: { text: "Edit", onclick: { fn: Self.editContent } },
+					editOption: { text: CMgs.format(siteDropdownLangBundle, "edit"), onclick: { fn: Self.editContent } },
 					
-					viewOption: { text: "View", onclick: { fn: Self.viewContent } },
+					viewOption: { text: CMgs.format(siteDropdownLangBundle, "view"), onclick: { fn: Self.viewContent } },
 					
-					changeTemplateOption: { text: "Change&nbsp;Template", onclick: { fn: Self.changeTemplate, obj:tree } },
+					changeTemplateOption: { text: CMgs.format(siteDropdownLangBundle, "changeTemplate"), onclick: { fn: Self.changeTemplate, obj:tree } },
 
-					deleteOption: { text: "Delete", onclick: { fn: Self.deleteContent, obj:tree } },
+					deleteOption: { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: Self.deleteContent, obj:tree } },
 
-					cutOption: { text: "Cut", onclick: { fn: Self.cutContent, obj:tree } },
+					cutOption: { text: CMgs.format(siteDropdownLangBundle, "cut"), onclick: { fn: Self.cutContent, obj:tree } },
 					
-					copyOption: { text: "Copy", onclick: { fn: Self.copyTree, obj:tree } },
+					copyOption: { text: CMgs.format(siteDropdownLangBundle, "copy"), onclick: { fn: Self.copyTree, obj:tree } },
 					
-					pasteOption: { text: "Paste", onclick: { fn: Self.pasteContent} },
+					pasteOption: { text: CMgs.format(siteDropdownLangBundle, "paste"), onclick: { fn: Self.pasteContent} },
 
-					revertOption: { text: "History", onclick: { fn: Self.revertContent, obj:tree } },
+					revertOption: { text: CMgs.format(siteDropdownLangBundle, "history"), onclick: { fn: Self.revertContent, obj:tree } },
 					
-					unlockOption: { text: "Unlock", onclick: { fn: Self.unlockContent } }
+					unlockOption: { text: CMgs.format(siteDropdownLangBundle, "Unlock"), onclick: { fn: Self.unlockContent } }
 				};
                 p_aArgs.clearContent();
 
@@ -1512,7 +1653,7 @@ treeNode.getHtml = function() {
             deleteContent: function(p_sType, p_aArgs, tree) {
 				var dropDownWrap = YDom.get('acn-dropdown-menu-wrapper');
 				if(dropDownWrap){
-					dropDownWrap.style.display = 'none'; 
+					//dropDownWrap.style.display = 'none';
 				}				
                 CStudioAuthoring.Operations.deleteContent(
                         [oCurrentTextNode.data]);
@@ -1549,13 +1690,13 @@ treeNode.getHtml = function() {
                 Self.cutItem = oCurrentTextNode;
 
 				if(uri.lastIndexOf("index.xml")==-1){
-					var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + CStudioAuthoringContext.site + "&path=" + uri + "&depth=-1&order=default";
+					var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + uri + "&depth=-1&order=default";
 					
 				}
 				else {
 	                var folderPath = uri.substring(0, uri.lastIndexOf("index.xml"));                
 
-    	            var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + CStudioAuthoringContext.site + "&path=" + folderPath + "&depth=-1&order=default";
+    	            var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + CStudioAuthoringContext.site + "&path=" + folderPath + "&depth=-1&order=default";
 				}
 				
                 var getTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
@@ -1588,8 +1729,8 @@ treeNode.getHtml = function() {
 
                         var item = content.item;
                         var jsonString= YAHOO.lang.JSON.stringify(item);
-                        var jsonArray="{item:["+jsonString+"]}";
-                        var cutRequest = CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/copy?site=" + CStudioAuthoringContext.site + "&cut=true";
+                        var jsonArray="{\"item\":["+jsonString+"]}";
+                        var cutRequest = CStudioAuthoringContext.baseUri + "/api/1/services/api/1/clipboard/cut-item.json?site=" + CStudioAuthoringContext.site;
 
                         var onComplete = {
                             success:function(response) {
@@ -1618,7 +1759,9 @@ treeNode.getHtml = function() {
              */
             pasteContent: function(sType, args, tree) {
                 //Check source and destination paths.
-                if (Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) {
+                if ((Self.cutItem != null && Self.cutItem.contentElId == oCurrentTextNode.contentElId) ||
+                    (Self.copiedItem != null && (Self.copiedItem.contentElId == oCurrentTextNode.contentElId) || Self.copiedItem == oCurrentTextNode.data.uri) ||
+                    (Self.copiedItem != null && Self.copiedItem.parent.contentElId == oCurrentTextNode.contentElId)){
                     alert("Source and destination path are same");
                     return false;
                 }
@@ -1694,7 +1837,15 @@ treeNode.getHtml = function() {
 
                     activeNode: oCurrentTextNode
                 };
+
+                if(oCurrentTextNode.instance.label == "Pages"){
+                    Self.myTree = Self.myTreePages;
+                }else{
+                    Self.myTree = Self.myTreeComp;
+                }
+
                 Self.copiedItem = Self.myTree.getNodeByProperty("path", oCurrentTextNode.data.path);
+                Self.copiedItem ? null : Self.copiedItem = oCurrentTextNode;
                 
                 
                 // if the tree does not have child do not open the copy dialoge
@@ -1710,7 +1861,7 @@ treeNode.getHtml = function() {
                 	var site = CStudioAuthoringContext.site;
                 	
                 	var context = copyContext;
-                	context.request = CStudioAuthoringContext.baseUri + "/service/cstudio/services/clipboard/copy?site=" + site;
+                	context.request = CStudioAuthoringContext.baseUri + CStudioAuthoring.Service.copyServiceUrl + "?site=" + site;
                 	
                 	var uri = oCurrentTextNode.data.uri; 
                 	
@@ -1749,7 +1900,7 @@ treeNode.getHtml = function() {
         				},
         				args : context
         			};
-        			var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
+        			var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
         			var getCopyTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
         			YConnect.asyncRequest('GET', getCopyTreeItemReuest, openCopyDialog);
                 } else {
@@ -1762,7 +1913,7 @@ treeNode.getHtml = function() {
             },
 			cutTree:function(sType, args, tree){
 				args.cut=true;
-                var serviceUri = "/proxy/alfresco/cstudio/wcm/content/get-pages?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
+                var serviceUri = CStudioAuthoring.Service.getPagesServiceUrl + "?site=" + site + "&path=" + folderPath + "&depth=-1&order=default";
 				var getCopyTreeItemReuest = CStudioAuthoring.Service.createServiceUri(serviceUri);
 				YConnect.asyncRequest('GET', getCopyTreeItemReuest, openCopyDialog);
                 CStudioAuthoring.Operations.openCopyDialog(sType,args,tree);
@@ -1806,7 +1957,7 @@ treeNode.getHtml = function() {
                             param1['value'] = "true";
                             var param2 = {};
                             param2['name'] = "changeTemplate";
-                            param2['value'] = "true";
+                            param2['value'] = selectedType;
                             auxParams.push(param1);
                             auxParams.push(param2);
                             CStudioAuthoring.Operations.editContent(
@@ -1818,7 +1969,7 @@ treeNode.getHtml = function() {
                         failure: function() { },
                         activeNode: oCurrentTextNode
                     };
-
+                    dialog.destroy();
                     CStudioAuthoring.Operations.assignContentTemplate(
                             CStudioAuthoringContext.site,
                             CStudioAuthoringContext.user,
@@ -1832,14 +1983,16 @@ treeNode.getHtml = function() {
                     dialog.destroy();
                 }
 
-                modalBody.innerHTML = '<div class="contentTypePopupInner" style="width:460px;height:140px;">' +
+                modalBody.innerHTML = '<div class="contentTypePopupInner changeContent-type-dialog" style="width:460px;height:140px;">' +
                                         '<div class="contentTypePopupContent">' +
                                             '<form name="contentFromWCM">' +
-                                            '<div class="contentTypePopupHeader">Warning: Change Content Type</div> ' +
-                                            '<div>The following operation may result in data loss. Would you like to proceed?</div>' +
+                                            '<div class="contentTypePopupHeader">' + CMgs.format(formsLangBundle, "changeTemplateDialogTitle")+ '</div> ' +
+                                            '<div class="contentTypeOuter">'+
+                                                '<div>' + CMgs.format(formsLangBundle, "changeTemplateDialogBody")+ '</div>' +
+                                            '</div>' +    
                                             '<div class="contentTypePopupBtn">' +
-                                                '<input type="submit" class="ok" id="acceptCTChange" value="Yes" />' +
-                                                '<input type="submit" class="cancel" id="cancelCTChange" value="No" />' +
+                                                '<input type="submit" class="btn btn-primary ok" id="acceptCTChange" value="' +CMgs.format(formsLangBundle, 'yes')+ '" />' +
+                                                '<input type="submit" class="btn btn-default cancel" id="cancelCTChange" value="' +CMgs.format(formsLangBundle, 'no')+ '" />' +
                                             '</div>' +
                                             '</form> ' +
                                         '</div>' +
@@ -1847,8 +2000,12 @@ treeNode.getHtml = function() {
 
                 var dialog = new YAHOO.widget.Dialog("cstudio-wcm-popup-div", 
                                 { fixedcenter : true,
+                                  effect:{
+                                    effect: YAHOO.widget.ContainerEffect.FADE,
+                                    duration: 0.25
+                                  }, 
                                   visible : false,
-                                  modal:false,
+                                  modal:true,
                                   close:false,
                                   constraintoviewport : true,
                                   underlay:"none",

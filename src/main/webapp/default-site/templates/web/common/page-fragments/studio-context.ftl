@@ -1,30 +1,33 @@
 <#assign site = envConfig.site />
 <script>
+
 	/**
 	 * contextual variables 
 	 * note: these are all fixed at the moment but will be dynamic
 	 */
 	CStudioAuthoringContext = {
-		user: "${envConfig.user}",
-		role: "${envConfig.role}", 
-		site: "${envConfig.site}",
+		user: "${envConfig.user!'UNSET'}",
+		role: "${envConfig.role!'UNSET'}",
+		site: "${envConfig.site!'UNSET'}",
+		siteId: "${envConfig.site!'UNSET'}",
 		collabSandbox: "",
 		baseUri: "/studio",
-		authoringAppBaseUri: "${envConfig.authoringServerUrl}",
-		formServerUri: "${envConfig.formServerUrl}",
-		previewAppBaseUri: "${envConfig.previewServerUrl}",
+		authoringAppBaseUri: "${envConfig.authoringServerUrl!'/studio'}",
+		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
+		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}", 
 		contextMenuOffsetPage: false,
-		brandedLogoUri: "/proxy/alfresco/cstudio/services/content/content-at-path?path=/cstudio/config/app-logo.png",
-		homeUri: "/site-dashboard?site=${envConfig.site}",
+		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
+		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
 		navContext: "default",
-		cookieDomain: "${envConfig.cookieDomain}",
-		openSiteDropdown: ${envConfig.openSiteDropdown},
+		cookieDomain: "${cookieDomain!'UNSET'}",
+		openSiteDropdown: ${envConfig.openSiteDropdown!"false"},
 		isPreview: false,
 		liveAppBaseUri:"",
-		lang: "en"
+		lang: "${envConfig.language!'UNSET'}"
 	};
 
    	if(CStudioAuthoringContext.role === "") {
    		document.location = CStudioAuthoringContext.baseUri;
    	}
+
 </script>

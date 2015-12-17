@@ -25,7 +25,7 @@ CStudioAuthoring.ContextualNav.GaAnalytics = CStudioAuthoring.ContextualNav.GaAn
 			YDom.addClass(parentFolderLinkEl, "acn-analytics");
 
 			parentFolderLinkEl.id = "analytics-dashboard";
-			parentFolderLinkEl.innerHTML = "Analytics Dashboard";
+			parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, "analyticsDashboard");
 			parentFolderLinkEl.onclick = function() {
 				document.location = CStudioAuthoringContext.authoringAppBaseUri +
 				"/analytics-dashboard?site=" + CStudioAuthoringContext.site;

@@ -38,7 +38,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
         var parentFolderLinkEl = document.createElement("a");
         parentFolderLinkEl.id = instance.label.toLowerCase() + "-tree";
-        parentFolderLinkEl.innerHTML = instance.label;
+        parentFolderLinkEl.innerHTML = CMgs.format(siteDropdownLangBundle, (instance.label).toLowerCase());
         parentFolderLinkEl.onclick = CStudioAuthoring.ContextualNav.WcmAssetsFolder.onRootFolderClick;
         parentFolderLinkEl.componentInstance = instance;
 
@@ -270,6 +270,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
             if(treeNodeTO.previewable == false) {
                 treeNode.labelStyle += " no-preview";
+            }else{
+                treeNode.labelStyle += " preview";
             }
             treeNode.labelStyle+= "  yui-resize-label";
             treeNode.nodeType = "CONTENT";
@@ -360,8 +362,10 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
      * method fired when tree item is clicked
      */
     onTreeNodeClick: function(node)	{
-        if (!node.data.isLevelDescriptor && !node.data.isContainer) {
-            CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
+        if (node.data.previewable == true) {
+            if (!node.data.isLevelDescriptor && !node.data.isContainer) {
+                CStudioAuthoring.Operations.openPreview(node.data, "", false, false);
+            }
         }
 
         return false;
@@ -376,7 +380,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         retTransferObj.site = CStudioAuthoringContext.site;
         retTransferObj.internalName = treeItem.internalName;
         retTransferObj.sandboxId = treeItem.sandboxId;
-        retTransferObj.link="/page/user/admin/dashboard";
+        retTransferObj.link="/NOTSET";
         retTransferObj.path = treeItem.path;
         retTransferObj.uri = treeItem.uri;
         retTransferObj.browserUri = treeItem.browserUri;
@@ -407,8 +411,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             retTransferObj.internalName = "Section Defaults";
         }
 
-        if(treeItem.newFile) {
-            retTransferObj.label = retTransferObj.internalName + "*";
+        if(treeItem.isNew) {
+            retTransferObj.label = retTransferObj.internalName + " *";
         }
         else {
             retTransferObj.label = retTransferObj.internalName;
@@ -440,34 +444,44 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         var menuWidth = "80px";
         var menuItems = {
             "assetsFolderMenu" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Create&nbsp;Folder", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "createFolder"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
             ],
             "assetsFolderMenuNoDelete" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Create&nbsp;Folder", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "createFolder"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createContainer, obj:tree } }
             ],
             "assetsFolderMenuNoCreateFolder" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContainer, obj:tree } }
             ],
             "assetsFolderMenuNoDeleteNoCreateFolder" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
             ],
             "assetsMenu" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
-                { text: "Delete", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
             ],
             "assetsMenuNoDelete" : [
-                { text: "Upload", onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } }
             ],
             "assetsFolderMenuRead" : [
-                { text: "No Actions&nbsp;Available", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "noActionsAvailable"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.uploadAsset, obj:tree } }
             ],
+
+            "assetsFolderTemplate" : [
+                { text: CMgs.format(siteDropdownLangBundle, "createTemplate"), disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewTemplate, obj:tree } }
+            ],
+
+
+            "assetsFolderScript" : [
+                { text: CMgs.format(siteDropdownLangBundle, "createController"), disabled: false, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.createNewScript, obj:tree } }
+            ],
+
             "assetsMenuRead" : [
-                { text: "Upload", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
-                { text: "Delete", disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
+                { text: CMgs.format(siteDropdownLangBundle, "upload"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.overwriteAsset, obj:tree } },
+                { text: CMgs.format(siteDropdownLangBundle, "delete"), disabled: true, onclick: { fn: CStudioAuthoring.ContextualNav.WcmAssetsFolder.deleteContent, obj:tree } }
             ]
         };
 
@@ -496,7 +510,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
                     if (isWrite == true) {
                         if (this.isContainer) {
-                            this.menuWidth = "100px";
+                            this.menuWidth = "130px";
                             if (isDeleteAllowed) {
                                 if (isCreateFolder) {
                                     this.aMenuItems = this.menuItems["assetsFolderMenu"].slice();
@@ -511,12 +525,20 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                                 }
                             }
                         } else {
-                            this.menuWidth = "100px";
+                            this.menuWidth = "130px";
                             if (isDeleteAllowed) {
                                 this.aMenuItems = this.menuItems["assetsMenu"].slice();
                             } else {
                                 this.aMenuItems = this.menuItems["assetsMenuNoDelete"].slice();
                             }
+                        }
+
+                        if(oCurrentTextNode.data.uri.indexOf("/templates") != -1) {
+                            this.aMenuItems.push(this.menuItems["assetsFolderTemplate"]);
+                        }
+
+                        if(oCurrentTextNode.data.uri.indexOf("/scripts") != -1) {
+                            this.aMenuItems.push(this.menuItems["assetsFolderScript"]);
                         }
 
                         if(oCurrentTextNode.data.uri.indexOf(".ftl") != -1
@@ -528,7 +550,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                             // item is a template
 
                             this.aMenuItems.push(
-                                { text: "Edit", disabled: false, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.editTemplate } });
+                                { text: CMgs.format(siteDropdownLangBundle, "edit"), disabled: false, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.editTemplate } });
                         }
 
                     } else {
@@ -543,7 +565,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
                     if (CSA.Utils.hasPerm(CSA.Constants.PERMISSION_WRITE, perms)){
                         this.aMenuItems.push({
-                            text: "Bulk Upload Assets",
+                            text: CMgs.format(siteDropdownLangBundle, "bulkUploadAssets"),
                             onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.bulkUpload }
                         });
                     }
@@ -554,10 +576,10 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                             if(collection.count > 0) {
                                 if (isWrite == true) {
                                     this.menuItems.push(
-                                        { text: "Paste", onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
+                                        { text: CMgs.format(siteDropdownLangBundle, "paste"), onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
                                 } else {
                                     this.menuItems.push(
-                                        { text: "Paste", disabled: true, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
+                                        { text: CMgs.format(siteDropdownLangBundle, "paste"), disabled: true, onclick: { fn: CSA.ContextualNav.WcmAssetsFolder.pasteContent } });
                                 }
                             }
 
@@ -649,7 +671,16 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
         var editCb = {
             success: function() {
-                this.callingWindow.location.reload(true);
+                if(CStudioAuthoringContext.isPreview){
+                     try{
+                         CStudioAuthoring.Operations.refreshPreview();
+                     }catch(err) {
+                         this.callingWindow.location.reload(true);
+                     }
+                }
+                else {
+                    this.callingWindow.location.reload(true);
+                }
             },
 
             failure: function() {
@@ -659,6 +690,35 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         };
 
         CStudioAuthoring.Operations.openTemplateEditor(path, "default", editCb);
+    },
+
+    createNewTemplate: function() {
+        CStudioAuthoring.Operations.createNewTemplate(oCurrentTextNode.data.uri, {
+            success: function(templatePath) {
+                this.callingWindow.location.reload(true);
+                Self.refreshNodes(this.tree,false);
+            }, 
+            failure: function() {
+                this.callingWindow.location.reload(true);
+            },
+
+            callingWindow: window,
+            tree: oCurrentTextNode
+        });
+    },
+
+    createNewScript: function() {
+        CStudioAuthoring.Operations.createNewScript( oCurrentTextNode.data.uri, { 
+            success: function(templatePath) {
+                Self.refreshNodes(this.tree,false);  
+            }, 
+            failure: function() {
+
+            },
+            tree: oCurrentTextNode
+        });
+
+
     },
 
     /**
@@ -720,6 +780,17 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                 treeNode = oCurrentTextNode;
 
             document.body.appendChild(view.element);
+            var serviceUrl = CStudioAuthoring.Service.createServiceUri(
+                CStudioAuthoring.Service.createWriteServiceUrl(
+                    treeNode.data.uri, 
+                    treeNode.data.filename, 
+                    null,
+                    treeNode.data.contentType, 
+                    CSAC.site, 
+                    true, 
+                    false, 
+                    false, 
+                    true));
 
             var dropbox = new Dropbox({
                 element: view.element,
@@ -727,9 +798,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                     '#{0} .file-display-container .pad',
                     view.id),
                 progress: '.progress .bar',
-                target: fmt(
-                    '{0}/proxy/alfresco/cstudio/wcm/content/upload-content-asset?site={1}&path={2}',
-                    CSAC.baseUri, CSAC.site, treeNode.data.uri),
+                target: serviceUrl,
                 uploadPostKey: 'file',
                 formData: {
                     site: CSAC.site,

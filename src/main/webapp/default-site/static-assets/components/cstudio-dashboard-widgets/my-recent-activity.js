@@ -46,8 +46,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 
 		var listItemEl = document.createElement("li");
 		var itemFilterEl = document.createElement("a");
-		
-	
+
 		/**
 		 * adding loading image to go-live0queue widget
 		 */
@@ -57,28 +56,29 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 		var imgEl = document.createElement("img");
 		imgEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 		liLoadingEl.appendChild(imgEl);
-		
-		
-		itemFilterEl.innerHTML = "Hide Live Items";
+
+		itemFilterEl.innerHTML = CMgs.format(langBundle, "dashletMyRecentActivityHideLiveItems");
 		itemFilterEl.href = "javascript:void(0);";
 		itemFilterEl.id = "widget-expand-state-" + widgetId;
-		YDom.addClass(itemFilterEl, "widget-expand-state");
-		var filterBydiv =  document.createElement("div");
-		YDom.addClass(filterBydiv, "widget-FilterBy");
+        listItemEl.appendChild(itemFilterEl);
+        YDom.addClass(itemFilterEl, "widget-expand-state btn btn-default btn-sm");
 
-		var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
-										pageId,
-										widgetId,
-										"widgetFilterBy");
+		var filterBydiv = document.createElement("li");
+        // YDom.addClass(filterBydiv, "widget-FilterBy");
 
-		var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
-		
-		containerEl.appendChild(listItemEl);
-		containerEl.appendChild(liLoadingEl);
-		listItemEl.appendChild(itemFilterEl);
-		containerEl.appendChild(filterBydiv);
-		filterBydiv.appendChild(filterByEl);
-		
+        var widgetFilterBy = CStudioAuthoring.Service.getWindowState(
+            CStudioAuthoringContext.user,
+            pageId,
+            widgetId,
+            "widgetFilterBy");
+
+        var filterByEl = WcmDashboardWidgetCommon.initFilterToWidget(widgetId, widgetFilterBy);
+        filterBydiv.appendChild(filterByEl);
+
+        containerEl.appendChild(liLoadingEl);
+        containerEl.appendChild(listItemEl);
+        containerEl.appendChild(filterBydiv);
+
 		itemFilterEl._self = this;
 		
 		filterByEl._self = this;
@@ -110,7 +110,7 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 									_self.widgetId,searchNumber,filterByEl.value);
 
 		};
-		
+
 		
 		itemFilterEl.onclick = function() {
 			var _self = this._self;
@@ -142,13 +142,14 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
             Common = WcmDashboardWidgetCommon;
 
         var header = [
+            Common.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize"),
             Common.getSortableRow("internalName", widgetId,  CMgs.format(langBundle, "dashletMyRecentActivityColPageName"), "minimize"),
             Common.getSimpleRow("edit", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColEdit"), "minimize"),
             Common.getSortableRow("browserUri", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColURL"), "maximize"),
-            '<th id="fullUri" class="width0"></th>',
+            '<th id="fullUri" class="hide"></th>',
             Common.getSimpleRow("scheduledDate", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColPublishDate"), ""),
             Common.getSortableRow("userLastName", widgetId, CMgs.format(langBundle, "dashletMyRecentActivityColLastEditedBy"), "alignRight minimize"),
-            Common.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletMyRecentActivityColMyLastEdit"),"ttThColLast alignRight minimize")
+            Common.getSortableRow("eventDate",widgetId,CMgs.format(langBundle, "dashletMyRecentActivityColMyLastEdit"),"ttThColLast alignRight minimize")
         ].join('');
 
 		return header;
@@ -159,9 +160,15 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
 	 */
 	this.renderLineItem = function(item) {
 
+			var itemName = item.internalName;
+			if (!itemName || itemName == "") {
+				itemName = item.title;
+			}
+			if (!itemName || itemName == "") {
+				itemName = item.name;
+			}
             var browserUri = item.browserUri,
                 fullUri = item.uri,
-                itemName = item.internalName,
                 editLinkId = 'editLink_' + this.widgetId + '_' + WcmDashboardWidgetCommon.encodePathToNumbers(item.uri),
 
                 fmt = CStudioAuthoring.Utils.formatDateFromString;
@@ -191,24 +198,21 @@ CStudioAuthoringWidgets.MyRecentActivityDashboard = CStudioAuthoringWidgets.MyRe
         // to resolve page display issue
         itemNameForDisplay = CStudioAuthoring.Utils.replaceWithASCIICharacter(itemNameForDisplay);
 
-        // TODO Use TemplateAgent + TemplateHolder
-       	if(!item.deleted && item.uri.indexOf(".xml") != -1) {
-            WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
-       	}
+        WcmDashboardWidgetCommon.insertEditLink(item, editLinkId);
        	
         var itemRow = [
-			'<td>',
-				'<div class="dashlet-cell-wrp">',
-                    '<div class="dashlet-ident dashlet-recent">',
-                        '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
-                        '<span class="', itemIconStatus, '" id="' + ttSpanId + '" title="' + itemTitle + '">',
-                            '<a href="#" class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
-                                itemNameForDisplay,
-                            '</a>',
-                        '</span>',
-                    '</div>',
+			'<td style="padding-right:0px">',
+				'<div class="dashlet-ident">',
+                    '<input type="checkbox" class="dashlet-item-check" id="', this.widgetId, '-', item.uri, '"', ((item.deleted || item.inFlight) ? ' disabled' : ''), '  />',
                 '</div>',
 			'</td>',
+            '<td style="padding-left:0px">' +
+                '<span class="', itemIconStatus, (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
+                    '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true ? 'previewLink' : 'non-previewable-link'), '">',
+                    itemNameForDisplay,  (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
+                    '</a>',
+                '</span>',
+            '</td>',
 			'<td id="' + editLinkId + '"></td>',
 			'<td title="', browserUri, '">', displayBrowserUri, '</td>',
 			'<td title="fullUri" class="width0">', fullUri, '</td>',

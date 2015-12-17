@@ -15,6 +15,7 @@
     });
 
     Dialogue = CStudioAuthoring.Component.Dialogue;
+    Dialogue.CSS_CLASS_MASK = "cstudio-dialogue-mask";
     Dialogue.CSS_CLASS_TOP = "cstudio-dialogue";
     Dialogue.CSS_BODY = "cstudio-dialogue-body";
     Dialogue.BODY_LOADING_TEMPLATE = [
@@ -31,6 +32,14 @@
 
             this.changeBodyEvent.subscribe(function(bodyContent){
                 Dom.addClass(this.body, Dialogue.CSS_BODY);
+            }, this);
+
+            this.changeBodyEvent.subscribe(function(bodyContent){
+                Dom.addClass(this.mask, Dialogue.CSS_CLASS_MASK);
+            }, this);
+
+            this.showMaskEvent.subscribe(function(){
+                Dom.addClass(this.mask, Dialogue.CSS_CLASS_MASK);
             }, this);
 
             return this;

@@ -12,7 +12,7 @@ WcmDashboardWidgetCommon.sortClick = function (event, matchedEl, el, params) {
     //var eventId='sorteventDate-component-1-1';
     var eventId = matchedEl.id;
     var sortBy = eventId.substring(4, eventId.indexOf('-'));
-    var Widget=WcmDashboardWidgetCommon.dashboards[params.widgetId];
+    var Widget = WcmDashboardWidgetCommon.dashboards[params.widgetId];
     WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(params.widgetId), params.widgetId, null, true);
 };
 
@@ -25,14 +25,25 @@ WcmDashboardWidgetCommon.encodePathToNumbers = function (path) {
 };
 
 WcmDashboardWidgetCommon.insertEditLink = function (item, editLinkId) {
-    CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, item.uri, { 
-        success: function(results) {
+    if(item.uri.indexOf(".ftl") == -1
+    && item.uri.indexOf(".css")  == -1
+    && item.uri.indexOf(".js") == -1
+    && item.uri.indexOf(".groovy") == -1
+    && item.uri.indexOf(".txt") == -1
+    && item.uri.indexOf(".html") == -1
+    && item.uri.indexOf(".hbs") == -1
+    && item.uri.indexOf(".xml") == -1) {
+        return 0; // dont render if not these types
+    }
+
+    CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, item.uri, {
+        success: function (results) {
 
             function addEditLink() {
                 var editLink = document.getElementById(editLinkId);
 
                 if (editLink) {
-                    editLink.innerHTML = ''.concat('<a href="javascript:" class="editLink', ((item.deleted || item.inFlight ) ? ' non-previewable-edit' : ''), '">Edit</a>');
+                    editLink.innerHTML = ''.concat('<a href="javascript:" class="editLink', ((item.deleted || item.inFlight ) ? ' non-previewable-edit' : ''), '">'+CMgs.format(langBundle, "dashboardEdit")+'</a>');
                 } else {
                     // We cannot assume the DOM will be ready to insert the edit link
                     // that's why we'll poll until the element is available in the DOM
@@ -47,13 +58,13 @@ WcmDashboardWidgetCommon.insertEditLink = function (item, editLinkId) {
                 addEditLink();
             }
         },
-        failure: function() {
+        failure: function () {
             throw new Error('Unable to retrieve user permissions');
         }
     });
 };
 
-WcmDashboardWidgetCommon.convertDate = function(dateString) {
+WcmDashboardWidgetCommon.convertDate = function (dateString) {
     if (!dateString) return 0;
     //our eventDate are passing in the format "YYYY-MM-DDTHH:MM:SS;"
     var dateObj = null;
@@ -64,11 +75,11 @@ WcmDashboardWidgetCommon.convertDate = function(dateString) {
         if (dtArray && dtArray.length == 3 &&
             tmArray && tmArray.length == 3) {
             dateObj = new Date(parseInt(dtArray[0], 10),
-                               parseInt(dtArray[1], 10),
-                               parseInt(dtArray[2], 10),
-                               parseInt(tmArray[0], 10),
-                               parseInt(tmArray[1], 10),
-                               parseInt(tmArray[2], 10));
+                parseInt(dtArray[1], 10),
+                parseInt(dtArray[2], 10),
+                parseInt(tmArray[0], 10),
+                parseInt(tmArray[1], 10),
+                parseInt(tmArray[2], 10));
         }
     }
 
@@ -76,74 +87,75 @@ WcmDashboardWidgetCommon.convertDate = function(dateString) {
     return 0;
 };
 
-WcmDashboardWidgetCommon.sortItems = function(items, currentSortBy, currentSortType) {
+WcmDashboardWidgetCommon.sortItems = function (items, currentSortBy, currentSortType) {
     try {
         items.sort(function (firstItem, secondItem) {
-                       if (currentSortBy == "userLastName") {
-                           var firstItemVal = firstItem[currentSortBy];
-                           var secondItemVal = secondItem[currentSortBy];
-                           if (!firstItemVal) {
-                               firstItemVal = firstItem["userFirstName"];
-                           }
-                           if (!secondItemVal) {
-                               secondItemVal = secondItem["userFirstName"];
-                           }
+            if (currentSortBy == "userLastName") {
+                var firstItemVal = firstItem[currentSortBy];
+                var secondItemVal = secondItem[currentSortBy];
+                if (!firstItemVal) {
+                    firstItemVal = firstItem["userFirstName"];
+                }
+                if (!secondItemVal) {
+                    secondItemVal = secondItem["userFirstName"];
+                }
 
-                           if (firstItemVal && secondItemVal) {
-                               firstItemVal = firstItemVal.toLowerCase()
-                               secondItemVal = secondItemVal.toLowerCase()
+                if (firstItemVal && secondItemVal) {
+                    firstItemVal = firstItemVal.toLowerCase()
+                    secondItemVal = secondItemVal.toLowerCase()
 
-                               if (firstItemVal && secondItemVal) {
-                                   if (currentSortType == "true") {
-                                       return (firstItemVal == secondItemVal)?0:(firstItemVal < secondItemVal)?-1:1;
-                                   } else {
-                                       return (firstItemVal == secondItemVal)?0:(secondItemVal < firstItemVal)?-1:1;
-                                   }
-                               }
-                           }
-                       } else if (firstItem[currentSortBy]) {
-                           if (currentSortBy == "eventDate") {
-                               var firstDate = WcmDashboardWidgetCommon.convertDate(firstItem[currentSortBy]);
-                               var secondDate = WcmDashboardWidgetCommon.convertDate(secondItem[currentSortBy]);
-                               if (currentSortType == "true") {
-                                   return (firstDate == secondDate)?0:(firstDate < secondDate)?-1:1;
-                               } else {
-                                   return (firstDate == secondDate)?0:(secondDate < firstDate)?-1:1;
-                               }
-                           } else if(!isNaN(firstItem[currentSortBy])  && !isNaN(secondItem[currentSortBy])) {
-                               var firstValue = parseInt (firstItem[currentSortBy], 10);
-                               var secondValue = parseInt (secondItem[currentSortBy], 10);
-                               if (currentSortType == "true") {
-                                   return (firstValue == secondValue)?0:(firstValue < secondValue)?-1:1;
-                               } else {
-                                   return (firstValue == secondValue)?0:(secondValue < firstValue)?-1:1;
-                               }
-                           } else if(typeof(firstItem[currentSortBy]) == "string") {
-                               var firstString = firstItem[currentSortBy].toLowerCase();
-                               var secondString = secondItem[currentSortBy].toLowerCase();
-                               if (currentSortType == "true") {
-                                   return (firstString == secondString)?0:(firstString < secondString)?-1:1;
-                               } else {
-                                   return (firstString == secondString)?0:(secondString < firstString)?-1:1;
-                               }
-                           }
-                       }
-                       return 0;
-                   });
-    } catch(err) { }
+                    if (firstItemVal && secondItemVal) {
+                        if (currentSortType == "true") {
+                            return (firstItemVal == secondItemVal) ? 0 : (firstItemVal < secondItemVal) ? -1 : 1;
+                        } else {
+                            return (firstItemVal == secondItemVal) ? 0 : (secondItemVal < firstItemVal) ? -1 : 1;
+                        }
+                    }
+                }
+            } else if (firstItem[currentSortBy]) {
+                if (currentSortBy == "eventDate") {
+                    var firstDate = WcmDashboardWidgetCommon.convertDate(firstItem[currentSortBy]);
+                    var secondDate = WcmDashboardWidgetCommon.convertDate(secondItem[currentSortBy]);
+                    if (currentSortType == "true") {
+                        return (firstDate == secondDate) ? 0 : (firstDate < secondDate) ? -1 : 1;
+                    } else {
+                        return (firstDate == secondDate) ? 0 : (secondDate < firstDate) ? -1 : 1;
+                    }
+                } else if (!isNaN(firstItem[currentSortBy]) && !isNaN(secondItem[currentSortBy])) {
+                    var firstValue = parseInt(firstItem[currentSortBy], 10);
+                    var secondValue = parseInt(secondItem[currentSortBy], 10);
+                    if (currentSortType == "true") {
+                        return (firstValue == secondValue) ? 0 : (firstValue < secondValue) ? -1 : 1;
+                    } else {
+                        return (firstValue == secondValue) ? 0 : (secondValue < firstValue) ? -1 : 1;
+                    }
+                } else if (typeof(firstItem[currentSortBy]) == "string") {
+                    var firstString = firstItem[currentSortBy].toLowerCase();
+                    var secondString = secondItem[currentSortBy].toLowerCase();
+                    if (currentSortType == "true") {
+                        return (firstString == secondString) ? 0 : (firstString < secondString) ? -1 : 1;
+                    } else {
+                        return (firstString == secondString) ? 0 : (secondString < firstString) ? -1 : 1;
+                    }
+                }
+            }
+            return 0;
+        });
+    } catch (err) {
+    }
     return items;
 };
 
 /*
  * get level 2 and beyond children (becomes a flat stucture)
  */
-WcmDashboardWidgetCommon.getChilderenRecursive = function(items) {
+WcmDashboardWidgetCommon.getChilderenRecursive = function (items) {
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
         subChildren.push(item);
         // add further dependencies
         if (item.children && item.children.length > 0) {
-              WcmDashboardWidgetCommon.getChilderenRecursive(item.children);
+            WcmDashboardWidgetCommon.getChilderenRecursive(item.children);
         }
     }
 }
@@ -151,14 +163,14 @@ WcmDashboardWidgetCommon.getChilderenRecursive = function(items) {
 /*
  * build level 2 and beyond children (becomes a flat stucture)
  */
-WcmDashboardWidgetCommon.getSubSubChilderen = function(table, parentClass, items, widgetId, depth) {
+WcmDashboardWidgetCommon.getSubSubChilderen = function (table, parentClass, items, widgetId, depth) {
     var rowHtml = "";
     var instance = WcmDashboardWidgetCommon.dashboards[widgetId];
 
     for (var i = 0; i < items.length; i++) {
 
         var item = items[i];
-        rowHtml += "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
+        //rowHtml += "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
 
         var itemRowStart = "<tr class='" + parentClass + "'>";
 
@@ -173,7 +185,7 @@ WcmDashboardWidgetCommon.getSubSubChilderen = function(table, parentClass, items
     return rowHtml;
 };
 
-WcmDashboardWidgetCommon.getDisplayName = function(item) {
+WcmDashboardWidgetCommon.getDisplayName = function (item) {
     var displayName = '';
     var hasLastName = !CStudioAuthoring.Utils.isEmpty(item.userLastName);
     if (hasLastName) {
@@ -187,74 +199,73 @@ WcmDashboardWidgetCommon.getDisplayName = function(item) {
     return displayName;
 };
 
-WcmDashboardWidgetCommon.getFormattedString = function(str, maxLength, isNewFile) {
-	var formattedString = "";
-	if(str != undefined && str != null) {
-		if(str.length > maxLength){
-			formattedString = str.substring(0, maxLength) + "...";
-		}else {
-			formattedString = str;
-		}
-	}	
-	if(isNewFile) formattedString = formattedString + "*";
-		 
-	return formattedString;
+WcmDashboardWidgetCommon.getFormattedString = function (str, maxLength, isNewFile) {
+    var formattedString = "";
+    if (str != undefined && str != null) {
+        if (str.length > maxLength) {
+            formattedString = str.substring(0, maxLength) + "...";
+        } else {
+            formattedString = str;
+        }
+    }
+    if (isNewFile) formattedString = formattedString + "*";
+
+    return formattedString;
 };
 
 WcmDashboardWidgetCommon.Ajax = {
-	container: null,
-	loadingImage: null,
-	disableDashboard: function(){
-		if(WcmDashboardWidgetCommon.Ajax.container != null){
-	    	document.body.removeChild(WcmDashboardWidgetCommon.Ajax.container);	    	
-		}
-		if(WcmDashboardWidgetCommon.Ajax.loadingImage != null) {
-			document.body.removeChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
-		}
-		var container = YDom.get();
-		WcmDashboardWidgetCommon.Ajax.container = document.createElement("div");		
-		with(WcmDashboardWidgetCommon.Ajax.container.style) {
-			backgroundColor = "#FFFFFF";
-			opacity = "0";
-			position = "absolute";
-			display = "block";
-			width = YDom.getDocumentWidth() + "px";
-			height = YDom.getDocumentHeight() + "px";
-			top = "0";
-			right = "0";
-			bottom = "0";
-			left = "0";
-			zIndex = "1000";
-		}
-		
-		WcmDashboardWidgetCommon.Ajax.loadingImage = document.createElement("img");		
-		WcmDashboardWidgetCommon.Ajax.loadingImage.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";					
-		
-		document.body.appendChild(WcmDashboardWidgetCommon.Ajax.container);
-		document.body.appendChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
-		
-		var imagePopUp = new YAHOO.widget.Overlay(WcmDashboardWidgetCommon.Ajax.loadingImage);
-		imagePopUp.center();
-		imagePopUp.render();		
+    container: null,
+    loadingImage: null,
+    disableDashboard: function () {
+        if (WcmDashboardWidgetCommon.Ajax.container != null) {
+            document.body.removeChild(WcmDashboardWidgetCommon.Ajax.container);
+        }
+        if (WcmDashboardWidgetCommon.Ajax.loadingImage != null) {
+            document.body.removeChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
+        }
+        var container = YDom.get();
+        WcmDashboardWidgetCommon.Ajax.container = document.createElement("div");
+        with (WcmDashboardWidgetCommon.Ajax.container.style) {
+            backgroundColor = "#FFFFFF";
+            opacity = "0";
+            position = "absolute";
+            display = "block";
+            width = YDom.getDocumentWidth() + "px";
+            height = YDom.getDocumentHeight() + "px";
+            top = "0";
+            right = "0";
+            bottom = "0";
+            left = "0";
+            zIndex = "1000";
+        }
+
+        WcmDashboardWidgetCommon.Ajax.loadingImage = document.createElement("img");
+        WcmDashboardWidgetCommon.Ajax.loadingImage.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
+
+        document.body.appendChild(WcmDashboardWidgetCommon.Ajax.container);
+        document.body.appendChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
+
+        var imagePopUp = new YAHOO.widget.Overlay(WcmDashboardWidgetCommon.Ajax.loadingImage);
+        imagePopUp.center();
+        imagePopUp.render();
     },
-    enableDashboard: function(){
-    	if(WcmDashboardWidgetCommon.Ajax.container != null){
-	    	document.body.removeChild(WcmDashboardWidgetCommon.Ajax.container);
-	    	WcmDashboardWidgetCommon.Ajax.container = null;
-		}
-		if(WcmDashboardWidgetCommon.Ajax.loadingImage != null) {
-			document.body.removeChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
-			WcmDashboardWidgetCommon.Ajax.loadingImage = null;
-		}    	    	
+    enableDashboard: function () {
+        if (WcmDashboardWidgetCommon.Ajax.container != null) {
+            document.body.removeChild(WcmDashboardWidgetCommon.Ajax.container);
+            WcmDashboardWidgetCommon.Ajax.container = null;
+        }
+        if (WcmDashboardWidgetCommon.Ajax.loadingImage != null) {
+            document.body.removeChild(WcmDashboardWidgetCommon.Ajax.loadingImage);
+            WcmDashboardWidgetCommon.Ajax.loadingImage = null;
+        }
     }
 };
 
 /**
  * init widget
  */
-WcmDashboardWidgetCommon.init = function(instance) {
-	
-	
+WcmDashboardWidgetCommon.init = function (instance) {
+
 
     var widgetId = instance.widgetId;
     var sortBy = instance.defaultSortBy;
@@ -264,241 +275,263 @@ WcmDashboardWidgetCommon.init = function(instance) {
     /////////////////////////////////////////////////////
     // added to protect un wanted values in text boxes //
     ////////////////////////////////////////////////////
-    if( YDom.get("widget-showitems-" + widgetId) != null )
-    	YDom.get("widget-showitems-" + widgetId).value = 10;
-    
-    YEvent.onAvailable(widgetId, function() {
+    if (YDom.get("widget-showitems-" + widgetId) != null) {
+        YDom.get("widget-showitems-" + widgetId).value = 10;
+        YDom.get("widget-showitems-" + widgetId+"-label").innerHTML = CMgs.format(langBundle, "showNumItems");
+    }
+
+    YEvent.onAvailable(widgetId, function () {
 
         WcmDashboardWidgetCommon.dashboards[widgetId] = instance;
         dashboardEl = YDom.get(widgetId);
         dashboardEl.style.display = "none";
-        
-        var hasPermsForDashboardFn = function(perms, permission) {
-        	var hasPerm = false;
 
-        	for(var k=0; k < perms.permissions.length; k++) {
-				if(permission == perms.permissions[k].permission) {
-					hasPerm = true;	
-					break;
-				}
-			}
+        var hasPermsForDashboardFn = function (perms, permission) {
+            var hasPerm = false;
 
-        	return hasPerm;
+            for (var k = 0; k < perms.permissions.length; k++) {
+                if (permission == perms.permissions[k]) {
+                    hasPerm = true;
+                    break;
+                }
+            }
+
+            return hasPerm;
         }
 
         var getPermsCb = {
-        	widgetId: widgetId,
-        	dashboardEl: dashboardEl,
-        	
-        	success: function(perms) {
-				WcmDashboardWidgetCommon.cachedPerms = perms;
-				var dashboardEl = this.dashboardEl;
-				
-				var permission = "none";
-				if(this.widgetId == "GoLiveQueue"
-				||this.widgetId == "recentlyMadeLive"
-				||this.widgetId == "approvedScheduledItems") { 
-					permission = "publish"; 
-				}
-				
-				if(this.widgetId == "icon-guide" 
-				|| this.widgetId == "MyRecentActivity"
-				|| hasPermsForDashboardFn(perms, permission)) {
-					dashboardEl.style.display = "block";
+            widgetId: widgetId,
+            dashboardEl: dashboardEl,
 
-			        dashboardEl.instance = instance;
-			
-			        var state = WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference(widgetId, pageId);
-			
-			        
-			        WcmDashboardWidgetCommon.toggleWidget(widgetId, pageId, state);
-			
-			
-			        var checkboxClick = function(event, matchedEl) {
-			            if (instance.onCheckedClickHandler) {
-			                instance.onCheckedClickHandler(event, matchedEl);
-			            }
-			            else {
-			                WcmDashboardWidgetCommon.selectItem(matchedEl, matchedEl.checked);
-			            }
-			        };
-			
-			        var editClick = function(event, matchedEl) {
-			            WcmDashboardWidgetCommon.editItem(matchedEl, matchedEl.checked);
-			        };
-			
-			        var previewClick = function(event, matchedEl) {
-			            WcmDashboardWidgetCommon.previewItem(matchedEl, matchedEl.checked);
-			        };
-			
-			        var dispatchLinkClick = function(event, matchedEl) {
-			            if (matchedEl.className.indexOf("previewLink") != -1) {
-			                previewClick(event, matchedEl);
-			            }
-			            else if (matchedEl.className.indexOf("editLink") != -1
-                            && matchedEl.className.indexOf("non-previewable-edit") == -1 ) {
-			                editClick(event, matchedEl);
-			            }
-			        }
-			
-			
-			        YEvent.delegate(widgetId, "click", checkboxClick, "input");
-			        YEvent.delegate(widgetId, "click", dispatchLinkClick, "a");
-			
-			        var searchLimitInput = YDom.get("widget-showitems-" + widgetId);
-			        var filterByCount = null;
-			        if (searchLimitInput) {
-			            var searchNumber = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
-			                                                                      pageId,
-			                                                                      widgetId,
-			                                                                      "searchNumber");
-			            if (searchNumber && !isNaN(searchNumber)) {
-			                searchLimitInput.value = parseInt(searchNumber, 10);
-			            } else {
-			                searchLimitInput.value = instance.defaultSearchNumber;
-			            }
-			
-			            filterByCount = (isNaN(searchLimitInput.value)?10:parseInt(searchLimitInput.value, 10));
-			        }
-			
-			        var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
-			                                                                    pageId,
-			                                                                    widgetId,
-			                                                                    "widgetFilterBy");
-			        var filterByEl = YDom.get("widget-filterBy-" + widgetId);
-			        if (widgetFilterBy && widgetFilterBy != undefined && widgetFilterBy != "") {
-			            WcmDashboardWidgetCommon.loadFilterTableData(sortBy, YDom.get(widgetId), widgetId, filterByCount, widgetFilterBy);
-			        } else if(filterByCount != null) {
-			            WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId, filterByCount);
-			        } else {
-			            WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId);
-			        }
-			
-			        var controlsListEl = YDom.getElementsByClassName("cstudio-widget-controls", null, dashboardEl)[0];
-			
-			        if (controlsListEl) {
-			            if (instance.renderAuxControls) {
-			                instance.renderAuxControls(controlsListEl,widgetId);
-			            }
-			        }
-			
-			        if (state == 'closed') {
-			            YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .widget-FilterBy")[0],"display","none");
-			        }
-			
-			        //attach keydown event to search limit input       
-			        if (searchLimitInput) {  
-			        	
-			        	var isInt = function(val) {
-			    			var parsedVal = parseInt(val);
-			    			if ( isNaN(parsedVal) || val == "0") return false;
-			    			return ( val == parsedVal && val.toString() == parsedVal.toString() );
-			        	};
-			
-			        	var searchLimitInputEvent = function(event) {
-			            	var searchNumber = searchLimitInput.value;
-			            	
-			                //added to protect non numeric input.                
-			                if (event.keyCode == "13") {
-			                    if ( !isInt(searchNumber) ) { //execute the ajax only if its a number
-			                        searchLimitInput.value = instance.defaultSearchNumber;
-			                        searchNumber = searchLimitInput.value;
-			                    }
-			
-			                    //var searchNumber=searchLimitInput.value;
-			                    if ( isInt(searchNumber) ) { //execute the ajax only if its a integer number.
-			                        searchNumber = searchNumber.replace(/\+/g, "").replace(/\-/g, "");
-			                        searchLimitInput.value = searchNumber;
-			                        CStudioAuthoring.Service.setWindowState(CStudioAuthoringContext.user,
-			                                                               pageId,
-			                                                               widgetId,
-			                                                               "searchNumber",
-			                                                               searchNumber);
-			                        var sortBy=instance.currentSortBy? instance.currentSortBy:instance.defaultSortBy;
-			                        var filterByEl = YDom.get("widget-filterBy-" + widgetId);
-			                        if (filterByEl && filterByEl.value != undefined && filterByEl.value != "") {
-			                            WcmDashboardWidgetCommon.loadFilterTableData(sortBy, YDom.get(widgetId), widgetId, searchNumber, filterByEl.value);
-			                        } else {
-			                            WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId, searchNumber);
-			                        }
-			                    }else{
-			                    	searchLimitInput.value = instance.defaultSearchNumber;
-			                    }
-			
-			                }
-			
-			            };
-			
-			            var validateSearchLimitInputValue = function(event) {
-			                var searchNum = searchLimitInput.value;
-			                //insert default value if invalid
-			                if ( !isInt(searchNum) ) {
-			                    searchLimitInput.value = instance.defaultSearchNumber;
-			                }
-			            };
-			            
-			            YEvent.addListener(searchLimitInput, "keyup", searchLimitInputEvent);
-			            YEvent.addListener(searchLimitInput, "blur", validateSearchLimitInputValue);
-			        }
+            success: function (perms) {
+                WcmDashboardWidgetCommon.cachedPerms = perms;
+                var dashboardEl = this.dashboardEl;
 
-				}				
-        	},
+                var permission = "none";
+                if (this.widgetId == "GoLiveQueue"
+                    || this.widgetId == "recentlyMadeLive"
+                    || this.widgetId == "approvedScheduledItems") {
+                    permission = "publish";
+                }
 
-        	failure: function() {
-        	}
+                if (this.widgetId == "icon-guide"
+                    || this.widgetId == "MyRecentActivity"
+                    || hasPermsForDashboardFn(perms, permission)) {
+                    dashboardEl.style.display = "block";
+
+                    dashboardEl.instance = instance;
+
+                    var state = WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference(widgetId, pageId);
+
+
+                    WcmDashboardWidgetCommon.toggleWidget(widgetId, pageId, state);
+
+
+                    var checkboxClick = function (event, matchedEl) {
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(event, matchedEl);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(matchedEl, matchedEl.checked);
+                        }
+                        isChecked();
+                    };
+
+                    var isChecked = function (){
+                        var inputsElt = YDom.get(instance.widgetId+"-tbody").getElementsByClassName("dashlet-item-check");
+                        var checkedElts = false;
+                        var checkAllElt= YDom.get(instance.widgetId+"CheckAll");
+                        for(var i=0; i<inputsElt.length; i++){
+                            if(inputsElt[i].checked == true){
+                                checkedElts = true;
+                            }
+                        }
+                        if(checkedElts){
+                            checkAllElt.checked = true;
+                        }else{
+                            checkAllElt.checked = false;
+                        }
+                    }
+
+                    var editClick = function (event, matchedEl) {
+                        WcmDashboardWidgetCommon.editItem(matchedEl, matchedEl.checked);
+                    };
+
+                    var previewClick = function (event, matchedEl) {
+                        WcmDashboardWidgetCommon.previewItem(matchedEl, matchedEl.checked);
+                    };
+
+                    var dispatchLinkClick = function (event, matchedEl) {
+                        if (matchedEl.className.indexOf("previewLink") != -1) {
+                            previewClick(event, matchedEl);
+                        }
+                        else if (matchedEl.className.indexOf("editLink") != -1
+                            && matchedEl.className.indexOf("non-previewable-edit") == -1) {
+                            editClick(event, matchedEl);
+                        }
+                    }
+
+
+                    YEvent.delegate(widgetId, "click", checkboxClick, "input:not(#"+widgetId+"CheckAll)");
+                    YEvent.delegate(widgetId, "click", dispatchLinkClick, "a");
+
+
+                    var searchLimitInput = YDom.get("widget-showitems-" + widgetId);
+                    var filterByCount = null;
+                    if (searchLimitInput) {
+                        var searchNumber = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
+                            pageId,
+                            widgetId,
+                            "searchNumber");
+                        if (searchNumber && !isNaN(searchNumber)) {
+                            searchLimitInput.value = parseInt(searchNumber, 10);
+                        } else {
+                            searchLimitInput.value = instance.defaultSearchNumber;
+                        }
+
+                        filterByCount = (isNaN(searchLimitInput.value) ? 10 : parseInt(searchLimitInput.value, 10));
+                    }
+
+                    var widgetFilterBy = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user,
+                        pageId,
+                        widgetId,
+                        "widgetFilterBy");
+                    var filterByEl = YDom.get("widget-filterBy-" + widgetId);
+                    if (widgetFilterBy && widgetFilterBy != undefined && widgetFilterBy != "") {
+                        WcmDashboardWidgetCommon.loadFilterTableData(sortBy, YDom.get(widgetId), widgetId, filterByCount, widgetFilterBy);
+                    } else if (filterByCount != null) {
+                        WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId, filterByCount);
+                    } else {
+                        WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId);
+                    }
+
+                    var controlsListEl =
+                        YDom.getElementsByClassName("cstudio-widget-controls", null, dashboardEl)[0] ||
+                        YDom.getElementsByClassName("widget-controls", null, dashboardEl)[0];
+
+                    if (controlsListEl) {
+                        if (instance.renderAuxControls) {
+                            instance.renderAuxControls(controlsListEl, widgetId);
+                        }
+                    }
+
+                    if (state == 'closed') {
+                        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .widget-FilterBy")[0], "display", "none");
+                    }
+
+                    //attach keydown event to search limit input
+                    if (searchLimitInput) {
+
+                        var isInt = function (val) {
+                            var parsedVal = parseInt(val);
+                            if (isNaN(parsedVal) || val == "0") return false;
+                            return ( val == parsedVal && val.toString() == parsedVal.toString() );
+                        };
+
+                        var searchLimitInputEvent = function (event) {
+                            var searchNumber = searchLimitInput.value;
+
+                            //added to protect non numeric input.
+                            if (event.keyCode == "13") {
+                                if (!isInt(searchNumber)) { //execute the ajax only if its a number
+                                    searchLimitInput.value = instance.defaultSearchNumber;
+                                    searchNumber = searchLimitInput.value;
+                                }
+
+                                //var searchNumber=searchLimitInput.value;
+                                if (isInt(searchNumber)) { //execute the ajax only if its a integer number.
+                                    searchNumber = searchNumber.replace(/\+/g, "").replace(/\-/g, "");
+                                    searchLimitInput.value = searchNumber;
+                                    CStudioAuthoring.Service.setWindowState(CStudioAuthoringContext.user,
+                                        pageId,
+                                        widgetId,
+                                        "searchNumber",
+                                        searchNumber);
+                                    var sortBy = instance.currentSortBy ? instance.currentSortBy : instance.defaultSortBy;
+                                    var filterByEl = YDom.get("widget-filterBy-" + widgetId);
+                                    if (filterByEl && filterByEl.value != undefined && filterByEl.value != "") {
+                                        WcmDashboardWidgetCommon.loadFilterTableData(sortBy, YDom.get(widgetId), widgetId, searchNumber, filterByEl.value);
+                                    } else {
+                                        WcmDashboardWidgetCommon.loadTableData(sortBy, YDom.get(widgetId), widgetId, searchNumber);
+                                    }
+                                } else {
+                                    searchLimitInput.value = instance.defaultSearchNumber;
+                                }
+
+                            }
+
+                        };
+
+                        var validateSearchLimitInputValue = function (event) {
+                            var searchNum = searchLimitInput.value;
+                            //insert default value if invalid
+                            if (!isInt(searchNum)) {
+                                searchLimitInput.value = instance.defaultSearchNumber;
+                            }
+                        };
+
+                        YEvent.addListener(searchLimitInput, "keyup", searchLimitInputEvent);
+                        YEvent.addListener(searchLimitInput, "blur", validateSearchLimitInputValue);
+                    }
+
+                }
+            },
+
+            failure: function () {
+            }
         };
-        
-        if(WcmDashboardWidgetCommon.cachedPerms) {
-        	getPermsCb.success(WcmDashboardWidgetCommon.cachedPerms);
+
+        if (WcmDashboardWidgetCommon.cachedPerms) {
+            getPermsCb.success(WcmDashboardWidgetCommon.cachedPerms);
         }
         else {
-	        CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "/", getPermsCb);
-        }					
-						
+            CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "~DASHBOARD~", getPermsCb);
+        }
+
 
     });
 
 };
 
-WcmDashboardWidgetCommon.getSimpleRow = function(prefix, widgetId, rowTitle, classes) {
+WcmDashboardWidgetCommon.getSimpleRow = function (prefix, widgetId, rowTitle, classes) {
     var row = '<th id=\"' + prefix + '-' + widgetId + '\" class=\"' + classes + '\">' +
-              '<span>' +
-              rowTitle +              
-              '</span>' +
-              '</span>' +
-              '</th>';
+        '<span>' +
+        rowTitle +
+        '</span>' +
+        '</span>' +
+        '</th>';
     return row;
 };
 
-WcmDashboardWidgetCommon.getSortableRow = function(prefix, widgetId, rowTitle, classes) {
+WcmDashboardWidgetCommon.getSortableRow = function (prefix, widgetId, rowTitle, classes) {
     var row = '<th id=\"' + prefix + '-' + widgetId + '\" class=\"' + classes + '\">' +
-              '<span>' +
-              '<a href="javascript:void(0);" id=\"sort' + prefix + '-' + widgetId + '\">' + rowTitle + '</a>' +
-              '<span class="wcm-widget-margin"/>' +
-              '</span>' +
-              '<span id=\"sortIcon-' + prefix + '-' + widgetId + '\" class=\"ttSortDesc wcm-go-live-sort-columns-' + widgetId + '\" style=\"display:none\"></span>' +
-              '</th>';
+        '<span>' +
+        '<a href="javascript:void(0);" id=\"sort' + prefix + '-' + widgetId + '\">' + rowTitle + '</a>' +
+        '<span class="wcm-widget-margin"/>' +
+        '</span>' +
+        '<span id=\"sortIcon-' + prefix + '-' + widgetId + '\" class=\"ttSortDesc wcm-go-live-sort-columns-' + widgetId + '\" style=\"display:none\"></span>' +
+        '</th>';
     return row;
 };
-WcmDashboardWidgetCommon.getDefaultSortRow = function(prefix, widgetId, rowTitle, classes) {
+WcmDashboardWidgetCommon.getDefaultSortRow = function (prefix, widgetId, rowTitle, classes) {
     var row = '<th id=\"' + prefix + '-' + widgetId + '\" class=\"' + classes + '\">' +
-              '<span>' +
-              rowTitle +
-              '<span class=\"wcm-widget-margin\"/>' +
-              '</span>' +
-              '<span id=\"sortIcon-' + prefix + '-' + widgetId + '\" class=\"ttSortBlack\"></span>' +
-              '</th>';
+        '<span>' +
+        rowTitle +
+        '<span class=\"wcm-widget-margin\"/>' +
+        '</span>' +
+        '<span id=\"sortIcon-' + prefix + '-' + widgetId + '\" class=\"ttSortBlack\"></span>' +
+        '</th>';
     return row;
 };
 /**
  * open and close a given dashboard widget
  */
-WcmDashboardWidgetCommon.toggleWidget = function(widgetId, pageId, newState) {
-    
+WcmDashboardWidgetCommon.toggleWidget = function (widgetId, pageId, newState) {
+
     var widgetBodyEl = YDom.get(widgetId + "-body");
-    var widgetToggleEl = YDom.get("widget-toggle-" + widgetId);
-    var currentState = widgetToggleEl.className == 'ttOpen' ? 'closed' : 'open';
-    
+    var widgetToggleEl = YDom.get("widget-toggle-" + widgetId) || {};
+    var currentState = widgetToggleEl ? (widgetToggleEl.className == 'ttOpen' ? 'closed' : 'open') : 'open';
+
     if (YAHOO.lang.isUndefined(newState)) {
         newState = currentState == 'closed' ? 'open' : 'closed';
     }
@@ -508,42 +541,42 @@ WcmDashboardWidgetCommon.toggleWidget = function(widgetId, pageId, newState) {
         widgetBodyEl.style.display = "none";
         YDom.setStyle("expand-all-" + widgetId, "display", "none");
         YDom.setStyle("widget-expand-state-" + widgetId, "display", "none");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .recently-made-live")[0],"display","none");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .recently-made-live-right")[0],"display","none");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .widget-FilterBy")[0],"display","none");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live")[0], "display", "none");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live-right")[0], "display", "none");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .widget-FilterBy")[0], "display", "none");
     } else {
         widgetBodyEl.style.display = "block";
         widgetToggleEl.className = "ttClose";
         YDom.setStyle("expand-all-" + widgetId, "display", "block");
         YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .recently-made-live")[0],"display","block");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .recently-made-live-right")[0],"display","block");
-        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId +" .widget-FilterBy")[0],"display","block");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live")[0], "display", "block");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live-right")[0], "display", "block");
+        YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .widget-FilterBy")[0], "display", "block");
     }
 
     CStudioAuthoring.Service.setWindowState(
-            CStudioAuthoringContext.user,
-            pageId,
-            widgetId,
-            "widgetToggle",
-            newState);
+        CStudioAuthoringContext.user,
+        pageId,
+        widgetId,
+        "widgetToggle",
+        newState);
 
-   
+
     return false;
 };
 
 /**
  * get user's preference on widget state
  */
-WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference = function(widgetId, pageId) {
+WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference = function (widgetId, pageId) {
 
     var widgetState = "";
 
     widgetState = CStudioAuthoring.Service.getWindowState(
-            CStudioAuthoringContext.user,
-            pageId,
-            widgetId,
-            "widgetToggle");
+        CStudioAuthoringContext.user,
+        pageId,
+        widgetId,
+        "widgetToggle");
 
     return widgetState;
 };
@@ -551,75 +584,75 @@ WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference = function(widgetId, p
 /**
  * toggle (expand or collapse) a given line item
  */
-WcmDashboardWidgetCommon.toggleLineItem = function(id, ignoreParent) {
-	
+WcmDashboardWidgetCommon.toggleLineItem = function (id, ignoreParent) {
+
     var parentId = YDom.get(id),
-    		childItems = CStudioAuthoring.Utils.getElementsByClassName(id),
-    		length = childItems.length,
-    		idx,
-    		item;
+        childItems = CStudioAuthoring.Utils.getElementsByClassName(id),
+        length = childItems.length,
+        idx,
+        item;
 
     if (parentId.className == "ttClose parent-div-widget") {
-    		for (idx = 0; idx < length; idx++) {
-    				item = childItems[idx];
+        for (idx = 0; idx < length; idx++) {
+            item = childItems[idx];
             if (item) {
                 item.style.display = "none";
             }
-    		}
+        }
         parentId.className = "ttOpen parent-div-widget";
     }
     else {
-    		for (idx = 0; idx < length; idx++) {
-    				item = childItems[idx];
+        for (idx = 0; idx < length; idx++) {
+            item = childItems[idx];
             if (item) {
                 item.style.display = "";
             }
-    		}
+        }
         parentId.className = "ttClose parent-div-widget";
-    }  
+    }
 
     // If all lines are collapsed, then the header link should change to "Expand All" and vice versa.
     var expandAll = false,
-    		tableEl = YDom.getAncestorByClassName(id, "ttTable"),
-    		rows = tableEl.rows,
-    		arr = [],
-    		widgetId = tableEl.id.split("-")[0],
-    		widget = YDom.get(widgetId),
-    		linkEl = YDom.get("expand-all-" + widgetId);
+        tableEl = YDom.getAncestorByTagName(id, "table"),
+        rows = tableEl.rows,
+        arr = [],
+        widgetId = tableEl.id.split("-")[0],
+        widget = YDom.get(widgetId),
+        linkEl = YDom.get("expand-all-" + widgetId);
 
-    for(idx = 0; idx < rows.length; idx++) {
-    	if (rows[idx].className === "avoid" || rows[idx].className == "" ) {
-    		continue;
-       } else {
-          arr.push(rows[idx]);
-       }       
+    for (idx = 0; idx < rows.length; idx++) {
+        if (rows[idx].className === "avoid" || rows[idx].className == "") {
+            continue;
+        } else {
+            arr.push(rows[idx]);
+        }
     }
 
-    for(idx = 0; idx < arr.length; idx++) {
-       if ( arr[idx].style.display === "none" ) {
+    for (idx = 0; idx < arr.length; idx++) {
+        if (arr[idx].style.display === "none") {
             expandAll = true;
             break;
         }
     }
 
     if (!ignoreParent) {
-    		this.toggleHeaderLink(widget, linkEl, expandAll);
+        this.toggleHeaderLink(widget, linkEl, expandAll);
     }
 
 };
 
-WcmDashboardWidgetCommon.toggleHeaderLink = function(widget, linkEl, showCollapsed) {
+WcmDashboardWidgetCommon.toggleHeaderLink = function (widget, linkEl, showCollapsed) {
 
-		if (showCollapsed) {
-				linkEl.setAttribute("href","javascript:void(0);");
-        linkEl.innerHTML = "Expand All";        
-        linkEl.className = "widget-collapse-state";
+    if (showCollapsed) {
+        linkEl.setAttribute("href", "javascript:void(0);");
+        linkEl.innerHTML = CMgs.format(langBundle, "dashboardExpandAll");
+        linkEl.className = "btn btn-default btn-sm widget-collapse-state";
         widget.instance.expanded = false;
     }
     else {
-				linkEl.setAttribute("href","javascript:void(0);");
-        linkEl.innerHTML = "Collapse All";
-        linkEl.className = "widget-expand-state";
+        linkEl.setAttribute("href", "javascript:void(0);");
+        linkEl.innerHTML = CMgs.format(langBundle, "dashboardCollapseAll");
+        linkEl.className = "btn btn-default btn-sm widget-expand-state";
         widget.instance.expanded = true;
     }
 }
@@ -627,19 +660,19 @@ WcmDashboardWidgetCommon.toggleHeaderLink = function(widget, linkEl, showCollaps
 /**
  * toggle All items
  */
-WcmDashboardWidgetCommon.toggleAllItems = function(widgetId) {
+WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
 
     var widget = YDom.get(widgetId),
-				instance = widget.instance,
-				link = YDom.get("expand-all-" + widgetId),
-				items = YDom.getElementsByClassName("parent-div-widget", null, widget),
-				item,
-				length = items.length;
+        instance = widget.instance,
+        link = YDom.get("expand-all-" + widgetId),
+        items = YDom.getElementsByClassName("parent-div-widget", null, widget),
+        item,
+        length = items.length;
 
     for (var count = 0; count < length; count++) {
-    		item = items[count];
+        item = items[count];
         if (item) {
-						item.className = (instance.expanded) ? "ttClose parent-div-widget" : "ttOpen parent-div-widget";
+            item.className = (instance.expanded) ? "ttClose parent-div-widget" : "ttOpen parent-div-widget";
             this.toggleLineItem(item.id, true);
         }
     }
@@ -650,31 +683,39 @@ WcmDashboardWidgetCommon.toggleAllItems = function(widgetId) {
 /**
  * edit an item
  */
-WcmDashboardWidgetCommon.editItem = function(matchedElement, isChecked) {
+WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
+
 
     var editCallback = {
-        success: function() {
+        success: function () {
             this.callingWindow.location.reload(true);
         },
-        failure: function() {
+        failure: function () {
         },
-        callingWindow : window
+        callingWindow: window
     };
 
     var getContentCallback = {
-        success: function(contentTO) {
+        success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
-            CStudioAuthoring.Operations.editContent(
-                contentTO.form,
-                CStudioAuthoringContext.siteId,
-                contentTO.uri,
-                contentTO.nodeRef,
-                contentTO.uri,
-                false,
-                editCallback);
+            
+
+            if(contentTO.uri.indexOf("/site") == 0) {
+                CStudioAuthoring.Operations.editContent(
+                    contentTO.form,
+                    CStudioAuthoringContext.siteId,
+                    contentTO.uri,
+                    contentTO.nodeRef,
+                    contentTO.uri,
+                    false,
+                    editCallback);
+            }
+            else {
+                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);      
+            }
         },
 
-        failure: function() {
+        failure: function () {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
         }
     };
@@ -685,15 +726,15 @@ WcmDashboardWidgetCommon.editItem = function(matchedElement, isChecked) {
 /**
  * User clicked on preview link, open preview
  */
-WcmDashboardWidgetCommon.previewItem = function(matchedElement, isChecked) {
+WcmDashboardWidgetCommon.previewItem = function (matchedElement, isChecked) {
 
     var callback = {
-        success: function(contentTO) {
-			CStudioAuthoring.Storage.write(CStudioAuthoring.Service.menuParentPathKeyFromItemUrl(contentTO.path), contentTO.path);
+        success: function (contentTO) {
+            CStudioAuthoring.Storage.write(CStudioAuthoring.Service.menuParentPathKeyFromItemUrl(contentTO.path), contentTO.path);
             CStudioAuthoring.Operations.openPreview(contentTO);
         },
 
-        failure: function() {
+        failure: function () {
         }
     };
 
@@ -704,10 +745,10 @@ WcmDashboardWidgetCommon.previewItem = function(matchedElement, isChecked) {
 /**
  * Select an item in the dashboard widget
  */
-WcmDashboardWidgetCommon.selectItem = function(matchedElement, isChecked) {
-	if(matchedElement.type == "checkbox") WcmDashboardWidgetCommon.Ajax.disableDashboard();
+WcmDashboardWidgetCommon.selectItem = function (matchedElement, isChecked) {
+    if (matchedElement.type == "checkbox") WcmDashboardWidgetCommon.Ajax.disableDashboard();
     var callback = {
-        success: function(contentTO) {
+        success: function (contentTO) {
             if (isChecked == true) {
                 CStudioAuthoring.SelectedContent.selectContent(contentTO);
             }
@@ -717,7 +758,7 @@ WcmDashboardWidgetCommon.selectItem = function(matchedElement, isChecked) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
         },
 
-        failure: function() {
+        failure: function () {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
         }
     };
@@ -729,7 +770,7 @@ WcmDashboardWidgetCommon.selectItem = function(matchedElement, isChecked) {
 /**
  * return the transfer object for the matched item
  */
-WcmDashboardWidgetCommon.getContentItemForMatchedElement = function(matchedElement, callback) {
+WcmDashboardWidgetCommon.getContentItemForMatchedElement = function (matchedElement, callback) {
 
     var itemUrl = "";
 
@@ -737,7 +778,7 @@ WcmDashboardWidgetCommon.getContentItemForMatchedElement = function(matchedEleme
     var parentTD = YDom.getAncestorByTagName(matchedElement, "td");
 
     // get a sibling, that is <td>, that has attribute of title
-    var urlEl = YDom.getNextSiblingBy(parentTD, function(el) {
+    var urlEl = YDom.getNextSiblingBy(parentTD, function (el) {
         return el.getAttribute('title') == 'fullUri';
     });
 
@@ -749,11 +790,11 @@ WcmDashboardWidgetCommon.getContentItemForMatchedElement = function(matchedEleme
     }
 
     var getContentItemsCb = {
-        success: function(contentTO) {
+        success: function (contentTO) {
             callback.success(contentTO.item);
         },
 
-        failure: function() {
+        failure: function () {
             callback.failure();
         }
     };
@@ -764,7 +805,7 @@ WcmDashboardWidgetCommon.getContentItemForMatchedElement = function(matchedEleme
 /**
  * load and render table data
  */
-WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, filterByNumber, sortFromCachedData) {
+WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, filterByNumber, sortFromCachedData) {
 
     var instance = WcmDashboardWidgetCommon.dashboards[widgetId];
     var tableName = widgetId;
@@ -776,12 +817,12 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
     var pageId = instance.pageId;
 
     var callback = {
-        success: function(results) {
+        success: function (results) {
             instance.dashBoardData = results;
             var sortDocuments = results.documents;
             instance.tooltipLabels = new Array();
             var newtable = "";
-            var blankRow = "<tr class='avoid'><td class='ttBlankRow' colspan='5'>&nbsp;</td></tr>";
+            var blankRow = ''; // "<tr class='avoid'><td class='ttBlankRow' colspan='5'>&nbsp;</td></tr>";
             var count = 0;
             var sortedByValue = results.sortedBy;
             var sortType = results.sortType;
@@ -810,7 +851,7 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
                 if (instance.skipComponentSort) {
                     //Don't sort by components
                 } else {
-                   //if skipComponentSort flag not available
+                    //if skipComponentSort flag not available
                     sortDocuments = WcmDashboardWidgetCommon.sortItems(sortDocuments, currentSortBy, currentSortType)
                 }
             }
@@ -838,11 +879,11 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
 
                     for (var i = 0; i < items.length; i++) {
                         var item = items[i];
-                        table = table + "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
+                        //table = table + "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
                         var itemRowStart = "<tr class='" + parentClass + "'>";
                         var itemRowEnd = "</tr>";
 
-                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input type='checkbox'/></span><span class='wcm-widget-margin'></span>";
+                        var subItemRowStart = "<tr class='" + parentClass + "'><td><span class='wcm-widget-margin'></span><span class='ttFirstCol128'><input title='All' class='dashlet-item-check1' id=tableName + 'CheckAll'  type='checkbox' /></span><span class='wcm-widget-margin'></span>";
 
                         //create table row for this item
                         var itemRow = WcmDashboardWidgetCommon.buildItemTableRow(item, instance, false, i, 0);
@@ -864,58 +905,60 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
 
             newtable = blankRow + newtable + blankRow;
 
-            var tableContentStart = '<table id="' + tableName + '-table" class="ttTable" border="0">';
-            var theadContent = '<thead class="ttThead" id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
-            var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody">' + newtable + '</tbody>';
+            var tableContentStart = '<table id="' + tableName + '-table" class="table">';
+            var theadContent = '<thead id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
+            var tbodyContent = '<tbody id="' + tableName + '-tbody">' + newtable + '</tbody>';
             var tableContentEnd = '</table>';
 
             //Check for already checked items,
             //un-check then to remove those items from selected items list.
-            var checkboxArray = YDom.getElementsBy(function(el) {
-                                                       return ( el.type === 'checkbox' && el.checked === true);
-                                                   },
-                                                   'input',
-                                                   divTableContainer);
+            var checkboxArray = YDom.getElementsBy(function (el) {
+                return ( el.type === 'checkbox' && el.checked === true);
+            }, 'input', divTableContainer);
+
             if (checkboxArray && checkboxArray.length >= 1) {
-                for (var chkIdx=0; chkIdx < checkboxArray.length; chkIdx++) {
+                for (var chkIdx = 0; chkIdx < checkboxArray.length; chkIdx++) {
                     checkboxArray[chkIdx].checked = false;
                     WcmDashboardWidgetCommon.clearItem(checkboxArray[chkIdx], instance.dashBoardData);
                 }
             }
 
             YDom.get(divTableContainer).innerHTML = tableContentStart + theadContent + tbodyContent + tableContentEnd;
-            YEvent.delegate(widgetId + "-thead", "click", WcmDashboardWidgetCommon.sortClick, 'th a', {'widgetId':widgetId,'sortBy':currentSortBy }, true);
+            YEvent.delegate(widgetId + "-thead", "click", WcmDashboardWidgetCommon.sortClick, 'th a', {
+                'widgetId': widgetId,
+                'sortBy': currentSortBy
+            }, true);
             WcmDashboardWidgetCommon.updateSortIconsInWidget(currentSortBy, currentSortType, widgetId);
 
             YDom.get('sortedBy-' + widgetId).innerHTML = currentSortBy;
             YDom.get('sort-type-' + widgetId).innerHTML = currentSortType;
 
-            instance.currentSortBy=sortBy;
-            instance.searchNumber=filterByNumber;
-            
+            instance.currentSortBy = sortBy;
+            instance.searchNumber = filterByNumber;
+
             /**
-			 * remove loading image for recent current widget
-			 */
+             * remove loading image for recent current widget
+             */
             YDom.setStyle("loading-" + widgetId, "display", "none");
             /**
-			 * ajax call link in dashboard widget will be showed/hide
-			 * according to widget state..
-			 */
+             * ajax call link in dashboard widget will be showed/hide
+             * according to widget state..
+             */
             var widgetState = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user, pageId, widgetId, "widgetToggle");
-        	if(widgetState == "closed") {        		
+            if (widgetState == "closed") {
                 YDom.setStyle("widget-expand-state-" + widgetId, "display", "none");
-        	}else {        		
-        		YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
-        	}
-        	
-        	/*************************************************************
-        	 * registering mouse over and mouse out events for row items.
-        	 ************************************************************/
-            var rowMouseover = function(event, matchedEl) {
+            } else {
+                YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
+            }
+
+            /*************************************************************
+             * registering mouse over and mouse out events for row items.
+             ************************************************************/
+            var rowMouseover = function (event, matchedEl) {
                 YDom.addClass(matchedEl, "over");
             };
 
-            var rowMouseout = function(event, matchedEl) {
+            var rowMouseout = function (event, matchedEl) {
                 YDom.removeClass(matchedEl, "over", "");
             };
 
@@ -930,35 +973,63 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
                     toolTipContainer.setAttribute("id", "acn-context-tooltip-widgets");
                     toolTipContainer.className = "acn-context-tooltip";
                     toolTipContainer.innerHTML = "<div style=\"z-index: 2; left: 73px; top: 144px; visibility: hidden;\"" +
-                                                 " class=\"yui-module yui-overlay yui-tt\"" +
-                                                 "id=\"acn-context-tooltipWrapper-widgets\"><div class=\"bd\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +	"</div>";
+                    " class=\"yui-module yui-overlay yui-tt\"" +
+                    "id=\"acn-context-tooltipWrapper-widgets\"><div class=\"bd\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" + "</div>";
 
                     window.document.body.appendChild(toolTipContainer);
                 }
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper-widgets", {
-                                          context: instance.tooltipLabels,
-                                          hidedelay:0,
-                                          showdelay:500,
-                                          container: "acn-context-tooltip-widgets"
-                                         });
+                    context: instance.tooltipLabels,
+                    hidedelay: 0,
+                    showdelay: 500,
+                    container: "acn-context-tooltip-widgets"
+                });
             }
 
             if (!instance.expanded) {
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                var checkAllElt = YDom.get(tableName+'CheckAll');
+                var inputsElt = window.document.querySelectorAll("#"+tableName+" input:enabled");
+
+                if(checkAllElt.checked == true){
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = true;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }else{
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = false;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }
+            }, this, true);
+
         },
 
-        failure: function() {
-        	YDom.setStyle("loading-" + widgetId, "display", "none");
+        failure: function () {
+            YDom.setStyle("loading-" + widgetId, "display", "none");
         },
-        
-        beforeServiceCall : function(){        	        	
-			YDom.setStyle("loading-" + widgetId, "display", "block");		
+
+        beforeServiceCall: function () {
+            YDom.setStyle("loading-" + widgetId, "display", "");
         }
     };
 
@@ -972,7 +1043,7 @@ WcmDashboardWidgetCommon.loadTableData = function(sortBy, container, widgetId, f
 /////For filtering Widgets
 
 
-WcmDashboardWidgetCommon.loadFilterTableData = function(sortBy, container, widgetId, filterByNumber,filterBy) {
+WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widgetId, filterByNumber, filterBy) {
 
     var instance = WcmDashboardWidgetCommon.dashboards[widgetId];
     var tableName = widgetId;
@@ -984,12 +1055,12 @@ WcmDashboardWidgetCommon.loadFilterTableData = function(sortBy, container, widge
     var pageId = instance.pageId;
 
     var callback = {
-        success: function(results) {    		
+        success: function (results) {
             instance.dashBoardData = results;
             var sortDocuments = results.documents;
             instance.tooltipLabels = new Array();
             var newtable = "";
-            var blankRow = "<tr class='avoid'><td class='ttBlankRow' colspan='5'>&nbsp;</td></tr>";
+            var blankRow = ''; //"<tr class='avoid'><td class='ttBlankRow' colspan='5'>&nbsp;</td></tr>";
             var count = 0;
             var sortedByValue = results.sortedBy;
             var sortType = results.sortType;
@@ -1033,7 +1104,7 @@ WcmDashboardWidgetCommon.loadFilterTableData = function(sortBy, container, widge
 
                     for (var i = 0; i < items.length; i++) {
                         var item = items[i];
-                        table = table + "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
+                        //table = table + "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
                         var itemRowStart = "<tr class='" + parentClass + "'>";
                         var itemRowEnd = "</tr>";
 
@@ -1055,58 +1126,61 @@ WcmDashboardWidgetCommon.loadFilterTableData = function(sortBy, container, widge
 
             newtable = blankRow + newtable + blankRow;
 
-            var tableContentStart = '<table id="' + tableName + '-table" class="ttTable" border="0">';
+            var tableContentStart = '<table id="' + tableName + '-table" class="table" border="0">';
             var theadContent = '<thead class="ttThead" id="' + tableName + '-thead"><tr class="avoid">' + instance.renderItemsHeading() + '</tr></thead>';
             var tbodyContent = '<tbody class="ttTbody" id="' + tableName + '-tbody">' + newtable + '</tbody>';
             var tableContentEnd = '</table>';
 
             //Check for already checked items,
             //un-check then to remove those items from selected items list.
-            var checkboxArray = YDom.getElementsBy(function(el) {
-                                                       return ( el.type === 'checkbox' && el.checked === true);
-                                                   },
-                                                   'input',
-                                                   divTableContainer);
+            var checkboxArray = YDom.getElementsBy(function (el) {
+                    return ( el.type === 'checkbox' && el.checked === true);
+                },
+                'input',
+                divTableContainer);
             if (checkboxArray && checkboxArray.length >= 1) {
-                for (var chkIdx=0; chkIdx < checkboxArray.length; chkIdx++) {
+                for (var chkIdx = 0; chkIdx < checkboxArray.length; chkIdx++) {
                     checkboxArray[chkIdx].checked = false;
                     WcmDashboardWidgetCommon.clearItem(checkboxArray[chkIdx], instance.dashBoardData);
                 }
             }
 
             YDom.get(divTableContainer).innerHTML = tableContentStart + theadContent + tbodyContent + tableContentEnd;
-            YEvent.delegate(widgetId + "-thead", "click", WcmDashboardWidgetCommon.sortClick, 'th a', {'widgetId':widgetId,'sortBy':currentSortBy }, true);
+            YEvent.delegate(widgetId + "-thead", "click", WcmDashboardWidgetCommon.sortClick, 'th a', {
+                'widgetId': widgetId,
+                'sortBy': currentSortBy
+            }, true);
             WcmDashboardWidgetCommon.updateSortIconsInWidget(currentSortBy, currentSortType, widgetId);
 
             YDom.get('sortedBy-' + widgetId).innerHTML = currentSortBy;
             YDom.get('sort-type-' + widgetId).innerHTML = currentSortType;
 
-            instance.currentSortBy=sortBy;
-            instance.searchNumber=filterByNumber;
-            
+            instance.currentSortBy = sortBy;
+            instance.searchNumber = filterByNumber;
+
             /**
-			 * remove loading image for recent current widget
-			 */
+             * remove loading image for recent current widget
+             */
             YDom.setStyle("loading-" + widgetId, "display", "none");
             /**
-			 * ajax call link in dashboard widget will be showed/hide
-			 * according to widget state..
-			 */
+             * ajax call link in dashboard widget will be showed/hide
+             * according to widget state..
+             */
             var widgetState = CStudioAuthoring.Service.getWindowState(CStudioAuthoringContext.user, pageId, widgetId, "widgetToggle");
-        	if(widgetState == "closed") {        		
+            if (widgetState == "closed") {
                 YDom.setStyle("widget-expand-state-" + widgetId, "display", "none");
-        	}else {        		
-        		YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
-        	}
-        	
-        	/*************************************************************
-        	 * registering mouse over and mouse out events for row items.
-        	 ************************************************************/
-            var rowMouseover = function(event, matchedEl) {
+            } else {
+                YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
+            }
+
+            /*************************************************************
+             * registering mouse over and mouse out events for row items.
+             ************************************************************/
+            var rowMouseover = function (event, matchedEl) {
                 YDom.addClass(matchedEl, "over");
             };
 
-            var rowMouseout = function(event, matchedEl) {
+            var rowMouseout = function (event, matchedEl) {
                 YDom.removeClass(matchedEl, "over", "");
             };
 
@@ -1121,53 +1195,81 @@ WcmDashboardWidgetCommon.loadFilterTableData = function(sortBy, container, widge
                     toolTipContainer.setAttribute("id", "acn-context-tooltip-widgets");
                     toolTipContainer.className = "acn-context-tooltip";
                     toolTipContainer.innerHTML = "<div style=\"z-index: 2; left: 73px; top: 144px; visibility: hidden;\"" +
-                                                 " class=\"yui-module yui-overlay yui-tt\"" +
-                                                 "id=\"acn-context-tooltipWrapper-widgets\"><div class=\"bd\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +
-                                                 "<div class=\"yui-tt-shadow\"></div>" +	"</div>";
+                    " class=\"yui-module yui-overlay yui-tt\"" +
+                    "id=\"acn-context-tooltipWrapper-widgets\"><div class=\"bd\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" +
+                    "<div class=\"yui-tt-shadow\"></div>" + "</div>";
 
                     window.document.body.appendChild(toolTipContainer);
                 }
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper-widgets", {
-                                          context: instance.tooltipLabels,
-                                          hidedelay:0,
-                                          showdelay:500,
-                                          container: "acn-context-tooltip-widgets"
-                                         });
+                    context: instance.tooltipLabels,
+                    hidedelay: 0,
+                    showdelay: 500,
+                    container: "acn-context-tooltip-widgets"
+                });
             }
 
             if (!instance.expanded) {
                 instance.expanded = true;
                 WcmDashboardWidgetCommon.toggleAllItems(widgetId);
             }
+
+            YEvent.addListener(tableName + "CheckAll", 'click', function (e) {
+                var checkAllElt = YDom.get(tableName+'CheckAll');
+                var inputsElt = window.document.querySelectorAll("#"+tableName+" input:enabled");
+
+                if(checkAllElt.checked == true){
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = true;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }else{
+                    for(var i=1; i<inputsElt.length;i++){
+                        inputsElt[i].checked = false;
+                        if (instance.onCheckedClickHandler) {
+                            instance.onCheckedClickHandler(e, inputsElt[i]);
+                        }
+                        else {
+                            WcmDashboardWidgetCommon.selectItem(inputsElt[i], inputsElt[i].checked);
+                        }
+                    }
+                }
+            }, this, true);
+
         },
 
-        failure: function() {
-        	YDom.setStyle("loading-" + widgetId, "display", "none");
+        failure: function () {
+            YDom.setStyle("loading-" + widgetId, "display", "none");
         },
-        
-        beforeServiceCall : function(){        	        	
-			YDom.setStyle("loading-" + widgetId, "display", "block");		
+
+        beforeServiceCall: function () {
+            YDom.setStyle("loading-" + widgetId, "display", "block");
         }
     };
 
-    instance.retrieveTableData(currentSortBy, currentSortType, callback, null, filterByNumber,filterBy);
+    instance.retrieveTableData(currentSortBy, currentSortType, callback, null, filterByNumber, filterBy);
 };
 
 
 /**
  * Handle children level 2 and beyond (becomes a flat stucture)
  */
-WcmDashboardWidgetCommon.getSubSubChilderenRecursive = function(table, parentClass, items, widgetId, depth) {
+WcmDashboardWidgetCommon.getSubSubChilderenRecursive = function (table, parentClass, items, widgetId, depth) {
     var rowHtml = "";
     var instance = WcmDashboardWidgetCommon.dashboards[widgetId];
 
     for (var i = 0; i < items.length; i++) {
 
         var item = items[i];
-        rowHtml += "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
+        //rowHtml += "<tr class='" + parentClass + "'><td colspan='5' class='ttBlankRow3'></td></tr>";
 
         var itemRowStart = "<tr class='" + parentClass + "'>";
 
@@ -1192,14 +1294,14 @@ WcmDashboardWidgetCommon.getSubSubChilderenRecursive = function(table, parentCla
  * @param item - content object
  * @param dashboardInstance instance of the dashboard
  */
-WcmDashboardWidgetCommon.buildItemTableRow = function(item, dashboardInstance, firstRow, count, depth) {
+WcmDashboardWidgetCommon.buildItemTableRow = function (item, dashboardInstance, firstRow, count, depth) {
     return dashboardInstance.renderLineItem(item, firstRow, count, depth);
 };
 
 /**
  * update sorting icons
  */
-WcmDashboardWidgetCommon.updateSortIconsInWidget = function(currentSortBy, currentSortType, widgetId) {
+WcmDashboardWidgetCommon.updateSortIconsInWidget = function (currentSortBy, currentSortType, widgetId) {
     if (YAHOO.lang.isNull(currentSortBy)) {
         return;
     }
@@ -1235,20 +1337,22 @@ WcmDashboardWidgetCommon.updateSortIconsInWidget = function(currentSortBy, curre
     }
 };
 
-WcmDashboardWidgetCommon.initFilterToWidget= function(widgetId, widgetFilterBy) {
-    var filterByEl =  document.createElement("select");
+WcmDashboardWidgetCommon.initFilterToWidget = function (widgetId, widgetFilterBy) {
+    var filterByEl = document.createElement("select");
     if (widgetId) {
         filterByEl.setAttribute("id", "widget-filterBy-" + widgetId);
     }
 
-	filterByEl.options[0]=new Option(CMgs.format(langBundle, "dashletFilterPages"), "pages", true, false);
-	filterByEl.options[1]=new Option(CMgs.format(langBundle, "dashletFilterComponents"), "components", true, false);
-	filterByEl.options[2]=new Option(CMgs.format(langBundle, "dashletFilterDocuments"), "documents", true, false);
-	filterByEl.options[3]=new Option(CMgs.format(langBundle, "dashletFilterAll"), "all", true, false);
+    filterByEl.className = 'form-control input-sm';
+
+    filterByEl.options[0] = new Option(CMgs.format(langBundle, "dashletFilterPages"), "pages", true, false);
+    filterByEl.options[1] = new Option(CMgs.format(langBundle, "dashletFilterComponents"), "components", true, false);
+    filterByEl.options[2] = new Option(CMgs.format(langBundle, "dashletFilterDocuments"), "documents", true, false);
+    filterByEl.options[3] = new Option(CMgs.format(langBundle, "dashletFilterAll"), "all", true, false);
 
     //set default value from cookie
     if (widgetFilterBy) {
-        for (var optIdx=0; optIdx < filterByEl.options.length; optIdx++) {
+        for (var optIdx = 0; optIdx < filterByEl.options.length; optIdx++) {
             if (filterByEl.options[optIdx].value == widgetFilterBy) {
                 filterByEl.options[optIdx].selected = true;
                 break;
@@ -1256,13 +1360,13 @@ WcmDashboardWidgetCommon.initFilterToWidget= function(widgetId, widgetFilterBy) 
         }
     }
 
-    return filterByEl;	
+    return filterByEl;
 };
 
 /**
  * get selected item from cache data
  */
-WcmDashboardWidgetCommon.getContentRecursive = function(dashBoardData, itemUrl) {
+WcmDashboardWidgetCommon.getContentRecursive = function (dashBoardData, itemUrl) {
     var sortDocuments = dashBoardData.documents;
     var result = null;
     for (var j = 0; j < sortDocuments.length; j++) {
@@ -1280,8 +1384,8 @@ WcmDashboardWidgetCommon.getContentRecursive = function(dashBoardData, itemUrl) 
 /**
  * clear selected item in the dashboard widget
  */
-WcmDashboardWidgetCommon.clearItem = function(matchedElement, dashBoardData) {
-    if(matchedElement.type == "checkbox") {
+WcmDashboardWidgetCommon.clearItem = function (matchedElement, dashBoardData) {
+    if (matchedElement.type == "checkbox") {
         if (dashBoardData) {
             var itemUrl = "";
 
@@ -1289,7 +1393,7 @@ WcmDashboardWidgetCommon.clearItem = function(matchedElement, dashBoardData) {
             var parentTD = YDom.getAncestorByTagName(matchedElement, "td");
 
             // get a sibling, that is <td>, that has attribute of title
-            var urlEl = YDom.getNextSiblingBy(parentTD, function(el) {
+            var urlEl = YDom.getNextSiblingBy(parentTD, function (el) {
                 return el.getAttribute('title') == 'fullUri';
             });
 

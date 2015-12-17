@@ -29,14 +29,14 @@ CStudioSearch.FilterRenderer.Common = function() {
 		getSortOptions: function() {
 			// sort order will be changed, *only* when content type is *only* news-item
 			if (this.contentTypes && (this.contentTypes.length > 0)) {
-				return [ { "label" : "Relevance", "value" : "relevance" },
-						{ "label" : "Alphabetical", "value" : "cstudio-core:internalName,cstudio-core:title" },
+				return [ { "label" : CMgs.format(langBundle, "sortRelevance"), "value" : "relevance" },
+						{ "label" : CMgs.format(langBundle, "sortAlphabetical"), "value" : "cstudio-core:internalName,cstudio-core:title" },
 					];
 			}
 			
-			return [ { "label" : "Relevance", "value" : "relevance" },
-					 { "label" : "Alphabetical", "value" : "cstudio-core:internalName,cstudio-core:title" },
-					 { "label" : "Create Date", "value": "cm:created"}
+			return [ { "label" : CMgs.format(langBundle, "sortRelevance"), "value" : "relevance" },
+					 { "label" : CMgs.format(langBundle, "sortAlphabetical"), "value" : "cstudio-core:internalName,cstudio-core:title" },
+					 { "label" : CMgs.format(langBundle, "sortCreateDate"), "value": "cm:created"}
 				   ];
 		},
 
@@ -307,7 +307,7 @@ CStudioSearch.FilterRenderer.Common.ContentTypeCol = function() {
 	 */
 	column.prepareColFromUrl = function(queryString) {
 
-		var value = CStudioAuthoring.Utils.getQueryVariable(queryString, "cstudio-core:contentType");
+		var value = CStudioAuthoring.Utils.getQueryVariable(queryString, "content-type");
 
 		if((!value) || value == "all") {
 			this.self.contentTypeEl.innerHTML = "All";
@@ -324,7 +324,7 @@ CStudioSearch.FilterRenderer.Common.ContentTypeCol = function() {
 		var value = this.self.contentTypeEl.innerHTML;
 
 		if (value != null && value != "All") {
-			searchContext.filters.push({ qname: "cstudio-core:contentType",  value: value, useWildCard: true });
+			searchContext.filters.push({ qname: "content-type",  value: "'"+value+"'", useWildCard: true });
 		}
 
 		return searchContext;
@@ -416,3 +416,5 @@ CStudioSearch.FilterRenderer.Common.PathReadOnlyCol = function(defaultPath) {
 	
 	return column;
 }
+
+CStudioAuthoring.Module.moduleLoaded("search-filter-common", CStudioSearch.FilterRenderer.Common);

@@ -3,16 +3,12 @@ CStudioSearch.ResultRenderer.Banner = {
 		var mediaTag = "";
 		var path = contentTO.item.uri;
 		
-				mediaTag = "<img src='"+CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site="+ 
-					CStudioAuthoringContext.site+"&path="+path +
-					"&edit=false&createFolders=false' alt='"+contentTO.item.internalName+"' "+
+				mediaTag = "<img src='"+CStudioAuthoringContext.previewAppBaseUri+path+"'" +
+				"alt='"+contentTO.item.internalName+"' "+
 					"class='cstudio-search-banner-image' onload='CStudioSearch.ResultRenderer.Banner.hideMagnifyIcon(this);'/> " +
 					"<img src='"+CStudioAuthoringContext.baseUri+"/static-assets/themes/cstudioTheme/images/magnify.jpg' style='margin-left:-20px;'" +
-					"onclick ='CStudioSearch.magnifyBannerImage(\"" +
-					CStudioAuthoringContext.baseUri+"/proxy/alfresco/cstudio/wcm/content/get-content?site=" +
-					CStudioAuthoringContext.site+"&path="+path +
-					"&edit=false&createFolders=false" +
-					"\");' />";
+					"class='magnify-icon' id='magnifyIcon' onclick ='console.log(\"in\"); CStudioSearch.magnifyBannerImage(\"" +
+					CStudioAuthoringContext.previewAppBaseUri+path+"\");' />";
 
 
 
@@ -43,8 +39,9 @@ CStudioSearch.ResultRenderer.Banner = {
 					CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
 				"</span>"+
 			"</div>" +			
-			"<div class='cstudio-search-description'>"+mediaTag+"</div>"
+			"<div class='cstudio-search-description-img'>"+mediaTag+"</div>"
 			);
+        //imageContent.addEventListener('load', popupMag, false);
 	}, 
 	
 	_self: this,
@@ -77,3 +74,5 @@ CStudioSearch.resultRenderers["gif"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["png"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["ico"] = CStudioSearch.ResultRenderer.Banner;
 CStudioSearch.resultRenderers["jpeg"] = CStudioSearch.ResultRenderer.Banner;
+CStudioAuthoring.Module.moduleLoaded("search-result-image", CStudioSearch.resultRenderers["jpg"]);
+

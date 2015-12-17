@@ -22,6 +22,7 @@ CStudioForms.Controls.NodeSelector = CStudioForms.Controls.NodeSelector ||
         this.readonly = readonly;
         this.defaultValue = "";
         this.disableFlattening = false;
+        this.useSingleValueFilename = false;
         amplify.subscribe("/datasource/loaded", this, this.onDatasourceLoaded);
 
         return this;
@@ -37,7 +38,7 @@ CStudioForms.Controls.NodeSelector.prototype = {
 YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Item Selector";
+        return CMgs.format(langBundle, "itemSelector");
     },
 
     getRequirementCount: function() {
@@ -67,6 +68,11 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
         this.form.updateModel(this.id, this.getValue());
         this.inputEl.value = JSON.stringify(this.getValue());
         this._renderItems();
+    },
+
+    _onChangeVal: function(obj) {
+        obj.edited = true;
+        this._onChange();
     },
 
     // Node object
@@ -112,6 +118,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
             if(prop.name == "itemManager") {
                 this.datasourceName = (Array.isArray(prop.value))?prop.value[0]:prop.value;
+                this.datasourceName = this.datasourceName.replace("[\"","").replace("\"]","");
             }
             if(prop.name == "minSize" && prop.value != "") {
                 this.minSize = parseInt(prop.value, 10);
@@ -122,13 +129,15 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             if(prop.name == "readonly" && prop.value == "true"){
                 this.readonly = true;
             }
+            if(prop.name == "useSingleValueFilename" && prop.value == "true"){
+                this.useSingleValueFilename = true;
+            }
             if(prop.name == "disableFlattening" && prop.value == "true"){
                 this.disableFlattening = true;
             }
         }
 
         var titleEl = document.createElement("span");
-        YAHOO.util.Dom.addClass(titleEl, 'label');
         YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
         titleEl.innerHTML = config.title;
 
@@ -266,6 +275,8 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             this.items = [];
         }
 
+
+
         var items =  this.items;
 
         itemsContainerEl.innerHTML = "";
@@ -343,14 +354,14 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
         this.items.splice(onTheMoveIndex, 1);
         this.items.splice(beforeItemIndex, 0, item);
         this.selectedItemIndex = beforeItemIndex;
-        this._onChange();
+        this._onChangeVal(this);
     },
 
     deleteItem: function(index) {
         if(index != -1) {
             this.items.splice(index, 1);
             this.count();
-            this._onChange();
+            this._onChangeVal(this);
         }
     },
 
@@ -378,14 +389,34 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
         if(successful){
             var item = {};
-            if (fileType && fileSize) {
-                item = { key: key, value: value, fileType_s: fileType, fileSize_s: fileSize };
-            } else if (fileType && !fileSize) {
-                item = { key: key, value: value, fileType_s: fileType };
-            } else if (!fileType && fileSize) {
-                item = { key: key, value: value, fileSize_s: fileSize };
-            } else {
-                item = { key: key, value: value};
+
+            if(this.useSingleValueFilename == true) {
+            /* the initial assumption was that a node selector would be used to pick a single file. _s tells
+             * the search index that the value is a single value.  If the node selector is used to pick multiple files
+             * the indexing operation will fail. Because the node selctor is inheriently multi-valued in nature the
+             * default going forward is to treat these values as multi-valued.  For backward compatibility we will support
+             * _s if the form definition specifies that we do so
+             */
+                if (fileType && fileSize) {
+                    item = { key: key, value: value, fileType_s: fileType, fileSize_s: fileSize };
+                } else if (fileType && !fileSize) {
+                    item = { key: key, value: value, fileType_s: fileType };
+                } else if (!fileType && fileSize) {
+                    item = { key: key, value: value, fileSize_s: fileSize };
+                } else {
+                    item = { key: key, value: value};
+                }
+            }
+            else {
+                if (fileType && fileSize) {
+                    item = { key: key, value: value, fileType_mvs: fileType, fileSize_s: fileSize };
+                } else if (fileType && !fileSize) {
+                    item = { key: key, value: value, fileType_mvs: fileType };
+                } else if (!fileType && fileSize) {
+                    item = { key: key, value: value, fileSize_mvs: fileSize };
+                } else {
+                    item = { key: key, value: value};
+                }
             }
 
             this.items[this.items.length] = item
@@ -398,12 +429,12 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             }
 
             this.count();
-            this._onChange();
+            this._onChangeVal(this);
         }else{
             alert(message);
         }
         this.count();
-        this._onChange();
+        this._onChangeVal(this);
     },
 
     count: function(){
@@ -426,7 +457,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
         var item = this.items[this.selectedItemIndex];
         item.value =  value;
         this._renderItems();
-        this._onChange();
+        this._onChangeVal(this);
     },
 
     updateItems: function() {
@@ -440,10 +471,12 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
     setValue: function(value) {
         this.items = value;
+        this.edited = false;
+
 
         if((typeof this.items) == "string") {
             //Check if the current value is the default value, split it by comma and load it using key/value pair
-            if(this.items === this.defaultValue){
+            if(this.items === this.defaultValue && this.items != ""){
                 this.items = [];
                 var defaultItems = this.defaultValue.split(",");
                 for(var i = 0; i < defaultItems.length; i++){
@@ -461,8 +494,15 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             }
         }
 
+        if(this.items.length > 0) {
+            if(this.items[0].value == "") {
+                this.items = this.items[0].splice();
+            }
+        }
+
         this.updateItems();
         this._onChange();
+        //this._onChangeVal();
         this.count();
     },
 
@@ -472,17 +512,18 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
     getSupportedProperties: function() {
         return [
-            { label: "Min Size", name: "minSize", type: "int" },
-            { label: "Max Size", name: "maxSize", type: "int" },
-            { label: "Item Manager", name: "itemManager", type: "datasource:item" },
-            { label: "Readonly", name: "readonly", type: "boolean" },
-            { label: "Disable Flattening for Search", name: "disableFlattening", type: "boolean" }
+            { label: CMgs.format(langBundle, "minSize"), name: "minSize", type: "int" },
+            { label: CMgs.format(langBundle, "maxSize"), name: "maxSize", type: "int" },
+            { label: CMgs.format(langBundle, "itemManager"), name: "itemManager", type: "datasource:item" },
+            { label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
+            { label: CMgs.format(langBundle, "disableFlatteningSearch"), name: "disableFlattening", type: "boolean" },
+            { label: CMgs.format(langBundle, "singleValueFilename"), name: "useSingleValueFilename", type: "boolean" }
         ];
     },
 
     getSupportedConstraints: function() {
         return [
-            { label: "Allow Duplicates", name: "allowDuplicates", type: "boolean" }
+            { label: CMgs.format(langBundle, "allowDuplicate"), name: "allowDuplicates", type: "boolean" }
         ];
     }
 });

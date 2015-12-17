@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/home-page-scenario</content-type>	<content-type>/component/home-page-scenario</content-type>
+	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>5ca5</objectGroupId>
+	<objectId>5ca5b3a1-f6de-9d54-094e-a13f787dbdc2</objectId>
+	<tiles>	<item>	<mouseOverText>Skinny</mouseOverText>
+	<url/>
+	<height>240</height>
+	<width>240</width>
+	<top>0</top>
+	<left>510</left>
+	<image>/static-assets/images/home/tiles/belly.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText>Shop Mens</mouseOverText>
+	<url/>
+	<height>382</height>
+	<width>243</width>
+	<top>340</top>
+	<left>0</left>
+	<image>/static-assets/images/home/titles/man.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText>Shop Womens</mouseOverText>
+	<url/>
+	<height>382</height>
+	<width>251</width>
+	<top>340</top>
+	<left>250</left>
+	<image>/static-assets/images/home/tiles/women.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText>Jeans</mouseOverText>
+	<url/>
+	<height>230</height>
+	<width>240</width>
+	<top>246</top>
+	<left>510</left>
+	<image>/static-assets/images/home/tiles/jeans.jpg</image>
+	<field/>
+	</item>	<item>	<mouseOverText>Jean Jackets</mouseOverText>
+	<url/>
+	<height>239</height>
+	<width>240</width>
+	<top>482</top>
+	<left>510</left>
+	<image>/static-assets/images/home/tiles/bikejacket.jpg</image>
+	<field/>
+	</item></tiles>
+	<file-name>default.xml</file-name>
+	<internal-name>Default Scenario</internal-name>
+	<mainTileText>Relaxed</mainTileText>
+	<mainTileHeight>333</mainTileHeight>
+	<mainTileWidth>500</mainTileWidth>
+	<mainTileCta1ButtonText>Shop Womens</mainTileCta1ButtonText>
+	<mainTileCta1ButtonUrl>/womens</mainTileCta1ButtonUrl>
+	<mainTileCta2ButtonText>Shop Mens</mainTileCta2ButtonText>
+	<mainTileCta2ButtonUrl>/mens</mainTileCta2ButtonUrl>
+	<mainTileImage>/static-assets/images/home/titles/on-sand.jpg</mainTileImage>
+	<mainTileCta1ButtonTop>90</mainTileCta1ButtonTop>
+	<mainTileCta1ButtonLeft>25</mainTileCta1ButtonLeft>
+	<mainTileCta2ButtonTop>65</mainTileCta2ButtonTop>
+	<mainTileCta2ButtonLeft>351</mainTileCta2ButtonLeft>
+	<gender>	<item>	<key>Both</key>
+	<value>Both</value>
+	</item></gender>
+	<season>	<item>	<key>All</key>
+	<value>All</value>
+	</item></season>
+	<mobileMainTileText>Relaxed</mobileMainTileText>
+	<mobileMainTileHeight>305</mobileMainTileHeight>
+	<mobileMainTileWidth>315</mobileMainTileWidth>
+	<mobileMainTileCta1ButtonTop>240</mobileMainTileCta1ButtonTop>
+	<mobileMainTileCta1ButtonLeft>0</mobileMainTileCta1ButtonLeft>
+	<mobileMainTileCta2ButtonText>Shop Mens</mobileMainTileCta2ButtonText>
+	<mobileMainTileCta2ButtonTop>100</mobileMainTileCta2ButtonTop>
+	<mobileMainTileCta2ButtonLeft>60</mobileMainTileCta2ButtonLeft>
+	<mobileMainTileImage>/static-assets/images/home/titles/on-sand-m.jpg</mobileMainTileImage>
+	<mobileTiles>	<item>	<image>/static-assets/images/home/titles/belly-m.jpg</image>
+	<mouseOverText/>
+	<url/>
+	<height>300</height>
+	<width>145</width>
+	<top>0</top>
+	<left>508</left>
+	</item>	<item>	<image>/static-assets/images/home/titles/bikejacket.jpg</image>
+	<mouseOverText/>
+	<url>44444</url>
+	<height>300</height>
+	<width>145</width>
+	<top>310</top>
+	<left>508</left>
+	</item>	<item>	<image>/static-assets/images/home/titles/jeans.jpg</image>
+	<mouseOverText/>
+	<url/>
+	<height>270</height>
+	<width>500</width>
+	<top>340</top>
+	<left>0</left>
+	</item></mobileTiles>
+	<folder-name/>
+	<mobileMainTileCta1ButtonUrl/>
+	<mobileMainTileCta2ButtonUrl/>
+	<createdDate>06/14/2013 01:35:37</createdDate>
+	<lastModifiedDate>2/10/2015 22:34:12</lastModifiedDate>
+</component>

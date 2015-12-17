@@ -11,7 +11,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.ImgDesktopUpload, CStudioForms.CStudioFormDatasource, {
 
     getLabel: function() {
-        return "Image uploaded from desktop";
+        return CMgs.format(langBundle, "imageUploadedDesktop");
     },
     
 	/**
@@ -34,7 +34,7 @@ YAHOO.extend(CStudioForms.Datasources.ImgDesktopUpload, CStudioForms.CStudioForm
 		var callback = { 
 			success: function(imageData) {
 				var url = this.context.createPreviewUrl(path + "/" + imageData.fileName);
-				imageData.previewUrl = url
+				imageData.previewUrl = url + "?" + new Date().getTime();
 				imageData.relativeUrl = path + "/" + imageData.fileName
 				insertCb.success(imageData);
 			}, 
@@ -85,13 +85,13 @@ YAHOO.extend(CStudioForms.Datasources.ImgDesktopUpload, CStudioForms.CStudioForm
 	
 	getSupportedProperties: function() {
 		return [
-			{ label: "Repository Path", name: "repoPath", type: "string" }
+			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" }
 		];
 	},
 
 	getSupportedConstraints: function() {
 		return [
-			{ label: "Required", name: "required", type: "boolean" },
+			{ label: CMgs.format(langBundle, "required"), name: "required", type: "boolean" },
 		];
 	}
 

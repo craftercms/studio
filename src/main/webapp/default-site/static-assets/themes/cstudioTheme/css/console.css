@@ -22,8 +22,8 @@ body,tbody {
 }
 
 #admin-console .categories-panel {
-    background: url("/share/themes/cstudioTheme/images/sidebar-shadow.png") repeat-y scroll right center #F0F0F0;
-    border-right: 1px solid #A1A1A1;
+    background: repeat-y scroll right center #f8f8f8;
+    border-right: 1px solid #e7e7e7;
     margin: 0 0;
     left: 0;
     height: 100%;
@@ -35,7 +35,7 @@ body,tbody {
 
 
 .cstudio-admin-console-item {
-    font-size: 16px;
+    font-size: 13px;
     line-height: 25px;
     text-align: left;
     cursor: pointer;
@@ -44,14 +44,14 @@ body,tbody {
 }
 
 .cstudio-admin-console-item-first {
-    margin-top: 40px;
+    margin-top: 60px;
 }
 
 #cstudio-admin-console-item-selected-arrow {
     -moz-transform: matrix(-0.6, 1, 0.6, 1, 0, 0);
     -ms-transform: matrix(-0.6, 1, 0.6, 1, 0, 0);
     -webkit-transform: matrix(-0.6, 1, 0.6, 1, 0, 0);
-    background: none repeat scroll 0 0 #3399CC;
+    background: none repeat scroll 0 0 #7e9dbb;
     border-right-width: 0;
     float: right;
     height: 13px;
@@ -62,36 +62,42 @@ body,tbody {
 }
 
 .cstudio-admin-console-item-selected {
-    background: none repeat scroll 0 0 #39C;
+    background: none repeat scroll 0 0 #7e9dbb;
     color: white;
     cursor: default;
 }
 
 #content-type-canvas {
-    margin-right: 32%;
-    margin-left: 200px;
+    margin: 51px 32% 0 200px;
     min-width: 400px;
+
 }
 #content-type-canvas .content-form-name {
-    font-size: 18px;
-    font-weight: normal;
+    font-size: 20px;
+    font-weight: bold;
     padding: 3px 0 10px 3px;    
 }
 
+#content-type-canvas #yui-gen1{
+  background-color: #fff;
+}
+
 #content-type-tools {
-    background: none repeat scroll 0 0 #F0F0F0;
-    border-left: 1px solid #A1A1A1;
+    background: none repeat scroll 0 0 #F8F8F8;
+    border-left: 1px solid #e7e7e7;
     height: 100%;
     position: fixed;
     right: 0;
     top: 0;
     width: 32%;
     padding-top: 32px;
+    margin-top: 19px;
+    font-size: 11.5px;
 }
 
 .content-type-tools-panel {
     background-color: white;
-    border: 1px solid #B3B3B3;
+    border: 1px solid #dddddd;
     border-radius: 5px 5px 5px 5px;
     margin-left: 3%;
     margin-right: 3%;
@@ -100,19 +106,22 @@ body,tbody {
     min-width: 290px;
     padding-bottom: 8px;
 }
+.content-type-tools-panel.content-type-tools-panel-first{
+  padding-bottom: 0;
+}
 .content-type-tools-panel h4 {
     font-size: 14px;
     font-weight: normal;
     color: #444;
-    height: 20px;
-    padding: 10px 0 6px 0;
+    height: 29px;
+    padding: 6px 0 0px 16px;
     background-color: #C9C9C9;
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F0F0F0), to(#C9C9C9));
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F0F0F0), to(whitesmoke));
     background-image: -moz-linear-gradient(100% 100% 90deg,#C9C9C9, #F0F0F0);
-    border-bottom: 1px solid #999;
+    border-bottom: 1px solid #dddddd;
 	text-align: left;
-	padding-left: 16px;
 	cursor: pointer;
+    margin: 0;
 }
 
 .content-type-tools-panel-icon { 
@@ -128,10 +137,10 @@ body,tbody {
     padding-top: 12px;
 }
 #datasources-container {
-    height: 75px;
+    height: 87px;
 }
 #widgets-container {
-    height: 125px;
+    height: 134px;
 }
 
 .content-type-tools-panel-first {
@@ -148,105 +157,179 @@ body,tbody {
 }
 
 .content-type-visual-form-container-selected {
-    background: #DDDDDD;
+    background: #fff;
 }
 
 .content-type-visual-datasource-container {
-    background: none repeat scroll 0 0 #ccbbcc;
-    border: 1px solid #993399;
-    margin: 2px;
-    margin-left: 10px;
-    margin-right: 10px;
-    min-height: 20px;
-    padding-top: 10px;
-    position: relative;
-    padding-left: 10px;
-    padding-top: 5px;
-}
-
-.content-type-visual-datasource-container-selected {
-   background: none repeat scroll 0 0 #cc99cc;
-}
-
-
-.content-type-visual-section-container {
-    background: none repeat scroll 0 0 #F0F0F0;
-    border: 1px solid #A1A1A1;
-    margin: 2px;
-    min-height: 20px;
-    padding-top: 10px;
-}
-
-.content-type-visual-section-container-selected {
-    background: none repeat scroll 0 0 #DDDDDD;
-}
-
-.content-type-visual-field-container {
-    background: none repeat scroll 0 0 #D5E6F2;
-    border: 1px solid #0290D6;
-    margin: 10px;
+    //background: none repeat scroll 0 0 #ccbbcc;
+    border-bottom: 1px solid #dddddd;
     min-height: 20px;
     text-align: left;
     left: 1px;
     position: relative;
-    padding-left: 10px;
-    padding-top: 5px;
+    padding:5px 0 8px 10px;
+}
+
+.content-type-visual-datasource-container:hover {
+  background: none repeat scroll 0 0 #ccbbcc;
+}
+
+.content-type-visual-datasource-container-selected {
+   background: none repeat scroll 0 0 #ccbbcc;
+}
+
+
+.content-type-visual-section-container {
+    background: none repeat scroll 0 0 #FFF;
+    border: 1px solid #A1A1A1;
+    margin: 2px;
+    min-height: 20px;
+}
+
+#content-type-canvas .content-type-visual-section-container{
+  background-color: #FFF;
+  margin-bottom: 17px;
+  background-color: white;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.content-type-visual-section-container-selected {
+    background: none repeat scroll 0 0 #D5E6F2;
+}
+
+.content-type-visual-field-container {
+    //background: none repeat scroll 0 0 #D5E6F2;
+    border-bottom: 1px solid #dddddd;
+    min-height: 20px;
+    text-align: left;
+    position: relative;
+    padding:5px 0 8px 10px;
+}
+
+.content-type-visual-field-container:hover {
+  background: none repeat scroll 0 0 #D5E2F2;
 }
 
 .content-type-visual-field-container-selected {
-    background: none repeat scroll 0 0 #88CCEE;
+    background: none repeat scroll 0 0 #D5E2F2;
 }
 
 .content-type-visual-repeat-container {
-    background: none repeat scroll 0 0 lightSteelBlue;
-    border: 1px solid steelBlue;
+    background: none repeat scroll 0 0 #F2F8FC;
+    border: 1px solid #dddddd;
     margin: 10px;
     min-height: 30px;
     text-align: left;
     left: 1px;
     position: relative;
-    padding-left: 10px;
-    padding-top: 5px;
+    padding: 0;
+    border-radius: 4px;
+}
+
+.content-type-visual-repeat-container .content-field-name{
+    padding: 10px 0 10px 10px;
 }
 
 .content-type-visual-repeat-container-selected {
-	background: #7a9cc7;
+	background: #E5EDF7;
 	border: 1px solid #0000000;
+}
+
+.content-type-visual-repeat-container-selected .content-type-visual-field-container:hover{
+  //background-color: #D5E2F2;
 }
 
 .content-field-name{
 	color: #0290D6;
 	display: inline-block;
-	min-width: 125px
+	min-width: 145px;
+    margin-right: 16px;
+    padding: 0;
+}
+
+.content-type-visual-field-container .content-field-name{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 145px;
+  height: 16px;
+  padding-top: 1px;
+  position: relative;
+  top: 3px;
 }
 
 .content-datasource-name{
 	color: #993399;
 	display: inline-block;
-	min-width: 125px
+	min-width: 125px;
+    margin-right: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 145px;
+    height: 16px;
+    padding-top: 1px;
+    position: relative;
+    top: 3px;
 }
 
 .content-field-variable {
 	color: #A1A1A1;
 	padding-left: 20px;
+    font-weight: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 185px;
+    height: 16px;
+    padding-top: 1px;
+    display: inline-block;
+    position: relative;
+    top: 3px;
 }
 
 .content-field-type{
 	color: #A1A1A1;
+    font-weight: normal;
+    display: inline-block;
+    width: 93px;
 }
 
 .content-datasource-type{
 	color: #808080;
+    font-weight: normal;
+    display: inline-block;
+    width: 160px;
 }
 
 .content-datasource-variable{
 	color: #808080;
 	padding-left: 20px;
+    font-weight: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 185px;
+    height: 16px;
+    padding-top: 1px;
+    display: inline-block;
+    position: relative;
+    top: 3px;
 }
 
 .content-section-name {
-	padding-left: 10px;
-	color: #A1A1A1;
+    color: #333333;
+    background-color: whitesmoke;
+    border-bottom: 1px solid #dddddd;
+    display: block;
+    padding: 10px 15px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    font-size: 14px;
+    line-height: 27px;
 }
 
 #cstudio-admin-console-command-bar {
@@ -267,14 +350,31 @@ body,tbody {
     overflow: hidden;
     height: auto;
 }
+
+.property-wrapper.large {
+    background-color: #fff;
+
+}
+
+.property-wrapper.large .property-label{
+    line-height: 23px;
+}
+
+@media (max-width: 1224px){
+    .property-wrapper.large .property-label{
+        line-height: 18px;
+    }
+}
+
 .property-label {
     background-color: #EAEAEA;
     color: #676767;
     padding: 2px 2% 0 0;
     text-align: right;
-    width: 40%;
+    width: 45%;
     float: left;
-    line-height: 20px;
+    line-height: 21px;
+    border-right: 1px solid #A0A0A0;
 }
 .property-label + input {
     border: 0 none;
@@ -283,7 +383,7 @@ body,tbody {
     color: #555555;
     padding: 4px 2%;
     float: left;
-    width: 54%;
+    width: 55%;
     text-overflow: ellipsis;
     background-color: #FFFFFF;
 }
@@ -292,14 +392,14 @@ body,tbody {
 }
 .property-label + div {
     float: left;
-    width: 58%;
+    width: 55%;
     border-left: 1px solid #A0A0A0;
     margin-left: -1px;
     background-color: #FFFFFF;
     text-align: left;
 }
 .property-label + div > input[type='checkbox'] {
-    margin: 7px 6px;
+    margin: 6px 6px;
 }
 .ie9 .property-label + div > input[type='checkbox'] {
     margin-top: 0;
@@ -312,14 +412,16 @@ body,tbody {
 }
 
 .checkboxes .property-label {
-    border-right: 0 none;
+    /*border-right: 0 none;*/
 }
 .checkboxes .property-label + div {
-    padding-bottom: 3px;
+    padding-bottom: 0px;
 }
+
 .checkboxes div label {
     display: block;
     text-align: left;
+    margin-bottom: 1px;
 }
 .checkboxes div > label > input {
     margin: 3% 3% 2% 3%;
@@ -334,18 +436,23 @@ body,tbody {
 
 .property-heading {
     color: #444;
-    padding: 8px 0 6px 0;
+    padding: 8px 0 6px 7px;
     font-size: 12px;
     border-bottom: 1px solid #999;
 }    
 
 .content-type-datasources-container {
-	background: none repeat scroll 0 0 #FAFAFA;
-    border: 1px solid #A1A1A1;
-    margin: 2px;
-    min-height: 20px;
-    padding-bottom: 10px;
-    padding-top: 10px;
+    background-color: #FFF;
+    margin-bottom: 17px;
+    background-color: white;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.content-type-datasources-container .content-section-name{
+  background-color: #E4E0E0;
 }
 
 .property-dialog {    
@@ -353,21 +460,30 @@ body,tbody {
     position: fixed;
     top: 10%;
     left: 50%;
-    margin-left: -25%;
+    margin-left: -22%;
     color: white;
     width: 550px;
     max-height: 945px;
 }
 
-#keyValueDialogContainer {
-    overflow-y: scroll;
+#keyValueDialogContainer, #richTextDialog .property-dialog-body-container {
+    /*overflow-y: scroll;*/
     max-height: 420px;
+    padding: 20px 2px 12px;
+    border-bottom: 1px solid #DDD;
+}
+
+#richTextDialog .property-dialog-body-container {
+    padding-bottom: 20px;
 }
 
 .property-dialog-title {
 	font-weight: bold;
-	font-size: 15px;
-    margin: 10px;
+    color: #000;
+    font-size: 21px;
+    margin: 0;
+    padding: 26px 10px;
+    border-bottom: 1px solid #DDD;
 }
 
 .property-dialog-col-title {
@@ -378,16 +494,22 @@ body,tbody {
 }
 
 .property-dialog-row {
-    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.8);
-    margin-bottom: 2px;
-    margin-left: 2px;
-    margin-right: 2px;
+    background: none repeat scroll 0 0 rgba(245, 245, 245, 1);
+    margin-bottom: 9px;
     padding: 10px;
+    color: #414141;
+    border: solid 1px #DDD;
+    border-radius: 6px;
 }
 
 .property-dialog-button-container {
 	display: block;
-	margin-top: 40px;
+    margin: 28px 20px 25px 0px;
+    float: right;
+}
+
+.property-dialog-button-container .btn-primary {
+    margin-right: 10px;
 }
 
 .property-dialog-add-link {
@@ -396,6 +518,31 @@ body,tbody {
     font-weight: bold;
     margin-left: 10px;
     margin-right: 10px;
+    padding: 3px 12px;
+}
+
+#keyValueDialog .property-dialog-add-link.btn{
+    padding: 3px 12px;
+}
+
+#keyValueDialogMask, #channelsDialogMask {
+    background-color: rgb(68, 68, 68) !important;
+    opacity: 0.5 !important;
+    z-index: 1031 !important;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+#keyValueDialogContainer input{
+    color: #000;
+}
+
+#keyValueDialogContainer .deleteControl{
+    top:-3px;
+    left: -14px;
 }
 
 .cstudio-seethrough-dialog-button {
@@ -451,7 +598,7 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
     float: right;
     height: 20px;
     position: relative;
-    top: -18px;
+    top: -15px;
     width: 20px;
     cursor: pointer;
 }
@@ -461,7 +608,7 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
     float: right;
     height: 20px;
     position: relative;
-    top: -18px;
+    top: -16px;
     width: 20px;
     cursor: pointer;
 }
@@ -506,12 +653,25 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
    -moz-box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px rgba(255,255,255,0.3)
 }
 
+#keyValueDialog.seethrough, #richTextDialog.seethrough{
+    padding: 0;
+    border:none;
+    border-radius: 6px;
+    background: white;
+    z-index: 99999;
+    box-shadow: none;
+}
+
+#keyValueDialog.seethrough.channels{
+    left: 45%;
+}
+
 .rich-text-dialog {
     display: block;
     position: fixed;
     color: white;
     width: 50%;
-    top: 20%;
+    top: 14%;
 	left: 50%;
 	margin-left: -25%;
 	min-width: 408px;
@@ -531,7 +691,7 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
 	margin-left: -1px;
 	color: #555;
 	padding: 4px 6px;
-	width: 95%;
+	width: 100%;
 	text-overflow: ellipsis;
 	background-color: white;
 }
@@ -552,6 +712,7 @@ background-image: url("/proxy/authoring/themes/cstudioTheme/images/overlay-green
 	color: #0176B1;
 	font-style: italic;
 	z-index: 5;
+    padding-right: 1px;
 }
 
 .range .hide {
@@ -562,4 +723,3 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0; }
-

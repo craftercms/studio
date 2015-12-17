@@ -1,0 +1,161 @@
+$icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
+
+// bower:scss
+@import "../libs/bootstrap-sass-official/assets/stylesheets/_bootstrap.scss";
+// endbower
+
+.browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+body,
+html {
+    height: 100%;
+}
+
+/* Space out content a bit */
+body {
+
+    padding: 0;
+    position: relative;
+
+    > .container {
+
+        @media (max-width: 991px) {
+            width: 100%;
+        }
+
+    }
+
+    a[ui-sref],
+    a[ng-click] {
+        cursor: pointer;
+    }
+
+}
+
+.studio-preview {
+
+    width: 100%;
+    height: 100%;
+
+    &,
+    #main,
+    .preview-container > footer,
+    #main > .site-window {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+    }
+
+    .preview-container > header {
+
+    }
+
+    .preview-container > footer {
+        top: auto;
+        height: 30px;
+        background: #f2f2f2;
+
+        .status {
+            line-height: 30px;
+            padding: 0 10px;
+            color: red;
+        }
+
+    }
+
+    #main {
+
+        top: 51px;
+
+        .site-window {
+
+            bottom: 30px;
+
+            > iframe {
+                width:100%;
+                height:100%;
+                border: none;
+            }
+
+        }
+
+    }
+
+}
+
+.navbar {
+
+  .navbar-brand {
+
+    padding: 2px 15px;
+
+    > img {
+      width: 75px;
+    }
+
+  }
+
+}
+
+.modal-backdrop {
+    height: 100%;
+    background-color: #444;
+}
+
+.site-view {
+
+    .row {
+        margin-bottom: 20px;
+    }
+
+}
+
+.login-view,
+.recover-view {
+
+    .pad {
+        padding: 20px;
+    }
+
+    h2 {
+        margin-top: 0;
+    }
+
+}
+
+.panel {
+
+    .alert {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+
+}
+
+.user-display {
+
+    padding: 0 20px 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #f2f2f2;
+
+    .name {
+        font-size: 1.5em;
+    }
+
+}
+
+small.text-sm {
+    font-size: 40%;
+}
+
+.text-italic {
+    font-style: italic;
+}
