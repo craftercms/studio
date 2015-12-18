@@ -139,6 +139,7 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "kr", {
     priceHightoLow: "낮은 가격순 높은 가격",
     priceLowtoHigh: "높은 낮은 가격",
     editTemplate: "템플릿 편집",
+    editController: "편집 컨트롤러",
     jumpToRegion: "지역로 이동",
     dimensionsPx: "크기 (PX)",
     presets: "사전",
