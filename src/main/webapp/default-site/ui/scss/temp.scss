@@ -2565,6 +2565,12 @@ span.acn-canned-search {
   border: none;
   border-radius: $border-radius-base;
 
+  #ice-tools-panel-elem {
+    .studio-view{
+      overflow: hidden;
+    }
+  }
+
   .channel-width,
   .channel-height {
     width: 60px;
@@ -2612,6 +2618,19 @@ span.acn-canned-search {
 
   .acn-ptools-ice-label {
     margin-left: 5px;
+  }
+
+  .edit-code{
+    float: left;
+    &.template{
+      margin-right: 4px;
+    }
+    button{
+      padding: 6px 4px!important;
+    }
+    .acn-ptools-ice-label{
+      margin-left: 0px;
+    }
   }
 
   .acn-panel-dropdown {

@@ -2134,10 +2134,10 @@ Copyright (c) 2014 Daniel Eden
   -moz-osx-font-smoothing: grayscale; }
 
 .glyphicon-asterisk:before {
-  content: "\2a"; }
+  content: "\002a"; }
 
 .glyphicon-plus:before {
-  content: "\2b"; }
+  content: "\002b"; }
 
 .glyphicon-euro:before,
 .glyphicon-eur:before {
@@ -5045,6 +5045,8 @@ span.acn-canned-search {
 #preview-tools-panel-container {
   border: none;
   border-radius: 4px; }
+  #preview-tools-panel-container #ice-tools-panel-elem .studio-view {
+    overflow: hidden; }
   #preview-tools-panel-container .channel-width,
   #preview-tools-panel-container .channel-height {
     width: 60px;
@@ -5076,6 +5078,14 @@ span.acn-canned-search {
     display: block; }
   #preview-tools-panel-container .acn-ptools-ice-label {
     margin-left: 5px; }
+  #preview-tools-panel-container .edit-code {
+    float: left; }
+    #preview-tools-panel-container .edit-code.template {
+      margin-right: 4px; }
+    #preview-tools-panel-container .edit-code button {
+      padding: 6px 4px !important; }
+    #preview-tools-panel-container .edit-code .acn-ptools-ice-label {
+      margin-left: 0px; }
   #preview-tools-panel-container .acn-panel-dropdown {
     background: none repeat scroll 0 0 #FFFFFF;
     border: 1px solid #0176B1;
@@ -5858,7 +5868,7 @@ a.no-decoration,
   clear: both; }
 
 /* Bootstrap Config */
-/*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+/*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
@@ -5948,7 +5958,6 @@ figure {
   margin: 1em 40px; }
 
 hr {
-  -moz-box-sizing: content-box;
   box-sizing: content-box;
   height: 0; }
 
@@ -6008,8 +6017,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="search"] {
   -webkit-appearance: textfield;
-  -moz-box-sizing: content-box;
-  -webkit-box-sizing: content-box;
   box-sizing: content-box; }
 
 input[type="search"]::-webkit-search-cancel-button,
@@ -6087,9 +6094,6 @@ th {
   h2,
   h3 {
     page-break-after: avoid; }
-
-  select {
-    background: #fff !important; }
 
   .navbar {
     display: none; }
@@ -6333,31 +6337,36 @@ mark,
 .text-primary {
   color: #7e9dbb; }
 
-a.text-primary:hover {
+a.text-primary:hover,
+a.text-primary:focus {
   color: #5d84a9; }
 
 .text-success {
   color: #3c763d; }
 
-a.text-success:hover {
+a.text-success:hover,
+a.text-success:focus {
   color: #2b542c; }
 
 .text-info {
   color: #31708f; }
 
-a.text-info:hover {
+a.text-info:hover,
+a.text-info:focus {
   color: #245269; }
 
 .text-warning {
   color: #8a6d3b; }
 
-a.text-warning:hover {
+a.text-warning:hover,
+a.text-warning:focus {
   color: #66512c; }
 
 .text-danger {
   color: #a94442; }
 
-a.text-danger:hover {
+a.text-danger:hover,
+a.text-danger:focus {
   color: #843534; }
 
 .bg-primary {
@@ -6366,31 +6375,36 @@ a.text-danger:hover {
 .bg-primary {
   background-color: #7e9dbb; }
 
-a.bg-primary:hover {
+a.bg-primary:hover,
+a.bg-primary:focus {
   background-color: #5d84a9; }
 
 .bg-success {
   background-color: #dff0d8; }
 
-a.bg-success:hover {
+a.bg-success:hover,
+a.bg-success:focus {
   background-color: #c1e2b3; }
 
 .bg-info {
   background-color: #d9edf7; }
 
-a.bg-info:hover {
+a.bg-info:hover,
+a.bg-info:focus {
   background-color: #afd9ee; }
 
 .bg-warning {
   background-color: #fcf8e3; }
 
-a.bg-warning:hover {
+a.bg-warning:hover,
+a.bg-warning:focus {
   background-color: #f7ecb5; }
 
 .bg-danger {
   background-color: #f2dede; }
 
-a.bg-danger:hover {
+a.bg-danger:hover,
+a.bg-danger:focus {
   background-color: #e4b9b9; }
 
 .page-header {
@@ -6524,10 +6538,10 @@ address {
   -moz-osx-font-smoothing: grayscale; }
 
 .glyphicon-asterisk:before {
-  content: "\2a"; }
+  content: "\002a"; }
 
 .glyphicon-plus:before {
-  content: "\2b"; }
+  content: "\002b"; }
 
 .glyphicon-euro:before,
 .glyphicon-eur:before {
@@ -9115,6 +9129,11 @@ address {
   .studio-dialog .form-control::-webkit-input-placeholder,
   .site-dashboard .form-control::-webkit-input-placeholder {
     color: #999; }
+  .studio-view .form-control::-ms-expand,
+  .studio-dialog .form-control::-ms-expand,
+  .site-dashboard .form-control::-ms-expand {
+    border: 0;
+    background-color: transparent; }
   .studio-view .form-control[disabled], .studio-view .form-control[readonly], fieldset[disabled] .studio-view .form-control,
   .studio-dialog .form-control[disabled],
   .studio-dialog .form-control[readonly], fieldset[disabled]
@@ -9139,233 +9158,233 @@ address {
 .site-dashboard input[type="search"] {
   -webkit-appearance: none; }
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
-  .studio-view input[type="date"],
-  .studio-view input[type="time"],
-  .studio-view input[type="datetime-local"],
-  .studio-view input[type="month"],
-  .studio-dialog input[type="date"],
-  .studio-dialog input[type="time"],
-  .studio-dialog input[type="datetime-local"],
-  .studio-dialog input[type="month"],
-  .site-dashboard input[type="date"],
-  .site-dashboard input[type="time"],
-  .site-dashboard input[type="datetime-local"],
-  .site-dashboard input[type="month"] {
+  .studio-view input[type="date"].form-control,
+  .studio-view input[type="time"].form-control,
+  .studio-view input[type="datetime-local"].form-control,
+  .studio-view input[type="month"].form-control,
+  .studio-dialog input[type="date"].form-control,
+  .studio-dialog input[type="time"].form-control,
+  .studio-dialog input[type="datetime-local"].form-control,
+  .studio-dialog input[type="month"].form-control,
+  .site-dashboard input[type="date"].form-control,
+  .site-dashboard input[type="time"].form-control,
+  .site-dashboard input[type="datetime-local"].form-control,
+  .site-dashboard input[type="month"].form-control {
     line-height: 31px; }
-    .studio-view input[type="date"].input-sm, .studio-view .input-group-sm > input[type="date"].form-control,
-    .studio-view .input-group-sm > input[type="date"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn,
-    .studio-view .studio-dialog .input-group-sm > input[type="date"].form-control,
-    .studio-view .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
-    .studio-view .site-dashboard .input-group-sm > input[type="date"].form-control,
-    .studio-view .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm .studio-view input[type="date"],
-    .studio-view input[type="time"].input-sm,
-    .studio-view .input-group-sm > input[type="time"].form-control,
-    .studio-view .input-group-sm > input[type="time"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn,
-    .studio-view .studio-dialog .input-group-sm > input[type="time"].form-control,
-    .studio-view .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
-    .studio-view .site-dashboard .input-group-sm > input[type="time"].form-control,
-    .studio-view .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
-    .studio-view input[type="time"],
-    .studio-view input[type="datetime-local"].input-sm,
-    .studio-view .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
-    .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
-    .studio-view input[type="datetime-local"],
-    .studio-view input[type="month"].input-sm,
-    .studio-view .input-group-sm > input[type="month"].form-control,
-    .studio-view .input-group-sm > input[type="month"].input-group-addon,
-    .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn,
-    .studio-view .studio-dialog .input-group-sm > input[type="month"].form-control,
-    .studio-view .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
-    .studio-view .site-dashboard .input-group-sm > input[type="month"].form-control,
-    .studio-view .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
-    .studio-view input[type="month"],
-    .studio-dialog input[type="date"].input-sm,
-    .studio-dialog .studio-view .input-group-sm > input[type="date"].form-control,
-    .studio-dialog .studio-view .input-group-sm > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-sm > input[type="date"].form-control,
-    .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="date"].form-control,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm
-    .studio-dialog input[type="date"],
-    .studio-dialog input[type="time"].input-sm,
-    .studio-dialog .studio-view .input-group-sm > input[type="time"].form-control,
-    .studio-dialog .studio-view .input-group-sm > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-sm > input[type="time"].form-control,
-    .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="time"].form-control,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
-    .studio-dialog input[type="time"],
-    .studio-dialog input[type="datetime-local"].input-sm,
-    .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
-    .studio-dialog input[type="datetime-local"],
-    .studio-dialog input[type="month"].input-sm,
-    .studio-dialog .studio-view .input-group-sm > input[type="month"].form-control,
-    .studio-dialog .studio-view .input-group-sm > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-sm > input[type="month"].form-control,
-    .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="month"].form-control,
-    .studio-dialog .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
-    .studio-dialog input[type="month"],
-    .site-dashboard input[type="date"].input-sm,
-    .site-dashboard .studio-view .input-group-sm > input[type="date"].form-control,
-    .site-dashboard .studio-view .input-group-sm > input[type="date"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="date"].form-control,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
-    .site-dashboard .input-group-sm > input[type="date"].form-control,
-    .site-dashboard .input-group-sm > input[type="date"].input-group-addon,
-    .site-dashboard .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
-    .site-dashboard input[type="date"],
-    .site-dashboard input[type="time"].input-sm,
-    .site-dashboard .studio-view .input-group-sm > input[type="time"].form-control,
-    .site-dashboard .studio-view .input-group-sm > input[type="time"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="time"].form-control,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
-    .site-dashboard .input-group-sm > input[type="time"].form-control,
-    .site-dashboard .input-group-sm > input[type="time"].input-group-addon,
-    .site-dashboard .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
-    .site-dashboard input[type="time"],
-    .site-dashboard input[type="datetime-local"].input-sm,
-    .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].form-control,
-    .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
-    .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
-    .site-dashboard input[type="datetime-local"],
-    .site-dashboard input[type="month"].input-sm,
-    .site-dashboard .studio-view .input-group-sm > input[type="month"].form-control,
-    .site-dashboard .studio-view .input-group-sm > input[type="month"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="month"].form-control,
-    .site-dashboard .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
-    .site-dashboard .input-group-sm > input[type="month"].form-control,
-    .site-dashboard .input-group-sm > input[type="month"].input-group-addon,
-    .site-dashboard .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
-    .site-dashboard input[type="month"] {
-      line-height: 28px; }
-    .studio-view input[type="date"].input-lg, .studio-view .input-group-lg > input[type="date"].form-control,
-    .studio-view .input-group-lg > input[type="date"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn,
-    .studio-view .studio-dialog .input-group-lg > input[type="date"].form-control,
-    .studio-view .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
-    .studio-view .site-dashboard .input-group-lg > input[type="date"].form-control,
-    .studio-view .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg .studio-view input[type="date"],
-    .studio-view input[type="time"].input-lg,
-    .studio-view .input-group-lg > input[type="time"].form-control,
-    .studio-view .input-group-lg > input[type="time"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn,
-    .studio-view .studio-dialog .input-group-lg > input[type="time"].form-control,
-    .studio-view .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
-    .studio-view .site-dashboard .input-group-lg > input[type="time"].form-control,
-    .studio-view .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
-    .studio-view input[type="time"],
-    .studio-view input[type="datetime-local"].input-lg,
-    .studio-view .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
-    .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
-    .studio-view input[type="datetime-local"],
-    .studio-view input[type="month"].input-lg,
-    .studio-view .input-group-lg > input[type="month"].form-control,
-    .studio-view .input-group-lg > input[type="month"].input-group-addon,
-    .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn,
-    .studio-view .studio-dialog .input-group-lg > input[type="month"].form-control,
-    .studio-view .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
-    .studio-view .site-dashboard .input-group-lg > input[type="month"].form-control,
-    .studio-view .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
-    .studio-view input[type="month"],
-    .studio-dialog input[type="date"].input-lg,
-    .studio-dialog .studio-view .input-group-lg > input[type="date"].form-control,
-    .studio-dialog .studio-view .input-group-lg > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-lg > input[type="date"].form-control,
-    .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="date"].form-control,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg
-    .studio-dialog input[type="date"],
-    .studio-dialog input[type="time"].input-lg,
-    .studio-dialog .studio-view .input-group-lg > input[type="time"].form-control,
-    .studio-dialog .studio-view .input-group-lg > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-lg > input[type="time"].form-control,
-    .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="time"].form-control,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
-    .studio-dialog input[type="time"],
-    .studio-dialog input[type="datetime-local"].input-lg,
-    .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
-    .studio-dialog input[type="datetime-local"],
-    .studio-dialog input[type="month"].input-lg,
-    .studio-dialog .studio-view .input-group-lg > input[type="month"].form-control,
-    .studio-dialog .studio-view .input-group-lg > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-lg > input[type="month"].form-control,
-    .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
-    .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="month"].form-control,
-    .studio-dialog .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
-    .studio-dialog input[type="month"],
-    .site-dashboard input[type="date"].input-lg,
-    .site-dashboard .studio-view .input-group-lg > input[type="date"].form-control,
-    .site-dashboard .studio-view .input-group-lg > input[type="date"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="date"].form-control,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
-    .site-dashboard .input-group-lg > input[type="date"].form-control,
-    .site-dashboard .input-group-lg > input[type="date"].input-group-addon,
-    .site-dashboard .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
-    .site-dashboard input[type="date"],
-    .site-dashboard input[type="time"].input-lg,
-    .site-dashboard .studio-view .input-group-lg > input[type="time"].form-control,
-    .site-dashboard .studio-view .input-group-lg > input[type="time"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="time"].form-control,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
-    .site-dashboard .input-group-lg > input[type="time"].form-control,
-    .site-dashboard .input-group-lg > input[type="time"].input-group-addon,
-    .site-dashboard .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
-    .site-dashboard input[type="time"],
-    .site-dashboard input[type="datetime-local"].input-lg,
-    .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].form-control,
-    .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
-    .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon,
-    .site-dashboard .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
-    .site-dashboard input[type="datetime-local"],
-    .site-dashboard input[type="month"].input-lg,
-    .site-dashboard .studio-view .input-group-lg > input[type="month"].form-control,
-    .site-dashboard .studio-view .input-group-lg > input[type="month"].input-group-addon,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="month"].form-control,
-    .site-dashboard .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
-    .site-dashboard .input-group-lg > input[type="month"].form-control,
-    .site-dashboard .input-group-lg > input[type="month"].input-group-addon,
-    .site-dashboard .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
-    .site-dashboard input[type="month"] {
-      line-height: 42px; } }
+  .studio-view input[type="date"].input-sm, .studio-view .input-group-sm > input[type="date"].form-control,
+  .studio-view .input-group-sm > input[type="date"].input-group-addon,
+  .studio-view .input-group-sm > .input-group-btn > input[type="date"].btn,
+  .studio-view .studio-dialog .input-group-sm > input[type="date"].form-control,
+  .studio-view .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > input[type="date"].form-control,
+  .studio-view .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm .studio-view input[type="date"],
+  .studio-view input[type="time"].input-sm,
+  .studio-view .input-group-sm > input[type="time"].form-control,
+  .studio-view .input-group-sm > input[type="time"].input-group-addon,
+  .studio-view .input-group-sm > .input-group-btn > input[type="time"].btn,
+  .studio-view .studio-dialog .input-group-sm > input[type="time"].form-control,
+  .studio-view .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > input[type="time"].form-control,
+  .studio-view .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
+  .studio-view input[type="time"],
+  .studio-view input[type="datetime-local"].input-sm,
+  .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .studio-view .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
+  .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-view .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-view .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
+  .studio-view input[type="datetime-local"],
+  .studio-view input[type="month"].input-sm,
+  .studio-view .input-group-sm > input[type="month"].form-control,
+  .studio-view .input-group-sm > input[type="month"].input-group-addon,
+  .studio-view .input-group-sm > .input-group-btn > input[type="month"].btn,
+  .studio-view .studio-dialog .input-group-sm > input[type="month"].form-control,
+  .studio-view .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
+  .studio-view .site-dashboard .input-group-sm > input[type="month"].form-control,
+  .studio-view .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
+  .studio-view input[type="month"],
+  .studio-dialog input[type="date"].input-sm,
+  .studio-dialog .studio-view .input-group-sm > input[type="date"].form-control,
+  .studio-dialog .studio-view .input-group-sm > input[type="date"].input-group-addon,
+  .studio-dialog .input-group-sm > input[type="date"].form-control,
+  .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
+  .studio-dialog .input-group-sm > .input-group-btn > input[type="date"].btn,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="date"].form-control,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="date"].input-group-addon, .input-group-sm
+  .studio-dialog input[type="date"],
+  .studio-dialog input[type="time"].input-sm,
+  .studio-dialog .studio-view .input-group-sm > input[type="time"].form-control,
+  .studio-dialog .studio-view .input-group-sm > input[type="time"].input-group-addon,
+  .studio-dialog .input-group-sm > input[type="time"].form-control,
+  .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
+  .studio-dialog .input-group-sm > .input-group-btn > input[type="time"].btn,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="time"].form-control,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="time"].input-group-addon, .input-group-sm
+  .studio-dialog input[type="time"],
+  .studio-dialog input[type="datetime-local"].input-sm,
+  .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-dialog .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .studio-dialog .input-group-sm > .input-group-btn > input[type="datetime-local"].btn,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon, .input-group-sm
+  .studio-dialog input[type="datetime-local"],
+  .studio-dialog input[type="month"].input-sm,
+  .studio-dialog .studio-view .input-group-sm > input[type="month"].form-control,
+  .studio-dialog .studio-view .input-group-sm > input[type="month"].input-group-addon,
+  .studio-dialog .input-group-sm > input[type="month"].form-control,
+  .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
+  .studio-dialog .input-group-sm > .input-group-btn > input[type="month"].btn,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="month"].form-control,
+  .studio-dialog .site-dashboard .input-group-sm > input[type="month"].input-group-addon, .input-group-sm
+  .studio-dialog input[type="month"],
+  .site-dashboard input[type="date"].input-sm,
+  .site-dashboard .studio-view .input-group-sm > input[type="date"].form-control,
+  .site-dashboard .studio-view .input-group-sm > input[type="date"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="date"].form-control,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="date"].input-group-addon,
+  .site-dashboard .input-group-sm > input[type="date"].form-control,
+  .site-dashboard .input-group-sm > input[type="date"].input-group-addon,
+  .site-dashboard .input-group-sm > .input-group-btn > input[type="date"].btn, .input-group-sm
+  .site-dashboard input[type="date"],
+  .site-dashboard input[type="time"].input-sm,
+  .site-dashboard .studio-view .input-group-sm > input[type="time"].form-control,
+  .site-dashboard .studio-view .input-group-sm > input[type="time"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="time"].form-control,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="time"].input-group-addon,
+  .site-dashboard .input-group-sm > input[type="time"].form-control,
+  .site-dashboard .input-group-sm > input[type="time"].input-group-addon,
+  .site-dashboard .input-group-sm > .input-group-btn > input[type="time"].btn, .input-group-sm
+  .site-dashboard input[type="time"],
+  .site-dashboard input[type="datetime-local"].input-sm,
+  .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].form-control,
+  .site-dashboard .studio-view .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].form-control,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .input-group-sm > input[type="datetime-local"].form-control,
+  .site-dashboard .input-group-sm > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .input-group-sm > .input-group-btn > input[type="datetime-local"].btn, .input-group-sm
+  .site-dashboard input[type="datetime-local"],
+  .site-dashboard input[type="month"].input-sm,
+  .site-dashboard .studio-view .input-group-sm > input[type="month"].form-control,
+  .site-dashboard .studio-view .input-group-sm > input[type="month"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="month"].form-control,
+  .site-dashboard .studio-dialog .input-group-sm > input[type="month"].input-group-addon,
+  .site-dashboard .input-group-sm > input[type="month"].form-control,
+  .site-dashboard .input-group-sm > input[type="month"].input-group-addon,
+  .site-dashboard .input-group-sm > .input-group-btn > input[type="month"].btn, .input-group-sm
+  .site-dashboard input[type="month"] {
+    line-height: 28px; }
+  .studio-view input[type="date"].input-lg, .studio-view .input-group-lg > input[type="date"].form-control,
+  .studio-view .input-group-lg > input[type="date"].input-group-addon,
+  .studio-view .input-group-lg > .input-group-btn > input[type="date"].btn,
+  .studio-view .studio-dialog .input-group-lg > input[type="date"].form-control,
+  .studio-view .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > input[type="date"].form-control,
+  .studio-view .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg .studio-view input[type="date"],
+  .studio-view input[type="time"].input-lg,
+  .studio-view .input-group-lg > input[type="time"].form-control,
+  .studio-view .input-group-lg > input[type="time"].input-group-addon,
+  .studio-view .input-group-lg > .input-group-btn > input[type="time"].btn,
+  .studio-view .studio-dialog .input-group-lg > input[type="time"].form-control,
+  .studio-view .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > input[type="time"].form-control,
+  .studio-view .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
+  .studio-view input[type="time"],
+  .studio-view input[type="datetime-local"].input-lg,
+  .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .studio-view .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
+  .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-view .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-view .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
+  .studio-view input[type="datetime-local"],
+  .studio-view input[type="month"].input-lg,
+  .studio-view .input-group-lg > input[type="month"].form-control,
+  .studio-view .input-group-lg > input[type="month"].input-group-addon,
+  .studio-view .input-group-lg > .input-group-btn > input[type="month"].btn,
+  .studio-view .studio-dialog .input-group-lg > input[type="month"].form-control,
+  .studio-view .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
+  .studio-view .site-dashboard .input-group-lg > input[type="month"].form-control,
+  .studio-view .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
+  .studio-view input[type="month"],
+  .studio-dialog input[type="date"].input-lg,
+  .studio-dialog .studio-view .input-group-lg > input[type="date"].form-control,
+  .studio-dialog .studio-view .input-group-lg > input[type="date"].input-group-addon,
+  .studio-dialog .input-group-lg > input[type="date"].form-control,
+  .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
+  .studio-dialog .input-group-lg > .input-group-btn > input[type="date"].btn,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="date"].form-control,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="date"].input-group-addon, .input-group-lg
+  .studio-dialog input[type="date"],
+  .studio-dialog input[type="time"].input-lg,
+  .studio-dialog .studio-view .input-group-lg > input[type="time"].form-control,
+  .studio-dialog .studio-view .input-group-lg > input[type="time"].input-group-addon,
+  .studio-dialog .input-group-lg > input[type="time"].form-control,
+  .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
+  .studio-dialog .input-group-lg > .input-group-btn > input[type="time"].btn,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="time"].form-control,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="time"].input-group-addon, .input-group-lg
+  .studio-dialog input[type="time"],
+  .studio-dialog input[type="datetime-local"].input-lg,
+  .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-dialog .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .studio-dialog .input-group-lg > .input-group-btn > input[type="datetime-local"].btn,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon, .input-group-lg
+  .studio-dialog input[type="datetime-local"],
+  .studio-dialog input[type="month"].input-lg,
+  .studio-dialog .studio-view .input-group-lg > input[type="month"].form-control,
+  .studio-dialog .studio-view .input-group-lg > input[type="month"].input-group-addon,
+  .studio-dialog .input-group-lg > input[type="month"].form-control,
+  .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
+  .studio-dialog .input-group-lg > .input-group-btn > input[type="month"].btn,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="month"].form-control,
+  .studio-dialog .site-dashboard .input-group-lg > input[type="month"].input-group-addon, .input-group-lg
+  .studio-dialog input[type="month"],
+  .site-dashboard input[type="date"].input-lg,
+  .site-dashboard .studio-view .input-group-lg > input[type="date"].form-control,
+  .site-dashboard .studio-view .input-group-lg > input[type="date"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="date"].form-control,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="date"].input-group-addon,
+  .site-dashboard .input-group-lg > input[type="date"].form-control,
+  .site-dashboard .input-group-lg > input[type="date"].input-group-addon,
+  .site-dashboard .input-group-lg > .input-group-btn > input[type="date"].btn, .input-group-lg
+  .site-dashboard input[type="date"],
+  .site-dashboard input[type="time"].input-lg,
+  .site-dashboard .studio-view .input-group-lg > input[type="time"].form-control,
+  .site-dashboard .studio-view .input-group-lg > input[type="time"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="time"].form-control,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="time"].input-group-addon,
+  .site-dashboard .input-group-lg > input[type="time"].form-control,
+  .site-dashboard .input-group-lg > input[type="time"].input-group-addon,
+  .site-dashboard .input-group-lg > .input-group-btn > input[type="time"].btn, .input-group-lg
+  .site-dashboard input[type="time"],
+  .site-dashboard input[type="datetime-local"].input-lg,
+  .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].form-control,
+  .site-dashboard .studio-view .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].form-control,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .input-group-lg > input[type="datetime-local"].form-control,
+  .site-dashboard .input-group-lg > input[type="datetime-local"].input-group-addon,
+  .site-dashboard .input-group-lg > .input-group-btn > input[type="datetime-local"].btn, .input-group-lg
+  .site-dashboard input[type="datetime-local"],
+  .site-dashboard input[type="month"].input-lg,
+  .site-dashboard .studio-view .input-group-lg > input[type="month"].form-control,
+  .site-dashboard .studio-view .input-group-lg > input[type="month"].input-group-addon,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="month"].form-control,
+  .site-dashboard .studio-dialog .input-group-lg > input[type="month"].input-group-addon,
+  .site-dashboard .input-group-lg > input[type="month"].form-control,
+  .site-dashboard .input-group-lg > input[type="month"].input-group-addon,
+  .site-dashboard .input-group-lg > .input-group-btn > input[type="month"].btn, .input-group-lg
+  .site-dashboard input[type="month"] {
+    line-height: 42px; } }
 .studio-view .form-group,
 .studio-dialog .form-group,
 .site-dashboard .form-group {
@@ -9654,10 +9673,10 @@ address {
 .studio-dialog .form-group-sm .form-control-static,
 .site-dashboard .form-group-sm .form-control-static {
   height: 28px;
-  padding: 5px 10px;
+  min-height: 28px;
+  padding: 6px 10px;
   font-size: 11px;
-  line-height: 1.5;
-  min-height: 28px; }
+  line-height: 1.5; }
 .studio-view .input-lg, .studio-view .input-group-lg > .form-control,
 .studio-view .input-group-lg > .input-group-addon,
 .studio-view .input-group-lg > .input-group-btn > .btn,
@@ -9783,10 +9802,10 @@ address {
 .studio-dialog .form-group-lg .form-control-static,
 .site-dashboard .form-group-lg .form-control-static {
   height: 42px;
-  padding: 10px 16px;
+  min-height: 32px;
+  padding: 11px 16px;
   font-size: 15px;
-  line-height: 1.33333;
-  min-height: 32px; }
+  line-height: 1.33333; }
 .studio-view .has-feedback,
 .studio-dialog .has-feedback,
 .site-dashboard .has-feedback {
@@ -9811,28 +9830,40 @@ address {
 .studio-view .input-lg + .form-control-feedback, .studio-view .input-group-lg > .form-control + .form-control-feedback,
 .studio-view .input-group-lg > .input-group-addon + .form-control-feedback,
 .studio-view .input-group-lg > .input-group-btn > .btn + .form-control-feedback,
+.studio-view .input-group-lg + .form-control-feedback,
+.studio-view .form-group-lg .form-control + .form-control-feedback,
 .studio-dialog .input-lg + .form-control-feedback,
 .studio-dialog .input-group-lg > .form-control + .form-control-feedback,
 .studio-dialog .input-group-lg > .input-group-addon + .form-control-feedback,
 .studio-dialog .input-group-lg > .input-group-btn > .btn + .form-control-feedback,
+.studio-dialog .input-group-lg + .form-control-feedback,
+.studio-dialog .form-group-lg .form-control + .form-control-feedback,
 .site-dashboard .input-lg + .form-control-feedback,
 .site-dashboard .input-group-lg > .form-control + .form-control-feedback,
 .site-dashboard .input-group-lg > .input-group-addon + .form-control-feedback,
-.site-dashboard .input-group-lg > .input-group-btn > .btn + .form-control-feedback {
+.site-dashboard .input-group-lg > .input-group-btn > .btn + .form-control-feedback,
+.site-dashboard .input-group-lg + .form-control-feedback,
+.site-dashboard .form-group-lg .form-control + .form-control-feedback {
   width: 42px;
   height: 42px;
   line-height: 42px; }
 .studio-view .input-sm + .form-control-feedback, .studio-view .input-group-sm > .form-control + .form-control-feedback,
 .studio-view .input-group-sm > .input-group-addon + .form-control-feedback,
 .studio-view .input-group-sm > .input-group-btn > .btn + .form-control-feedback,
+.studio-view .input-group-sm + .form-control-feedback,
+.studio-view .form-group-sm .form-control + .form-control-feedback,
 .studio-dialog .input-sm + .form-control-feedback,
 .studio-dialog .input-group-sm > .form-control + .form-control-feedback,
 .studio-dialog .input-group-sm > .input-group-addon + .form-control-feedback,
 .studio-dialog .input-group-sm > .input-group-btn > .btn + .form-control-feedback,
+.studio-dialog .input-group-sm + .form-control-feedback,
+.studio-dialog .form-group-sm .form-control + .form-control-feedback,
 .site-dashboard .input-sm + .form-control-feedback,
 .site-dashboard .input-group-sm > .form-control + .form-control-feedback,
 .site-dashboard .input-group-sm > .input-group-addon + .form-control-feedback,
-.site-dashboard .input-group-sm > .input-group-btn > .btn + .form-control-feedback {
+.site-dashboard .input-group-sm > .input-group-btn > .btn + .form-control-feedback,
+.site-dashboard .input-group-sm + .form-control-feedback,
+.site-dashboard .form-group-sm .form-control + .form-control-feedback {
   width: 28px;
   height: 28px;
   line-height: 28px; }
@@ -10121,12 +10152,14 @@ address {
   .studio-view .form-horizontal .form-group-lg .control-label,
   .studio-dialog .form-horizontal .form-group-lg .control-label,
   .site-dashboard .form-horizontal .form-group-lg .control-label {
-    padding-top: 14.33333px; } }
+    padding-top: 11px;
+    font-size: 15px; } }
 @media (min-width: 768px) {
   .studio-view .form-horizontal .form-group-sm .control-label,
   .studio-dialog .form-horizontal .form-group-sm .control-label,
   .site-dashboard .form-horizontal .form-group-sm .control-label {
-    padding-top: 6px; } }
+    padding-top: 6px;
+    font-size: 11px; } }
 .studio-view .btn,
 .studio-dialog .btn,
 .site-dashboard .btn {
@@ -10190,30 +10223,33 @@ address {
   .site-dashboard .btn[disabled], fieldset[disabled]
   .site-dashboard .btn {
     cursor: not-allowed;
-    pointer-events: none;
     opacity: 0.65;
     filter: alpha(opacity=65);
     -webkit-box-shadow: none;
     box-shadow: none; }
+.studio-view a.btn.disabled, fieldset[disabled] .studio-view a.btn,
+.studio-dialog a.btn.disabled, fieldset[disabled]
+.studio-dialog a.btn,
+.site-dashboard a.btn.disabled, fieldset[disabled]
+.site-dashboard a.btn {
+  pointer-events: none; }
 .studio-view .btn-default,
 .studio-dialog .btn-default,
 .site-dashboard .btn-default {
   color: #333;
   background-color: #fff;
   border-color: #ccc; }
-  .studio-view .btn-default:hover, .studio-view .btn-default:focus, .studio-view .btn-default.focus, .studio-view .btn-default:active, .studio-view .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle,
-  .studio-dialog .btn-default:hover,
+  .studio-view .btn-default:focus, .studio-view .btn-default.focus,
   .studio-dialog .btn-default:focus,
   .studio-dialog .btn-default.focus,
-  .studio-dialog .btn-default:active,
-  .studio-dialog .btn-default.active, .open >
-  .studio-dialog .btn-default.dropdown-toggle,
-  .site-dashboard .btn-default:hover,
   .site-dashboard .btn-default:focus,
-  .site-dashboard .btn-default.focus,
-  .site-dashboard .btn-default:active,
-  .site-dashboard .btn-default.active, .open >
-  .site-dashboard .btn-default.dropdown-toggle {
+  .site-dashboard .btn-default.focus {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #8c8c8c; }
+  .studio-view .btn-default:hover,
+  .studio-dialog .btn-default:hover,
+  .site-dashboard .btn-default:hover {
     color: #333;
     background-color: #e6e6e6;
     border-color: #adadad; }
@@ -10224,44 +10260,58 @@ address {
   .site-dashboard .btn-default:active,
   .site-dashboard .btn-default.active, .open >
   .site-dashboard .btn-default.dropdown-toggle {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad; }
+    .studio-view .btn-default:active:hover, .studio-view .btn-default:active:focus, .studio-view .btn-default:active.focus, .studio-view .btn-default.active:hover, .studio-view .btn-default.active:focus, .studio-view .btn-default.active.focus, .open > .studio-view .btn-default.dropdown-toggle:hover, .open > .studio-view .btn-default.dropdown-toggle:focus, .open > .studio-view .btn-default.dropdown-toggle.focus,
+    .studio-dialog .btn-default:active:hover,
+    .studio-dialog .btn-default:active:focus,
+    .studio-dialog .btn-default:active.focus,
+    .studio-dialog .btn-default.active:hover,
+    .studio-dialog .btn-default.active:focus,
+    .studio-dialog .btn-default.active.focus, .open >
+    .studio-dialog .btn-default.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-default.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-default.dropdown-toggle.focus,
+    .site-dashboard .btn-default:active:hover,
+    .site-dashboard .btn-default:active:focus,
+    .site-dashboard .btn-default:active.focus,
+    .site-dashboard .btn-default.active:hover,
+    .site-dashboard .btn-default.active:focus,
+    .site-dashboard .btn-default.active.focus, .open >
+    .site-dashboard .btn-default.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-default.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-default.dropdown-toggle.focus {
+      color: #333;
+      background-color: #d4d4d4;
+      border-color: #8c8c8c; }
+  .studio-view .btn-default:active, .studio-view .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle,
+  .studio-dialog .btn-default:active,
+  .studio-dialog .btn-default.active, .open >
+  .studio-dialog .btn-default.dropdown-toggle,
+  .site-dashboard .btn-default:active,
+  .site-dashboard .btn-default.active, .open >
+  .site-dashboard .btn-default.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-default.disabled, .studio-view .btn-default.disabled:hover, .studio-view .btn-default.disabled:focus, .studio-view .btn-default.disabled.focus, .studio-view .btn-default.disabled:active, .studio-view .btn-default.disabled.active, .studio-view .btn-default[disabled], .studio-view .btn-default[disabled]:hover, .studio-view .btn-default[disabled]:focus, .studio-view .btn-default[disabled].focus, .studio-view .btn-default[disabled]:active, .studio-view .btn-default[disabled].active, fieldset[disabled] .studio-view .btn-default, fieldset[disabled] .studio-view .btn-default:hover, fieldset[disabled] .studio-view .btn-default:focus, fieldset[disabled] .studio-view .btn-default.focus, fieldset[disabled] .studio-view .btn-default:active, fieldset[disabled] .studio-view .btn-default.active,
-  .studio-dialog .btn-default.disabled,
+  .studio-view .btn-default.disabled:hover, .studio-view .btn-default.disabled:focus, .studio-view .btn-default.disabled.focus, .studio-view .btn-default[disabled]:hover, .studio-view .btn-default[disabled]:focus, .studio-view .btn-default[disabled].focus, fieldset[disabled] .studio-view .btn-default:hover, fieldset[disabled] .studio-view .btn-default:focus, fieldset[disabled] .studio-view .btn-default.focus,
   .studio-dialog .btn-default.disabled:hover,
   .studio-dialog .btn-default.disabled:focus,
   .studio-dialog .btn-default.disabled.focus,
-  .studio-dialog .btn-default.disabled:active,
-  .studio-dialog .btn-default.disabled.active,
-  .studio-dialog .btn-default[disabled],
   .studio-dialog .btn-default[disabled]:hover,
   .studio-dialog .btn-default[disabled]:focus,
-  .studio-dialog .btn-default[disabled].focus,
-  .studio-dialog .btn-default[disabled]:active,
-  .studio-dialog .btn-default[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-default, fieldset[disabled]
+  .studio-dialog .btn-default[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-default:hover, fieldset[disabled]
   .studio-dialog .btn-default:focus, fieldset[disabled]
-  .studio-dialog .btn-default.focus, fieldset[disabled]
-  .studio-dialog .btn-default:active, fieldset[disabled]
-  .studio-dialog .btn-default.active,
-  .site-dashboard .btn-default.disabled,
+  .studio-dialog .btn-default.focus,
   .site-dashboard .btn-default.disabled:hover,
   .site-dashboard .btn-default.disabled:focus,
   .site-dashboard .btn-default.disabled.focus,
-  .site-dashboard .btn-default.disabled:active,
-  .site-dashboard .btn-default.disabled.active,
-  .site-dashboard .btn-default[disabled],
   .site-dashboard .btn-default[disabled]:hover,
   .site-dashboard .btn-default[disabled]:focus,
-  .site-dashboard .btn-default[disabled].focus,
-  .site-dashboard .btn-default[disabled]:active,
-  .site-dashboard .btn-default[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-default, fieldset[disabled]
+  .site-dashboard .btn-default[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-default:hover, fieldset[disabled]
   .site-dashboard .btn-default:focus, fieldset[disabled]
-  .site-dashboard .btn-default.focus, fieldset[disabled]
-  .site-dashboard .btn-default:active, fieldset[disabled]
-  .site-dashboard .btn-default.active {
+  .site-dashboard .btn-default.focus {
     background-color: #fff;
     border-color: #ccc; }
   .studio-view .btn-default .badge,
@@ -10275,19 +10325,17 @@ address {
   color: #fff;
   background-color: #7e9dbb;
   border-color: #6d90b2; }
-  .studio-view .btn-primary:hover, .studio-view .btn-primary:focus, .studio-view .btn-primary.focus, .studio-view .btn-primary:active, .studio-view .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle,
-  .studio-dialog .btn-primary:hover,
+  .studio-view .btn-primary:focus, .studio-view .btn-primary.focus,
   .studio-dialog .btn-primary:focus,
   .studio-dialog .btn-primary.focus,
-  .studio-dialog .btn-primary:active,
-  .studio-dialog .btn-primary.active, .open >
-  .studio-dialog .btn-primary.dropdown-toggle,
-  .site-dashboard .btn-primary:hover,
   .site-dashboard .btn-primary:focus,
-  .site-dashboard .btn-primary.focus,
-  .site-dashboard .btn-primary:active,
-  .site-dashboard .btn-primary.active, .open >
-  .site-dashboard .btn-primary.dropdown-toggle {
+  .site-dashboard .btn-primary.focus {
+    color: #fff;
+    background-color: #5d84a9;
+    border-color: #375069; }
+  .studio-view .btn-primary:hover,
+  .studio-dialog .btn-primary:hover,
+  .site-dashboard .btn-primary:hover {
     color: #fff;
     background-color: #5d84a9;
     border-color: #4e7294; }
@@ -10298,44 +10346,58 @@ address {
   .site-dashboard .btn-primary:active,
   .site-dashboard .btn-primary.active, .open >
   .site-dashboard .btn-primary.dropdown-toggle {
+    color: #fff;
+    background-color: #5d84a9;
+    border-color: #4e7294; }
+    .studio-view .btn-primary:active:hover, .studio-view .btn-primary:active:focus, .studio-view .btn-primary:active.focus, .studio-view .btn-primary.active:hover, .studio-view .btn-primary.active:focus, .studio-view .btn-primary.active.focus, .open > .studio-view .btn-primary.dropdown-toggle:hover, .open > .studio-view .btn-primary.dropdown-toggle:focus, .open > .studio-view .btn-primary.dropdown-toggle.focus,
+    .studio-dialog .btn-primary:active:hover,
+    .studio-dialog .btn-primary:active:focus,
+    .studio-dialog .btn-primary:active.focus,
+    .studio-dialog .btn-primary.active:hover,
+    .studio-dialog .btn-primary.active:focus,
+    .studio-dialog .btn-primary.active.focus, .open >
+    .studio-dialog .btn-primary.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-primary.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-primary.dropdown-toggle.focus,
+    .site-dashboard .btn-primary:active:hover,
+    .site-dashboard .btn-primary:active:focus,
+    .site-dashboard .btn-primary:active.focus,
+    .site-dashboard .btn-primary.active:hover,
+    .site-dashboard .btn-primary.active:focus,
+    .site-dashboard .btn-primary.active.focus, .open >
+    .site-dashboard .btn-primary.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-primary.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-primary.dropdown-toggle.focus {
+      color: #fff;
+      background-color: #4e7294;
+      border-color: #375069; }
+  .studio-view .btn-primary:active, .studio-view .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle,
+  .studio-dialog .btn-primary:active,
+  .studio-dialog .btn-primary.active, .open >
+  .studio-dialog .btn-primary.dropdown-toggle,
+  .site-dashboard .btn-primary:active,
+  .site-dashboard .btn-primary.active, .open >
+  .site-dashboard .btn-primary.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-primary.disabled, .studio-view .btn-primary.disabled:hover, .studio-view .btn-primary.disabled:focus, .studio-view .btn-primary.disabled.focus, .studio-view .btn-primary.disabled:active, .studio-view .btn-primary.disabled.active, .studio-view .btn-primary[disabled], .studio-view .btn-primary[disabled]:hover, .studio-view .btn-primary[disabled]:focus, .studio-view .btn-primary[disabled].focus, .studio-view .btn-primary[disabled]:active, .studio-view .btn-primary[disabled].active, fieldset[disabled] .studio-view .btn-primary, fieldset[disabled] .studio-view .btn-primary:hover, fieldset[disabled] .studio-view .btn-primary:focus, fieldset[disabled] .studio-view .btn-primary.focus, fieldset[disabled] .studio-view .btn-primary:active, fieldset[disabled] .studio-view .btn-primary.active,
-  .studio-dialog .btn-primary.disabled,
+  .studio-view .btn-primary.disabled:hover, .studio-view .btn-primary.disabled:focus, .studio-view .btn-primary.disabled.focus, .studio-view .btn-primary[disabled]:hover, .studio-view .btn-primary[disabled]:focus, .studio-view .btn-primary[disabled].focus, fieldset[disabled] .studio-view .btn-primary:hover, fieldset[disabled] .studio-view .btn-primary:focus, fieldset[disabled] .studio-view .btn-primary.focus,
   .studio-dialog .btn-primary.disabled:hover,
   .studio-dialog .btn-primary.disabled:focus,
   .studio-dialog .btn-primary.disabled.focus,
-  .studio-dialog .btn-primary.disabled:active,
-  .studio-dialog .btn-primary.disabled.active,
-  .studio-dialog .btn-primary[disabled],
   .studio-dialog .btn-primary[disabled]:hover,
   .studio-dialog .btn-primary[disabled]:focus,
-  .studio-dialog .btn-primary[disabled].focus,
-  .studio-dialog .btn-primary[disabled]:active,
-  .studio-dialog .btn-primary[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-primary, fieldset[disabled]
+  .studio-dialog .btn-primary[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-primary:hover, fieldset[disabled]
   .studio-dialog .btn-primary:focus, fieldset[disabled]
-  .studio-dialog .btn-primary.focus, fieldset[disabled]
-  .studio-dialog .btn-primary:active, fieldset[disabled]
-  .studio-dialog .btn-primary.active,
-  .site-dashboard .btn-primary.disabled,
+  .studio-dialog .btn-primary.focus,
   .site-dashboard .btn-primary.disabled:hover,
   .site-dashboard .btn-primary.disabled:focus,
   .site-dashboard .btn-primary.disabled.focus,
-  .site-dashboard .btn-primary.disabled:active,
-  .site-dashboard .btn-primary.disabled.active,
-  .site-dashboard .btn-primary[disabled],
   .site-dashboard .btn-primary[disabled]:hover,
   .site-dashboard .btn-primary[disabled]:focus,
-  .site-dashboard .btn-primary[disabled].focus,
-  .site-dashboard .btn-primary[disabled]:active,
-  .site-dashboard .btn-primary[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-primary, fieldset[disabled]
+  .site-dashboard .btn-primary[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-primary:hover, fieldset[disabled]
   .site-dashboard .btn-primary:focus, fieldset[disabled]
-  .site-dashboard .btn-primary.focus, fieldset[disabled]
-  .site-dashboard .btn-primary:active, fieldset[disabled]
-  .site-dashboard .btn-primary.active {
+  .site-dashboard .btn-primary.focus {
     background-color: #7e9dbb;
     border-color: #6d90b2; }
   .studio-view .btn-primary .badge,
@@ -10349,19 +10411,17 @@ address {
   color: #fff;
   background-color: #5cb85c;
   border-color: #4cae4c; }
-  .studio-view .btn-success:hover, .studio-view .btn-success:focus, .studio-view .btn-success.focus, .studio-view .btn-success:active, .studio-view .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle,
-  .studio-dialog .btn-success:hover,
+  .studio-view .btn-success:focus, .studio-view .btn-success.focus,
   .studio-dialog .btn-success:focus,
   .studio-dialog .btn-success.focus,
-  .studio-dialog .btn-success:active,
-  .studio-dialog .btn-success.active, .open >
-  .studio-dialog .btn-success.dropdown-toggle,
-  .site-dashboard .btn-success:hover,
   .site-dashboard .btn-success:focus,
-  .site-dashboard .btn-success.focus,
-  .site-dashboard .btn-success:active,
-  .site-dashboard .btn-success.active, .open >
-  .site-dashboard .btn-success.dropdown-toggle {
+  .site-dashboard .btn-success.focus {
+    color: #fff;
+    background-color: #449d44;
+    border-color: #255625; }
+  .studio-view .btn-success:hover,
+  .studio-dialog .btn-success:hover,
+  .site-dashboard .btn-success:hover {
     color: #fff;
     background-color: #449d44;
     border-color: #398439; }
@@ -10372,44 +10432,58 @@ address {
   .site-dashboard .btn-success:active,
   .site-dashboard .btn-success.active, .open >
   .site-dashboard .btn-success.dropdown-toggle {
+    color: #fff;
+    background-color: #449d44;
+    border-color: #398439; }
+    .studio-view .btn-success:active:hover, .studio-view .btn-success:active:focus, .studio-view .btn-success:active.focus, .studio-view .btn-success.active:hover, .studio-view .btn-success.active:focus, .studio-view .btn-success.active.focus, .open > .studio-view .btn-success.dropdown-toggle:hover, .open > .studio-view .btn-success.dropdown-toggle:focus, .open > .studio-view .btn-success.dropdown-toggle.focus,
+    .studio-dialog .btn-success:active:hover,
+    .studio-dialog .btn-success:active:focus,
+    .studio-dialog .btn-success:active.focus,
+    .studio-dialog .btn-success.active:hover,
+    .studio-dialog .btn-success.active:focus,
+    .studio-dialog .btn-success.active.focus, .open >
+    .studio-dialog .btn-success.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-success.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-success.dropdown-toggle.focus,
+    .site-dashboard .btn-success:active:hover,
+    .site-dashboard .btn-success:active:focus,
+    .site-dashboard .btn-success:active.focus,
+    .site-dashboard .btn-success.active:hover,
+    .site-dashboard .btn-success.active:focus,
+    .site-dashboard .btn-success.active.focus, .open >
+    .site-dashboard .btn-success.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-success.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-success.dropdown-toggle.focus {
+      color: #fff;
+      background-color: #398439;
+      border-color: #255625; }
+  .studio-view .btn-success:active, .studio-view .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle,
+  .studio-dialog .btn-success:active,
+  .studio-dialog .btn-success.active, .open >
+  .studio-dialog .btn-success.dropdown-toggle,
+  .site-dashboard .btn-success:active,
+  .site-dashboard .btn-success.active, .open >
+  .site-dashboard .btn-success.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-success.disabled, .studio-view .btn-success.disabled:hover, .studio-view .btn-success.disabled:focus, .studio-view .btn-success.disabled.focus, .studio-view .btn-success.disabled:active, .studio-view .btn-success.disabled.active, .studio-view .btn-success[disabled], .studio-view .btn-success[disabled]:hover, .studio-view .btn-success[disabled]:focus, .studio-view .btn-success[disabled].focus, .studio-view .btn-success[disabled]:active, .studio-view .btn-success[disabled].active, fieldset[disabled] .studio-view .btn-success, fieldset[disabled] .studio-view .btn-success:hover, fieldset[disabled] .studio-view .btn-success:focus, fieldset[disabled] .studio-view .btn-success.focus, fieldset[disabled] .studio-view .btn-success:active, fieldset[disabled] .studio-view .btn-success.active,
-  .studio-dialog .btn-success.disabled,
+  .studio-view .btn-success.disabled:hover, .studio-view .btn-success.disabled:focus, .studio-view .btn-success.disabled.focus, .studio-view .btn-success[disabled]:hover, .studio-view .btn-success[disabled]:focus, .studio-view .btn-success[disabled].focus, fieldset[disabled] .studio-view .btn-success:hover, fieldset[disabled] .studio-view .btn-success:focus, fieldset[disabled] .studio-view .btn-success.focus,
   .studio-dialog .btn-success.disabled:hover,
   .studio-dialog .btn-success.disabled:focus,
   .studio-dialog .btn-success.disabled.focus,
-  .studio-dialog .btn-success.disabled:active,
-  .studio-dialog .btn-success.disabled.active,
-  .studio-dialog .btn-success[disabled],
   .studio-dialog .btn-success[disabled]:hover,
   .studio-dialog .btn-success[disabled]:focus,
-  .studio-dialog .btn-success[disabled].focus,
-  .studio-dialog .btn-success[disabled]:active,
-  .studio-dialog .btn-success[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-success, fieldset[disabled]
+  .studio-dialog .btn-success[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-success:hover, fieldset[disabled]
   .studio-dialog .btn-success:focus, fieldset[disabled]
-  .studio-dialog .btn-success.focus, fieldset[disabled]
-  .studio-dialog .btn-success:active, fieldset[disabled]
-  .studio-dialog .btn-success.active,
-  .site-dashboard .btn-success.disabled,
+  .studio-dialog .btn-success.focus,
   .site-dashboard .btn-success.disabled:hover,
   .site-dashboard .btn-success.disabled:focus,
   .site-dashboard .btn-success.disabled.focus,
-  .site-dashboard .btn-success.disabled:active,
-  .site-dashboard .btn-success.disabled.active,
-  .site-dashboard .btn-success[disabled],
   .site-dashboard .btn-success[disabled]:hover,
   .site-dashboard .btn-success[disabled]:focus,
-  .site-dashboard .btn-success[disabled].focus,
-  .site-dashboard .btn-success[disabled]:active,
-  .site-dashboard .btn-success[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-success, fieldset[disabled]
+  .site-dashboard .btn-success[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-success:hover, fieldset[disabled]
   .site-dashboard .btn-success:focus, fieldset[disabled]
-  .site-dashboard .btn-success.focus, fieldset[disabled]
-  .site-dashboard .btn-success:active, fieldset[disabled]
-  .site-dashboard .btn-success.active {
+  .site-dashboard .btn-success.focus {
     background-color: #5cb85c;
     border-color: #4cae4c; }
   .studio-view .btn-success .badge,
@@ -10423,19 +10497,17 @@ address {
   color: #fff;
   background-color: #5bc0de;
   border-color: #46b8da; }
-  .studio-view .btn-info:hover, .studio-view .btn-info:focus, .studio-view .btn-info.focus, .studio-view .btn-info:active, .studio-view .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle,
-  .studio-dialog .btn-info:hover,
+  .studio-view .btn-info:focus, .studio-view .btn-info.focus,
   .studio-dialog .btn-info:focus,
   .studio-dialog .btn-info.focus,
-  .studio-dialog .btn-info:active,
-  .studio-dialog .btn-info.active, .open >
-  .studio-dialog .btn-info.dropdown-toggle,
-  .site-dashboard .btn-info:hover,
   .site-dashboard .btn-info:focus,
-  .site-dashboard .btn-info.focus,
-  .site-dashboard .btn-info:active,
-  .site-dashboard .btn-info.active, .open >
-  .site-dashboard .btn-info.dropdown-toggle {
+  .site-dashboard .btn-info.focus {
+    color: #fff;
+    background-color: #31b0d5;
+    border-color: #1b6d85; }
+  .studio-view .btn-info:hover,
+  .studio-dialog .btn-info:hover,
+  .site-dashboard .btn-info:hover {
     color: #fff;
     background-color: #31b0d5;
     border-color: #269abc; }
@@ -10446,44 +10518,58 @@ address {
   .site-dashboard .btn-info:active,
   .site-dashboard .btn-info.active, .open >
   .site-dashboard .btn-info.dropdown-toggle {
+    color: #fff;
+    background-color: #31b0d5;
+    border-color: #269abc; }
+    .studio-view .btn-info:active:hover, .studio-view .btn-info:active:focus, .studio-view .btn-info:active.focus, .studio-view .btn-info.active:hover, .studio-view .btn-info.active:focus, .studio-view .btn-info.active.focus, .open > .studio-view .btn-info.dropdown-toggle:hover, .open > .studio-view .btn-info.dropdown-toggle:focus, .open > .studio-view .btn-info.dropdown-toggle.focus,
+    .studio-dialog .btn-info:active:hover,
+    .studio-dialog .btn-info:active:focus,
+    .studio-dialog .btn-info:active.focus,
+    .studio-dialog .btn-info.active:hover,
+    .studio-dialog .btn-info.active:focus,
+    .studio-dialog .btn-info.active.focus, .open >
+    .studio-dialog .btn-info.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-info.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-info.dropdown-toggle.focus,
+    .site-dashboard .btn-info:active:hover,
+    .site-dashboard .btn-info:active:focus,
+    .site-dashboard .btn-info:active.focus,
+    .site-dashboard .btn-info.active:hover,
+    .site-dashboard .btn-info.active:focus,
+    .site-dashboard .btn-info.active.focus, .open >
+    .site-dashboard .btn-info.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-info.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-info.dropdown-toggle.focus {
+      color: #fff;
+      background-color: #269abc;
+      border-color: #1b6d85; }
+  .studio-view .btn-info:active, .studio-view .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle,
+  .studio-dialog .btn-info:active,
+  .studio-dialog .btn-info.active, .open >
+  .studio-dialog .btn-info.dropdown-toggle,
+  .site-dashboard .btn-info:active,
+  .site-dashboard .btn-info.active, .open >
+  .site-dashboard .btn-info.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-info.disabled, .studio-view .btn-info.disabled:hover, .studio-view .btn-info.disabled:focus, .studio-view .btn-info.disabled.focus, .studio-view .btn-info.disabled:active, .studio-view .btn-info.disabled.active, .studio-view .btn-info[disabled], .studio-view .btn-info[disabled]:hover, .studio-view .btn-info[disabled]:focus, .studio-view .btn-info[disabled].focus, .studio-view .btn-info[disabled]:active, .studio-view .btn-info[disabled].active, fieldset[disabled] .studio-view .btn-info, fieldset[disabled] .studio-view .btn-info:hover, fieldset[disabled] .studio-view .btn-info:focus, fieldset[disabled] .studio-view .btn-info.focus, fieldset[disabled] .studio-view .btn-info:active, fieldset[disabled] .studio-view .btn-info.active,
-  .studio-dialog .btn-info.disabled,
+  .studio-view .btn-info.disabled:hover, .studio-view .btn-info.disabled:focus, .studio-view .btn-info.disabled.focus, .studio-view .btn-info[disabled]:hover, .studio-view .btn-info[disabled]:focus, .studio-view .btn-info[disabled].focus, fieldset[disabled] .studio-view .btn-info:hover, fieldset[disabled] .studio-view .btn-info:focus, fieldset[disabled] .studio-view .btn-info.focus,
   .studio-dialog .btn-info.disabled:hover,
   .studio-dialog .btn-info.disabled:focus,
   .studio-dialog .btn-info.disabled.focus,
-  .studio-dialog .btn-info.disabled:active,
-  .studio-dialog .btn-info.disabled.active,
-  .studio-dialog .btn-info[disabled],
   .studio-dialog .btn-info[disabled]:hover,
   .studio-dialog .btn-info[disabled]:focus,
-  .studio-dialog .btn-info[disabled].focus,
-  .studio-dialog .btn-info[disabled]:active,
-  .studio-dialog .btn-info[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-info, fieldset[disabled]
+  .studio-dialog .btn-info[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-info:hover, fieldset[disabled]
   .studio-dialog .btn-info:focus, fieldset[disabled]
-  .studio-dialog .btn-info.focus, fieldset[disabled]
-  .studio-dialog .btn-info:active, fieldset[disabled]
-  .studio-dialog .btn-info.active,
-  .site-dashboard .btn-info.disabled,
+  .studio-dialog .btn-info.focus,
   .site-dashboard .btn-info.disabled:hover,
   .site-dashboard .btn-info.disabled:focus,
   .site-dashboard .btn-info.disabled.focus,
-  .site-dashboard .btn-info.disabled:active,
-  .site-dashboard .btn-info.disabled.active,
-  .site-dashboard .btn-info[disabled],
   .site-dashboard .btn-info[disabled]:hover,
   .site-dashboard .btn-info[disabled]:focus,
-  .site-dashboard .btn-info[disabled].focus,
-  .site-dashboard .btn-info[disabled]:active,
-  .site-dashboard .btn-info[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-info, fieldset[disabled]
+  .site-dashboard .btn-info[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-info:hover, fieldset[disabled]
   .site-dashboard .btn-info:focus, fieldset[disabled]
-  .site-dashboard .btn-info.focus, fieldset[disabled]
-  .site-dashboard .btn-info:active, fieldset[disabled]
-  .site-dashboard .btn-info.active {
+  .site-dashboard .btn-info.focus {
     background-color: #5bc0de;
     border-color: #46b8da; }
   .studio-view .btn-info .badge,
@@ -10497,19 +10583,17 @@ address {
   color: #fff;
   background-color: #f0ad4e;
   border-color: #eea236; }
-  .studio-view .btn-warning:hover, .studio-view .btn-warning:focus, .studio-view .btn-warning.focus, .studio-view .btn-warning:active, .studio-view .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle,
-  .studio-dialog .btn-warning:hover,
+  .studio-view .btn-warning:focus, .studio-view .btn-warning.focus,
   .studio-dialog .btn-warning:focus,
   .studio-dialog .btn-warning.focus,
-  .studio-dialog .btn-warning:active,
-  .studio-dialog .btn-warning.active, .open >
-  .studio-dialog .btn-warning.dropdown-toggle,
-  .site-dashboard .btn-warning:hover,
   .site-dashboard .btn-warning:focus,
-  .site-dashboard .btn-warning.focus,
-  .site-dashboard .btn-warning:active,
-  .site-dashboard .btn-warning.active, .open >
-  .site-dashboard .btn-warning.dropdown-toggle {
+  .site-dashboard .btn-warning.focus {
+    color: #fff;
+    background-color: #ec971f;
+    border-color: #985f0d; }
+  .studio-view .btn-warning:hover,
+  .studio-dialog .btn-warning:hover,
+  .site-dashboard .btn-warning:hover {
     color: #fff;
     background-color: #ec971f;
     border-color: #d58512; }
@@ -10520,44 +10604,58 @@ address {
   .site-dashboard .btn-warning:active,
   .site-dashboard .btn-warning.active, .open >
   .site-dashboard .btn-warning.dropdown-toggle {
+    color: #fff;
+    background-color: #ec971f;
+    border-color: #d58512; }
+    .studio-view .btn-warning:active:hover, .studio-view .btn-warning:active:focus, .studio-view .btn-warning:active.focus, .studio-view .btn-warning.active:hover, .studio-view .btn-warning.active:focus, .studio-view .btn-warning.active.focus, .open > .studio-view .btn-warning.dropdown-toggle:hover, .open > .studio-view .btn-warning.dropdown-toggle:focus, .open > .studio-view .btn-warning.dropdown-toggle.focus,
+    .studio-dialog .btn-warning:active:hover,
+    .studio-dialog .btn-warning:active:focus,
+    .studio-dialog .btn-warning:active.focus,
+    .studio-dialog .btn-warning.active:hover,
+    .studio-dialog .btn-warning.active:focus,
+    .studio-dialog .btn-warning.active.focus, .open >
+    .studio-dialog .btn-warning.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-warning.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-warning.dropdown-toggle.focus,
+    .site-dashboard .btn-warning:active:hover,
+    .site-dashboard .btn-warning:active:focus,
+    .site-dashboard .btn-warning:active.focus,
+    .site-dashboard .btn-warning.active:hover,
+    .site-dashboard .btn-warning.active:focus,
+    .site-dashboard .btn-warning.active.focus, .open >
+    .site-dashboard .btn-warning.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-warning.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-warning.dropdown-toggle.focus {
+      color: #fff;
+      background-color: #d58512;
+      border-color: #985f0d; }
+  .studio-view .btn-warning:active, .studio-view .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle,
+  .studio-dialog .btn-warning:active,
+  .studio-dialog .btn-warning.active, .open >
+  .studio-dialog .btn-warning.dropdown-toggle,
+  .site-dashboard .btn-warning:active,
+  .site-dashboard .btn-warning.active, .open >
+  .site-dashboard .btn-warning.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-warning.disabled, .studio-view .btn-warning.disabled:hover, .studio-view .btn-warning.disabled:focus, .studio-view .btn-warning.disabled.focus, .studio-view .btn-warning.disabled:active, .studio-view .btn-warning.disabled.active, .studio-view .btn-warning[disabled], .studio-view .btn-warning[disabled]:hover, .studio-view .btn-warning[disabled]:focus, .studio-view .btn-warning[disabled].focus, .studio-view .btn-warning[disabled]:active, .studio-view .btn-warning[disabled].active, fieldset[disabled] .studio-view .btn-warning, fieldset[disabled] .studio-view .btn-warning:hover, fieldset[disabled] .studio-view .btn-warning:focus, fieldset[disabled] .studio-view .btn-warning.focus, fieldset[disabled] .studio-view .btn-warning:active, fieldset[disabled] .studio-view .btn-warning.active,
-  .studio-dialog .btn-warning.disabled,
+  .studio-view .btn-warning.disabled:hover, .studio-view .btn-warning.disabled:focus, .studio-view .btn-warning.disabled.focus, .studio-view .btn-warning[disabled]:hover, .studio-view .btn-warning[disabled]:focus, .studio-view .btn-warning[disabled].focus, fieldset[disabled] .studio-view .btn-warning:hover, fieldset[disabled] .studio-view .btn-warning:focus, fieldset[disabled] .studio-view .btn-warning.focus,
   .studio-dialog .btn-warning.disabled:hover,
   .studio-dialog .btn-warning.disabled:focus,
   .studio-dialog .btn-warning.disabled.focus,
-  .studio-dialog .btn-warning.disabled:active,
-  .studio-dialog .btn-warning.disabled.active,
-  .studio-dialog .btn-warning[disabled],
   .studio-dialog .btn-warning[disabled]:hover,
   .studio-dialog .btn-warning[disabled]:focus,
-  .studio-dialog .btn-warning[disabled].focus,
-  .studio-dialog .btn-warning[disabled]:active,
-  .studio-dialog .btn-warning[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-warning, fieldset[disabled]
+  .studio-dialog .btn-warning[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-warning:hover, fieldset[disabled]
   .studio-dialog .btn-warning:focus, fieldset[disabled]
-  .studio-dialog .btn-warning.focus, fieldset[disabled]
-  .studio-dialog .btn-warning:active, fieldset[disabled]
-  .studio-dialog .btn-warning.active,
-  .site-dashboard .btn-warning.disabled,
+  .studio-dialog .btn-warning.focus,
   .site-dashboard .btn-warning.disabled:hover,
   .site-dashboard .btn-warning.disabled:focus,
   .site-dashboard .btn-warning.disabled.focus,
-  .site-dashboard .btn-warning.disabled:active,
-  .site-dashboard .btn-warning.disabled.active,
-  .site-dashboard .btn-warning[disabled],
   .site-dashboard .btn-warning[disabled]:hover,
   .site-dashboard .btn-warning[disabled]:focus,
-  .site-dashboard .btn-warning[disabled].focus,
-  .site-dashboard .btn-warning[disabled]:active,
-  .site-dashboard .btn-warning[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-warning, fieldset[disabled]
+  .site-dashboard .btn-warning[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-warning:hover, fieldset[disabled]
   .site-dashboard .btn-warning:focus, fieldset[disabled]
-  .site-dashboard .btn-warning.focus, fieldset[disabled]
-  .site-dashboard .btn-warning:active, fieldset[disabled]
-  .site-dashboard .btn-warning.active {
+  .site-dashboard .btn-warning.focus {
     background-color: #f0ad4e;
     border-color: #eea236; }
   .studio-view .btn-warning .badge,
@@ -10571,19 +10669,17 @@ address {
   color: #fff;
   background-color: #ED1C24;
   border-color: #de1219; }
-  .studio-view .btn-danger:hover, .studio-view .btn-danger:focus, .studio-view .btn-danger.focus, .studio-view .btn-danger:active, .studio-view .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle,
-  .studio-dialog .btn-danger:hover,
+  .studio-view .btn-danger:focus, .studio-view .btn-danger.focus,
   .studio-dialog .btn-danger:focus,
   .studio-dialog .btn-danger.focus,
-  .studio-dialog .btn-danger:active,
-  .studio-dialog .btn-danger.active, .open >
-  .studio-dialog .btn-danger.dropdown-toggle,
-  .site-dashboard .btn-danger:hover,
   .site-dashboard .btn-danger:focus,
-  .site-dashboard .btn-danger.focus,
-  .site-dashboard .btn-danger:active,
-  .site-dashboard .btn-danger.active, .open >
-  .site-dashboard .btn-danger.dropdown-toggle {
+  .site-dashboard .btn-danger.focus {
+    color: #fff;
+    background-color: #c61017;
+    border-color: #68080c; }
+  .studio-view .btn-danger:hover,
+  .studio-dialog .btn-danger:hover,
+  .site-dashboard .btn-danger:hover {
     color: #fff;
     background-color: #c61017;
     border-color: #a50d13; }
@@ -10594,44 +10690,58 @@ address {
   .site-dashboard .btn-danger:active,
   .site-dashboard .btn-danger.active, .open >
   .site-dashboard .btn-danger.dropdown-toggle {
+    color: #fff;
+    background-color: #c61017;
+    border-color: #a50d13; }
+    .studio-view .btn-danger:active:hover, .studio-view .btn-danger:active:focus, .studio-view .btn-danger:active.focus, .studio-view .btn-danger.active:hover, .studio-view .btn-danger.active:focus, .studio-view .btn-danger.active.focus, .open > .studio-view .btn-danger.dropdown-toggle:hover, .open > .studio-view .btn-danger.dropdown-toggle:focus, .open > .studio-view .btn-danger.dropdown-toggle.focus,
+    .studio-dialog .btn-danger:active:hover,
+    .studio-dialog .btn-danger:active:focus,
+    .studio-dialog .btn-danger:active.focus,
+    .studio-dialog .btn-danger.active:hover,
+    .studio-dialog .btn-danger.active:focus,
+    .studio-dialog .btn-danger.active.focus, .open >
+    .studio-dialog .btn-danger.dropdown-toggle:hover, .open >
+    .studio-dialog .btn-danger.dropdown-toggle:focus, .open >
+    .studio-dialog .btn-danger.dropdown-toggle.focus,
+    .site-dashboard .btn-danger:active:hover,
+    .site-dashboard .btn-danger:active:focus,
+    .site-dashboard .btn-danger:active.focus,
+    .site-dashboard .btn-danger.active:hover,
+    .site-dashboard .btn-danger.active:focus,
+    .site-dashboard .btn-danger.active.focus, .open >
+    .site-dashboard .btn-danger.dropdown-toggle:hover, .open >
+    .site-dashboard .btn-danger.dropdown-toggle:focus, .open >
+    .site-dashboard .btn-danger.dropdown-toggle.focus {
+      color: #fff;
+      background-color: #a50d13;
+      border-color: #68080c; }
+  .studio-view .btn-danger:active, .studio-view .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle,
+  .studio-dialog .btn-danger:active,
+  .studio-dialog .btn-danger.active, .open >
+  .studio-dialog .btn-danger.dropdown-toggle,
+  .site-dashboard .btn-danger:active,
+  .site-dashboard .btn-danger.active, .open >
+  .site-dashboard .btn-danger.dropdown-toggle {
     background-image: none; }
-  .studio-view .btn-danger.disabled, .studio-view .btn-danger.disabled:hover, .studio-view .btn-danger.disabled:focus, .studio-view .btn-danger.disabled.focus, .studio-view .btn-danger.disabled:active, .studio-view .btn-danger.disabled.active, .studio-view .btn-danger[disabled], .studio-view .btn-danger[disabled]:hover, .studio-view .btn-danger[disabled]:focus, .studio-view .btn-danger[disabled].focus, .studio-view .btn-danger[disabled]:active, .studio-view .btn-danger[disabled].active, fieldset[disabled] .studio-view .btn-danger, fieldset[disabled] .studio-view .btn-danger:hover, fieldset[disabled] .studio-view .btn-danger:focus, fieldset[disabled] .studio-view .btn-danger.focus, fieldset[disabled] .studio-view .btn-danger:active, fieldset[disabled] .studio-view .btn-danger.active,
-  .studio-dialog .btn-danger.disabled,
+  .studio-view .btn-danger.disabled:hover, .studio-view .btn-danger.disabled:focus, .studio-view .btn-danger.disabled.focus, .studio-view .btn-danger[disabled]:hover, .studio-view .btn-danger[disabled]:focus, .studio-view .btn-danger[disabled].focus, fieldset[disabled] .studio-view .btn-danger:hover, fieldset[disabled] .studio-view .btn-danger:focus, fieldset[disabled] .studio-view .btn-danger.focus,
   .studio-dialog .btn-danger.disabled:hover,
   .studio-dialog .btn-danger.disabled:focus,
   .studio-dialog .btn-danger.disabled.focus,
-  .studio-dialog .btn-danger.disabled:active,
-  .studio-dialog .btn-danger.disabled.active,
-  .studio-dialog .btn-danger[disabled],
   .studio-dialog .btn-danger[disabled]:hover,
   .studio-dialog .btn-danger[disabled]:focus,
-  .studio-dialog .btn-danger[disabled].focus,
-  .studio-dialog .btn-danger[disabled]:active,
-  .studio-dialog .btn-danger[disabled].active, fieldset[disabled]
-  .studio-dialog .btn-danger, fieldset[disabled]
+  .studio-dialog .btn-danger[disabled].focus, fieldset[disabled]
   .studio-dialog .btn-danger:hover, fieldset[disabled]
   .studio-dialog .btn-danger:focus, fieldset[disabled]
-  .studio-dialog .btn-danger.focus, fieldset[disabled]
-  .studio-dialog .btn-danger:active, fieldset[disabled]
-  .studio-dialog .btn-danger.active,
-  .site-dashboard .btn-danger.disabled,
+  .studio-dialog .btn-danger.focus,
   .site-dashboard .btn-danger.disabled:hover,
   .site-dashboard .btn-danger.disabled:focus,
   .site-dashboard .btn-danger.disabled.focus,
-  .site-dashboard .btn-danger.disabled:active,
-  .site-dashboard .btn-danger.disabled.active,
-  .site-dashboard .btn-danger[disabled],
   .site-dashboard .btn-danger[disabled]:hover,
   .site-dashboard .btn-danger[disabled]:focus,
-  .site-dashboard .btn-danger[disabled].focus,
-  .site-dashboard .btn-danger[disabled]:active,
-  .site-dashboard .btn-danger[disabled].active, fieldset[disabled]
-  .site-dashboard .btn-danger, fieldset[disabled]
+  .site-dashboard .btn-danger[disabled].focus, fieldset[disabled]
   .site-dashboard .btn-danger:hover, fieldset[disabled]
   .site-dashboard .btn-danger:focus, fieldset[disabled]
-  .site-dashboard .btn-danger.focus, fieldset[disabled]
-  .site-dashboard .btn-danger:active, fieldset[disabled]
-  .site-dashboard .btn-danger.active {
+  .site-dashboard .btn-danger.focus {
     background-color: #ED1C24;
     border-color: #de1219; }
   .studio-view .btn-danger .badge,
@@ -10800,6 +10910,7 @@ address {
   margin-left: 2px;
   vertical-align: middle;
   border-top: 4px dashed;
+  border-top: 4px solid \9;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent; }
 .studio-view .dropup,
@@ -10942,7 +11053,8 @@ address {
 .site-dashboard .dropup .caret,
 .site-dashboard .navbar-fixed-bottom .dropdown .caret {
   border-top: 0;
-  border-bottom: 4px solid;
+  border-bottom: 4px dashed;
+  border-bottom: 4px solid \9;
   content: ""; }
 .studio-view .dropup .dropdown-menu,
 .studio-view .navbar-fixed-bottom .dropdown .dropdown-menu,
@@ -11031,10 +11143,13 @@ address {
   .studio-dialog .btn-toolbar:after,
   .site-dashboard .btn-toolbar:after {
     clear: both; }
+  .studio-view .btn-toolbar .btn,
   .studio-view .btn-toolbar .btn-group,
   .studio-view .btn-toolbar .input-group,
+  .studio-dialog .btn-toolbar .btn,
   .studio-dialog .btn-toolbar .btn-group,
   .studio-dialog .btn-toolbar .input-group,
+  .site-dashboard .btn-toolbar .btn,
   .site-dashboard .btn-toolbar .btn-group,
   .site-dashboard .btn-toolbar .input-group {
     float: left; }
@@ -11186,14 +11301,16 @@ address {
 .studio-dialog .btn-group-vertical > .btn:first-child:not(:last-child),
 .site-dashboard .btn-group-vertical > .btn:first-child:not(:last-child) {
   border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0; }
 .studio-view .btn-group-vertical > .btn:last-child:not(:first-child),
 .studio-dialog .btn-group-vertical > .btn:last-child:not(:first-child),
 .site-dashboard .btn-group-vertical > .btn:last-child:not(:first-child) {
-  border-bottom-left-radius: 4px;
   border-top-right-radius: 0;
-  border-top-left-radius: 0; }
+  border-top-left-radius: 0;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px; }
 .studio-view .btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn,
 .studio-dialog .btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn,
 .site-dashboard .btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn {
@@ -11270,6 +11387,10 @@ address {
     float: left;
     width: 100%;
     margin-bottom: 0; }
+    .studio-view .input-group .form-control:focus,
+    .studio-dialog .input-group .form-control:focus,
+    .site-dashboard .input-group .form-control:focus {
+      z-index: 3; }
 .studio-view .input-group-addon,
 .studio-view .input-group-btn,
 .studio-view .input-group .form-control,
@@ -11443,6 +11564,7 @@ address {
   .studio-dialog .input-group-btn:last-child > .btn-group,
   .site-dashboard .input-group-btn:last-child > .btn,
   .site-dashboard .input-group-btn:last-child > .btn-group {
+    z-index: 2;
     margin-left: -1px; }
 .studio-view .nav,
 .studio-dialog .nav,
@@ -12511,6 +12633,7 @@ address {
   .site-dashboard .pagination > li > a:focus,
   .site-dashboard .pagination > li > span:hover,
   .site-dashboard .pagination > li > span:focus {
+    z-index: 2;
     color: #52779b;
     background-color: #eeeeee;
     border-color: #ddd; }
@@ -12530,7 +12653,7 @@ address {
   .site-dashboard .pagination > .active > span,
   .site-dashboard .pagination > .active > span:hover,
   .site-dashboard .pagination > .active > span:focus {
-    z-index: 2;
+    z-index: 3;
     color: #fff;
     background-color: #7e9dbb;
     border-color: #7e9dbb;
@@ -12564,7 +12687,8 @@ address {
 .site-dashboard .pagination-lg > li > a,
 .site-dashboard .pagination-lg > li > span {
   padding: 10px 16px;
-  font-size: 15px; }
+  font-size: 15px;
+  line-height: 1.33333; }
 .studio-view .pagination-lg > li:first-child > a,
 .studio-view .pagination-lg > li:first-child > span,
 .studio-dialog .pagination-lg > li:first-child > a,
@@ -12588,7 +12712,8 @@ address {
 .site-dashboard .pagination-sm > li > a,
 .site-dashboard .pagination-sm > li > span {
   padding: 5px 10px;
-  font-size: 11px; }
+  font-size: 11px;
+  line-height: 1.5; }
 .studio-view .pagination-sm > li:first-child > a,
 .studio-view .pagination-sm > li:first-child > span,
 .studio-dialog .pagination-sm > li:first-child > a,
@@ -12775,7 +12900,7 @@ address {
   font-weight: bold;
   color: #fff;
   line-height: 1;
-  vertical-align: baseline;
+  vertical-align: middle;
   white-space: nowrap;
   text-align: center;
   background-color: #777777;
@@ -12848,7 +12973,8 @@ address {
 .studio-view .jumbotron,
 .studio-dialog .jumbotron,
 .site-dashboard .jumbotron {
-  padding: 30px 15px;
+  padding-top: 30px;
+  padding-bottom: 30px;
   margin-bottom: 30px;
   color: inherit;
   background-color: #eeeeee; }
@@ -12874,7 +13000,9 @@ address {
   .studio-dialog .jumbotron, .container
   .site-dashboard .jumbotron, .container-fluid
   .site-dashboard .jumbotron {
-    border-radius: 6px; }
+    border-radius: 6px;
+    padding-left: 15px;
+    padding-right: 15px; }
   .studio-view .jumbotron .container,
   .studio-dialog .jumbotron .container,
   .site-dashboard .jumbotron .container {
@@ -12883,7 +13011,8 @@ address {
     .studio-view .jumbotron,
     .studio-dialog .jumbotron,
     .site-dashboard .jumbotron {
-      padding: 48px 0; }
+      padding-top: 48px;
+      padding-bottom: 48px; }
       .container .studio-view .jumbotron, .container-fluid .studio-view .jumbotron, .container
       .studio-dialog .jumbotron, .container-fluid
       .studio-dialog .jumbotron, .container
@@ -13156,6 +13285,10 @@ address {
 .studio-dialog .media-object,
 .site-dashboard .media-object {
   display: block; }
+  .studio-view .media-object.img-thumbnail,
+  .studio-dialog .media-object.img-thumbnail,
+  .site-dashboard .media-object.img-thumbnail {
+    max-width: none; }
 .studio-view .media-right,
 .studio-view .media > .pull-right,
 .studio-dialog .media-right,
@@ -13225,21 +13358,38 @@ address {
     border-bottom-right-radius: 4px;
     border-bottom-left-radius: 4px; }
 .studio-view a.list-group-item,
+.studio-view button.list-group-item,
 .studio-dialog a.list-group-item,
-.site-dashboard a.list-group-item {
+.studio-dialog button.list-group-item,
+.site-dashboard a.list-group-item,
+.site-dashboard button.list-group-item {
   color: #555; }
   .studio-view a.list-group-item .list-group-item-heading,
+  .studio-view button.list-group-item .list-group-item-heading,
   .studio-dialog a.list-group-item .list-group-item-heading,
-  .site-dashboard a.list-group-item .list-group-item-heading {
+  .studio-dialog button.list-group-item .list-group-item-heading,
+  .site-dashboard a.list-group-item .list-group-item-heading,
+  .site-dashboard button.list-group-item .list-group-item-heading {
     color: #333; }
   .studio-view a.list-group-item:hover, .studio-view a.list-group-item:focus,
+  .studio-view button.list-group-item:hover,
+  .studio-view button.list-group-item:focus,
   .studio-dialog a.list-group-item:hover,
   .studio-dialog a.list-group-item:focus,
+  .studio-dialog button.list-group-item:hover,
+  .studio-dialog button.list-group-item:focus,
   .site-dashboard a.list-group-item:hover,
-  .site-dashboard a.list-group-item:focus {
+  .site-dashboard a.list-group-item:focus,
+  .site-dashboard button.list-group-item:hover,
+  .site-dashboard button.list-group-item:focus {
     text-decoration: none;
     color: #555;
     background-color: #f5f5f5; }
+.studio-view button.list-group-item,
+.studio-dialog button.list-group-item,
+.site-dashboard button.list-group-item {
+  width: 100%;
+  text-align: left; }
 .studio-view .list-group-item.disabled, .studio-view .list-group-item.disabled:hover, .studio-view .list-group-item.disabled:focus,
 .studio-dialog .list-group-item.disabled,
 .studio-dialog .list-group-item.disabled:hover,
@@ -13317,27 +13467,48 @@ address {
   color: #3c763d;
   background-color: #dff0d8; }
 .studio-view a.list-group-item-success,
+.studio-view button.list-group-item-success,
 .studio-dialog a.list-group-item-success,
-.site-dashboard a.list-group-item-success {
+.studio-dialog button.list-group-item-success,
+.site-dashboard a.list-group-item-success,
+.site-dashboard button.list-group-item-success {
   color: #3c763d; }
   .studio-view a.list-group-item-success .list-group-item-heading,
+  .studio-view button.list-group-item-success .list-group-item-heading,
   .studio-dialog a.list-group-item-success .list-group-item-heading,
-  .site-dashboard a.list-group-item-success .list-group-item-heading {
+  .studio-dialog button.list-group-item-success .list-group-item-heading,
+  .site-dashboard a.list-group-item-success .list-group-item-heading,
+  .site-dashboard button.list-group-item-success .list-group-item-heading {
     color: inherit; }
   .studio-view a.list-group-item-success:hover, .studio-view a.list-group-item-success:focus,
+  .studio-view button.list-group-item-success:hover,
+  .studio-view button.list-group-item-success:focus,
   .studio-dialog a.list-group-item-success:hover,
   .studio-dialog a.list-group-item-success:focus,
+  .studio-dialog button.list-group-item-success:hover,
+  .studio-dialog button.list-group-item-success:focus,
   .site-dashboard a.list-group-item-success:hover,
-  .site-dashboard a.list-group-item-success:focus {
+  .site-dashboard a.list-group-item-success:focus,
+  .site-dashboard button.list-group-item-success:hover,
+  .site-dashboard button.list-group-item-success:focus {
     color: #3c763d;
     background-color: #d0e9c6; }
   .studio-view a.list-group-item-success.active, .studio-view a.list-group-item-success.active:hover, .studio-view a.list-group-item-success.active:focus,
+  .studio-view button.list-group-item-success.active,
+  .studio-view button.list-group-item-success.active:hover,
+  .studio-view button.list-group-item-success.active:focus,
   .studio-dialog a.list-group-item-success.active,
   .studio-dialog a.list-group-item-success.active:hover,
   .studio-dialog a.list-group-item-success.active:focus,
+  .studio-dialog button.list-group-item-success.active,
+  .studio-dialog button.list-group-item-success.active:hover,
+  .studio-dialog button.list-group-item-success.active:focus,
   .site-dashboard a.list-group-item-success.active,
   .site-dashboard a.list-group-item-success.active:hover,
-  .site-dashboard a.list-group-item-success.active:focus {
+  .site-dashboard a.list-group-item-success.active:focus,
+  .site-dashboard button.list-group-item-success.active,
+  .site-dashboard button.list-group-item-success.active:hover,
+  .site-dashboard button.list-group-item-success.active:focus {
     color: #fff;
     background-color: #3c763d;
     border-color: #3c763d; }
@@ -13347,27 +13518,48 @@ address {
   color: #31708f;
   background-color: #d9edf7; }
 .studio-view a.list-group-item-info,
+.studio-view button.list-group-item-info,
 .studio-dialog a.list-group-item-info,
-.site-dashboard a.list-group-item-info {
+.studio-dialog button.list-group-item-info,
+.site-dashboard a.list-group-item-info,
+.site-dashboard button.list-group-item-info {
   color: #31708f; }
   .studio-view a.list-group-item-info .list-group-item-heading,
+  .studio-view button.list-group-item-info .list-group-item-heading,
   .studio-dialog a.list-group-item-info .list-group-item-heading,
-  .site-dashboard a.list-group-item-info .list-group-item-heading {
+  .studio-dialog button.list-group-item-info .list-group-item-heading,
+  .site-dashboard a.list-group-item-info .list-group-item-heading,
+  .site-dashboard button.list-group-item-info .list-group-item-heading {
     color: inherit; }
   .studio-view a.list-group-item-info:hover, .studio-view a.list-group-item-info:focus,
+  .studio-view button.list-group-item-info:hover,
+  .studio-view button.list-group-item-info:focus,
   .studio-dialog a.list-group-item-info:hover,
   .studio-dialog a.list-group-item-info:focus,
+  .studio-dialog button.list-group-item-info:hover,
+  .studio-dialog button.list-group-item-info:focus,
   .site-dashboard a.list-group-item-info:hover,
-  .site-dashboard a.list-group-item-info:focus {
+  .site-dashboard a.list-group-item-info:focus,
+  .site-dashboard button.list-group-item-info:hover,
+  .site-dashboard button.list-group-item-info:focus {
     color: #31708f;
     background-color: #c4e3f3; }
   .studio-view a.list-group-item-info.active, .studio-view a.list-group-item-info.active:hover, .studio-view a.list-group-item-info.active:focus,
+  .studio-view button.list-group-item-info.active,
+  .studio-view button.list-group-item-info.active:hover,
+  .studio-view button.list-group-item-info.active:focus,
   .studio-dialog a.list-group-item-info.active,
   .studio-dialog a.list-group-item-info.active:hover,
   .studio-dialog a.list-group-item-info.active:focus,
+  .studio-dialog button.list-group-item-info.active,
+  .studio-dialog button.list-group-item-info.active:hover,
+  .studio-dialog button.list-group-item-info.active:focus,
   .site-dashboard a.list-group-item-info.active,
   .site-dashboard a.list-group-item-info.active:hover,
-  .site-dashboard a.list-group-item-info.active:focus {
+  .site-dashboard a.list-group-item-info.active:focus,
+  .site-dashboard button.list-group-item-info.active,
+  .site-dashboard button.list-group-item-info.active:hover,
+  .site-dashboard button.list-group-item-info.active:focus {
     color: #fff;
     background-color: #31708f;
     border-color: #31708f; }
@@ -13377,27 +13569,48 @@ address {
   color: #8a6d3b;
   background-color: #fcf8e3; }
 .studio-view a.list-group-item-warning,
+.studio-view button.list-group-item-warning,
 .studio-dialog a.list-group-item-warning,
-.site-dashboard a.list-group-item-warning {
+.studio-dialog button.list-group-item-warning,
+.site-dashboard a.list-group-item-warning,
+.site-dashboard button.list-group-item-warning {
   color: #8a6d3b; }
   .studio-view a.list-group-item-warning .list-group-item-heading,
+  .studio-view button.list-group-item-warning .list-group-item-heading,
   .studio-dialog a.list-group-item-warning .list-group-item-heading,
-  .site-dashboard a.list-group-item-warning .list-group-item-heading {
+  .studio-dialog button.list-group-item-warning .list-group-item-heading,
+  .site-dashboard a.list-group-item-warning .list-group-item-heading,
+  .site-dashboard button.list-group-item-warning .list-group-item-heading {
     color: inherit; }
   .studio-view a.list-group-item-warning:hover, .studio-view a.list-group-item-warning:focus,
+  .studio-view button.list-group-item-warning:hover,
+  .studio-view button.list-group-item-warning:focus,
   .studio-dialog a.list-group-item-warning:hover,
   .studio-dialog a.list-group-item-warning:focus,
+  .studio-dialog button.list-group-item-warning:hover,
+  .studio-dialog button.list-group-item-warning:focus,
   .site-dashboard a.list-group-item-warning:hover,
-  .site-dashboard a.list-group-item-warning:focus {
+  .site-dashboard a.list-group-item-warning:focus,
+  .site-dashboard button.list-group-item-warning:hover,
+  .site-dashboard button.list-group-item-warning:focus {
     color: #8a6d3b;
     background-color: #faf2cc; }
   .studio-view a.list-group-item-warning.active, .studio-view a.list-group-item-warning.active:hover, .studio-view a.list-group-item-warning.active:focus,
+  .studio-view button.list-group-item-warning.active,
+  .studio-view button.list-group-item-warning.active:hover,
+  .studio-view button.list-group-item-warning.active:focus,
   .studio-dialog a.list-group-item-warning.active,
   .studio-dialog a.list-group-item-warning.active:hover,
   .studio-dialog a.list-group-item-warning.active:focus,
+  .studio-dialog button.list-group-item-warning.active,
+  .studio-dialog button.list-group-item-warning.active:hover,
+  .studio-dialog button.list-group-item-warning.active:focus,
   .site-dashboard a.list-group-item-warning.active,
   .site-dashboard a.list-group-item-warning.active:hover,
-  .site-dashboard a.list-group-item-warning.active:focus {
+  .site-dashboard a.list-group-item-warning.active:focus,
+  .site-dashboard button.list-group-item-warning.active,
+  .site-dashboard button.list-group-item-warning.active:hover,
+  .site-dashboard button.list-group-item-warning.active:focus {
     color: #fff;
     background-color: #8a6d3b;
     border-color: #8a6d3b; }
@@ -13407,27 +13620,48 @@ address {
   color: #a94442;
   background-color: #f2dede; }
 .studio-view a.list-group-item-danger,
+.studio-view button.list-group-item-danger,
 .studio-dialog a.list-group-item-danger,
-.site-dashboard a.list-group-item-danger {
+.studio-dialog button.list-group-item-danger,
+.site-dashboard a.list-group-item-danger,
+.site-dashboard button.list-group-item-danger {
   color: #a94442; }
   .studio-view a.list-group-item-danger .list-group-item-heading,
+  .studio-view button.list-group-item-danger .list-group-item-heading,
   .studio-dialog a.list-group-item-danger .list-group-item-heading,
-  .site-dashboard a.list-group-item-danger .list-group-item-heading {
+  .studio-dialog button.list-group-item-danger .list-group-item-heading,
+  .site-dashboard a.list-group-item-danger .list-group-item-heading,
+  .site-dashboard button.list-group-item-danger .list-group-item-heading {
     color: inherit; }
   .studio-view a.list-group-item-danger:hover, .studio-view a.list-group-item-danger:focus,
+  .studio-view button.list-group-item-danger:hover,
+  .studio-view button.list-group-item-danger:focus,
   .studio-dialog a.list-group-item-danger:hover,
   .studio-dialog a.list-group-item-danger:focus,
+  .studio-dialog button.list-group-item-danger:hover,
+  .studio-dialog button.list-group-item-danger:focus,
   .site-dashboard a.list-group-item-danger:hover,
-  .site-dashboard a.list-group-item-danger:focus {
+  .site-dashboard a.list-group-item-danger:focus,
+  .site-dashboard button.list-group-item-danger:hover,
+  .site-dashboard button.list-group-item-danger:focus {
     color: #a94442;
     background-color: #ebcccc; }
   .studio-view a.list-group-item-danger.active, .studio-view a.list-group-item-danger.active:hover, .studio-view a.list-group-item-danger.active:focus,
+  .studio-view button.list-group-item-danger.active,
+  .studio-view button.list-group-item-danger.active:hover,
+  .studio-view button.list-group-item-danger.active:focus,
   .studio-dialog a.list-group-item-danger.active,
   .studio-dialog a.list-group-item-danger.active:hover,
   .studio-dialog a.list-group-item-danger.active:focus,
+  .studio-dialog button.list-group-item-danger.active,
+  .studio-dialog button.list-group-item-danger.active:hover,
+  .studio-dialog button.list-group-item-danger.active:focus,
   .site-dashboard a.list-group-item-danger.active,
   .site-dashboard a.list-group-item-danger.active:hover,
-  .site-dashboard a.list-group-item-danger.active:focus {
+  .site-dashboard a.list-group-item-danger.active:focus,
+  .site-dashboard button.list-group-item-danger.active,
+  .site-dashboard button.list-group-item-danger.active:hover,
+  .site-dashboard button.list-group-item-danger.active:focus {
     color: #fff;
     background-color: #a94442;
     border-color: #a94442; }
@@ -13540,6 +13774,11 @@ address {
     border-bottom: 0;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px; }
+.studio-view .panel > .panel-heading + .panel-collapse > .list-group .list-group-item:first-child,
+.studio-dialog .panel > .panel-heading + .panel-collapse > .list-group .list-group-item:first-child,
+.site-dashboard .panel > .panel-heading + .panel-collapse > .list-group .list-group-item:first-child {
+  border-top-right-radius: 0;
+  border-top-left-radius: 0; }
 .studio-view .panel-heading + .list-group .list-group-item:first-child,
 .studio-dialog .panel-heading + .list-group .list-group-item:first-child,
 .site-dashboard .panel-heading + .list-group .list-group-item:first-child {
@@ -14214,8 +14453,18 @@ address {
 .studio-dialog .modal-header,
 .site-dashboard .modal-header {
   padding: 15px;
-  border-bottom: 1px solid #e5e5e5;
-  min-height: 16.42857px; }
+  border-bottom: 1px solid #e5e5e5; }
+  .studio-view .modal-header:before, .studio-view .modal-header:after,
+  .studio-dialog .modal-header:before,
+  .studio-dialog .modal-header:after,
+  .site-dashboard .modal-header:before,
+  .site-dashboard .modal-header:after {
+    content: " ";
+    display: table; }
+  .studio-view .modal-header:after,
+  .studio-dialog .modal-header:after,
+  .site-dashboard .modal-header:after {
+    clear: both; }
 .studio-view .modal-header .close,
 .studio-dialog .modal-header .close,
 .site-dashboard .modal-header .close {
@@ -14295,9 +14544,21 @@ address {
   z-index: 1070;
   display: block;
   font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 11px;
+  font-style: normal;
   font-weight: normal;
-  line-height: 1.4;
+  letter-spacing: normal;
+  line-break: auto;
+  line-height: 1.42857;
+  text-align: left;
+  text-align: start;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  white-space: normal;
+  word-break: normal;
+  word-spacing: normal;
+  word-wrap: normal;
+  font-size: 11px;
   opacity: 0;
   filter: alpha(opacity=0); }
   .studio-view .tooltip.in,
@@ -14332,7 +14593,6 @@ address {
   padding: 3px 8px;
   color: #fff;
   text-align: center;
-  text-decoration: none;
   background-color: #000;
   border-radius: 4px; }
 .studio-view .tooltip-arrow,
@@ -14418,18 +14678,28 @@ address {
   max-width: 276px;
   padding: 1px;
   font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-style: normal;
   font-weight: normal;
+  letter-spacing: normal;
+  line-break: auto;
   line-height: 1.42857;
   text-align: left;
+  text-align: start;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  white-space: normal;
+  word-break: normal;
+  word-spacing: normal;
+  word-wrap: normal;
+  font-size: 12px;
   background-color: #fff;
   background-clip: padding-box;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  white-space: normal; }
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
   .studio-view .popover.top,
   .studio-dialog .popover.top,
   .site-dashboard .popover.top {
@@ -14586,9 +14856,9 @@ address {
         -webkit-backface-visibility: hidden;
         -moz-backface-visibility: hidden;
         backface-visibility: hidden;
-        -webkit-perspective: 1000;
-        -moz-perspective: 1000;
-        perspective: 1000; }
+        -webkit-perspective: 1000px;
+        -moz-perspective: 1000px;
+        perspective: 1000px; }
         .studio-view .carousel-inner > .item.next, .studio-view .carousel-inner > .item.active.right,
         .studio-dialog .carousel-inner > .item.next,
         .studio-dialog .carousel-inner > .item.active.right,
@@ -14674,7 +14944,8 @@ address {
   font-size: 20px;
   color: #fff;
   text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  background-color: transparent; }
   .studio-view .carousel-control.left,
   .studio-dialog .carousel-control.left,
   .site-dashboard .carousel-control.left {
@@ -14717,6 +14988,7 @@ address {
   .site-dashboard .carousel-control .glyphicon-chevron-right {
     position: absolute;
     top: 50%;
+    margin-top: -10px;
     z-index: 5;
     display: inline-block; }
   .studio-view .carousel-control .icon-prev,
@@ -14743,7 +15015,6 @@ address {
   .site-dashboard .carousel-control .icon-next {
     width: 20px;
     height: 20px;
-    margin-top: -10px;
     line-height: 1;
     font-family: serif; }
   .studio-view .carousel-control .icon-prev:before,
@@ -14818,7 +15089,7 @@ address {
   .site-dashboard .carousel-control .icon-next {
     width: 30px;
     height: 30px;
-    margin-top: -15px;
+    margin-top: -10px;
     font-size: 30px; }
   .studio-view .carousel-control .glyphicon-chevron-left,
   .studio-view .carousel-control .icon-prev,
@@ -14826,14 +15097,14 @@ address {
   .studio-dialog .carousel-control .icon-prev,
   .site-dashboard .carousel-control .glyphicon-chevron-left,
   .site-dashboard .carousel-control .icon-prev {
-    margin-left: -15px; }
+    margin-left: -10px; }
   .studio-view .carousel-control .glyphicon-chevron-right,
   .studio-view .carousel-control .icon-next,
   .studio-dialog .carousel-control .glyphicon-chevron-right,
   .studio-dialog .carousel-control .icon-next,
   .site-dashboard .carousel-control .glyphicon-chevron-right,
   .site-dashboard .carousel-control .icon-next {
-    margin-right: -15px; }
+    margin-right: -10px; }
   .studio-view .carousel-caption,
   .studio-dialog .carousel-caption,
   .site-dashboard .carousel-caption {
@@ -14898,10 +15169,7 @@ address {
 .site-dashboard .affix {
   position: fixed; }
 @-ms-viewport {
-  .studio-view,
-  .studio-dialog,
-  .site-dashboard {
-    width: device-width; } }
+  width: device-width; }
 .studio-view .visible-xs,
 .studio-dialog .visible-xs,
 .site-dashboard .visible-xs {
@@ -14963,7 +15231,7 @@ address {
   .studio-view table.visible-xs,
   .studio-dialog table.visible-xs,
   .site-dashboard table.visible-xs {
-    display: table; }
+    display: table !important; }
   .studio-view tr.visible-xs,
   .studio-dialog tr.visible-xs,
   .site-dashboard tr.visible-xs {
@@ -14998,7 +15266,7 @@ address {
   .studio-view table.visible-sm,
   .studio-dialog table.visible-sm,
   .site-dashboard table.visible-sm {
-    display: table; }
+    display: table !important; }
   .studio-view tr.visible-sm,
   .studio-dialog tr.visible-sm,
   .site-dashboard tr.visible-sm {
@@ -15033,7 +15301,7 @@ address {
   .studio-view table.visible-md,
   .studio-dialog table.visible-md,
   .site-dashboard table.visible-md {
-    display: table; }
+    display: table !important; }
   .studio-view tr.visible-md,
   .studio-dialog tr.visible-md,
   .site-dashboard tr.visible-md {
@@ -15068,7 +15336,7 @@ address {
   .studio-view table.visible-lg,
   .studio-dialog table.visible-lg,
   .site-dashboard table.visible-lg {
-    display: table; }
+    display: table !important; }
   .studio-view tr.visible-lg,
   .studio-dialog tr.visible-lg,
   .site-dashboard tr.visible-lg {
@@ -15127,7 +15395,7 @@ address {
   .studio-view table.visible-print,
   .studio-dialog table.visible-print,
   .site-dashboard table.visible-print {
-    display: table; }
+    display: table !important; }
   .studio-view tr.visible-print,
   .studio-dialog tr.visible-print,
   .site-dashboard tr.visible-print {
