@@ -404,7 +404,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
             //destination paths
             String dstFullPath = dstOrgFullPath;
-            if(dstFullPath.endsWith(DmConstants.XML_PATTERN)){
+            if(dstFullPath.endsWith("/" + DmConstants.INDEX_FILE)){
                 dstFullPath = ContentUtils.getParentUrl(dstFullPath);
             }
             if (dstFullPath == null) {
@@ -427,19 +427,24 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                     contentService.createFolder(site, dstNodeParentPath, dstNodeName);
                     contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
                 } else {
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
                 }
             } else {
-                if (dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                if (dstPath.endsWith("/" + DmConstants.INDEX_FILE)) {
+                    dstPath = dstPath.replace("/" + DmConstants.INDEX_FILE, "");
+                    dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
+                    dstNodeName = ContentUtils.getPageName(dstPath);
                     if (!contentService.contentExists(site, dstPath)) {
                         contentService.createFolder(site, dstNodeParentPath, dstNodeName);
                     }
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath, DmConstants.INDEX_FILE);
                 } else {
-                    if (!contentService.contentExists(site, dstPath)) {
-                        contentService.createFolder(site, ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+                    dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
+                    dstNodeName = ContentUtils.getPageName(dstPath);
+                    if (!contentService.contentExists(site, dstNodeParentPath)) {
+                        contentService.createFolder(site, ContentUtils.getParentUrl(dstNodeParentPath), ContentUtils.getPageName(dstNodeParentPath));
                     }
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
+                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
                 }
             }
 
@@ -604,7 +609,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
         } else {
             Map<String,String> extraInfo = new HashMap<String,String>();
-            String relativePath = node.getUri();
+            String relativePath = contentService.getRelativeSitePath(site, node.getUri());
             addItemPropertyToChildren(site, relativePath, parentNewPath, parentOldPath, addNodeProperty, user,
                     fileContent);
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, getIndexFilePath(relativePath)));
@@ -613,12 +618,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     protected void addItemPropertyToChildren(String site, String relativePath, String renamedPath, String oldPath, boolean addNodeProperty, String user, boolean fileContent){
-        /*
-        DmContentService dmContentService = getService(DmContentService.class);
-        DmPathTO path = new DmPathTO(fullPath);
-        String childUri = path.getRelativePath();*/
-
-
 
         String oldUri = (fileContent) ? oldPath : relativePath.replace(ContentUtils.getParentUrl(renamedPath), ContentUtils.getParentUrl(oldPath));
         objectStateService.updateObjectPath(site, oldUri, relativePath);

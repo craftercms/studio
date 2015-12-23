@@ -34,6 +34,7 @@ public interface CstudioCacheManager {
      */
 	public void put(Scope scope, String key, Serializable item);
 
+
     public void put(Scope scope, String key, String site, Serializable item);
 	
 	/**

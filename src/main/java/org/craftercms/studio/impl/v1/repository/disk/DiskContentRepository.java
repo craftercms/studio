@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.repository.disk;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import java.io.*;
@@ -157,14 +158,25 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
+        return moveContent(fromPath, toPath, null);
+    }
+
+    @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
         
         boolean success = true;
 
         try {
             File source = constructRepoPath(fromPath).toFile();
-            File dest = constructRepoPath(toPath).toFile();
-            if (!dest.exists()) {
-                dest.mkdirs();
+            File destDir = constructRepoPath(toPath).toFile();
+
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+
+            File dest = destDir;
+            if (StringUtils.isNotEmpty(newName)) {
+                dest = new File(destDir, newName);
             }
             if (source.isDirectory()) {
                 File[] dirList = source.listFiles();
@@ -176,8 +188,13 @@ public class DiskContentRepository extends AbstractContentRepository implements 
                     }
                 }
                 source.delete();
+            } else {
+                if (dest.isDirectory()) {
+                    FileUtils.moveFileToDirectory(source, dest, true);
+                } else {
+                    source.renameTo(dest);
+                }
             }
-            FileUtils.moveFileToDirectory(source, dest, true);
         }
         catch(Exception err) {
             // log this error
