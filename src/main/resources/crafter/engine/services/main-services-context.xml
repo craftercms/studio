@@ -208,15 +208,13 @@
     <!--									-->
     <!-- ////////////////////////////////// -->
 
-    <bean id="crafter.siteContextResolverBase"
-          class="org.craftercms.engine.service.context.AbstractSiteContextResolver" abstract="true">
-        <property name="createContextsOnStartup" value="${crafter.engine.site.context.createOnStartup}"/>
+    <bean id="crafter.siteContextResolver" class="org.craftercms.engine.service.context.SiteContextResolverImpl">
+        <property name="siteResolver" ref="crafter.siteResolver"/>
         <property name="siteContextManager" ref="crafter.siteContextManager"/>
         <property name="fallbackSiteName" value="default"/>
     </bean>
 
-    <bean id="crafter.siteContextResolver" class="org.craftercms.engine.service.context.DefaultSiteContextResolver"
-          parent="crafter.siteContextResolverBase">
+    <bean id="crafter.siteResolver" class="org.craftercms.engine.service.context.DefaultSiteResolver">
         <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
     </bean>
 
@@ -225,12 +223,19 @@
         <property name="contextFactory" ref="crafter.siteContextFactory"/>
     </bean>
 
+    <bean id="crafter.siteContextsBootstrap" class="org.craftercms.engine.service.context.SiteContextsBootstrap">
+        <property name="createContextsOnStartup" value="${crafter.engine.site.context.createOnStartup}"/>
+        <property name="siteContextManager" ref="crafter.siteContextManager"/>
+        <property name="siteListResolver" ref="crafter.siteResolver"/>
+    </bean>
+
     <bean id="crafter.siteContextFactory" class="org.craftercms.engine.service.context.SiteContextFactory">
         <property name="maxAllowedItemsInCache" value="${crafter.engine.site.default.cache.maxAllowedItems}"/>
         <property name="rootFolderPath" value="${crafter.engine.site.default.rootFolder.path}"/>
         <property name="staticAssetsPath" value="${crafter.engine.site.default.staticAssets.path}"/>
         <property name="templatesPath" value="${crafter.engine.site.default.templates.path}"/>
         <property name="freeMarkerConfigFactory" ref="crafter.freeMarkerConfigFactory"/>
+        <property name="initScriptPath" value="${crafter.engine.site.default.init.script.path}"/>
         <property name="restScriptsPath" value="${crafter.engine.site.default.rest.scripts.path}"/>
         <property name="controllerScriptsPath" value="${crafter.engine.site.default.controller.scripts.path}"/>
         <property name="configPaths" value="${crafter.engine.site.default.config.paths}"/>
@@ -249,6 +254,7 @@
         <property name="staticAssetsPath" value="/static-assets"/>
         <property name="templatesPath" value="/"/>
         <property name="freeMarkerConfigFactory" ref="crafter.freeMarkerConfigFactory"/>
+        <property name="initScriptPath" value="/scripts/init.groovy"/>
         <property name="restScriptsPath" value="/scripts/rest"/>
         <property name="controllerScriptsPath" value="/scripts/controllers"/>
         <property name="configPaths"
