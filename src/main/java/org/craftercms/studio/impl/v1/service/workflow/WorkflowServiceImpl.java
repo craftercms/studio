@@ -1207,7 +1207,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             /**
              * Get dependent pages
              */
-            DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, item.getString(JSON_KEY_URI), false, true);
+            DmDependencyTO dmDependencyTo = dmDependencyService.getDependenciesNoCalc(site, item.getString(JSON_KEY_URI), false, true);
             List<DmDependencyTO> dependentPages = new ArrayList<>();
             if (dmDependencyTo != null) {
                 dependentPages = dmDependencyTo.getPages();
@@ -1248,7 +1248,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
 	protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
-		DmDependencyTO submittedItem = dmDependencyService.getDependencies(site, itemPath, false, true);
+		DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true);
 		// TODO: check scheduled date to make sure it is not null when isNow =
 		// true and also it is not past
 		Date scheduledDate = null;
@@ -1303,7 +1303,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
     protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
-        DmDependencyTO submittedItem = dmDependencyService.getDependencies(site, itemPath, false, true);
+        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
         Date scheduledDate = null;
@@ -1681,7 +1681,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             Set<String> dependenciesPaths = deploymentDependencyRule.applyRule(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
-                childAndReferences.add(dmDependencyService.getDependencies(site, depPath, false, true));
+                childAndReferences.add(dmDependencyService.getDependenciesNoCalc(site, depPath, false, true));
             }
         }
         return childAndReferences;

@@ -127,6 +127,12 @@ public class MappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+        ContentRepository repo = lookupRepo(repositoryType);
+        return repo.moveContent(fromPath, toPath, newName);
+    }
+
+    @Override
     public RepositoryItem[] getContentChildren(String path) {
        ContentRepository repo = lookupRepo(repositoryType);
         return repo.getContentChildren(path);

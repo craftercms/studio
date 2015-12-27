@@ -31,8 +31,8 @@ import java.io.InputStream;
 public abstract class AbstractContentRepository implements ContentRepository {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractContentRepository.class);
-	
-    /** 
+
+    /**
      * return a specific version of the content
      * @param path path of the content
      * @param version version to return
