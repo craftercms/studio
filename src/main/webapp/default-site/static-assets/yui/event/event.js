@@ -1905,7 +1905,7 @@ return (this.webkit && this.webkit < 419 && ("click"==sType || "dblclick"==sType
                 // Remove listeners to handle IE memory leaks
                 //if (YAHOO.env.ua.ie && listeners && listeners.length > 0) {
                 
-                // 2.5.1-SNAPSHOT listeners are removed for all browsers again.  FireFox preserves
+                // 2.5.1-RC1 listeners are removed for all browsers again.  FireFox preserves
                 // at least some listeners between page refreshes, potentially causing
                 // errors during page load (mouseover listeners firing before they
                 // should if the user moves the mouse at the correct moment).

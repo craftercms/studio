@@ -18,7 +18,7 @@ Dom Release Notes
 *** version 2.5.1 ***
 * getStyle fix for getting computedStyle across documents
 
-*** version 2.5.1-SNAPSHOT ***
+*** version 2.5.1-RC1 ***
 * get() now correctly handles textNodes
 
 *** version 2.4.0 ***

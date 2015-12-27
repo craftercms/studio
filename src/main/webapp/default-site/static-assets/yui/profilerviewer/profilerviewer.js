@@ -1036,10 +1036,10 @@ version: 2.9.0
 		 * not supported; pass this value in at instantiation.
 		 * @attribute swfUrl
 		 * @type string
-		 * @default "http://yui.yahooapis.com/2.5.1-SNAPSHOT/build/charts/assets/charts.swf"
+		 * @default "http://yui.yahooapis.com/2.5.1-RC1/build/charts/assets/charts.swf"
 		 */
 		this.setAttributeConfig('swfUrl', {
-			value: attr.swfUrl || "http://yui.yahooapis.com/2.5.1-SNAPSHOT/build/charts/assets/charts.swf"
+			value: attr.swfUrl || "http://yui.yahooapis.com/2.5.1-RC1/build/charts/assets/charts.swf"
 		});
 
         /**

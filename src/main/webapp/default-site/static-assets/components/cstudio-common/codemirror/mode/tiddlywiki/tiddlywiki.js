@@ -7,7 +7,7 @@
 |''Source''|[[GitHub|https://github.com/pmario/CodeMirror2/blob/tw-syntax/mode/tiddlywiki]]|
 |''Documentation''|http://codemirror.tiddlyspace.com/|
 |''License''|[[MIT License|http://www.opensource.org/licenses/mit-license.php]]|
-|''CoreVersion''|2.5.1-SNAPSHOT|
+|''CoreVersion''|2.5.1-RC1|
 |''Requires''|codemirror.js|
 |''Keywords''|syntax highlighting color code mirror codemirror|
 ! Info
