@@ -146,6 +146,7 @@ CStudioAuthoring.Messages.registerBundle("previewTools", "en", {
     priceHightoLow: "Price High to Low",
     priceLowtoHigh: "Price Low to High",
     editTemplate: "Edit Template",
+    editController: "Edit Controller",
     jumpToRegion: "Jump to Region",
     dimensionsPx: "Dimensions (px)",
     presets: "Presets",

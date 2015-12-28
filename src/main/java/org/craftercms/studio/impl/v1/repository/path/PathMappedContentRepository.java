@@ -164,6 +164,19 @@ public class PathMappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+        ContentRepository fromRepo = lookupRepo(fromPath);
+        ContentRepository toRepo = lookupRepo(toPath);
+
+        if(fromRepo != toRepo) {
+            logger.error("From repository for path '{0}' and To repository for path '{1}' do not match", fromPath, toPath);
+            throw new RuntimeException("cross repo move operation not supported");
+        }
+
+        return fromRepo.moveContent(fromPath, toPath, newName);
+    }
+
+    @Override
     public RepositoryItem[] getContentChildren(String path) {
        ContentRepository repo = lookupRepo(path);
         return repo.getContentChildren(path);

@@ -144,6 +144,12 @@ public class CachedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+        // nothing to cache
+        return wrappedRepo.moveContent(fromPath, toPath, newName);
+    }
+
+    @Override
     public RepositoryItem[] getContentChildren(String path) {
         RepositoryItem[] value = null;
 
