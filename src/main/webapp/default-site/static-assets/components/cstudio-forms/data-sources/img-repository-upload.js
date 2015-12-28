@@ -26,14 +26,14 @@ YAHOO.extend(CStudioForms.Datasources.ImgRepoUpload, CStudioForms.CStudioFormDat
 	insertImageAction: function(insertCb) {
 		var _self = this;
 
-		CStudioAuthoring.Operations.openBrowse("", _self.repoPath, "1", "select", true, { 
+		CStudioAuthoring.Operations.openBrowse("", _self.processPathsForMacros(_self.repoPath), "1", "select", true, { 
 			success: function(searchId, selectedTOs) {
 				var imageData = {};
 				var path = selectedTOs[0].uri;
 				var url = this.context.createPreviewUrl(path);
 				imageData.previewUrl = url;
 				imageData.relativeUrl = path;
-				imageData.fileExtension = path.substring(path.indexOf(".")+1);
+				imageData.fileExtension = path.substring(path.lastIndexOf(".")+1);
 
 				insertCb.success(imageData);		
 			}, 
