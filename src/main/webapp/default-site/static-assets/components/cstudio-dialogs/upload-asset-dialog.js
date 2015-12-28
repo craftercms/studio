@@ -197,6 +197,9 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 					alert(errorString);
 				}else{
 					CStudioAuthoring.Dialogs.UploadDialog.closeDialog();
+					if(r.fileExtension) {
+						r.fileExtension = r.fileExtension.substring(r.fileExtension.lastIndexOf(".")+1);
+					}
 					args.self.callback.success(r);
 				}
 			}
