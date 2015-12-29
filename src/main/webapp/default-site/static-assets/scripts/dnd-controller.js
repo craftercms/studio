@@ -13,6 +13,8 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         '<sdiv class="studio-components-container"></sdiv>',
         '</sdiv>'].join('');
     var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@"><span class="status-icon component"></span>%@</sa></sli>';
+    //var BROWSE_TPL = '<button class="btn btn-primary add-component" data-path="%@">Browse %@</button>';
+    var BROWSE_TPL = '<sdiv class="studio-category"><sh2 class="studio-category-name add-existing-component" id="%@" data-path="%@">Browse %@</sh2><sul></sul></sdiv>';
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';
@@ -65,7 +67,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             return $palette;
         };
 
-        $palette.on('click', '.studio-category-name', function () {
+        $palette.on('click', '.studio-category-name-collapse', function () {
             $(this).parent().toggleClass('studio-collapse');
         });
 
@@ -141,7 +143,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         }
     }
 
-    function enableDnD(components, initialComponentModel) {
+    function enableDnD(components, initialComponentModel, browse) {
         amplify.publish(Topics.ICE_TOOLS_OFF);
         sessionStorage.setItem('components-on', 'true');
 
@@ -158,7 +160,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         $p.appendTo($body);
         resize.call(this);
 
-        renderPalette.call(this, components);
+        renderPalette.call(this, components, browse);
 
         this.getAnimator($o).fadeIn();
         this.getAnimator($p).slideInRight();
@@ -416,12 +418,14 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         });
     }
 
-    function renderPalette(components) {
+    function renderPalette(components, browse) {
         var html = [],
-            $c = this.getPalette().children('.studio-components-container');
+            $c = this.getPalette().children('.studio-components-container'),
+            me = this,
+            browseId = "";
         $.each(components || [], function (i, category) {
             html.push('<sdiv class="studio-category">');
-            html.push('<sh2 class="studio-category-name">'+category.label+'</sh2>');
+            html.push('<sh2 class="studio-category-name studio-category-name-collapse">'+category.label+'</sh2>');
             html.push('<sul>');
             if(category.components.length){
                 $.each(category.components, function (j, component) {
@@ -435,8 +439,22 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
             html.push('</sul>');
             html.push('</sdiv>');
         });
-        html.push('<button class="btn btn-primary add-component" data-translation="addComponent">Add Component</button>');
+        $.each(browse || [], function (i, browse) {
+            browseId = browse.label.replace(/\s|-|_|\/\./g, "").toLowerCase();
+            html.push(crafter.String(BROWSE_TPL)
+                    .fmt(browseId, browse.path, browse.label));
+        });
+        //html.push('<button class="btn btn-primary add-component" data-translation="addComponent">Add Component</button>');
         $c.html(html.join(''));
+
+        $('.add-existing-component').on('click', function (e) {
+            e.preventDefault();
+            var path = $(this).attr('data-path');
+
+            publish.call(me, Topics.OPEN_BROWSE, {
+                path: path
+            });
+        });
     }
 
     function createDeleteControl(className) {

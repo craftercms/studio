@@ -65,6 +65,8 @@
                 "ICE_TOOLS_REGIONS": "ICE_TOOLS_REGIONS",
                 "REFRESH_PREVIEW": "REFRESH_PREVIEW",
                 "START_DIALOG": "START_DIALOG",
+                "OPEN_BROWSE": "OPEN_BROWSE",
+                "DND_CREATE_BROWSE_COMP": "DND_CREATE_BROWSE_COMP",
 
                 "": ""
             },
