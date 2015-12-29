@@ -86,6 +86,16 @@ public interface ContentRepository {
     boolean moveContent(String fromPath, String toPath);
 
     /**
+     * move content from PathA to pathB
+     *
+     * @param fromPath source content
+     * @param toPath target path
+     * @param newName new file name for rename
+     * @return true if successful
+     */
+    boolean moveContent(String fromPath, String toPath, String newName);
+
+    /**
      * copy content from PathA to pathB
      *
      * @param fromPath paths to content

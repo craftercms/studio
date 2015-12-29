@@ -154,6 +154,8 @@ public interface ContentService {
      */
     ContentItemTO getContentItemTree(String fullPath, int depth);
 
+    boolean moveContent(String site, String fromPath, String toPath, String newName);
+
     /**
      * get the content item (metadata) at a specific path
      *

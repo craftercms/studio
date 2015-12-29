@@ -44,7 +44,6 @@ import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -124,15 +123,20 @@ implements SecurityProvider {
     @Override
     public boolean copyContent(String fromPath, String toPath) {
         addDebugStack();
-        return this.copyContentInternal(fromPath, toPath, false);
+        return this.copyContentInternal(fromPath, toPath, null, false);
     }
 
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
+        return moveContent(fromPath, toPath, null);
+    }
+
+    @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
         addDebugStack();
-        return this.copyContentInternal(fromPath, toPath, true);
-    };
+        return this.copyContentInternal(fromPath, toPath, newName, true);
+    }
 
     /**
      * get immediate children for path
@@ -251,13 +255,13 @@ implements SecurityProvider {
      *             the source path
      * @param toPath
      *              the target path
-     * @param isCut
-     *              true for move
-     * @return  true if successful
+     * @param newName
+     *@param isCut
+     *              true for move  @return  true if successful
      */
-    protected boolean copyContentInternal(String fromPath, String toPath, boolean isCut) {
+    protected boolean copyContentInternal(String fromPath, String toPath, String newName, boolean isCut) {
         logger.debug((isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
-        return copyContentInternalCMIS(fromPath, toPath, isCut);
+        return copyContentInternalCMIS(fromPath, toPath, newName, isCut);
     }
 
 
@@ -920,7 +924,7 @@ implements SecurityProvider {
         return newFolderRef;
     }
 
-    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut) {
+    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, String newName, boolean isCut) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -945,7 +949,7 @@ implements SecurityProvider {
                     if ("cmis:document".equals(sourceType.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document sourceDocument = (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
                         logger.debug("Coping document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
-                        copyDocument(targetFolder, sourceDocument);
+                        copyDocument(targetFolder, newName, sourceDocument);
                     } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
@@ -989,16 +993,20 @@ implements SecurityProvider {
         ItemIterable<CmisObject> immediateChildren = toCopyFolder.getChildren();
         for (CmisObject child : immediateChildren) {
             if (BaseTypeId.CMIS_DOCUMENT.value().equals(child.getBaseTypeId().value())) {
-                copyDocument(parentFolder, (org.apache.chemistry.opencmis.client.api.Document) child);
+                copyDocument(parentFolder, null, (org.apache.chemistry.opencmis.client.api.Document) child);
             } else if (BaseTypeId.CMIS_FOLDER.value().equals(child.getBaseTypeId().value())) {
                 copyFolder(parentFolder, (Folder) child);
             }
         }
     }
 
-    private void copyDocument(Folder parentFolder, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
+    private void copyDocument(Folder parentFolder, String newName, org.apache.chemistry.opencmis.client.api.Document sourceDocument) {
         Map<String, Object> documentProperties = new HashMap<String, Object>(2);
-        documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
+        if (StringUtils.isEmpty(newName)) {
+            documentProperties.put(PropertyIds.NAME, sourceDocument.getName());
+        } else {
+            documentProperties.put(PropertyIds.NAME, newName);
+        }
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
         //sourceDocument.copy(parentFolder);//.copy(parentFolder, documentProperties, null, null, null, null, null);
         parentFolder.createDocument(documentProperties, sourceDocument.getContentStream(), VersioningState.MINOR);
