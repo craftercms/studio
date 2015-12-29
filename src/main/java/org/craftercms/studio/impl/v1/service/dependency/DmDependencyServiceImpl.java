@@ -207,7 +207,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected List<DmDependencyTO> getDependencyItemsNoCalc(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependenciesOnly, boolean recursive) {
         List<DmDependencyTO> items = new ArrayList<DmDependencyTO>(paths.size());
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
                 continue;
