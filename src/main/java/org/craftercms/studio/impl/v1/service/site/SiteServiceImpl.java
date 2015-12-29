@@ -518,6 +518,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
+    public String getAuthoringServerUrl(String site) {
+        return environmentConfig.getAuthoringServerUrl(site);
+    }
+
+    @Override
     public String getAdminEmailAddress(String site) {
         return environmentConfig.getAdminEmailAddress(site);
     }

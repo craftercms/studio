@@ -1,6 +1,6 @@
 <environment-config>
 	<preview-server-url>http://127.0.0.1:8080</preview-server-url>
-	<authoring-server-url>http://127.0.0.1:8080/share</authoring-server-url>
+	<authoring-server-url>http://127.0.0.1:8080/studio</authoring-server-url>
 	<form-server-url>http://127.0.0.1:8080/form-server</form-server-url>
 	<live-server-url>http://SITENAME</live-server-url>
     <publishing-channels>
