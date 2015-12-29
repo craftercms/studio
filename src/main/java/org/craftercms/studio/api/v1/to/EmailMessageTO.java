@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
@@ -32,6 +34,7 @@ public class EmailMessageTO implements Serializable {
 	protected String replyTo;
 	protected String previewBaseUrl;
 	protected String liveBaseUrl;
+    protected String authoringBaseUrl;
 	protected String browserUrl;
 	protected String adminEmail;
 	protected String rejectReason;
@@ -109,7 +112,16 @@ public class EmailMessageTO implements Serializable {
 		this.liveBaseUrl = liveBaseUrl;
 	}
 
-	public void setRejectReason(String rejectReason) {
+    public String getAuthoringBaseUrl() { return authoringBaseUrl; }
+
+    public void setAuthoringBaseUrl(String authoringBaseUrl) {
+        this.authoringBaseUrl = authoringBaseUrl;
+        if (StringUtils.isNotEmpty(authoringBaseUrl)) {
+            setValue(EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL, authoringBaseUrl);
+        }
+    }
+
+    public void setRejectReason(String rejectReason) {
 		this.rejectReason = rejectReason;
 		if (rejectReason != null) 
 			setValue(EMAIL_TEMPLATE_REJECT_REASON, rejectReason);
@@ -124,6 +136,7 @@ public class EmailMessageTO implements Serializable {
 			"title",
 			"preview-url",
 			"live-url",
+            "authoring-url",
 			"user-name", 
 			"admin-email",
 			"reject-reason"
@@ -132,6 +145,7 @@ public class EmailMessageTO implements Serializable {
 	public static final String EMAIL_TEMPLATE_KEYWORDS_USERNAME="user-name";
 	public static final String EMAIL_TEMPLATE_KEYWORDS_PREVIEWURL="preview-url";
 	public static final String EMAIL_TEMPLATE_KEYWORDS_LIVEURL="live-url";
+    public static final String EMAIL_TEMPLATE_KEYWORDS_AUTHORINGURL="authoring-url";
 	public static final String EMAIL_TEMPLATE_KEYWORDS_TITLE="title";
 	public static final String EMAIL_TEMPLATE_REJECT_REASON="reject-reason";
 
