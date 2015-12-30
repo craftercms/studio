@@ -67,6 +67,25 @@
         <property name="repositoryType" value="diskAndAlfrescoMappedDev"/>
     </bean>
 
+    <!-- improved performance for site dropdown -->
+    <bean id="cstudioAlfrescoExtContentRepositoryUnCached" class="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoExtContentRepository" init-method="bootstrap">
+        <property name="alfrescoUrl" value="${alfrescoUrl}" />
+        <property name="adminUser" value="${repositoryJob.username}"/>
+        <property name="adminPassword" value="${repositoryJob.password}"/>
+        <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfresco') and '${crafter.repository.bootstrapEnabled}'}" />
+        <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
+    </bean>
+
+    <bean id="cstudioAlfrescoExtContentRepository" class="org.craftercms.studio.impl.v1.repository.cached.CachedContentRepository">
+        <property name="wrappedRepository" ref="cstudioAlfrescoExtContentRepositoryUnCached" />
+    </bean>
+
+    <bean id="cstudioAlfrescoExtContentRepositoryRegistration"
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioAlfrescoExtContentRepository"/>
+        <property name="repositoryType" value="alfrescoext"/>
+    </bean>
+
 
     <!-- ////////////////////////////////////// -->
     <!--         security layer               -->
