@@ -14,8 +14,12 @@
 }
 
 .cstudio-form-field-calendar {
-	z-index: 1;
+	z-index: 47;
 	width: 205px;
+}
+
+div.yui-calcontainer.cstudio-form-field-calendar {
+    margin-bottom: 8px;
 }
 
 .cstudio-form-control-filename-edit {
