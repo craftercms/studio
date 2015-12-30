@@ -333,7 +333,8 @@ CStudioAuthoringContext.site,
                     	if(!window.firstClick && YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
                     		window.firstClick = true;
                     		thisComponent.openLatest(instance);
-                    	}                    	 
+                    	}
+                        this.blur();
                     });					
                 }
             },
