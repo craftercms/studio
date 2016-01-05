@@ -1,4 +1,4 @@
-define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-controller'], function (crafter, $, Communicator, ICEOverlay, DnDController, CStudioAuthoring) {
+define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-controller', 'pointer-controller'], function (crafter, $, Communicator, ICEOverlay, DnDController, PointerController) {
     'use strict';
 
     $.noConflict(true);
@@ -29,7 +29,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
         overlay = new ICEOverlay(),
         $document = $(document),
         $window = $(window),
-        dndController;
+        dndController, pointerControllerVar;
 
     communicator.on(Topics.START_DRAG_AND_DROP, function (message) {
         require(['dnd-controller'], function (DnDController) {
@@ -38,7 +38,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
                 communicator: communicator
             }));
 
-            dndController.start(message.components, message.contentModel);
+            dndController.start(message.components, message.contentModel, message.browse);
 
             var translation = message.translation;
             var elements = $('[data-translation]');
@@ -47,6 +47,18 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
                 if($( this ).attr( "data-translation" ) == "components")$( this ).html(translation.components);
                 if($( this ).attr( "data-translation" ) == "addComponent")$( this ).html(translation.addComponent);
             });
+
+        });
+    });
+
+    communicator.on(Topics.DND_CREATE_BROWSE_COMP, function (message) {
+        require(['pointer-controller'], function (pointerController) {
+
+            (typeof pointerControllerVar === 'undefined') && (pointerControllerVar = new pointerController({
+                communicator: communicator
+            }));
+
+            pointerControllerVar.start(message.component);
 
         });
     });
