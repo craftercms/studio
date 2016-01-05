@@ -142,6 +142,27 @@
         ondrop: function (type, path, isNew, tracking, zones, compPath, conComp) {
 
             if (isNew) {
+                function isNewEvent(value, modelPath){
+                    var modelData = {
+                        value: value,
+                        key: modelPath,
+                        include: modelPath
+                    };
+                    $.each(zones, function (key, array) {
+                        $.each(array, function (i, item) {
+                            if (item === tracking) {
+                                zones[key][i] = modelData;
+                            }
+                        });
+                    });
+                    ComponentsPanel.contentModelMap[tracking] = modelData;
+                    amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
+                        model: modelData,
+                        trackingNumber: tracking
+                    });
+                    ComponentsPanel.save(isNew, zones, compPath, conComp);
+                }
+                if(isNew == true){
                 CStudioAuthoring.Operations.performSimpleIceEdit({
                     uri: path,
                     contentType: type
@@ -154,32 +175,18 @@
                         var value = (!!contentTO.item.internalName)
                             ? contentTO.item.internalName
                             : contentTO.item.uri;
-
-                        var modelData = {
-                            value: value,
-                            key: contentTO.item.uri,
-                            include: contentTO.item.uri
-                        };
-
-                        $.each(zones, function (key, array) {
-                            $.each(array, function (i, item) {
-                                if (item === tracking) {
-                                    zones[key][i] = modelData;
-                                }
-                            });
-                        });
-
-                        ComponentsPanel.contentModelMap[tracking] = modelData;
-
-                        amplify.publish(cstopic('DND_COMPONENT_MODEL_LOAD'), {
-                            model: modelData,
-                            trackingNumber: tracking
-                        });
-
-                        ComponentsPanel.save(isNew, zones, compPath, conComp);
-
+                        isNewEvent(value, contentTO.item.uri);
                     }
                 });
+                }else{
+                    CStudioAuthoring.Service.getContent(path, "false", {
+                        success: function (model) {
+                            isNewEvent($(model).find("internal-name").text(), path);
+                        },
+                        failure: function (err) {
+                        }
+                    });
+                }
 
             } else {
                 ComponentsPanel.save(isNew, zones, compPath, conComp);

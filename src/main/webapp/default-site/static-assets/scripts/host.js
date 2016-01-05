@@ -233,6 +233,22 @@
         return dialog;
     });
 
+    communicator.subscribe(Topics.OPEN_BROWSE, function (message) {
+        CStudioAuthoring.Operations.openBrowse("", message.path, 1, "select", true, {
+            success: function (searchId, selectedTOs) {
+
+                for (var i = 0; i < selectedTOs.length; i++) {
+                    var item = selectedTOs[i];
+                    communicator.publish(Topics.DND_CREATE_BROWSE_COMP, {
+                        component: selectedTOs[i]
+                    });
+                }
+            },
+            failure: function () {
+            }
+        });
+    });
+
     communicator.subscribe(Topics.SAVE_DRAG_AND_DROP, function (message) {
         amplify.publish(cstopic('SAVE_DRAG_AND_DROP'),
             message.isNew,
@@ -262,28 +278,45 @@
     amplify.subscribe(cstopic('START_DRAG_AND_DROP'), function (config) {
         CStudioAuthoring.PreviewTools.panel.hide();
 
-        var data;
+        var data, dataBrowse;
         if (config.components.category){
             data = config.components.category;
         }else{
             data = config.components;
         }
-        var categories = [];
 
-        if ($.isArray(data)) {
-            $.each(data, function(i, c) {
-                if(c.component){
-                    categories.push({ label: c.label, components: c.component });
-                }else{
-                    categories.push({ label: c.label, components: c.components });
+        if (config.components.browse){
+            dataBrowse = config.components.browse;
+        }
+
+        var categories = [], browse = [];
+
+        if(data) {
+            if ($.isArray(data)) {
+                $.each(data, function (i, c) {
+                    if (c.component) {
+                        categories.push({ label: c.label, components: c.component });
+                    } else {
+                        categories.push({ label: c.label, components: c.components });
+                    }
+
+                });
+            } else {
+                if (data.component) {
+                    categories.push({ label: data.label, components: data.component });
+                } else {
+                    categories.push({ label: data.label, components: data.components });
                 }
+            }
+        }
 
-            });
-        } else {
-            if(data.component) {
-                categories.push({ label: data.label, components: data.component });
-            }else{
-                categories.push({ label: data.label, components: data.components });
+        if(dataBrowse) {
+            if ($.isArray(dataBrowse)) {
+                $.each(dataBrowse, function (i, c) {
+                    browse.push({ label: c.label, path: c.path });
+                });
+            } else {
+                browse.push({ label: data.label, path: data.path });
             }
         }
 
@@ -295,7 +328,8 @@
         communicator.publish(Topics.START_DRAG_AND_DROP, {
             components: categories,
             contentModel: initialContentModel,
-            translation: text
+            translation: text,
+            browse: browse
         });
 
     });

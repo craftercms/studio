@@ -21,6 +21,11 @@ header .page-header {
     .mceListBoxMenu.cstudio-rteSkin .mceListBoxMenu table {
       width: 175px !important; }
 
+@media screen and (min-width: 0\0) {
+  .CodeMirror .CodeMirror-lines pre.CodeMirror-cursor {
+    width: 9px;
+    border-width: 0px;
+    border-left-width: 2px; } }
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 html {
   font-family: sans-serif;
