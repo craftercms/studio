@@ -6,7 +6,6 @@
 		storage = CStudioAuthoring.Storage,		
 		counter = 0, // Used to identify the contextmenu for each instances. May be used for any other purpose while numberic chronological order is maintained
 		Self = null; // Local reference to CStudioAuthoring.ContextualNav.WcmRootFolder initialized by CStudioAuthoring.register call
-        treeFlag = false;
 
 		if(YAHOO.lang && !YAHOO.lang.escapeHTML) {
 			// YUI version conflicts
@@ -28,8 +27,7 @@
             CUT_STYLE: "#9FB6CD",
 			searchesToWire: [],
             myTree: null,
-            myTreePages: null,
-            myTreeComp: null,
+            myTreePages: [],
             copiedItem: null,
             cutItem: null,
             instanceCount: 0,
@@ -162,27 +160,42 @@
 					//add hover effect to nodes
 					Self.nodeHoverEffects(this);
 				} else {
-	                CStudioAuthoring.Service.lookupSiteContent(site, rootPath, 1, "default", {
-	                    openToPath: pathToOpen,
-	                    success: function(treeData) { 
-	                	
-	                		if(rootPath == "/site/website")
-	                			window.treeData = treeData;
-	                	
-	                        var items = treeData.item.children;
-	                        if (instance.showRootItem) {
-	                            items = new Array(treeData.item);
-	                        }
-	                        Self.drawTree(items, tree, path, instance);
-							YDom.removeClass(label, "loading");
-	                        //add hover effect to nodes
-	                        Self.nodeHoverEffects(this);
-	                    },
-	
-	                    failure: function() {
-	                        YDom.removeClass(label, "loading");
-	                    }
-	                });
+                    var pathLength;
+                    if (Object.prototype.toString.call(rootPath) === '[object Array]') {
+                        pathLength = rootPath.length ? rootPath.length : 1;
+                    } else {
+                        pathLength = 1;
+                    }
+
+                    for (var i = 0; pathLength > i; i++) {
+                        var servPath;
+                        if (Object.prototype.toString.call(rootPath) === '[object Array]') {
+                            servPath = rootPath[i];
+                        } else {
+                            servPath = rootPath;
+                        }
+                        CStudioAuthoring.Service.lookupSiteContent(site, servPath, 1, "default", {
+                            openToPath: pathToOpen,
+                            success: function (treeData) {
+
+                                //if(servPath == "/site/website")
+                                window.treeData = treeData;
+
+                                var items = treeData.item.children;
+                                if (instance.showRootItem) {
+                                    items = new Array(treeData.item);
+                                }
+                                Self.drawTree(items, tree, path, instance);
+                                YDom.removeClass(label, "loading");
+                                //add hover effect to nodes
+                                Self.nodeHoverEffects(this);
+                            },
+
+                            failure: function () {
+                                YDom.removeClass(label, "loading");
+                            }
+                        })
+                    }
 				}
             },
             /**
@@ -328,14 +341,8 @@
 
 				instance.firstDraw = true;
 
-                if(treeFlag == false){
-                    Self.myTreePages = tree;
-                    instance.type = "Pages";
-                    treeFlag = true;
-                }else{
-                    Self.myTreeComp = tree;
-                    instance.type = "Components";
-                }
+                var treeId = tree.id.toString().replace(/-/g,'');
+                Self.myTreePages[treeId] = tree;
 
             },
             /**
@@ -638,36 +645,51 @@ treeNode.getHtml = function() {
 						YDom.removeClass(label, "loading");
 						Self.firePathLoaded(instance);
 					} else {
-						CStudioAuthoring.Service.lookupSiteContent(site, rootPath, 1, "default", {
-							success: function(treeData) {
-							
-								if(rootPath == "/site/website")
-									window.treeData = treeData;
-							
-								var items = treeData.item.children;
-								if (instance.showRootItem) {
-									items = new Array(treeData.item);
-								}
-								instance.state = Self.ROOT_OPEN;
-								Self.drawTree(items, tree, null, instance);
-								if (latestStored != Self.ROOT_OPENED) {
-									var node, loadEl;
-									node = tree.getNodeByProperty("path", rootPath);
-									if(node == null) {
-										node = tree.getNodeByProperty("path", updatePathTrace());
-										loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
-									} else {
-										loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
-									}
-									YDom.addClass(loadEl, "ygtvloading");
-									doCall(node);
-								} else {
-									YDom.removeClass(label, "loading");
-	                                Self.firePathLoaded(instance);
-								}
-							},
-							failure: function() { }
-						});
+                        var pathLength;
+                        if (Object.prototype.toString.call(rootPath) === '[object Array]') {
+                            pathLength = rootPath.length ? rootPath.length : 1;
+                        } else {
+                            pathLength = 1;
+                        }
+
+                        for (var i = 0; pathLength > i; i++) {
+                            var servPath;
+                            if (Object.prototype.toString.call(rootPath) === '[object Array]') {
+                                servPath = rootPath[i];
+                            } else {
+                                servPath = rootPath;
+                            }
+                            CStudioAuthoring.Service.lookupSiteContent(site, servPath, 1, "default", {
+                                success: function(treeData) {
+
+                                    //if(servPath == "/site/website")
+                                        window.treeData = treeData;
+
+                                    var items = treeData.item.children;
+                                    if (instance.showRootItem) {
+                                        items = new Array(treeData.item);
+                                    }
+                                    instance.state = Self.ROOT_OPEN;
+                                    Self.drawTree(items, tree, null, instance);
+                                    if (latestStored != Self.ROOT_OPENED) {
+                                        var node, loadEl;
+                                        node = tree.getNodeByProperty("path", servPath);
+                                        if(node == null) {
+                                            node = tree.getNodeByProperty("path", updatePathTrace());
+                                            loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
+                                        } else {
+                                            loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
+                                        }
+                                        YDom.addClass(loadEl, "ygtvloading");
+                                        doCall(node);
+                                    } else {
+                                        YDom.removeClass(label, "loading");
+                                        Self.firePathLoaded(instance);
+                                    }
+                                },
+                                failure: function() { }
+                            })
+                        }
 					}
 				} else {
                     Self.firePathLoaded(instance);
@@ -1145,11 +1167,8 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.type == "Pages"){
-                                            Self.myTree = Self.myTreePages;
-                                        }else{
-                                            Self.myTree = Self.myTreeComp;
-                                        }
+                                        var idTree = oCurrentTextNode.tree.id.toString().replace(/-/g,'');
+                                        Self.myTree = Self.myTreePages[idTree];
 
                                         if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
                                             if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
@@ -1371,11 +1390,8 @@ treeNode.getHtml = function() {
 										contextMenuItems = this.menuItems;
 			                            this.args.addItems(contextMenuItems);
 
-                                        if(oCurrentTextNode.instance.type == "Pages"){
-                                            Self.myTree = Self.myTreePages;
-                                        }else{
-                                            Self.myTree = Self.myTreeComp;
-                                        }
+                                        var idTree = oCurrentTextNode.tree.id.toString().replace(/-/g,'');
+                                        Self.myTree = Self.myTreePages[idTree];
 
                                         if ((collection.count > 0 && isContainer) && collection.item[0].uri.replace(/\/\//g,"/") != oCurrentTextNode.data.uri) {
 			                            	if(Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"))){
@@ -1839,11 +1855,8 @@ treeNode.getHtml = function() {
                     activeNode: oCurrentTextNode
                 };
 
-                if(oCurrentTextNode.instance.label == "Pages"){
-                    Self.myTree = Self.myTreePages;
-                }else{
-                    Self.myTree = Self.myTreeComp;
-                }
+                var idTree = oCurrentTextNode.tree.id.toString().replace(/-/g,'');
+                Self.myTree = Self.myTreePages[idTree];
 
                 Self.copiedItem = Self.myTree.getNodeByProperty("path", oCurrentTextNode.data.path);
                 Self.copiedItem ? null : Self.copiedItem = oCurrentTextNode;
@@ -2140,7 +2153,7 @@ treeNode.getHtml = function() {
 
         this.type = config.name;
         this.label = config.params["label"];
-        this.path = config.params["path"];
+        this.path = (config.params["path"]) ? config.params["path"] : config.params["paths"].path;
         this.showRootItem = (config.params["showRootItem"]) ? config.params["showRootItem"] : false;
         this.onClickAction = (config.params["onClick"]) ? config.params["onClick"] : "";
         this.config = config;
