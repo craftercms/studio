@@ -68,8 +68,10 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.springframework.http.MediaType;
 
 
 /**
@@ -442,27 +444,33 @@ implements SecurityProvider {
 
     @Override
     public String authenticate(String username, String password) {
-        InputStream retStream = null;
+
         String toRet = null;
         try {
             // construct and execute url to download result
-            String downloadURI = "/api/login?u={u}&pw={pw}";
-            Map<String, String> lookupContentParams = new HashMap<String, String>();
-            lookupContentParams.put("u", username);
-            lookupContentParams.put("pw", password);
+            String downloadURI = "/api/login";
 
-            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
+            String loginRequestBody = "{ \"username\" : \"" + username + "\", \"password\" : \"" + password + "\" }";
+            InputStream bodyStream = IOUtils.toInputStream(loginRequestBody, "UTF-8");
 
-            SAXReader reader = new SAXReader();
-            Document response = reader.read(retStream);
-            Node ticketNode = response.selectSingleNode("//ticket");
-            toRet = ticketNode.getText();   
-     
-            this.storeSessionTicket(toRet);
-            this.storeSessionUsername(username);                 
+            String responseStr = this.alfrescoPostRequest(downloadURI, null, bodyStream, MediaType.APPLICATION_JSON_VALUE);
+
+            if (StringUtils.isNotEmpty(responseStr)) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> result = objectMapper.readValue(responseStr, HashMap.class);
+
+                Map<String, String> data = (Map<String, String>)result.get("data");
+                toRet = data.get("ticket");
+
+                this.storeSessionTicket(toRet);
+                this.storeSessionUsername(username);
+            } else {
+                this.storeSessionTicket(null);
+                this.storeSessionUsername(null);
+            }
         }
         catch(Exception err) {
-            logger.error("err getting content: ", err);
+            logger.error("err authenticating: ", err);
         }
         return toRet;
     }
