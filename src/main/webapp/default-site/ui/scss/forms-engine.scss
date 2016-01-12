@@ -44,6 +44,14 @@ header {
 
 }
 
+@media screen and (min-width:0\0) {
+  .CodeMirror .CodeMirror-lines pre.CodeMirror-cursor{
+    width: 9px;
+    border-width: 0px;
+    border-left-width: 2px;
+  }
+}
+
 // Reset and dependencies
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/print";

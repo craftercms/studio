@@ -75,7 +75,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
             clickFn =  function() {
                 _self.removeAll();
                 _self.addValue(this.id);
-                updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue });
+                updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue.toString() });
             }
         }else{
             cbEl.type = "checkbox";
@@ -83,10 +83,10 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Datasource, CStu
             clickFn =  function() {
                 if (this.checked) {
                     _self.addValue(this.id);
-                    updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue });
+                    updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue.toString() });
                 } else {
                     _self.removeValue(this.id);
-                    updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue });
+                    updateFn(null, { fieldName: _self.fieldName, value: _self.fieldValue.toString() });
                 }
             }
         }

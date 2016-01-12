@@ -2144,7 +2144,7 @@ sh6 {
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
-  /*! normalize.css v3.0.2 | MIT License | git.io/normalize */ }
+  /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */ }
   .studio-view html, .studio-components-panel html {
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
@@ -2233,7 +2233,6 @@ sh6 {
   .studio-view figure, .studio-components-panel figure {
     margin: 1em 40px; }
   .studio-view hr, .studio-components-panel hr {
-    -moz-box-sizing: content-box;
     box-sizing: content-box;
     height: 0; }
   .studio-view pre, .studio-components-panel pre {
@@ -2296,8 +2295,6 @@ sh6 {
     height: auto; }
   .studio-view input[type="search"], .studio-components-panel input[type="search"] {
     -webkit-appearance: textfield;
-    -moz-box-sizing: content-box;
-    -webkit-box-sizing: content-box;
     box-sizing: content-box; }
   .studio-view input[type="search"]::-webkit-search-cancel-button, .studio-components-panel input[type="search"]::-webkit-search-cancel-button,
   .studio-view input[type="search"]::-webkit-search-decoration,
@@ -2459,45 +2456,65 @@ sh6 {
     color: #777777; }
   .studio-view .text-primary, .studio-components-panel .text-primary {
     color: #7e9dbb; }
-  .studio-view a.text-primary:hover, .studio-components-panel a.text-primary:hover {
+  .studio-view a.text-primary:hover, .studio-components-panel a.text-primary:hover,
+  .studio-view a.text-primary:focus,
+  .studio-components-panel a.text-primary:focus {
     color: #5d84a9; }
   .studio-view .text-success, .studio-components-panel .text-success {
     color: #3c763d; }
-  .studio-view a.text-success:hover, .studio-components-panel a.text-success:hover {
+  .studio-view a.text-success:hover, .studio-components-panel a.text-success:hover,
+  .studio-view a.text-success:focus,
+  .studio-components-panel a.text-success:focus {
     color: #2b542c; }
   .studio-view .text-info, .studio-components-panel .text-info {
     color: #31708f; }
-  .studio-view a.text-info:hover, .studio-components-panel a.text-info:hover {
+  .studio-view a.text-info:hover, .studio-components-panel a.text-info:hover,
+  .studio-view a.text-info:focus,
+  .studio-components-panel a.text-info:focus {
     color: #245269; }
   .studio-view .text-warning, .studio-components-panel .text-warning {
     color: #8a6d3b; }
-  .studio-view a.text-warning:hover, .studio-components-panel a.text-warning:hover {
+  .studio-view a.text-warning:hover, .studio-components-panel a.text-warning:hover,
+  .studio-view a.text-warning:focus,
+  .studio-components-panel a.text-warning:focus {
     color: #66512c; }
   .studio-view .text-danger, .studio-components-panel .text-danger {
     color: #a94442; }
-  .studio-view a.text-danger:hover, .studio-components-panel a.text-danger:hover {
+  .studio-view a.text-danger:hover, .studio-components-panel a.text-danger:hover,
+  .studio-view a.text-danger:focus,
+  .studio-components-panel a.text-danger:focus {
     color: #843534; }
   .studio-view .bg-primary, .studio-components-panel .bg-primary {
     color: #fff; }
   .studio-view .bg-primary, .studio-components-panel .bg-primary {
     background-color: #7e9dbb; }
-  .studio-view a.bg-primary:hover, .studio-components-panel a.bg-primary:hover {
+  .studio-view a.bg-primary:hover, .studio-components-panel a.bg-primary:hover,
+  .studio-view a.bg-primary:focus,
+  .studio-components-panel a.bg-primary:focus {
     background-color: #5d84a9; }
   .studio-view .bg-success, .studio-components-panel .bg-success {
     background-color: #dff0d8; }
-  .studio-view a.bg-success:hover, .studio-components-panel a.bg-success:hover {
+  .studio-view a.bg-success:hover, .studio-components-panel a.bg-success:hover,
+  .studio-view a.bg-success:focus,
+  .studio-components-panel a.bg-success:focus {
     background-color: #c1e2b3; }
   .studio-view .bg-info, .studio-components-panel .bg-info {
     background-color: #d9edf7; }
-  .studio-view a.bg-info:hover, .studio-components-panel a.bg-info:hover {
+  .studio-view a.bg-info:hover, .studio-components-panel a.bg-info:hover,
+  .studio-view a.bg-info:focus,
+  .studio-components-panel a.bg-info:focus {
     background-color: #afd9ee; }
   .studio-view .bg-warning, .studio-components-panel .bg-warning {
     background-color: #fcf8e3; }
-  .studio-view a.bg-warning:hover, .studio-components-panel a.bg-warning:hover {
+  .studio-view a.bg-warning:hover, .studio-components-panel a.bg-warning:hover,
+  .studio-view a.bg-warning:focus,
+  .studio-components-panel a.bg-warning:focus {
     background-color: #f7ecb5; }
   .studio-view .bg-danger, .studio-components-panel .bg-danger {
     background-color: #f2dede; }
-  .studio-view a.bg-danger:hover, .studio-components-panel a.bg-danger:hover {
+  .studio-view a.bg-danger:hover, .studio-components-panel a.bg-danger:hover,
+  .studio-view a.bg-danger:focus,
+  .studio-components-panel a.bg-danger:focus {
     background-color: #e4b9b9; }
   .studio-view .page-header, .studio-components-panel .page-header {
     padding-bottom: 7.5px;
@@ -2742,22 +2759,35 @@ sh6 {
       box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); }
     .studio-view .btn.disabled, .studio-components-panel .btn.disabled, .studio-view .btn[disabled], .studio-components-panel .btn[disabled], fieldset[disabled] .studio-view .btn, fieldset[disabled] .studio-components-panel .btn {
       cursor: not-allowed;
-      pointer-events: none;
       opacity: 0.65;
       filter: alpha(opacity=65);
       -webkit-box-shadow: none;
       box-shadow: none; }
+  .studio-view a.btn.disabled, .studio-components-panel a.btn.disabled, fieldset[disabled] .studio-view a.btn, fieldset[disabled] .studio-components-panel a.btn {
+    pointer-events: none; }
   .studio-view .btn-default, .studio-components-panel .btn-default {
     color: #333;
     background-color: #fff;
     border-color: #ccc; }
-    .studio-view .btn-default:hover, .studio-components-panel .btn-default:hover, .studio-view .btn-default:focus, .studio-components-panel .btn-default:focus, .studio-view .btn-default.focus, .studio-components-panel .btn-default.focus, .studio-view .btn-default:active, .studio-components-panel .btn-default:active, .studio-view .btn-default.active, .studio-components-panel .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle, .open > .studio-components-panel .btn-default.dropdown-toggle {
+    .studio-view .btn-default:focus, .studio-components-panel .btn-default:focus, .studio-view .btn-default.focus, .studio-components-panel .btn-default.focus {
+      color: #333;
+      background-color: #e6e6e6;
+      border-color: #8c8c8c; }
+    .studio-view .btn-default:hover, .studio-components-panel .btn-default:hover {
       color: #333;
       background-color: #e6e6e6;
       border-color: #adadad; }
     .studio-view .btn-default:active, .studio-components-panel .btn-default:active, .studio-view .btn-default.active, .studio-components-panel .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle, .open > .studio-components-panel .btn-default.dropdown-toggle {
+      color: #333;
+      background-color: #e6e6e6;
+      border-color: #adadad; }
+      .studio-view .btn-default:active:hover, .studio-components-panel .btn-default:active:hover, .studio-view .btn-default:active:focus, .studio-components-panel .btn-default:active:focus, .studio-view .btn-default:active.focus, .studio-components-panel .btn-default:active.focus, .studio-view .btn-default.active:hover, .studio-components-panel .btn-default.active:hover, .studio-view .btn-default.active:focus, .studio-components-panel .btn-default.active:focus, .studio-view .btn-default.active.focus, .studio-components-panel .btn-default.active.focus, .open > .studio-view .btn-default.dropdown-toggle:hover, .open > .studio-components-panel .btn-default.dropdown-toggle:hover, .open > .studio-view .btn-default.dropdown-toggle:focus, .open > .studio-components-panel .btn-default.dropdown-toggle:focus, .open > .studio-view .btn-default.dropdown-toggle.focus, .open > .studio-components-panel .btn-default.dropdown-toggle.focus {
+        color: #333;
+        background-color: #d4d4d4;
+        border-color: #8c8c8c; }
+    .studio-view .btn-default:active, .studio-components-panel .btn-default:active, .studio-view .btn-default.active, .studio-components-panel .btn-default.active, .open > .studio-view .btn-default.dropdown-toggle, .open > .studio-components-panel .btn-default.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-default.disabled, .studio-components-panel .btn-default.disabled, .studio-view .btn-default.disabled:hover, .studio-components-panel .btn-default.disabled:hover, .studio-view .btn-default.disabled:focus, .studio-components-panel .btn-default.disabled:focus, .studio-view .btn-default.disabled.focus, .studio-components-panel .btn-default.disabled.focus, .studio-view .btn-default.disabled:active, .studio-components-panel .btn-default.disabled:active, .studio-view .btn-default.disabled.active, .studio-components-panel .btn-default.disabled.active, .studio-view .btn-default[disabled], .studio-components-panel .btn-default[disabled], .studio-view .btn-default[disabled]:hover, .studio-components-panel .btn-default[disabled]:hover, .studio-view .btn-default[disabled]:focus, .studio-components-panel .btn-default[disabled]:focus, .studio-view .btn-default[disabled].focus, .studio-components-panel .btn-default[disabled].focus, .studio-view .btn-default[disabled]:active, .studio-components-panel .btn-default[disabled]:active, .studio-view .btn-default[disabled].active, .studio-components-panel .btn-default[disabled].active, fieldset[disabled] .studio-view .btn-default, fieldset[disabled] .studio-components-panel .btn-default, fieldset[disabled] .studio-view .btn-default:hover, fieldset[disabled] .studio-components-panel .btn-default:hover, fieldset[disabled] .studio-view .btn-default:focus, fieldset[disabled] .studio-components-panel .btn-default:focus, fieldset[disabled] .studio-view .btn-default.focus, fieldset[disabled] .studio-components-panel .btn-default.focus, fieldset[disabled] .studio-view .btn-default:active, fieldset[disabled] .studio-components-panel .btn-default:active, fieldset[disabled] .studio-view .btn-default.active, fieldset[disabled] .studio-components-panel .btn-default.active {
+    .studio-view .btn-default.disabled:hover, .studio-components-panel .btn-default.disabled:hover, .studio-view .btn-default.disabled:focus, .studio-components-panel .btn-default.disabled:focus, .studio-view .btn-default.disabled.focus, .studio-components-panel .btn-default.disabled.focus, .studio-view .btn-default[disabled]:hover, .studio-components-panel .btn-default[disabled]:hover, .studio-view .btn-default[disabled]:focus, .studio-components-panel .btn-default[disabled]:focus, .studio-view .btn-default[disabled].focus, .studio-components-panel .btn-default[disabled].focus, fieldset[disabled] .studio-view .btn-default:hover, fieldset[disabled] .studio-components-panel .btn-default:hover, fieldset[disabled] .studio-view .btn-default:focus, fieldset[disabled] .studio-components-panel .btn-default:focus, fieldset[disabled] .studio-view .btn-default.focus, fieldset[disabled] .studio-components-panel .btn-default.focus {
       background-color: #fff;
       border-color: #ccc; }
     .studio-view .btn-default .badge, .studio-components-panel .btn-default .badge {
@@ -2767,13 +2797,25 @@ sh6 {
     color: #fff;
     background-color: #7e9dbb;
     border-color: #6d90b2; }
-    .studio-view .btn-primary:hover, .studio-components-panel .btn-primary:hover, .studio-view .btn-primary:focus, .studio-components-panel .btn-primary:focus, .studio-view .btn-primary.focus, .studio-components-panel .btn-primary.focus, .studio-view .btn-primary:active, .studio-components-panel .btn-primary:active, .studio-view .btn-primary.active, .studio-components-panel .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle, .open > .studio-components-panel .btn-primary.dropdown-toggle {
+    .studio-view .btn-primary:focus, .studio-components-panel .btn-primary:focus, .studio-view .btn-primary.focus, .studio-components-panel .btn-primary.focus {
+      color: #fff;
+      background-color: #5d84a9;
+      border-color: #375069; }
+    .studio-view .btn-primary:hover, .studio-components-panel .btn-primary:hover {
       color: #fff;
       background-color: #5d84a9;
       border-color: #4e7294; }
     .studio-view .btn-primary:active, .studio-components-panel .btn-primary:active, .studio-view .btn-primary.active, .studio-components-panel .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle, .open > .studio-components-panel .btn-primary.dropdown-toggle {
+      color: #fff;
+      background-color: #5d84a9;
+      border-color: #4e7294; }
+      .studio-view .btn-primary:active:hover, .studio-components-panel .btn-primary:active:hover, .studio-view .btn-primary:active:focus, .studio-components-panel .btn-primary:active:focus, .studio-view .btn-primary:active.focus, .studio-components-panel .btn-primary:active.focus, .studio-view .btn-primary.active:hover, .studio-components-panel .btn-primary.active:hover, .studio-view .btn-primary.active:focus, .studio-components-panel .btn-primary.active:focus, .studio-view .btn-primary.active.focus, .studio-components-panel .btn-primary.active.focus, .open > .studio-view .btn-primary.dropdown-toggle:hover, .open > .studio-components-panel .btn-primary.dropdown-toggle:hover, .open > .studio-view .btn-primary.dropdown-toggle:focus, .open > .studio-components-panel .btn-primary.dropdown-toggle:focus, .open > .studio-view .btn-primary.dropdown-toggle.focus, .open > .studio-components-panel .btn-primary.dropdown-toggle.focus {
+        color: #fff;
+        background-color: #4e7294;
+        border-color: #375069; }
+    .studio-view .btn-primary:active, .studio-components-panel .btn-primary:active, .studio-view .btn-primary.active, .studio-components-panel .btn-primary.active, .open > .studio-view .btn-primary.dropdown-toggle, .open > .studio-components-panel .btn-primary.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-primary.disabled, .studio-components-panel .btn-primary.disabled, .studio-view .btn-primary.disabled:hover, .studio-components-panel .btn-primary.disabled:hover, .studio-view .btn-primary.disabled:focus, .studio-components-panel .btn-primary.disabled:focus, .studio-view .btn-primary.disabled.focus, .studio-components-panel .btn-primary.disabled.focus, .studio-view .btn-primary.disabled:active, .studio-components-panel .btn-primary.disabled:active, .studio-view .btn-primary.disabled.active, .studio-components-panel .btn-primary.disabled.active, .studio-view .btn-primary[disabled], .studio-components-panel .btn-primary[disabled], .studio-view .btn-primary[disabled]:hover, .studio-components-panel .btn-primary[disabled]:hover, .studio-view .btn-primary[disabled]:focus, .studio-components-panel .btn-primary[disabled]:focus, .studio-view .btn-primary[disabled].focus, .studio-components-panel .btn-primary[disabled].focus, .studio-view .btn-primary[disabled]:active, .studio-components-panel .btn-primary[disabled]:active, .studio-view .btn-primary[disabled].active, .studio-components-panel .btn-primary[disabled].active, fieldset[disabled] .studio-view .btn-primary, fieldset[disabled] .studio-components-panel .btn-primary, fieldset[disabled] .studio-view .btn-primary:hover, fieldset[disabled] .studio-components-panel .btn-primary:hover, fieldset[disabled] .studio-view .btn-primary:focus, fieldset[disabled] .studio-components-panel .btn-primary:focus, fieldset[disabled] .studio-view .btn-primary.focus, fieldset[disabled] .studio-components-panel .btn-primary.focus, fieldset[disabled] .studio-view .btn-primary:active, fieldset[disabled] .studio-components-panel .btn-primary:active, fieldset[disabled] .studio-view .btn-primary.active, fieldset[disabled] .studio-components-panel .btn-primary.active {
+    .studio-view .btn-primary.disabled:hover, .studio-components-panel .btn-primary.disabled:hover, .studio-view .btn-primary.disabled:focus, .studio-components-panel .btn-primary.disabled:focus, .studio-view .btn-primary.disabled.focus, .studio-components-panel .btn-primary.disabled.focus, .studio-view .btn-primary[disabled]:hover, .studio-components-panel .btn-primary[disabled]:hover, .studio-view .btn-primary[disabled]:focus, .studio-components-panel .btn-primary[disabled]:focus, .studio-view .btn-primary[disabled].focus, .studio-components-panel .btn-primary[disabled].focus, fieldset[disabled] .studio-view .btn-primary:hover, fieldset[disabled] .studio-components-panel .btn-primary:hover, fieldset[disabled] .studio-view .btn-primary:focus, fieldset[disabled] .studio-components-panel .btn-primary:focus, fieldset[disabled] .studio-view .btn-primary.focus, fieldset[disabled] .studio-components-panel .btn-primary.focus {
       background-color: #7e9dbb;
       border-color: #6d90b2; }
     .studio-view .btn-primary .badge, .studio-components-panel .btn-primary .badge {
@@ -2783,13 +2825,25 @@ sh6 {
     color: #fff;
     background-color: #5cb85c;
     border-color: #4cae4c; }
-    .studio-view .btn-success:hover, .studio-components-panel .btn-success:hover, .studio-view .btn-success:focus, .studio-components-panel .btn-success:focus, .studio-view .btn-success.focus, .studio-components-panel .btn-success.focus, .studio-view .btn-success:active, .studio-components-panel .btn-success:active, .studio-view .btn-success.active, .studio-components-panel .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle, .open > .studio-components-panel .btn-success.dropdown-toggle {
+    .studio-view .btn-success:focus, .studio-components-panel .btn-success:focus, .studio-view .btn-success.focus, .studio-components-panel .btn-success.focus {
+      color: #fff;
+      background-color: #449d44;
+      border-color: #255625; }
+    .studio-view .btn-success:hover, .studio-components-panel .btn-success:hover {
       color: #fff;
       background-color: #449d44;
       border-color: #398439; }
     .studio-view .btn-success:active, .studio-components-panel .btn-success:active, .studio-view .btn-success.active, .studio-components-panel .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle, .open > .studio-components-panel .btn-success.dropdown-toggle {
+      color: #fff;
+      background-color: #449d44;
+      border-color: #398439; }
+      .studio-view .btn-success:active:hover, .studio-components-panel .btn-success:active:hover, .studio-view .btn-success:active:focus, .studio-components-panel .btn-success:active:focus, .studio-view .btn-success:active.focus, .studio-components-panel .btn-success:active.focus, .studio-view .btn-success.active:hover, .studio-components-panel .btn-success.active:hover, .studio-view .btn-success.active:focus, .studio-components-panel .btn-success.active:focus, .studio-view .btn-success.active.focus, .studio-components-panel .btn-success.active.focus, .open > .studio-view .btn-success.dropdown-toggle:hover, .open > .studio-components-panel .btn-success.dropdown-toggle:hover, .open > .studio-view .btn-success.dropdown-toggle:focus, .open > .studio-components-panel .btn-success.dropdown-toggle:focus, .open > .studio-view .btn-success.dropdown-toggle.focus, .open > .studio-components-panel .btn-success.dropdown-toggle.focus {
+        color: #fff;
+        background-color: #398439;
+        border-color: #255625; }
+    .studio-view .btn-success:active, .studio-components-panel .btn-success:active, .studio-view .btn-success.active, .studio-components-panel .btn-success.active, .open > .studio-view .btn-success.dropdown-toggle, .open > .studio-components-panel .btn-success.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-success.disabled, .studio-components-panel .btn-success.disabled, .studio-view .btn-success.disabled:hover, .studio-components-panel .btn-success.disabled:hover, .studio-view .btn-success.disabled:focus, .studio-components-panel .btn-success.disabled:focus, .studio-view .btn-success.disabled.focus, .studio-components-panel .btn-success.disabled.focus, .studio-view .btn-success.disabled:active, .studio-components-panel .btn-success.disabled:active, .studio-view .btn-success.disabled.active, .studio-components-panel .btn-success.disabled.active, .studio-view .btn-success[disabled], .studio-components-panel .btn-success[disabled], .studio-view .btn-success[disabled]:hover, .studio-components-panel .btn-success[disabled]:hover, .studio-view .btn-success[disabled]:focus, .studio-components-panel .btn-success[disabled]:focus, .studio-view .btn-success[disabled].focus, .studio-components-panel .btn-success[disabled].focus, .studio-view .btn-success[disabled]:active, .studio-components-panel .btn-success[disabled]:active, .studio-view .btn-success[disabled].active, .studio-components-panel .btn-success[disabled].active, fieldset[disabled] .studio-view .btn-success, fieldset[disabled] .studio-components-panel .btn-success, fieldset[disabled] .studio-view .btn-success:hover, fieldset[disabled] .studio-components-panel .btn-success:hover, fieldset[disabled] .studio-view .btn-success:focus, fieldset[disabled] .studio-components-panel .btn-success:focus, fieldset[disabled] .studio-view .btn-success.focus, fieldset[disabled] .studio-components-panel .btn-success.focus, fieldset[disabled] .studio-view .btn-success:active, fieldset[disabled] .studio-components-panel .btn-success:active, fieldset[disabled] .studio-view .btn-success.active, fieldset[disabled] .studio-components-panel .btn-success.active {
+    .studio-view .btn-success.disabled:hover, .studio-components-panel .btn-success.disabled:hover, .studio-view .btn-success.disabled:focus, .studio-components-panel .btn-success.disabled:focus, .studio-view .btn-success.disabled.focus, .studio-components-panel .btn-success.disabled.focus, .studio-view .btn-success[disabled]:hover, .studio-components-panel .btn-success[disabled]:hover, .studio-view .btn-success[disabled]:focus, .studio-components-panel .btn-success[disabled]:focus, .studio-view .btn-success[disabled].focus, .studio-components-panel .btn-success[disabled].focus, fieldset[disabled] .studio-view .btn-success:hover, fieldset[disabled] .studio-components-panel .btn-success:hover, fieldset[disabled] .studio-view .btn-success:focus, fieldset[disabled] .studio-components-panel .btn-success:focus, fieldset[disabled] .studio-view .btn-success.focus, fieldset[disabled] .studio-components-panel .btn-success.focus {
       background-color: #5cb85c;
       border-color: #4cae4c; }
     .studio-view .btn-success .badge, .studio-components-panel .btn-success .badge {
@@ -2799,13 +2853,25 @@ sh6 {
     color: #fff;
     background-color: #5bc0de;
     border-color: #46b8da; }
-    .studio-view .btn-info:hover, .studio-components-panel .btn-info:hover, .studio-view .btn-info:focus, .studio-components-panel .btn-info:focus, .studio-view .btn-info.focus, .studio-components-panel .btn-info.focus, .studio-view .btn-info:active, .studio-components-panel .btn-info:active, .studio-view .btn-info.active, .studio-components-panel .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle, .open > .studio-components-panel .btn-info.dropdown-toggle {
+    .studio-view .btn-info:focus, .studio-components-panel .btn-info:focus, .studio-view .btn-info.focus, .studio-components-panel .btn-info.focus {
+      color: #fff;
+      background-color: #31b0d5;
+      border-color: #1b6d85; }
+    .studio-view .btn-info:hover, .studio-components-panel .btn-info:hover {
       color: #fff;
       background-color: #31b0d5;
       border-color: #269abc; }
     .studio-view .btn-info:active, .studio-components-panel .btn-info:active, .studio-view .btn-info.active, .studio-components-panel .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle, .open > .studio-components-panel .btn-info.dropdown-toggle {
+      color: #fff;
+      background-color: #31b0d5;
+      border-color: #269abc; }
+      .studio-view .btn-info:active:hover, .studio-components-panel .btn-info:active:hover, .studio-view .btn-info:active:focus, .studio-components-panel .btn-info:active:focus, .studio-view .btn-info:active.focus, .studio-components-panel .btn-info:active.focus, .studio-view .btn-info.active:hover, .studio-components-panel .btn-info.active:hover, .studio-view .btn-info.active:focus, .studio-components-panel .btn-info.active:focus, .studio-view .btn-info.active.focus, .studio-components-panel .btn-info.active.focus, .open > .studio-view .btn-info.dropdown-toggle:hover, .open > .studio-components-panel .btn-info.dropdown-toggle:hover, .open > .studio-view .btn-info.dropdown-toggle:focus, .open > .studio-components-panel .btn-info.dropdown-toggle:focus, .open > .studio-view .btn-info.dropdown-toggle.focus, .open > .studio-components-panel .btn-info.dropdown-toggle.focus {
+        color: #fff;
+        background-color: #269abc;
+        border-color: #1b6d85; }
+    .studio-view .btn-info:active, .studio-components-panel .btn-info:active, .studio-view .btn-info.active, .studio-components-panel .btn-info.active, .open > .studio-view .btn-info.dropdown-toggle, .open > .studio-components-panel .btn-info.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-info.disabled, .studio-components-panel .btn-info.disabled, .studio-view .btn-info.disabled:hover, .studio-components-panel .btn-info.disabled:hover, .studio-view .btn-info.disabled:focus, .studio-components-panel .btn-info.disabled:focus, .studio-view .btn-info.disabled.focus, .studio-components-panel .btn-info.disabled.focus, .studio-view .btn-info.disabled:active, .studio-components-panel .btn-info.disabled:active, .studio-view .btn-info.disabled.active, .studio-components-panel .btn-info.disabled.active, .studio-view .btn-info[disabled], .studio-components-panel .btn-info[disabled], .studio-view .btn-info[disabled]:hover, .studio-components-panel .btn-info[disabled]:hover, .studio-view .btn-info[disabled]:focus, .studio-components-panel .btn-info[disabled]:focus, .studio-view .btn-info[disabled].focus, .studio-components-panel .btn-info[disabled].focus, .studio-view .btn-info[disabled]:active, .studio-components-panel .btn-info[disabled]:active, .studio-view .btn-info[disabled].active, .studio-components-panel .btn-info[disabled].active, fieldset[disabled] .studio-view .btn-info, fieldset[disabled] .studio-components-panel .btn-info, fieldset[disabled] .studio-view .btn-info:hover, fieldset[disabled] .studio-components-panel .btn-info:hover, fieldset[disabled] .studio-view .btn-info:focus, fieldset[disabled] .studio-components-panel .btn-info:focus, fieldset[disabled] .studio-view .btn-info.focus, fieldset[disabled] .studio-components-panel .btn-info.focus, fieldset[disabled] .studio-view .btn-info:active, fieldset[disabled] .studio-components-panel .btn-info:active, fieldset[disabled] .studio-view .btn-info.active, fieldset[disabled] .studio-components-panel .btn-info.active {
+    .studio-view .btn-info.disabled:hover, .studio-components-panel .btn-info.disabled:hover, .studio-view .btn-info.disabled:focus, .studio-components-panel .btn-info.disabled:focus, .studio-view .btn-info.disabled.focus, .studio-components-panel .btn-info.disabled.focus, .studio-view .btn-info[disabled]:hover, .studio-components-panel .btn-info[disabled]:hover, .studio-view .btn-info[disabled]:focus, .studio-components-panel .btn-info[disabled]:focus, .studio-view .btn-info[disabled].focus, .studio-components-panel .btn-info[disabled].focus, fieldset[disabled] .studio-view .btn-info:hover, fieldset[disabled] .studio-components-panel .btn-info:hover, fieldset[disabled] .studio-view .btn-info:focus, fieldset[disabled] .studio-components-panel .btn-info:focus, fieldset[disabled] .studio-view .btn-info.focus, fieldset[disabled] .studio-components-panel .btn-info.focus {
       background-color: #5bc0de;
       border-color: #46b8da; }
     .studio-view .btn-info .badge, .studio-components-panel .btn-info .badge {
@@ -2815,13 +2881,25 @@ sh6 {
     color: #fff;
     background-color: #f0ad4e;
     border-color: #eea236; }
-    .studio-view .btn-warning:hover, .studio-components-panel .btn-warning:hover, .studio-view .btn-warning:focus, .studio-components-panel .btn-warning:focus, .studio-view .btn-warning.focus, .studio-components-panel .btn-warning.focus, .studio-view .btn-warning:active, .studio-components-panel .btn-warning:active, .studio-view .btn-warning.active, .studio-components-panel .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle, .open > .studio-components-panel .btn-warning.dropdown-toggle {
+    .studio-view .btn-warning:focus, .studio-components-panel .btn-warning:focus, .studio-view .btn-warning.focus, .studio-components-panel .btn-warning.focus {
+      color: #fff;
+      background-color: #ec971f;
+      border-color: #985f0d; }
+    .studio-view .btn-warning:hover, .studio-components-panel .btn-warning:hover {
       color: #fff;
       background-color: #ec971f;
       border-color: #d58512; }
     .studio-view .btn-warning:active, .studio-components-panel .btn-warning:active, .studio-view .btn-warning.active, .studio-components-panel .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle, .open > .studio-components-panel .btn-warning.dropdown-toggle {
+      color: #fff;
+      background-color: #ec971f;
+      border-color: #d58512; }
+      .studio-view .btn-warning:active:hover, .studio-components-panel .btn-warning:active:hover, .studio-view .btn-warning:active:focus, .studio-components-panel .btn-warning:active:focus, .studio-view .btn-warning:active.focus, .studio-components-panel .btn-warning:active.focus, .studio-view .btn-warning.active:hover, .studio-components-panel .btn-warning.active:hover, .studio-view .btn-warning.active:focus, .studio-components-panel .btn-warning.active:focus, .studio-view .btn-warning.active.focus, .studio-components-panel .btn-warning.active.focus, .open > .studio-view .btn-warning.dropdown-toggle:hover, .open > .studio-components-panel .btn-warning.dropdown-toggle:hover, .open > .studio-view .btn-warning.dropdown-toggle:focus, .open > .studio-components-panel .btn-warning.dropdown-toggle:focus, .open > .studio-view .btn-warning.dropdown-toggle.focus, .open > .studio-components-panel .btn-warning.dropdown-toggle.focus {
+        color: #fff;
+        background-color: #d58512;
+        border-color: #985f0d; }
+    .studio-view .btn-warning:active, .studio-components-panel .btn-warning:active, .studio-view .btn-warning.active, .studio-components-panel .btn-warning.active, .open > .studio-view .btn-warning.dropdown-toggle, .open > .studio-components-panel .btn-warning.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-warning.disabled, .studio-components-panel .btn-warning.disabled, .studio-view .btn-warning.disabled:hover, .studio-components-panel .btn-warning.disabled:hover, .studio-view .btn-warning.disabled:focus, .studio-components-panel .btn-warning.disabled:focus, .studio-view .btn-warning.disabled.focus, .studio-components-panel .btn-warning.disabled.focus, .studio-view .btn-warning.disabled:active, .studio-components-panel .btn-warning.disabled:active, .studio-view .btn-warning.disabled.active, .studio-components-panel .btn-warning.disabled.active, .studio-view .btn-warning[disabled], .studio-components-panel .btn-warning[disabled], .studio-view .btn-warning[disabled]:hover, .studio-components-panel .btn-warning[disabled]:hover, .studio-view .btn-warning[disabled]:focus, .studio-components-panel .btn-warning[disabled]:focus, .studio-view .btn-warning[disabled].focus, .studio-components-panel .btn-warning[disabled].focus, .studio-view .btn-warning[disabled]:active, .studio-components-panel .btn-warning[disabled]:active, .studio-view .btn-warning[disabled].active, .studio-components-panel .btn-warning[disabled].active, fieldset[disabled] .studio-view .btn-warning, fieldset[disabled] .studio-components-panel .btn-warning, fieldset[disabled] .studio-view .btn-warning:hover, fieldset[disabled] .studio-components-panel .btn-warning:hover, fieldset[disabled] .studio-view .btn-warning:focus, fieldset[disabled] .studio-components-panel .btn-warning:focus, fieldset[disabled] .studio-view .btn-warning.focus, fieldset[disabled] .studio-components-panel .btn-warning.focus, fieldset[disabled] .studio-view .btn-warning:active, fieldset[disabled] .studio-components-panel .btn-warning:active, fieldset[disabled] .studio-view .btn-warning.active, fieldset[disabled] .studio-components-panel .btn-warning.active {
+    .studio-view .btn-warning.disabled:hover, .studio-components-panel .btn-warning.disabled:hover, .studio-view .btn-warning.disabled:focus, .studio-components-panel .btn-warning.disabled:focus, .studio-view .btn-warning.disabled.focus, .studio-components-panel .btn-warning.disabled.focus, .studio-view .btn-warning[disabled]:hover, .studio-components-panel .btn-warning[disabled]:hover, .studio-view .btn-warning[disabled]:focus, .studio-components-panel .btn-warning[disabled]:focus, .studio-view .btn-warning[disabled].focus, .studio-components-panel .btn-warning[disabled].focus, fieldset[disabled] .studio-view .btn-warning:hover, fieldset[disabled] .studio-components-panel .btn-warning:hover, fieldset[disabled] .studio-view .btn-warning:focus, fieldset[disabled] .studio-components-panel .btn-warning:focus, fieldset[disabled] .studio-view .btn-warning.focus, fieldset[disabled] .studio-components-panel .btn-warning.focus {
       background-color: #f0ad4e;
       border-color: #eea236; }
     .studio-view .btn-warning .badge, .studio-components-panel .btn-warning .badge {
@@ -2831,13 +2909,25 @@ sh6 {
     color: #fff;
     background-color: #ED1C24;
     border-color: #de1219; }
-    .studio-view .btn-danger:hover, .studio-components-panel .btn-danger:hover, .studio-view .btn-danger:focus, .studio-components-panel .btn-danger:focus, .studio-view .btn-danger.focus, .studio-components-panel .btn-danger.focus, .studio-view .btn-danger:active, .studio-components-panel .btn-danger:active, .studio-view .btn-danger.active, .studio-components-panel .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle, .open > .studio-components-panel .btn-danger.dropdown-toggle {
+    .studio-view .btn-danger:focus, .studio-components-panel .btn-danger:focus, .studio-view .btn-danger.focus, .studio-components-panel .btn-danger.focus {
+      color: #fff;
+      background-color: #c61017;
+      border-color: #68080c; }
+    .studio-view .btn-danger:hover, .studio-components-panel .btn-danger:hover {
       color: #fff;
       background-color: #c61017;
       border-color: #a50d13; }
     .studio-view .btn-danger:active, .studio-components-panel .btn-danger:active, .studio-view .btn-danger.active, .studio-components-panel .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle, .open > .studio-components-panel .btn-danger.dropdown-toggle {
+      color: #fff;
+      background-color: #c61017;
+      border-color: #a50d13; }
+      .studio-view .btn-danger:active:hover, .studio-components-panel .btn-danger:active:hover, .studio-view .btn-danger:active:focus, .studio-components-panel .btn-danger:active:focus, .studio-view .btn-danger:active.focus, .studio-components-panel .btn-danger:active.focus, .studio-view .btn-danger.active:hover, .studio-components-panel .btn-danger.active:hover, .studio-view .btn-danger.active:focus, .studio-components-panel .btn-danger.active:focus, .studio-view .btn-danger.active.focus, .studio-components-panel .btn-danger.active.focus, .open > .studio-view .btn-danger.dropdown-toggle:hover, .open > .studio-components-panel .btn-danger.dropdown-toggle:hover, .open > .studio-view .btn-danger.dropdown-toggle:focus, .open > .studio-components-panel .btn-danger.dropdown-toggle:focus, .open > .studio-view .btn-danger.dropdown-toggle.focus, .open > .studio-components-panel .btn-danger.dropdown-toggle.focus {
+        color: #fff;
+        background-color: #a50d13;
+        border-color: #68080c; }
+    .studio-view .btn-danger:active, .studio-components-panel .btn-danger:active, .studio-view .btn-danger.active, .studio-components-panel .btn-danger.active, .open > .studio-view .btn-danger.dropdown-toggle, .open > .studio-components-panel .btn-danger.dropdown-toggle {
       background-image: none; }
-    .studio-view .btn-danger.disabled, .studio-components-panel .btn-danger.disabled, .studio-view .btn-danger.disabled:hover, .studio-components-panel .btn-danger.disabled:hover, .studio-view .btn-danger.disabled:focus, .studio-components-panel .btn-danger.disabled:focus, .studio-view .btn-danger.disabled.focus, .studio-components-panel .btn-danger.disabled.focus, .studio-view .btn-danger.disabled:active, .studio-components-panel .btn-danger.disabled:active, .studio-view .btn-danger.disabled.active, .studio-components-panel .btn-danger.disabled.active, .studio-view .btn-danger[disabled], .studio-components-panel .btn-danger[disabled], .studio-view .btn-danger[disabled]:hover, .studio-components-panel .btn-danger[disabled]:hover, .studio-view .btn-danger[disabled]:focus, .studio-components-panel .btn-danger[disabled]:focus, .studio-view .btn-danger[disabled].focus, .studio-components-panel .btn-danger[disabled].focus, .studio-view .btn-danger[disabled]:active, .studio-components-panel .btn-danger[disabled]:active, .studio-view .btn-danger[disabled].active, .studio-components-panel .btn-danger[disabled].active, fieldset[disabled] .studio-view .btn-danger, fieldset[disabled] .studio-components-panel .btn-danger, fieldset[disabled] .studio-view .btn-danger:hover, fieldset[disabled] .studio-components-panel .btn-danger:hover, fieldset[disabled] .studio-view .btn-danger:focus, fieldset[disabled] .studio-components-panel .btn-danger:focus, fieldset[disabled] .studio-view .btn-danger.focus, fieldset[disabled] .studio-components-panel .btn-danger.focus, fieldset[disabled] .studio-view .btn-danger:active, fieldset[disabled] .studio-components-panel .btn-danger:active, fieldset[disabled] .studio-view .btn-danger.active, fieldset[disabled] .studio-components-panel .btn-danger.active {
+    .studio-view .btn-danger.disabled:hover, .studio-components-panel .btn-danger.disabled:hover, .studio-view .btn-danger.disabled:focus, .studio-components-panel .btn-danger.disabled:focus, .studio-view .btn-danger.disabled.focus, .studio-components-panel .btn-danger.disabled.focus, .studio-view .btn-danger[disabled]:hover, .studio-components-panel .btn-danger[disabled]:hover, .studio-view .btn-danger[disabled]:focus, .studio-components-panel .btn-danger[disabled]:focus, .studio-view .btn-danger[disabled].focus, .studio-components-panel .btn-danger[disabled].focus, fieldset[disabled] .studio-view .btn-danger:hover, fieldset[disabled] .studio-components-panel .btn-danger:hover, fieldset[disabled] .studio-view .btn-danger:focus, fieldset[disabled] .studio-components-panel .btn-danger:focus, fieldset[disabled] .studio-view .btn-danger.focus, fieldset[disabled] .studio-components-panel .btn-danger.focus {
       background-color: #ED1C24;
       border-color: #de1219; }
     .studio-view .btn-danger .badge, .studio-components-panel .btn-danger .badge {
@@ -2933,6 +3023,17 @@ sh6 {
   .studio-dnd-controller-overlay.fadeIn {
     display: block; }
 
+.notifyjs-studio-notify-base {
+  border-radius: 4px;
+  border: 1px solid #AEBECF;
+  box-shadow: rgba(10, 10, 10, 0.49) 0px 2px 4px;
+  color: #444444;
+  background-color: #D2DAE3;
+  font-family: Raleway, sans-serif;
+  font-size: 12px;
+  padding: 14px;
+  font-weight: bold; }
+
 body {
   transition: padding .5s, transform .5s; }
   body.studio-dnd-enabled {
@@ -2960,6 +3061,15 @@ body.studio-dnd-enabled [data-studio-components-target] {
     cursor: move !important; }
   body.studio-dnd-enabled [data-studio-components-target] * {
     cursor: pointer; }
+body.studio-dnd-enabled .studio-div-mouse {
+  background-color: white;
+  z-index: 1000;
+  min-width: 100px;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1050; }
 body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
   color: #fff;
   padding: 5px 10px;
@@ -2968,6 +3078,9 @@ body.studio-dnd-enabled .studio-component-drag-target.ui-draggable-dragging {
   border-radius: 4px;
   cursor: move; }
 body.studio-dnd-enabled .studio-draggable-over {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 0 5px 5px rgba(241, 75, 82, 0.4) !important; }
+body.studio-dnd-enabled.studio-pointer-enabled .studio-pointer-over {
   background-color: rgba(255, 255, 255, 0.9) !important;
   box-shadow: 0 0 5px 5px rgba(241, 75, 82, 0.4) !important; }
 
@@ -3032,6 +3145,8 @@ body.studio-dnd-enabled .studio-draggable-over {
         border-top-right-radius: 4px;
         background: #F0F0F0;
         font-weight: bold; }
+        .studio-components-panel .studio-components-container .studio-category .studio-category-name.add-existing-component {
+          background: rgba(221, 221, 221, 0.8); }
       .studio-components-panel .studio-components-container .studio-category > sul {
         display: block;
         list-style: none;

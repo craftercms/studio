@@ -34,11 +34,12 @@ CStudioForms.Controls.RTE.ImageInsert = CStudioForms.Controls.RTE.ImageInsert ||
 
                         // Register the command so that it can be invoked by using tinyMCE.activeEditor.execCommand('mceExample');
                         ed.addCommand('mceInsertManagedImage', function(param, datasource) {
-                        	
+                            var actualCaretPositionBookmark = ed.selection.getBookmark();
                         	if(datasource) {
                         		if(datasource.insertImageAction) {
 	                        		datasource.insertImageAction({
 	                        			success: function(imageData) {
+                                            ed.selection.moveToBookmark(actualCaretPositionBookmark);
 	                        				ed.execCommand('mceInsertContent', false, '<img src="' + imageData.previewUrl + '" />');
 	                        				ed.contextControl.save();
 	                        			},
