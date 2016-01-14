@@ -136,11 +136,11 @@
                     iterator, parentUri = "";
                 iterator = function(i, item){
 
-                    var displayName = SUtils.truncate(item.internalName, 20);
+                    var displayName = SUtils.truncate(item.internalName, 32);
                     if (item.newFile) {
                         displayName += "*";
                     }
-                    var displayURL = "..." + SUtils.truncate(item.browserUri || "", 37);
+                    var displayURL = "..." + SUtils.truncate(item.browserUri || item.uri, 50);
                     //Delete should not assume the item is scheduled.
                     html.push(agent.get(!depth ? "ROOT_ROW" : "SUB_ROW", {
                         url: item.browserUri || item.uri,
