@@ -932,16 +932,12 @@ public class ContentServiceImpl implements ContentService {
         boolean isPages = (path.contains("/site/website"));
         ContentItemTO root = null;
 
-        if(isPages && path.equals("/site/website")) {
+        if (isPages && contentExists(site, path + "/index.xml")) {
             root = getContentItem(site, path+"/index.xml");
         }
         else {
             root = getContentItem(site, path);
         }
-
-        // root.children = getContentItemTreeInternal(site, path, depth, isPages);
-        // root.numOfChildren = root.children.size();
-        // if(root.numOfChildren != 0)  root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
