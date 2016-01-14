@@ -168,6 +168,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String parentContentPath = fullPath;
         if (parentContentPath.endsWith("/" + fileName)) {
             parentContentPath = parentContentPath.replace("/" + fileName, "");
+        } else {
+            fullPath = fullPath + "/" + fileName;
         }
         String parentRelativePath = contentService.getRelativeSitePath(site, parentContentPath);
         //contentPath = (isPreview) ? DmUtils.getPreviewPath(contentPath) : contentPath;

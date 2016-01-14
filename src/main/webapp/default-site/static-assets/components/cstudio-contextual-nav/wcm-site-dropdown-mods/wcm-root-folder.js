@@ -52,8 +52,8 @@
                                 }
                                 instance.excludeCache[path].push(config.params.excludes.exclude);
                             }
-                        }
-                        else {
+                        } 
+                        else { 
                             for (var i = 0; i < config.params.excludes.exclude.length; i++) {
                                 var path = config.params.excludes.exclude[i];
                                 if (!instance.excludeCache[path]) {
@@ -61,7 +61,7 @@
                                 }
                                 instance.excludeCache[path].push(config.params.excludes.exclude[i]);
                             }
-                        }
+                        }                    
                     }
 
 
@@ -101,10 +101,10 @@
                     		thisComponent.openLatest(instance);
                     	}
                         this.blur();
-                    });
+                    });					
                 }
             },
-
+            
             /**
              * add a root level folder to the content drop down
              */
@@ -570,7 +570,7 @@ treeNode.getHtml = function() {
                     }
                 }
             },
-
+            
             getStoredPathKey: function(instance) {
 				return (instance.config.params.path ? instance.config.params.path : instance.config.params.paths.path[0] + '-latest-opened-path');
 			},
@@ -803,26 +803,26 @@ treeNode.getHtml = function() {
 	    					//add blur effect for cut items
 	    					Self.setChildrenStyles(args.node);
 	            	    },
-
+	
 	                    failure: function(err, args) {
 	                        args.fnLoadComplete();
 	                    },
-
+	
 	                    argument: {
 	                        "node": node,
 	                        "instance": node.instance,
 	                        "fnLoadComplete": fnLoadComplete,
 	                        pathToOpenTo: pathToOpenTo
 	                    }
-	           	}
-
+	           	} 
+				
 	            CStudioAuthoring.Service.lookupSiteContent(site, path, 1, "default", serviceCb);
     },
-
+    
     save: function(instance, path) {
         storage.write(Self.getStoredPathKey(instance), path, 360);
     },
-
+    
     /**
 	* methos that fires when new items added to tree.
 	*/
@@ -841,21 +841,21 @@ treeNode.getHtml = function() {
         else {
            node = treeNode;
         }
-
+        
 	   	tree.removeChildren(node);
 		var loadEl = $(".ygtvtp", node.getEl(), true);
 		loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
 		YDom.addClass(loadEl, "ygtvloading");
 		node.renderChildren();
 		node.refresh();
-
+		
 		var treeInner = YDom.get('acn-dropdown-menu-inner');
 		var previousCutEl = YDom.getElementsByClassName("status-icon", null, treeInner);
-
+		
 		for(var i=0; i<previousCutEl.length; i++){
-
+			
 			if(previousCutEl[i].style.color == Self.CUT_STYLE_RGB || previousCutEl[i].style.color == Self.CUT_STYLE ){
-
+				
 				if(status){
 					var tempSplit = previousCutEl[i].id.split("labelel");
 					var parentNode = YDom.get(tempSplit[0]+tempSplit[1]);
@@ -863,7 +863,7 @@ treeNode.getHtml = function() {
 					if (Self.cutItem != null) {
 						var parNode = tree.getNodeByProperty("path", Self.cutItem.parent.data.path);
 						//if parent have single child and we did cut and paste the child,
-						//we should refresh the parent node to remove expand collapse icon
+						//we should refresh the parent node to remove expand collapse icon 
 						if (parNode && parNode.children && parNode.children.length == 1) {
 							tree.removeChildren(parNode);
 							var parLoadEl = $(".ygtvtp", parNode.getEl(), true);
@@ -880,21 +880,21 @@ treeNode.getHtml = function() {
 				}else{
 					previousCutEl[i].removeAttribute("style");
 				}
-			}
+			}						
 		}
-
-
+		
+		
 	},
-
+	
 	/**
 	* method fired when tree item is clicked
 	 */
 	onTreeNodeClick: function(node) {
-
+	
 		// lets remove ths case logic here and just invoke a callback
 		if (node.nodeType == "CONTENT") {
 			if (node.data.previewable == true && node.instance.onClickAction == "preview") {
-
+			
 				if(node.data.isContainer == true && node.data.pathSegment != 'index.xml') {
 					// this is a false state coming from the back-end
 				} else /*if (node.data.isLevelDescriptor == false)*/ {
@@ -934,7 +934,7 @@ treeNode.getHtml = function() {
                 retTransferObj.inProgress = treeItem.inProgress;
                 retTransferObj.previewable = treeItem.previewable;
                 var itemNameLabel = "Page";
-
+                
 
                 retTransferObj.status = CStudioAuthoring.Utils.getContentItemStatus(treeItem);
                 retTransferObj.style = CStudioAuthoring.Utils.getIconFWClasses(treeItem); //, treeItem.container
@@ -1424,17 +1424,17 @@ treeNode.getHtml = function() {
 		                   	} // end of else
 
                             if((oCurrentTextNode.data.lockOwner != ""
-                            && CStudioAuthoringContext.role === "admin")
+                            && CStudioAuthoringContext.role === "admin") 
                             || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
                                p_aArgs.addItems([ menuItems.separator ]);
                                 p_aArgs.addItems([ menuItems.unlockOption ]);
-                            }
+                            }                                                       
 
-
+		                   	
 	                 	},
                         failure: function() { }
                     };
-
+					
                     checkPermissionsCb.isComponent = isComponent;
                     checkPermissionsCb.isLevelDescriptor = isLevelDescriptor;
                     checkPermissionsCb.aMenuItems = aMenuItems;
@@ -1489,9 +1489,9 @@ treeNode.getHtml = function() {
 					deleteOption: { text: CMgs.format(siteDropdownLangBundle, "delete"), onclick: { fn: Self.deleteContent, obj:tree } },
 
 					cutOption: { text: CMgs.format(siteDropdownLangBundle, "cut"), onclick: { fn: Self.cutContent, obj:tree } },
-
+					
 					copyOption: { text: CMgs.format(siteDropdownLangBundle, "copy"), onclick: { fn: Self.copyTree, obj:tree } },
-
+					
 					pasteOption: { text: CMgs.format(siteDropdownLangBundle, "paste"), onclick: { fn: Self.pasteContent} },
 
 					revertOption: { text: CMgs.format(siteDropdownLangBundle, "history"), onclick: { fn: Self.revertContent, obj:tree } },

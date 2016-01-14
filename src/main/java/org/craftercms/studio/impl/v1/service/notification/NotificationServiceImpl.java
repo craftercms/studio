@@ -833,6 +833,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (liveBaseUrl == null) {
             liveBaseUrl = siteService.getLiveServerUrl(site);
         }
+        String authoringBaseUrl = siteService.getAuthoringServerUrl(site);
         String adminEmailAddress = siteService.getAdminEmailAddress(site);
         String userEmailAddress="";
         /*
@@ -866,6 +867,7 @@ public class NotificationServiceImpl implements NotificationService {
         EmailMessageTO emailMessage= new EmailMessageTO(subject,content,userEmailAddress);
         emailMessage.setPreviewBaseUrl(previewBaseUrl);
         emailMessage.setLiveBaseUrl(liveBaseUrl);
+        emailMessage.setAuthoringBaseUrl(authoringBaseUrl);
         if (StringUtils.isNotEmpty(rejectReason)) {
             emailMessage.setRejectReason(rejectReason);
         }

@@ -119,6 +119,8 @@ public interface SiteService {
 
     String getLiveServerUrl(String site);
 
+    String getAuthoringServerUrl(String site);
+
     String getAdminEmailAddress(String site);
 
     void reloadSiteConfigurations();

@@ -1,6 +1,6 @@
 <environment-config>
 	<preview-server-url>http://head.studio.dev.craftercms.org</preview-server-url>
-	<authoring-server-url>http://head.studio.dev.craftercms.org/share</authoring-server-url>
+	<authoring-server-url>http://head.studio.dev.craftercms.org/studio</authoring-server-url>
 	<form-server-url>http://head.studio.dev.craftercms.org/form-server</form-server-url>
 	<live-server-url>http://global.com</live-server-url>
     <publishing-channels>
