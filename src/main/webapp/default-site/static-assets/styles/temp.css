@@ -15515,8 +15515,12 @@ margin-left: -3px; */
       width: 10%; }
     table.scroll-body tr .medium {
       width: 30%; }
+    table.scroll-body tr .deleteMedium {
+      width: 34%; }
     table.scroll-body tr .large {
       width: 60%; }
+    table.scroll-body tr .deleteLarge {
+      width: 56%; }
   table.scroll-body thead {
     width: 100%;
     display: table;
