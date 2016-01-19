@@ -37,7 +37,7 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
 
     @Override
     public RepositoryItem[] getContentChildren(String path) {
-        if (path.startsWith("/cstudio/config")) {
+        if (path.startsWith("/cstudio")) {
             return super.getContentChildren(path);
         } else {
             final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
