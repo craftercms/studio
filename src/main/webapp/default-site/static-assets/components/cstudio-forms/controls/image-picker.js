@@ -733,7 +733,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         YAHOO.util.Dom.addClass(descriptionEl, 'description');
         YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
         descriptionEl.innerHTML = config.description;
-        descriptionEl.style.marginLeft = "341px";
+        //descriptionEl.style.marginLeft = "341px";
         descriptionEl.style.position = "relative";
 
         containerEl.appendChild(titleEl);
