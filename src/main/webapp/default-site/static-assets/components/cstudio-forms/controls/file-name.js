@@ -295,10 +295,11 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         YAHOO.util.Dom.addClass(descriptionEl, 'description');
         YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
         descriptionEl.innerHTML = config.description;
-        controlWidgetContainerEl.appendChild(descriptionEl);
+        //controlWidgetContainerEl.appendChild(descriptionEl);
 
         containerEl.appendChild(titleEl);
         containerEl.appendChild(controlWidgetContainerEl);
+        containerEl.appendChild(descriptionEl);
 
     },
 
