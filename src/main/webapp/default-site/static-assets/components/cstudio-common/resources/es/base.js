@@ -54,6 +54,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "es", {
     dashletRecentDeployColEndpoint: "Servidor",
     dashletRecentDeployColDeployBy: "Publicado por",
     dashletRecentDeployColLastEdited: "Última Edición",
+    dashletRecentDeployColPageName: "Nombre del Artículo",
 
     dashletMyRecentActivityTitle: "Mi actividad reciente",
     dashletMyRecentActivityHideLiveItems: "Enconder Artículos en Vivo",

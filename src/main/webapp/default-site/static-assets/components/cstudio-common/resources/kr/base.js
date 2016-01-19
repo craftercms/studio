@@ -49,6 +49,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "kr", {
     dashletRecentDeployColEndpoint: "서버",
     dashletRecentDeployColDeployBy: "에 의해 게시",
     dashletRecentDeployColLastEdited: "최근 편집",
+    dashletRecentDeployColPageName: "항목 이름",
 
     dashletMyRecentActivityTitle: "내 최근 활동",
     dashletMyRecentActivityHideLiveItems: "라이브 항목 숨기기",
