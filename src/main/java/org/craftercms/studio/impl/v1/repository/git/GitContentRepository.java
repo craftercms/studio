@@ -53,7 +53,7 @@ public class GitContentRepository extends DiskContentRepository {
     public void lockItem(String site, String path) {
         try {
             Repository repo = new FileRepositoryBuilder()
-                    .setGitDir(new File(this.getRootPath() + "/wem-projects/" + site + "/" + site + "/centralrepo"))
+                    .setGitDir(new File(this.getRootPath() + "/wem-projects/" + site + "/" + site + "/centralrepo/.git "))
                     .readEnvironment()
                     .findGitDir()
                     .build();
