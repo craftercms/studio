@@ -291,6 +291,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     position: relative;
     padding-top: 15px;
     clear: both;
+    max-width: 100%;
 }
 
 .cstudio-form-field-title {
@@ -310,7 +311,9 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 .cstudio-form-field-description {
 	color: #999999;
 	display: block;
-	margin-left: 20px;
+    margin-left: 24%;
+    padding-left: 41px;
+    text-align: justify;
 }
 
 .cstudio-form-field-help-container {
@@ -547,7 +550,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 }
 
 .cstudio-form-control-rte-description {
-	display: inline;
+	display: inline-block;
 	color: #999999;
     padding-left: 20px;
 }
