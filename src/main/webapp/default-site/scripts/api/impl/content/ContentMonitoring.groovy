@@ -80,19 +80,19 @@ class ContentMonitoring {
 						monitor.paths.path[0] = onlyPath
 					}			
 
-
 					results.monitors = []
 					def queryStatement = monitor.query
 					 
 					def query = searchService.createQuery()
 					query = query.setQuery(queryStatement)
+                                        query = query.setRows(10000)
 					 
 					def executedQuery = searchService.search(query)   
 					def itemsFound = executedQuery.response.numFound    
 					def items = executedQuery.response.documents
-					logger.info("Content monitor (" + monitor.name + ") found " + itemsFound)
+					logger.info("Content monitor (" + monitor.name + ") found " + itemsFound + " | " + items.size() )
 
-					for(int p=0; p<monitor.paths.path.size(); p++){
+					for(int p=0; p<monitor.paths.path.size(); p++) {
 						// there are paths, query for items and then match against paths patterns
 						def path = monitor.paths.path[p]
 						def monitorPathResult = [:]
@@ -102,15 +102,20 @@ class ContentMonitoring {
 
 						for(int i=0; i<itemsFound; i++) {
 							// iterate over the items and prepare notifications
-							def item = items[i]
-							def notifyItem = [:]
-							notifyItem.id = item.localId 
-							
-
-							if(item.localId =~ Pattern.compile(path.pattern)) {                                          
-								monitorPathResult.items.add(notifyItem)
-							}
-						}
+							def item = items.get(i)
+                                                    
+                                                         if(item != null) {
+                                                           def notifyItem = [:]
+                                                           notifyItem.id = item.localId
+                                                           
+                                                           if(item.localId =~ Pattern.compile(path.pattern)) {
+                                                                monitorPathResult.items.add(notifyItem)
+                                                           }
+                                                       }
+                                                       else {
+                                                          logger.info("Content monitor: " + monitor.name + " query ("+queryStatement+")  item " + i + " is null")
+                                                       }						
+                                                }
 
 						if(monitorPathResult.items.size() > 0) {
 							results.monitors.add(monitorPathResult)
@@ -118,9 +123,9 @@ class ContentMonitoring {
 							logger.info("Content monitor: " + monitor.name + " Sending notification ("+path.notificationMessageId+")")
 							notificationService.sendGenericNotification(
 								site, 
-								"PATHINPARAMS", 
+								"/site/website/index.xml",  //PATHS ARE IN PARAMS BUT THIS SERVICE NEEDS SOMETHING 
 								path.notifyEmail, 
-								"CrafterCms", 
+								path.notifyEmail, 
 								path.notificationMessageId, 
 								[:])//monitorPathResult)
 						}
