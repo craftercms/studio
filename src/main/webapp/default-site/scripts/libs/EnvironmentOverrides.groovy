@@ -30,7 +30,11 @@ class EnvironmentOverrides {
 			def roles = SecurityServices.getUserRoles(context, result.site, result.user)
 			  
 			if(roles!=null && roles.size() > 0) {
-				result.role = roles[0]
+                if (roles.contains("admin")) {
+                    result.role = "admin"
+                } else {
+                    result.role = roles[0]
+                }
 			}
 			else {
 				response.sendRedirect("/studio/#/sites")
