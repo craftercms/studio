@@ -113,7 +113,7 @@ public class EmailMessageSender implements Runnable {
 				if(personalFromName != null)
 					fromAddress.setPersonal(personalFromName);
 				mimeMessage.setFrom(fromAddress);
-				mimeMessage.setText(content);
+				mimeMessage.setContent(content, "text/html; charset=utf-8")
 				mimeMessage.setSubject(subject);
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("sending email to ["+userEmailAddress+"]subject subject :["+subject+"]");
