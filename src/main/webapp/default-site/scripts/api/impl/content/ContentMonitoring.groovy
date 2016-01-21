@@ -70,6 +70,9 @@ class ContentMonitoring {
 
 			for(int m=0; m<config.contentMonitoring.monitor.size(); m++) {
 				def monitor = config.contentMonitoring.monitor[m]
+                                def authoringBaseUrl = config.contentMonitoring.authoringBaseUrl
+                                def siteId = config.name
+
 				logger.info("executing monitor: " + monitor.name)
 
 				if(monitor.paths !=null && monitor.paths.path!=null) {
@@ -97,29 +100,54 @@ class ContentMonitoring {
 						def path = monitor.paths.path[p]
 						def monitorPathResult = [:]
 						monitorPathResult.name = path.name
-						monitorPathResult.notify = path.notify
-						monitorPathResult.items = []
+						monitorPathResult.notify = path.notifyEmail
+                                                monitorPathResult.itemsStr = ""
+
+						def monitorPathResultItems = []
 
 						for(int i=0; i<itemsFound; i++) {
 							// iterate over the items and prepare notifications
 							def item = items.get(i)
                                                     
-                                                         if(item != null) {
-                                                           def notifyItem = [:]
-                                                           notifyItem.id = item.localId
-                                                           
-                                                           if(item.localId =~ Pattern.compile(path.pattern)) {
-                                                                monitorPathResult.items.add(notifyItem)
-                                                           }
-                                                       }
-                                                       else {
-                                                          logger.info("Content monitor: " + monitor.name + " query ("+queryStatement+")  item " + i + " is null")
-                                                       }						
-                                                }
+	                             if(item != null) {
+	                               def notifyItem = [:]
+	                               notifyItem.id = item.localId
+	                               notifyItem.internalName = item["internal-name"]
 
-						if(monitorPathResult.items.size() > 0) {
+	                               if(item.localId =~ Pattern.compile(path.pattern)) {
+	                                    monitorPathResultItems.add(notifyItem)
+	                                  
+	                                    if(notifyItem.id.contains("/site/website")) {
+
+	                                       def uri = notifyItem.id.replace("/site/website", "").replace("/index.xml","").replace(".xml", "")
+
+	                                       monitorPathResult.itemsStr += 
+	                                          "<li class='notifyItem'>" +
+	                                            "<a href='" + authoringBaseUrl + "/preview/#/?page=" + uri + "&site=" + siteId  + "'>" +
+	                                              notifyItem.internalName + 
+	                                            "</a>" +
+	                                          "</li>"
+	                                    }
+	                                    else {
+	                                       monitorPathResult.itemsStr += 
+	                                          "<li class='notifyItem'>" +
+	                                            "Component: "+
+	                                              notifyItem.internalName + 
+	                                            "" +
+	                                          "</li>"
+	                                    }
+
+	                               }
+	                           }
+	                           else {
+	                              logger.info("Content monitor: " + monitor.name + " query ("+queryStatement+")  item " + i + " is null")
+	                           }						
+	                    }
+
+						if(monitorPathResultItems.size() > 0) {
 							results.monitors.add(monitorPathResult)
 
+                            // create a list of items to send in the email
 							logger.info("Content monitor: " + monitor.name + " Sending notification ("+path.notificationMessageId+")")
 							notificationService.sendGenericNotification(
 								site, 
@@ -127,7 +155,7 @@ class ContentMonitoring {
 								path.notifyEmail, 
 								path.notifyEmail, 
 								path.notificationMessageId, 
-								[:])//monitorPathResult)
+								monitorPathResult)
 						}
 
 					} //end looping over paths
