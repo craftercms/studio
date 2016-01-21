@@ -93,6 +93,15 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean contentExists(String site, String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        if (cacheService.hasScope(cacheContext)) {
+            Object cacheKey = cacheTemplate.getKey(site, path);
+            boolean cached = cacheService.hasKey(cacheContext, cacheKey);
+            if (cached) {
+                return cached;
+            }
+        }
         return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
     }
 
@@ -765,9 +774,13 @@ public class ContentServiceImpl implements ContentService {
     protected ContentItemTO getCachedContentItem(final String site, final String path) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         ContentItemTO item = cacheTemplate.getObject(cacheContext, new Callback<ContentItemTO>() {
             @Override

@@ -205,7 +205,7 @@ implements SecurityProvider {
             }
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
+        logger.debug("TRACE: createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
         return versionLabel;
 
     }
@@ -296,7 +296,7 @@ implements SecurityProvider {
         int status = httpClient.executeMethod(postMethod);
 
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
+        logger.debug("TRACE: alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -342,7 +342,7 @@ implements SecurityProvider {
         logger.debug("Response status back from the server: " + status);
 
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
+        logger.debug("TRACE: alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
         return postMethod.getResponseBodyAsString();
     }
 
@@ -498,7 +498,7 @@ implements SecurityProvider {
             logger.error("Error while validating authentication token", e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
+        logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
     }
 
@@ -523,7 +523,7 @@ implements SecurityProvider {
                 logger.debug("Cron Job");
 
             }
-            logger.debug("Stack trace (depth 10): " + sbStack.toString());
+            logger.debug("TRACE: Stack trace (depth 10): " + sbStack.toString());
         }
     }
 
@@ -548,7 +548,7 @@ implements SecurityProvider {
             throw new ContentNotFoundException(e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return nodeRef;
     }
 
@@ -577,7 +577,7 @@ implements SecurityProvider {
             throw new ContentNotFoundException(e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return inputStream;
     }
 
@@ -633,7 +633,7 @@ implements SecurityProvider {
             }
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return items;
     }
 
@@ -698,7 +698,7 @@ implements SecurityProvider {
                 session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
-            logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
+            logger.debug("TRACE: writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
             return true;
         } catch (CmisBaseException e) {
             logger.error("Error writing content to a path {0}", e, fullPath);
@@ -742,7 +742,7 @@ implements SecurityProvider {
             logger.error("Could not find content for path {0}", fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return result;
     }
 
@@ -789,7 +789,7 @@ implements SecurityProvider {
             logger.error("err getting content: ", err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return versions;
     }
 
@@ -827,7 +827,7 @@ implements SecurityProvider {
             logger.error("err reverting content content: ", err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
+        logger.debug("TRACE: revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
         return success;
     }
 
@@ -928,7 +928,7 @@ implements SecurityProvider {
             logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
+        logger.debug("TRACE: createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
         return newFolderRef;
     }
 
@@ -985,7 +985,7 @@ implements SecurityProvider {
             logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " + toFullPath, err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
+        logger.debug("TRACE: copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
         return result;
     }
 
@@ -1087,7 +1087,7 @@ implements SecurityProvider {
 
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
@@ -1245,7 +1245,7 @@ implements SecurityProvider {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return modifiedDate;
     }
 
@@ -1272,7 +1272,7 @@ implements SecurityProvider {
             logger.error("Error while invalidating authentication token", e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("logout()\n\t\tDuration: {0}", duration);
+        logger.debug("TRACE: logout()\n\t\tDuration: {0}", duration);
         return false;
     }
 
