@@ -37,7 +37,7 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
 
     @Override
     public RepositoryItem[] getContentChildren(String path) {
-        if (path.startsWith("/cstudio/config")) {
+        if (path.startsWith("/cstudio")) {
             return super.getContentChildren(path);
         } else {
             final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
@@ -45,6 +45,10 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
             try {
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 final String finalPath = path;
+                Path pathObj = constructRepoPath(path);
+                if (!Files.exists(pathObj)) {
+                    return super.getContentChildren(path);
+                }
                 Files.walkFileTree(constructRepoPath(finalPath), opts, 1, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
