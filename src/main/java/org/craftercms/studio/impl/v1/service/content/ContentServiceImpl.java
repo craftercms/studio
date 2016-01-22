@@ -670,11 +670,13 @@ public class ContentServiceImpl implements ContentService {
                         indexFound = true;
                     }
                     else {
-                        String childPath = getRelativeSitePath(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name);
-                        if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
-                            children.add(getContentItem(item.site, childPath+ "/index.xml", depth - 1));
-                        } else {
-                            children.add(getContentItem(item.site, childPath, depth - 1));
+                        if (depth > 1) {
+                            String childPath = getRelativeSitePath(item.site, childRepoItems[j].path + "/" + childRepoItems[j].name);
+                            if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
+                                children.add(getContentItem(item.site, childPath + "/index.xml", depth - 1));
+                            } else {
+                                children.add(getContentItem(item.site, childPath, depth - 1));
+                            }
                         }
                     }
                 }
