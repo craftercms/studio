@@ -620,11 +620,12 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         this.imageEl = imageEl;
         imageEl.id = divPrefix + "cstudio-form-image-picker";
         YAHOO.util.Dom.addClass(imageEl, 'cstudio-form-control-asset-picker-preview-block');
+        YAHOO.util.Dom.addClass(imageEl, 'cstudio-form-control-asset-picker-no-preview-image');
         bodyEl.appendChild(imageEl);
 
         var noPreviewEl = document.createElement("span");
         this.noPreviewEl = noPreviewEl;
-        noPreviewEl.innerHTML = "No Image Available";
+        noPreviewEl.innerHTML = "No Image Availablee";
         YAHOO.util.Dom.addClass(noPreviewEl, 'cstudio-form-control-asset-picker-no-preview-content');
         imageEl.appendChild(noPreviewEl);
 
