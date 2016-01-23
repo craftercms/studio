@@ -762,11 +762,18 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     .cstudio-form-control-asset-picker-no-preview-image {
         max-width: 240px;
     }
+    .cstudio-form-repeat-container .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 221px;
+    }
 }
 
 @media screen and (max-width: 830px) {
     .cstudio-form-control-asset-picker-no-preview-image {
         max-width: 179px;
+    }
+
+    .cstudio-form-repeat-container .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 159px;
     }
 }
 
