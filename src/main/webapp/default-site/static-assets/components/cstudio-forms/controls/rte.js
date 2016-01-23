@@ -319,8 +319,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
         if (typeof fieldContainerWidth == 'number') {
             if (elements['rte-container']) {
             	if (rteContainerWidth < fieldContainerWidth - rteMarginLeft) {
-	                YDom.setStyle(elements['rte-container'], "margin-left", rteMarginLeft + "px");
-	                YDom.setStyle(elements['rte-container'], "width", rteContainerWidth + "px");
+	                YDom.setStyle(elements['rte-container'], "margin-left", 27 + "%");
+	                //YDom.setStyle(elements['rte-container'], "width", rteContainerWidth + "px");
 	                if (elements['rte-table']) {
 		            	YDom.setStyle(elements['rte-table'], "width", rteWidth + "px");
 		            }
