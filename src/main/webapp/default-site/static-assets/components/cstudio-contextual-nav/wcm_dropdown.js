@@ -26,7 +26,8 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
             auth = CStudioAuthoring,
             utils = auth.Utils,
             strUtils = auth.StringUtils,
-            storage = auth.Storage;
+            storage = auth.Storage,
+            $ = jQuery;
 
         var CMgs = CStudioAuthoring.Messages;
         var contextNavLangBundle = CMgs.getBundle("contextnav", CStudioAuthoringContext.lang);
@@ -43,7 +44,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                         '</a>' +
                     '</div>' +
                     '<div id="acn-dropdown-menu-wrapper" style="display:none" class="acn-dropdown-menu-wrapper unselectable">' +
-                        //'<div id="acn-resize" class="acn-resize">' +
+                        '<div id="acn-resize" class="acn-resize">' +
                         '<div class="acn-data">' +
                             '<div id="acn-context-menu" class="acn-context-menu"></div>' +
                             '<div id="acn-context-tooltip" class="acn-context-tooltip"></div>' +
@@ -52,7 +53,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                                 '<div id="acn-dropdown-footer" class="acn-dropdown-footer"></div>' +
                             '</div>' +
                         '</div>' +
-                        //'</div>' +
+                        '</div>' +
                     '</div>' +
                 '</div>';
 
@@ -154,7 +155,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                     this.instanceId = auth.ContextualNav.WcmSiteDropdown.getNextInstanceId();
                     this.initializeConfig(oConfig);
                     this.initializePreferences(oPreferences);
-                    // this.initializeResizing();
+                    this.initializeResizing();
                     this.initializeVisibility();
 
                     var cfg = this.oPreferences,
@@ -228,37 +229,26 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                 initializeResizing: function () {
                     var cookie_dropdown_heightWidth = "wcm_site_dropdown_heightWidth",
                         dom = YAHOO.util.Dom,
-                        $ = YAHOO.util.Selector.query,
-                        resizeDataAreaFn = function () {
-                            var bd = dom.get('acn-dropdown-menu'),
-                                wrpEl = dom.get('acn-dropdown-menu-wrapper'),
-                                wrpHeight = 0,
-                                wrpIsHidden = (wrpEl.style.display == 'none'),
-                                botBarH = parseInt(dom.getStyle($('.yui-resize-handle-b', 'acn-resize', true), 'height')),
-                                bdPadTop = parseInt(dom.getStyle(bd, 'padding-top')),
-                                bdPadBot = parseInt(dom.getStyle(bd, 'padding-bottom'));
-                            wrpIsHidden && (wrpEl.style.display = 'block');
-                            wrpHeight = Math.max(0, Math.round(wrpEl.offsetHeight));
-                            wrpIsHidden && (wrpEl.style.display = 'none');
-                            dom.setStyle(bd, 'height', (wrpHeight - botBarH - bdPadTop - bdPadBot) + 'px');
-                        };
-                    // make dropdown resizable
-                    var resize = new YAHOO.util.Resize('acn-resize', {
-                        height: this.oPreferences.height,
-                        width: this.oPreferences.width,
-                        minHeight: this.oConfig.minHeight,
-                        minWidth: this.oConfig.minWidth,
-                        maxHeight: this.oConfig.maxHeight,
-                        maxWidth: this.oConfig.maxWidth
-                    }, this);
+                        query = YAHOO.util.Selector.query,
+                        $ = jQuery;
                     var self = this;
-                    resize.on('endResize', function (args) {
-                        resizeDataAreaFn();
-                        self.oPreferences.width = args.width + "px";
-                        self.oPreferences.height = args.height + "px";
-                        self.save();
-                    }, resize, true);
-                    resizeDataAreaFn();
+                    $( "#acn-resize").width(self.oPreferences.width);
+                    $(function() {
+                        $( "#acn-resize" ).resizable({
+                            minHeight: 150,
+                            minWidth: 265,
+                            stop: function( event, ui ) {
+                                self.oPreferences.width = ui.size.width + "px";
+                                self.oPreferences.height = ui.size.height + "px";
+                                self.save();
+                            },
+                            resize: function(event, ui) {
+                                ui.size.height = ui.originalSize.height;
+                                $(".site-dropdown-open .studio-preview").css({ left :  ui.size.width});
+                                $(".site-dropdown-open .site-dashboard").css({ paddingLeft :  ui.size.width});
+                            }
+                        });
+                    });
                     return this;
                 },
                 save: function () {
@@ -275,10 +265,14 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                     if (cfg.visible !== visible) {
                         if (visible) {
                             $('html').addClass('site-dropdown-open');
+                            $(".site-dropdown-open .studio-preview").css({ left :  cfg.width});
+                            $(".site-dropdown-open .site-dashboard").css({ paddingLeft :  cfg.width});
                             YDom.addClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideIn();
                         } else {
                             $('html').removeClass('site-dropdown-open');
+                            $(".studio-preview").css({ left :  0});
+                            $(".site-dashboard").css({ paddingLeft :  0});
                             YDom.removeClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideOut();
                         }
