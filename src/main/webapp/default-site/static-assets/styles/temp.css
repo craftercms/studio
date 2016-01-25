@@ -3184,7 +3184,7 @@ div#acn-active-content {
   left: 0;
   bottom: 0;
   top: 50px;
-  width: 265px;
+  /*width: 265px*/
   position: fixed;
   z-index: 100; }
 .acn-dropdown-wrapper .acn-dropdown-menu li {

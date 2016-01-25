@@ -35,6 +35,7 @@
 
     <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
     <script src="/studio/static-assets/libs/jquery/dist/jquery.js"></script>
+    <script src="/studio/static-assets/libs/jquery-ui/jquery-ui.js"></script>
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>
 
