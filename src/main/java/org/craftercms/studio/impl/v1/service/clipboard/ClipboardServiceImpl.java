@@ -367,6 +367,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             if(contentService.contentExists(site, destinationUri)){
                 throw new ServiceException("Content already exists [" + site + ":" + destinationUri +"]");
             }else{
+                logger.error("Destination URI: " + destinationUri);
                 dmRenameService.rename(site, path, destinationUri, false);
                 updateFileWithNewNavOrder(site, destinationUri);//only for cut/paste will need to provide new navorder value right here since it doesnt go through FormContentProcessor
                 //fullPath = servicesConfig.getRepositoryRootPath(site) + destinationUri;
