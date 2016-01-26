@@ -92,9 +92,15 @@ implements SecurityProvider {
 
     @Override
     public boolean contentExists(String path) {
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
         try {
-            return (this.getNodeRefForPathCMIS(path) != null);
-        } catch (ContentNotFoundException e) {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            return cmisObject != null;
+        } catch (CmisBaseException e) {
             logger.info("Content not found exception for path: " + path, e);
             return false;
         }
@@ -667,6 +673,7 @@ implements SecurityProvider {
                         document.setContentStream(contentStream, true);
                     }
                     session.removeObjectFromCache(document.getId());
+                    session.clear();
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
@@ -694,7 +701,8 @@ implements SecurityProvider {
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
-                folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                org.apache.chemistry.opencmis.client.api.Document newDoc = folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                session.removeObjectFromCache(newDoc.getId());
                 session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
@@ -903,6 +911,7 @@ implements SecurityProvider {
                     String nodeRef = createFolderInternalCMIS(ancestorPath, parentName);
                     if (StringUtils.isEmpty(nodeRef)) {
                         logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
+                        session.clear();
                         return newFolderRef;
                     } else {
                         parentCmisOBject = session.getObjectByPath(cleanPath);
@@ -919,6 +928,7 @@ implements SecurityProvider {
                     Folder newFolder = folder.createFolder(newFolderProps);
                     Property property = newFolder.getProperty("alfcmis:nodeRef");
                     newFolderRef = property.getValueAsString();
+                    session.removeObjectFromCache(newFolder.getId());
                 }
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
