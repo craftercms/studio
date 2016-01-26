@@ -462,9 +462,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
 
             //update cache and add node property to all children with oldurl if required
+            logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
             postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
-
-         
 
             // run through the lifecycle service
             Map<String, String> params = new HashMap<>();
@@ -472,29 +471,12 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             params.put(DmConstants.KEY_TARGET_PATH, targetPath);
             params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
             params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
-            /*
-            NodeRef dstOrgNodeRef = persistenceManagerService.getNodeRef(dstOrgFullPath);
-            if (dstOrgNodeRef == null) {
-                dstOrgFullPath = dstOrgFullPath.replace("/" + DmConstants.INDEX_FILE, "");
-                dstOrgNodeRef = persistenceManagerService.getNodeRef(dstOrgFullPath);
-            }
-            String contentType = null;
 
-            if (dstOrgNodeRef != null) {
-                Serializable contentTypeValue = persistenceManagerService.getProperty(dstOrgFullPath, CStudioContentModel.PROP_CONTENT_TYPE);
-                contentType = (contentTypeValue != null) ? (String)contentTypeValue : null;
-            }*/
             String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
             dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
                     DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
-        //} catch (FileNotFoundException e) {
-        //    throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
-        //PORT } catch (AVMBadArgumentException e) {
-        //     throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
-        //PORT } catch (AVMNotFoundException e) {
-        //    throw new ContentNotFoundException("Error while moving " + sourcePath +" to "+targetPath, e);
+
         } finally{
-            //AuthenticationUtil.setFullyAuthenticatedUser(user);
         }
 
         long end = System.currentTimeMillis();
@@ -636,7 +618,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             String indexRelativePath = getIndexFilePath(relativePath);
             metadata = objectMetadataManager.getProperties(site, indexRelativePath);
             if (metadata == null) {
-                metadata = new ObjectMetadata();
+                objectMetadataManager.insertNewObjectMetadata(site, indexRelativePath);
+                metadata = objectMetadataManager.getProperties(site, indexRelativePath);
             }
             properties.put(ObjectMetadata.PROP_RENAMED, 1);
             if (StringUtils.isEmpty(metadata.getOldUrl())) {
