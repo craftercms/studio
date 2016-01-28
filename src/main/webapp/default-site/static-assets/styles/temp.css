@@ -3174,7 +3174,7 @@ div#acn-active-content {
   padding-left: 8px;
   padding-right: 9px; }
 .site-dropdown-open .site-dashboard {
-  padding-left: 265px; }
+  left: 265px; }
 
 .acn-dropdown-wrapper .acn-dropdown-menu-wrapper {
   border-width: 1px;
@@ -3184,7 +3184,7 @@ div#acn-active-content {
   left: 0;
   bottom: 0;
   top: 50px;
-  /*width: 265px*/
+  /*width: 265px;*/
   position: fixed;
   z-index: 100; }
 .acn-dropdown-wrapper .acn-dropdown-menu li {
@@ -7338,6 +7338,9 @@ address {
 .glyphicon-menu-up:before {
   content: "\e260"; }
 
+.yui-skin-cstudioTheme {
+  overflow-x: hidden; }
+
 .text-center {
   text-align: center !important; }
 
@@ -7348,8 +7351,13 @@ address {
   margin-bottom: 10px; }
 
 .site-dashboard {
-  padding-top: 51px;
-  transition: padding .5s, transform .5s; }
+  top: 51px;
+  transition: left .5s, transform .5s;
+  right: 0;
+  bottom: 0;
+  position: absolute; }
+  .site-dashboard div.container {
+    width: 92%; }
   .site-dashboard .panel .panel-heading:before, .site-dashboard .panel .panel-heading:after {
     content: " ";
     display: table; }
@@ -7370,6 +7378,13 @@ address {
     margin: 0; }
   .site-dashboard .panel .dashlet-item-check {
     margin-right: 5px; }
+  .site-dashboard .itemNameContainer span.iconRow {
+    width: 15% !important;
+    padding-left: 0% !important;
+    float: left !important; }
+  .site-dashboard .itemNameContainer a.anchorRow {
+    width: 85%;
+    float: left; }
 
 .site-dashboard .panel .panel-heading .widget-controls > li#loading-MyRecentActivity,
 #loading-GoLiveQueue,
