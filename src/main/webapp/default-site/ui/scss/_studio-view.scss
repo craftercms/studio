@@ -8,6 +8,10 @@
 
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
+.yui-skin-cstudioTheme{
+  overflow-x: hidden;
+}
+
 .text-center {
   text-align: center !important;
 }
@@ -21,8 +25,14 @@
 }
 
 .site-dashboard {
-  padding-top: 51px;
-  transition: padding .5s, transform .5s;
+  top: 51px;
+  transition: left .5s, transform .5s;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  div.container{
+    width: 92%;
+  }
   .panel {
     .panel-heading {
       @include clearfix;
@@ -48,6 +58,18 @@
     }
     .dashlet-item-check {
       margin-right: 5px;
+    }
+  }
+
+  .itemNameContainer{
+    span.iconRow{
+      width: 15% !important;
+      padding-left: 0% !important;
+      float: left !important;
+    }
+    a.anchorRow{
+      width: 85%;
+      float: left;
     }
   }
 }

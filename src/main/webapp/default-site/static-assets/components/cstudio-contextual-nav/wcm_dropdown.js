@@ -245,7 +245,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                             resize: function(event, ui) {
                                 ui.size.height = ui.originalSize.height;
                                 $(".site-dropdown-open .studio-preview").css({ left :  ui.size.width});
-                                $(".site-dropdown-open .site-dashboard").css({ paddingLeft :  ui.size.width});
+                                $(".site-dropdown-open .site-dashboard").css({ left :  ui.size.width});
                             }
                         });
                     });
@@ -266,13 +266,13 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                         if (visible) {
                             $('html').addClass('site-dropdown-open');
                             $(".site-dropdown-open .studio-preview").css({ left :  cfg.width});
-                            $(".site-dropdown-open .site-dashboard").css({ paddingLeft :  cfg.width});
+                            $(".site-dropdown-open .site-dashboard").css({ left :  cfg.width});
                             YDom.addClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideIn();
                         } else {
                             $('html').removeClass('site-dropdown-open');
                             $(".studio-preview").css({ left :  0});
-                            $(".site-dashboard").css({ paddingLeft :  0});
+                            $(".site-dashboard").css({ left :  0});
                             YDom.removeClass('acn-dropdown-wrapper', 'site-dropdown-open');
                             animator.slideOut();
                         }

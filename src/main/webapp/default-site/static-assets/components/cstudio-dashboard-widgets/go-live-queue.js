@@ -209,7 +209,7 @@ CStudioAuthoringWidgets.GoLiveQueueDashboard = CStudioAuthoringWidgets.GoLiveQue
                     '</div>',
                 '</td>',
                 '<td id="' + editLinkId + '"></td>',
-                "<td title='",browserUri,"'>", displayBrowserUri, "</td>",
+                "<td class='urlCol' title='",browserUri,"'>", displayBrowserUri, "</td>",
                 "<td title='fullUri' class='width0'>", uri, "</td>",
                 '<td class="">', item.scheduled ? fmt(item.scheduledDate, 'tooltipformat') : '', '</td>',
                 "<td class='alignRight'>", WcmDashboardWidgetCommon.getDisplayName(item), "</td>",
