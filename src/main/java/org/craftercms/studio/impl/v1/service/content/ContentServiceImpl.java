@@ -790,7 +790,8 @@ public class ContentServiceImpl implements ContentService {
                 return loadContentItem(site, path);
             }
         }, site, path);
-        return item;
+        ContentItemTO toRet = new ContentItemTO(item);
+        return toRet;
     }
 
     protected void removeItemFromCache(String site, String path) {
