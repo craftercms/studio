@@ -27,9 +27,9 @@ CStudioAuthoring.IceTools = CStudioAuthoring.IceTools || {
 	},
 	
 	turnEditOn: function() {
-		if(!!(sessionStorage.getItem('pto-on') == false)) {   // cast string value to a boolean
+		/*if(!!(sessionStorage.getItem('pto-on') == false)) {   // cast string value to a boolean
 			CStudioAuthoring.PreviewTools.turnToolsOn();
-		}
+		}*/
 		sessionStorage.setItem('ice-on', "on");
 		this.IceToolsOnEvent.fire();
 	},

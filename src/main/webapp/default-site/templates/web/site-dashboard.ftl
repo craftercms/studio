@@ -64,7 +64,7 @@
             </div>
             <div id="sortedBy-GoLiveQueue" style="display:none"></div>
             <div id="sort-type-GoLiveQueue" style="display:none"></div>
-            <div id="GoLiveQueue-body" style="display:none"></div>
+            <div id="GoLiveQueue-body" class="table-responsive" style="display:none"></div>
         </div>
 
         <div id="approvedScheduledItems" class="panel panel-default">
@@ -81,7 +81,7 @@
             </div>
             <div id="sortedBy-approvedScheduledItems" style="display:none"></div>
             <div id="sort-type-approvedScheduledItems" style="display:none"></div>
-            <div id="approvedScheduledItems-body" style="display:none"></div>
+            <div id="approvedScheduledItems-body" class="table-responsive" style="display:none"></div>
         </div>
 
         <div id="recentlyMadeLive" class="panel panel-default">
@@ -105,7 +105,7 @@
             </div>
             <div id="sortedBy-recentlyMadeLive" style="display:none"></div>
             <div id="sort-type-recentlyMadeLive" style="display:none"></div>
-            <div id="recentlyMadeLive-body" style="display:none"></div>
+            <div id="recentlyMadeLive-body" class="table-responsive" style="display:none"></div>
         </div>
 
         <div id="MyRecentActivity" class="panel panel-default">
