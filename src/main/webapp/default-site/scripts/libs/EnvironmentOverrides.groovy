@@ -16,7 +16,7 @@ class EnvironmentOverrides {
 		result.previewServerUrl = serverProperties["previewUrl"]
 		if(result.previewServerUrl.equals("\${previewUrl}")){
 
-			if("80".equals(request.serverPort) ||  "443".equals(request.serverPort)) {	
+			if(80 == request.serverPort ||  443 == request.serverPort) {
 				result.previewServerUrl=request.scheme+"://"+request.serverName
 			}
 			else {
