@@ -155,7 +155,7 @@ CStudioAuthoring.Dialogs.NewFolderNameDialog = CStudioAuthoring.Dialogs.NewFolde
 	    var cursorPosition = el.selectionStart;
 	    //change url to lower case
 	    if (el.value != "" && el.value != el.value.toLowerCase()) {
-	        el.value = el.value.toLowerCase();
+	        //el.value = el.value.toLowerCase();
 	        if (cursorPosition && typeof cursorPosition == "number") {
 	            el.selectionStart = cursorPosition;
 	            el.selectionEnd = cursorPosition;
