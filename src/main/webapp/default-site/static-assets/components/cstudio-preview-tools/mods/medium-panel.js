@@ -117,7 +117,13 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 		
 		var location = $engine[0].src;
 
-		var t = (location.indexOf("?") == -1) ? "?" : "&";
+        var t;
+		if(location.indexOf("?cstudio-useragent") > 0){
+            t = "?";
+        }else{
+            t = (location.indexOf("?") == -1) ? "?" : "&";
+        }
+
 		
 		if(location.indexOf("cstudio-useragent") == -1) {
 			location += t + "cstudio-useragent="+CStudioAuthoringContext.channel;
