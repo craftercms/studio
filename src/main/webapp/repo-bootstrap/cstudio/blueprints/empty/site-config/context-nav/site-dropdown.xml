@@ -22,72 +22,6 @@
 									</params>
 								</modulehook>
 
-								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Jeans</label>
-										<path>/site/components/products/jeans</path>
-										<showRootItem>false</showRootItem>
-										<onClick>preview</onClick>
-
-										<cannedSearches> 
-											<cannedSearch> 
-												<label>All Womens</label> 
-												<path>/site/components/products/jeans</path> 
-												<insertAs>replace</insertAs> 
-												<newPath>/site/components/products/jeans/womens</newPath> 
-												<queryParams> 
-													<queryParam><name>context</name><value>rosiesJeans</value></queryParam>
-													<queryParam> <name>mode</name> <value>act</value></queryParam>
-													<queryParam> <name>selection</name> <value>-1</value></queryParam>
-													<queryParam><name>presearch</name> <value>true</value></queryParam>
-													<queryParam><name>path</name> <value>/site/components/products/jeans/womens</value></queryParam>
-												</queryParams>
-											</cannedSearch> 
-
-											<cannedSearch> 
-												<label>All Mens</label> 
-												<path>/site/components/products/jeans</path> 
-												<insertAs>replace</insertAs> 
-												<newPath>/site/components/products/jeans/mens</newPath> 
-												<queryParams> 
-													<queryParam><name>context</name><value>/component/jeans</value></queryParam>
-													<queryParam> <name>mode</name> <value>act</value></queryParam>
-													<queryParam> <name>selection</name> <value>-1</value></queryParam>
-													<queryParam><name>presearch</name> <value>true</value></queryParam>
-												</queryParams>
-											</cannedSearch> 
-
-											<cannedSearch> 
-												<label>Womens Skinny Collection</label> 
-												<path>/site/components/products/jeans</path> 
-												<insertAs>replace</insertAs> 
-												<newPath>/site/components/products/jeans/womens</newPath> 
-												<queryParams> 
-													<queryParam><name>context</name><value>/component/jeans</value></queryParam>
-													<queryParam> <name>mode</name> <value>act</value></queryParam>
-													<queryParam> <name>selection</name> <value>-1</value></queryParam>
-													<queryParam><name>presearch</name> <value>true</value></queryParam>
-												</queryParams>
-											</cannedSearch> 
-
-
-										</cannedSearches>
-									</params>
-								</modulehook>
-
-								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Jackets</label>
-										<path>/site/components/products/jackets</path>
-										<showRootItem>false</showRootItem>
-										<onClick>preview</onClick>
-									</params>
-								</modulehook>
-
 								<!-- COMPONENTS -->
 								<modulehook>
 									<name>wcm-root-folder</name>
@@ -120,6 +54,17 @@
 									</params>
 								</modulehook>
 
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Scripts</label>
+										<path>/scripts</path>
+										<!-- showRootItem>false</showRootItem -->
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
+								
 								<modulehook>
 									<name>analytics-dashboard</name>
 									<showDivider>true</showDivider>
