@@ -1228,10 +1228,26 @@ CStudioSearch.loadResultTemplates = function(templates, callback) {
 
 
 CStudioSearch.getContentTypeName = function(ctype) {
-	if (CStudioAuthoring.Utils.isEmpty(ctype)) 
-		return '<span data-translation="resultsUnknownType">Unknown Type</span>';
-	var ctypeName = CStudioSearch.ContentTypeConfigMap[ctype]; 
-	return (CStudioAuthoring.Utils.isEmpty(ctypeName)) ? ("["+ctype+"] <span data-translation='resultsTemplate'>Template</span>") : ctypeName;
+	var type = ""
+
+	if( ctype.indexOf("/site") !=-1 ) {
+		type = "Item";
+ 	}
+	else if( ctype.indexOf("/component") !=-1 ) {
+		type = "Component";
+ 	}
+ 	else if( ctype.indexOf("/page") !=-1 ) {
+		type = "Page";
+ 	}
+ 	else if( ctype.indexOf("/templates") !=-1 ) {
+		type = "Template";
+ 	}
+ 	else if( ctype.indexOf("/scripts") !=-1 ) {
+		type = "Script";
+ 	}
+
+
+ 	return type;
 }
 
 /**

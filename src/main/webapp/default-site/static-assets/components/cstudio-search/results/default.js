@@ -19,7 +19,7 @@ CStudioSearch.ResultRenderer.Default = {
 				"onclick=\"" + onPreviewCode + "\" " +
 				"class='" + ((contentTO.item && contentTO.item.component)?"cstudio-search-no-preview":"cstudio-search-download-link") +
 			       	"'>"+contentTO.item.internalName+(contentTO.item.newFile?"*":"")+"</a>" +
-				"<span class='cstudio-search-download-link-additional'> | " + 
+				"<span class='cstudio-search-download-link-additional'>  " + 
 					CStudioSearch.getContentTypeName(contentTO.item.contentType) + 
 				"</span>" +
 				"<br />"+
@@ -30,12 +30,6 @@ CStudioSearch.ResultRenderer.Default = {
 							"<div>"+liveUrl+"</div>"
 					}
 					
-			result +=
-				"</div>"+
-				"<span class='cstudio-search-download-additional'><span data-translation='resultsEdited'>Edited</span> "+
-					CStudioAuthoring.Utils.formatDateFromString(contentTO.item.eventDate, "simpleformat") +
-					" <span data-translation='resultsBy'>by</span> " + CStudioAuthoring.Utils.getAuthorFullNameFromContentTOItem(contentTO.item) +
-				"</span>";
 				
 		return CStudioSearch.renderCommonResultWrapper(contentTO, result);
 	}
