@@ -625,7 +625,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
         var noPreviewEl = document.createElement("span");
         this.noPreviewEl = noPreviewEl;
-        noPreviewEl.innerHTML = "No Image Availablee";
+        noPreviewEl.innerHTML = "No Image Available";
         YAHOO.util.Dom.addClass(noPreviewEl, 'cstudio-form-control-asset-picker-no-preview-content');
         imageEl.appendChild(noPreviewEl);
 

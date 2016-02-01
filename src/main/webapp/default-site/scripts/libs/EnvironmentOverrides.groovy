@@ -15,7 +15,13 @@ class EnvironmentOverrides {
 		result.environment = serverProperties["environment"] 
 		result.previewServerUrl = serverProperties["previewUrl"]
 		if(result.previewServerUrl.equals("\${previewUrl}")){
-			result.previewServerUrl=request.scheme+"://"+request.serverName+":"+request.serverPort;
+
+			if(80 == request.serverPort ||  443 == request.serverPort) {
+				result.previewServerUrl=request.scheme+"://"+request.serverName
+			}
+			else {
+				result.previewServerUrl=request.scheme+"://"+request.serverName+":"+request.serverPort
+			}
 		}
 		try {		
 			result.user = SecurityServices.getCurrentUser(context)

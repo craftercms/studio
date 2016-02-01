@@ -215,3 +215,17 @@ div#acn-dropdown-menu-inner div:last-child {
     left: 0;
     top: 0;
 }
+
+div#preview-tools-panel-container_c{
+    right: 0;
+    position: fixed;
+    top: 50px;
+    height: 100%;
+    background: #F8F8F8;
+}
+
+div#preview-tools-panel-container{
+    height: 100%!important;
+    background: #F8F8F8;
+    border-radius: 0;
+}
