@@ -28,6 +28,7 @@ class SolrSearch {
 			queryStatement    += " *" + keywords + "* "
 		}
 
+
 		// can't support filters for images at this time because images are not indexed
 		//[Object { qname="cm:content.mimetype", value="image/*", useWildCard="true"}]
 		for(int f=0; f<searchParams.filters.size; f++){
@@ -76,41 +77,12 @@ class SolrSearch {
 				item.lastEditDate = item.lastModifiedDate 
 				//item.lastEditDateAsString = "2014-11-04T09:36:03"
 				//item.eventDate = item.lastModifiedDate  
-/*			
 
-				item.floating = (item["placeInNav"]!=null           ? (item["placeInNav"] == "true") : true)
-				item.previewable = (item["content-type"]!=null      ? (item["content-type"].indexOf("page") != -1) : false)
-				item.component = (item["content-type"]!=null        ? (item["content-type"].indexOf("page") == -1) : true)
-				item.contentType = (item["disabled"]!=null          ? (item["disabled"] == "true") : false)
-				item.contentType = (item["hideInAuthoring"]!=null   ? (item["hideInAuthoring"] == "true") : false)
-				item.uri = item.localId 
-
-				item.browserUri = item.localId.replace("/site/website", "").replace("/index.xml", "")
-
-				item.asset = (item["file-name"].indexOf(".xml") == -1)
-				item.document = false
-				item.container = false // folders are not in the index
-				item.deleted = false // it's in the index
-				item.defaultWebApp = "/wem-projects/"+site+"/"+site+"/work-area"
-
-				// fake required properties
-				item.inFlight = false
-				item.inProgress = false
-				item.scheduled = false
-				item.submitted = false
-				item.submittedForDeletion = false
-				item.live = true
-				item.new = false
-
-				item.lockOwner = ""
-				item.user = ""
-			    item.userFirstName = ""	
-				item.userLastName = ""
-				item.nodeRef = ""
-				item.metaDescription = "" //oneweb
-*/
 				result.item = item
-				results.objectList[i] = result
+				if(item.internalName != null) {
+					results.objectList[results.objectList.size] = result
+				}
+
 				}
 				catch(err) {
 					// item could not be built
