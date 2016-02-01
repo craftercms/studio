@@ -33,7 +33,7 @@
         <message name="schedule-to-go-live">The scheduled item(s) will go live on: ${date}.&lt;br/&gt;&lt;br/&gt;</message>
         <message name="reject">Rejection has been sent. Item(s) have NOT been pushed live and have returned to draft state.</message>
         <message name="delete">Item(s) has been pushed for delete. It will be deleted shortly.</message>
-        <message name="schedule-to-go-live">Item(s) have been scheduled to go live.</message>
+
     </complete-messages>
     <general-messages>
         <message name="scheduling-policy"><![CDATA[The SITENAME Website Marketing Team processes all Go Live requests each business day, between 4 and 6:00pmE, unless a specific date/time is requested.<br/><br/>All requests received after 4:00pmE may not be processed until the next business day.<br/><br/>If you have any questions about this policy or need a Go Live request processed immediately, please email the Web Marketing Operations Team.]]>
