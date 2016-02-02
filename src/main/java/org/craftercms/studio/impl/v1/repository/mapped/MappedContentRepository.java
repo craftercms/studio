@@ -139,6 +139,12 @@ public class MappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        ContentRepository repo = lookupRepo(repositoryType);
+        return repo.getContentChildren(path, ignoreCache);
+    }
+
+    @Override
     public VersionTO[] getContentVersionHistory(String path) {
        ContentRepository repo = lookupRepo(repositoryType);
         return repo.getContentVersionHistory(path);
