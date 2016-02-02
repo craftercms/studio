@@ -101,6 +101,21 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
 
     }
 
+    @Override
+    public boolean createFolder(String path, String name) {
+        boolean toRet = super.createFolder(path, name);
+        if (toRet) {
+            try {
+                Files.createDirectories(constructRepoPath(path, name));
+            }
+            catch(Exception err) {
+                // log this error
+                logger.warn("Error while creating folder in preview content");
+            }
+        }
+        return toRet;
+    }
+
     protected String previewRepoRootPath;
 
     public String getPreviewRepoRootPath() { return previewRepoRootPath; }
