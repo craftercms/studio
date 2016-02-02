@@ -306,9 +306,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             for (ContentItemTO child : itemTree.getChildren()) {
                 getChildrenUri(site, child.getUri(), paths);
             }
-        } else {
-            paths.add(itemTree.getUri());
         }
+        paths.add(itemTree.getUri());
         return paths;
     }
 
@@ -454,10 +453,23 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
 
             String renamedUri = item.getUri();
-            String storedStagingUri = objectMetadataManager.getOldPath(site, renamedUri);
+            String storedStagingUri = objectMetadataManager.getOldPath(site, sourcePath);
             objectStateService.updateObjectPath(site, sourcePath, renamedUri);
+            if (!objectMetadataManager.isRenamed(site, sourcePath)) {
+                ObjectMetadata metadata = objectMetadataManager.getProperties(site, sourcePath);
+                if (metadata == null) {
+                    objectMetadataManager.insertNewObjectMetadata(site, sourcePath);
+                    metadata = objectMetadataManager.getProperties(site, sourcePath);
+                }
+                Map<String, Object> properties = new HashMap<String, Object>();
+                properties.put(ObjectMetadata.PROP_RENAMED, 1);
+                properties.put(ObjectMetadata.PROP_OLD_URL, sourcePath);
+                objectMetadataManager.setObjectMetadata(site, sourcePath, properties);
+            }
+            objectMetadataManager.updateObjectPath(site, sourcePath, renamedUri);
+            updateActivity(site, sourcePath, renamedUri);
 
-            if(storedStagingUri == null){
+            if(StringUtils.isNotEmpty(storedStagingUri)){
                 addRenameUriDeleteProperty(site, renamedUri);
             }
 
