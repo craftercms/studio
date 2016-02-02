@@ -92,6 +92,11 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
         }
     }
 
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return super.getContentChildren(path);
+    }
+
     /**
      * build a repo path from the relative path
      */

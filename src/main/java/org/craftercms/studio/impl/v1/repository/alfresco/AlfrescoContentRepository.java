@@ -156,6 +156,11 @@ implements SecurityProvider {
         return items;
     }
 
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return getContentChildren(path);
+    }
+
     /**
      * create a version
      * @param path location of content
