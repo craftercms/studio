@@ -192,10 +192,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive) {
+    public DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive, Set<String> processedDependencies) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
-        Set<String> processedDependencies = new HashSet<String>();
 
         List<DmDependencyTO> items = getDependencyItemsNoCalc(site, paths, processedDependencies, populateUpdatedDependenciesOnly, recursive);
         if (items.size() > 0) {
@@ -207,6 +206,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected List<DmDependencyTO> getDependencyItemsNoCalc(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependenciesOnly, boolean recursive) {
         List<DmDependencyTO> items = new ArrayList<DmDependencyTO>(paths.size());
+        if (processedDependencies == null) {
+            processedDependencies = new HashSet<String>();
+        }
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
                 continue;
