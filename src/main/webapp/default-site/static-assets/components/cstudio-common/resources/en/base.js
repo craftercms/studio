@@ -452,6 +452,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     videoUploadedDesktop: "Video Uploaded from Desktop",
     staticKeyValuePairs: "Static Key Value Pairs",
     configuredListOfPairs: "Configured List of Pairs",
+    siteComponent: "Site Component",
     fileBrowse: "File Browse",
     hubspotForms: "Hubspot Forms",
     imageFromRepository: "Image from repository",
@@ -505,6 +506,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     defaultType: "Default Type",
     displayTemplate: "Display Template",
     mergeStrategy: "Merge Strategy",
+    componentPath: "Component Path",
 
     /*Restrictions*/
     required: "Required",
