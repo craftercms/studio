@@ -539,17 +539,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
              * first paste all the children and then at last paste current node.
              */
             for (ContentItemTO child : parentItemTree.getChildren()) {
-                // using it to paste at last.
-                if(child.getName().equals(DmConstants.INDEX_FILE)) {
-                    indexDescp = child;
-                    continue;
-                }
-                if (copyIndex || !child.getName().equals(DmConstants.INDEX_FILE)) {
-                    copyItem(site, user, parentPath, destination, deep, copiedItems, child);
-                }
-            }
-            if(copyIndex && indexDescp != null) {
-                copyItem(site, user, parentPath,destination,deep, copiedItems, indexDescp);
+                copyItem(site, user, child.getPath(), destination, deep, copiedItems, child);
             }
         } else {
             if (parentContentItem.getChildren() != null && parentContentItem.getChildren().size() > 0) {
