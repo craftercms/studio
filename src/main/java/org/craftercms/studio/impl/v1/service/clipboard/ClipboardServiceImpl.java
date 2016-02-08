@@ -365,6 +365,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             destinationUri = destinationUri + "/" + ContentUtils.getPageName(path.replace("/" + DmConstants.INDEX_FILE, ""));
             String destinationFinalUri = destinationUri;
             if(contentService.contentExists(site, destinationUri)){
+                objectStateService.setSystemProcessing(site, path, false);
                 throw new ServiceException("Content already exists [" + site + ":" + destinationUri +"]");
             }else{
                 logger.error("Destination URI: " + destinationUri);
