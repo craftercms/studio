@@ -324,6 +324,7 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

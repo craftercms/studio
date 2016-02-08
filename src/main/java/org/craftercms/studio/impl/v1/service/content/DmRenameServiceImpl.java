@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -41,7 +43,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.impl.v1.content.pipeline.DmWorkflowProcessor;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperation;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleOperation;
@@ -446,13 +448,22 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                     contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
                 }
             }
+            removeItemFromCache(site, sourcePath);
+            if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
+                removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
+            }
+            //update cache and add node property to all children with oldurl if required
+            logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
+            postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
+
+            removeItemFromCache(site, targetPath);
 
             ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
             if (item == null) {
                 throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
             }
 
-            String renamedUri = item.getUri();
+            String renamedUri = targetPath;
             String storedStagingUri = objectMetadataManager.getOldPath(site, sourcePath);
             objectStateService.updateObjectPath(site, sourcePath, renamedUri);
             if (!objectMetadataManager.isRenamed(site, sourcePath)) {
@@ -473,10 +484,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 addRenameUriDeleteProperty(site, renamedUri);
             }
 
-            //update cache and add node property to all children with oldurl if required
-            logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
-            postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
-
             // run through the lifecycle service
             Map<String, String> params = new HashMap<>();
             params.put(DmConstants.KEY_SOURCE_PATH, sourcePath);
@@ -493,6 +500,16 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
         long end = System.currentTimeMillis();
         logger.debug("Total time to rename = " + (end - start));
+    }
+
+    protected void removeItemFromCache(String site, String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        Object cacheKey = cacheTemplate.getKey(site, path);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        cacheService.remove(cacheContext, cacheKey);
     }
 
 
@@ -652,6 +669,10 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
         updateGoLiveQueue(site, relativePath, oldUri);
         updateActivity(site, oldUri, relativePath);
+        removeItemFromCache(site, oldUri);
+        if (oldUri.endsWith("/" + DmConstants.INDEX_FILE)) {
+            removeItemFromCache(site, oldUri.replaceAll("/" + DmConstants.INDEX_FILE, ""));
+        }
     }
 
     protected void updateGoLiveQueue(String site,String newFullPath, String oldUri){
@@ -784,6 +805,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmDependencyService getDmDependencyService() { return dmDependencyService; }
     public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
     protected SecurityService securityService;
     protected ContentService contentService;
     protected ObjectStateService objectStateService;
@@ -795,4 +819,5 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmDependencyService dmDependencyService;
+    protected CacheTemplate cacheTemplate;
 }
