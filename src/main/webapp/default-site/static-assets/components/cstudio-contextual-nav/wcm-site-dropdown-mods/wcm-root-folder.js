@@ -1829,6 +1829,7 @@ treeNode.getHtml = function() {
                     },
 
                     failure: function() {
+                        YDom.removeClass(oCurrentTextNode.getLabelEl().parentNode.previousSibling, "ygtvloading");
                     },
 
                     tree: oCurrentTextNode
