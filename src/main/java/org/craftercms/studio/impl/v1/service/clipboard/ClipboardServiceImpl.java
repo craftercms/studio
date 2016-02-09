@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
@@ -364,19 +365,27 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
             }
             destinationUri = destinationUri + "/" + ContentUtils.getPageName(path.replace("/" + DmConstants.INDEX_FILE, ""));
             String destinationFinalUri = destinationUri;
-            if(contentService.contentExists(site, destinationUri)){
+            String lockKey = site + ":" + path;
+            generalLockService.lock(lockKey);
+            String lockKeyDest = site + ":" + destinationUri;
+            generalLockService.lock(lockKeyDest);
+            try {
+                if (contentService.contentExists(site, destinationUri)) {
+                    throw new ServiceException("Content already exists [" + site + ":" + destinationUri + "]");
+                } else {
+                    logger.error("Destination URI: " + destinationUri);
+                    dmRenameService.rename(site, path, destinationUri, false);
+                    updateFileWithNewNavOrder(site, destinationUri);//only for cut/paste will need to provide new navorder value right here since it doesnt go through FormContentProcessor
+                    //fullPath = servicesConfig.getRepositoryRootPath(site) + destinationUri;
+                    ContentItemTO itemTO = contentService.getContentItem(site, destinationUri);
+                    destinationFinalUri = itemTO.getUri();
+                    objectStateService.transition(site, itemTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+                }
+            } finally {
                 objectStateService.setSystemProcessing(site, path, false);
-                throw new ServiceException("Content already exists [" + site + ":" + destinationUri +"]");
-            }else{
-                logger.error("Destination URI: " + destinationUri);
-                dmRenameService.rename(site, path, destinationUri, false);
-                updateFileWithNewNavOrder(site, destinationUri);//only for cut/paste will need to provide new navorder value right here since it doesnt go through FormContentProcessor
-                //fullPath = servicesConfig.getRepositoryRootPath(site) + destinationUri;
-                ContentItemTO itemTO = contentService.getContentItem(site, destinationUri);
-                destinationFinalUri = itemTO.getUri();
-                objectStateService.transition(site, itemTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+                generalLockService.unlock(lockKey);
+                generalLockService.unlock(lockKeyDest);
             }
-            objectStateService.setSystemProcessing(site, destinationFinalUri, false);
         }
         return null;
     }
@@ -686,6 +695,9 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     public DmDependencyService getDmDependencyService() { return dmDependencyService; }
     public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected DmContentProcessor writeProcessor;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -695,4 +707,5 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     protected ContentTypeService contentTypeService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected DmDependencyService dmDependencyService;
+    protected GeneralLockService generalLockService;
 }
