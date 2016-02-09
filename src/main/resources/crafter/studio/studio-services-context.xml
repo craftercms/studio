@@ -309,6 +309,7 @@
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -488,6 +489,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"

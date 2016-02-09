@@ -401,103 +401,99 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
         String srcNodeName = ContentUtils.getPageName(srcFullPath);
         String srcNodeParentUrl= ContentUtils.getParentUrl(srcFullPath);
-        try{
+        //destination paths
+        String dstFullPath = dstOrgFullPath;
+        if(dstFullPath.endsWith("/" + DmConstants.INDEX_FILE)){
+            dstFullPath = ContentUtils.getParentUrl(dstFullPath);
+        }
+        if (dstFullPath == null) {
+            throw new ServiceException("Error while moving content. " + targetPath + " is not valid.");
+        }
+        String dstNodeName = ContentUtils.getPageName(dstFullPath);
+        String dstNodeParentUrl = ContentUtils.getParentUrl(dstFullPath);
 
-            //destination paths
-            String dstFullPath = dstOrgFullPath;
-            if(dstFullPath.endsWith("/" + DmConstants.INDEX_FILE)){
-                dstFullPath = ContentUtils.getParentUrl(dstFullPath);
-            }
-            if (dstFullPath == null) {
-                throw new ServiceException("Error while moving content. " + targetPath + " is not valid.");
-            }
-            String dstNodeName = ContentUtils.getPageName(dstFullPath);
-            String dstNodeParentUrl = ContentUtils.getParentUrl(dstFullPath);
+        preRenameCleanWorkFlow(site, sourcePath);
 
-            preRenameCleanWorkFlow(site, sourcePath);
+        String dstNodeParentPath = contentService.getRelativeSitePath(site, dstNodeParentUrl);
+        String dstPath = contentService.getRelativeSitePath(site, dstFullPath);
 
-            String dstNodeParentPath = contentService.getRelativeSitePath(site, dstNodeParentUrl);
-            String dstPath = contentService.getRelativeSitePath(site, dstFullPath);
-
-            if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
-                ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
-                if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), targetPath);
-                } else if (srcItem != null && !srcItem.isFolder()
-                                && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                    contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
-                } else {
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
-                }
+        if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
+            ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
+            if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), targetPath);
+            } else if (srcItem != null && !srcItem.isFolder()
+                            && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                contentService.createFolder(site, dstNodeParentPath, dstNodeName);
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
             } else {
-                if (dstPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                    dstPath = dstPath.replace("/" + DmConstants.INDEX_FILE, "");
-                    dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
-                    dstNodeName = ContentUtils.getPageName(dstPath);
-                    if (!contentService.contentExists(site, dstPath)) {
-                        contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                    }
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath, DmConstants.INDEX_FILE);
-                } else {
-                    dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
-                    dstNodeName = ContentUtils.getPageName(dstPath);
-                    if (!contentService.contentExists(site, dstNodeParentPath)) {
-                        contentService.createFolder(site, ContentUtils.getParentUrl(dstNodeParentPath), ContentUtils.getPageName(dstNodeParentPath));
-                    }
-                    contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+            }
+        } else {
+            if (dstPath.endsWith("/" + DmConstants.INDEX_FILE)) {
+                dstPath = dstPath.replace("/" + DmConstants.INDEX_FILE, "");
+                dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
+                dstNodeName = ContentUtils.getPageName(dstPath);
+                if (!contentService.contentExists(site, dstPath)) {
+                    contentService.createFolder(site, dstNodeParentPath, dstNodeName);
                 }
-            }
-            removeItemFromCache(site, sourcePath);
-            if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-            }
-            //update cache and add node property to all children with oldurl if required
-            logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
-            postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
-
-            removeItemFromCache(site, targetPath);
-
-            ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
-            if (item == null) {
-                throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
-            }
-
-            String renamedUri = targetPath;
-            String storedStagingUri = objectMetadataManager.getOldPath(site, sourcePath);
-            objectStateService.updateObjectPath(site, sourcePath, renamedUri);
-            if (!objectMetadataManager.isRenamed(site, sourcePath)) {
-                ObjectMetadata metadata = objectMetadataManager.getProperties(site, sourcePath);
-                if (metadata == null) {
-                    objectMetadataManager.insertNewObjectMetadata(site, sourcePath);
-                    metadata = objectMetadataManager.getProperties(site, sourcePath);
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath, DmConstants.INDEX_FILE);
+            } else {
+                dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
+                dstNodeName = ContentUtils.getPageName(dstPath);
+                if (!contentService.contentExists(site, dstNodeParentPath)) {
+                    contentService.createFolder(site, ContentUtils.getParentUrl(dstNodeParentPath), ContentUtils.getPageName(dstNodeParentPath));
                 }
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put(ObjectMetadata.PROP_RENAMED, 1);
-                properties.put(ObjectMetadata.PROP_OLD_URL, sourcePath);
-                objectMetadataManager.setObjectMetadata(site, sourcePath, properties);
+                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
             }
-            objectMetadataManager.updateObjectPath(site, sourcePath, renamedUri);
-            updateActivity(site, sourcePath, renamedUri);
-
-            if(StringUtils.isNotEmpty(storedStagingUri)){
-                addRenameUriDeleteProperty(site, renamedUri);
-            }
-
-            // run through the lifecycle service
-            Map<String, String> params = new HashMap<>();
-            params.put(DmConstants.KEY_SOURCE_PATH, sourcePath);
-            params.put(DmConstants.KEY_TARGET_PATH, targetPath);
-            params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
-            params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
-
-            String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
-            dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
-                    DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
-
-        } finally{
+        }
+        removeItemFromCache(site, sourcePath);
+        removeItemFromCache(site, targetPath);
+        if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
+            removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
         }
 
+        ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
+        if (item == null) {
+            throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
+        }
+
+        String renamedUri = targetPath;
+        String storedStagingUri = objectMetadataManager.getOldPath(site, sourcePath);
+        objectStateService.updateObjectPath(site, sourcePath, renamedUri);
+        if (!objectMetadataManager.isRenamed(site, sourcePath)) {
+            ObjectMetadata metadata = objectMetadataManager.getProperties(site, sourcePath);
+            if (metadata == null) {
+                objectMetadataManager.insertNewObjectMetadata(site, sourcePath);
+                metadata = objectMetadataManager.getProperties(site, sourcePath);
+            }
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put(ObjectMetadata.PROP_RENAMED, 1);
+            properties.put(ObjectMetadata.PROP_OLD_URL, sourcePath);
+            objectMetadataManager.setObjectMetadata(site, sourcePath, properties);
+        }
+        objectMetadataManager.updateObjectPath(site, sourcePath, renamedUri);
+        updateActivity(site, sourcePath, renamedUri);
+
+        if(StringUtils.isNotEmpty(storedStagingUri)){
+            addRenameUriDeleteProperty(site, renamedUri);
+        }
+
+        //update cache and add node property to all children with oldurl if required
+        logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
+        postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
+
+        // run through the lifecycle service
+        Map<String, String> params = new HashMap<>();
+        params.put(DmConstants.KEY_SOURCE_PATH, sourcePath);
+        params.put(DmConstants.KEY_TARGET_PATH, targetPath);
+        params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
+        params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
+
+        String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
+        dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
+                DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
+
+        objectStateService.setSystemProcessing(site, renamedUri, false);
         long end = System.currentTimeMillis();
         logger.debug("Total time to rename = " + (end - start));
     }
