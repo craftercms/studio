@@ -67,10 +67,6 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
 import org.springframework.http.MediaType;
 
 
@@ -431,7 +427,6 @@ implements SecurityProvider {
 
             retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
 
-            ///JSONObject jsonObject =
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
 
@@ -1060,14 +1055,7 @@ implements SecurityProvider {
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
         parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.1/atom/");
-        //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-
-        // set the alfresco object factory
-
-        if (alfrescoCMIS) {
-            //parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
-        }
 
         // find all the repositories at this URL - there should only be one.
         List<Repository> repositories = new ArrayList<Repository>();
