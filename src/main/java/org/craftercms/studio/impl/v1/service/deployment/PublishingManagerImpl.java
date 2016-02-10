@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,11 +407,17 @@ public class PublishingManagerImpl implements PublishingManager {
                     if (item.getOldPath().endsWith("/" + DmConstants.INDEX_FILE)) {
                         boolean hasRenamedChildren = false;
                         String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
-                        if (children.length < 2) {
-                            deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                        } else {
-                            hasRenamedChildren = true;
+                        if (contentService.contentExists(fullPath)) {
+                            try {
+                                RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                                if (children.length < 2) {
+                                    deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                                } else {
+                                    hasRenamedChildren = true;
+                                }
+                            } catch (Exception exc) {
+                                LOGGER.info("Error while checking children for moved content site " + item.getSite() + " old path " + item.getOldPath());
+                            }
                         }
                         if (!hasRenamedChildren) {
                             contentService.deleteContent(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());

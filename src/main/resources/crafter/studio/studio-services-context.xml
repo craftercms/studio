@@ -309,6 +309,7 @@
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -324,6 +325,7 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -347,11 +349,13 @@
     
     <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="emailService" ref="mailSenderImpl" />
+        <property name="emailService" ref="mailSender" />
+        <property name="emailServiceNoAuth" ref="mailSenderNoAuth" />
+        <property name="authenticatedSMTP" value="${crafter.studio.mail.smtp.auth}"/>
         <property name="defaultFromAddress"><value>${crafter.studio.mail.from.default}</value></property>
     </bean>
 
-    <bean id="mailSenderImpl" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
       <property name="host" value="${crafter.studio.mail.host}" />
       <property name="port" value="${crafter.studio.mail.port}" />
       <property name="username" value="${crafter.studio.mail.username}" />
@@ -364,6 +368,19 @@
             <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
         </props>
       </property>  
+    </bean>
+
+    <bean id="mailSenderNoAuth" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${crafter.studio.mail.host}" />
+        <property name="port" value="${crafter.studio.mail.port}" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
+                <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
+                <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
+                <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
+            </props>
+        </property>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -472,6 +489,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"

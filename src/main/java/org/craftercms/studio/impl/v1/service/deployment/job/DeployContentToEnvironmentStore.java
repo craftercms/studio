@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2013 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
@@ -99,6 +100,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                     List<CopyToEnvironment> itemList = chunks.get(i);
                                     List<CopyToEnvironment> missingDependencies = new ArrayList<CopyToEnvironment>();
                                     for (CopyToEnvironment item : itemList) {
+                                        String lockKey = item.getSite() + ":" + item.getPath();
+                                        generalLockService.lock(lockKey);
                                         contentRepository.lockItem(item.getSite(), item.getPath());
                                     }
                                     try {
@@ -106,6 +109,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                         publishingManager.markItemsProcessing(site, environment, itemList);
                                         for (CopyToEnvironment item : itemList) {
+                                            String lockKey = item.getSite() + ":" + item.getPath();
+                                            generalLockService.lock(lockKey);
                                             contentRepository.lockItem(item.getSite(), item.getPath());
                                             try {
                                                 logger.debug("Processing [{0}] content item for site \"{1}\"", item.getPath(), site);
@@ -114,6 +119,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                     missingDependencies.addAll(publishingManager.processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
                                                 }
                                             } finally {
+                                                generalLockService.unlock(lockKey);
                                                 contentRepository.unLockItem(item.getSite(), item.getPath());
                                             }
                                         }
@@ -138,6 +144,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         throw err;
                                     } finally {
                                         for (CopyToEnvironment item : itemList) {
+                                            String lockKey = item.getSite() + ":" + item.getPath();
+                                            generalLockService.unlock(lockKey);
                                             contentRepository.unLockItem(item.getSite(), item.getPath());
                                         }
                                     }
@@ -213,6 +221,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected org.craftercms.studio.api.v1.service.transaction.TransactionService transactionService;
     protected PublishingManager publishingManager;
     protected ContentRepository contentRepository;
@@ -222,4 +233,5 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected SiteService siteService;
     protected ContentService contentService;
     protected NotificationService notificationService;
+    protected GeneralLockService generalLockService;
 }

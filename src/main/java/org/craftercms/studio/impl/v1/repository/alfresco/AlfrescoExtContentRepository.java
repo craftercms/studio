@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,6 +92,11 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
         }
     }
 
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return super.getContentChildren(path);
+    }
+
     /**
      * build a repo path from the relative path
      */
@@ -99,6 +104,21 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
 
         return java.nio.file.FileSystems.getDefault().getPath(previewRepoRootPath, args);
 
+    }
+
+    @Override
+    public boolean createFolder(String path, String name) {
+        boolean toRet = super.createFolder(path, name);
+        if (toRet) {
+            try {
+                Files.createDirectories(constructRepoPath(path, name));
+            }
+            catch(Exception err) {
+                // log this error
+                logger.warn("Error while creating folder in preview content");
+            }
+        }
+        return toRet;
     }
 
     protected String previewRepoRootPath;
