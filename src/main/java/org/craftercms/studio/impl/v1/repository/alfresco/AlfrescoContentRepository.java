@@ -861,6 +861,9 @@ implements SecurityProvider {
                 }
                 name = cleanPath.substring(idx + 1);
             }
+            if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
+                return true;
+            }
             Session session = getCMISSession();
             CmisObject parentCmisOBject = null;
             try {
