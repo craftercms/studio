@@ -64,46 +64,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         getServicesManager().registerService(DmRenameService.class, this);
     }
 
-    /**
-     *
-     * If cut/paste or rename is reverted (i.e pasted back in the original location where it belongs to then return true
-     *
-     * @param site
-     * @param cutPath
-     * @param pastePath
-     * @return
-     *//*
-    @Override
-    public boolean isRevertRename(String site, String cutPath, String pastePath) {
-        if(StringUtils.isEmpty(cutPath))
-            return false;
-
-        pastePath = pastePath.replace("//", "/"); //workaround sometimes we can two // in the url which creates problem during comparison
-
-        String originalUrl = getOldUrl(site, cutPath);
-        if (StringUtils.isNotEmpty(originalUrl) && originalUrl.equals(getIndexFilePath(pastePath))) {
-            if (logger.isDebugEnabled())
-                logger.debug("Revert rename case for path: " + pastePath + ", original URL: " + originalUrl);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * If the node has been live and renamed then oldUrl will return the original url in sandbox before it has been renamed
-     *
-     * @param site
-     * @param cutPath
-     * @return
-     *//*
-    protected String getOldUrl(String site,String cutPath){
-        DmContentService dmContentService = getService(DmContentService.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String fullCutPath = dmContentService.getContentFullPath(site, cutPath);
-        NodeRef cutPathNode = persistenceManagerService.getNodeRef(fullCutPath);
-        String originalUrl = (String)persistenceManagerService.getProperty(cutPathNode, CStudioContentModel.PROP_RENAMED_OLD_URL);
-        return originalUrl;
-    }*/
 
     protected String getIndexFilePath(String path){
         if(!path.endsWith(DmConstants.XML_PATTERN)){
@@ -134,22 +94,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     @Override
     public boolean isItemRenamed(String site, String uri){
         return objectMetadataManager.isRenamed(site, uri);
-    }
-
-    /**
-     * Always returns node of the index.xml
-     *//*
-    protected NodeRef getIndexNode(final String site, String uri) {
-        return getNode(site, getIndexFilePath(uri));
-    }
-
-
-    /**
-     * GoLive on the renamed node
-     *//*
-    @Override
-    public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver) throws ServiceException {
-                goLive(site, sub, submittedItems, approver, null);
     }
 
     /**
@@ -212,7 +156,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         for (String path : paths) {
             String uri = path.substring(pathPrefix.length());
             uris.add(uri);
-            //DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
             dmPublishService.cancelScheduledItem(site, uri);
         }
         GoLiveContext context = new GoLiveContext(approver, site);
@@ -224,20 +167,11 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             for (String dependency: dependenices) {
                 String uri = dependency.substring(pathPrefix.length());
                 uris.add(uri);
-                //DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
             }
             operation = new PreScheduleOperation(workflowService, uris,launchDate, context, rescheduledUris);
         }
         workflowProcessor.addToWorkflow(site, paths, launchDate, label.toString(), operation, approver, mcpContext);
         logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
-    }
-
-    /**
-     * get site root (e.g. /www/avm_webapps/ROOT)
-     *
-     *//*
-    protected String getSiteRoot(String site) {
-        return site;
     }
 
     /**
@@ -265,19 +199,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         for (String uri :childUris){
             //find all child items that are already live and revert the sandbox to staging version
             String oldStagingUri = objectMetadataManager.getOldPath(site, uri);
-            
-            if (oldStagingUri != null){
-                if (isRenameDeleteTag(site, uri)){
-                    // handles the file content submission
-                    if (submittedUri.endsWith(DmConstants.XML_PATTERN) && !submittedUri.endsWith(DmConstants.INDEX_FILE)) {
-                       //PORT  pathsToRemove.add(pathPrefix + oldStagingUri);
-                    } else {
-                        //submit the old url for delete in staging
-                        String folderToRemoveInStaging = ContentUtils.getParentUrl(oldStagingUri);
-                       //PORT  pathsToRemove.add(pathPrefix+ folderToRemoveInStaging);
-                    }
-                }
-            } 
 
             if(submittedChildUris.contains(uri) || submittedItem.getUri().equals(uri)){
                 //if child is one of the submitted item then add itself and references
@@ -571,7 +492,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             itemTO = contentService.getContentItem(srcFullPath);
         }
         //change last modified property to the current user
-        //persistenceManagerService.setProperty(node, CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
         if (srcFullPath.endsWith(DmConstants.INDEX_FILE)) {
             // if the file is index.xml, update child contnets
 
@@ -663,7 +583,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }catch(Exception e){
             logger.error("Error during extracting dependency of " + relativePath, e);
         }
-        updateGoLiveQueue(site, relativePath, oldUri);
         updateActivity(site, oldUri, relativePath);
         removeItemFromCache(site, oldUri);
         if (oldUri.endsWith("/" + DmConstants.INDEX_FILE)) {
@@ -671,101 +590,10 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
     }
 
-    protected void updateGoLiveQueue(String site,String newFullPath, String oldUri){
-        //GoLiveQueue queue = (GoLiveQueue) _cache.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY, site);
-        /** cached go live queue disabled **//*
-        if (queue != null) {
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            DmContentItemTO to;
-            try {
-                to = persistenceManagerService.getContentItem(newFullPath);
-                if(to != null){
-                    queue.add(to);
-                    queue.remove(oldUri);
-                }
-            } catch (Exception e) {
-                logger.warn("Exception during updateGoLive Queue",e);
-            }
-        }*/
-    }
-
     protected void updateActivity(String site, String oldUrl, String newUrl){
         logger.debug("Updating activity url post rename:"+newUrl);
         activityService.renameContentId(site, oldUrl, newUrl);
     }
-
-    /**
-     * updateWorkflow with additional urls during Rename GO Live
-     *
-     *  Called during prestaging submssion
-     *
-     *//*
-    @Override
-    public void updateWorkflow(String site, String workFlowDescription) {
-        long start = System.currentTimeMillis();
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        SearchService searchService = getService(SearchService.class);
-        List<NodeRef> changeSet = DmUtils.getChangeSet(searchService, servicesConfig, site);
-        if (changeSet != null && changeSet.size() > 0) {
-            DmContentService dmContentService = getService(DmContentService.class);
-            PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            for (NodeRef workFlowNode : changeSet) {
-                DmPathTO path = new DmPathTO(persistenceManagerService.getNodePath(workFlowNode));
-                List<String> submittedChildPaths = new FastList<String>();
-                getChildrenUri(site, workFlowNode, submittedChildPaths);
-
-                try {
-                    String fullPath = dmContentService.getContentFullPath(site, path.getRelativePath());
-                    if (!fullPath.endsWith(DmConstants.XML_PATTERN)) {
-                        fullPath += "/" + DmConstants.INDEX_FILE;
-                    }
-                    //persistenceManagerService.removeAspect(workFlowNode, CStudioContentModel.ASPECT_RENAMED);
-                    //updateWorkFlowSandbox(site, path.getRelativePath(), submittedChildPaths);
-                    //updateWorkflowSandboxWithDiff(site, fullPath);
-
-                } catch (Exception e) {
-                    logger.error("failed to update workflow sandbox : ", e);
-                }
-            }
-        }
-        long end = System.currentTimeMillis();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Total pre-staging processing on Renamed Item = " + (end - start));
-        }
-    }
-
-    /**
-     * Update the workflowSandbox with additional URI. Also revert to staging version if child is not submitted for go live by the User
-     *
-     * @param site
-     * @param renamedPath
-     * @param submittedUri
-     * @throws org.craftercms.cstudio.alfresco.service.exception.ServiceException
-     *//*
-    protected void updateWorkFlowSandbox (String site, String renamedPath, List<String> submittedUri) throws org.craftercms.cstudio.alfresco.service.exception.ServiceException{
-
-        List<String> childUris = new FastList<String>();
-        getChildrenUri(site, getNode(site, renamedPath), childUris);
-        DmContentService dmContentService = getService(DmContentService.class);
-        
-        for (String uri :childUris){
-            //only for the child items that are not submitted to go live by the user
-            if(!submittedUri.contains(uri)){
-                //find all child items that are already live and revert the sandbox to staging version
-                String depFullPath = dmContentService.getContentFullPath(site, uri);
-                getService(PersistenceManagerService.class).removeAspect(depFullPath, CStudioContentModel.ASPECT_RENAMED);
-            }
-        }
-    }
-
-    /**
-     * Actions to be performed post submission
-     * Put the temp copy back. The uris will be coming in from the workflow
-     *//*
-    @Override
-    public void postSubmission(String site, String workFlowDescription) {
-        // do nothing. should not touch the site after workflow is completed
-    }*/
 
 
     public SecurityService getSecurityService() { return securityService; }
