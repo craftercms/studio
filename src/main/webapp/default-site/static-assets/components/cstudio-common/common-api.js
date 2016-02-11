@@ -2105,7 +2105,7 @@ var parentSaveCb = {
                     if(flow=="deleteSchedule") {
                         if(CStudioAuthoringContext.isPreview
                             && CStudioAuthoringContext.isPreview==true
-                            && CStudioAuthoringContext.role == "admin") {
+                            && (CStudioAuthoringContext.role === "admin" || CStudioAuthoringContext.role === "Site_admin")) { //CRAFTERCMS-1772 todo to remove
                             var deletedPage = document.location.href;
                             deletedPage = deletedPage.replace(CStudioAuthoringContext.previewAppBaseUri, "");
                             var parentPath = "";
@@ -2447,6 +2447,10 @@ var parentSaveCb = {
                             for (var i = 0; i < roles.length; i++) {
                                 if (roles[i] == "admin") {
                                     role = "admin";
+                                    break;
+                                }
+                                if (roles[i] == "Site_admin") { //CRAFTERCMS-1772 todo to remove
+                                    role = "Site_admin";
                                     break;
                                 }
                             }
@@ -4606,7 +4610,7 @@ var parentSaveCb = {
                 }
             },
             isAdmin: function(){
-                return (CStudioAuthoringContext.role == "admin");
+                return (CStudioAuthoringContext.role == "admin" || CStudioAuthoringContext.role == "Site_admin"); //CRAFTERCMS-1772 todo to remove
             },
             getIconFWClasses: function(item){
 
