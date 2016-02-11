@@ -1704,7 +1704,7 @@ CStudioAuthoringContext.site,
 		                   	} // end of else
 
                             if((oCurrentTextNode.data.lockOwner != ""
-                            && CStudioAuthoringContext.role === "admin") 
+                            && (CStudioAuthoringContext.role === "admin" || CStudioAuthoringContext.role === "Site_admin")) //CRAFTERCMS-1772 todo to remove
                             || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
                                p_aArgs.addItems([ menuItems.separator ]);
                                 p_aArgs.addItems([ menuItems.unlockOption ]);
@@ -1713,6 +1713,7 @@ CStudioAuthoringContext.site,
 		                   	
 	                 	},
                         failure: function() { }
+
                     };
 					
                     checkPermissionsCb.isComponent = isComponent;
