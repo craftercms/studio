@@ -21,7 +21,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 
 YAHOO.extend(CStudioForms.Controls.LinkedDropdown, CStudioForms.CStudioFormField, {
     getLabel: function() {
-        return "Linked Dropdown";
+        return CMgs.format(langBundle, "linkedDropdown");
     },
     
 	_onChange: function(evt, obj) {
@@ -186,7 +186,7 @@ YAHOO.extend(CStudioForms.Controls.LinkedDropdown, CStudioForms.CStudioFormField
 		   	{ label: CMgs.format(langBundle, "datasource"), name: "datasource", type: "datasource:item" },
 		    { label: CMgs.format(langBundle, "allowEmptyValue"), name: "emptyvalue", type: "boolean" },
 			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
-			{ label: "Depends On", name: "depends", type: "string" }
+			{ label: CMgs.format(langBundle, "dependsOn") , name: "depends", type: "string" }
 		];
 	},
 

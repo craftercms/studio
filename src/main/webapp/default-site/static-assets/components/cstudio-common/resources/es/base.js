@@ -415,7 +415,9 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     textArea: "Área de Texto",
     richTextEditor: "Editor de Texto Enriquecido",
     input: "Campo de Entrada",
+    linkInput:"Campo de Entrada Vinculante",
     dropdown: "Menú Desplegable",
+    linkedDropdown:"Menú Desplegable Vinculado",
     dateTime: "Fecha Y Hora",
     checkBox: "Casilla de Verificación",
     groupedCheckboxes: "Grupo de Casillas de Verificación",
@@ -494,6 +496,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     defaultType: "Tipo por Defecto",
     displayTemplate: "Plantilla de Pantalla",
     mergeStrategy: "Combinar Estrategia",
+	dependsOn: "Depende En",
 
     /*Restrictions*/
     required: "Requerido",
