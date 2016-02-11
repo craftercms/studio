@@ -20,7 +20,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 YAHOO.extend(CStudioForms.Controls.LinkInput, CStudioForms.CStudioFormField, {
 
     getLabel: function() {
-        return "Link Input";
+        return CMgs.format(langBundle, "linkInput");
     },
 
 	_onChange: function(evt, obj) {

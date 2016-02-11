@@ -427,7 +427,9 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     textArea: "Text Area",
     richTextEditor: "Rich Text Editor",
     input: "Input",
+    linkInput:"Link Input",
     dropdown: "Dropdown",
+    linkedDropdown:"Linked Dropdown",
     dateTime: "Date / Time",
     checkBox: "Check Box",
     groupedCheckboxes: "Grouped Checkboxes",
@@ -507,6 +509,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     displayTemplate: "Display Template",
     mergeStrategy: "Merge Strategy",
     componentPath: "Component Path",
+	dependsOn: "Depends On",
 
     /*Restrictions*/
     required: "Required",
