@@ -310,6 +310,9 @@
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="previewSync" ref="previewSync"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"

@@ -19,10 +19,14 @@ package org.craftercms.studio.impl.v1.service.clipboard;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -33,10 +37,14 @@ import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
+import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.PathMacrosTransaltor;
@@ -45,8 +53,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import javax.swing.text.html.parser.ContentModel;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -154,7 +160,27 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         String contentType = config==null?null:config.getName();
         String fileName = (StringUtils.isEmpty(destinationFileName)) ? ContentUtils.getPageName(path) : destinationFileName;
         writeContent(site, destination, fileName, user, content, contentType, false, writeOperation);
+
+        removeItemFromCache(site, destination + "/" + fileName);
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(destination + "/" + fileName);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        previewSync.syncPath(site, destination + "/" + fileName, repositoryEventContext);
+
         return destination + "/" + fileName;
+    }
+
+    protected void removeItemFromCache(String site, String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        Object cacheKey = cacheTemplate.getKey(site, path);
+        if (!cacheService.hasScope(cacheContext)) {
+            cacheService.addScope(cacheContext);
+        }
+        cacheService.remove(cacheContext, cacheKey);
     }
 
     /**
@@ -499,7 +525,6 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 objectStateService.insertNewEntry(site, copiedPath);
                 copiedItems.add(copiedPath);
             }
-            //}
         } catch (Exception e) {
             throw new ServiceException("Error while pasting " + path, e);
         }
@@ -634,8 +659,8 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
     public DmRenameService getDmRenameService() { return dmRenameService; }
     public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
@@ -655,14 +680,26 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+
+    public PreviewSync getPreviewSync() { return previewSync; }
+    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+
+    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
+    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
     protected DmContentProcessor writeProcessor;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected DmRenameService dmRenameService;
     protected SecurityService securityService;
     protected ContentTypeService contentTypeService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected DmDependencyService dmDependencyService;
     protected GeneralLockService generalLockService;
+    protected SecurityProvider securityProvider;
+    protected PreviewSync previewSync;
+    protected CacheTemplate cacheTemplate;
 }
