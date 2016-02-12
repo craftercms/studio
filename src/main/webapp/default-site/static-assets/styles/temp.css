@@ -7374,6 +7374,8 @@ address {
     .site-dashboard .panel .panel-heading .widget-controls [maxlength] {
       width: 50px;
       text-align: center; }
+    .site-dashboard .panel .panel-heading .widget-controls li {
+      vertical-align: top; }
   .site-dashboard .panel [id*="-body"] table {
     margin: 0; }
   .site-dashboard .panel .dashlet-item-check {
