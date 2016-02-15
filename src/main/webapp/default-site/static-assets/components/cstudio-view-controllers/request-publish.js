@@ -82,13 +82,14 @@
             tpl = [
                 '<tr>',
                 '<td class="small"><input type="checkbox" class="select-all-check" data-item-id="_URI_" checked/></td>',
-                '<td class="large">_URI_</td>',
+                '<td class="large">_INTERNALNAME_ _URI_</td>',
                 '<td class="medium">_SCHEDULE_</td>',
                 '</tr>'
             ].join();
         $.each(items, function (i, item) {
             html.push(tpl
                 .replace('_URI_', item.uri)
+                .replace('_INTERNALNAME_', item.internalName)
                 .replace('_SCHEDULE_', item.scheduledDate ? item.scheduledDate : "")
                 .replace('_URI_', item.uri));
         });
