@@ -43,7 +43,7 @@
     <email-message-templates>
         <email-message-template name="rejection">
             <Subject>Your Content got Rejected: $title</Subject>
-            <message>Item(s) has been rejected for following reason(s).</message>
+            <message>Item(s) has been rejected for following reason(s).\n\n$reject-message.</message>
         </email-message-template>
         <email-message-template name="approval">
             <Subject>Content is Live: $title</Subject>
