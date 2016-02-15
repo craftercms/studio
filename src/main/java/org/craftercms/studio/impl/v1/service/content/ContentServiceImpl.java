@@ -19,14 +19,11 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
-import java.net.FileNameMap;
-import java.net.URLConnection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
@@ -50,7 +47,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -68,12 +64,10 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.servlet.http.HttpSession;
 
 /**
  * Content Services that other services may use
@@ -265,6 +259,9 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 objectStateService.insertNewEntry(site, itemTo);
             }
+
+            removeItemFromCache(site, relativePath);
+
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(relativePath);
@@ -272,7 +269,6 @@ public class ContentServiceImpl implements ContentService {
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
             previewSync.syncPath(site, relativePath, repositoryEventContext);
-            //repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -371,9 +367,11 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
+            String relativePath = getRelativeSitePath(site, fullPath);
+            removeItemFromCache(site, relativePath);
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
-            message.setPath(getRelativeSitePath(site, fullPath));
+            message.setPath(relativePath);
             String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
@@ -755,7 +753,6 @@ public class ContentServiceImpl implements ContentService {
                 // POPULATE WORKFLOW STATUS
                 if (!item.isFolder() || item.isContainer()) {
                     populateWorkflowProperties(site, item);
-                    //item.setLockOwner("");
                 } else {
                     item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
                     item.isNew = item.isNew();
@@ -1038,7 +1035,6 @@ public class ContentServiceImpl implements ContentService {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
         String name = path.getName();
-        //String relativePath = path.getRelativePath();
         String fullPath = path.toString();
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
         item.path = folderPath;
@@ -1051,13 +1047,11 @@ public class ContentServiceImpl implements ContentService {
             internalName = folderPath.substring(index + 1);
 
         item.internalName = internalName;
-        //item.title = internalName;
         item.isDisabled = false;
         item.isNavigation = false;
         item.name = name;
         item.uri = relativePath;
 
-        //item.defaultWebApp = path.getDmSitePath();
         //set content type based on the relative Path
         String contentTypeClass = getContentTypeClass(site, relativePath);
         item.contentType = contentTypeClass;
@@ -1071,7 +1065,6 @@ public class ContentServiceImpl implements ContentService {
         item.deleted = true;
         item.isContainer = false;
         item.container = false;
-        //item.isNewFile = false;
         item.isNew = false;
         item.isInProgress = false;
         item.timezone = servicesConfig.getDefaultTimezone(site);
@@ -1121,9 +1114,6 @@ public class ContentServiceImpl implements ContentService {
 
     protected String getBrowserUri(ContentItemTO item) {
         String replacePattern = "";
-        //if (item.isLevelDescriptor) {
-        //    replacePattern = DmConstants.ROOT_PATTERN_PAGES;
-        //} else if (item.isComponent()) {
         if (item.isComponent) {
             replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
         } else if (item.isAsset) {
@@ -1259,7 +1249,6 @@ public class ContentServiceImpl implements ContentService {
             childDeleteItems(site, contentItem, deletedItems);
             //update summary for all uri's delete
         }
-        //AuthenticationUtil.setFullyAuthenticatedUser(user);
         return deletedItems;
     }
 

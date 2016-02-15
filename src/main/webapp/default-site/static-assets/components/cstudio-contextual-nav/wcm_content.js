@@ -228,7 +228,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                      */
                     _drawNav: function(selectedContent, isWrite, perms) {
                         var icon = "",
-                            isAdmin = (CStudioAuthoringContext.role == "admin") || (CStudioAuthoringContext.role == "Site_admin"), //CRAFTERCMS-1772 todo to remove
+                            isAdmin = (CStudioAuthoringContext.role == "admin"),
                             isBulk = true,
                             isRelevant = true,
                             state = "",
