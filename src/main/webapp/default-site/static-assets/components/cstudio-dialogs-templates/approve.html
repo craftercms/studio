@@ -51,6 +51,7 @@
             <div class="row unpad">
                 <div class="col-sm-12 date-picker-control" style="display: none">
                     <input class="date-picker form-control" name="scheduleDate" type="datetime" />
+                    <p class="validation" id="approveSubmitVal">Please select date and time</p>
                 </div>
             </div>
 
@@ -73,7 +74,7 @@
     </div>
 
     <div class="action-wrapper">
-        <button data-translation="submit" class="btn btn-primary submit-button">
+        <button id="approveSubmit" data-translation="submit" class="btn btn-primary submit-button">
             Submit
         </button>
         <button data-translation="close" class="btn btn-default close-button">
