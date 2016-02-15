@@ -2331,6 +2331,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             // and only submit the top level items to workflow
             for (DmDependencyTO dmDependencyTO : submittedItems) {
                 DependencyRules rule = new DependencyRules(site);
+                rule.setContentService(contentService);
+                rule.setObjectStateService(objectStateService);
                 rejectThisAndReferences(site, dmDependencyTO, rule, approver, reason);
                 List<DmDependencyTO> children = dmDependencyTO.getChildren();
                 if (children != null) {

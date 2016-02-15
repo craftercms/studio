@@ -56,6 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     /** message type key to match configuration **/
+    protected static final String MESSAGE_MACRO_REJECT_MESSAGE = "$reject-message";
     protected static final String MESSAGE_REJECTION = "rejection";
     protected static final String MESSAGE_REJECTION_NON_PREVIEWABLE = "rejectionNonPreviewable";
     protected static final String MESSAGE_APPROVAL = "approval";
@@ -780,7 +781,7 @@ public class NotificationServiceImpl implements NotificationService {
                 message=template.getMessage();
             }
             if (StringUtils.isNotEmpty(reason)) {
-                message += "\n\n" + reason;
+                message = message.replace(MESSAGE_MACRO_REJECT_MESSAGE, reason);
             }
             notifyUser(site,to,message,subject,from,browserUrl, reason);
         } catch(Exception e) {
