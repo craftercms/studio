@@ -109,7 +109,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
             ImageIcon icon = new ImageIcon(image);
             int height = icon.getIconHeight();
             int width = icon.getIconWidth();
-            validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
+            if (allowedHeight > 0 && allowedWidth > 0) {
+                validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
+            }
             assetInfo.setHeight(height);
             assetInfo.setWidth(width);
             return new ByteArrayInputStream(imageData);

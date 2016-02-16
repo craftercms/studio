@@ -465,6 +465,8 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                 if (destItem.getName().equals(DmConstants.INDEX_FILE)) {
                     destNodePath = destItem.getPath();
                 }
+            } else if (destItem.isFolder()) {
+                destNodePath = destItem.getUri();
             }
             for (final Map<String, String> pasteItem : pasteItems) {
                 DmPasteItemTO dmPasteItem = new DmPasteItemTO();
