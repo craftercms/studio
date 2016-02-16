@@ -445,7 +445,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		var toolbarConfig2 = (rteConfig.toolbarItems2 && rteConfig.toolbarItems2.length !=0) ? rteConfig.toolbarItems2 : "";
 		var toolbarConfig3 = (rteConfig.toolbarItems3 && rteConfig.toolbarItems3.length !=0) ? rteConfig.toolbarItems3 : "";
 		var toolbarConfig4 = (rteConfig.toolbarItems4 && rteConfig.toolbarItems4.length !=0) ? rteConfig.toolbarItems4 : "";
-						
+
+		var styleFormats = (rteConfig.styleFormats && rteConfig.styleFormats.length !=0) ? eval(rteConfig.styleFormats) : [];	
+							
 		var editor = tinyMCE.init({
 	        // General options
 	        mode : "textareas",
@@ -470,6 +472,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			min_height: 74,
 			remove_trailing_brs: false,
 
+			style_formats: styleFormats,
+  
 	        theme_advanced_resizing : true,
 	        theme_advanced_resize_horizontal : false,
 	        theme_advanced_toolbar_location : "top",
