@@ -167,6 +167,11 @@ public class CachedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return wrappedRepo.getContentChildren(path, ignoreCache);
+    }
+
+    @Override
     public VersionTO[] getContentVersionHistory(String path) {
         VersionTO[] value = null;
         value = (VersionTO[])getCachedObject("getContentVersionHistory-"+path);

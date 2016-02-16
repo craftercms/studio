@@ -183,6 +183,12 @@ public class PathMappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        ContentRepository repo = lookupRepo(path);
+        return repo.getContentChildren(path, ignoreCache);
+    }
+
+    @Override
     public VersionTO[] getContentVersionHistory(String path) {
        ContentRepository repo = lookupRepo(path);
         return repo.getContentVersionHistory(path);

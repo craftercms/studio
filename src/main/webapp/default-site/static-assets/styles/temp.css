@@ -7374,6 +7374,8 @@ address {
     .site-dashboard .panel .panel-heading .widget-controls [maxlength] {
       width: 50px;
       text-align: center; }
+    .site-dashboard .panel .panel-heading .widget-controls li {
+      vertical-align: top; }
   .site-dashboard .panel [id*="-body"] table {
     margin: 0; }
   .site-dashboard .panel .dashlet-item-check {
@@ -15522,6 +15524,10 @@ address {
   .studio-view table.item-listing td,
   .studio-dialog table.item-listing td {
     background-color: #fff; }
+.studio-view p.validation,
+.studio-dialog p.validation {
+  color: #a94442;
+  padding: 0px; }
 
 table.scroll-body {
   width: 100%;

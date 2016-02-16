@@ -51,6 +51,9 @@
           width: 50px;
           text-align: center;
         }
+        li{
+          vertical-align: top;
+        }
       }
     }
     [id*="-body"] table {
@@ -222,6 +225,11 @@
       background-color: #fff;
     }
 
+  }
+
+  p.validation{
+    color: #a94442;
+    padding: 0px;
   }
 
 }

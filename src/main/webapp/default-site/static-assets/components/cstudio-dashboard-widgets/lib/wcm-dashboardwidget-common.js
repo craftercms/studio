@@ -837,6 +837,9 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
 
     var callback = {
         success: function (results) {
+            if(results.total > 0){
+                YDom.addClass(divTableContainer, "table-responsive");
+            }
             instance.dashBoardData = results;
             var sortDocuments = results.documents;
             instance.tooltipLabels = new Array();

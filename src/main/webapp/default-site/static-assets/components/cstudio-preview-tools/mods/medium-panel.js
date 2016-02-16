@@ -111,11 +111,14 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
             $inputs = this.$container.find('input'),
             width = $inputs.filter('[data-axis="x"]').val() || 'auto',
             height = $inputs.filter('[data-axis="y"]').val() || 'auto',
+            studioPreviewHeight,
             orientation;
 
         $body.removeClass('studio-device-preview-portrait studio-device-preview-landscape');
 		
-		var location = $engine[0].src;
+		//var location = $engine[0].src;
+        var page =  CStudioAuthoring.Utils.getQueryVariable(window.location.href, "page");
+        var location = window.location.host + page;
 
         var t;
 		if(location.indexOf("?cstudio-useragent") > 0){
@@ -141,6 +144,8 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 
         if (height !== 'auto') {
             height = parseInt(height);
+        }else{
+            studioPreviewHeight = 'auto';
         }
 
         if (width !== 'auto' && height !== 'auto') {
@@ -151,11 +156,13 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
             // Add up the border widths to the iframe dimenssions
             // to get more accurate preview dimenssions
             if (orientation === 'portrait') {
-                height += 100;
-                width += 20;
+                //height += 100;
+                //width += 20;
+                studioPreviewHeight = height + 22;
             } else /*if (orientation === 'landscape')*/ {
-                height += 20;
-                width += 100;
+                //height += 20;
+                //width += 100;
+                studioPreviewHeight = height + 62;
             }
 
         }
@@ -166,11 +173,15 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 
         $engine.height(
             (height === 'auto' || height === '')
-                ? ''  : parseInt(height));
+                ? '' : parseInt(height));
 
-        $studioPreview.height(
-            (height === 'auto' || height === '')
-                ? ''  : parseInt(height));
+        if ($( window ).height() - $( ".navbar.navbar-default.navbar-fixed-top" ).height()  <= studioPreviewHeight) {
+            $studioPreview.height(
+                (height === 'auto' || height === '')
+                    ? '' : parseInt(studioPreviewHeight));
+        } else {
+            $studioPreview.height('auto');
+        }
 
     },
 

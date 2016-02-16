@@ -45,40 +45,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         getServicesManager().registerService(ObjectStateService.class, this);
         initializeTransitionTable();
     }
-/*
-    @Override
-    public void beginSystemProcessing(String fullPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        persistenceManagerService.setSystemProcessing(fullPath, true);
-    }
 
-    @Override
-    public void beginSystemProcessing(NodeRef nodeRef) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        persistenceManagerService.setSystemProcessing(nodeRef, true);
-    }
-
-    @Override
-    public void endSystemProcessing(String fullPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        persistenceManagerService.setSystemProcessing(fullPath, false);
-    }
-
-    @Override
-    public void endSystemProcessing(NodeRef nodeRef) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        persistenceManagerService.setSystemProcessing(nodeRef, false);
-    }
-
-    @Override
-    public State getObjectState(String fullPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-        return getObjectState(nodeRef);
-    }
-
-
-*/
     @Override
     public ObjectState getObjectState(String site, String path) {
         return getObjectState(site, path, true);
@@ -127,29 +94,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             generalLockService.unlock(lockId);
         }
     }
-/*
-    @Override
-    public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing) {
-        if (nodeRef != null) {
-            GeneralLockService nodeLockService = getService(GeneralLockService.class);
 
-            nodeLockService.lock(nodeRef.getId());
-            try {
-                objectStateDAOService.setSystemProcessing(nodeRef.getId(), isSystemProcessing);
-            } catch (Exception e) {
-                if (LOGGER.isErrorEnabled()) {
-                    LOGGER.error("Error setting system processing flag", e);
-                }
-             // TODO: CodeRev: eating the error, how does caller know?
-            } finally {
-                nodeLockService.unlock(nodeRef.getId());
-
-            }
-        } else {
-            LOGGER.error(String.format("Error setting system processing flag. NodeRef is null"));
-        }
-    }
-*/
     @Override
     public void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing) {
         if (paths == null || paths.isEmpty()) {
@@ -241,30 +186,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
         objectStateMapper.insertEntry(newEntry);
     }
-/*
-    protected void insertNewObjectEntryWithState(NodeRef nodeRef, State state) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-        if (StringUtils.isNotEmpty(dmPathTO.getSiteName())) {
-            objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-        }
-    }
 
-    @Override
-    public void insertNewObjectEntry(String fullPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        insertNewObjectEntry(persistenceManagerService.getNodeRef(fullPath));
-    }
-
-    @Override
-    public void insertNewObjectEntry(NodeRef nodeRef) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        DmPathTO dmPathTO = new DmPathTO(persistenceManagerService.getNodePath(nodeRef));
-        if (StringUtils.isNotEmpty(dmPathTO.getSiteName())) {
-                objectStateDAOService.insertNewObject(nodeRef.getId(), dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-        }
-    }
-*/
     @Override
     public List<ObjectState> getSubmittedItems(String site) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -286,22 +208,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("newPath", newPath);
         objectStateMapper.updateObjectPath(params);
     }
-/*
-    @Override
-    public void updateObjectPath(NodeRef nodeRef, String newPath) {
-        GeneralLockService lockService = getService(GeneralLockService.class);
-        lockService.lock(nodeRef.getId());
-        try {
-            objectStateDAOService.updateObjectPath(nodeRef.getId(), newPath);
-        } catch (Exception e) {
-            if (LOGGER.isErrorEnabled()) {
-                LOGGER.error("Error while updating object path: " + nodeRef.getId() + ", " + newPath);
-            }
-        } finally {
-            lockService.unlock(nodeRef.getId());
-        }
-    }
-*/
 
     @Override
     public boolean isUpdated(String site, String path) {
@@ -360,19 +266,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             return false;
         }
     }
-/*
-    @Override
-    public State[][] getTransitionMapping() {
-        return this.transitionTable;
-    }
 
-    @Override
-    public boolean isFolderLive(String fullPath) {
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        DmPathTO dmPathTO = new DmPathTO(fullPath);
-        return objectStateDAOService.isFolderLive(dmPathTO.getSiteName(), dmPathTO.getRelativePath());
-    }
-*/
     @Override
     public List<ObjectState> getChangeSet(String site) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -404,15 +298,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("path", path);
         objectStateMapper.deleteObjectStateForSiteAndPath(params);
     }
-/*
-    @Override
-    public void deleteObjectStateForPaths(String site, List<String> paths) {
-        if (paths == null || paths.isEmpty()) {
-            return;
-        }
-        objectStateDAOService.deleteObjectStatesForPaths(site, paths);
-    }
-*/
+
     @Override
     public void transitionBulk(String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
@@ -457,12 +343,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
 
         if (states != null && !states.isEmpty()) {
-            /*
-            Map<String, Object> params = new HashMap<String, Object>();
-            List<String> statesValues = new ArrayList<String>();
-            for (State state : enumStates) {
-                statesValues.add(state.name());
-            }*/
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("states", states);
             params.put("site", site);

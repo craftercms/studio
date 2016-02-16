@@ -500,45 +500,54 @@ var ApproveType = false;
             },
 
             deleteContent: function(items) {
+                var checkDeletePermissionsCb = {
+                    success: function(results) {
+                        var controller, view;
+                        for (var i = 0; i < results.permissions.length; i++) {
+                            if(results.permissions[i] == "delete") {
+                                controller = "viewcontroller-delete";
+                                view = CSA.Service.getDeleteView;
+                                break;
+                            } else if(results.permissions[i] == "request delete") {
+                                controller = "viewcontroller-submitfordelete";
+                                view = CSA.Service.getSubmitForDeleteView;
+                                break;
+                            }
+                        }
 
-                var controller, view;
-                if (CSA.Utils.isAdmin()) {
-                    controller = "viewcontroller-delete";
-                    view = CSA.Service.getDeleteView;
-                } else {
-                    // scheduled delete not supported
-                    controller = "viewcontroller-submitfordelete";
-                    view = CSA.Service.getSubmitForDeleteView;
-                    //controller = "viewcontroller-request-delete";
-                    //view = CSA.Service.getRequestDeleteView;
-                }
-
-                CSA.Operations._showDialogueView({
-                    fn: view,
-                    controller: controller,
-                    callback: function(dialogue) {
-                        CSA.Operations.translateContent(formsLangBundle);
-                        if(YDom.get("cancelBtn")){YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");}
-                        if(YDom.get("deleteBtn")){YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");}
-                        this.loadDependencies(items);
-                        this.on("submitComplete", function(evt, args){
-                            var reloadFn = function(){
-                                window.location.reload();
-                            };
-                            dialogue.hideEvent.subscribe(reloadFn);
-                            dialogue.destroyEvent.subscribe(reloadFn);
-                        });
-                        // Admin version of the view does not have this events
-                        // but then the call is ignored
-                        this.on("hideRequest", function(evt, args){
-                            dialogue.hide();
-                        });
-                        this.on("showRequest", function(evt, args){
-                            dialogue.show();
-                        });
-                    }
-                }, true);
-
+                        CSA.Operations._showDialogueView({
+                            fn: view,
+                            controller: controller,
+                            callback: function (dialogue) {
+                                CSA.Operations.translateContent(formsLangBundle);
+                                if (YDom.get("cancelBtn")) {
+                                    YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");
+                                }
+                                if (YDom.get("deleteBtn")) {
+                                    YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");
+                                }
+                                this.loadDependencies(items);
+                                this.on("submitComplete", function (evt, args) {
+                                    var reloadFn = function () {
+                                        window.location.reload();
+                                    };
+                                    dialogue.hideEvent.subscribe(reloadFn);
+                                    dialogue.destroyEvent.subscribe(reloadFn);
+                                });
+                                // Admin version of the view does not have this events
+                                // but then the call is ignored
+                                this.on("hideRequest", function (evt, args) {
+                                    dialogue.hide();
+                                });
+                                this.on("showRequest", function (evt, args) {
+                                    dialogue.show();
+                                });
+                            }
+                        }, true);
+                    },
+                    failure: function() {}
+                };
+                CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "/", checkDeletePermissionsCb);
             },
             viewSchedulingPolicy: function(callback) {
                 CSA.Operations._showDialogueView({
@@ -2105,7 +2114,7 @@ var parentSaveCb = {
                     if(flow=="deleteSchedule") {
                         if(CStudioAuthoringContext.isPreview
                             && CStudioAuthoringContext.isPreview==true
-                            && CStudioAuthoringContext.role == "admin") {
+                            && (CStudioAuthoringContext.role === "admin")) {
                             var deletedPage = document.location.href;
                             deletedPage = deletedPage.replace(CStudioAuthoringContext.previewAppBaseUri, "");
                             var parentPath = "";
@@ -3919,7 +3928,7 @@ var parentSaveCb = {
             // is this really a service and not a util, can we rename it to something descriptive?
             isDeleteAllowed: function(permissions) {
                 for (var i = 0; i < permissions.length; i++) {
-                    if(permissions[i] == "delete") {
+                    if(permissions[i] == "delete" || permissions[i] == "request delete") {
                         return true;
                     }
                 }

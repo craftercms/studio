@@ -47,14 +47,16 @@ import java.util.regex.Pattern;
 
 
 /**
- * Notification service sends workflow notifications.
- * Going forward the preference is to use the more general methods in this service
+ *
+ * @author hyanghee
+ *
  */
 public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     /** message type key to match configuration **/
+    protected static final String MESSAGE_MACRO_REJECT_MESSAGE = "$reject-message";
     protected static final String MESSAGE_REJECTION = "rejection";
     protected static final String MESSAGE_REJECTION_NON_PREVIEWABLE = "rejectionNonPreviewable";
     protected static final String MESSAGE_APPROVAL = "approval";
@@ -77,15 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected String configPath;
     protected String configFileName;
     protected CacheTemplate cacheTemplate;
-    
-    
-    protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
-    protected static final String VAR_REASON = "[REASON]";
-    protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notificaiton";
-    protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notificaiton template [NOTIFICATION_TEMPLATE] has not been not configured.";
 
-    
-    
     public String getPreviewBaseUrl() {
         return previewBaseUrl;
     }
@@ -125,7 +119,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public boolean sendNotice(String site, String action) {
-        
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Boolean sendNotice = config.getSendNoticeMapping().get(action);
@@ -133,7 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
                 return sendNotice.booleanValue();
             }
         }
-
+        // // default to true
         return true;
     }
 
@@ -155,7 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public String getGeneralMessage(String site, String key) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getMessages();
@@ -168,7 +162,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<MessageTO> getCannedRejectionReasons(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, List<MessageTO>> messages = config.getCannedMessages();
@@ -180,7 +174,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -192,7 +186,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -204,7 +198,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -216,7 +210,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -228,7 +222,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -240,7 +234,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -252,7 +246,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -264,7 +258,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -276,7 +270,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -289,7 +283,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public String getCompleteMessage(final String site, final String key) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getCompleteMessages();
@@ -302,7 +296,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public String getErrorMessage(String site, String key, Map<String, String> params) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getErrorMessages();
@@ -318,7 +312,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public EmailMessageTemplateTO getDeploymentFailureMessage(final String site) {
-
+        //checkForUpdate(site);
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -331,52 +325,48 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendContentSubmissionNotification(String site,String to,String browserUrl,String from,Date scheduledDate,boolean isPreviewable,boolean isDelete) {
-
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_CONTENT_SUBMISSION;
-
         try {
             EmailMessageTemplateTO template = null;
-            
             if (isDelete) {
                 if (isPreviewable) {
                     template = getContentSubmissionForDeleteEmailMessageTemplate(site);
-                    templateType = MESSAGE_CONTENT_SUBMISSION_FOR_DELETE;
                 } else {
                     template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
-                    templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
                 }
-            }
-            else {
-                if (!isPreviewable) {
+            } else {
+                if (isPreviewable) {
+                    template = getContentSubmissionEmailMessageTemplate(site);
+                } else {
                     template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
-                    templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
                 }
             }
-            
-            message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
+
+            String subject = "Contributer submitted a content for approval.";
+            String message = "Contributer submitted a content for approval.\n";
+            if (isDelete) {
+                subject = "Contributer submitted a content for delete.";
+                message = "Contributer submitted a content for delete.\n";
+            }
 
             if (template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
             }
-
+            if(scheduledDate != null) {
+                subject += ", At requested [";
+                subject += getDateInSpecificTimezone(scheduledDate, site);
+                subject += (isDelete? "] (Scheduled for Delete)" : "] (Scheduled Go Live)");
+            } else {
+                subject += ", As soon as possible ";
+            }
             notifyUser(site, to, message, subject, from, browserUrl, "");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Could not queue the content submission notification:",e);
         }
     }
 
     @Override
     public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
-
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_CONTENT_SUBMISSION;
-        
-        
         try {
 
             NotificationConfigTO config = getNotificationConfig(site);
@@ -395,28 +385,37 @@ public class NotificationServiceImpl implements NotificationService {
 
                 if (StringUtils.isNotEmpty(toAddress)) {
                     EmailMessageTemplateTO template = null;
-
                     if (isDelete) {
                         if (isPreviewable) {
                             template = getContentSubmissionForDeleteEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_SUBMISSION_FOR_DELETE;
-                        }
-                        else {
+                        } else {
                             template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
                         }
                     } else {
-                        if (!isPreviewable) {
+                        if (isPreviewable) {
+                            template = getContentSubmissionEmailMessageTemplate(site);
+                        } else {
                             template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
                         }
                     }
-                    
-                    message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
+
+                    String subject = "Contributer submitted a content for approval.";
+                    String message = "Contributer submitted a content for approval.\n";
+                    if (isDelete) {
+                        subject = "Contributer submitted a content for delete.";
+                        message = "Contributer submitted a content for delete.\n";
+                    }
 
                     if (template != null) {
                         subject = template.getSubject();
                         message = template.getMessage();
+                    }
+                    if (scheduledDate != null) {
+                        subject += ", At requested [";
+                        subject += getDateInSpecificTimezone(scheduledDate, site);
+                        subject += (isDelete ? "] (Scheduled for Delete)" : "] (Scheduled Go Live)");
+                    } else {
+                        subject += ", As soon as possible ";
                     }
 
                     logger.debug("Notifying user:" + toAddress);
@@ -427,6 +426,7 @@ public class NotificationServiceImpl implements NotificationService {
                     if (liveBaseUrl == null) {
                         liveBaseUrl = siteService.getLiveServerUrl(site);
                     }
+
 
                     Map<String, String> fromProfile = securityService.getUserProfile(from);
                     final String userFirstName = fromProfile.get("firstName");
@@ -472,7 +472,7 @@ public class NotificationServiceImpl implements NotificationService {
                     internalName = StringUtils.isEmpty(itemName) ? internalName : itemName;
                     emailMessage.setPersonalFromName(fromPersonalName);
                     emailMessage.setTitle(internalName);
-
+                    //emailMessage.setAdminEmail(adminEmailAddress);
                     // set browser URL
                     if (isDocument) {
                         if (isExternalDocument) {
@@ -503,16 +503,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendDeleteApprovalNotification(String site, String to, String browserUrl, String from) {
-
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_DELETE_APPROVAL;
-        message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-
+    public void sendDeleteApprovalNotification(String site, String to, String browserUrl, String from)
+    {
         try {
             EmailMessageTemplateTO template = getDeleteApprovalEmailMessageTemplate(site);
- 
+            String subject = "Your Content deletion got Approved.";
+            String message = "Admin has approved your request to delete content.\n";
             if (template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
@@ -640,7 +636,7 @@ public class NotificationServiceImpl implements NotificationService {
                     Node addressNode = childElement.selectSingleNode("email");
                     String value = addressNode.getText();
                     // default to true
-
+                    //Boolean sendNotice = (!StringUtils.isEmpty(value) && value.equals("false")) ? false : true;
                     if (!StringUtils.isEmpty(regex) && !StringUtils.isEmpty(value)) {
                         submitNotificationMapping.put(regex, value);
                     }
@@ -769,31 +765,24 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendRejectionNotification(String site,String to,String browserUrl,String reason,String from, boolean isPreviewable) {
-
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_REJECTION;
-
         try {
             EmailMessageTemplateTO template = null;
             if (isPreviewable) {
                 template = getRejectionEmailMessageTemplate(site);
             } else {
                 template = this.getRejectionNonPreviewableEmailMessageTemplate(site);
-                templateType = MESSAGE_REJECTION_NON_PREVIEWABLE;
             }
 
-            message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-
+            String subject="Your content has got rejected.";
+            String message="Your content has been rejected for following reason(s).\n";
             if(template != null)
             {
                 subject=template.getSubject();
                 message=template.getMessage();
             }
             if (StringUtils.isNotEmpty(reason)) {
-                message = message.replace(VAR_REASON, reason);
+                message = message.replace(MESSAGE_MACRO_REJECT_MESSAGE, reason);
             }
-
             notifyUser(site,to,message,subject,from,browserUrl, reason);
         } catch(Exception e) {
             logger.error("Could not queue the rejection notification:",e);
@@ -803,13 +792,8 @@ public class NotificationServiceImpl implements NotificationService {
  
     @Override
     public void sendApprovalNotification(String site, String to, String browserUrl, String from) {
-        
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_APPROVAL;
-
-        
-        try {
+        try
+        {
             logger.debug("Sending approval notification to:" + to);
             boolean isPreviewable = true;
             try {
@@ -818,17 +802,15 @@ public class NotificationServiceImpl implements NotificationService {
             } catch (Exception e) {
                 logger.error("during Notification send item name read failed",e);
             }
-            
+
             EmailMessageTemplateTO template = null;
             if (isPreviewable) {
                 template = getApprovalEmailMessageTemplate(site);
             } else {
                 template = getApprovalNonPreviewableEmailMessageTemplate(site);
-                templateType = MESSAGE_APPROVAL_NONPREVIEWABLE ;
             }
-
-            message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-
+            String subject = "Your content has got the approval.";
+            String message = "Your content has been approved.\n";
             if(template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
@@ -855,6 +837,10 @@ public class NotificationServiceImpl implements NotificationService {
         String authoringBaseUrl = siteService.getAuthoringServerUrl(site);
         String adminEmailAddress = siteService.getAdminEmailAddress(site);
         String userEmailAddress="";
+        /*
+        if(toUser.equals(AuthenticationUtil.getAdminUserName()))
+            userEmailAddress=adminEmailAddress;
+*/
 
         if(StringUtils.isEmpty(userEmailAddress)) {
             Map<String, String> profile = securityService.getUserProfile(toUser);
@@ -901,6 +887,21 @@ public class NotificationServiceImpl implements NotificationService {
             if (contentItem.isPreviewable() && contentItem.isDocument()) {
                 isDocument = true;
                 String documentUrlProperty = "";
+                /*
+                documentUrlProperty = dmContentService.getTextPropertyByRelativePath(site, relativeUrl, DOCUMENT_EXTERNAL_URL_PROPERTY);
+                if (StringUtils.isEmpty(documentUrlProperty)) { // attached asset present
+                    List<DmContentItemTO> assets = contentItem.getAssets();
+                    // expecting first asset
+                    if (assets.size() > 0) {
+                        DmContentItemTO docAsset = assets.get(0);
+                        if (docAsset != null) {
+                            documentUrl = docAsset.getUri();
+                        }
+                    }
+                } else { // external link
+                    isExternalDocument = true;
+                    documentUrl = documentUrlProperty;
+                }*/
             }
         }
 

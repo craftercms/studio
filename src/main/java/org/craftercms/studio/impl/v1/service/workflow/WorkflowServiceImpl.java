@@ -183,7 +183,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (int index = 0; index < length; index++) {
 					String stringItem = items.optString(index);
                     //JSONObject item = items.getJSONObject(index);
-                    DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate);
+                    DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate, null);
                     String user = submittedBy; //item.getString(JSON_KEY_USER);
                     submittedItems.add(submittedItem);
                     if (delete) {
@@ -837,7 +837,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 String stringItem = items.optString(index);
                 DmDependencyTO submittedItem = null;
 
-				submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate);
+				submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate, null);
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
@@ -1207,7 +1207,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             /**
              * Get dependent pages
              */
-            DmDependencyTO dmDependencyTo = dmDependencyService.getDependenciesNoCalc(site, item.getString(JSON_KEY_URI), false, true);
+            DmDependencyTO dmDependencyTo = dmDependencyService.getDependenciesNoCalc(site, item.getString(JSON_KEY_URI), false, true, null);
             List<DmDependencyTO> dependentPages = new ArrayList<>();
             if (dmDependencyTo != null) {
                 dependentPages = dmDependencyTo.getPages();
@@ -1247,8 +1247,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submittedItem;
     }
 
-	protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
-		DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true);
+	protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate, Set<String> processedDependencies) throws JSONException {
+		DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, processedDependencies);
 		// TODO: check scheduled date to make sure it is not null when isNow =
 		// true and also it is not past
 		Date scheduledDate = null;
@@ -1263,39 +1263,54 @@ public class WorkflowServiceImpl implements WorkflowService {
 			submittedItem.setNow(true);
 		}
 		submittedItem.setScheduledDate(scheduledDate);
+        if (processedDependencies == null) {
+            processedDependencies = new HashSet<String>();
+        }
         if (CollectionUtils.isNotEmpty(submittedItem.getComponents())) {
             for (DmDependencyTO component : submittedItem.getComponents()) {
-                component = getSubmittedItem(site, component.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(component.getUri())) {
+                    component = getSubmittedItem(site, component.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
         if (CollectionUtils.isNotEmpty(submittedItem.getDocuments())) {
             for (DmDependencyTO document : submittedItem.getDocuments()) {
-                document = getSubmittedItem(site, document.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(document.getUri())) {
+                    document = getSubmittedItem(site, document.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
         if (CollectionUtils.isNotEmpty(submittedItem.getAssets())) {
             for (DmDependencyTO asset : submittedItem.getAssets()) {
-                asset = getSubmittedItem(site, asset.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(asset.getUri())) {
+                    asset = getSubmittedItem(site, asset.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
         if (CollectionUtils.isNotEmpty(submittedItem.getRenderingTemplates())) {
             for (DmDependencyTO template : submittedItem.getRenderingTemplates()) {
-                template = getSubmittedItem(site, template.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(template.getUri())) {
+                    template = getSubmittedItem(site, template.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
         if (CollectionUtils.isNotEmpty(submittedItem.getDeletedItems())) {
             for (DmDependencyTO deletedItem : submittedItem.getDeletedItems()) {
-                deletedItem = getSubmittedItem(site, deletedItem.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(deletedItem.getUri())) {
+                    deletedItem = getSubmittedItem(site, deletedItem.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
         if (CollectionUtils.isNotEmpty(submittedItem.getChildren())) {
             for (DmDependencyTO child : submittedItem.getChildren()) {
-                child = getSubmittedItem(site, child.getUri(), format, globalSchDate);
+                if (!processedDependencies.contains(child.getUri())) {
+                    child = getSubmittedItem(site, child.getUri(), format, globalSchDate, processedDependencies);
+                }
             }
         }
 
@@ -1303,7 +1318,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
     protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
-        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true);
+        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, null);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
         Date scheduledDate = null;
@@ -1681,7 +1696,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             Set<String> dependenciesPaths = deploymentDependencyRule.applyRule(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
-                childAndReferences.add(dmDependencyService.getDependenciesNoCalc(site, depPath, false, true));
+                childAndReferences.add(dmDependencyService.getDependenciesNoCalc(site, depPath, false, true, null));
             }
         }
         return childAndReferences;
@@ -1740,7 +1755,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
         }
         for (String depPath : dependenciesPaths) {
-            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate));
+            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
         }
         return dependencies;
     }
@@ -2282,7 +2297,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     String stringItem = items.optString(index);
                     //JSONObject item = items.getJSONObject(index);
                     DmDependencyTO submittedItem = null; //getSubmittedItem(site, item, format, scheduledDate);
-                    submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate);
+                    submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate, null);
                     submittedItems.add(submittedItem);
                 }
                 List<String> paths = new ArrayList<String>();
@@ -2316,6 +2331,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             // and only submit the top level items to workflow
             for (DmDependencyTO dmDependencyTO : submittedItems) {
                 DependencyRules rule = new DependencyRules(site);
+                rule.setContentService(contentService);
+                rule.setObjectStateService(objectStateService);
                 rejectThisAndReferences(site, dmDependencyTO, rule, approver, reason);
                 List<DmDependencyTO> children = dmDependencyTO.getChildren();
                 if (children != null) {

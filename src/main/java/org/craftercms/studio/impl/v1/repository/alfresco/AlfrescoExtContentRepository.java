@@ -92,6 +92,11 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
         }
     }
 
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return super.getContentChildren(path);
+    }
+
     /**
      * build a repo path from the relative path
      */
@@ -99,6 +104,21 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
 
         return java.nio.file.FileSystems.getDefault().getPath(previewRepoRootPath, args);
 
+    }
+
+    @Override
+    public boolean createFolder(String path, String name) {
+        boolean toRet = super.createFolder(path, name);
+        if (toRet) {
+            try {
+                Files.createDirectories(constructRepoPath(path, name));
+            }
+            catch(Exception err) {
+                // log this error
+                logger.warn("Error while creating folder in preview content");
+            }
+        }
+        return toRet;
     }
 
     protected String previewRepoRootPath;

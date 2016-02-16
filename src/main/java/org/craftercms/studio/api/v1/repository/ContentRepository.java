@@ -112,6 +112,14 @@ public interface ContentRepository {
     RepositoryItem[] getContentChildren(String path);
 
     /**
+     * get immediate children for path
+     * @param path path to content
+     * @param ignoreCache ignore repository cache
+     * @return a list of children
+     */
+    RepositoryItem[] getContentChildren(String path, boolean ignoreCache);
+
+    /**
      * get the version history for an item
      * @param site - the project ID
      * @param path - the path of the item
@@ -172,11 +180,4 @@ public interface ContentRepository {
      * @param path
      */
     void unLockItem(String site, String path);
-
-
-
-
-
-
-
 }

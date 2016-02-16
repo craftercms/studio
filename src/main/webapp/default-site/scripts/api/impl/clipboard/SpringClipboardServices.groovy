@@ -134,6 +134,7 @@ class SpringClipboardServices {
 
         def clipboardItem = [:]
         clipboardItem.cut = cut
+        clipboardItem.deep = true
         clipboardItem.item = parsedReq.item
         session.setAttribute(getKey(site), clipboardItem);
 
