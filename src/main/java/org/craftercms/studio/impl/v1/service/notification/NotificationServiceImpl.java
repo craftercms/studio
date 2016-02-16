@@ -82,7 +82,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
     protected static final String VAR_REASON = "[REASON]";
     protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notificaiton";
-    protected static final String DEFAULT_CONTENT_BODY = "Content has been submitted for review. \n Notificaiton template [NOTIFICATION_TEMPLATE] not configured";
+    protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notificaiton template [NOTIFICATION_TEMPLATE] has not been not configured.";
 
     
     
