@@ -23,8 +23,15 @@
     <#if siteContext.overlayCallback??> data-studio-components-target="${target}" data-studio-components-objectId="${objectId}"</#if>
 </#macro>
 
-<#macro iceAttr iceGroup="" path="">
-   <#if siteContext.overlayCallback??> data-studio-ice="${iceGroup}" <#if path!="">data-studio-ice-path="${path}"</#if> </#if>
+<#macro iceAttr iceGroup="" path="" label="">
+   <#if label == "">
+      <#if iceGroup == "" >
+        <#assign label = path />
+      <#else>
+        <#assign label = iceGroup />
+      </#if>
+   </#if>
+   <#if siteContext.overlayCallback??> data-studio-ice="${iceGroup}" <#if path!="">data-studio-ice-path="${path}"</#if> data-studio-ice-label="${label}"</#if>
 </#macro>
 
 <#macro ice id="" component="" componentPath="">
