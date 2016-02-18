@@ -49,11 +49,17 @@ public abstract class AbstractLogger implements Logger {
 		if(pattern == null) {
 			pattern = msg;
 		}
-		 
-		MessageFormat msgFormat = new MessageFormat(pattern); //use locale from some external source 
+		
+        
+        try {
+            MessageFormat msgFormat = new MessageFormat(pattern); //use locale from some external source
+            retMessage = msgFormat.format(args);
+        }
+        catch(Exception eExpandFailure) {
+            retMessage = pattern + " and arguments " + args + " failed to expand in to message " + eExpandFailure;
+        }
+        
 		String threadId = Thread.currentThread().getName();
-
-		retMessage = msgFormat.format(args);
 		
 		return "["+threadId+"] " + retMessage;
 	}
