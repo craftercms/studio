@@ -73,7 +73,7 @@ CREATE TABLE cstudio_pagenavigationordersequence
 (
   folder_id character varying(100) NOT NULL,
   site character varying(50) NOT NULL,
-  path character varying(255) NOT NULL,
+  path character text NOT NULL,
   max_count double precision NOT NULL,
   CONSTRAINT cstudio_pagenavigationordersequence_pkey PRIMARY KEY (folder_id)
 ) ;
