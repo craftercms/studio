@@ -2136,7 +2136,7 @@ Copyright (c) 2014 Daniel Eden
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   @font-face {
     font-family: 'Raleway';
-    src: url("../../static-assets/libs/fonts/raleway/Raleway-Bold.svg#Raleway") format("svg");
+    src: url("../../static-assets/libs/fonts/raleway/Raleway.svg#Raleway") format("svg");
     font-weight: 600;
     font-style: normal; } }
 @font-face {
