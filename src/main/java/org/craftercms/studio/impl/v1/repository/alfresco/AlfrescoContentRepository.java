@@ -304,7 +304,9 @@ implements SecurityProvider {
 
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("TRACE: alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
-        return postMethod.getResponseBodyAsString();
+        InputStream responseStream = postMethod.getResponseBodyAsStream();
+        String response = IOUtils.toString(responseStream);
+        return response;
     }
 
     /**
@@ -350,7 +352,9 @@ implements SecurityProvider {
 
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("TRACE: alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
-        return postMethod.getResponseBodyAsString();
+        InputStream responseStream = postMethod.getResponseBodyAsStream();
+        String response = IOUtils.toString(responseStream);
+        return response;
     }
 
     /**
