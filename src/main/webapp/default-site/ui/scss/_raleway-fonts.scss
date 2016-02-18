@@ -16,3 +16,12 @@
   font-weight: 800;
   src: local('Raleway Bold'), local('Raleway-Bold'), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.svg#Raleway-Bold") format("svg");
 }
+
+/*FIX FONT FOR GOOGLE CHROME ON WINDOWS*/
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'Raleway';
+    src: url('../../static-assets/libs/fonts/raleway/Raleway-Bold.svg#Raleway') format('svg');
+    font-weight: 600;
+    font-style: normal;}
+}
