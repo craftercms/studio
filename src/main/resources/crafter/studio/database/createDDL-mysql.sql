@@ -12,10 +12,11 @@ CREATE TABLE `cstudio_activity` (
   PRIMARY KEY (`id`),
   KEY `cstudio_activity_user_idx` (`post_user_id`),
   KEY `cstudio_activity_site_idx` (`site_network`),
-  KEY `cstudio_activity_content_idx` (`content_id`(255))
+  KEY `cstudio_activity_content_idx` (`content_id`(1000))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8 ;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_DEPENDENCY` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
@@ -25,10 +26,11 @@ CREATE TABLE `cstudio_DEPENDENCY` (
   `type`        VARCHAR(15) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `cstudio_dependency_site_idx` (`site`),
-  KEY `cstudio_dependency_sourcepath_idx` (`source_path`(255))
+  KEY `cstudio_dependency_sourcepath_idx` (`source_path`(1000))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8 ;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_objectstate` (
   `object_id`         VARCHAR(255)  NOT NULL,
@@ -38,10 +40,11 @@ CREATE TABLE `cstudio_objectstate` (
   `system_processing` BIT(1)        NOT NULL,
   PRIMARY KEY (`object_id`),
   KEY `cstudio_objectstate_object_idx` (`object_id`),
-  UNIQUE `uq_os_site_path` (`site`, `path`(200))
+  UNIQUE `uq_os_site_path` (`site`, `path`(900))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8 ;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_pagenavigationordersequence` (
   `folder_id` VARCHAR(100) NOT NULL,
@@ -52,7 +55,8 @@ CREATE TABLE `cstudio_pagenavigationordersequence` (
   KEY `cstudio_pagenavigationorder_folder_idx` (`folder_id`)
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8 ;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_copytoenvironment` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -69,12 +73,13 @@ CREATE TABLE `cstudio_copytoenvironment` (
   PRIMARY KEY (`id`),
   INDEX `cstudio_cte_site_idx` (`site` ASC),
   INDEX `cstudio_cte_environment_idx` (`environment` ASC),
-  INDEX `cstudio_cte_path_idx` (`path`(250) ASC),
-  INDEX `cstudio_cte_sitepath_idx` (`site` ASC, `path`(250) ASC),
+  INDEX `cstudio_cte_path_idx` (`path`(1000) ASC),
+  INDEX `cstudio_cte_sitepath_idx` (`site` ASC, `path`(900) ASC),
   INDEX `cstudio_cte_state_idx` (`state` ASC)
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_publishtotarget` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -89,11 +94,12 @@ CREATE TABLE `cstudio_publishtotarget` (
   PRIMARY KEY (`id`),
   INDEX `cstudio_ptt_site_idx` (`site` ASC),
   INDEX `cstudio_ptt_environment_idx` (`environment` ASC),
-  INDEX `cstudio_ptt_path` (`path`(250) ASC),
-  INDEX `cstudio_ptt_sitepath_idx` (`site` ASC, `path`(250) ASC)
+  INDEX `cstudio_ptt_path` (`path`(1000) ASC),
+  INDEX `cstudio_ptt_sitepath_idx` (`site` ASC, `path`(900) ASC)
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_deploymentsynchistory` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
@@ -107,14 +113,15 @@ CREATE TABLE `cstudio_deploymentsynchistory` (
   PRIMARY KEY (`id`),
   INDEX `cs_depsynchist_site_idx` (`site` ASC),
   INDEX `cs_depsynchist_env_idx` (`environment` ASC),
-  INDEX `cs_depsynchist_path_idx` (`path`(250) ASC),
-  INDEX `cs_depsynchist_sitepath_idx` (`site` ASC, `path`(250) ASC),
+  INDEX `cs_depsynchist_path_idx` (`path`(1000) ASC),
+  INDEX `cs_depsynchist_sitepath_idx` (`site` ASC, `path`(900) ASC),
   INDEX `cs_depsynchist_target_idx` (`target` ASC),
   INDEX `cs_depsynchist_user_idx` (`username` ASC),
   INDEX `cs_depsynchist_ctc_idx` (`contenttypeclass` ASC)
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_site` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
@@ -129,7 +136,8 @@ CREATE TABLE `cstudio_site` (
 )
 
     ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `cstudio_objectmetadata` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -156,7 +164,8 @@ CREATE TABLE `cstudio_objectmetadata` (
   `submissioncomment` TEXT NULL,
   `launchdate` DATETIME NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `uq__om_site_path` (`site`, `path`(200))
+  UNIQUE `uq__om_site_path` (`site`, `path`(900))
 )
   ENGINE =InnoDB
-  DEFAULT CHARSET =utf8;
+  DEFAULT CHARSET =utf8
+  ROW_FORMAT=DYNAMIC;
