@@ -313,7 +313,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 			
 							CStudioAuthoring.Operations.openContentWebForm(
 								contentTO.item.contentType,
-								null,
+                                contentItem.contentId,
 								null,
 								contentItem.contentId,
 								true,
