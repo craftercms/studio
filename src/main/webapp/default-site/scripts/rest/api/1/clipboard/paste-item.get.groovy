@@ -13,6 +13,7 @@ def requestBody = request.reader.text
 def context = ClipboardServices.createContext(applicationContext, request)
 try {
     result.status = ClipboardServices.paste(context, site, session, destination)
+    sleep(5000);
     result.site = site
 } catch (ServiceException error) {
     result.site = site
