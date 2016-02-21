@@ -26,7 +26,15 @@ public class EmailMessageTemplateTO implements Serializable {
 	protected String _subject;
 	/** message body **/
 	protected String _message;
-	
+
+
+	public EmailMessageTemplateTO(final String _subject, final String _message) {
+		this._subject = _subject;
+		this._message = _message;
+	}
+
+	public EmailMessageTemplateTO() {
+	}
 
 	/**
 	 * @return the title

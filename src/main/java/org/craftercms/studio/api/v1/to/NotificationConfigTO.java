@@ -18,7 +18,9 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +43,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	protected Map<String, EmailMessageTemplateTO> _emailMessageTemplates = null;
 	/** complete messages used for displaying complete pop-ups **/
 	protected Map<String, String> _completeMessages = null;
+
 	/** general messages **/
 	protected Map<String, String> messages = null;
 
@@ -54,6 +57,25 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
     protected Map<String, String> submitNotificationsMapping = null;
 
     protected List<String> deploymentFailureNotifications = null;
+	protected List<String> approverEmails = null;
+
+	protected boolean isNewNotificationSystemEnable;
+
+
+	public NotificationConfigTO(final String _site) {
+		this();
+		this._site = _site;
+	}
+
+	public NotificationConfigTO() {
+		_cannedMessages=new HashMap<>();
+		_emailMessageTemplates=new HashMap<>();
+		_completeMessages=new HashMap<>();
+		messages=new HashMap<>();
+		deploymentFailureNotifications=new ArrayList<>();
+		isNewNotificationSystemEnable=false;//for now!
+		approverEmails=new ArrayList<>();
+	}
 
 	/**
 	 * @return the site
@@ -163,6 +185,14 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 		return _sendNoticeMapping;
 	}
 
+	public boolean isNewNotificationSystemEnable() {
+		return isNewNotificationSystemEnable;
+	}
+
+	public void setNewNotificationSystemEnable(final boolean newNotificationSystemEnable) {
+		isNewNotificationSystemEnable = newNotificationSystemEnable;
+	}
+
 	/**
 	 * @param sendNoticeMapping the sendNoticeMapping to set
 	 */
@@ -185,4 +215,12 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
     public void setDeploymentFailureNotifications(List<String> deploymentFailureNotifications) {
         this.deploymentFailureNotifications = deploymentFailureNotifications;
     }
+
+	public List<String> getApproverEmails() {
+		return approverEmails;
+	}
+
+	public void setApproverEmails(final List<String> approverEmails) {
+		this.approverEmails = approverEmails;
+	}
 }

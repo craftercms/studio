@@ -28,8 +28,9 @@ import java.util.Map;
  * Provides services for sending and getting notification messages
  * 
  * @author hyanghee
- *
+ ** @deprecated  This class/interface will beremovee in 2.6
  */
+@Deprecated
 public interface NotificationService {
 
 	/** complete message keys **/

@@ -103,6 +103,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
@@ -126,6 +127,7 @@
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="notificationService2" ref="cstudioNotificationServicev2" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
@@ -173,7 +175,22 @@
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
          <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+         <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
      </bean>
+
+    <bean id="cstudioNotificationServicev2"
+          class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
+        <property name="emailMessages" ref="cstudioEmailMessageQueue" />
+        <property name="configPath"><value>${notificationService.configPath}</value></property>
+        <property name="configFileName"><value>${notificationService.v2.configFileName}</value></property>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="enable" value="${notificationService.v2.enable}"/>
+        <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
+    </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
             <property name="translationContentDAL" ref="cstudioTranslationContentDAL" />
@@ -493,6 +510,8 @@
         <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -502,6 +521,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
     </bean>
 
     <!-- scheduled actions -->
@@ -885,6 +905,7 @@
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
