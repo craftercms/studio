@@ -112,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted, final String approver, final Locale locale) {
+    public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted, final String approver, final Date scheduleDate, final Locale locale) {
         if(enable){
             final NotificationConfigTO notificationConfig = getNotificationConfig(site,locale);
             final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get
@@ -121,9 +121,12 @@ public class NotificationServiceImpl implements NotificationService {
                 final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
                 Map<String,Object>templateModel=new HashMap<>();
                 templateModel.put("siteName",site);
+                templateModel.put("liveUrl",siteService.getLiveServerUrl(site));
+                templateModel.put("previewUrl",siteService.getAuthoringServerUrl(site));
                 templateModel.put("files",convertPathsToContent(site,itemsSubmitted));
                 templateModel.put("submitterUser",submitter);
                 templateModel.put("approver",securityService.getUserProfile(approver));
+                templateModel.put("scheduleDate",scheduleDate);
                 final String messageBody = processMessage(NOTIFY_CONTENT_APPROVAL, emailTemplate.getMessage(), templateModel);
                 final String subject = processMessage(NOTIFY_CONTENT_APPROVAL,emailTemplate.getSubject(),templateModel);
                 sendEmail(messageBody,subject, Arrays.asList(submitterUser.get("email")));
@@ -177,6 +180,8 @@ public class NotificationServiceImpl implements NotificationService {
                 templateModel.put("scheduleDate",scheduleDate);
                 templateModel.put("isDeleted",isADelete);
                 templateModel.put("submissionComments",submissionComments);
+                templateModel.put("liveUrl",siteService.getLiveServerUrl(site));
+                templateModel.put("previewUrl",siteService.getAuthoringServerUrl(site));
                 final String messageBody = processMessage(NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, emailTemplate.getMessage(), templateModel);
                 final String subject = processMessage(NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL,emailTemplate.getSubject(),templateModel);
                 if(usersToNotify==null){
@@ -204,6 +209,8 @@ public class NotificationServiceImpl implements NotificationService {
                 templateModel.put("submitter",submitterUser);
                 templateModel.put("rejectionReason",rejectionReason);
                 templateModel.put("userThatRejects",securityService.getUserProfile(userThatRejects));
+                templateModel.put("liveUrl",siteService.getLiveServerUrl(site));
+                templateModel.put("previewUrl",siteService.getAuthoringServerUrl(site));
                 final String messageBody = processMessage(NOTIFY_CONTENT_REJECTED, emailTemplate.getMessage(), templateModel);
                 final String subject = processMessage(NOTIFY_CONTENT_REJECTED,emailTemplate.getSubject(),templateModel);
                 sendEmail(messageBody,subject, Arrays.asList(submitterUser.get("email")));

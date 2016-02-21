@@ -48,10 +48,10 @@ public interface NotificationService {
      * @param submitterUser User that submit the content to approval.
      * @param itemsSubmitted List of Item paths that where approve (can be null)
      * @param approver User that approve the content.
+     * @param scheduleDate
      * @param locale Language of the notification ,if null defaults to English.
      */
-    void notifyContentApproval(final String site,final String submitterUser,final List<String> itemsSubmitted,final
-    String approver,Locale locale);
+    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted, final String approver, final Date scheduleDate, Locale locale);
 
     /**
      * Gets and process notification message

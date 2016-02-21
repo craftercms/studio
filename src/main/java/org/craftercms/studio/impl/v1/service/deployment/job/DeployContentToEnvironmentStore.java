@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.util.ListUtils;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
-import javax.transaction.UserTransaction;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -190,7 +189,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         final CopyToEnvironment item = itemList.get(0);
         ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
         notificationService2.notifyContentApproval(site,objectMetadata.getSubmittedBy(),getPathRelativeToSite(itemList),
-            item.getUser(),Locale.ENGLISH);
+            item.getUser(),item.getScheduledDate() , Locale.ENGLISH);
     }
 }
 
