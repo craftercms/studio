@@ -60,6 +60,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.RequestContextBuild
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
 import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -101,6 +102,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_SEND_EMAIL = "sendEmail";
     protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
+	public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
 
 
 	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
@@ -208,7 +210,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
                 result.setSuccess(true);
 				result.setStatus(200);
-                result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
+				if(notificationService2.isEnable()){
+					result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
+						.CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
+				}else {
+					result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
+				}
                 for (String fullPath : submittedPaths) {
                     objectStateService.setSystemProcessing(site, contentService.getRelativeSitePath(site, fullPath), false);
                 }
@@ -244,12 +251,23 @@ public class WorkflowServiceImpl implements WorkflowService {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
+		notificationService2.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),submittedBy,scheduledDate,
+			submitForDeletion,submissionComment,Locale.ENGLISH);
         return errors;
     }
 
-    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
+	private List<String> getDeploymentPaths(final List<DmDependencyTO> submittedItems) {
+		List<String> paths=new ArrayList<>(submittedItems.size());
+		for (DmDependencyTO submittedItem : submittedItems) {
+			paths.add(submittedItem.getUri());
+		}
+		return paths;
+	}
+
+	protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true, submissionComment);
         Set<DmDependencyTO> stringSet;
+
         if (submitForDeletion) {
             stringSet = rule.applyDeleteDependencyRule(submittedItem);
         } else {
@@ -945,8 +963,12 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
-
+			if(notificationService2.isEnable()){
+				result.setMessage(notificationService2.getNotificationMessage(site,
+					NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
+			}else{
+				result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+			}
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -1119,7 +1141,12 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+			if(notificationService2.isEnable()) {
+				result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
+					.CompleteMessages,responseMessageKey,Locale.ENGLISH));
+			}else {
+				result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+			}
 
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
@@ -2343,6 +2370,18 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
             }
+			if(!submittedItems.isEmpty()) {
+				// for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
+				// metadata for the same value is also empty , using last modify to blame the rejection.
+				final ObjectMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
+					());
+				 String whoToBlame = "admin"; //worst case, we need someone to blame.
+				if(metaData!=null && StringUtils.isNotBlank(metaData.getModifier())){
+					whoToBlame=metaData.getModifier();
+				}
+				notificationService2.notifyContentRejection(site,whoToBlame
+					, getDeploymentPaths(submittedItems),reason,approver, Locale.ENGLISH);
+			}
         }
 
         // TODO: send the reason to the user
@@ -2386,6 +2425,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
                 }
                 notificationService.sendRejectionNotification(site, submittedBy, dmDependencyTO.getUri(), reason, approver, isPreviewable);
+
             }
             Map<String, Object> newProps = new HashMap<String, Object>();
             newProps.put(ObjectMetadata.PROP_SUBMITTED_BY, "");
@@ -2453,7 +2493,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
     public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
 
-    private WorkflowJobDAL _workflowJobDAL;
+
+	public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+											notificationService2) {
+		this.notificationService2 = notificationService2;
+	}
+
+	private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
 	protected ServicesConfig servicesConfig;
 	protected DeploymentService deploymentService;
@@ -2472,6 +2518,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
+	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 
     public static class SubmitPackage {
         protected String pathPrefix;

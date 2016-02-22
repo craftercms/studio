@@ -18,13 +18,17 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
@@ -33,7 +37,6 @@ import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.util.ListUtils;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
-import javax.transaction.UserTransaction;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -123,6 +126,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 contentRepository.unLockItem(item.getSite(), item.getPath());
                                             }
                                         }
+                                        sendContentApprovalEmail(site,itemList);
                                         logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                         if (mandatoryDependenciesCheckEnabled && missingDependencies.size() > 0) {
                                             List<CopyToEnvironment> mergedList = new ArrayList<CopyToEnvironment>(itemList);
@@ -157,6 +161,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                     } catch (Exception err) {
                         logger.error("Error while executing deployment to environment store for site: " + site, err);
                         notificationService.sendDeploymentFailureNotification(site, err);
+                        notificationService2.notifyDeploymentError(site,err);
                         logger.info("Continue executing deployment for other sites.");
                     }
                 }
@@ -165,6 +170,35 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             logger.error("Error while executing deployment to environment store", err);
             notificationService.sendDeploymentFailureNotification("UNKNOWN", err);
         }
+    }
+
+    private void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
+
+         CollectionUtils.filter(itemList, new Predicate<CopyToEnvironment>() {
+            @Override
+            public boolean evaluate(final CopyToEnvironment item) {
+                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+                if (objectMetadata == null) {
+                    objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
+                    objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+                }
+                return objectMetadata.getSendEmail() == 1? true: false;
+            }
+        });
+        if(!itemList.isEmpty()){
+        final CopyToEnvironment item = itemList.get(0);
+        ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+        notificationService2.notifyContentApproval(site,objectMetadata.getSubmittedBy(),getPathRelativeToSite(itemList),
+            item.getUser(),item.getScheduledDate() , Locale.ENGLISH);
+    }
+}
+
+    private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
+        List<String> paths = new ArrayList<String>(itemList.size());
+        for (CopyToEnvironment copyToEnvironment : itemList) {
+            paths.add(copyToEnvironment.getPath());
+        }
+        return paths;
     }
 
 
@@ -224,6 +258,16 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+
+    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+                                            notificationService2) {
+        this.notificationService2 = notificationService2;
+    }
+
+    public void setObjectMetadataManager(final ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
     protected org.craftercms.studio.api.v1.service.transaction.TransactionService transactionService;
     protected PublishingManager publishingManager;
     protected ContentRepository contentRepository;
@@ -233,5 +277,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected SiteService siteService;
     protected ContentService contentService;
     protected NotificationService notificationService;
+    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
+    protected ObjectMetadataManager objectMetadataManager;
 }
