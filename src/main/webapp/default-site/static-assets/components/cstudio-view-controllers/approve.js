@@ -205,6 +205,8 @@
             } else {
                 this.$('[name="schedulingMode"]')[0].checked = false;
                 this.$('[name="schedulingMode"]')[1].checked = true;
+                this.$('#approveSubmit').prop('disabled', true);
+                this.$('#approveSubmitVal').hide();
 
                 this.$('.date-picker-control').show();
                 this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);
