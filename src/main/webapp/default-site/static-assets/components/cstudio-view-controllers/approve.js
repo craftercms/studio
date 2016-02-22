@@ -205,6 +205,8 @@
             } else {
                 this.$('[name="schedulingMode"]')[0].checked = false;
                 this.$('[name="schedulingMode"]')[1].checked = true;
+                this.$('#approveSubmit').prop('disabled', true);
+                this.$('#approveSubmitVal').hide();
 
                 this.$('.date-picker-control').show();
                 this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);
@@ -300,7 +302,9 @@
         });
 
         me.$('.date-picker').datetimepicker({
-            format: 'm/d/Y h:i a'
+            format: 'm/d/Y h:i a',
+            dateFormat: "m/d/Y",
+            formatTime:	'h:i a'
         });
 
         me.$('.date-picker').change(function () {
