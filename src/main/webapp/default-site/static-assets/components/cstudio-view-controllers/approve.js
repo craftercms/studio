@@ -300,7 +300,9 @@
         });
 
         me.$('.date-picker').datetimepicker({
-            format: 'm/d/Y h:i a'
+            format: 'm/d/Y h:i a',
+            dateFormat: "m/d/Y",
+            formatTime:	'h:i a'
         });
 
         me.$('.date-picker').change(function () {
