@@ -507,8 +507,21 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		   			});
 
 	 				ed.onDblClick.add(function(ed, e) {
-	 					ed.contextControl._handleElementDoubleClick(ed,e);
-	      				});
+                        var el = e.target.parentNode;
+                        var flag = false;
+
+                        while((el.tagName != 'BODY') && !flag){
+                            if (YDom.hasClass(el, "mceNonEditable")){
+                                flag = true;
+                                break;
+                            }else{
+                                el = el.parentNode;
+                            }
+                        }
+                        if (!flag){
+                            ed.contextControl._handleElementDoubleClick(ed, e);
+                        }
+	      			});
 
 	 				ed.onClick.add(function(ed, e) {
 	 					amplify.publish("/rte/clicked");
