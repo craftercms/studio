@@ -442,6 +442,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (sendEmail) {
                 String submittedByValue = objectMetadata.getSubmittedBy();
                 notificationService.sendApprovalNotification(item.getSite(), submittedByValue, item.getPath(), item.getUser());
+
             }
 
             if (isLive) {
@@ -600,6 +601,11 @@ public class PublishingManagerImpl implements PublishingManager {
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
+    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+                                            notificationService2) {
+        this.notificationService2 = notificationService2;
+    }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -613,6 +619,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ObjectMetadataManager objectMetadataManager;
     protected NotificationService notificationService;
     protected ServicesConfig servicesConfig;
+    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

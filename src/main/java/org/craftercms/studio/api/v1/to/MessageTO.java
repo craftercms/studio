@@ -27,6 +27,14 @@ public class MessageTO implements Serializable {
 	/** message body **/
 	protected String _body;
 
+	public MessageTO(final String _title, final String _body) {
+		this._title = _title;
+		this._body = _body;
+	}
+
+	public MessageTO() {
+	}
+
 	/**
 	 * @return the title
 	 */

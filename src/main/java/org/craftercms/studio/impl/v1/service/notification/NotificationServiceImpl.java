@@ -49,7 +49,10 @@ import java.util.regex.Pattern;
 /**
  * Notification service sends workflow notifications.
  * Going forward the preference is to use the more general methods in this service
+ * @deprecated  This class/interface will beremovee in 2.6
+ *
  */
+@Deprecated
 public class NotificationServiceImpl implements NotificationService {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -78,6 +81,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected String configPath;
     protected String configFileName;
     protected CacheTemplate cacheTemplate;
+    protected boolean isNewNotificationEnable;
     
     
     protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
@@ -123,7 +127,11 @@ public class NotificationServiceImpl implements NotificationService {
     
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-    
+
+    public void setNewNotificationEnable(final boolean newNotificationEnable) {
+        isNewNotificationEnable = newNotificationEnable;
+    }
+
     @Override
     public boolean sendNotice(String site, String action) {
         
@@ -372,134 +380,137 @@ public class NotificationServiceImpl implements NotificationService {
     
     @Override
     public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
-        
-        String subject =  DEFAULT_CONTENT_SUBJECT;
-        String message = DEFAULT_CONTENT_BODY;
-        String templateType = MESSAGE_CONTENT_SUBMISSION;
-        
-        
-        try {
-            
-            NotificationConfigTO config = getNotificationConfig(site);
-            if (config != null && config.getSubmitNotificationsMapping() != null) {
-                
-                Map<String, String> rules = config.getSubmitNotificationsMapping();
-                String toAddress = StringUtils.EMPTY;
-                for (String rule : rules.keySet()) {
-                    Pattern p = Pattern.compile(rule);
-                    Matcher m = p.matcher(browserUrl);
-                    if (m.matches()) {
-                        toAddress = rules.get(rule);
-                        break;
-                    }
-                }
-                
-                if (StringUtils.isNotEmpty(toAddress)) {
-                    EmailMessageTemplateTO template = null;
-                    
-                    if (isDelete) {
-                        if (isPreviewable) {
-                            template = getContentSubmissionForDeleteEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_SUBMISSION_FOR_DELETE;
-                        }
-                        else {
-                            template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
-                        }
-                    } else {
-                        if (!isPreviewable) {
-                            template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
-                            templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
+        if(!isNewNotificationEnable) {
+            String subject = DEFAULT_CONTENT_SUBJECT;
+            String message = DEFAULT_CONTENT_BODY;
+            String templateType = MESSAGE_CONTENT_SUBMISSION;
+
+
+            try {
+
+                NotificationConfigTO config = getNotificationConfig(site);
+                if (config != null && config.getSubmitNotificationsMapping() != null) {
+
+                    Map<String, String> rules = config.getSubmitNotificationsMapping();
+                    String toAddress = StringUtils.EMPTY;
+                    for (String rule : rules.keySet()) {
+                        Pattern p = Pattern.compile(rule);
+                        Matcher m = p.matcher(browserUrl);
+                        if (m.matches()) {
+                            toAddress = rules.get(rule);
+                            break;
                         }
                     }
-                    
-                    message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-                    
-                    if (template != null) {
-                        subject = template.getSubject();
-                        message = template.getMessage();
-                    }
-                    
-                    logger.debug("Notifying user:" + toAddress);
-                    
-                    if (previewBaseUrl == null) {
-                        previewBaseUrl = siteService.getPreviewServerUrl(site);
-                    }
-                    if (liveBaseUrl == null) {
-                        liveBaseUrl = siteService.getLiveServerUrl(site);
-                    }
-                    
-                    Map<String, String> fromProfile = securityService.getUserProfile(from);
-                    final String userFirstName = fromProfile.get("firstName");
-                    final String userLastName = fromProfile.get("lastName");
-                    final String replyTo = fromProfile.get("email");
-                    String fromPersonalName = "";
-                    if (userFirstName != null) {
-                        fromPersonalName = userFirstName + " ";
-                    }
-                    if (userLastName != null) {
-                        fromPersonalName += userLastName;
-                    }
-                    EmailMessageTO emailMessage= new EmailMessageTO(subject,message,toAddress);
-                    emailMessage.setPreviewBaseUrl(previewBaseUrl);
-                    emailMessage.setLiveBaseUrl(liveBaseUrl);
-                    
-                    // reading item internal-name for email title
-                    String itemName = "";
-                    boolean isDocument = false;
-                    boolean isExternalDocument = false;
-                    String documentUrl = "";
-                    String browserUri = "";
-                    ContentItemTO contentItem = contentService.getContentItem(site, browserUrl, 0);
-                    if (contentItem != null) {
-                        itemName = contentItem.getInternalName();
-                        browserUri = contentItem.getBrowserUri();
-                        
-                        if (contentItem.isPreviewable() && contentItem.isDocument()) {
-                            isDocument = true;
-                        }
-                    }
-                    
-                    String absolutePath = contentService.expandRelativeSitePath(site, browserUrl);
-                    DmPathTO path = new DmPathTO(absolutePath);
-                    String name = path.getName();
-                    
-                    String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? browserUrl.replace("/" + name, "") : browserUrl;
-                    String internalName = folderPath;
-                    int index = folderPath.lastIndexOf('/');
-                    if(index != -1) {
-                        internalName = folderPath.substring(index + 1);
-                    }
-                    internalName = StringUtils.isEmpty(itemName) ? internalName : itemName;
-                    emailMessage.setPersonalFromName(fromPersonalName);
-                    emailMessage.setTitle(internalName);
-                    
-                    // set browser URL
-                    if (isDocument) {
-                        if (isExternalDocument) {
-                            emailMessage.setBrowserUrlForExternalDocument(documentUrl);
+
+                    if (StringUtils.isNotEmpty(toAddress)) {
+                        EmailMessageTemplateTO template = null;
+
+                        if (isDelete) {
+                            if (isPreviewable) {
+                                template = getContentSubmissionForDeleteEmailMessageTemplate(site);
+                                templateType = MESSAGE_CONTENT_SUBMISSION_FOR_DELETE;
+                            } else {
+                                template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
+                                templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
+                            }
                         } else {
-                            emailMessage.setBrowserUrl(documentUrl);
+                            if (!isPreviewable) {
+                                template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
+                                templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
+                            }
                         }
+
+                        message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
+
+                        if (template != null) {
+                            subject = template.getSubject();
+                            message = template.getMessage();
+                        }
+
+                        logger.debug("Notifying user:" + toAddress);
+
+                        if (previewBaseUrl == null) {
+                            previewBaseUrl = siteService.getPreviewServerUrl(site);
+                        }
+                        if (liveBaseUrl == null) {
+                            liveBaseUrl = siteService.getLiveServerUrl(site);
+                        }
+
+                        Map<String, String> fromProfile = securityService.getUserProfile(from);
+                        final String userFirstName = fromProfile.get("firstName");
+                        final String userLastName = fromProfile.get("lastName");
+                        final String replyTo = fromProfile.get("email");
+                        String fromPersonalName = "";
+                        if (userFirstName != null) {
+                            fromPersonalName = userFirstName + " ";
+                        }
+                        if (userLastName != null) {
+                            fromPersonalName += userLastName;
+                        }
+                        EmailMessageTO emailMessage = new EmailMessageTO(subject, message, toAddress);
+                        emailMessage.setPreviewBaseUrl(previewBaseUrl);
+                        emailMessage.setLiveBaseUrl(liveBaseUrl);
+
+                        // reading item internal-name for email title
+                        String itemName = "";
+                        boolean isDocument = false;
+                        boolean isExternalDocument = false;
+                        String documentUrl = "";
+                        String browserUri = "";
+                        ContentItemTO contentItem = contentService.getContentItem(site, browserUrl, 0);
+                        if (contentItem != null) {
+                            itemName = contentItem.getInternalName();
+                            browserUri = contentItem.getBrowserUri();
+
+                            if (contentItem.isPreviewable() && contentItem.isDocument()) {
+                                isDocument = true;
+                            }
+                        }
+
+                        String absolutePath = contentService.expandRelativeSitePath(site, browserUrl);
+                        DmPathTO path = new DmPathTO(absolutePath);
+                        String name = path.getName();
+
+                        String folderPath = (name.equals(DmConstants.INDEX_FILE))? browserUrl.replace("/" + name, ""): browserUrl;
+
+                        String internalName = folderPath;
+                        int index = folderPath.lastIndexOf('/');
+                        if (index != -1) {
+                            internalName = folderPath.substring(index + 1);
+                        }
+                        internalName = StringUtils.isEmpty(itemName)? internalName: itemName;
+                        emailMessage.setPersonalFromName(fromPersonalName);
+                        emailMessage.setTitle(internalName);
+
+                        // set browser URL
+                        if (isDocument) {
+                            if (isExternalDocument) {
+                                emailMessage.setBrowserUrlForExternalDocument(documentUrl);
+                            } else {
+                                emailMessage.setBrowserUrl(documentUrl);
+                            }
+                        } else {
+                            emailMessage.setBrowserUrl(browserUri);
+                        }
+
+                        if (replyTo != null)
+                            emailMessage.setReplyTo(replyTo);
+
+                        logger.debug("Queuing notification email request for user:" + toAddress);
+                        emailMessages.addEmailMessage(emailMessage);
                     } else {
-                        emailMessage.setBrowserUrl(browserUri);
+                        sendContentSubmissionNotification(site, to, browserUrl, from, scheduledDate, isPreviewable,
+                            isDelete);
                     }
-                    
-                    if(replyTo != null)
-                        emailMessage.setReplyTo(replyTo);
-                    
-                    logger.debug("Queuing notification email request for user:" + toAddress);
-                    emailMessages.addEmailMessage(emailMessage);
+
+
                 } else {
                     sendContentSubmissionNotification(site, to, browserUrl, from, scheduledDate, isPreviewable, isDelete);
+
                 }
-                
-                
-            } else {
-                sendContentSubmissionNotification(site, to, browserUrl, from, scheduledDate, isPreviewable, isDelete);
+            } catch (Exception e) {
+                logger.error("Could not queue the content submission notification:", e);
             }
-        } catch (Exception e) {
-            logger.error("Could not queue the content submission notification:",e);
         }
     }
     
@@ -843,6 +854,9 @@ public class NotificationServiceImpl implements NotificationService {
     
     
     protected void notifyUser(final String site, final String toUser,final String content, final String subject,final String fromUser,String relativeUrl, String rejectReason) {
+        if(isNewNotificationEnable){
+            return;
+        }
         logger.debug("Notifying user:" + toUser);
         if (StringUtils.isEmpty(toUser)) {
             logger.error("to User is empty or Null, not sending any email");
@@ -964,5 +978,7 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
     }
+
+
     
 }
