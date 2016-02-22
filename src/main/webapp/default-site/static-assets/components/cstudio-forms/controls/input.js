@@ -74,7 +74,9 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 
     _onChangeVal: function(evt, obj) {
         obj.edited = true;
-        this._onChange(evt, obj);
+        if(this._onChange){
+            this._onChange(evt, obj);
+        }
     },
 
 	/**

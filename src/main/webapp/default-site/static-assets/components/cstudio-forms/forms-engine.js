@@ -1138,7 +1138,8 @@ var CStudioForms = CStudioForms || function() {
                         dialogEl.dialog.show();
                     }else{
                         if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
-                            reloadParentWindow();
+                            var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                         } else {
                             window.close();
                         }
