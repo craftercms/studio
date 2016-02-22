@@ -103,8 +103,7 @@ public class EmailMessageSender implements Runnable {
 
 			public void prepare(MimeMessage mimeMessage) throws Exception {
 
-				mimeMessage.setRecipient(Message.RecipientType.TO,
-						new InternetAddress(userEmailAddress));
+				mimeMessage.addRecipients(Message.RecipientType.TO,InternetAddress.parse(userEmailAddress));
 				InternetAddress[] replyTos= new InternetAddress[1];
 				if( (replyTo != null) && (!"".equals(replyTo)) )
 				{
