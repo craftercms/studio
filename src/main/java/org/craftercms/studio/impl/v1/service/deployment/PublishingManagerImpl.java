@@ -492,7 +492,7 @@ public class PublishingManagerImpl implements PublishingManager {
             }
             
             
-            boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
+/*            boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
             
             if (sendEmail) {
                 String submittedByValue = objectMetadata.getSubmittedBy();
@@ -507,6 +507,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
 
             }
+ */
 
             if (isLive) {
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
