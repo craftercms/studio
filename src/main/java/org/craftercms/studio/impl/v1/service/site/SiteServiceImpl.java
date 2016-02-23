@@ -580,6 +580,7 @@ public class SiteServiceImpl implements SiteService {
         loadSiteDeploymentConfig(site, siteConfig);
         cacheService.put(cacheContext, cacheKey, siteConfig);
         notificationService.reloadConfiguration(site);
+		notificationService2.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
         if (triggerEvent) {
@@ -680,7 +681,12 @@ public class SiteServiceImpl implements SiteService {
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
 
-    protected SiteServiceDAL _siteServiceDAL;
+	public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+											notificationService2) {
+		this.notificationService2 = notificationService2;
+	}
+
+	protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
 	protected String sitesConfigPath;
@@ -705,6 +711,7 @@ public class SiteServiceImpl implements SiteService {
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
     protected ImportService importService;
+	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
