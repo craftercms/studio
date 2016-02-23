@@ -102,11 +102,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                     List<CopyToEnvironment> itemList = chunks.get(i);
                                     List<CopyToEnvironment> missingDependencies = new ArrayList<CopyToEnvironment>();
+                                    
                                     for (CopyToEnvironment item : itemList) {
                                         String lockKey = item.getSite() + ":" + item.getPath();
                                         generalLockService.lock(lockKey);
                                         contentRepository.lockItem(item.getSite(), item.getPath());
                                     }
+                                    
                                     try {
                                         logger.debug("Mark items as processing for site \"{0}\"", site);
 
@@ -118,15 +120,29 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             try {
                                                 logger.debug("Processing [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                 publishingManager.processItem(item);
+                                                logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
+                                                
                                                 if (mandatoryDependenciesCheckEnabled) {
+                                                    logger.debug("Processing Mandatory Deps [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                     missingDependencies.addAll(publishingManager.processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
+                                                    logger.debug("Processing Mandatory Deps COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
+
                                                 }
-                                            } finally {
+                                                
+                                            }
+                                            finally {
                                                 generalLockService.unlock(lockKey);
                                                 contentRepository.unLockItem(item.getSite(), item.getPath());
                                             }
                                         }
-                                        sendContentApprovalEmail(site,itemList);
+                                       
+                                        try {
+                                            sendContentApprovalEmail(site,itemList);
+                                        }
+                                        catch(Exception errNotify) {
+                                             logger.error("Error sending approval notification for {0}:{1} with error {2}", site, ""+itemList, ""+errNotify);
+                                        }
+                                        
                                         logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                         if (mandatoryDependenciesCheckEnabled && missingDependencies.size() > 0) {
                                             List<CopyToEnvironment> mergedList = new ArrayList<CopyToEnvironment>(itemList);
@@ -135,22 +151,36 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         } else {
                                             publishingManager.setupItemsForPublishingSync(site, environment, itemList);
                                         }
+                                        
                                         logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                         publishingManager.markItemsCompleted(site, environment, itemList);
-                                    } catch (DeploymentException err) {
+ 
+                                    
+                                    }
+                                    catch (DeploymentException err) {
                                         logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
-                                    } catch (Exception err) {
+                                    }
+                                    catch (Exception err) {
                                         logger.error("Unexpected error while executing deployment to environment " +
                                                 "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
-                                    } finally {
+                                    }
+                                    finally {
                                         for (CopyToEnvironment item : itemList) {
-                                            String lockKey = item.getSite() + ":" + item.getPath();
-                                            generalLockService.unlock(lockKey);
-                                            contentRepository.unLockItem(item.getSite(), item.getPath());
+                                            String itemSite = item.getSite();
+                                            String itemPath = item.getPath();
+                                            String lockKey =  itemSite + ":" + itemPath;
+                                            
+                                            try {
+                                                generalLockService.unlock(lockKey);
+                                                contentRepository.unLockItem(itemSite, itemPath);
+                                            }
+                                            catch(Exception eUnlockError) {
+                                                logger.error("Unble to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath,""+eUnlockError);
+                                            }
                                         }
                                     }
                                 }
@@ -172,26 +202,29 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
+    protected void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
 
-         CollectionUtils.filter(itemList, new Predicate<CopyToEnvironment>() {
-            @Override
-            public boolean evaluate(final CopyToEnvironment item) {
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-                if (objectMetadata == null) {
-                    objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
-                    objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+        for(CopyToEnvironment listItem : itemList) {
+            
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            
+            if(objectMetadata != null){
+                if(objectMetadata.getSendEmail() == 1) {
+                    // found the first item that needs to be sent
+                    notificationService2.notifyContentApproval(
+                        listItem.getSite(),
+                        objectMetadata.getSubmittedBy(),
+                        getPathRelativeToSite(itemList),
+                        listItem.getUser(),
+                        listItem.getScheduledDate(),
+                        Locale.ENGLISH);
+                    
+                    // no point in looking further, quit looping
+                    break;
                 }
-                return objectMetadata.getSendEmail() == 1? true: false;
             }
-        });
-        if(!itemList.isEmpty()){
-        final CopyToEnvironment item = itemList.get(0);
-        ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-        notificationService2.notifyContentApproval(site,objectMetadata.getSubmittedBy(),getPathRelativeToSite(itemList),
-            item.getUser(),item.getScheduledDate() , Locale.ENGLISH);
+        }
     }
-}
 
     private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
         List<String> paths = new ArrayList<String>(itemList.size());

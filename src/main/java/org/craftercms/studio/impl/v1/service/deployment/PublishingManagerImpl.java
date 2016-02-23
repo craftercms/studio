@@ -342,115 +342,186 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     public void processItem(CopyToEnvironment item) throws DeploymentException {
 
-        String liveEnvironment = siteService.getLiveEnvironmentName(item.getSite());
+        if(item == null) {
+            throw new DeploymentException("Cannot processItem. Item is null");
+        }
+        
+        String site = item.getSite();
+        String path = item.getPath();
+        String oldPath = item.getOldPath();
+        String environment = item.getEnvironment();
+        String action = item.getAction();
+        String user = item.getUser();
+        String submissionComment = item.getSubmissionComment();
+        
+
+        String liveEnvironment = siteService.getLiveEnvironmentName(site);
         boolean isLive = false;
+
         if (StringUtils.isNotEmpty(liveEnvironment)) {
-            if (liveEnvironment.equals(item.getEnvironment())) {
+            if (liveEnvironment.equals(environment)) {
                 isLive = true;
             }
-        } else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment())) {
+        }
+        else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
             isLive = true;
         }
-        if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.DELETE)) {
-            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
-            if (item.getOldPath() != null && item.getOldPath().length() > 0) {
-                contentService.deleteContent(item.getSite(), item.getOldPath(), item.getUser());
+        
+        if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
+            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+            
+            if (oldPath != null && oldPath.length() > 0) {
+                contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
-                deployer.deleteFile(item.getSite(), item.getOldPath());
-                if (item.getOldPath().endsWith("/" + DmConstants.INDEX_FILE)) {
-                    String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                deployer.deleteFile(site, path);
+                
+                if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
+                    String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                    
                     RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                    
                     if (children.length < 2) {
-                        deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                    } else {
+                        deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                    }
+                    else {
                         hasRenamedChildren = true;
                     }
+                    
+                    
                     if (!hasRenamedChildren) {
-                        contentService.deleteContent(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
+                        contentService.deleteContent(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), false, user);
                     }
                 }
 
-                objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
+                objectMetadataManager.clearRenamed(site, path);
             }
+            
+            
             boolean haschildren = false;
-            deployer.deleteFile(item.getSite(), item.getPath());
+            deployer.deleteFile(site, path);
+            
+            
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
-                String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                 RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+
                 if (children.length < 2) {
-                    deployer.deleteFile(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                } else {
+                    deployer.deleteFile(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
+                }
+                else {
                     haschildren = true;
                 }
             }
 
             if (isLive) {
-                contentService.deleteContent(item.getSite(), item.getPath(), item.getUser());
+                contentService.deleteContent(site, path, user);
+                
                 if (!haschildren) {
-                    contentService.deleteContent(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
+                    contentService.deleteContent(site, path.replace("/" + DmConstants.INDEX_FILE, ""), false, user);
                 }
             }
-        } else {
-            LOGGER.debug("Setting system processing for {0}:{1}", item.getSite(), item.getPath());
-            objectStateService.setSystemProcessing(item.getSite(), item.getPath(), true);
+        }
+        else {
+            LOGGER.debug("Setting system processing for {0}:{1}", site, path);
+            objectStateService.setSystemProcessing(site, path, true);
+            
+            
             if (isLive) {
                 if (!importModeEnabled) {
-                    contentRepository.createVersion(contentService.expandRelativeSitePath(item.getSite(), item.getPath()), item.getSubmissionComment(), true);
-                } else {
-                    LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", item.getPath(), item.getSite());
+                    contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), submissionComment, true);
+                }
+                else {
+                    LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
                 }
             }
-            if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
-                if (item.getOldPath() != null && item.getOldPath().length() > 0) {
-                    Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
-                    deployer.deleteFile(item.getSite(), item.getOldPath());
-                    if (item.getOldPath().endsWith("/" + DmConstants.INDEX_FILE)) {
+            
+            
+            
+            if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
+                
+                if (oldPath != null && oldPath.length() > 0) {
+                    
+                    Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+                    deployer.deleteFile(site, oldPath);
+                    
+                    
+                    if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                         boolean hasRenamedChildren = false;
-                        String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                        String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                        
                         if (contentService.contentExists(fullPath)) {
                             try {
                                 RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                                
                                 if (children.length < 2) {
-                                    deployer.deleteFile(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                                } else {
+                                    deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                                }
+                                else {
                                     hasRenamedChildren = true;
                                 }
                             } catch (Exception exc) {
-                                LOGGER.info("Error while checking children for moved content site " + item.getSite() + " old path " + item.getOldPath());
+                                LOGGER.info("Error while checking children for moved content site " + site + " old path " + oldPath);
                             }
                         }
+                        
+                        
                         if (!hasRenamedChildren) {
-                            contentService.deleteContent(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""), false, item.getUser());
+                            contentService.deleteContent(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), false, user);
                         }
                     }
+                    
+                    
                     if (isLive) {
-                        objectMetadataManager.clearRenamed(item.getSite(), item.getPath());
+                        objectMetadataManager.clearRenamed(site, path);
                     }
                 }
             }
+            
+            
             LOGGER.debug("Getting deployer for environment store.");
-            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(item.getEnvironment());
-            deployer.deployFile(item.getSite(), item.getPath());
+            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+            deployer.deployFile(site, path);
 
 
-            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
+            
+            
             if (objectMetadata == null) {
-                objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
-                objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+                LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
+                objectMetadataManager.insertNewObjectMetadata(site, path);
+                objectMetadata = objectMetadataManager.getProperties(site, path);
             }
-            boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
-            if (sendEmail) {
-                String submittedByValue = objectMetadata.getSubmittedBy();
-                notificationService.sendApprovalNotification(item.getSite(), submittedByValue, item.getPath(), item.getUser());
-
+            
+            
+            if(objectMetadata != null) {
+                boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
+            
+                if (sendEmail) {
+                    String submittedByValue = objectMetadata.getSubmittedBy();
+                
+                    try {
+                        LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
+                        notificationService.sendApprovalNotification(site, submittedByValue, path, user);
+                        LOGGER.debug("Sending approval notification SENT site:{0} path:{1} user:{2}", site, path, user);
+                    }
+                    catch(Exception eNotifyError) {
+                        LOGGER.debug("Error sending approval notification site:{0} path:{1} user:{2}", site, path, user);
+                    }
+                }
+            }
+            else {
+                LOGGER.error("Unable to get item metadata for {0}:{1}, can't notify", site, path);
             }
 
             if (isLive) {
-                ContentItemTO contentItem = contentService.getContentItem(item.getSite(), item.getPath());
-                objectStateService.transition(item.getSite(), contentItem, TransitionEvent.DEPLOYMENT);
+                // should consider what should be done if this does not work. Currently the method will bail and the item is stuck in processing.
+                LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
+                ContentItemTO contentItem = contentService.getContentItem(site, path);
+                objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
             }
-            LOGGER.debug("Resetting system processing for {0}:{1}", item.getSite(), item.getPath());
-            objectStateService.setSystemProcessing(item.getSite(), item.getPath(), false);
+            
+            LOGGER.debug("Resetting system processing for {0}:{1}", site, path);
+            objectStateService.setSystemProcessing(site, path, false);
         }
     }
 

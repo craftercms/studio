@@ -1,6 +1,4 @@
 
-@import "../raleway-fonts";
-
 @import "../variables";
 @import "../util/animate";
 @import "../../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
@@ -88,7 +86,7 @@
   box-shadow: rgba(10, 10, 10, 0.49) 0px 2px 4px;
   color: rgb(68, 68, 68);
   background-color: #D2DAE3;
-  font-family: Raleway, sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 12px;
   padding: 14px;
   font-weight: bold;
