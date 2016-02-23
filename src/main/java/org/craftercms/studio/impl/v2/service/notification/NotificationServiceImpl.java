@@ -121,7 +121,8 @@ public class NotificationServiceImpl implements NotificationService {
                 templateModel.put("scheduleDate", scheduleDate);
                 notify(site, Arrays.asList(submitterUser.get("email")), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
             }
-        } catch (Throwable ex) {
+        }
+        catch(Throwable ex) {
             logger.error("Unable to Notify Content Approval", ex);
         }
     }

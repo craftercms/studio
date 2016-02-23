@@ -102,11 +102,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                     List<CopyToEnvironment> itemList = chunks.get(i);
                                     List<CopyToEnvironment> missingDependencies = new ArrayList<CopyToEnvironment>();
+                                    
                                     for (CopyToEnvironment item : itemList) {
                                         String lockKey = item.getSite() + ":" + item.getPath();
                                         generalLockService.lock(lockKey);
                                         contentRepository.lockItem(item.getSite(), item.getPath());
                                     }
+                                    
                                     try {
                                         logger.debug("Mark items as processing for site \"{0}\"", site);
 
@@ -118,15 +120,29 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             try {
                                                 logger.debug("Processing [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                 publishingManager.processItem(item);
+                                                logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
+                                                
                                                 if (mandatoryDependenciesCheckEnabled) {
+                                                    logger.debug("Processing Mandatory Deps [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                     missingDependencies.addAll(publishingManager.processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
+                                                    logger.debug("Processing Mandatory Deps COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
+
                                                 }
-                                            } finally {
+                                                
+                                            }
+                                            finally {
                                                 generalLockService.unlock(lockKey);
                                                 contentRepository.unLockItem(item.getSite(), item.getPath());
                                             }
                                         }
-                                        sendContentApprovalEmail(site,itemList);
+                                       
+                                        try {
+                                            sendContentApprovalEmail(site,itemList);
+                                        }
+                                        catch(Exception errNotify) {
+                                             logger.error("Error sending approval notification for {0}:{1} with error {2}", site, ""+itemList, ""+errNotify);
+                                        }
+                                        
                                         logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                         if (mandatoryDependenciesCheckEnabled && missingDependencies.size() > 0) {
                                             List<CopyToEnvironment> mergedList = new ArrayList<CopyToEnvironment>(itemList);
@@ -187,25 +203,68 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
+//        CollectionUtils.filter(itemList, new Predicate<CopyToEnvironment>() {
+//            
+//             @Override
+//            public boolean evaluate(final CopyToEnvironment item) {
+//                //ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+//                
+//                /*if (objectMetadata == null) {
+//                    objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
+//                    objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+//                    
+//                    if(objectMetadata !=null){
+//                        return objectMetadata.getSendEmail() == 1? true: false;
+//                    }
+//                    else {
+//                        // still null, should not end up here
+//                        return false;
+//                    }
+//                }
+//                
+//                
+//                // should not end up here
+//                return false;
+//                */
+//                
+//                return (objectMetadata !=null) ? (objectMetadata.getSendEmail() == 1? true: false) : false;
+//                
+//            }
+//        });
 
-         CollectionUtils.filter(itemList, new Predicate<CopyToEnvironment>() {
-            @Override
-            public boolean evaluate(final CopyToEnvironment item) {
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-                if (objectMetadata == null) {
-                    objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
-                    objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-                }
-                return objectMetadata.getSendEmail() == 1? true: false;
-            }
-        });
-        if(!itemList.isEmpty()){
-        final CopyToEnvironment item = itemList.get(0);
-        ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-        notificationService2.notifyContentApproval(site,objectMetadata.getSubmittedBy(),getPathRelativeToSite(itemList),
-            item.getUser(),item.getScheduledDate() , Locale.ENGLISH);
+        if(!itemList.isEmpty()) {
+            
+            final CopyToEnvironment listItem = itemList.get(0);
+        
+            //ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            
+            //if (objectMetadata == null) {
+            //    objectMetadataManager.insertNewObjectMetadata(listItem.getSite(), listItem.getPath());
+            //    objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            //}
+            
+            //if(objectMetadata !=null){
+                notificationService2.notifyContentApproval(
+                                                           listItem.getSite(),
+                                                           "admin",
+                                                           getPathRelativeToSite(itemList),
+                                                           listItem.getUser(),
+                                                           listItem.getScheduledDate(),
+                                                           Locale.ENGLISH);
+//                notificationService2.notifyContentApproval(
+//                            listItem.getSite(),
+//                            objectMetadata.getSubmittedBy(),
+//                            getPathRelativeToSite(itemList),
+//                            listItem.getUser(),
+//                            listItem.getScheduledDate(),
+//                            Locale.ENGLISH);
+
+           // }
+           // else {
+           //     logger.error("Unable to send content approval notification because object metadata is null for item {0}:{1}", listItem.getSite(), listItem.getPath());
+            //}
+        }
     }
-}
 
     private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
         List<String> paths = new ArrayList<String>(itemList.size());
