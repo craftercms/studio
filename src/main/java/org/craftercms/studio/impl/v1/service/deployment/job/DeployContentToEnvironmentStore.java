@@ -135,22 +135,36 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         } else {
                                             publishingManager.setupItemsForPublishingSync(site, environment, itemList);
                                         }
+                                        
                                         logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                         publishingManager.markItemsCompleted(site, environment, itemList);
-                                    } catch (DeploymentException err) {
+ 
+                                    
+                                    }
+                                    catch (DeploymentException err) {
                                         logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
-                                    } catch (Exception err) {
+                                    }
+                                    catch (Exception err) {
                                         logger.error("Unexpected error while executing deployment to environment " +
                                                 "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
-                                    } finally {
+                                    }
+                                    finally {
                                         for (CopyToEnvironment item : itemList) {
-                                            String lockKey = item.getSite() + ":" + item.getPath();
-                                            generalLockService.unlock(lockKey);
-                                            contentRepository.unLockItem(item.getSite(), item.getPath());
+                                            String itemSite = item.getSite();
+                                            String itemPath = item.getPath();
+                                            String lockKey =  itemSite + ":" + itemPath;
+                                            
+                                            try {
+                                                generalLockService.unlock(lockKey);
+                                                contentRepository.unLockItem(itemSite, itemPath);
+                                            }
+                                            catch(Exception eUnlockError) {
+                                                logger.error("Unble to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath,""+eUnlockError);
+                                            }
                                         }
                                     }
                                 }
