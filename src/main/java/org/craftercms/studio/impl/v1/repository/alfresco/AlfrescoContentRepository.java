@@ -698,7 +698,6 @@ implements SecurityProvider {
                     // if not, create the folder first
                     boolean created = createMissingFoldersCMIS(folderPath);
                     if (created) {
-                        //session.clear();
                         folderCmisObject = session.getObjectByPath(folderPath);
                         folder = (Folder)folderCmisObject;
                     } else {
