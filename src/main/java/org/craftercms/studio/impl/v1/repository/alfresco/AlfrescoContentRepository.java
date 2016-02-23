@@ -39,6 +39,7 @@ import java.util.*;
 import java.net.*;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
@@ -80,6 +81,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository
 implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
+
+    private static Map<String, Session> cmisSessionRegister = new HashMap<String, Session>();
+
+    protected static final ReentrantLock cmisSessionLock = new ReentrantLock();
 
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
@@ -507,6 +512,7 @@ implements SecurityProvider {
         } catch (Exception e) {
             logger.error("Error while validating authentication token", e);
         }
+        invalidateCMISSession(ticket);
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
@@ -658,8 +664,8 @@ implements SecurityProvider {
         String filename = cleanPath.substring(splitIndex + 1);
         MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
         String mimeType = mimeTypesMap.getContentType(filename);
+        Session session = getCMISSession();
         try {
-            Session session = getCMISSession();
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
             CmisObject cmisObject = null;
             if (contentExists(cleanPath)) {
@@ -693,7 +699,7 @@ implements SecurityProvider {
                     // if not, create the folder first
                     boolean created = createMissingFoldersCMIS(folderPath);
                     if (created) {
-                        session.clear();
+                        //session.clear();
                         folderCmisObject = session.getObjectByPath(folderPath);
                         folder = (Folder)folderCmisObject;
                     } else {
@@ -1046,6 +1052,31 @@ implements SecurityProvider {
     }
 
     protected Session getCMISSession(boolean alfrescoCMIS) {
+        cmisSessionLock.lock();
+        try {
+            String ticket = getAlfTicket();
+            if (cmisSessionRegister.containsKey(ticket)) {
+                return cmisSessionRegister.get(ticket);
+            } else {
+                Session session = createCMISSession(alfrescoCMIS);
+                cmisSessionRegister.put(ticket, session);
+                return session;
+            }
+        } finally {
+            cmisSessionLock.unlock();
+        }
+    }
+
+    protected void invalidateCMISSession(String ticket) {
+        cmisSessionLock.lock();
+        try {
+            cmisSessionRegister.remove(ticket);
+        } finally {
+            cmisSessionLock.unlock();
+        }
+    }
+
+    protected Session createCMISSession(boolean alfrescoCMIS) {
         // Create a SessionFactory and set up the SessionParameter map
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
@@ -1069,6 +1100,11 @@ implements SecurityProvider {
         Repository repository = repositories.get(0);
         parameter.put(SessionParameter.REPOSITORY_ID, repository.getId());
         Session session = sessionFactory.createSession(parameter);
+        //session.getDefaultContext().setCacheEnabled(false);
+
+        Thread thread = Thread.currentThread();
+        String threadName = thread.getName();
+        logger.debug("Thread: " + threadName + "; CMIS Session: " + session.getBinding().getSessionId());
 
         return session;
     }
@@ -1277,6 +1313,7 @@ implements SecurityProvider {
             DeleteMethod getMethod = new DeleteMethod(serviceURL);
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
+            invalidateCMISSession(ticket);
             if (status == HttpStatus.SC_OK) {
                 long duration = System.currentTimeMillis() - startTime;
                 logger.debug("logout()\n\t\tDuration: {0}", duration);
