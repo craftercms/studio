@@ -487,29 +487,35 @@ public class PublishingManagerImpl implements PublishingManager {
             
             
             if (objectMetadata == null) {
+                LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
                 objectMetadataManager.insertNewObjectMetadata(site, path);
                 objectMetadata = objectMetadataManager.getProperties(site, path);
             }
             
             
-/*            boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
+            if(objectMetadata != null) {
+                boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
             
-            if (sendEmail) {
-                String submittedByValue = objectMetadata.getSubmittedBy();
+                if (sendEmail) {
+                    String submittedByValue = objectMetadata.getSubmittedBy();
                 
-                try {
-                    LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
-                    notificationService.sendApprovalNotification(site, submittedByValue, path, user);
-                    LOGGER.debug("Sending approval notification SENT site:{0} path:{1} user:{2}", site, path, user);
+                    try {
+                        LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
+                        notificationService.sendApprovalNotification(site, submittedByValue, path, user);
+                        LOGGER.debug("Sending approval notification SENT site:{0} path:{1} user:{2}", site, path, user);
+                    }
+                    catch(Exception eNotifyError) {
+                        LOGGER.debug("Error sending approval notification site:{0} path:{1} user:{2}", site, path, user);
+                    }
                 }
-                catch(Exception eNotifyError) {
-                      LOGGER.debug("Error sending approval notification site:{0} path:{1} user:{2}", site, path, user);
-                }
-
             }
- */
+            else {
+                LOGGER.error("Unable to get item metadata for {0}:{1}, can't notify", site, path);
+            }
 
             if (isLive) {
+                // should consider what should be done if this does not work. Currently the method will bail and the item is stuck in processing.
+                LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
                 objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
             }
