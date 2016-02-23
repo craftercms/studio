@@ -113,5 +113,4 @@ else {
         }
     }
 }
-sleep(1000);
 return result;
