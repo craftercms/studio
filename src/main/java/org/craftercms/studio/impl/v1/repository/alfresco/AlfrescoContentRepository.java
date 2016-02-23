@@ -512,7 +512,6 @@ implements SecurityProvider {
         } catch (Exception e) {
             logger.error("Error while validating authentication token", e);
         }
-        invalidateCMISSession(ticket);
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
@@ -1048,7 +1047,7 @@ implements SecurityProvider {
     }
 
     protected Session getCMISSession() {
-        return getCMISSession(true);
+        return createCMISSession(true);
     }
 
     protected Session getCMISSession(boolean alfrescoCMIS) {
@@ -1313,7 +1312,6 @@ implements SecurityProvider {
             DeleteMethod getMethod = new DeleteMethod(serviceURL);
             HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
             int status = httpClient.executeMethod(getMethod);
-            invalidateCMISSession(ticket);
             if (status == HttpStatus.SC_OK) {
                 long duration = System.currentTimeMillis() - startTime;
                 logger.debug("logout()\n\t\tDuration: {0}", duration);
