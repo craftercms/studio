@@ -3,7 +3,7 @@
     top: 50px;
     left:250px;
     right:auto;
-    width:1000px;
+    max-width:1000px;
 }
 
 .bulk-table {
