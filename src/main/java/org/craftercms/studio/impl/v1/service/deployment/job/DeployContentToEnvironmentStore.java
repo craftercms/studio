@@ -202,67 +202,27 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
-//        CollectionUtils.filter(itemList, new Predicate<CopyToEnvironment>() {
-//            
-//             @Override
-//            public boolean evaluate(final CopyToEnvironment item) {
-//                //ObjectMetadata objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-//                
-//                /*if (objectMetadata == null) {
-//                    objectMetadataManager.insertNewObjectMetadata(item.getSite(), item.getPath());
-//                    objectMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-//                    
-//                    if(objectMetadata !=null){
-//                        return objectMetadata.getSendEmail() == 1? true: false;
-//                    }
-//                    else {
-//                        // still null, should not end up here
-//                        return false;
-//                    }
-//                }
-//                
-//                
-//                // should not end up here
-//                return false;
-//                */
-//                
-//                return (objectMetadata !=null) ? (objectMetadata.getSendEmail() == 1? true: false) : false;
-//                
-//            }
-//        });
+    protected void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
 
-        if(!itemList.isEmpty()) {
+        for(CopyToEnvironment listItem : itemList) {
             
-            final CopyToEnvironment listItem = itemList.get(0);
-        
-            //ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
             
-            //if (objectMetadata == null) {
-            //    objectMetadataManager.insertNewObjectMetadata(listItem.getSite(), listItem.getPath());
-            //    objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
-            //}
-            
-            //if(objectMetadata !=null){
-                notificationService2.notifyContentApproval(
-                                                           listItem.getSite(),
-                                                           "admin",
-                                                           getPathRelativeToSite(itemList),
-                                                           listItem.getUser(),
-                                                           listItem.getScheduledDate(),
-                                                           Locale.ENGLISH);
-//                notificationService2.notifyContentApproval(
-//                            listItem.getSite(),
-//                            objectMetadata.getSubmittedBy(),
-//                            getPathRelativeToSite(itemList),
-//                            listItem.getUser(),
-//                            listItem.getScheduledDate(),
-//                            Locale.ENGLISH);
-
-           // }
-           // else {
-           //     logger.error("Unable to send content approval notification because object metadata is null for item {0}:{1}", listItem.getSite(), listItem.getPath());
-            //}
+            if(objectMetadata != null){
+                if(objectMetadata.getSendEmail() == 1) {
+                    // found the first item that needs to be sent
+                    notificationService2.notifyContentApproval(
+                        listItem.getSite(),
+                        objectMetadata.getSubmittedBy(),
+                        getPathRelativeToSite(itemList),
+                        listItem.getUser(),
+                        listItem.getScheduledDate(),
+                        Locale.ENGLISH);
+                    
+                    // no point in looking further, quit looping
+                    break;
+                }
+            }
         }
     }
 
