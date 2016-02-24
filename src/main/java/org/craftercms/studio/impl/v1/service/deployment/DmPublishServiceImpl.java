@@ -194,7 +194,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         String comment = "Bulk Go Live invoked by " + aprover;
             logger.debug("Deploying " + pathsToPublish.size() + " items");
         try {
-            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, false);
+            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
         } catch (DeploymentException e) {
             logger.error("Error while running bulk Go Live operation", e);
         } finally {

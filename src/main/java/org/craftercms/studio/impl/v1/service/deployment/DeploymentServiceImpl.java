@@ -114,7 +114,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
         }catch(Exception errNotify) {
-            logger.error("Error sending approval notification for");
+            logger.error("Error sending approval notification ",errNotify);
         }
 }
 
