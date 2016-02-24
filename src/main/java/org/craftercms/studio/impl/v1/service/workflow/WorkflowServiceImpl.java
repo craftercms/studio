@@ -192,6 +192,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         submittedItem.setSubmittedForDeletion(true);
                     }
                 }
+                submittedItems.addAll(addDependenciesForSubmitForApproval(site, submittedItems, format, schDate));
                 List<String> submittedPaths = new ArrayList<String>();
                 for (DmDependencyTO goLiveItem : submittedItems) {
                     String fullPath = contentService.expandRelativeSitePath(site, goLiveItem.getUri());
@@ -1787,6 +1788,18 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
+    protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
+        List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
+        Set<String> dependenciesPaths = new HashSet<String>();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            dependenciesPaths.addAll(submitForApprovalDependencyRule.applyRule(site, submittedItem.getUri()));
+        }
+        for (String depPath : dependenciesPaths) {
+            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
+        }
+        return dependencies;
+    }
+
     protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths) {
         String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
         if (!submittedPaths.contains(fullPath)) {
@@ -2493,13 +2506,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
     public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
 
+    public org.craftercms.studio.api.v2.service.notification.NotificationService getNotificationService2() { return notificationService2; }
+    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2) { this.notificationService2 = notificationService2; }
 
-	public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
-											notificationService2) {
-		this.notificationService2 = notificationService2;
-	}
+    public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
+    public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
 
-	private WorkflowJobDAL _workflowJobDAL;
+    private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
 	protected ServicesConfig servicesConfig;
 	protected DeploymentService deploymentService;
@@ -2518,6 +2531,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
+    protected DependencyRule submitForApprovalDependencyRule;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 
     public static class SubmitPackage {

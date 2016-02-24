@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2015 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,16 @@
 
 package org.craftercms.studio.impl.v1.service.dependency;
 
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,14 +37,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DeploymentDependencyRule implements DependencyRule {
+public class SubmitToApproveDependencyRule implements DependencyRule {
 
-    private final static Logger logger = LoggerFactory.getLogger(DeploymentDependencyRule.class);
+    private final static Logger logger = LoggerFactory.getLogger(SubmitToApproveDependencyRule.class);
 
     @Override
     public Set<String> applyRule(String site, String path) {
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
+        getMandatoryParent(site, path, allDependencies);
         getAllDependenciesRecursive(site, path, allDependencies);
 
         for (String dep : allDependencies) {
@@ -62,6 +68,23 @@ public class DeploymentDependencyRule implements DependencyRule {
         return dependencies;
     }
 
+    protected void getMandatoryParent(String site, String path, List<String> dependecyPaths) {
+        int idx = path.lastIndexOf("/" + DmConstants.INDEX_FILE);
+        if (idx > 0) {
+            path = path.substring(0, idx);
+        }
+        String parentPath = ContentUtils.getParentUrl(path);
+        if (StringUtils.isNotEmpty(parentPath)) {
+            if (contentService.contentExists(site, parentPath)) {
+                ContentItemTO item = contentService.getContentItem(site, parentPath);
+                if (item.isNew()) {
+                    dependecyPaths.add(item.getUri());
+                    getMandatoryParent(site, item.getUri(), dependecyPaths);
+                }
+            }
+        }
+    }
+
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
         List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
         for (String depPath : depPaths) {
@@ -72,16 +95,20 @@ public class DeploymentDependencyRule implements DependencyRule {
         }
     }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
-
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
+    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
     public List<String> getContentSpecificDependencies() { return contentSpecificDependencies; }
     public void setContentSpecificDependencies(List<String> contentSpecificDependencies) { this.contentSpecificDependencies = contentSpecificDependencies; }
 
-    protected DmDependencyService dmDependencyService;
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
     protected ObjectStateService objectStateService;
+    protected DmDependencyService dmDependencyService;
     protected List<String> contentSpecificDependencies;
+    protected ContentService contentService;
 }
