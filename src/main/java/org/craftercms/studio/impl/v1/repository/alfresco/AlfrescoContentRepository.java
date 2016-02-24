@@ -413,7 +413,6 @@ implements SecurityProvider {
             toRet.put("firstName", (String)result.get("firstName"));
             toRet.put("lastName", (String)result.get("lastName"));
             toRet.put("email", (String)result.get("email"));
-            //toRet.put("profileImage", result.get("NOTSET"));
         }
         catch(Exception err) {
             logger.error("err getting user profile: ", err);
@@ -1041,7 +1040,6 @@ implements SecurityProvider {
             documentProperties.put(PropertyIds.NAME, newName);
         }
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
-        //sourceDocument.copy(parentFolder);//.copy(parentFolder, documentProperties, null, null, null, null, null);
         parentFolder.createDocument(documentProperties, sourceDocument.getContentStream(), VersioningState.MINOR);
     }
 
@@ -1098,7 +1096,6 @@ implements SecurityProvider {
         Repository repository = repositories.get(0);
         parameter.put(SessionParameter.REPOSITORY_ID, repository.getId());
         Session session = sessionFactory.createSession(parameter);
-        //session.getDefaultContext().setCacheEnabled(false);
 
         Thread thread = Thread.currentThread();
         String threadName = thread.getName();
@@ -1376,10 +1373,10 @@ implements SecurityProvider {
     }
 
     private boolean bootstrapCheck() {
-        boolean contenSpace = contentExists("/wem-projects");
+        boolean contentSpace = contentExists("/wem-projects");
         boolean blueprintsSpace = contentExists("/cstudio/blueprints");
         boolean configSpace = contentExists("/cstudio/config");
-        return contenSpace && blueprintsSpace && configSpace;
+        return contentSpace && blueprintsSpace && configSpace;
     }
 
     private String getBootstrapFolderPath() {
@@ -1393,9 +1390,9 @@ implements SecurityProvider {
         String pathArr[] = fullPath.split("/WEB-INF/classes/");
         fullPath = pathArr[0];
 
-        String reponsePath = "";
-        reponsePath = new File(fullPath).getPath();
-        return reponsePath;
+        String responsePath = "";
+        responsePath = new File(fullPath).getPath();
+        return responsePath;
     }
 
     @Override
