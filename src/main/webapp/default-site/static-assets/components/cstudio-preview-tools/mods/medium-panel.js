@@ -118,7 +118,7 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
 		
 		//var location = $engine[0].src;
         var page =  CStudioAuthoring.Utils.getQueryVariable(window.location.href, "page");
-        var location = window.location.host + page;
+        var location = CStudioAuthoringContext.previewAppBaseUri + page;
 
         var t;
 		if(location.indexOf("?cstudio-useragent") > 0){
