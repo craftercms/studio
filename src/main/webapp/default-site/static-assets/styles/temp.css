@@ -5043,7 +5043,8 @@ span.acn-canned-search {
 /* --- Preview Tools Overlay --- */
 #preview-tools-panel-container {
   border: none;
-  border-radius: 4px; }
+  border-radius: 4px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
   #preview-tools-panel-container #ice-tools-panel-elem .studio-view {
     overflow: hidden; }
   #preview-tools-panel-container .channel-width,
@@ -5082,7 +5083,7 @@ span.acn-canned-search {
     #preview-tools-panel-container .edit-code.template {
       margin-right: 4px; }
     #preview-tools-panel-container .edit-code button {
-      padding: 6px 4px !important; }
+      padding: 6px 12px !important; }
     #preview-tools-panel-container .edit-code .acn-ptools-ice-label {
       margin-left: 0px; }
   #preview-tools-panel-container .acn-panel-dropdown {
