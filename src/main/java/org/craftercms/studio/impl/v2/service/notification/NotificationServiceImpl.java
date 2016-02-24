@@ -200,7 +200,8 @@ public class NotificationServiceImpl implements NotificationService {
                     Map<String, Object> templateModel = new HashMap<>();
                     templateModel.put("siteName", site);
                     templateModel.put("liveUrl", siteService.getLiveServerUrl(site));
-                    templateModel.put("previewUrl", siteService.getAuthoringServerUrl(site));
+                    templateModel.put("previewUrl", siteService.getPreviewServerUrl(site));
+                    templateModel.put("authoringUrl", siteService.getAuthoringServerUrl(site));
                     for (Pair<String, Object> param : params) {
                         templateModel.put(param.getKey(), param.getValue());
                     }
