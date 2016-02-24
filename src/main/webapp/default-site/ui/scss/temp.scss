@@ -2563,6 +2563,7 @@ span.acn-canned-search {
 
   border: none;
   border-radius: $border-radius-base;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   #ice-tools-panel-elem {
     .studio-view{
@@ -2625,7 +2626,8 @@ span.acn-canned-search {
       margin-right: 4px;
     }
     button{
-      padding: 6px 4px!important;
+      padding: 6px 0px!important;
+      width: 119px;
     }
     .acn-ptools-ice-label{
       margin-left: 0px;
