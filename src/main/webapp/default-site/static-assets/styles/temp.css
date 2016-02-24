@@ -5083,7 +5083,8 @@ span.acn-canned-search {
     #preview-tools-panel-container .edit-code.template {
       margin-right: 4px; }
     #preview-tools-panel-container .edit-code button {
-      padding: 6px 12px !important; }
+      padding: 6px 0px !important;
+      width: 119px; }
     #preview-tools-panel-container .edit-code .acn-ptools-ice-label {
       margin-left: 0px; }
   #preview-tools-panel-container .acn-panel-dropdown {
