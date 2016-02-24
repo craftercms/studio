@@ -136,13 +136,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             }
                                         }
                                        
-                                        try {
-                                            sendContentApprovalEmail(site,itemList);
-                                        }
-                                        catch(Exception errNotify) {
-                                             logger.error("Error sending approval notification for {0}:{1} with error {2}", site, ""+itemList, ""+errNotify);
-                                        }
-                                        
+
                                         logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                         if (mandatoryDependenciesCheckEnabled && missingDependencies.size() > 0) {
                                             List<CopyToEnvironment> mergedList = new ArrayList<CopyToEnvironment>(itemList);
@@ -202,37 +196,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    protected void sendContentApprovalEmail(final String site, List<CopyToEnvironment> itemList) {
 
-        for(CopyToEnvironment listItem : itemList) {
-            
-            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
-            
-            if(objectMetadata != null){
-                if(objectMetadata.getSendEmail() == 1) {
-                    // found the first item that needs to be sent
-                    notificationService2.notifyContentApproval(
-                        listItem.getSite(),
-                        objectMetadata.getSubmittedBy(),
-                        getPathRelativeToSite(itemList),
-                        listItem.getUser(),
-                        listItem.getScheduledDate(),
-                        Locale.ENGLISH);
-                    
-                    // no point in looking further, quit looping
-                    break;
-                }
-            }
-        }
-    }
-
-    private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
-        List<String> paths = new ArrayList<String>(itemList.size());
-        for (CopyToEnvironment copyToEnvironment : itemList) {
-            paths.add(copyToEnvironment.getPath());
-        }
-        return paths;
-    }
 
 
     private List<String> getPaths(List<CopyToEnvironment> itemsToDeploy) {

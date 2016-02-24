@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
@@ -50,6 +49,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
@@ -77,7 +77,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private static int CTED_AUTOINCREMENT = 0;
     private static int PSD_AUTOINCREMENT = 0;
 
-    public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException {
+    public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
@@ -110,6 +110,42 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (CopyToEnvironment item : items) {
             copyToEnvironmentMapper.insertItemForDeployment(item);
         }
+        // We need to pick up this on Inserting , not on execution!
+        try {
+            sendContentApprovalEmail(items, scheduleDateNow);
+        }catch(Exception errNotify) {
+            logger.error("Error sending approval notification for");
+        }
+}
+
+    protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList,boolean scheduleDateNow) {
+        if(notificationService.isEnable()) {
+            for (CopyToEnvironment listItem : itemList) {
+                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+                if (objectMetadata != null) {
+                    if (objectMetadata.getSendEmail() == 1) {
+                        // found the first item that needs to be sent
+                        notificationService.notifyContentApproval(listItem.getSite(),
+                            objectMetadata.getSubmittedBy(),
+                            getPathRelativeToSite(itemList),
+                            listItem.getUser(),
+                            // Null == now, anything else is scheduled
+                            scheduleDateNow?listItem.getScheduledDate():null,
+                            Locale.ENGLISH);
+                        // no point in looking further, quit looping
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
+        List<String> paths = new ArrayList<String>(itemList.size());
+        for (CopyToEnvironment copyToEnvironment : itemList) {
+            paths.add(copyToEnvironment.getPath());
+        }
+        return paths;
     }
 
     private List<CopyToEnvironment> createItems(String site, String environment, Map<String, List<String>> paths, Date scheduledDate, String approver, String submissionComment) {
@@ -156,16 +192,16 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
-         Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-         Set<String> environments = new HashSet<String>();
-         if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-             for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                 if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
-                     environments.add(groupConfigTO.getName());
-                 }
-             }
-         }
-         return environments;
+        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        Set<String> environments = new HashSet<String>();
+        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
+            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
+                if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
+                    environments.add(groupConfigTO.getName());
+                }
+            }
+        }
+        return environments;
     }
 
     private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
@@ -401,7 +437,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         try {
             DmPathTO path = new DmPathTO(fullPath);
             addToScheduledDateList(site, launchDate, format, fullPath,
-                    scheduledItems, comparator, subComparator, displayPatterns, filterType);
+                scheduledItems, comparator, subComparator, displayPatterns, filterType);
             String relativePath = contentService.getRelativeSitePath(site, fullPath);
             if(!(relativePath.endsWith("/" + DmConstants.INDEX_FILE) || relativePath.endsWith(DmConstants.XML_PATTERN))) {
                 relativePath = relativePath + "/" + DmConstants.INDEX_FILE;
@@ -831,6 +867,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     public PublishContentToDeploymentTarget getPublishContentToDeploymentTargetJob() { return publishContentToDeploymentTargetJob; }
     public void setPublishContentToDeploymentTargetJob(PublishContentToDeploymentTarget publishContentToDeploymentTargetJob) { this.publishContentToDeploymentTargetJob = publishContentToDeploymentTargetJob; }
 
+
+    public void setNotificationService(final NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -848,7 +889,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected PublishContentToDeploymentTarget publishContentToDeploymentTargetJob;
-
+    protected NotificationService notificationService;
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
 

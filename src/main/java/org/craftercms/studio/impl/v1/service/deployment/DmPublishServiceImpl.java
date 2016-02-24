@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -69,7 +68,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             DmPathTO dmPathTO = new DmPathTO(p);
             pathsToPublish.add(dmPathTO.getRelativePath());
         }
+        boolean scheduledDateIsNow = false;
         if (launchDate == null) {
+            scheduledDateIsNow=true;
             launchDate = new Date();
         }
         final String approver = securityService.getCurrentUser();
@@ -78,7 +79,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
         try {
             deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), pathsToPublish, ld, approver,
-                        mcpContext.getSubmissionComment());
+                        mcpContext.getSubmissionComment(),scheduledDateIsNow );
         } catch (DeploymentException e) {
             logger.error("Error while submitting paths to publish");
         }
@@ -193,7 +194,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         String comment = "Bulk Go Live invoked by " + aprover;
             logger.debug("Deploying " + pathsToPublish.size() + " items");
         try {
-            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment);
+            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, false);
         } catch (DeploymentException e) {
             logger.error("Error while running bulk Go Live operation", e);
         } finally {
