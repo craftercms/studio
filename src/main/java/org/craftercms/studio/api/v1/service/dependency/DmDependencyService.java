@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ public interface DmDependencyService {
 
     Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException;
 
-    DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive);
+    DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive, Set<String> processedDependencies);
 
     /**
      * get dependent items as WCM content items from the content at the given path

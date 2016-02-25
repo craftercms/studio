@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -135,68 +135,76 @@ public class ContentItemTO implements Serializable {
 	}
 
 	public ContentItemTO(ContentItemTO item, boolean cloneChildren) {
-		this.name = item.name;
-		this.internalName = item.internalName;
-		this.contentType = item.contentType;
-		this.uri = item.uri;
-		this.path = item.path;
-		this.browserUri = item.browserUri;
-		this.navigation = item.navigation;
-		this.floating = item.floating;
-		this.hideInAuthoring = item.hideInAuthoring;
-		this.previewable = item.previewable;
-        this.isPreviewable = item.previewable;
-		this.lockOwner = item.lockOwner;
-		this.user = item.user;
-		this.userFirstName = item.userFirstName;
-		this.userLastName = item.userLastName;
-		this.nodeRef = item.nodeRef;
-		this.metaDescription = item.metaDescription;
+        this.name = item.name;
+        this.internalName = item.internalName;
+        this.contentType = item.contentType;
+        this.uri = item.uri;
+        this.path = item.path;
+        this.browserUri = item.browserUri;
+        this.navigation = item.navigation;
+        this.floating = item.floating;
+        this.hideInAuthoring = item.hideInAuthoring;
+        this.previewable = item.previewable;
+        this.lockOwner = item.lockOwner;
+        this.user = item.user;
+        this.userFirstName = item.userFirstName;
+        this.userLastName = item.userLastName;
+        this.nodeRef = item.nodeRef;
+        this.metaDescription = item.metaDescription;
+        this.site = item.site;
+        this.page = item.page;
+        this.component = item.component;
+        this.document = item.document;
+        this.asset = item.asset;
+        this.isContainer = item.isContainer;
+        this.container = item.container;
+        this.disabled = item.disabled;
+        this.submitted = item.submitted;
+        this.submittedForDeletion = item.submittedForDeletion;
+        this.scheduled = item.scheduled;
+        this.deleted = item.deleted;
+        this.inProgress = item.inProgress;
+        this.live = item.live;
+        this.inFlight = item.inFlight;
+        this.isDisabled = item.isDisabled;
+        this.isInProgress = item.isInProgress;
+        this.isLive = item.isLive;
+        this.isSubmittedForDeletion = item.isSubmittedForDeletion;
+        this.isScheduled = item.isScheduled;
+        this.isNavigation = item.isNavigation;
+        this.isDeleted = item.isDeleted;
+        this.isNew = item.isNew;
+        this.isSubmitted = item.isSubmitted;
+        this.isFloating = item.isFloating;
+        this.isPage = item.isPage;
+        this.isPreviewable = item.isPreviewable;
+        this.isComponent = item.isComponent;
+        this.isDocument = item.isDocument;
+        this.isAsset = item.isAsset;
+        this.isInFlight = item.isInFlight;
+        this.eventDate = item.eventDate;
+        this.endpoint = item.endpoint;
+        this.timezone = item.timezone;
+        this.numOfChildren = item.numOfChildren;
+        this.scheduledDate = item.scheduledDate;
+        this.mandatoryParent = item.mandatoryParent;
+        this.isLevelDescriptor = item.isLevelDescriptor;
+        this.categoryRoot = item.categoryRoot;
+        this.lastEditDate = item.lastEditDate;
+        this.form = item.form;
+        this.formPagePath = item.formPagePath;
+        this.renderingTemplates = item.renderingTemplates;
 
-		// what it is
-		this.page = item.page;
-		this.component = item.component;
-		this.document = item.document;
-		this.asset = item.asset;
-		this.isContainer = item.isContainer;
-
-		// special states
-		this.disabled = item.disabled;
-
-		// workflow states
-		this.submitted = item.submitted;
-		this.submittedForDeletion = item.submittedForDeletion;
-		this.scheduled = item.scheduled;
-		this.deleted = item.deleted;
-		this.inProgress = item.inProgress;
-		this.live = item.live;
-
-		// duplicate properties (these are probable getters)
-		this.isDisabled = item.isDisabled;
-		this.isInProgress = item.isInProgress;
-		this.isLive = item.isLive;
-		this.isSubmittedForDeletion = item.isSubmittedForDeletion;
-		this.isScheduled = item.isScheduled;
-		this.isNavigation = item.isNavigation;
-		this.isDeleted = item.isDeleted;
-		this.isNew = item.isNew;
-		this.isSubmitted = item.isSubmitted;
-		this.isFloating = item.isFloating;
-		this.isPage = item.isPage;
-		this.isPreviewable = item.isPreviewable;
-		this.isComponent = item.isComponent;
-		this.isDocument = item.isDocument;
-		this.isAsset = item.isAsset;
-
-		// Added by Dejan needs of deployment history
-		this.eventDate = item.eventDate;
-		this.endpoint = item.endpoint;
-		this.timezone = item.timezone;
-		this.numOfChildren = item.numOfChildren;
-		this.scheduledDate = item.scheduledDate;
-		this.mandatoryParent = item.mandatoryParent;
-		this.isLevelDescriptor = item.isLevelDescriptor;
-		this.categoryRoot = item.categoryRoot;
+        this.folder = item.folder;
+        this.submissionComment = item.submissionComment;
+        this.components = item.components;
+        this.documents = item.documents;
+        this.levelDescriptors = item.levelDescriptors;
+        this.pages = item.pages;
+        this.isNewFile = item.isNewFile;
+        this.isReference = item.isReference;
+        this.parentPath = item.parentPath;
+        this.orders = item.orders;
 
 		if (cloneChildren) {
 			if (item.children != null) {

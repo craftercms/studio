@@ -54,6 +54,7 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "en", {
     dashletRecentDeployColEndpoint: "Server",
     dashletRecentDeployColDeployBy: "Published By",
     dashletRecentDeployColLastEdited: "Last Edited",
+    dashletRecentDeployColPageName: "Item Name",
 
     dashletMyRecentActivityTitle: "My Recent Activity",
     dashletMyRecentActivityHideLiveItems: "Hide Live Items",
@@ -424,9 +425,12 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
 
     /*Controls*/
     textArea: "Text Area",
+    linkTextarea:"Link Text Area",
     richTextEditor: "Rich Text Editor",
     input: "Input",
+    linkInput:"Link Input",
     dropdown: "Dropdown",
+    linkedDropdown:"Linked Dropdown",
     dateTime: "Date / Time",
     checkBox: "Check Box",
     groupedCheckboxes: "Grouped Checkboxes",
@@ -451,6 +455,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     videoUploadedDesktop: "Video Uploaded from Desktop",
     staticKeyValuePairs: "Static Key Value Pairs",
     configuredListOfPairs: "Configured List of Pairs",
+    siteComponent: "Site Component",
     fileBrowse: "File Browse",
     hubspotForms: "Hubspot Forms",
     imageFromRepository: "Image from repository",
@@ -504,6 +509,8 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     defaultType: "Default Type",
     displayTemplate: "Display Template",
     mergeStrategy: "Merge Strategy",
+    componentPath: "Component Path",
+	dependsOn: "Depends On",
 
     /*Restrictions*/
     required: "Required",

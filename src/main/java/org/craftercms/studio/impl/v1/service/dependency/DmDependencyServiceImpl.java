@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,10 +192,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive) {
+    public DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive, Set<String> processedDependencies) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
-        Set<String> processedDependencies = new HashSet<String>();
 
         List<DmDependencyTO> items = getDependencyItemsNoCalc(site, paths, processedDependencies, populateUpdatedDependenciesOnly, recursive);
         if (items.size() > 0) {
@@ -207,6 +206,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected List<DmDependencyTO> getDependencyItemsNoCalc(String site, List<String> paths, Set<String> processedDependencies, boolean populateUpdatedDependenciesOnly, boolean recursive) {
         List<DmDependencyTO> items = new ArrayList<DmDependencyTO>(paths.size());
+        if (processedDependencies == null) {
+            processedDependencies = new HashSet<String>();
+        }
         for (String path : paths) {
             if (processedDependencies.contains(path)) {
                 continue;

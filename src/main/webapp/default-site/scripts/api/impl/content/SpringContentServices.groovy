@@ -131,7 +131,7 @@ class SpringContentServices {
 	 */
 	def getContentItem(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentItem(site, path)
+        return springBackedService.getContentItem(site, path, 0)
 	}
 
 	/**

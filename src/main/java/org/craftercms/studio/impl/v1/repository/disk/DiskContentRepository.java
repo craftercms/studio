@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -258,7 +258,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return items;
     }
 
-    /** 
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return getContentChildren(path);
+    }
+
+    /**
      * get the version history for an item
      * @param path - the path of the item
      */

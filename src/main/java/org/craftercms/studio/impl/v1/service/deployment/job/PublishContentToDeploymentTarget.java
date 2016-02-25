@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -125,6 +127,8 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                                 publishingManager.insertDeploymentHistory(target, filteredItems, new Date());
                                             } catch (UploadFailedException err) {
                                                 notificationService.sendDeploymentFailureNotification(site, err);
+                                                notificationService2.notifyDeploymentError(site,err,
+                                                    getPathsFromPublishToTarget(filteredItems),Locale.ENGLISH);
                                                 Map<String, Integer> counters = _publishingFailureCounters.get(err.getSite());
                                                 if (counters == null) {
                                                     counters = new HashMap<String, Integer>();
@@ -188,6 +192,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                         } catch (Exception err) {
                             logger.error("error while processing items to be published for site: " + site, err);
                             notificationService.sendDeploymentFailureNotification(site, err);
+                            notificationService2.notifyDeploymentError(site,err);
                             logger.info("Continue executing deployment for other sites.");
                         }
                     }
@@ -197,6 +202,14 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
             logger.error("error while processing items to be published", err);
             notificationService.sendDeploymentFailureNotification("UNKNOWN", err);
         }
+    }
+
+    private List<String> getPathsFromPublishToTarget(final List<PublishToTarget> filteredItems) {
+        List<String> paths=new ArrayList<>(filteredItems.size());
+        for (PublishToTarget filteredItem : filteredItems) {
+            paths.add(filteredItem.getPath());
+        }
+        return paths;
     }
 
     protected Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site) {
@@ -306,9 +319,16 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
+
+    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+                                            notificationService2) {
+        this.notificationService2 = notificationService2;
+    }
+
     protected Integer maxTolerableRetries;
     protected boolean masterPublishingNode;
     protected SiteService siteService;
     protected PublishingManager publishingManager;
     protected NotificationService notificationService;
+    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 }

@@ -7,7 +7,6 @@ Licensed under the MIT license - http://opensource.org/licenses/MIT
 Copyright (c) 2014 Daniel Eden
 */
 @import url("/studio/static-assets/themes/cstudioTheme/css/icons.css");
-@import url(http://fonts.googleapis.com/css?family=Raleway:400,500,700);
 .animated {
   -webkit-animation-duration: .5s;
   animation-duration: .5s;
@@ -3160,7 +3159,7 @@ div#acn-active-content {
   padding-left: 8px;
   padding-right: 9px; }
 .site-dropdown-open .site-dashboard {
-  padding-left: 265px; }
+  left: 265px; }
 
 .acn-dropdown-wrapper .acn-dropdown-menu-wrapper {
   border-width: 1px;
@@ -3170,7 +3169,7 @@ div#acn-active-content {
   left: 0;
   bottom: 0;
   top: 50px;
-  width: 265px;
+  /*width: 265px;*/
   position: fixed;
   z-index: 100; }
 .acn-dropdown-wrapper .acn-dropdown-menu li {
@@ -3591,7 +3590,7 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
   width: 290px;
   height: auto !important;
   border-radius: 6px;
-  font-family: Raleway, 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 
 .acn-tooltip {
   margin: 5px auto;
@@ -5044,7 +5043,8 @@ span.acn-canned-search {
 /* --- Preview Tools Overlay --- */
 #preview-tools-panel-container {
   border: none;
-  border-radius: 4px; }
+  border-radius: 4px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
   #preview-tools-panel-container #ice-tools-panel-elem .studio-view {
     overflow: hidden; }
   #preview-tools-panel-container .channel-width,
@@ -5083,7 +5083,8 @@ span.acn-canned-search {
     #preview-tools-panel-container .edit-code.template {
       margin-right: 4px; }
     #preview-tools-panel-container .edit-code button {
-      padding: 6px 4px !important; }
+      padding: 6px 0px !important;
+      width: 119px; }
     #preview-tools-panel-container .edit-code .acn-ptools-ice-label {
       margin-left: 0px; }
   #preview-tools-panel-container .acn-panel-dropdown {
@@ -6130,7 +6131,7 @@ html {
   -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
@@ -6214,7 +6215,7 @@ hr {
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 500;
   line-height: 1.1;
   color: inherit; }
@@ -7324,6 +7325,9 @@ address {
 .glyphicon-menu-up:before {
   content: "\e260"; }
 
+.yui-skin-cstudioTheme {
+  overflow-x: hidden; }
+
 .text-center {
   text-align: center !important; }
 
@@ -7334,8 +7338,13 @@ address {
   margin-bottom: 10px; }
 
 .site-dashboard {
-  padding-top: 51px;
-  transition: padding .5s, transform .5s; }
+  top: 51px;
+  transition: left .5s, transform .5s;
+  right: 0;
+  bottom: 0;
+  position: absolute; }
+  .site-dashboard div.container {
+    width: 92%; }
   .site-dashboard .panel .panel-heading:before, .site-dashboard .panel .panel-heading:after {
     content: " ";
     display: table; }
@@ -7352,10 +7361,19 @@ address {
     .site-dashboard .panel .panel-heading .widget-controls [maxlength] {
       width: 50px;
       text-align: center; }
+    .site-dashboard .panel .panel-heading .widget-controls li {
+      vertical-align: top; }
   .site-dashboard .panel [id*="-body"] table {
     margin: 0; }
   .site-dashboard .panel .dashlet-item-check {
     margin-right: 5px; }
+  .site-dashboard .itemNameContainer span.iconRow {
+    width: 15% !important;
+    padding-left: 0% !important;
+    float: left !important; }
+  .site-dashboard .itemNameContainer a.anchorRow {
+    width: 85%;
+    float: left; }
 
 .site-dashboard .panel .panel-heading .widget-controls > li#loading-MyRecentActivity,
 #loading-GoLiveQueue,
@@ -14543,7 +14561,7 @@ address {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;
@@ -14677,7 +14695,7 @@ address {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;
@@ -15493,6 +15511,10 @@ address {
   .studio-view table.item-listing td,
   .studio-dialog table.item-listing td {
     background-color: #fff; }
+.studio-view p.validation,
+.studio-dialog p.validation {
+  color: #a94442;
+  padding: 0px; }
 
 table.scroll-body {
   width: 100%;
@@ -15515,8 +15537,12 @@ margin-left: -3px; */
       width: 10%; }
     table.scroll-body tr .medium {
       width: 30%; }
+    table.scroll-body tr .deleteMedium {
+      width: 34%; }
     table.scroll-body tr .large {
       width: 60%; }
+    table.scroll-body tr .deleteLarge {
+      width: 56%; }
   table.scroll-body thead {
     width: 100%;
     display: table;

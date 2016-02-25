@@ -9,13 +9,13 @@
     CStudioAuthoring.register("TemplateHolder.Delete", {
         ROOT_ROW: [
             '<tr>',
-                '<td class="medium">',
+                '<td class="deleteMedium">',
                     '<div class="item">',
                         '<input class="item-check" id="{id}" type="checkbox" json="{data}" uri="{uri}" {checked} scheduleddate="{scheduledDate}" /> ',
                         '<label for="{id}" class="{class}" title="{internalName}">{displayName}</label>',
                     '</div>',
                 '</td>',
-                '<td>',
+                '<td class="deleteLarge">',
                     '<div class="item-desc" title="{url}">',
                         '{displayURL}',
                     '</div>',

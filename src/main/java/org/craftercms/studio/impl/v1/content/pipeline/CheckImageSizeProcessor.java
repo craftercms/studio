@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
             ImageIcon icon = new ImageIcon(image);
             int height = icon.getIconHeight();
             int width = icon.getIconWidth();
-            validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
+            if (allowedHeight > 0 && allowedWidth > 0) {
+                validateImageSize(allowedWidth, allowedHeight, height, width, lessSize);
+            }
             assetInfo.setHeight(height);
             assetInfo.setWidth(width);
             return new ByteArrayInputStream(imageData);

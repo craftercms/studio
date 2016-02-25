@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     public ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceException {
-        ContentItemTO itemTO = contentService.getContentItem(site, path);
+        ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         if (itemTO != null) {
             String type = itemTO.getContentType();
             if (!StringUtils.isEmpty(type)) {
@@ -91,7 +91,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     public ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException {
-        ContentItemTO item = contentService.getContentItem(site, relativePath);
+        ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
         if (item != null) {
             String type = item.getContentType();
             if (!StringUtils.isEmpty(type)) {

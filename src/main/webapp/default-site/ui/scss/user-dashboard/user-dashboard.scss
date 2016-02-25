@@ -1,4 +1,3 @@
-
 @import "../variables";
 
 $icon-font-path: '../libs/bootstrap-sass-official/assets/fonts/bootstrap/';
@@ -76,4 +75,8 @@ small {
     .text-sm {
         font-size: 40%;
     }
+}
+
+.site-list a{
+  color: #4F81A0;
 }

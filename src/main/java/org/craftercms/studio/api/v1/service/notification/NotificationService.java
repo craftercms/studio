@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@ import java.util.Map;
  * Provides services for sending and getting notification messages
  * 
  * @author hyanghee
- *
+ ** @deprecated  This class/interface will beremovee in 2.6
  */
+@Deprecated
 public interface NotificationService {
 
 	/** complete message keys **/

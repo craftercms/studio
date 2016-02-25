@@ -205,6 +205,8 @@
             } else {
                 this.$('[name="schedulingMode"]')[0].checked = false;
                 this.$('[name="schedulingMode"]')[1].checked = true;
+                this.$('#approveSubmit').prop('disabled', true);
+                this.$('#approveSubmitVal').hide();
 
                 this.$('.date-picker-control').show();
                 this.$('input.date-picker')[0].value = getScheduledDateTimeFromJson(reference);
@@ -289,14 +291,31 @@
             if ($elem.val() === 'now') {
                 me.$('.date-picker-control').hide();
                 me.$('.date-picker').val('');
+                me.$('#approveSubmit').prop('disabled', false);
+                me.$('#approveSubmitVal').hide;
             } else {
                 me.$('.date-picker-control').show();
                 me.$('.date-picker').select();
+                me.$('#approveSubmit').prop('disabled', true);
+                me.$('#approveSubmitVal').show;
             }
         });
 
         me.$('.date-picker').datetimepicker({
-            format: 'm/d/Y h:i a'
+            format: 'm/d/Y h:i a',
+            dateFormat: "m/d/Y",
+            formatTime:	'h:i a'
+        });
+
+        me.$('.date-picker').change(function () {
+            var $elem = $(this);
+            if ($elem.val() !=null && $elem.val() != "") {
+                me.$('#approveSubmit').prop('disabled', false);
+                me.$('#approveSubmitVal').hide();
+            }else{
+                me.$('#approveSubmit').prop('disabled', true);
+                me.$('#approveSubmitVal').show();
+            }
         });
 
     }

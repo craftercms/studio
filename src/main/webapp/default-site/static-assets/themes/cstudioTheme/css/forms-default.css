@@ -52,14 +52,14 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 
 .cstudio-form-control-node-selector-container {
 	display: inline-block;
-    width: 50%;
+    width: 74%;
 }
 
 .cstudio-form-control-asset-picker-body {
     position: relative;
     display: inline-block;
-    padding-right: 220px;
     min-height: 65px;
+    padding-right: 220px;
 }
 
 .cstudio-form-control-image-picker-options {
@@ -67,6 +67,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     top: 0;
     right: 0;
     width: 215px;
+    /*display: inline;*/
 }
 .cstudio-form-field-image-picker-constraints {
     position: absolute;
@@ -148,19 +149,16 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     min-height: 100px;
     min-width: 100px;
     width: 300px;
+    margin-left: 8px;
  }
 .cstudio-form-control-page-url-container {
     display: inline-block;
-    width: 600px;
+    width: 74%;
 }
  
 .cstudio-form-control-file-name-container {
     display: inline-block;
-    width: 600px;
-}
-
-.cstudio-form-control-file-name-container input.cstudio-form-control-file-name{
-  width: 301px;
+    width: 74%;
 }
 
 .cstudio-form-container {
@@ -291,6 +289,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     position: relative;
     padding-top: 15px;
     clear: both;
+    max-width: 100%;
 }
 
 .cstudio-form-field-title {
@@ -298,7 +297,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     float: left;
     font-weight: bold;
     line-height: 22px;
-    margin-right: 21px;
+    margin-right: 2%;
     text-align: right;
     width: 24%;
 }
@@ -310,7 +309,9 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 .cstudio-form-field-description {
 	color: #999999;
 	display: block;
-	margin-left: 20px;
+    margin-left: 23%;
+    padding-left: 7%;
+    text-align: justify;
 }
 
 .cstudio-form-field-help-container {
@@ -451,7 +452,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
   background-repeat: no-repeat;
   display: block;
   float: left;
-  width: 20px;
+  width: 4%;
   height: 30px;
 }
 
@@ -547,9 +548,9 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 }
 
 .cstudio-form-control-rte-description {
-	display: inline;
+	display: inline-block;
 	color: #999999;
-    padding-left: 20px;
+    padding-left: 4%;
 }
 
 .cstudio-form-control-rte-help {
@@ -757,6 +758,25 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 	position:relative;
 }
 
+@media screen and (max-width: 1105px) {
+    .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 240px;
+    }
+    .cstudio-form-repeat-container .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 221px;
+    }
+}
+
+@media screen and (max-width: 830px) {
+    .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 179px;
+    }
+
+    .cstudio-form-repeat-container .cstudio-form-control-asset-picker-no-preview-image {
+        max-width: 159px;
+    }
+}
+
 .cstudio-form-control-asset-picker-no-preview-content {
 	padding-left:5px;
 }
@@ -853,14 +873,15 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 }
 
 /* --- Controls --- */
-.cstudio-form-field-container .checkbox-group { display: inline-block; width: 600px; margin: 2px 0 0 20px;}
-.checkbox-group > .checkbox { display:inline-block; width: 300px; }
+.cstudio-form-field-container .checkbox-group { display: inline-block; width: 64%; margin: 2px 0 0 2%;}
+.checkbox-group > .checkbox { display:inline-block; width: 48%; }
+.checkbox-group > .checkbox:nth-child(odd){margin-right: 3%;padding-right: 3%;}
 .checkbox-group > .checkbox input { cursor: pointer; vertical-align: text-top; }
 .checkbox-group > .checkbox span { display: inline-block; margin-left: 5px; }
 .checkbox-group > .checkbox.select-all { display: block; margin-bottom: 5px; width: 100%; }
 .checkbox-group > .select-all span { color: #888888; }
 
-.cstudio-form-field-container .date-time-container { display: inline-block; position: relative; }
+.cstudio-form-field-container .date-time-container { /*display: inline-block;*/ position: relative; }
 .date-time-container .date-control { background: #FFFFFF url(../images/icons/icon_calendar.gif) no-repeat right center; width: 103px; border: 1px solid #C5D6E2; color: #000000; padding: 2px 3px; margin-right: 6px; }
 .date-time-container > .date-link,
 .date-time-container > .clear-link { display: inline-block; margin-left: 6px; text-decoration: underline; }
@@ -874,5 +895,7 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
 input[disabled]{background-color: whitesmoke;}
+
+.cstudio-form-control-dropdown{max-width: 62%;}
 
 body.yui-skin-cstudioTheme.masked{overflow: hidden;}

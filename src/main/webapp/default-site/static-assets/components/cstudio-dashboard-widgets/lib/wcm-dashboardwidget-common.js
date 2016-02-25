@@ -261,6 +261,24 @@ WcmDashboardWidgetCommon.Ajax = {
     }
 };
 
+WcmDashboardWidgetCommon.hideURLCol = function () {
+    if($(".container").width() < 707){
+        $(".urlCol").each(function() {
+            $( this ).hide();
+        });
+        $( "th[id*='browserUri-']" ).each(function() {
+            $( this ).hide();
+        });
+    }else{
+        $(".urlCol").each(function() {
+            $( this ).show();
+        });
+        $( "th[id*='browserUri-']" ).each(function() {
+            $( this ).show();
+        });
+    }
+}
+
 /**
  * init widget
  */
@@ -488,9 +506,10 @@ WcmDashboardWidgetCommon.init = function (instance) {
             CStudioAuthoring.Service.getUserPermissions(CStudioAuthoringContext.site, "~DASHBOARD~", getPermsCb);
         }
 
-
+        $(window).resize(function() {
+            WcmDashboardWidgetCommon.hideURLCol();
+        });
     });
-
 };
 
 WcmDashboardWidgetCommon.getSimpleRow = function (prefix, widgetId, rowTitle, classes) {
@@ -818,6 +837,9 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
 
     var callback = {
         success: function (results) {
+            if(results.total > 0){
+                YDom.addClass(divTableContainer, "table-responsive");
+            }
             instance.dashBoardData = results;
             var sortDocuments = results.documents;
             instance.tooltipLabels = new Array();
@@ -1021,6 +1043,8 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                     }
                 }
             }, this, true);
+
+            WcmDashboardWidgetCommon.hideURLCol();
 
         },
 

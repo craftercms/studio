@@ -44,14 +44,12 @@
                     document.body.appendChild(panelEl);
 
                     var panel = new YAHOO.widget.Panel("preview-tools-panel-container", {
-                        width: "250px",
+                        width: "265px",
                         close: false,
                         constraintoviewport: false,
-                        draggable: true,
+                        draggable: false,
                         modal: false,
                         visible: false,
-                        x: ptoLeft,
-                        y: ptoTop,
                         autofillheight: null
                     });
 

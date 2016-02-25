@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import reactor.event.Event;
 
@@ -226,7 +227,7 @@ public class PreviewDeployer implements Deployer {
     }
 
     protected void syncFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(path);
+        RepositoryItem[] children = contentRepository.getContentChildren(path, true);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {

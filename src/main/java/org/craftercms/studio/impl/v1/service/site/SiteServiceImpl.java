@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -60,10 +59,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import reactor.core.Reactor;
 import reactor.event.Event;
-import reactor.tcp.TcpClient;
-import reactor.tcp.TcpConnection;
 
-import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -145,8 +141,6 @@ public class SiteServiceImpl implements SiteService {
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
 			toRet = convertNodesFromXml(configContent);
-			//XMLSerializer xmlSerializer = new XMLSerializer();
-			//response = xmlSerializer.read(configContent);
 		} else {
 			response = new JSONObject();
 		}
@@ -172,13 +166,6 @@ public class SiteServiceImpl implements SiteService {
 			Node currentNode = element.node(i);
 			if ( currentNode instanceof Element ) {
 				Element currentElement = (Element)currentNode;
-				/*
-				if (currentElement.attributeCount() > 0) {
-					for (int j = 0; j < currentElement.attributes().size(); j++) {
-						Attribute item = currentElement.attribute(j);
-						map.put(item.getName(), item.getValue());
-					}
-				}*/
 				String key = currentElement.getName();
 				Object toAdd = null;
 				if (currentElement.isTextOnly()) {
@@ -199,16 +186,6 @@ public class SiteServiceImpl implements SiteService {
 				} else {
 					map.put(key, toAdd);
 				}
-				/*
-				Iterator elIter = currentElement.elementIterator();
-				if (elIter.hasNext()) {
-					Element firstChild = (Element)elIter.next();
-					if (firstChild.isTextOnly()) {
-						map.put(currentElement.getName(), currentElement.getStringValue());
-					} else {
-						map.putAll(createMap(currentElement));
-					}
-				}*/
 			}
 		}
 		return map;
@@ -337,7 +314,6 @@ public class SiteServiceImpl implements SiteService {
 					siteConfigFolder);
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
-	 		//replaceFileContent(siteConfigFolder+"/site-config.xml", "SITENAME", siteName);
 	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITENAME", siteId);
 	 		replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
 
@@ -371,12 +347,17 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setSiteId(siteId);
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
-            deploymentService.syncAllContentToPreview(siteId);
+
+            CacheService cacheService = cacheTemplate.getCacheService();
+            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
             clearConfigurationCache.clearConfigurationCache(siteId);
-            //reloadSiteConfiguration(siteId);
-	 	}
+            deploymentService.syncAllContentToPreview(siteId);
+        }
 	 	catch(Exception err) {
-	 		success = false;
+            success = false;
             logger.error("Error while creating site", err);
 	 	}
 
@@ -482,6 +463,16 @@ public class SiteServiceImpl implements SiteService {
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
+
+            CacheService cacheService = cacheTemplate.getCacheService();
+            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.removeScope(cacheContext);
+            }
+            cacheContext = new StudioCacheContext(siteId, false);
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.removeScope(cacheContext);
+            }
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -536,7 +527,6 @@ public class SiteServiceImpl implements SiteService {
         if (sites != null && sites.size() > 0) {
             for (String site : sites) {
                 clearConfigurationCache.clearConfigurationCache(site);
-                //reloadSiteConfiguration(site);
             }
         } else {
             logger.error("[SITESERVICE] no sites found");
@@ -580,6 +570,7 @@ public class SiteServiceImpl implements SiteService {
         loadSiteDeploymentConfig(site, siteConfig);
         cacheService.put(cacheContext, cacheKey, siteConfig);
         notificationService.reloadConfiguration(site);
+		notificationService2.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
         if (triggerEvent) {
@@ -680,7 +671,12 @@ public class SiteServiceImpl implements SiteService {
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
 
-    protected SiteServiceDAL _siteServiceDAL;
+	public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
+											notificationService2) {
+		this.notificationService2 = notificationService2;
+	}
+
+	protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
 	protected String sitesConfigPath;
@@ -705,6 +701,7 @@ public class SiteServiceImpl implements SiteService {
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
     protected ImportService importService;
+	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

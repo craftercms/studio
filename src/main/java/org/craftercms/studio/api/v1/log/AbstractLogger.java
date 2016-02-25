@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -49,11 +49,17 @@ public abstract class AbstractLogger implements Logger {
 		if(pattern == null) {
 			pattern = msg;
 		}
-		 
-		MessageFormat msgFormat = new MessageFormat(pattern); //use locale from some external source 
+		
+        
+        try {
+            MessageFormat msgFormat = new MessageFormat(pattern); //use locale from some external source
+            retMessage = msgFormat.format(args);
+        }
+        catch(Exception eExpandFailure) {
+            retMessage = pattern + " and arguments " + args + " failed to expand in to message " + eExpandFailure;
+        }
+        
 		String threadId = Thread.currentThread().getName();
-
-		retMessage = msgFormat.format(args);
 		
 		return "["+threadId+"] " + retMessage;
 	}

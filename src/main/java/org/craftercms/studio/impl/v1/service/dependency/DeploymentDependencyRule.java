@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,15 +43,15 @@ public class DeploymentDependencyRule implements DependencyRule {
         getAllDependenciesRecursive(site, path, allDependencies);
 
         for (String dep : allDependencies) {
-            if (objectStateService.isNew(site, path)) {
-                dependencies.add(path);
+            if (objectStateService.isNew(site, dep)) {
+                dependencies.add(dep);
             } else {
-                if (objectStateService.isUpdated(site, path)) {
+                if (objectStateService.isUpdated(site, dep)) {
                     for (String contentSpecificDependency : contentSpecificDependencies) {
                         Pattern p = Pattern.compile(contentSpecificDependency);
-                        Matcher m = p.matcher(path);
+                        Matcher m = p.matcher(dep);
                         if (m.matches()) {
-                            dependencies.add(path);
+                            dependencies.add(dep);
                             break;
                         }
                     }

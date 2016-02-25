@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         String configFileFullPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         try {
-            document = contentService.getContentAsDocument(configFileFullPath);
+            if (contentService.contentExists(configFileFullPath)) {
+                document = contentService.getContentAsDocument(configFileFullPath);
+            }
         } catch (DocumentException e) {
             logger.error("No content type configuration document found at " + configFileFullPath, e);
         }

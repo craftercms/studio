@@ -82,13 +82,14 @@
             tpl = [
                 '<tr>',
                 '<td class="small"><input type="checkbox" class="select-all-check" data-item-id="_URI_" checked/></td>',
-                '<td class="large">_URI_</td>',
+                '<td class="large">_INTERNALNAME_ _URI_</td>',
                 '<td class="medium">_SCHEDULE_</td>',
                 '</tr>'
             ].join();
         $.each(items, function (i, item) {
             html.push(tpl
                 .replace('_URI_', item.uri)
+                .replace('_INTERNALNAME_', item.internalName)
                 .replace('_SCHEDULE_', item.scheduledDate ? item.scheduledDate : "")
                 .replace('_URI_', item.uri));
         });
@@ -104,14 +105,31 @@
             if ($elem.val() === 'now') {
                 me.$('.date-picker-control').hide();
                 me.$('.date-picker').val('');
+                me.$('#approveSubmit').prop('disabled', false);
+                me.$('#approveSubmitVal').hide;
             } else {
                 me.$('.date-picker-control').show();
                 me.$('.date-picker').select();
+                me.$('#approveSubmit').prop('disabled', true);
+                me.$('#approveSubmitVal').show();
             }
         });
 
         me.$('.date-picker').datetimepicker({
-            format: 'm/d/Y h:i a'
+            format: 'm/d/Y h:i a',
+            dateFormat: "m/d/Y",
+            formatTime:	'h:i a'
+        });
+
+        me.$('.date-picker').change(function () {
+            var $elem = $(this);
+            if ($elem.val() !=null && $elem.val() != "") {
+                me.$('#approveSubmit').prop('disabled', false);
+                me.$('#approveSubmitVal').hide();
+            }else{
+                me.$('#approveSubmit').prop('disabled', true);
+                me.$('#approveSubmitVal').show();
+            }
         });
 
     }

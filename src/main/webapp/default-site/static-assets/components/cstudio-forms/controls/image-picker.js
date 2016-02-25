@@ -620,6 +620,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         this.imageEl = imageEl;
         imageEl.id = divPrefix + "cstudio-form-image-picker";
         YAHOO.util.Dom.addClass(imageEl, 'cstudio-form-control-asset-picker-preview-block');
+        YAHOO.util.Dom.addClass(imageEl, 'cstudio-form-control-asset-picker-no-preview-image');
         bodyEl.appendChild(imageEl);
 
         var noPreviewEl = document.createElement("span");
@@ -733,7 +734,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         YAHOO.util.Dom.addClass(descriptionEl, 'description');
         YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
         descriptionEl.innerHTML = config.description;
-        descriptionEl.style.marginLeft = "341px";
+        //descriptionEl.style.marginLeft = "341px";
         descriptionEl.style.position = "relative";
 
         containerEl.appendChild(titleEl);

@@ -103,6 +103,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
@@ -126,6 +127,7 @@
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="notificationService2" ref="cstudioNotificationServicev2" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
@@ -143,6 +145,7 @@
         <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
+        <property name="submitForApprovalDependencyRule" ref="studioSubmitToApproveDependencyRule" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -162,6 +165,7 @@
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
+         <property name="notificationService" ref="cstudioNotificationServicev2"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
@@ -173,7 +177,22 @@
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
          <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+         <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
      </bean>
+
+    <bean id="cstudioNotificationServicev2"
+          class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
+        <property name="emailMessages" ref="cstudioEmailMessageQueue" />
+        <property name="configPath"><value>${notificationService.configPath}</value></property>
+        <property name="configFileName"><value>${notificationService.v2.configFileName}</value></property>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="enable" value="${notificationService.v2.enable}"/>
+        <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
+    </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
             <property name="translationContentDAL" ref="cstudioTranslationContentDAL" />
@@ -309,6 +328,10 @@
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="previewSync" ref="previewSync"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -324,6 +347,7 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -347,11 +371,13 @@
     
     <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="emailService" ref="mailSenderImpl" />
+        <property name="emailService" ref="mailSender" />
+        <property name="emailServiceNoAuth" ref="mailSenderNoAuth" />
+        <property name="authenticatedSMTP" value="${crafter.studio.mail.smtp.auth}"/>
         <property name="defaultFromAddress"><value>${crafter.studio.mail.from.default}</value></property>
     </bean>
 
-    <bean id="mailSenderImpl" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
       <property name="host" value="${crafter.studio.mail.host}" />
       <property name="port" value="${crafter.studio.mail.port}" />
       <property name="username" value="${crafter.studio.mail.username}" />
@@ -364,6 +390,19 @@
             <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
         </props>
       </property>  
+    </bean>
+
+    <bean id="mailSenderNoAuth" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${crafter.studio.mail.host}" />
+        <property name="port" value="${crafter.studio.mail.port}" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
+                <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
+                <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
+                <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
+            </props>
+        </property>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -472,6 +511,9 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -481,6 +523,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
     </bean>
 
     <!-- scheduled actions -->
@@ -878,6 +921,7 @@
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
+        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
@@ -885,6 +929,18 @@
     <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="contentSpecificDependencies">
+            <list>
+                <value>/components/page/.*</value>
+                <value>/static-assets/page/.*</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="studioSubmitToApproveDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.SubmitToApproveDependencyRule">
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
                 <value>/components/page/.*</value>

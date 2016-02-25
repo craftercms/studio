@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import java.util.*;
 import java.net.*;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
@@ -67,10 +68,6 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
 import org.springframework.http.MediaType;
 
 
@@ -85,6 +82,10 @@ implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
+    private static Map<String, Session> cmisSessionRegister = new HashMap<String, Session>();
+
+    protected static final ReentrantLock cmisSessionLock = new ReentrantLock();
+
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
         return getContentStreamCMIS(path);
@@ -92,9 +93,15 @@ implements SecurityProvider {
 
     @Override
     public boolean contentExists(String path) {
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
         try {
-            return (this.getNodeRefForPathCMIS(path) != null);
-        } catch (ContentNotFoundException e) {
+            Session session = getCMISSession();
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
+            return cmisObject != null;
+        } catch (CmisBaseException e) {
             logger.info("Content not found exception for path: " + path, e);
             return false;
         }
@@ -148,6 +155,11 @@ implements SecurityProvider {
         addDebugStack();
         RepositoryItem[] items = getContentChildrenCMIS(path);
         return items;
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+        return getContentChildren(path);
     }
 
     /**
@@ -205,7 +217,7 @@ implements SecurityProvider {
             }
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
+        logger.debug("TRACE: createVersion(String path, boolean majorVersion); {0}, {1}\n\t\tDuration: {2}", path, majorVersion, duration);
         return versionLabel;
 
     }
@@ -296,8 +308,10 @@ implements SecurityProvider {
         int status = httpClient.executeMethod(postMethod);
 
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
-        return postMethod.getResponseBodyAsString();
+        logger.debug("TRACE: alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
+        InputStream responseStream = postMethod.getResponseBodyAsStream();
+        String response = IOUtils.toString(responseStream);
+        return response;
     }
 
     /**
@@ -342,8 +356,10 @@ implements SecurityProvider {
         logger.debug("Response status back from the server: " + status);
 
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
-        return postMethod.getResponseBodyAsString();
+        logger.debug("TRACE: alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType, String charSet); {0}, {1}, {2}, {3}, {4}\n\t\tDuration: {5}", uri, params, "body", bodyMimeType, charSet, duration);
+        InputStream responseStream = postMethod.getResponseBodyAsStream();
+        String response = IOUtils.toString(responseStream);
+        return response;
     }
 
     /**
@@ -397,7 +413,6 @@ implements SecurityProvider {
             toRet.put("firstName", (String)result.get("firstName"));
             toRet.put("lastName", (String)result.get("lastName"));
             toRet.put("email", (String)result.get("email"));
-            //toRet.put("profileImage", result.get("NOTSET"));
         }
         catch(Exception err) {
             logger.error("err getting user profile: ", err);
@@ -420,7 +435,6 @@ implements SecurityProvider {
 
             retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
 
-            ///JSONObject jsonObject =
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
 
@@ -498,7 +512,7 @@ implements SecurityProvider {
             logger.error("Error while validating authentication token", e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
+        logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
         return false;
     }
 
@@ -523,7 +537,7 @@ implements SecurityProvider {
                 logger.debug("Cron Job");
 
             }
-            logger.debug("Stack trace (depth 10): " + sbStack.toString());
+            logger.debug("TRACE: Stack trace (depth 10): " + sbStack.toString());
         }
     }
 
@@ -548,7 +562,7 @@ implements SecurityProvider {
             throw new ContentNotFoundException(e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getNodeRefForPathCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return nodeRef;
     }
 
@@ -577,7 +591,7 @@ implements SecurityProvider {
             throw new ContentNotFoundException(e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentStreamCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return inputStream;
     }
 
@@ -633,7 +647,7 @@ implements SecurityProvider {
             }
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentChildrenCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return items;
     }
 
@@ -648,8 +662,8 @@ implements SecurityProvider {
         String filename = cleanPath.substring(splitIndex + 1);
         MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
         String mimeType = mimeTypesMap.getContentType(filename);
+        Session session = getCMISSession();
         try {
-            Session session = getCMISSession();
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
             CmisObject cmisObject = null;
             if (contentExists(cleanPath)) {
@@ -667,6 +681,7 @@ implements SecurityProvider {
                         document.setContentStream(contentStream, true);
                     }
                     session.removeObjectFromCache(document.getId());
+                    session.clear();
                 }
             } else {
                 String folderPath = cleanPath.substring(0, splitIndex);
@@ -682,7 +697,6 @@ implements SecurityProvider {
                     // if not, create the folder first
                     boolean created = createMissingFoldersCMIS(folderPath);
                     if (created) {
-                        session.clear();
                         folderCmisObject = session.getObjectByPath(folderPath);
                         folder = (Folder)folderCmisObject;
                     } else {
@@ -694,11 +708,12 @@ implements SecurityProvider {
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
-                folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                org.apache.chemistry.opencmis.client.api.Document newDoc = folder.createDocument(properties, contentStream, VersioningState.MINOR);
+                session.removeObjectFromCache(newDoc.getId());
                 session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
-            logger.debug("writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
+            logger.debug("TRACE: writeContentCMIS(String fullPath, InputStream content); {0}, {1}\n\t\tDuration: {2}", fullPath, "content", duration);
             return true;
         } catch (CmisBaseException e) {
             logger.error("Error writing content to a path {0}", e, fullPath);
@@ -742,7 +757,7 @@ implements SecurityProvider {
             logger.error("Could not find content for path {0}", fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: deleteContentCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return result;
     }
 
@@ -789,7 +804,7 @@ implements SecurityProvider {
             logger.error("err getting content: ", err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getContentVersionHistoryCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return versions;
     }
 
@@ -827,7 +842,7 @@ implements SecurityProvider {
             logger.error("err reverting content content: ", err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
+        logger.debug("TRACE: revertContentCMIS(String fullPath, String version, boolean major, String comment); {0}, {1}, {2}, {3}\n\t\tDuration: {4}", fullPath, version, major, comment, duration);
         return success;
     }
 
@@ -847,6 +862,9 @@ implements SecurityProvider {
                     parentPath = "/";
                 }
                 name = cleanPath.substring(idx + 1);
+            }
+            if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
+                return true;
             }
             Session session = getCMISSession();
             CmisObject parentCmisOBject = null;
@@ -903,6 +921,7 @@ implements SecurityProvider {
                     String nodeRef = createFolderInternalCMIS(ancestorPath, parentName);
                     if (StringUtils.isEmpty(nodeRef)) {
                         logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
+                        session.clear();
                         return newFolderRef;
                     } else {
                         parentCmisOBject = session.getObjectByPath(cleanPath);
@@ -919,6 +938,7 @@ implements SecurityProvider {
                     Folder newFolder = folder.createFolder(newFolderProps);
                     Property property = newFolder.getProperty("alfcmis:nodeRef");
                     newFolderRef = property.getValueAsString();
+                    session.removeObjectFromCache(newFolder.getId());
                 }
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
@@ -928,7 +948,7 @@ implements SecurityProvider {
             logger.error("Failed to create " + name + " folder in {0}", err, fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
+        logger.debug("TRACE: createFolderInternalCMIS(String fullPath, String name); {0}, {1}\n\t\tDuration: {2}", fullPath, name, duration);
         return newFolderRef;
     }
 
@@ -961,7 +981,11 @@ implements SecurityProvider {
                     } else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         logger.debug("Coping folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-                        copyChildren(targetFolder, sourceFolder);
+                        if (newName != null) {
+                            copyFolder(targetFolder, sourceFolder);
+                        } else {
+                            copyChildren(targetFolder, sourceFolder);
+                        }
                     }
                     if (isCut) {
                         deleteContentCMIS(cleanFromPath);
@@ -985,7 +1009,7 @@ implements SecurityProvider {
             logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " + toFullPath, err);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
+        logger.debug("TRACE: copyContentInternalCMIS(String fromFullPath, String toFullPath, boolean isCut); {0}, {1}, {2}\n\t\tDuration: {3}", fromFullPath, toFullPath, isCut, duration);
         return result;
     }
 
@@ -1016,15 +1040,39 @@ implements SecurityProvider {
             documentProperties.put(PropertyIds.NAME, newName);
         }
         documentProperties.put(PropertyIds.OBJECT_TYPE_ID, sourceDocument.getBaseTypeId().value());
-        //sourceDocument.copy(parentFolder);//.copy(parentFolder, documentProperties, null, null, null, null, null);
         parentFolder.createDocument(documentProperties, sourceDocument.getContentStream(), VersioningState.MINOR);
     }
 
     protected Session getCMISSession() {
-        return getCMISSession(true);
+        return createCMISSession(true);
     }
 
     protected Session getCMISSession(boolean alfrescoCMIS) {
+        cmisSessionLock.lock();
+        try {
+            String ticket = getAlfTicket();
+            if (cmisSessionRegister.containsKey(ticket)) {
+                return cmisSessionRegister.get(ticket);
+            } else {
+                Session session = createCMISSession(alfrescoCMIS);
+                cmisSessionRegister.put(ticket, session);
+                return session;
+            }
+        } finally {
+            cmisSessionLock.unlock();
+        }
+    }
+
+    protected void invalidateCMISSession(String ticket) {
+        cmisSessionLock.lock();
+        try {
+            cmisSessionRegister.remove(ticket);
+        } finally {
+            cmisSessionLock.unlock();
+        }
+    }
+
+    protected Session createCMISSession(boolean alfrescoCMIS) {
         // Create a SessionFactory and set up the SessionParameter map
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
@@ -1038,14 +1086,7 @@ implements SecurityProvider {
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
         parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.1/atom/");
-        //parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl+"/cmisatom");
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-
-        // set the alfresco object factory
-
-        if (alfrescoCMIS) {
-            //parameter.put(SessionParameter.OBJECT_FACTORY_CLASS, "org.alfresco.cmis.client.impl.AlfrescoObjectFactoryImpl");
-        }
 
         // find all the repositories at this URL - there should only be one.
         List<Repository> repositories = new ArrayList<Repository>();
@@ -1055,6 +1096,10 @@ implements SecurityProvider {
         Repository repository = repositories.get(0);
         parameter.put(SessionParameter.REPOSITORY_ID, repository.getId());
         Session session = sessionFactory.createSession(parameter);
+
+        Thread thread = Thread.currentThread();
+        String threadName = thread.getName();
+        logger.debug("Thread: " + threadName + "; CMIS Session: " + session.getBinding().getSessionId());
 
         return session;
     }
@@ -1087,7 +1132,7 @@ implements SecurityProvider {
 
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: lockItemCMIS(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
     }
 
     protected String expandRelativeSitePath(String site, String relativePath) {
@@ -1245,7 +1290,7 @@ implements SecurityProvider {
             logger.error("Error getting content from CMIS repository for path: ", e, fullPath);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
+        logger.debug("TRACE: getModifiedDate(String fullPath); {0}\n\t\tDuration: {1}", fullPath, duration);
         return modifiedDate;
     }
 
@@ -1272,7 +1317,7 @@ implements SecurityProvider {
             logger.error("Error while invalidating authentication token", e);
         }
         long duration = System.currentTimeMillis() - startTime;
-        logger.debug("logout()\n\t\tDuration: {0}", duration);
+        logger.debug("TRACE: logout()\n\t\tDuration: {0}", duration);
         return false;
     }
 
@@ -1328,10 +1373,10 @@ implements SecurityProvider {
     }
 
     private boolean bootstrapCheck() {
-        boolean contenSpace = contentExists("/wem-projects");
+        boolean contentSpace = contentExists("/wem-projects");
         boolean blueprintsSpace = contentExists("/cstudio/blueprints");
         boolean configSpace = contentExists("/cstudio/config");
-        return contenSpace && blueprintsSpace && configSpace;
+        return contentSpace && blueprintsSpace && configSpace;
     }
 
     private String getBootstrapFolderPath() {
@@ -1345,9 +1390,9 @@ implements SecurityProvider {
         String pathArr[] = fullPath.split("/WEB-INF/classes/");
         fullPath = pathArr[0];
 
-        String reponsePath = "";
-        reponsePath = new File(fullPath).getPath();
-        return reponsePath;
+        String responsePath = "";
+        responsePath = new File(fullPath).getPath();
+        return responsePath;
     }
 
     @Override

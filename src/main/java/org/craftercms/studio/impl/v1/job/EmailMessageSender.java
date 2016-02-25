@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@ public class EmailMessageSender implements Runnable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageSender.class);
 	protected JavaMailSender emailService;
+    protected JavaMailSender emailServiceNoAuth;
+    protected boolean authenticatedSMTP;
 	protected EmailMessageQueueTo emailMessages;
 	protected String defaultFromAddress;
 
@@ -101,8 +103,7 @@ public class EmailMessageSender implements Runnable {
 
 			public void prepare(MimeMessage mimeMessage) throws Exception {
 
-				mimeMessage.setRecipient(Message.RecipientType.TO,
-						new InternetAddress(userEmailAddress));
+				mimeMessage.addRecipients(Message.RecipientType.TO,InternetAddress.parse(userEmailAddress));
 				InternetAddress[] replyTos= new InternetAddress[1];
 				if( (replyTo != null) && (!"".equals(replyTo)) )
 				{
@@ -113,7 +114,7 @@ public class EmailMessageSender implements Runnable {
 				if(personalFromName != null)
 					fromAddress.setPersonal(personalFromName);
 				mimeMessage.setFrom(fromAddress);
-				mimeMessage.setText(content);
+				mimeMessage.setContent(content, "text/html; charset=utf-8");
 				mimeMessage.setSubject(subject);
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("sending email to ["+userEmailAddress+"]subject subject :["+subject+"]");
@@ -121,7 +122,11 @@ public class EmailMessageSender implements Runnable {
 			}
 		};
 		try {
-			emailService.send(preparator);
+            if (authenticatedSMTP) {
+                emailService.send(preparator);
+            } else {
+                emailServiceNoAuth.send(preparator);
+            }
 		}
 		catch (MailException ex) {
 			// simply log it and go on...
@@ -145,4 +150,10 @@ public class EmailMessageSender implements Runnable {
 	{
 		this.emailMessages=emailMessages;
 	}
+
+    public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
+
+    public boolean isAuthenticatedSMTP() { return authenticatedSMTP; }
+    public void setAuthenticatedSMTP(boolean authenticatedSMTP) { this.authenticatedSMTP = authenticatedSMTP; }
 }

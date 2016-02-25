@@ -46,12 +46,12 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
         var widgetId = this._self.widgetId;
 
         var header = WcmDashboardWidgetCommon.getSimpleRow("checkAll", widgetId, '<input title="Select all" class="dashlet-item-check" id="' + widgetId + 'CheckAll" name="check-all" type="checkbox"/>', "minimize")+
-            WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"minimize")+
+            WcmDashboardWidgetCommon.getDefaultSortRow("eventDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColPageName"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("edit",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEdit"),"minimize")+
             WcmDashboardWidgetCommon.getSimpleRow("browserUri",widgetId,CMgs.format(langBundle, "dashletRecentDeployColURL"),"maximize")+
             WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+
             "<th id='fullUri' class='width0'></th>"+
-            WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColLastEdited"),"ttThColLast alignRight minimize");
+            WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"ttThColLast alignRight minimize");
 
         return header;
     };
@@ -176,14 +176,15 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
                     '</div>',
                 '</td>',
                 '<td style="padding-left:0px">'+
-                    '<span class="', itemIconStatus, (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
-                        '<a ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
+                    '<div class="', (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
+                        '<span class="iconRow ', itemIconStatus, '"></span>',
+                        '<a class="anchorRow" ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
                             displayName, (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
                         '</a>',
-                    '</span>',
+                    '</div>',
                 '</td>',
                 '<td id="' + editLinkId + '"></td>',
-                "<td title='",browserUri,"'>", displayBrowserUri, "</td>",
+                "<td class='urlCol' title='",browserUri,"'>", displayBrowserUri, "</td>",
                 "<td title='fullUri' class='width0'>", uri, "</td>",
                 "<td title='",endpoint,"'>", displayEndpoint, "</td>",
                 "<td class='alignRight ttThColLast'>", CStudioAuthoring.Utils.formatDateFromString(item.eventDate), "</td>"

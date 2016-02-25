@@ -8,6 +8,10 @@
 
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
+.yui-skin-cstudioTheme{
+  overflow-x: hidden;
+}
+
 .text-center {
   text-align: center !important;
 }
@@ -21,8 +25,14 @@
 }
 
 .site-dashboard {
-  padding-top: 51px;
-  transition: padding .5s, transform .5s;
+  top: 51px;
+  transition: left .5s, transform .5s;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  div.container{
+    width: 92%;
+  }
   .panel {
     .panel-heading {
       @include clearfix;
@@ -41,6 +51,9 @@
           width: 50px;
           text-align: center;
         }
+        li{
+          vertical-align: top;
+        }
       }
     }
     [id*="-body"] table {
@@ -48,6 +61,18 @@
     }
     .dashlet-item-check {
       margin-right: 5px;
+    }
+  }
+
+  .itemNameContainer{
+    span.iconRow{
+      width: 15% !important;
+      padding-left: 0% !important;
+      float: left !important;
+    }
+    a.anchorRow{
+      width: 85%;
+      float: left;
     }
   }
 }
@@ -202,6 +227,11 @@
 
   }
 
+  p.validation{
+    color: #a94442;
+    padding: 0px;
+  }
+
 }
 
 table.scroll-body {
@@ -219,7 +249,9 @@ table.scroll-body {
 
     .small{width: 10%;}
     .medium{width: 30%;}
+    .deleteMedium{width: 34%;}
     .large{width: 60%;}
+    .deleteLarge{width: 56%;}
   }
 
   thead {

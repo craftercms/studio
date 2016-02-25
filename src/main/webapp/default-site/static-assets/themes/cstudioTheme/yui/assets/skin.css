@@ -1,14 +1,18 @@
 #acn-resize {
-	height: 180px;
-    width: 250px;
-	background-color: #cdcdcd;
+	height: 100%;
+    width: 265px;
+    min-width: 265px;
 }
 #acn-resize div.acn-data {
     overflow: hidden;
     height: 100%;
     width: 100%;
-	background-color: #f0f0f0;
+	/*background-color: #f0f0f0;*/
 	overflow-y:hidden;
+}
+
+.ui-resizable-handle.ui-icon{
+    background-position: -68px -228px;
 }
 
 .yui-resize-handle-r-active, .yui-resize-handle-r{
@@ -210,4 +214,18 @@ div#acn-dropdown-menu-inner div:last-child {
     position: fixed;
     left: 0;
     top: 0;
+}
+
+div#preview-tools-panel-container_c{
+    right: 0;
+    position: fixed;
+    top: 50px;
+    height: 100%;
+    background: #F8F8F8;
+}
+
+div#preview-tools-panel-container{
+    height: 100%!important;
+    background: #F8F8F8;
+    border-radius: 0;
 }

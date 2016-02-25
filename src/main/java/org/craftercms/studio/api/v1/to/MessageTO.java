@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -26,6 +26,14 @@ public class MessageTO implements Serializable {
 	protected String _title;
 	/** message body **/
 	protected String _body;
+
+	public MessageTO(final String _title, final String _body) {
+		this._title = _title;
+		this._body = _body;
+	}
+
+	public MessageTO() {
+	}
 
 	/**
 	 * @return the title

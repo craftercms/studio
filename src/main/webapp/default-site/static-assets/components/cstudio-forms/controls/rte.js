@@ -319,8 +319,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
         if (typeof fieldContainerWidth == 'number') {
             if (elements['rte-container']) {
             	if (rteContainerWidth < fieldContainerWidth - rteMarginLeft) {
-	                YDom.setStyle(elements['rte-container'], "margin-left", rteMarginLeft + "px");
-	                YDom.setStyle(elements['rte-container'], "width", rteContainerWidth + "px");
+	                YDom.setStyle(elements['rte-container'], "margin-left", 27 + "%");
+	                //YDom.setStyle(elements['rte-container'], "width", rteContainerWidth + "px");
 	                if (elements['rte-table']) {
 		            	YDom.setStyle(elements['rte-table'], "width", rteWidth + "px");
 		            }
@@ -445,7 +445,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		var toolbarConfig2 = (rteConfig.toolbarItems2 && rteConfig.toolbarItems2.length !=0) ? rteConfig.toolbarItems2 : "";
 		var toolbarConfig3 = (rteConfig.toolbarItems3 && rteConfig.toolbarItems3.length !=0) ? rteConfig.toolbarItems3 : "";
 		var toolbarConfig4 = (rteConfig.toolbarItems4 && rteConfig.toolbarItems4.length !=0) ? rteConfig.toolbarItems4 : "";
-						
+
+		var styleFormats = (rteConfig.styleFormats && rteConfig.styleFormats.length !=0) ? eval(rteConfig.styleFormats) : [];	
+							
 		var editor = tinyMCE.init({
 	        // General options
 	        mode : "textareas",
@@ -470,6 +472,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			min_height: 74,
 			remove_trailing_brs: false,
 
+			style_formats: styleFormats,
+  
 	        theme_advanced_resizing : true,
 	        theme_advanced_resize_horizontal : false,
 	        theme_advanced_toolbar_location : "top",
@@ -503,8 +507,21 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 		   			});
 
 	 				ed.onDblClick.add(function(ed, e) {
-	 					ed.contextControl._handleElementDoubleClick(ed,e);
-	      				});
+                        var el = e.target.parentNode;
+                        var flag = false;
+
+                        while((el.tagName != 'BODY') && !flag){
+                            if (YDom.hasClass(el, "mceNonEditable")){
+                                flag = true;
+                                break;
+                            }else{
+                                el = el.parentNode;
+                            }
+                        }
+                        if (!flag){
+                            ed.contextControl._handleElementDoubleClick(ed, e);
+                        }
+	      			});
 
 	 				ed.onClick.add(function(ed, e) {
 	 					amplify.publish("/rte/clicked");

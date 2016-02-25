@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 	// document
@@ -35,7 +34,7 @@ import java.util.Map;
 public interface DeploymentService {
 
     // document
-    void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment) throws DeploymentException;
+    void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
 
     // document
     void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;

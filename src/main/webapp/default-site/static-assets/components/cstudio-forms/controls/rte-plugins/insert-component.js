@@ -73,9 +73,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 				}
 				
 				if(typeof rteWidgets == "object" && !Array.isArray(rteWidgets)) {
-					// FIX-ME: Strangely if there's only one widget in the rte config, rteWidgets will not be an array of widgets
-					// but an object instead
-					rteWidgets = [rteWidgets.widget];
+					rteWidgets = [rteWidgets];
 				}
 
 				if(rteWidgets.length > 0) {	
@@ -315,7 +313,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 			
 							CStudioAuthoring.Operations.openContentWebForm(
 								contentTO.item.contentType,
-								null,
+                                contentItem.contentId,
 								null,
 								contentItem.contentId,
 								true,

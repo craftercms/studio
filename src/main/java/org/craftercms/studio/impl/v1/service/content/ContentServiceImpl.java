@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2013 Crafter Software Corporation.
+ *     Copyright (C) 2007-2016 Crafter Software Corporation.
  * 
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -19,14 +19,11 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
-import java.net.FileNameMap;
-import java.net.URLConnection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
@@ -50,7 +47,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -68,12 +64,10 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.cache.annotation.Cacheable;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.servlet.http.HttpSession;
 
 /**
  * Content Services that other services may use
@@ -93,6 +87,15 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean contentExists(String site, String path) {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
+        if (cacheService.hasScope(cacheContext)) {
+            Object cacheKey = cacheTemplate.getKey(site, path);
+            boolean cached = cacheService.hasKey(cacheContext, cacheKey);
+            if (cached) {
+                return cached;
+            }
+        }
         return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
     }
 
@@ -256,6 +259,9 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 objectStateService.insertNewEntry(site, itemTo);
             }
+
+            removeItemFromCache(site, relativePath);
+
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
             message.setPath(relativePath);
@@ -263,7 +269,6 @@ public class ContentServiceImpl implements ContentService {
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
             previewSync.syncPath(site, relativePath, repositoryEventContext);
-            //repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -362,9 +367,11 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
+            String relativePath = getRelativeSitePath(site, fullPath);
+            removeItemFromCache(site, relativePath);
             RepositoryEventMessage message = new RepositoryEventMessage();
             message.setSite(site);
-            message.setPath(getRelativeSitePath(site, fullPath));
+            message.setPath(relativePath);
             String sessionTicket = securityProvider.getCurrentToken();
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             message.setRepositoryEventContext(repositoryEventContext);
@@ -661,11 +668,13 @@ public class ContentServiceImpl implements ContentService {
                         indexFound = true;
                     }
                     else {
-                        String childPath = getRelativeSitePath(item.site, childRepoItems[j].path+"/"+childRepoItems[j].name);
-                        if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
-                            children.add(getContentItem(item.site, childPath+ "/index.xml", depth - 1));
-                        } else {
-                            children.add(getContentItem(item.site, childPath, depth - 1));
+                        if (depth > 1) {
+                            String childPath = getRelativeSitePath(item.site, childRepoItems[j].path + "/" + childRepoItems[j].name);
+                            if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
+                                children.add(getContentItem(item.site, childPath + "/index.xml", depth - 1));
+                            } else {
+                                children.add(getContentItem(item.site, childPath, depth - 1));
+                            }
                         }
                     }
                 }
@@ -744,7 +753,6 @@ public class ContentServiceImpl implements ContentService {
                 // POPULATE WORKFLOW STATUS
                 if (!item.isFolder() || item.isContainer()) {
                     populateWorkflowProperties(site, item);
-                    //item.setLockOwner("");
                 } else {
                     item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
                     item.isNew = item.isNew();
@@ -765,9 +773,13 @@ public class ContentServiceImpl implements ContentService {
     protected ContentItemTO getCachedContentItem(final String site, final String path) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         ContentItemTO item = cacheTemplate.getObject(cacheContext, new Callback<ContentItemTO>() {
             @Override
@@ -775,7 +787,8 @@ public class ContentServiceImpl implements ContentService {
                 return loadContentItem(site, path);
             }
         }, site, path);
-        return item;
+        ContentItemTO toRet = new ContentItemTO(item);
+        return toRet;
     }
 
     protected void removeItemFromCache(String site, String path) {
@@ -932,16 +945,12 @@ public class ContentServiceImpl implements ContentService {
         boolean isPages = (path.contains("/site/website"));
         ContentItemTO root = null;
 
-        if(isPages && path.equals("/site/website")) {
+        if (isPages && contentExists(site, path + "/index.xml")) {
             root = getContentItem(site, path+"/index.xml");
         }
         else {
             root = getContentItem(site, path);
         }
-
-        // root.children = getContentItemTreeInternal(site, path, depth, isPages);
-        // root.numOfChildren = root.children.size();
-        // if(root.numOfChildren != 0)  root.isContainer = true;
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
@@ -1026,7 +1035,6 @@ public class ContentServiceImpl implements ContentService {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
         String name = path.getName();
-        //String relativePath = path.getRelativePath();
         String fullPath = path.toString();
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
         item.path = folderPath;
@@ -1039,13 +1047,11 @@ public class ContentServiceImpl implements ContentService {
             internalName = folderPath.substring(index + 1);
 
         item.internalName = internalName;
-        //item.title = internalName;
         item.isDisabled = false;
         item.isNavigation = false;
         item.name = name;
         item.uri = relativePath;
 
-        //item.defaultWebApp = path.getDmSitePath();
         //set content type based on the relative Path
         String contentTypeClass = getContentTypeClass(site, relativePath);
         item.contentType = contentTypeClass;
@@ -1059,7 +1065,6 @@ public class ContentServiceImpl implements ContentService {
         item.deleted = true;
         item.isContainer = false;
         item.container = false;
-        //item.isNewFile = false;
         item.isNew = false;
         item.isInProgress = false;
         item.timezone = servicesConfig.getDefaultTimezone(site);
@@ -1109,9 +1114,6 @@ public class ContentServiceImpl implements ContentService {
 
     protected String getBrowserUri(ContentItemTO item) {
         String replacePattern = "";
-        //if (item.isLevelDescriptor) {
-        //    replacePattern = DmConstants.ROOT_PATTERN_PAGES;
-        //} else if (item.isComponent()) {
         if (item.isComponent) {
             replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
         } else if (item.isAsset) {
@@ -1247,7 +1249,6 @@ public class ContentServiceImpl implements ContentService {
             childDeleteItems(site, contentItem, deletedItems);
             //update summary for all uri's delete
         }
-        //AuthenticationUtil.setFullyAuthenticatedUser(user);
         return deletedItems;
     }
 

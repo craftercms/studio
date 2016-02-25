@@ -202,13 +202,13 @@ body .mask{
 #acnVersionWrapper div, #acnVersionWrapper span,
 #acnVersionWrapper label, #acnVersionWrapper h1, #acnVersionWrapper h2, #acnVersionWrapper h3, #acnVersionWrapper h4,
 #acnVersionWrapper b, #acnVersionWrapper textarea {
-    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal; font-size-adjust: none;
     font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
     text-outline: none; text-shadow: none; text-transform: none; white-space: normal; word-spacing: normal; word-break: normal;
     word-wrap: normal;
 }
 #acnVersionWrapper select, #acnVersionWrapper option {
-	cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+	cursor: auto; direction: ltr; font: normal normal normal 12px/normal; font-size-adjust: none;
     font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
     text-outline: none; text-shadow: none; text-transform: none; white-space: pre; word-spacing: normal; word-break: normal;
     word-wrap: normal;
@@ -225,7 +225,7 @@ body .mask{
 
 #acnVersionWrapper h3,
 #submitPanel .acnBox h3 {
-    font: normal 1.8em Arial;
+    font: normal 1.8em;
     margin: 0;
     padding: 6px 0;
 }
@@ -271,7 +271,6 @@ body .mask{
 #acnVersionWrapper .publishing-channels .pub-channel { padding-top: 15px; font-size: 12px; }
 #acnVersionWrapper .publishing-channels .pub-status { padding-top: 15px; font-size: 12px; }
 #acnVersionWrapper .publishing-channels .pub-status textarea {
-    font-family: arial, sans-serif;
     font-size: 1em;
     height: 80px;
     margin: 5px 0 0 0;
@@ -347,13 +346,13 @@ body .mask{
 #cstudio-wcm-popup-div div, #cstudio-wcm-popup-div span,
 #cstudio-wcm-popup-div label, #cstudio-wcm-popup-div h1, #cstudio-wcm-popup-div h2, #cstudio-wcm-popup-div h3,
 #cstudio-wcm-popup-div b {
-    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+    cursor: auto; color: #000000; direction: ltr; font: normal normal normal 12px/normal; font-size-adjust: none;
     font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
     text-outline: none; text-shadow: none; text-transform: none; white-space: normal; word-spacing: normal; word-break: normal;
     word-wrap: normal;
 }
 #cstudio-wcm-popup-div select, #cstudio-wcm-popup-div option {
-	cursor: auto; direction: ltr; font: normal normal normal 12px/normal arial, sans-serif; font-size-adjust: none;
+	cursor: auto; direction: ltr; font: normal normal normal 12px/normal; font-size-adjust: none;
     font-stretch: normal; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0; text-justify: auto;
     text-outline: none; text-shadow: none; text-transform: none; white-space: pre; word-spacing: normal; word-break: normal;
     word-wrap: normal;
@@ -433,7 +432,7 @@ body .mask{
 }
 
 #cstudio-wcm-popup-div .contentTypePopupHeader {
-    font: normal 1.8em arial;
+    font: normal 1.8em;
 	margin: 0;
 	padding: 6px 0;
 }
@@ -637,7 +636,6 @@ body.yui-skin-cstudioTheme .mask{
   color: white;
   background-color: #7e9dbb;
   border-color: #6d90b2;
-  font-family: verdana;
 }
 
 .yui-module.yui-overlay.yui-panel button:hover{
@@ -763,5 +761,9 @@ body.yui-skin-cstudioTheme .mask{
 
 #crop-popup-inner .error{
     border-color: rgba(169, 68, 66, 0.47);
+}
+
+.yui-panel.yui-overlay{
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 

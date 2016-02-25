@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,18 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectMetadataMapper;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
+
+    private final static Logger logger = LoggerFactory.getLogger(ObjectMetadataManagerImpl.class);
 
     @Override
     public void insertNewObjectMetadata(String site, String path) {
