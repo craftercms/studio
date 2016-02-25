@@ -137,7 +137,7 @@ public class PreviewDeployer implements Deployer {
 
             StringBuilder sbDeletedFiles = new StringBuilder(path);
             if (path.endsWith("/index.xml")) {
-                RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path.replace("/index.xml", "")));
+                RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/index.xml", ""));
                 if (!(children != null && children.length > 1)) {
                     sbDeletedFiles.append(FILES_SEPARATOR).append(path.replace("/index.xml", ""));
 
@@ -227,7 +227,7 @@ public class PreviewDeployer implements Deployer {
     }
 
     protected void syncFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(path, true);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path, true);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {

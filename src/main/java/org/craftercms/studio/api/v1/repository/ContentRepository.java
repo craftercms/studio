@@ -19,16 +19,10 @@ package org.craftercms.studio.api.v1.repository;
 
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
-import javax.transaction.UserTransaction;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -124,6 +118,16 @@ public interface ContentRepository {
     RepositoryItem[] getContentChildren(String site, String path);
 
     /**
+     * get immediate children for path
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @param ignoreCache flag to ignore cache for getting children
+     * @return a list of children
+     */
+    RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache);
+
+    /**
      * get the version history for an item
      *
      * @param site site id where the operation will be executed
@@ -190,7 +194,7 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path
      */
-    void lockItem(String site, String site, String path);
+    void lockItem(String site, String path);
 
     /**
      * unlock an item
@@ -199,7 +203,7 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path
      */
-    void unLockItem(String site, String site, String path);
+    void unLockItem(String site, String path);
 
 
 

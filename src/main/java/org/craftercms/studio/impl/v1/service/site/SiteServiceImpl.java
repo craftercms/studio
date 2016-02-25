@@ -80,14 +80,14 @@ public class SiteServiceImpl implements SiteService {
 	
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) {
-		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+		boolean toRet = contentRepository.writeContent(site, path, content);
         clearConfigurationCache.clearConfigurationCache(site);
         return toRet;
 	}
 
 	@Override	
 	public boolean writeConfiguration(String path, InputStream content) {
-		boolean toRetrun = contentRepository.writeContent(path, content);
+		boolean toRetrun = contentRepository.writeContent("", path, content);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
         return toRetrun;
@@ -304,13 +304,14 @@ public class SiteServiceImpl implements SiteService {
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
  		boolean success = true;
  		try {
-			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content",
+
+			contentRepository.createFolder(siteId, "/wem-projects/"+siteId+"/"+siteId, "work-area");
+			contentRepository.copyContent(siteId, "/cstudio/blueprints/"+blueprintName+"/site-content",
 				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
 
 	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
-	 		contentRepository.copyContent("/cstudio/blueprints/" + blueprintName + "/site-config",
+ 			contentRepository.createFolder(siteId, "/cstudio/config/sites/", siteId);
+	 		contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-config",
 					siteConfigFolder);
 
 			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
@@ -365,14 +366,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
-    	InputStream content = contentRepository.getContent(path);
+    	InputStream content = contentRepository.getContent("", path);
     	String contentAsString = IOUtils.toString(content);
 
     	contentAsString = contentAsString.replaceAll(find, replace);
 
     	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
-		contentRepository.writeContent(path, contentToWrite);    	
+		contentRepository.writeContent("", path, contentToWrite);
     }
 
 	protected void createObjectStatesforNewSite(String site) {
@@ -380,7 +381,7 @@ public class SiteServiceImpl implements SiteService {
 	}
 
 	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
-		RepositoryItem[] children = contentRepository.getContentChildren(path);
+		RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 		for (RepositoryItem child : children) {
 			if (child.isFolder) {
 				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
@@ -396,7 +397,7 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
-        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
         for (RepositoryItem child : children) {
             if (child.isFolder) {
                 extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
@@ -453,8 +454,8 @@ public class SiteServiceImpl implements SiteService {
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
  		try {
- 			contentRepository.deleteContent("/wem-projects/"+siteId);
- 			contentRepository.deleteContent("/cstudio/config/sites/" + siteId);
+ 			contentRepository.deleteContent(siteId, "/wem-projects/"+siteId);
+ 			contentRepository.deleteContent(siteId, "/cstudio/config/sites/" + siteId);
 
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
@@ -483,7 +484,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("/cstudio/blueprints");
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", "/cstudio/blueprints");
 		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
 		int idx = 0;
 		for (RepositoryItem folder : blueprintsFolders) {

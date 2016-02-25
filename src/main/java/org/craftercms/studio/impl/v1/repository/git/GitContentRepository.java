@@ -44,7 +44,7 @@ import java.io.InputStream;
 public class GitContentRepository extends DiskContentRepository {
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) {
         throw new RuntimeException("Not Implemented");
         //return super.writeContent(path, content);
     }

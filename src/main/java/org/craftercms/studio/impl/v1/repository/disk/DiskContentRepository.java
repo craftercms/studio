@@ -55,7 +55,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream retStream = null;
 
         try {
@@ -71,13 +71,13 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
         return Files.exists(constructRepoPath(path));
     }
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) {
         
         boolean success = true;
 
@@ -98,7 +98,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
+    public boolean createFolder(String site, String path, String name) {
         
         boolean success = true;
         
@@ -114,7 +114,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
         
         boolean success = true;
         
@@ -133,7 +133,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
+    public boolean copyContent(String site, String fromPath, String toPath) {
 
         boolean success = true;
 
@@ -157,12 +157,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
         
         boolean success = true;
 
@@ -209,7 +209,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * get immediate children for path
      * @param path path to content
      */
-    public RepositoryItem[] getContentChildren(String path) {
+    public RepositoryItem[] getContentChildren(String site, String path) {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
 
         try {
@@ -259,15 +259,16 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return getContentChildren(site, path);
     }
 
     /**
      * get the version history for an item
      * @param path - the path of the item
      */
-    public VersionTO[] getContentVersionHistory(String path) {
+    @Override
+    public VersionTO[] getContentVersionHistory(String site, String path) {
         final List<VersionTO> versionList = new ArrayList<VersionTO>();
 
         try {
@@ -333,15 +334,16 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    public String createVersion(String path, boolean majorVersion) {
+    @Override
+    public String createVersion(String site, String path, boolean majorVersion) {
         String versionId = null;
 
         synchronized(path) {
-            versionId = determineNextVersionLabel(path, majorVersion);
+            versionId = determineNextVersionLabel(site, path, majorVersion);
             InputStream content = null;
 
             try {
-                content = getContent(path);
+                content = getContent(site, path);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -364,8 +366,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
-        return createVersion(path, majorVersion);
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
+        return createVersion(site, path, majorVersion);
     }
 
     /**
@@ -373,11 +375,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String label, boolean major, String comment) {
+    @Override
+    public boolean revertContent(String site, String path, String label, boolean major, String comment) {
         boolean success = false;
 
         synchronized(path) {
-            String versionId = determineNextVersionLabel(path, major);
+            String versionId = determineNextVersionLabel(site, path, major);
             InputStream versionContent = null;
             InputStream wipContent = null;
             
@@ -443,10 +446,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param majorVersion true if version is major
      * @return next label
      */
-    protected String determineNextVersionLabel(String path, boolean majorVersion) {
+    protected String determineNextVersionLabel(String site, String path, boolean majorVersion) {
         String versionId = null;
 
-        VersionTO[] versions = getContentVersionHistory(path);
+        VersionTO[] versions = getContentVersionHistory(site, path);
 
         if(versions.length != 0) {
             VersionTO latestVersion = versions[versions.length - 1];
@@ -554,7 +557,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public Date getModifiedDate(String path) {
+    public Date getModifiedDate(String site, String path) {
         Date modifiedDate = null;
 
         try {

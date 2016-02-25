@@ -38,8 +38,8 @@ public abstract class AbstractContentRepository implements ContentRepository {
      * @param version version to return
      * @return input stream
      */
-    public InputStream getContentVersion(String path, String version) 
-	throws ContentNotFoundException {    
+    public InputStream getContentVersion(String site, String path, String version)
+	throws ContentNotFoundException {
     	throw new java.lang.RuntimeException("operation not supported");
     }
 	

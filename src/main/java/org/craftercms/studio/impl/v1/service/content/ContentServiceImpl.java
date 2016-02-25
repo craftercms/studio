@@ -96,22 +96,22 @@ public class ContentServiceImpl implements ContentService {
                 return cached;
             }
         }
-        return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
+        return this._contentRepository.contentExists(site, path);
     }
 
     @Override
     public boolean contentExists(String fullPath) {
-        return this._contentRepository.contentExists(fullPath);
+        return this._contentRepository.contentExists("", fullPath);
     }
 
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
-       return this._contentRepository.getContent(path);
+       return this._contentRepository.getContent("", path);
     }
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
-       return this._contentRepository.getContent(expandRelativeSitePath(site, path));
+       return this._contentRepository.getContent(site, path);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class ContentServiceImpl implements ContentService {
         String content = null;
 
         try {
-            content = IOUtils.toString(_contentRepository.getContent(path));
+            content = IOUtils.toString(_contentRepository.getContent("", path));
         }
         catch(Exception err) {
             logger.error("Failed to get content as string for path {0}", path);
@@ -166,10 +166,10 @@ public class ContentServiceImpl implements ContentService {
 
        boolean writeSuccess = false;
 
-        writeSuccess = _contentRepository.writeContent(path, content);
+        writeSuccess = _contentRepository.writeContent("", path, content);
 
         try {
-            _contentRepository.createVersion(path, false);
+            _contentRepository.createVersion("", path, false);
         }
         catch(Exception err) {
             // configurable weather or not to blow up the entire write?
@@ -402,7 +402,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean createFolder(String site, String path, String name) {
-        boolean toRet = _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
+        boolean toRet = _contentRepository.createFolder(site, path, name);
         removeItemFromCache(site, path + "/" + name);
         return toRet;
     }
@@ -417,7 +417,7 @@ public class ContentServiceImpl implements ContentService {
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
         }
-        boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
+        boolean toRet = _contentRepository.deleteContent(site, path);
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
@@ -462,14 +462,12 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
-        return _contentRepository.copyContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
+        return _contentRepository.copyContent(site, fromPath, toPath);
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
+        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath);
 
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
@@ -484,8 +482,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath), newName);
+        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath, newName);
 
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
@@ -646,7 +643,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
 
-            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, item.uri);
             boolean indexFound = false;
                 
             if(childRepoItems != null) {
@@ -968,14 +965,14 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
-        return _contentRepository.getContentVersionHistory(expandRelativeSitePath(site, path));
+        return _contentRepository.getContentVersionHistory(site, path);
     }
 
     @Override
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean success = false;
 
-        success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
+        success = _contentRepository.revertContent(site, path, version, major, comment);
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
         message.setPath(path);
@@ -1002,7 +999,7 @@ public class ContentServiceImpl implements ContentService {
  	throws ContentNotFoundException {
  		String repositoryPath = expandRelativeSitePath(site, path);
  		
- 		return _contentRepository.getContentVersion(repositoryPath, version);
+ 		return _contentRepository.getContentVersion(site, path, version);
  	}
 
 	/**

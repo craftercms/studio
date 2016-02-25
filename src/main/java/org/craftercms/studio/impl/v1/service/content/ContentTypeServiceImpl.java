@@ -247,7 +247,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Override
     public void reloadConfiguration(String site) {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
-        RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
+        RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
         if (folders != null) {
@@ -261,7 +261,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + "/" + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
-        RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
+        RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {

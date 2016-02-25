@@ -704,7 +704,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {
-        RepositoryItem[] children = contentRepository.getContentChildren(path);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {

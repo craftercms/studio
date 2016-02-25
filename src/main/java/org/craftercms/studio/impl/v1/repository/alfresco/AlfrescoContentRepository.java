@@ -87,12 +87,12 @@ implements SecurityProvider {
     protected static final ReentrantLock cmisSessionLock = new ReentrantLock();
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
         return getContentStreamCMIS(path);
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
@@ -109,40 +109,40 @@ implements SecurityProvider {
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) {
         logger.debug("writing content to " + path);
         addDebugStack();
-        return writeContentCMIS(path, content);
+        return writeContentCMIS(site, path, content);
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
+    public boolean createFolder(String site, String path, String name) {
         addDebugStack();
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
         logger.debug("deleting content at " + path);
         addDebugStack();
         return deleteContentCMIS(path);
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
+    public boolean copyContent(String site, String fromPath, String toPath) {
         addDebugStack();
         return this.copyContentInternal(fromPath, toPath, null, false);
     }
 
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
+    public boolean moveContent(String site, String fromPath, String toPath) {
         return moveContent(fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
         addDebugStack();
         return this.copyContentInternal(fromPath, toPath, newName, true);
     }
@@ -151,15 +151,15 @@ implements SecurityProvider {
      * get immediate children for path
      * @param path path to content
      */
-    public RepositoryItem[] getContentChildren(String path) {
+    public RepositoryItem[] getContentChildren(String site, String path) {
         addDebugStack();
         RepositoryItem[] items = getContentChildrenCMIS(path);
         return items;
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return getContentChildren(site, path);
     }
 
     /**
@@ -169,7 +169,7 @@ implements SecurityProvider {
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, boolean majorVersion) {
+    public String createVersion(String site, String path, boolean majorVersion) {
         return createVersion(path, null, majorVersion);
     }
 
@@ -180,7 +180,7 @@ implements SecurityProvider {
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -226,7 +226,7 @@ implements SecurityProvider {
      * get the version history for an item
      * @param path - the path of the item
      */
-    public VersionTO[] getContentVersionHistory(String path) {
+    public VersionTO[] getContentVersionHistory(String site, String path) {
         addDebugStack();
         return getContentVersionHistoryCMIS(path);
     }
@@ -236,7 +236,7 @@ implements SecurityProvider {
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String version, boolean major, String comment) {
+    public boolean revertContent(String site, String path, String version, boolean major, String comment) {
         addDebugStack();
         return revertContentCMIS(path, version, major, comment);
     }
@@ -651,7 +651,7 @@ implements SecurityProvider {
         return items;
     }
 
-    protected boolean writeContentCMIS(String fullPath, InputStream content) {
+    protected boolean writeContentCMIS(String site, String fullPath, InputStream content) {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -666,7 +666,7 @@ implements SecurityProvider {
         try {
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
             CmisObject cmisObject = null;
-            if (contentExists(cleanPath)) {
+            if (contentExists(site, cleanPath)) {
                 cmisObject = session.getObjectByPath(cleanPath);
             }
             if (cmisObject != null) {
@@ -689,7 +689,7 @@ implements SecurityProvider {
                     folderPath = "/";
                 }
                 CmisObject folderCmisObject = null;
-                if (contentExists(folderPath)) {
+                if (contentExists(site, folderPath)) {
                     folderCmisObject = session.getObjectByPath(folderPath);
                 }
                 Folder folder = null;
@@ -1147,7 +1147,7 @@ implements SecurityProvider {
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists(site, cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
                 ObjectType type = cmisObject.getBaseType();
@@ -1272,7 +1272,7 @@ implements SecurityProvider {
     }
 
     @Override
-    public Date getModifiedDate(String fullPath) {
+    public Date getModifiedDate(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -1346,7 +1346,7 @@ implements SecurityProvider {
     }
 
     private void bootstrapDir(File dir, String rootPath) {
-
+        String site = "";
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
             String childPath = child.getAbsolutePath();
@@ -1363,7 +1363,7 @@ implements SecurityProvider {
                     createFolderInternalCMIS(parentPath, child.getName());
                 } else if (child.isFile()) {
                     try {
-                        writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                        writeContentCMIS(site, relativePath, FileUtils.openInputStream(child));
                     } catch (IOException e) {
                         logger.error("Error while bootstrapping file: " + relativePath, e);
                     }
@@ -1373,9 +1373,9 @@ implements SecurityProvider {
     }
 
     private boolean bootstrapCheck() {
-        boolean contentSpace = contentExists("/wem-projects");
-        boolean blueprintsSpace = contentExists("/cstudio/blueprints");
-        boolean configSpace = contentExists("/cstudio/config");
+        boolean contentSpace = contentExists("", "/wem-projects");
+        boolean blueprintsSpace = contentExists("", "/cstudio/blueprints");
+        boolean configSpace = contentExists("", "/cstudio/config");
         return contentSpace && blueprintsSpace && configSpace;
     }
 
@@ -1406,7 +1406,7 @@ implements SecurityProvider {
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists("", cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
 
