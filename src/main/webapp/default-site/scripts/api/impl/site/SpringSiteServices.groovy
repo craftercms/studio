@@ -16,7 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package scripts.api.impl.site;
+package scripts.api.impl.site
+
+import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
+import java.util.Locale;
 
 class SpringSiteServices {
 
@@ -84,5 +87,22 @@ class SpringSiteServices {
     def importSite(config) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.importSite(config)
+    }
+
+    def getCannedMessage(site,messageKey,locale="us"){
+                def newNotificationSystem=this.context.applicationContext.get("cstudioNotificationServicev2")
+        if(newNotificationSystem.enable){
+            return  newNotificationSystem.getNotificationMessage(site,NotificationMessageType.CannedMessages,messageKey,Locale
+                    .forLanguageTag(locale))
+        }else{
+            def finalResult="";
+            def notificationSystem=this.context.applicationContext.get("cstudioNotificationService")
+            notificationSystem.getCannedRejectionReasons(site).each {t->
+                if(t.key.equalsIgnoreCase(messageKey)){
+                    finalResult= t._body;
+                }
+            }
+            return finalResult;
+        }
     }
 }
