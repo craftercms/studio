@@ -558,7 +558,11 @@ public class ContentServiceImpl implements ContentService {
         item.uri = contentPath;
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
         item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
-        item.browserUri = (item.page) ? contentPath.replace("/site/website", "").replace("/index.xml", "") : null;
+        item.browserUri = contentPath;
+        
+        if(item.page) {
+            item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "")
+        }
 
         Document contentDoc = this.getContentAsDocument(fullContentPath);
         if(contentDoc != null) {
