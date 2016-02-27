@@ -2,7 +2,6 @@
 @import "variables";
 @import "util/animate";
 @import url("/studio/static-assets/themes/cstudioTheme/css/icons.css");
-@import "raleway-fonts";
 @import "../../static-assets/libs/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
 
 #acnVersionWrapper, div.schedulePolicyWrapper {
@@ -823,7 +822,7 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
   width: 290px;
   height: auto !important;
   border-radius: 6px;
-  font-family: Raleway, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .acn-tooltip {
@@ -2564,6 +2563,7 @@ span.acn-canned-search {
 
   border: none;
   border-radius: $border-radius-base;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   #ice-tools-panel-elem {
     .studio-view{
@@ -2626,7 +2626,8 @@ span.acn-canned-search {
       margin-right: 4px;
     }
     button{
-      padding: 6px 4px!important;
+      padding: 6px 0px!important;
+      width: 119px;
     }
     .acn-ptools-ice-label{
       margin-left: 0px;

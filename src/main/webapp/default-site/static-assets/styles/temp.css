@@ -2118,28 +2118,6 @@ Copyright (c) 2014 Daniel Eden
   animation-name: slideOutUp; }
 
 @font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 600;
-  src: local("Raleway"), url("../../static-assets/libs/fonts/raleway/Raleway.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway.svg#Raleway") format("svg"); }
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 700;
-  src: local("Raleway Medium"), local("Raleway-Medium"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.svg#Raleway-Medium") format("svg"); }
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 800;
-  src: local("Raleway Bold"), local("Raleway-Bold"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.svg#Raleway-Bold") format("svg"); }
-/*FIX FONT FOR GOOGLE CHROME ON WINDOWS*/
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-  @font-face {
-    font-family: 'Raleway';
-    src: url("../../static-assets/libs/fonts/raleway/Raleway.svg#Raleway") format("svg");
-    font-weight: 600;
-    font-style: normal; } }
-@font-face {
   font-family: 'Glyphicons Halflings';
   src: url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.eot");
   src: url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.woff2") format("woff2"), url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.woff") format("woff"), url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.ttf") format("truetype"), url("/studio/static-assets/libs/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg"); }
@@ -3612,7 +3590,7 @@ span.acn-page-deleted a, span.acn-page-deleted a:hover {
   width: 290px;
   height: auto !important;
   border-radius: 6px;
-  font-family: Raleway, 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 
 .acn-tooltip {
   margin: 5px auto;
@@ -5065,7 +5043,8 @@ span.acn-canned-search {
 /* --- Preview Tools Overlay --- */
 #preview-tools-panel-container {
   border: none;
-  border-radius: 4px; }
+  border-radius: 4px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
   #preview-tools-panel-container #ice-tools-panel-elem .studio-view {
     overflow: hidden; }
   #preview-tools-panel-container .channel-width,
@@ -5104,7 +5083,8 @@ span.acn-canned-search {
     #preview-tools-panel-container .edit-code.template {
       margin-right: 4px; }
     #preview-tools-panel-container .edit-code button {
-      padding: 6px 4px !important; }
+      padding: 6px 0px !important;
+      width: 119px; }
     #preview-tools-panel-container .edit-code .acn-ptools-ice-label {
       margin-left: 0px; }
   #preview-tools-panel-container .acn-panel-dropdown {
@@ -6151,7 +6131,7 @@ html {
   -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
@@ -6235,7 +6215,7 @@ hr {
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 500;
   line-height: 1.1;
   color: inherit; }
@@ -14581,7 +14561,7 @@ address {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;
@@ -14715,7 +14695,7 @@ address {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;

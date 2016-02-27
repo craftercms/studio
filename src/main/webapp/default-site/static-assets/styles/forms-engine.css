@@ -1,19 +1,4 @@
 @charset "UTF-8";
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 400;
-  src: local("Raleway"), url("../../static-assets/libs/fonts/raleway/Raleway.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway.svg#Raleway") format("svg"); }
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 500;
-  src: local("Raleway Medium"), local("Raleway-Medium"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway-Medium.svg#Raleway-Medium") format("svg"); }
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 700;
-  src: local("Raleway Bold"), local("Raleway-Bold"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.eot?") format("eot"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.woff") format("woff"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.ttf") format("truetype"), url("../../static-assets/libs/fonts/raleway/Raleway-Bold.svg#Raleway-Bold") format("svg"); }
 /* Bootstrap Config */
 #formContainer {
   padding: 20px 0 80px; }
@@ -302,7 +287,7 @@ html {
   -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
@@ -386,7 +371,7 @@ hr {
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 500;
   line-height: 1.1;
   color: inherit; }
@@ -1758,7 +1743,7 @@ html {
   -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.42857;
   color: #333333;
@@ -1842,7 +1827,7 @@ hr {
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 500;
   line-height: 1.1;
   color: inherit; }
@@ -5875,7 +5860,7 @@ button.close {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;
@@ -5981,7 +5966,7 @@ button.close {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   font-weight: normal;
   letter-spacing: normal;

@@ -752,6 +752,7 @@ public class NotificationServiceImpl implements NotificationService {
                             MessageTO message = new MessageTO();
                             message.setTitle(messageNode.valueOf("title"));
                             message.setBody(messageNode.valueOf("body"));
+                            message.setKey(((Element)messageNode).attributeValue("key",""));
                             messages.add(message);
                         }
                         messageMap.put(name, messages);
