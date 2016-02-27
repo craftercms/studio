@@ -838,6 +838,7 @@ public class ContentServiceImpl implements ContentService {
             item.isComponent = item.component;
             item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
             item.isDocument = item.document;
+            item.browserUri =item.getUri();
         }
 
         loadContentTypeProperties(site, item, item.contentType);

@@ -144,15 +144,10 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
             var itemTitle = CStudioAuthoring.Utils.getTooltipContent(item);
             this.tooltipLabels.push(ttSpanId);
 
-            if (item.component && item.internalName != "crafter-level-descriptor.level.xml") {
+            if (item.component && item.internalName == "crafter-level-descriptor.level.xml") {
                 browserUri = "";
                 displayBrowserUri = "";
             }
-/*
-            if (item.internalName == "crafter-level-descriptor.level.xml") {
-                displayName = "Section Defaults" + (item.newFile?"*":"");
-            }
-*/
 
             var itemIconStatus = CStudioAuthoring.Utils.getIconFWClasses(item);
             itemIconStatus += ((item.disabled && !item.previewable) ? ' non-previewable-disabled' : '');
