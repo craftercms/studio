@@ -231,6 +231,7 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     location: "Location",
     sectionValidation: "{0} of {1} field requirements are invalid",
     saveAndClose: "Save and Close",
+    saveAndCloseDraft: "Save and Close Draft",
     saveAndPreview: "Save and Preview",
     save: "Save",
     cancel: "Cancel",
