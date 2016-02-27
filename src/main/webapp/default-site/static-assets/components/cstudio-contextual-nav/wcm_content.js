@@ -107,6 +107,13 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 noticeEl,
                                 isWrite;
 
+                             var noticeEls = YDom.getElementsByClassName("acnDraftContent", null, _this.containerEl.parentNode.parentNode);
+                             for(var n=0; n<noticeEls.length; n++) {
+
+                                 var curNode = noticeEls[n];
+                                 curNode.parentNode.removeChild(curNode);
+                             }  
+
                             if (contentTO[0] && contentTO[0].path) {
                                 _this.removeFilePermissions(contentTO[0].path, filePermissions, permissionAggregateCounter);
 
