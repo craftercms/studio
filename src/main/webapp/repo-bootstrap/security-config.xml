@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2016 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+<security>
+    <user>
+        <username>admin</username>
+        <email>evaladmin@example.com</email>
+        <firstName>Joe</firstName>
+        <lastName>Admin</lastName>
+        <groups>
+            <group>crafter-admin</group>
+            <group>crafter-create-sites</group>
+        </groups>
+    </user>
+    <user>
+        <username>author</username>
+        <email>evalauthor@example.com</email>
+        <firstName>Joe</firstName>
+        <lastName>Author</lastName>
+        <groups>
+            <group>crafter-author</group>
+        </groups>
+    </user>
+    <user>
+        <username>approver</username>
+        <email>evalapprover@example.com</email>
+        <firstName>Joe</firstName>
+        <lastName>Approver</lastName>
+        <groups>
+            <group>crafter-approver</group>
+        </groups>
+    </user>
+</security>
