@@ -749,7 +749,10 @@ WcmDashboardWidgetCommon.previewItem = function (matchedElement, isChecked) {
 
     var callback = {
         success: function (contentTO) {
-            CStudioAuthoring.Storage.write(CStudioAuthoring.Service.menuParentPathKeyFromItemUrl(contentTO.path), contentTO.path);
+            if(contentTO.name.indexOf(".xml") != -1) {
+               CStudioAuthoring.Storage.write(CStudioAuthoring.Service.menuParentPathKeyFromItemUrl(contentTO.path), contentTO.path);
+            }
+            
             CStudioAuthoring.Operations.openPreview(contentTO);
         },
 
