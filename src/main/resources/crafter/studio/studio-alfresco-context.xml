@@ -13,6 +13,8 @@
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfresco') and '${crafter.repository.bootstrapEnabled}'}" />
     </bean>
 
+   <alias name="cstudioAlfrescoContentRepositoryUnCached" 
+          alias="cstudioAlfrescoContentRepository"/>
 
     <bean id="cstudioAlfrescoContentRepositoryRegistration" 
           parent="cstudioContentRepositoryRegistration">
@@ -73,6 +75,9 @@
         <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
     </bean>
 
+   <alias name="cstudioAlfrescoExtContentRepositoryUnCached" 
+          alias="cstudioAlfrescoExtContentRepository"/>
+
     <bean id="cstudioAlfrescoExtContentRepositoryRegistration"
           parent="cstudioContentRepositoryRegistration">
         <property name="contentRepository" ref="cstudioAlfrescoExtContentRepositoryUnCached"/>
@@ -87,9 +92,6 @@
           class="org.craftercms.studio.impl.v1.service.security.CachedSecurityProvider">
         <property name="provider" ref="cstudioAlfrescoContentRepositoryUnCached"/>
     </bean>
-
-   <!-- use the uncached provider directly -->
-   <!--alias name="cstudioAlfrescoContentRepositoryUnCached" alias="cstudioAlfrescoSecurityProvider"/-->
 
     <bean id="cstudioAlfrescoSecurityProviderRegistration" 
           parent="cstudioSecurityProviderRegistration">
