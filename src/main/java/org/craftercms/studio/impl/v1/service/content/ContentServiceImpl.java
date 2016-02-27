@@ -574,7 +574,7 @@ public class ContentServiceImpl implements ContentService {
             String displayTemplate = rootElement.valueOf("display-template");
 
             item.internalName = (internalName!=null) ? internalName : null;
-            item.contentType = (contentType!=null) ? internalName : null;
+            item.contentType = (contentType!=null) ? contentType : null;
             item.disabled = (disabled!=null && "true".equalsIgnoreCase(disabled)) ? true : false;
             item.savedAsDraft = (savedAsDraft!=null && "true".equalsIgnoreCase(savedAsDraft)) ? true : false;
             item.hideInAuthoring = (hideInAuthoring!=null && "true".equalsIgnoreCase(hideInAuthoring)) ? true : false;
