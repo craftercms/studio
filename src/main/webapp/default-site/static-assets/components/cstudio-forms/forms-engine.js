@@ -633,9 +633,9 @@ var CStudioForms = CStudioForms || function() {
             /**
              * main entrypoint for the forms engine, renders a form in the given style
              * @param formId
-             * 		path to the form you want to render
+             *      path to the form you want to render
              * @param style
-             *		style Id you want the form rendered with
+             *      style Id you want the form rendered with
              */
             render: function(formId, style) {
                 var _self = this;
@@ -938,24 +938,28 @@ var CStudioForms = CStudioForms || function() {
                 var _notifyServer = (form.readOnly)?false:true;
                 var message = CMgs.format(formsLangBundle, "cancelDialogBody");
 
-                var saveFn = function(preview) {
+                var saveFn = function(preview,draft) {
                     showWarnMsg = false;
+                    var saveDraft = (draft == true) ? true : false;
                     var queryString = document.location.search;
                     var editorId = CStudioAuthoring.Utils.getQueryVariable(queryString, "editorId");
                     var iceWindowCallback = CStudioAuthoring.InContextEdit.getIceCallback(editorId);
 
                     var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
+                    var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
                     var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
 
                     if(saveAndCloseEl) saveAndCloseEl.disabled = true;
                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
+                    if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
 
                     var entityId = buildEntityIdFn();
                     var entityFile = entityId.substring(entityId.lastIndexOf('/') + 1);
-                    if(form.isInError()) {
+                    if(form.isInError() && draft==false) {
                         alert(CMgs.format(formsLangBundle, "errMissingRequirements"));
                         if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                         if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
+                        if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = false;
                         return;
                     }
 
@@ -967,7 +971,7 @@ var CStudioForms = CStudioForms || function() {
                         }
                     }
 
-                    var xml = CStudioForms.Util.serializeModelToXml(form);
+                    var xml = CStudioForms.Util.serializeModelToXml(form, saveDraft);
 
                     var serviceUrl = "/api/1/services/api/1/content/write-content.json" +
                         "?site=" + CStudioAuthoringContext.site +
@@ -999,6 +1003,7 @@ var CStudioForms = CStudioForms || function() {
 
                                     if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
+                                    if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = false;
 
                                     if(iceWindowCallback) {
                                         var value = form.model["internal-name"];
@@ -1019,6 +1024,8 @@ var CStudioForms = CStudioForms || function() {
 
                                     if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
+                                    if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = false;
+                                       
                                 }
                             };
 
@@ -1032,6 +1039,7 @@ var CStudioForms = CStudioForms || function() {
                             }
                             if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                             if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
+                            if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = false;
                         }
                     };
 
@@ -1164,13 +1172,38 @@ var CStudioForms = CStudioForms || function() {
                     saveButtonEl.onclick = function() {
                         var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
                         var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
-
+                        var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
+                                       
+                        if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
                         if(saveAndCloseEl) saveAndCloseEl.disabled = true;
                         if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
 
-                        saveFn(false);
+                        saveFn(false, false);
                     };
 
+
+                   var saveButtonDraftEl = document.createElement("input");
+                   saveButtonDraftEl.id = "cstudioSaveAndCloseDraft";
+                   YDom.addClass(saveButtonDraftEl, "btn");
+                   YDom.addClass(saveButtonDraftEl, "btn-primary");
+                   YDom.addClass(saveButtonDraftEl, "cstudio-button-first");
+                   saveButtonDraftEl.type = "button";
+                   saveButtonDraftEl.value = CMgs.format(formsLangBundle, "saveAndCloseDraft");
+                   formButtonContainerEl.appendChild(saveButtonDraftEl);
+                   
+                   saveButtonDraftEl.onclick = function() {
+                     var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
+                     var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
+                     var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
+
+                     if(saveAndCloseEl) saveAndCloseEl.disabled = true;
+                     if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
+                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
+                   
+                     saveFn(false, true);
+                   };
+                                       
+                                       
                     var previewButtonEl = document.createElement("input");
                     YDom.addClass(previewButtonEl, "btn");
                     YDom.addClass(previewButtonEl, "btn-default");
@@ -1204,7 +1237,7 @@ var CStudioForms = CStudioForms || function() {
                     CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, contentType, contentTypeCb);
 
                     previewButtonEl.onclick = function() {
-                        saveFn(true);
+                        saveFn(true, false);
                     };
 
                     var cancelButtonEl = document.createElement("input");
@@ -1768,7 +1801,7 @@ var CStudioForms = CStudioForms || function() {
              * internal menthod
              * load form definition from repository
              * @param formId
-             * 		path to the form you want to render
+             *      path to the form you want to render
              */
             loadFormDefinition: function(formId, cb) {
                 var configCb = {
@@ -2025,7 +2058,7 @@ var CStudioForms = CStudioForms || function() {
 
                                         try {
                                             //value = (!repeatField.wholeText) ?
-                                            //	repeatField.firstChild.wholeText : repeatField.wholeText;
+                                            //  repeatField.firstChild.wholeText : repeatField.wholeText;
                                             value = this.getModelItemValue(repeatField);
                                         }
                                         catch(noValue) {
@@ -2045,8 +2078,12 @@ var CStudioForms = CStudioForms || function() {
                 }
             },
 
-            serializeModelToXml: function(form) {
+            serializeModelToXml: function(form, saveDraft) {
                 var xml = "<"+form.definition.objectType+">\r\n";
+                
+                if(saveDraft) {
+                   xml += "\t<savedAsDraft>true</savedAsDraft>";
+                }
                 xml += "\t<content-type>" + form.definition.contentType + "</content-type>";
 
                 if(form.definition.properties && form.definition.properties.length) {
@@ -2077,22 +2114,22 @@ var CStudioForms = CStudioForms || function() {
                     section = formSections[i];
 
                     for (var j = section.fields.length - 1; j >= 0; j--) {
-                    	var field = section.fields[j];
+                        var field = section.fields[j];
                         validFields.push(section.fields[j].id);
-						var fieldInstruction = { tokenize: false };
-                    	fieldInstructions[field.id] = fieldInstruction;
+                        var fieldInstruction = { tokenize: false };
+                        fieldInstructions[field.id] = fieldInstruction;
 
-						for(var p=0; p<field.properties.length; p++) {
-                      		try {
-                        		var property = field.properties[p];
-                        		if(property.name == "tokenize"  && property.value == "true") {
-                           			fieldInstruction.tokenize = true;
-                        		}
-                      		} 
-                      		catch(err) { 
-                      			alert(err) 
-                      		}
-                    	}
+                        for(var p=0; p<field.properties.length; p++) {
+                            try {
+                                var property = field.properties[p];
+                                if(property.name == "tokenize"  && property.value == "true") {
+                                    fieldInstruction.tokenize = true;
+                                }
+                            } 
+                            catch(err) { 
+                                alert(err) 
+                            }
+                        }
                     }
                 }
 
@@ -2111,17 +2148,18 @@ var CStudioForms = CStudioForms || function() {
                 validFieldsStr = validFields.join(",");
 
                 for (var key in formModel) {
-                	var attributes = "";
-                	var fieldInstruction = fieldInstructions[key];
+                    var attributes = "";
+                    var fieldInstruction = fieldInstructions[key];
+                    var invalidFields = [];
 
-	                try {
-    	               if(fieldInstruction && fieldInstruction.tokenize == true) {
-        	             attributes += " tokenized='true' ";
-            	       }
-                	}
-                	catch(err) {
-                		alert(err);
-                	}
+                    try {
+                       if(fieldInstruction && fieldInstruction.tokenize == true) {
+                         attributes += " tokenized='true' ";
+                       }
+                    }
+                    catch(err) {
+                        alert(err);
+                    }
 
                     // Because we added start and end elements, we can be sure that any field names will
                     // be delimited by the delimiter token (ie. comma)
@@ -2167,7 +2205,25 @@ var CStudioForms = CStudioForms || function() {
                             output += "</"+key+">\r\n";
                         }
                     }
+                    else {
+                        invalidFields[invalidFields.length] = key;
+                    }
                 }
+
+                // TODO: This needs the code above to be move in to a reusable place and then placed
+                // outside the save process so that user has a choice to cancel.
+                // this also needs a real dialog and more information about the fields 
+                // instead of an ugly system name
+                if(invalidFields.length > 0) {
+                    var invalidFieldsMsg = 
+                    "The following fields were found in the content due to a model change and will not be saved: \n";
+                    for(var g=0; g<invalidFields.length; g++) {
+                       invalidFieldsMsg + "\t"+invalidFields[length]+"\n";
+                    }
+
+                    alert(invalidFieldsMsg);
+                }
+
                 return output;
             },
 
