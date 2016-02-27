@@ -27,9 +27,12 @@ public class MessageTO implements Serializable {
 	/** message body **/
 	protected String _body;
 
-	public MessageTO(final String _title, final String _body) {
+	protected String key;
+
+	public MessageTO(final String _title, final String _body,final String key) {
 		this._title = _title;
 		this._body = _body;
+		this.key = key;
 	}
 
 	public MessageTO() {
@@ -64,5 +67,13 @@ public class MessageTO implements Serializable {
 	public void setBody(final String body) {
 		this._body = body;
 	}
-	
+
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(final String key) {
+		this.key = key;
+	}
 }
