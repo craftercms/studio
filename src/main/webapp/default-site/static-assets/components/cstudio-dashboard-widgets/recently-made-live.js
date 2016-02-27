@@ -151,11 +151,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
                 browserUri = "";
                 displayBrowserUri = "";
             }
-            /*
-             if (item.internalName == "crafter-level-descriptor.level.xml") {
-             displayName = "Section Defaults" + (item.newFile?"*":"");
-             }
-             */
+
             var ttSpanId =  "tt_" + this.widgetId + "_" + item.uri + "_" + (this.tooltipLabels.length + 1);
             var itemTitle = CStudioAuthoring.Utils.getTooltipContent(item);
             this.tooltipLabels.push(ttSpanId);
