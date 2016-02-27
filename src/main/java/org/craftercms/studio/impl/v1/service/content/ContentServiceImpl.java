@@ -511,6 +511,7 @@ public class ContentServiceImpl implements ContentService {
         item.internalName = item.name;
         item.contentType = "asset";
         item.disabled = false;
+        item.savedAsDraft = false;
         item.floating = false;
         item.hideInAuthoring = false;
 
@@ -562,16 +563,26 @@ public class ContentServiceImpl implements ContentService {
         Document contentDoc = this.getContentAsDocument(fullContentPath);
         if(contentDoc != null) {
             Element rootElement = contentDoc.getRootElement();
-            item.internalName = rootElement.valueOf("internal-name");
-            item.contentType = rootElement.valueOf("content-type");
-            item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
-            item.floating = ( (rootElement.valueOf("placeInNav") != null) && !rootElement.valueOf("placeInNav").equals("true") );
-            item.navigation = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
-            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
-
+            
+            String internalName = rootElement.valueOf("internal-name");
+            String contentType = rootElement.valueOf("content-type");
+            String disabled = rootElement.valueOf("disabled");
+            String savedAsDraft = rootElement.valueOf("savedAsDraft");
+            String floating = rootElement.valueOf("placeInNav");
+            String navigation = rootElement.valueOf("placeInNav");
+            String hideInAuthoring = rootElement.valueOf("hideInAuthoring");
             String displayTemplate = rootElement.valueOf("display-template");
+
+            item.internalName = (internalName!=null) ? internalName : null;
+            item.contentType = (contentType!=null) ? contentType : null;
+            item.disabled = (disabled!=null && "true".equalsIgnoreCase(disabled)) ? true : false;
+            item.savedAsDraft = (savedAsDraft!=null && "true".equalsIgnoreCase(savedAsDraft)) ? true : false;
+            item.hideInAuthoring = (hideInAuthoring!=null && "true".equalsIgnoreCase(hideInAuthoring)) ? true : false;
+
+            item.navigation = (navigation!=null && "true".equalsIgnoreCase(navigation)) ? true : false;
+            item.floating = !item.navigation;
+
+            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
 
             if(displayTemplate != null) {
                 RenderingTemplateTO template = new RenderingTemplateTO();

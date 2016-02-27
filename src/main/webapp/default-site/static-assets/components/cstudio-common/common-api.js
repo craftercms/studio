@@ -16,16 +16,6 @@ var JSON = YAHOO.lang.JSON;
 var YEvent = YAHOO.util.Event;
 var ApproveType = false;
 
-/* Removing this check because,
- * 401 error is returning some other cases apart from Authentication failed case.
- YConnect.failureEvent.subscribe(function() {
- if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
- alert ("Authentication failed, redirecting to login page.");
- window.location.reload(true);
- }
- });
- */
-
 (function(undefined){
 
     // Private functions
@@ -1183,77 +1173,6 @@ var ApproveType = false;
             },
 
             /**
-             * open form with simple form engine
-             */
-            openContentWebFormSimpleEngine: function(contentType, path, edit, readOnly, callback, auxParams,includeMetaData) {
-                alert("USED?")
-                // if(includeMetaData){
-                //     auxParams = CStudioAuthoring.Operations.addMetadata(auxParams);
-                // }
-
-                // var childForm = CStudioAuthoring.ChildFormManager.createChildFormConfig();
-
-                // childForm.formId = CStudioAuthoring.Utils.generateUUID();
-                // childForm.formName = contentType.form ;
-                // childForm.windowName = path;
-
-                // childForm.formUrl = CStudioAuthoringContext.authoringAppBaseUri +
-                // "/form?site=" + CStudioAuthoringContext.site + "&form=" +
-                // contentType.form +
-                // "&path=" + path;
-
-                // if(contentType.type){
-                //     if(contentType.type=="component"){
-                //         childForm.formUrl += "&childForm=true";
-                //     }
-                // }
-
-                // var readOnlySetByAux = false
-                // for(var j=0; j<auxParams.length; j++) {
-                //     if(auxParams[j].name=="readonly") {
-                //         readOnlySetByAux = true;
-                //         readOnly = true;
-                //     }
-
-                //     childForm.formUrl += "&" + auxParams[j].name +"="+auxParams[j].value;
-                // }
-
-                // childForm.formSaveCallback = callback;
-
-                // lookupItemCb = {
-                //     success: function(itemTO) {
-                //         if(itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
-                //             readOnly = true;
-                //         }
-
-                //         if(readOnly && (readOnly=="true" || readOnly==true) && readOnlySetByAux == false ) {
-                //             childForm.formUrl += "&readonly=true";
-                //         }
-
-                //         if(edit && (edit == true || edit == "true") && (!readOnly || readOnly == false || readOnly == "false")) {
-                //             childForm.formUrl += "&edit=" + edit;
-                //         }
-
-                //         childForm.formUrl += "&wid=" + childForm.formId;
-
-                //         CStudioAuthoring.ChildFormManager.openChildForm(childForm);
-                //     },
-
-                //     failure: function() {
-                //     }
-                // };
-
-                // if(path.indexOf(".xml") != -1) {
-                //     // item is existing content
-                //     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, lookupItemCb, false);
-                // }
-                // else {
-                //     // item is new
-                //     lookupItemCb.success({ item: { lockOwner: CStudioAuthoringContext.user } });
-                // }
-            },
-
-            /**
              * this method will open a form with the legacy form server
              * this method is maintained for backward compatability and for extremely complex use cases
              */
@@ -1742,52 +1661,6 @@ var ApproveType = false;
                 CStudioAuthoring.Operations.openContentWebForm(formId, id, noderef, path, true, asPopup, callback, auxParams);
             },
 
-            // duplicateContent: function(site, path, argsCallback) {
-            //     var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
-            //     var ajaxRequest=CStudioAuthoring.Service.createServiceUri(serviceUri);
-
-            //     var serviceCallback = {
-            //         success: function(oResponse) {
-            //             argsCallback.success();
-            //             var contentTypeJson = oResponse.responseText;
-
-            //             try {
-            //                 var contentTypes = eval("(" + contentTypeJson + ")");
-            //                 var formId = contentTypes.form;
-            //                 var path = contentTypes.path;
-            //                 var editCb = {
-            //                     success: function() {
-            //                         this.callingWindow.location.reload(true);
-            //                     },
-
-            //                     failure: function() {
-            //                     },
-
-            //                     callingWindow: window
-            //                 };
-
-            //                 var auxParams = new Array();
-            //                 /******** CRAFTER-533 & 534 ****************/
-            //                 // this is a temp fix since cstudio currently doesn't support drafter feature
-            //                 // the parameters should be added back when draft becomes available 
-            //                 //var param = {};
-            //                 //param['name'] = "draft";
-            //                 //param['value'] = "true";
-            //                 //auxParams.push(param);
-            //                 //param = {};
-            //                 //param['name'] = "duplicate";
-            //                 //param['value'] = "true";
-            //                 //auxParams.push(param);
-            //                 /******** CRAFTER-533 & 534 ****************/
-            //                 CStudioAuthoring.Operations.editContent(
-            //                     formId,
-            //                     CStudioAuthoringContext.site,path,
-            //                     "", path, false,editCb,auxParams);
-            //             }
-            //             catch(err) {
-            //                 //callback.failure(err);
-            //             }
-            //         },
             duplicateContent: function(site, path, argsCallback) {
 
                 CStudioAuthoring.Service.getContent(path, false, {
@@ -1832,7 +1705,7 @@ while(found=dependencyRegExp.exec(parentContent)) {
                                 // load the dependency
                                 CStudioAuthoring.Service.getContent(dependencyPath, false, {
                                     success: function(dependencyContent) {
-//dependencyContent = dependencyContent.responseText;
+
                                         var childSaveCb = {
                                             success: function(){}, 
                                             failure: function(){}
@@ -1846,10 +1719,6 @@ while(found=dependencyRegExp.exec(parentContent)) {
                                         var writeChildFileName = this.path.substr(newDepPath.lastIndexOf("/")+1);
                                         var writeChildPath = this.path; //.substr(0, newDepPath.lastIndexOf("/"));
                                         var writeChildServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writeChildPath, writeChildFileName, null, childContentType, CStudioAuthoringContext.site, true, false, false, true);
-
-                                        //var writeChildServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
-                                        //                    + "?site=" + CStudioAuthoringContext.site 
-                                        //                    + "&path=" + writeChildPath;
                                                             
                                         YAHOO.util.Connect.setDefaultPostHeader(false);
                                         YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
@@ -1871,9 +1740,6 @@ while(found=dependencyRegExp.exec(parentContent)) {
                         var writeFileName = newPath.substr(newPath.lastIndexOf("/")+1);
                         var writePath = newPath; //.substr(0, newPath.lastIndexOf("/"));
                         var writeServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writePath, writeFileName, null, contentType, CStudioAuthoringContext.site, true, false, false, true);
-                        //var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
-                        //                    + "?site=" + CStudioAuthoringContext.site 
-                        //                    + "&path=" + writePath;
                         
 var parentSaveCb = {
                             success: function(){
@@ -2418,26 +2284,6 @@ var parentSaveCb = {
 
             // Publishing Channels
             getAvailablePublishingChannelsServiceUri: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
-
-            // not ported yet
-            // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            // wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-            // allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
-            // lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-            // getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
-            // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
-            // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
-            // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
-            // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
-            // allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-            // getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
-            // updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
-            // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
-            // previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
-            // setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
-            
 
             /**
              * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
