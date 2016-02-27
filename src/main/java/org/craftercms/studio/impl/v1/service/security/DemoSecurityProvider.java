@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.dom4j.Document;
@@ -35,6 +36,7 @@ public class DemoSecurityProvider implements SecurityProvider {
 
     private final static String DOCUMENT_USER_ROOT = "user";
     private final static String DOCUMENT_ELM_USERNAME = "username";
+    private final static String DOCUMENT_ELM_PASSWORD = "password";
     private final static String DOCUMENT_ELM_EMAIL = "email";
     private final static String DOCUMENT_ELM_FIRSTNAME = "firstName";
     private final static String DOCUMENT_ELM_LASTNAME = "lastName";
@@ -64,6 +66,9 @@ public class DemoSecurityProvider implements SecurityProvider {
 
                 String username = userElm.valueOf(DOCUMENT_ELM_USERNAME);
                 user.setUsername(username);
+
+                String password = userElm.valueOf(DOCUMENT_ELM_PASSWORD);
+                user.setPassword(password);
 
                 String email = userElm.valueOf(DOCUMENT_ELM_EMAIL);
                 user.setEmail(email);
@@ -156,19 +161,20 @@ public class DemoSecurityProvider implements SecurityProvider {
     public String authenticate(String username, String password) {
         RequestContext context = RequestContext.getCurrent();
         String ticket = null;
-        
-        if(getUserProfile(username) != null) {
-            ticket = username + CONST_FAKETICKET;
+        User user = userMap.get(username);
+        if (user != null) {
+            if (StringUtils.equals(password, user.password)) {
+                ticket = username + CONST_FAKETICKET;
 
-            if(context != null) {
-                activeUser.put("username", username);
-                activeUser.put("ticket", ticket);
-       
-             }
-             else {
-                activeProcess.put("username", username);
-                activeProcess.put("ticket", ticket);
-             }
+                if (context != null) {
+                    activeUser.put("username", username);
+                    activeUser.put("ticket", ticket);
+
+                } else {
+                    activeProcess.put("username", username);
+                    activeProcess.put("ticket", ticket);
+                }
+            }
         }
 
     	return ticket;
@@ -216,6 +222,9 @@ public class DemoSecurityProvider implements SecurityProvider {
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
 
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
 
@@ -229,6 +238,7 @@ public class DemoSecurityProvider implements SecurityProvider {
         public void setGroups(List<String> groups) { this.groups = groups; }
 
         protected String username;
+        protected String password;
         protected String email;
         protected String firstName;
         protected String lastName;

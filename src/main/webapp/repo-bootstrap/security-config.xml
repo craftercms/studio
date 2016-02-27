@@ -20,6 +20,7 @@
 <security>
     <user>
         <username>admin</username>
+        <password>admin</password>
         <email>evaladmin@example.com</email>
         <firstName>Joe</firstName>
         <lastName>Admin</lastName>
@@ -30,6 +31,7 @@
     </user>
     <user>
         <username>author</username>
+        <password>author</password>
         <email>evalauthor@example.com</email>
         <firstName>Joe</firstName>
         <lastName>Author</lastName>
@@ -39,6 +41,7 @@
     </user>
     <user>
         <username>approver</username>
+        <password>approver</password>
         <email>evalapprover@example.com</email>
         <firstName>Joe</firstName>
         <lastName>Approver</lastName>
