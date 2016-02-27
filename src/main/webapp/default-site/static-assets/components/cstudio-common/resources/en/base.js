@@ -97,6 +97,7 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
     wcmContentDuplicate: "Duplicate",
     wcmContentHistory: "History",
     wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
+    wcmContentSavedAsDraft: "Content was saved as DRAFT. Some required fields may not be populated. This can cause in errors when previewed or deployed.",
 
     InProgress: "Edited",
     Deleted: "Deleted",
