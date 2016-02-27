@@ -499,6 +499,19 @@ body .mask{
 #cstudio-wcm-popup-div .content span,
 #cstudio-wcm-popup-div .content .selectInput label { text-align: right; }    /* Need to use ID selector or else styles are overriden */
 
+.acnDraftContent {
+    background-color: DARKORANGE;
+    border: 1px solid ORANGE;
+    color: white;
+    display: block;
+    font-weight: bold !important;
+    padding: 1px;
+    position: absolute;
+    text-align: center !important;
+    top: 51px;
+    width: 100%;
+}
+
 .acnDisabledContent {
     background-color: #CC3333;
     border: 1px solid #FF0000;
@@ -508,7 +521,7 @@ body .mask{
     padding: 1px;
     position: absolute;
     text-align: center !important;
-    top: 31px;
+    top: 51px;
     width: 100%;
 }
 /* -- END Create Content Type Overlay -- */

@@ -204,8 +204,19 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                     YDom.addClass(noticeEl, "acnDisabledContent");
                                     noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
-
                                 }
+
+                                for(var s=0; s<selectedContent.length; s++) {
+                                    if(selectedContent[0].savedAsDraft == true) {
+                                        var noticeEl = document.createElement("div");
+                                        this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
+                                        YDom.addClass(noticeEl, "acnDraftContent");
+                                        noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentSavedAsDraft");
+
+                                        break;
+                                    }
+                                }
+
                             },
                             failure: function() {
                                 //TDOD: log error, not mute it

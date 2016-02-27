@@ -2214,15 +2214,14 @@ var CStudioForms = CStudioForms || function() {
                 // outside the save process so that user has a choice to cancel.
                 // this also needs a real dialog and more information about the fields 
                 // instead of an ugly system name
-                if(invalidFields.length > 0) {
-                    var invalidFieldsMsg = 
-                    "The following fields were found in the content due to a model change and will not be saved: \n";
-                    for(var g=0; g<invalidFields.length; g++) {
-                       invalidFieldsMsg + "\t"+invalidFields[length]+"\n";
-                    }
-
-                    alert(invalidFieldsMsg);
-                }
+                //if(invalidFields.length > 0) {
+                //    var invalidFieldsMsg = 
+                //    "The following fields were found in the content due to a model change and will not be saved: \n";
+                //    for(var g=0; g<invalidFields.length; g++) {
+                //       invalidFieldsMsg + "\t"+invalidFields[length]+"\n";
+                //    }
+                //    alert(invalidFieldsMsg);
+                //}
 
                 return output;
             },
