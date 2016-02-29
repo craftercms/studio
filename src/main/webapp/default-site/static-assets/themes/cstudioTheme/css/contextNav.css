@@ -579,7 +579,7 @@ body.yui-skin-cstudioTheme .mask{
     width: 595px!important;
 }
 
-.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div select{
+.yui-skin-cstudioTheme .yui-overlay.yui-panel .bd > div select, .rejectReasonDropDown{
   display: block;
   width: 100%;
   height: 31px;

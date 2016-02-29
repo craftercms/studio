@@ -21,11 +21,11 @@ REJECT_DIALOG_TEMPLATE = ['<div class=\"bd\">'+
 		'<div class="field">'+
 			'<select id="rejectReasonDropDown" class="rejectReasonDropDown">'+
 				 '<option>Select a Reason</option>'+
-					 '<option>Not Approved</option>'+
-					 '<option>Incorrect Branding</option>'+
-					 '<option>Typos</option>'+
-					 '<option>Broken Links</option>'+
-					 '<option>Needs Section Owner\'s Approval</option>'+
+					 '<option value="NotApproved">Not Approved</option>'+
+					 '<option value="IncorrectBranding">Incorrect Branding</option>'+
+					 '<option value="Typos">Typos</option>'+
+					 '<option value="BrokenLinks">Broken Links</option>'+
+					 '<option value="NSOA">Needs Section Owner\'s Approval</option>'+
 			'</select>'+
 		'</div>'+
 	'</div>'+
@@ -282,12 +282,24 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 						//Listener to change select box message in reject pop-up
 						CStudioAuthoring.Dialogs.DialogReject.prototype.onRejectSelectBoxChange = function (e) {
 							var reasonList = YDom.get("rejectReasonDropDown");
-							var chosenOption = reasonList.options[reasonList.selectedIndex];
-							if (reasonList.selectedIndex != 0) {
-								YDom.get('rejectMessageArea').value = reasonList.options[reasonList.selectedIndex].innerHTML;
-							} else {
-								YDom.get('rejectMessageArea').value = '';
-							}
+							var chosenOption = reasonList.options[reasonList.selectedIndex].value;
+                            try {
+                                CStudioAuthoring.Service.getRejectionReason("en",chosenOption , {
+                                    success: function(content) {
+                                        if (content) {
+                                            YDom.get('rejectMessageArea').value = content;
+                                        } else {
+                                            YDom.get('rejectMessageArea').value = '';
+                                        }
+                                    },
+                                    failure: function(message) {
+                                        console.log('message');
+                                    }
+                                });
+                            } catch(err) {
+                                console.log(err);
+                            }
+
 						};
 						
 						CStudioAuthoring.Dialogs.DialogReject.prototype.getDependenciesForGoLiveItemList = function(contentItems) {
