@@ -2,7 +2,8 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 
 	var WAITING_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/static-assets/themes/cstudioTheme/images/wait.gif' alt='Loading ...' />",
 		ERROR_IMG = "<img src='"+CStudioAuthoringContext.authoringAppBaseUri+"/static-assets/themes/cstudioTheme/images/fail.png' alt='Loading failed' />",
-		moveEl,
+		COMPONENT_PLACEHOLDER = "",
+        moveEl,
 		editEl,
 		deleteEl;
 
@@ -23,7 +24,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 						if (componentElsLen > 0) {
 							for(var i=0; i < componentElsLen; i++){
 								var currentEl = componentEls[i];
-								currentEl.innerHTML = "";
+								currentEl.innerHTML = COMPONENT_PLACEHOLDER;
 								this.editor.contextControl.save();
 								_self.renderComponents(this.editor);	
 							}
@@ -80,7 +81,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 					var c = cm.createMenuButton('insertComponent', {
 	                	title : 'Insert Component',
 	                    //image : 'img/example.gif',
-	                    style: "mce_insertComponent",
+	                    style: "mce_insertComponent"
 	//	                    icons : false
 	                });
 	                
@@ -108,7 +109,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 										
 										model['rteComponents'][model['rteComponents'].length] = componentItem;											
 										editor.execCommand('mceInsertContent', false, 
-										"<div id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</div>");
+										"<span id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</span>");
 										
 										_self.renderComponent(editor, componentItem);	
 									},
@@ -183,7 +184,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 										
 											model['rteComponents'][model['rteComponents'].length] = componentItem;											
 											editor.execCommand('mceInsertContent', false, 
-											"<div id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</div>");
+											"<span id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</span>");
 										
 											_self.renderComponent(editor, componentItem);	
 										},
@@ -353,7 +354,7 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 				componentEl.parentNode.removeChild(componentEl);
 
 				tinyMCE.activeEditor.execCommand('mceInsertContent', false, 
-					"<div id=\"" + _self.componentOnTheMove.id + "\" class='crComponent' >" + WAITING_IMG + "</div>");
+					"<span id=\"" + _self.componentOnTheMove.id + "\" class='crComponent' >" + WAITING_IMG + "</span>");
 				
 				_self.renderComponent(tinyMCE.activeEditor, _self.componentOnTheMove);				
 
