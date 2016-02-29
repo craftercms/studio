@@ -87,7 +87,7 @@
         var data = {
             schedule: this.getComponent('[name="schedulingMode"]:checked').value,
             submissionComment: this.getComponent('.submission-comment').value,
-            publishOptionComment: this.getComponent('.publish-option-comment').value,
+            publishOptionComment: (this.getComponent('.publish-option-comment')) ? this.getComponent('.publish-option-comment').value : "",
             publishChannel: this.getComponent('.publish-option').value,
             items: []
         };
