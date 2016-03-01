@@ -316,7 +316,7 @@
                     browse.push({ label: c.label, path: c.path });
                 });
             } else {
-                browse.push({ label: data.label, path: data.path });
+                browse.push({ label: dataBrowse.label, path: dataBrowse.path });
             }
         }
 
