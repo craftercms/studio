@@ -108,8 +108,8 @@ CStudioForms.Controls.RTE.InsertComponent = CStudioForms.Controls.RTE.InsertComp
 										};
 										
 										model['rteComponents'][model['rteComponents'].length] = componentItem;											
-										editor.execCommand('mceInsertContent', false, 
-										"<span id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</span>");
+										editor.execCommand('mceInsertContent', false,
+										"<span id=\"" + id + "\" class='crComponent' >" + WAITING_IMG + "</span> &nbsp;");
 										
 										_self.renderComponent(editor, componentItem);	
 									},
