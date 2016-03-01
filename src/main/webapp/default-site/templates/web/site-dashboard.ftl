@@ -121,9 +121,13 @@
                                    class="form-control input-sm"/>
                         </div>
                     </li>
+                    <li>
+                        <button id="expand-all-MyRecentActivity" class="btn btn-default btn-sm"
+                                onclick="return WcmDashboardWidgetCommon.toggleAllItems('MyRecentActivity');"></button>
+                    </li>
                 </ul>
             </div>
-            <div id="MyRecentActivity-body"></div>
+            <div id="MyRecentActivity-body" style="display:none"></div>
             <div id="sortedBy-MyRecentActivity" style="display:none"></div>
             <div id="sort-type-MyRecentActivity" style="display:none"></div>
         </div>
@@ -232,6 +236,7 @@
         document.querySelector('#expand-all-GoLiveQueue').innerHTML = loc(langBundle, "dashletGoLiveCollapseAll");
         document.querySelector('#expand-all-recentlyMadeLive').innerHTML = loc(langBundle, "dashletRecentDeployCollapseAll");
         document.querySelector('#expand-all-approvedScheduledItems').innerHTML = loc(langBundle, "approvedScheduledCollapseAll");
+        document.querySelector('#expand-all-MyRecentActivity').innerHTML = loc(langBundle, "dashletMyRecentActivityCollapseAll");
 
         new CStudioAuthoringWidgets.GoLiveQueueDashboard('GoLiveQueue', 'site/rosie/dashboard');
         new CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard('approvedScheduledItems', 'site/rosie/dashboard');

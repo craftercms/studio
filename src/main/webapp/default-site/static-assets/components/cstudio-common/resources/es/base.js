@@ -57,6 +57,8 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "es", {
     dashletRecentDeployColPageName: "Nombre del Artículo",
 
     dashletMyRecentActivityTitle: "Mi actividad reciente",
+    dashletMyRecentActivityCollapseAll: "Desplegar todo",
+    dashletMyRecentActivityExpandAll: "Expandir todo",
     dashletMyRecentActivityHideLiveItems: "Enconder Artículos en Vivo",
     dashletMyRecentActivityShowLiveItems: "Mostrar Artículos en Vivo",
     ddashletMyRecentActivityShow: "Mostrar",
