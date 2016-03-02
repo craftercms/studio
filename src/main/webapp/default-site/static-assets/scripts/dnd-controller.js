@@ -14,7 +14,7 @@ define('dnd-controller', ['crafter', 'jquery', 'jquery-ui', 'animator', 'communi
         '</sdiv>'].join('');
     var COMPONENT_TPL = '<sli><sa class="studio-component-drag-target" data-studio-component data-studio-component-path="%@" data-studio-component-type="%@"><span class="status-icon component"></span>%@</sa></sli>';
     //var BROWSE_TPL = '<button class="btn btn-primary add-component" data-path="%@">Browse %@</button>';
-    var BROWSE_TPL = '<sdiv class="studio-category"><sh2 class="studio-category-name add-existing-component" id="%@" data-path="%@">Browse %@</sh2><sul></sul></sdiv>';
+    var BROWSE_TPL = '<sdiv class="studio-category"><sh2 class="studio-category-name add-existing-component pointer" id="%@" data-path="%@">Browse %@</sh2><sul></sul></sdiv>';
     var DRAGGABLE_SELECTION = '.studio-components-container .studio-component-drag-target';
     var DROPPABLE_SELECTION = '[data-studio-components-target]';
     var PANEL_ON_BD_CLASS = 'studio-dnd-enabled';

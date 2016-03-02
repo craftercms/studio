@@ -605,34 +605,65 @@ WcmDashboardWidgetCommon.getCurrentWidgetTogglePreference = function (widgetId, 
  */
 WcmDashboardWidgetCommon.toggleLineItem = function (id, ignoreParent) {
 
-    var parentId = YDom.get(id),
-        childItems = CStudioAuthoring.Utils.getElementsByClassName(id),
+    var idWidget = (id!="MyRecentActivity")?id:id+"Child",
+        idTbody = (id!="MyRecentActivity")?id:id+"-tbody",
+        parentId = YDom.get(idWidget),
+        childItems = CStudioAuthoring.Utils.getElementsByClassName(idWidget),
         length = childItems.length,
         idx,
         item;
 
-    if (parentId.className == "ttClose parent-div-widget") {
-        for (idx = 0; idx < length; idx++) {
-            item = childItems[idx];
-            if (item) {
-                item.style.display = "none";
+    if(parentId){
+        if (parentId.className == "ttClose parent-div-widget") {
+            for (idx = 0; idx < length; idx++) {
+                item = childItems[idx];
+                if (item) {
+                    item.style.display = "none";
+                }
             }
+            parentId.className = "ttOpen parent-div-widget";
         }
-        parentId.className = "ttOpen parent-div-widget";
-    }
-    else {
-        for (idx = 0; idx < length; idx++) {
-            item = childItems[idx];
-            if (item) {
-                item.style.display = "";
+        else {
+            for (idx = 0; idx < length; idx++) {
+                item = childItems[idx];
+                if (item) {
+                    item.style.display = "";
+                }
             }
+            parentId.className = "ttClose parent-div-widget";
         }
-        parentId.className = "ttClose parent-div-widget";
+    }else{
+        var widgetTable = YDom.get(id+"-body");
+            if(YDom.hasClass(childItems[0], "tClose")){
+
+                if(YDom.hasClass(widgetTable, 'table-responsive') && length > 0){
+                    YDom.removeClass(widgetTable, 'table-responsive');
+                }
+                for (idx = 0; idx < length; idx++) {
+                    item = childItems[idx];
+                    if (item) {
+                        item.style.display = "none";
+                        item.className = "tOpen "+idWidget;
+                    }
+                }
+            }else {
+                if(!YDom.hasClass(widgetTable, 'table-responsive') && length > 0){
+                    YDom.addClass(widgetTable, 'table-responsive');
+                }
+                for (idx = 0; idx < length; idx++) {
+                    item = childItems[idx];
+                    if (item) {
+                        item.style.display = "";
+                        item.className = "tClose "+idWidget;
+                    }
+                }
+            }
     }
+
 
     // If all lines are collapsed, then the header link should change to "Expand All" and vice versa.
     var expandAll = false,
-        tableEl = YDom.getAncestorByTagName(id, "table"),
+        tableEl = YDom.getAncestorByTagName(idTbody, "table"),
         rows = tableEl.rows,
         arr = [],
         widgetId = tableEl.id.split("-")[0],
@@ -684,15 +715,21 @@ WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
     var widget = YDom.get(widgetId),
         instance = widget.instance,
         link = YDom.get("expand-all-" + widgetId),
-        items = YDom.getElementsByClassName("parent-div-widget", null, widget),
+        items = (YDom.getElementsByClassName("parent-div-widget", null, widget).length > 0) ?
+            YDom.getElementsByClassName("parent-div-widget", null, widget) :
+            document.body.querySelectorAll('#'+ widgetId +'-body #'+ widgetId +'-tbody tr'),
         item,
         length = items.length;
 
-    for (var count = 0; count < length; count++) {
-        item = items[count];
-        if (item) {
-            item.className = (instance.expanded) ? "ttClose parent-div-widget" : "ttOpen parent-div-widget";
-            this.toggleLineItem(item.id, true);
+    if(widgetId == "MyRecentActivity"){
+        this.toggleLineItem(widgetId, true);
+    }else {
+        for (var count = 0; count < length; count++) {
+            item = items[count];
+            if (item) {
+                item.className = (instance.expanded) ? "ttClose parent-div-widget" : "ttOpen parent-div-widget";
+                this.toggleLineItem(item.id ? item.id : widgetId + "Child", true);
+            }
         }
     }
 
@@ -894,7 +931,7 @@ WcmDashboardWidgetCommon.loadTableData = function (sortBy, container, widgetId, 
                 var parentClass = "wcm-table-parent-" + name + "-" + count;
 
                 if (!hideEmptyRow || sortDocuments[j].numOfChildren > 0) {
-                    var table = "<tr>";
+                    var table = (instance.widgetId =="MyRecentActivity")?"<tr class='tClose MyRecentActivityChild'>":"<tr>";
                     table += WcmDashboardWidgetCommon.buildItemTableRow(sortDocuments[j], instance, true, count, 0);
                     table += "</tr>";
 
@@ -1125,7 +1162,7 @@ WcmDashboardWidgetCommon.loadFilterTableData = function (sortBy, container, widg
                 var parentClass = "wcm-table-parent-" + name + "-" + count;
 
                 if (!hideEmptyRow || sortDocuments[j].numOfChildren > 0) {
-                    var table = "<tr>";
+                    var table = (instance.widgetId =="MyRecentActivity")?"<tr class='tClose MyRecentActivityChild'>":"<tr>";
                     table += WcmDashboardWidgetCommon.buildItemTableRow(sortDocuments[j], instance, true, count, 0);
                     table += "</tr>";
 
