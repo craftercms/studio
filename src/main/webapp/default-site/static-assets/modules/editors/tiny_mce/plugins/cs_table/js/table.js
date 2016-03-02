@@ -27,8 +27,8 @@ function insertTable() {
 	align = getSelectValue(formObj, "align");
 	frame = getSelectValue(formObj, "tframe");
 	rules = getSelectValue(formObj, "rules");
-	width = formObj.elements['width'].value;
-	height = formObj.elements['height'].value;
+    width = formObj.elements['width'].value != "" ? formObj.elements['width'].value : 200;
+    height = formObj.elements['height'].value;
 	bordercolor = formObj.elements['bordercolor'].value;
 	bgcolor = formObj.elements['bgcolor'].value;
 	className = getSelectValue(formObj, "class");
@@ -279,7 +279,7 @@ function init() {
 	document.getElementById('bgcolor_pickcontainer').innerHTML = getColorPickerHTML('bgcolor_pick','bgcolor');
 
 	var cols = 2, rows = 2, border = tinyMCEPopup.getParam('table_default_border', '0'), cellpadding = tinyMCEPopup.getParam('table_default_cellpadding', ''), cellspacing = tinyMCEPopup.getParam('table_default_cellspacing', '');
-	var align = "", width = "", height = "", bordercolor = "", bgcolor = "", className = "";
+	var align = "", width = "200px", height = "", bordercolor = "", bgcolor = "", className = "";
 	var id = "", summary = "", style = "", dir = "", lang = "", background = "", bgcolor = "", bordercolor = "", rules = "", frame = "";
 	var inst = tinyMCEPopup.editor, dom = inst.dom;
 	var formObj = document.forms[0];
