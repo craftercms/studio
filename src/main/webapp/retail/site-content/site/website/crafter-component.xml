@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <display-template xsi:nil="false">/templates/system/common/component.ftl</display-template>
-    <merge-strategy>inherit-levels</merge-strategy>
-    <hideInAuthoring>true</hideInAuthoring>
-</page>

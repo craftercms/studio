@@ -455,6 +455,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     fileUploadedDesktop: "File Uploaded from Desktop",
     flashUploadedDesktop: "Flash Uploaded from Desktop",
     videoUploadedDesktop: "Video Uploaded from Desktop",
+    video-browse-repo: "Video from Repository",
     staticKeyValuePairs: "Static Key Value Pairs",
     configuredListOfPairs: "Configured List of Pairs",
     siteComponent: "Site Component",
