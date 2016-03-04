@@ -1,4 +1,4 @@
-CREATE TABLE `cstudio_activity` (
+CREATE TABLE IF NOT EXISTS `cstudio_activity` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `modified_date`  DATETIME     NOT NULL,
   `creation_date`  DATETIME     NOT NULL,
@@ -16,9 +16,9 @@ CREATE TABLE `cstudio_activity` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_DEPENDENCY` (
+CREATE TABLE IF NOT EXISTS `cstudio_DEPENDENCY` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `site`        VARCHAR(35) NOT NULL,
   `source_path` TEXT        NOT NULL,
@@ -30,9 +30,9 @@ CREATE TABLE `cstudio_DEPENDENCY` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_objectstate` (
+CREATE TABLE IF NOT EXISTS `cstudio_objectstate` (
   `object_id`         VARCHAR(255)  NOT NULL,
   `site`              VARCHAR(50)   NOT NULL,
   `path`              VARCHAR(2000) NOT NULL,
@@ -44,9 +44,9 @@ CREATE TABLE `cstudio_objectstate` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_pagenavigationordersequence` (
+CREATE TABLE IF NOT EXISTS `cstudio_pagenavigationordersequence` (
   `folder_id` VARCHAR(100) NOT NULL,
   `site`      VARCHAR(50)  NOT NULL,
   `path`      TEXT NOT NULL,
@@ -56,9 +56,9 @@ CREATE TABLE `cstudio_pagenavigationordersequence` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_copytoenvironment` (
+CREATE TABLE IF NOT EXISTS `cstudio_copytoenvironment` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
   `site`             VARCHAR(50)  NOT NULL,
   `environment`      VARCHAR(20)  NOT NULL,
@@ -79,9 +79,9 @@ CREATE TABLE `cstudio_copytoenvironment` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_publishtotarget` (
+CREATE TABLE IF NOT EXISTS `cstudio_publishtotarget` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
   `site`             VARCHAR(50)  NOT NULL,
   `environment`      VARCHAR(20)  NOT NULL,
@@ -99,9 +99,9 @@ CREATE TABLE `cstudio_publishtotarget` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_deploymentsynchistory` (
+CREATE TABLE IF NOT EXISTS `cstudio_deploymentsynchistory` (
   `id`               BIGINT       NOT NULL AUTO_INCREMENT,
   `syncdate`         DATETIME     NOT NULL,
   `site`             VARCHAR(50)  NOT NULL,
@@ -121,9 +121,9 @@ CREATE TABLE `cstudio_deploymentsynchistory` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_site` (
+CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `site_id` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -137,9 +137,9 @@ CREATE TABLE `cstudio_site` (
 
     ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE `cstudio_objectmetadata` (
+CREATE TABLE IF NOT EXISTS `cstudio_objectmetadata` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `site` VARCHAR(50) NOT NULL,
   `path` VARCHAR(2000) NOT NULL,
@@ -168,4 +168,4 @@ CREATE TABLE `cstudio_objectmetadata` (
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC;
+  ROW_FORMAT=DYNAMIC
