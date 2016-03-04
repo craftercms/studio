@@ -52,6 +52,8 @@
 
         <div id="GoLiveQueue" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-GoLiveQueue" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('GoLiveQueue');"></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="GoLiveQueue-total-count"></span>)
                 </h2>
@@ -69,6 +71,8 @@
 
         <div id="approvedScheduledItems" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-approvedScheduledItems" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('approvedScheduledItems');" ></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="approvedScheduledItems-total-count"></span>)
                 </h2>
@@ -86,6 +90,8 @@
 
         <div id="recentlyMadeLive" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-recentlyMadeLive" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('recentlyMadeLive');"></div>
                 <h2 class="panel-title">
                     <span></span>
                 </h2>
@@ -110,6 +116,8 @@
 
         <div id="MyRecentActivity" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-MyRecentActivity" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('MyRecentActivity');"></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="MyRecentActivity-total-count"></span>)
                 </h2>
@@ -120,10 +128,6 @@
                             <input type="text" id="widget-showitems-MyRecentActivity" maxlength="3" value="10"
                                    class="form-control input-sm"/>
                         </div>
-                    </li>
-                    <li>
-                        <button id="expand-all-MyRecentActivity" class="btn btn-default btn-sm"
-                                onclick="return WcmDashboardWidgetCommon.toggleAllItems('MyRecentActivity');"></button>
                     </li>
                 </ul>
             </div>
@@ -236,7 +240,6 @@
         document.querySelector('#expand-all-GoLiveQueue').innerHTML = loc(langBundle, "dashletGoLiveCollapseAll");
         document.querySelector('#expand-all-recentlyMadeLive').innerHTML = loc(langBundle, "dashletRecentDeployCollapseAll");
         document.querySelector('#expand-all-approvedScheduledItems').innerHTML = loc(langBundle, "approvedScheduledCollapseAll");
-        document.querySelector('#expand-all-MyRecentActivity').innerHTML = loc(langBundle, "dashletMyRecentActivityCollapseAll");
 
         new CStudioAuthoringWidgets.GoLiveQueueDashboard('GoLiveQueue', 'site/rosie/dashboard');
         new CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard('approvedScheduledItems', 'site/rosie/dashboard');
