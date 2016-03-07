@@ -144,6 +144,10 @@ public class NotificationServiceImpl implements NotificationService {
                         break;
                     case CompleteMessages:
                         message = notificationConfig.getCompleteMessages().get(key);
+                        break;
+                    case CannedMessages:
+                        message = getCannedMessage(notificationConfig.getCannedMessages(),key);
+                        break;
                 }
                 if (message != null) {
                     Map<String, Object> model = new HashMap<>();
@@ -158,6 +162,16 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Throwable ex) {
             logger.error("Unable to Get Message", ex);
             return "";
+        }
+        return "";
+    }
+
+    private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
+        if(cannedMessages.containsKey(key)){
+            final List<MessageTO> messages = cannedMessages.get(key);
+            if(!messages.isEmpty()){
+             return messages.get(0).getBody();
+            }
         }
         return "";
     }
@@ -371,7 +385,7 @@ public class NotificationServiceImpl implements NotificationService {
                         messageContainer.put(messageKey, new ArrayList<MessageTO>());
                     }
                     List<MessageTO> messageTOs = messageContainer.get(messageKey);
-                    messageTOs.add(new MessageTO(messageTitle, messageContent));
+                    messageTOs.add(new MessageTO(messageTitle, messageContent,messageKey));
                 }
             } else {
                 logger.error("completed Messages is empty");

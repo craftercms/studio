@@ -67,7 +67,7 @@ CStudioAuthoring.Module.requireModule(
 
 				componentsArr.forEach(function(component) {
 					editor['data-components'][component.id] = Array.prototype.slice.call(component.childNodes); // Copy children and store them in an attribute
-					component.innerHTML = '';
+					component.innerHTML = 'DYNAMIC COMPONENT';
 				});
 			},
 

@@ -36,6 +36,21 @@
   .panel {
     .panel-heading {
       @include clearfix;
+
+      .studio-section-widget{
+        background: url("../themes/cstudioTheme/images/icons/icon_strip.gif") no-repeat scroll -20px 5px transparent;
+        display: block;
+        float: left;
+        height: 30px;
+        margin-right: 5px;
+        width: 12px;
+        position: relative;
+        top: 1px;
+        cursor: pointer;
+      }
+      .studio-section-widget-close{
+        background: url("../themes/cstudioTheme/images/icons/icon_strip.gif") no-repeat scroll 0px 5px transparent;
+      }
       .panel-title {
         float: left;
         line-height: 27px;

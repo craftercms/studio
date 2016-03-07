@@ -16,16 +16,6 @@ var JSON = YAHOO.lang.JSON;
 var YEvent = YAHOO.util.Event;
 var ApproveType = false;
 
-/* Removing this check because,
- * 401 error is returning some other cases apart from Authentication failed case.
- YConnect.failureEvent.subscribe(function() {
- if (arguments[1] && arguments[1].length == 1 && arguments[1][0].status == 401) {
- alert ("Authentication failed, redirecting to login page.");
- window.location.reload(true);
- }
- });
- */
-
 (function(undefined){
 
     // Private functions
@@ -366,7 +356,7 @@ var ApproveType = false;
 
             loadedModules: new Array(),
             waitingForModule: new Array(),
-             
+
             /**
              * either receive the Module Class or wait for it to be loaded
              */
@@ -424,7 +414,7 @@ var ApproveType = false;
                     msg += "moduleClass:" + ((waiter.moduleClass) ? moduleClass.moduleClass : "none") + "\r\n";
                     msg += "moduleConfig:" + ((waiter.moduleConfig) ? moduleClass.moduleConfig : "none") + "\r\n";
 
-                    if( window.console && window.console.log) { 
+                    if( window.console && window.console.log) {
                         window.console.log(msg);
                     }
                 }
@@ -1061,7 +1051,7 @@ var ApproveType = false;
 						if(url.indexOf("--x--") != -1) {
 							url = "/";
 						}
-						
+
 					}
 
                     var Topics = crafter.studio.preview.Topics;
@@ -1086,7 +1076,7 @@ var ApproveType = false;
             openContentWebForm: function(formId, id, noderef, path, edit, asPopup, callback, auxParams,includeMetaData) {
                 var readOnly = false
                 auxParams = (auxParams) ? auxParams : [];
-                
+
                 for(var j=0; j<auxParams.length; j++) {
                     if(auxParams[j].name=="readonly") {
                         readOnly = true;
@@ -1166,7 +1156,7 @@ var ApproveType = false;
                         callback: callback,
                         aux: auxParams
                     };
-                    
+
                     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, id, getContentItemsCb, false, false);
                 }
                 else {
@@ -1180,77 +1170,6 @@ var ApproveType = false;
 
                 }
 
-            },
-
-            /**
-             * open form with simple form engine
-             */
-            openContentWebFormSimpleEngine: function(contentType, path, edit, readOnly, callback, auxParams,includeMetaData) {
-                alert("USED?")
-                // if(includeMetaData){
-                //     auxParams = CStudioAuthoring.Operations.addMetadata(auxParams);
-                // }
-
-                // var childForm = CStudioAuthoring.ChildFormManager.createChildFormConfig();
-
-                // childForm.formId = CStudioAuthoring.Utils.generateUUID();
-                // childForm.formName = contentType.form ;
-                // childForm.windowName = path;
-
-                // childForm.formUrl = CStudioAuthoringContext.authoringAppBaseUri +
-                // "/form?site=" + CStudioAuthoringContext.site + "&form=" +
-                // contentType.form +
-                // "&path=" + path;
-
-                // if(contentType.type){
-                //     if(contentType.type=="component"){
-                //         childForm.formUrl += "&childForm=true";
-                //     }
-                // }
-
-                // var readOnlySetByAux = false
-                // for(var j=0; j<auxParams.length; j++) {
-                //     if(auxParams[j].name=="readonly") {
-                //         readOnlySetByAux = true;
-                //         readOnly = true;
-                //     }
-
-                //     childForm.formUrl += "&" + auxParams[j].name +"="+auxParams[j].value;
-                // }
-
-                // childForm.formSaveCallback = callback;
-
-                // lookupItemCb = {
-                //     success: function(itemTO) {
-                //         if(itemTO.item.lockOwner != "" && itemTO.item.lockOwner != CStudioAuthoringContext.user) {
-                //             readOnly = true;
-                //         }
-
-                //         if(readOnly && (readOnly=="true" || readOnly==true) && readOnlySetByAux == false ) {
-                //             childForm.formUrl += "&readonly=true";
-                //         }
-
-                //         if(edit && (edit == true || edit == "true") && (!readOnly || readOnly == false || readOnly == "false")) {
-                //             childForm.formUrl += "&edit=" + edit;
-                //         }
-
-                //         childForm.formUrl += "&wid=" + childForm.formId;
-
-                //         CStudioAuthoring.ChildFormManager.openChildForm(childForm);
-                //     },
-
-                //     failure: function() {
-                //     }
-                // };
-
-                // if(path.indexOf(".xml") != -1) {
-                //     // item is existing content
-                //     CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, lookupItemCb, false);
-                // }
-                // else {
-                //     // item is new
-                //     lookupItemCb.success({ item: { lockOwner: CStudioAuthoringContext.user } });
-                // }
             },
 
             /**
@@ -1333,7 +1252,7 @@ var ApproveType = false;
 
             performSimpleIceEdit: function(item, field, isEdit, callback, aux) {
                 var editorId =  CStudioAuthoring.Utils.generateUUID();
-                
+
                 if(callback) {
                     CStudioAuthoring.InContextEdit.registerIceCallback(editorId, callback);
                 }
@@ -1375,12 +1294,12 @@ var ApproveType = false;
                             view = new Controller({ context: id, editorId: editorId });
 
                             view.initializeContent(
-                                item, 
-                                field, 
-                                CStudioAuthoringContext.site, 
-                                isEdit, 
-                                callback, 
-                                $modal.find('.studio-ice-container-'+editorId), 
+                                item,
+                                field,
+                                CStudioAuthoringContext.site,
+                                isEdit,
+                                callback,
+                                $modal.find('.studio-ice-container-'+editorId),
                                 aux,
                                 editorId);
 
@@ -1742,52 +1661,6 @@ var ApproveType = false;
                 CStudioAuthoring.Operations.openContentWebForm(formId, id, noderef, path, true, asPopup, callback, auxParams);
             },
 
-            // duplicateContent: function(site, path, argsCallback) {
-            //     var serviceUri = "/api/1/services/api/1/clipboard/duplicate.json?site=" + site + "&path=" + path;
-            //     var ajaxRequest=CStudioAuthoring.Service.createServiceUri(serviceUri);
-
-            //     var serviceCallback = {
-            //         success: function(oResponse) {
-            //             argsCallback.success();
-            //             var contentTypeJson = oResponse.responseText;
-
-            //             try {
-            //                 var contentTypes = eval("(" + contentTypeJson + ")");
-            //                 var formId = contentTypes.form;
-            //                 var path = contentTypes.path;
-            //                 var editCb = {
-            //                     success: function() {
-            //                         this.callingWindow.location.reload(true);
-            //                     },
-
-            //                     failure: function() {
-            //                     },
-
-            //                     callingWindow: window
-            //                 };
-
-            //                 var auxParams = new Array();
-            //                 /******** CRAFTER-533 & 534 ****************/
-            //                 // this is a temp fix since cstudio currently doesn't support drafter feature
-            //                 // the parameters should be added back when draft becomes available 
-            //                 //var param = {};
-            //                 //param['name'] = "draft";
-            //                 //param['value'] = "true";
-            //                 //auxParams.push(param);
-            //                 //param = {};
-            //                 //param['name'] = "duplicate";
-            //                 //param['value'] = "true";
-            //                 //auxParams.push(param);
-            //                 /******** CRAFTER-533 & 534 ****************/
-            //                 CStudioAuthoring.Operations.editContent(
-            //                     formId,
-            //                     CStudioAuthoringContext.site,path,
-            //                     "", path, false,editCb,auxParams);
-            //             }
-            //             catch(err) {
-            //                 //callback.failure(err);
-            //             }
-            //         },
             duplicateContent: function(site, path, argsCallback) {
 
                 CStudioAuthoring.Service.getContent(path, false, {
@@ -1802,7 +1675,7 @@ var ApproveType = false;
                         var contentTypePos = parentContent.indexOf("content-type")+13;
                         var contentTypeEndPos = parentContent.indexOf("<", contentTypePos);
                         var contentType = parentContent.substr(contentTypePos, contentTypeEndPos-contentTypePos);
-                      
+
                         // find a list of paths like a "/site/components/page/GRPID/OBJID/*.xml"
                         var dependencyRegExp = new RegExp("(\\/site\\/components\\/page\\/"+origGroupId+"\\/"+origObjectId+"\\/([^\.]+)\\.xml)","gm");
 
@@ -1821,7 +1694,7 @@ while(found=dependencyRegExp.exec(parentContent)) {
                         for(var i=0; i<dependencies.length; i++) {
                             var dependencyPath = dependencies[i];
                             if(dependencyPath.indexOf("/site") != -1) {
-                                // generate new path 
+                                // generate new path
                                 var newDepPath = dependencyPath.replace(origObjectId, newObjectId);
                                     newDepPath = newDepPath.replace(origGroupId, newGroupId);
 
@@ -1832,9 +1705,9 @@ while(found=dependencyRegExp.exec(parentContent)) {
                                 // load the dependency
                                 CStudioAuthoring.Service.getContent(dependencyPath, false, {
                                     success: function(dependencyContent) {
-//dependencyContent = dependencyContent.responseText;
+
                                         var childSaveCb = {
-                                            success: function(){}, 
+                                            success: function(){},
                                             failure: function(){}
                                         };
 
@@ -1847,10 +1720,6 @@ while(found=dependencyRegExp.exec(parentContent)) {
                                         var writeChildPath = this.path; //.substr(0, newDepPath.lastIndexOf("/"));
                                         var writeChildServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writeChildPath, writeChildFileName, null, childContentType, CStudioAuthoringContext.site, true, false, false, true);
 
-                                        //var writeChildServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
-                                        //                    + "?site=" + CStudioAuthoringContext.site 
-                                        //                    + "&path=" + writeChildPath;
-                                                            
                                         YAHOO.util.Connect.setDefaultPostHeader(false);
                                         YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
                                         YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeChildServiceUrl), childSaveCb, dependencyContent);
@@ -1871,10 +1740,7 @@ while(found=dependencyRegExp.exec(parentContent)) {
                         var writeFileName = newPath.substr(newPath.lastIndexOf("/")+1);
                         var writePath = newPath; //.substr(0, newPath.lastIndexOf("/"));
                         var writeServiceUrl = CStudioAuthoring.Service.createWriteServiceUrl(writePath, writeFileName, null, contentType, CStudioAuthoringContext.site, true, false, false, true);
-                        //var writeServiceUrl = "/proxy/alfresco/cstudio/wcm/content/write-content"
-                        //                    + "?site=" + CStudioAuthoringContext.site 
-                        //                    + "&path=" + writePath;
-                        
+
 var parentSaveCb = {
                             success: function(){
                                 // open the top level content for edit
@@ -1895,14 +1761,14 @@ var parentSaveCb = {
                                     }
                                 };
 
-                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, newPath, getContentItemCb, false, false);            
-                            }, 
+                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, newPath, getContentItemCb, false, false);
+                            },
                             failure: function(){}
                         };
 
                         YAHOO.util.Connect.setDefaultPostHeader(false);
                         YAHOO.util.Connect.initHeader("Content-Type", "text/pain; charset=utf-8");
-                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), parentSaveCb, parentContent);      
+                        YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(writeServiceUrl), parentSaveCb, parentContent);
                     },
                     failure: function(err) {
                         alert("failed to load content");
@@ -1982,7 +1848,7 @@ var parentSaveCb = {
                             alert("no taxonomy types available for [" + site + ":" + path + "]");
                         }
                         //else if (contentTypes.types.length == 1) {
-                        // fill in this case 
+                        // fill in this case
                         //}
                         else {
                             var selectTemplateCb = {
@@ -2326,7 +2192,7 @@ var parentSaveCb = {
 
             // constants
             defaultNavContext: "default",
-            
+
             // UI (legacy pattern)
             contextServiceUri: "/context-nav",
             getComponentPreviewServiceUrl: "/crafter-controller/component",
@@ -2347,7 +2213,7 @@ var parentSaveCb = {
             allowedContentTypesForPath: "/api/1/services/api/1/content/get-content-types.json",
             retrieveSitesUrl: "/api/1/services/api/1/user/get-sites-3.json",
             retrievePublishingChannelsUrl: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
-            
+
             getPagesServiceUrl: "/api/1/services/api/1/content/get-pages.json",
             lookupFoldersServiceUri: "/api/1/services/api/1/content/get-pages.json", // NEED A SERVICE
 
@@ -2359,15 +2225,15 @@ var parentSaveCb = {
             submitDeleteContent: "/api/1/services/api/1/content/delete-content.json",
             deleteContentUrl: "/api/1/services/api/1/workflow/go-delete.json",
             createFolderServiceUrl: "/api/1/services/api/1/content/create-folder.json",
-            
+
             // ORDER SERVICES
             // READ
             getServiceOrderUrl: "/api/1/services/api/1/content/get-item-orders.json",
             getNextOrderSequenceUrl: "/api/1/services/api/1/content/get-next-item-order.json",
-            
+
             //WRITE
             reorderServiceSubmitUrl: "/api/1/services/api/1/content/reorder-items.json",
-            
+
             // DEPLOYMENT SERVICES
             // READ OPS
             getDeploymentHistoryServiceUrl: "/api/1/services/api/1/deployment/get-deployment-history.json",
@@ -2403,10 +2269,10 @@ var parentSaveCb = {
             cutContentToClipboardServiceUri: "/api/1/services/api/1/clipboard/cut-item.json",
             pasteContentFromClipboardServiceUri: "/api/1/services/api/1/clipboard/paste-item.json",
             getClipboardItemsServiceUri: "/api/1/services/api/1/clipboard/get-items.json",
-                    
+
             // Analytics
             getAnalyticsReportUrl: "/api/1/services/analytics/get-report.json",
-            
+
             // Dependencies
             lookupContentDependenciesServiceUri: "/api/1/services/api/1/dependency/get-dependencies.json?deletedep=true&",
 
@@ -2419,25 +2285,8 @@ var parentSaveCb = {
             // Publishing Channels
             getAvailablePublishingChannelsServiceUri: "/api/1/services/api/1/deployment/get-available-publishing-channels.json",
 
-            // not ported yet
-            // writeContentAssetServiceUrl:  "/cstudio/content/upload-content-asset",
-            // wcmMapContentServiceUri: "/proxy/alfresco/cstudio/wcm/content/map-content",
-            // allSearchableContentTypesForSite: "/proxy/alfresco/cstudio/wcm/contenttype/get-all-searchable-content-types",
-            // lookupUserProfileServiceUrl: "/proxy/alfresco/cstudio/profile/get-profile",
-            // getJsonFormattedModelDataUrl: "/proxy/alfresco/cstudio/model/get-model-data?format=json",
-            // getTaxonomyServiceUrl: "/proxy/alfresco/cstudio/model/get-model-data",
-            // getStatusListUrl: "/proxy/alfresco/cstudio/wcm/workflow/get-status-list",
-            // renderContentPreviewUrl: "/service/cstudio/wcm/components/content-viewer",
-            // cleanHtmlUrl: "/service/cstudio/services/content/cleanhtml",
-            // updateTaxonomyUrl: "/proxy/alfresco/cstudio/taxonomy/update-taxonomy",
-            // createTaxonomyItemUrl: "/proxy/alfresco/cstudio/taxonomy/create",
-            // allowedTaxonomyTypesForPathUrl: "/proxy/alfresco/cstudio/taxonomy/allowed-types",
-            // getContentFieldValueServiceUrl: "/service/cstudio/services/content/readfield",
-            // updateContentFieldValueServiceUrl: "/service/cstudio/services/content/writefield",
-            // getSiteServiceUrl : "/proxy/alfresco/cstudio/site/get-site",
-            // previewSyncAllServiceUrl: "/proxy/alfresco/cstudio/wcm/sync/sync-site",
-            // setObjectStateServiceUrl: "/proxy/alfresco/cstudio/objectstate/set-object-state",
-            
+            // Rejection Reason
+            getRejectionReasonServiceUri: "/api/1/services/api/1/site/get-canned-message.json",
 
             /**
              * lookup authoring role. having 'admin' role in one of user roles will return admin. otherwise it will return contributor
@@ -2690,7 +2539,7 @@ var parentSaveCb = {
                 var serviceUri = this.writeContentAssetServiceUrl;
                 // this method is not done.  upload asset is a form based api
                 // this api will need to create a hidden form to make this api work
-                // see dialog upload asset for example				
+                // see dialog upload asset for example
             },
 
             /**
@@ -3076,7 +2925,7 @@ var parentSaveCb = {
              */
             getComponentPreview: function(componentId, callback) {
                 var serviceUrl = this.getComponentPreviewServiceUrl;
-                // adding to uid to prevent cached response				
+                // adding to uid to prevent cached response
                 serviceUrl += "?path=" + componentId + "&uid=" + CStudioAuthoring.Utils.generateUUID()+"&preview=true";
                 var serviceCallback = {
                     success: function(response) {
@@ -3209,6 +3058,26 @@ var parentSaveCb = {
                     },
                     failure: function(response) {
                         callback.failure(response);
+                    }
+                };
+                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+            },
+
+            /**
+             * Rejection Reason
+             */
+            getRejectionReason: function(locale, type, callback) {
+                var serviceUrl = this.getRejectionReasonServiceUri;
+                serviceUrl += "?site=" + CStudioAuthoringContext.site;
+                serviceUrl += "&locale=" + locale;
+                serviceUrl += "&type=" + type;
+                var serviceCallback = {
+                    success: function(jsonResponse) {
+                        var results = eval("(" + jsonResponse.responseText + ")");
+                        callback.success(results);
+                    },
+                    failure: function(response) {
+
                     }
                 };
                 YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
@@ -3671,7 +3540,7 @@ var parentSaveCb = {
                 return this.matchDropdownParentNode(path) + '-latest-opened-path';
             },
 
-            
+
             /**
              * retrieve list of channels for a given site
              */
@@ -3681,7 +3550,7 @@ var parentSaveCb = {
                 var serviceCallback = {
                     success : function(response) {
                         var channels = eval("(" + response.responseText + ")");
-                        
+
                         callback.success(channels);
                     },
 
@@ -3727,7 +3596,7 @@ var parentSaveCb = {
              * lookup Content item
              */
             lookupContentItem: function(site, path, callback, isDraft, populateDependencies) {
- 
+
                 var serviceUri = this.lookupContentItemServiceUri + "?site=" + site + "&path=" + path;
                 if (isDraft) {
                     serviceUri = serviceUri + "&draft=true";
@@ -4437,7 +4306,7 @@ var parentSaveCb = {
                 }
                 searchConfig += ']';
 
-                // prepare keyword for JSON.  
+                // prepare keyword for JSON.
                 var dkeywords = "";
                 if (!CStudioAuthoring.Utils.isEmpty(searchContext.keywords)) {
                     dkeywords = decodeURIComponent(searchContext.keywords);

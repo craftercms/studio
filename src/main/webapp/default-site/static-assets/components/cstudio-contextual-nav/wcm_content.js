@@ -3,8 +3,8 @@
  */
 CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.ContextualNav.WcmActiveContentMod || (function () {
 
-    var filePermissions = { "fileLen" : 0 },               // Cache the file permissions for the files selected
-        permissionAggregateCounter = {};    // Keep a counter of all the permissions from the selected files
+    var filePermissions = { "fileLen" : 0 }, // Cache the file permissions for the files selected
+        permissionAggregateCounter = {};     // Keep a counter of all the permissions from the selected files
 
     return {
         initialized: false,
@@ -55,6 +55,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             var selectedContent,
                                 callback;
 
+                             var noticeEls = YDom.getElementsByClassName("acnDraftContent", null, _this.containerEl.parentNode.parentNode);
+                             for(var n=0; n<noticeEls.length; n++) {
+                                 var curNode = noticeEls[n];
+                                 curNode.parentNode.removeChild(curNode);
+                             }  
+
                             if (contentTO[0] && contentTO[0].path) {
                                 selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
 
@@ -73,8 +79,18 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                             YDom.addClass(noticeEl, "acnDisabledContent");
                                             noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
-
                                         }
+
+                                        for(var s=0; s<selectedContent.length; s++) {
+                                            if(selectedContent[s].savedAsDraft == true) {
+                                                var noticeEl = document.createElement("div");
+                                                this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
+                                                YDom.addClass(noticeEl, "acnDraftContent");
+                                                noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentSavedAsDraft");
+
+                                                break;
+                                            }
+                                       }
                                     },
                                     failure: function() {
                                         //TDOD: log error, not mute it
@@ -94,6 +110,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 totalPerms,
                                 noticeEl,
                                 isWrite;
+
+                             var noticeEls = YDom.getElementsByClassName("acnDraftContent", null, _this.containerEl.parentNode.parentNode);
+                             for(var n=0; n<noticeEls.length; n++) {
+                                 var curNode = noticeEls[n];
+                                 curNode.parentNode.removeChild(curNode);
+                             }  
 
                             if (contentTO[0] && contentTO[0].path) {
                                 _this.removeFilePermissions(contentTO[0].path, filePermissions, permissionAggregateCounter);
@@ -204,8 +226,19 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                     YDom.addClass(noticeEl, "acnDisabledContent");
                                     noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
-
                                 }
+
+                                for(var s=0; s<selectedContent.length; s++) {
+                                    if(selectedContent[s].savedAsDraft == true) {
+                                        var noticeEl = document.createElement("div");
+                                        this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
+                                        YDom.addClass(noticeEl, "acnDraftContent");
+                                        noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentSavedAsDraft");
+
+                                        break;
+                                    }
+                                }
+
                             },
                             failure: function() {
                                 //TDOD: log error, not mute it

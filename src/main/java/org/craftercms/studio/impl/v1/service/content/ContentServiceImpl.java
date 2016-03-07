@@ -508,6 +508,7 @@ public class ContentServiceImpl implements ContentService {
         item.internalName = item.name;
         item.contentType = "asset";
         item.disabled = false;
+        item.savedAsDraft = false;
         item.floating = false;
         item.hideInAuthoring = false;
 
@@ -554,21 +555,35 @@ public class ContentServiceImpl implements ContentService {
         item.uri = contentPath;
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
         item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
-        item.browserUri = (item.page) ? contentPath.replace("/site/website", "").replace("/index.xml", "") : null;
+        item.browserUri = contentPath;
+        
+        if(item.page) {
+            item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
+        }
 
         Document contentDoc = this.getContentAsDocument(fullContentPath);
         if(contentDoc != null) {
             Element rootElement = contentDoc.getRootElement();
-            item.internalName = rootElement.valueOf("internal-name");
-            item.contentType = rootElement.valueOf("content-type");
-            item.disabled = ( (rootElement.valueOf("disabled") != null) && rootElement.valueOf("disabled").equals("true") );
-            item.floating = ( (rootElement.valueOf("placeInNav") != null) && !rootElement.valueOf("placeInNav").equals("true") );
-            item.navigation = ( (rootElement.valueOf("placeInNav") != null) && rootElement.valueOf("placeInNav").equals("true") );
-            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-            item.hideInAuthoring = ( (rootElement.valueOf("hideInAuthoring") != null) && rootElement.valueOf("hideInAuthoring").equals("true") );
-            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
-
+            
+            String internalName = rootElement.valueOf("internal-name");
+            String contentType = rootElement.valueOf("content-type");
+            String disabled = rootElement.valueOf("disabled");
+            String savedAsDraft = rootElement.valueOf("savedAsDraft");
+            String floating = rootElement.valueOf("placeInNav");
+            String navigation = rootElement.valueOf("placeInNav");
+            String hideInAuthoring = rootElement.valueOf("hideInAuthoring");
             String displayTemplate = rootElement.valueOf("display-template");
+
+            item.internalName = (internalName!=null) ? internalName : null;
+            item.contentType = (contentType!=null) ? contentType : null;
+            item.disabled = (disabled!=null && "true".equalsIgnoreCase(disabled)) ? true : false;
+            item.savedAsDraft = (savedAsDraft!=null && "true".equalsIgnoreCase(savedAsDraft)) ? true : false;
+            item.hideInAuthoring = (hideInAuthoring!=null && "true".equalsIgnoreCase(hideInAuthoring)) ? true : false;
+
+            item.navigation = (navigation!=null && "true".equalsIgnoreCase(navigation)) ? true : false;
+            item.floating = !item.navigation;
+
+            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
 
             if(displayTemplate != null) {
                 RenderingTemplateTO template = new RenderingTemplateTO();
@@ -820,6 +835,7 @@ public class ContentServiceImpl implements ContentService {
             item.isComponent = item.component;
             item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
             item.isDocument = item.document;
+            item.browserUri =item.getUri();
         }
 
         loadContentTypeProperties(site, item, item.contentType);

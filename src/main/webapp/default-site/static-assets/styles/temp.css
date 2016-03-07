@@ -4594,11 +4594,6 @@ div.acnBox table.acnLiveTable td.acnLiveTableRight {
 .rejectReason {
   width: 107px; }
 
-.rejectReasonDropDown {
-  width: 443px;
-  margin-bottom: 3px;
-  border: 1px solid #7F9BD9; }
-
 .rejectBottomBox {
   border: 1px solid #7F9BD9;
   height: 139px; }
@@ -7350,6 +7345,18 @@ address {
     display: table; }
   .site-dashboard .panel .panel-heading:after {
     clear: both; }
+  .site-dashboard .panel .panel-heading .studio-section-widget {
+    background: url("../themes/cstudioTheme/images/icons/icon_strip.gif") no-repeat scroll -20px 5px transparent;
+    display: block;
+    float: left;
+    height: 30px;
+    margin-right: 5px;
+    width: 12px;
+    position: relative;
+    top: 1px;
+    cursor: pointer; }
+  .site-dashboard .panel .panel-heading .studio-section-widget-close {
+    background: url("../themes/cstudioTheme/images/icons/icon_strip.gif") no-repeat scroll 0px 5px transparent; }
   .site-dashboard .panel .panel-heading .panel-title {
     float: left;
     line-height: 27px; }

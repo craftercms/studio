@@ -147,15 +147,11 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
 
             editLinkId = 'editLink_' + this.widgetId + '_' + WcmDashboardWidgetCommon.encodePathToNumbers(item.uri);
 
-            if (item.component && item.internalName != "crafter-level-descriptor.level.xml") {
+            if (item.component && item.internalName == "crafter-level-descriptor.level.xml") {
                 browserUri = "";
                 displayBrowserUri = "";
             }
-            /*
-             if (item.internalName == "crafter-level-descriptor.level.xml") {
-             displayName = "Section Defaults" + (item.newFile?"*":"");
-             }
-             */
+
             var ttSpanId =  "tt_" + this.widgetId + "_" + item.uri + "_" + (this.tooltipLabels.length + 1);
             var itemTitle = CStudioAuthoring.Utils.getTooltipContent(item);
             this.tooltipLabels.push(ttSpanId);
