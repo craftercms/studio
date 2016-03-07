@@ -18,7 +18,7 @@
     </div>  
 
      <#assign item = siteItemService.getSiteItem(curComponentPath) />
-     <@renderComponents model=item />
+     <@renderRTEComponents model=item />
 
   <#elseif (componentCount > 1) == true >
     <#assign components = model['//rteComponents//item'] />
@@ -30,7 +30,7 @@
               </div>
         
          <#assign item = siteItemService.getSiteItem(curComponentPath) />
-         <@renderComponents model=item />
+         <@renderRTEComponents model=item />
           </#if>
     </#list>
   </#if>
