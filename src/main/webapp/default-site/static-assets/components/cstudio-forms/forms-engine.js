@@ -1009,13 +1009,23 @@ var CStudioForms = CStudioForms || function() {
                                         var value = form.model["internal-name"];
                                         var name = entityId;
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                        iceWindowCallback.success(contentTO, editorId, name, value);
+
+                                        if(draft) {
+                                            // TODO sent signal to reload preview
+                                        }
+                                        else {
+                                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                                            iceWindowCallback.success(contentTO, editorId, name, value);
+                                        }
                                     }
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                        //reloadParentWindow();  // the form should never reload itself. It should call it's callback, which may decide to load the page.
+                                        if(draft) {
+                                             // TODO sent signal to reload preview
+                                        }
+                                        else {
+                                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                                        }
                                     }
                                 },
                                 failure: function (err) {
