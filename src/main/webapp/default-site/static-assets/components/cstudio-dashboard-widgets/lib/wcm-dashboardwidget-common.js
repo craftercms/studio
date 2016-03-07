@@ -700,6 +700,25 @@ WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
 };
 
 /**
+ * toggle the whole table
+ */
+WcmDashboardWidgetCommon.toggleTable = function (widgetId) {
+
+    var widget = YDom.get(widgetId),
+        instance = widget.instance,
+        table = YDom.get(widgetId + "-body"),
+        link = YDom.get("section-widget-" + widgetId);
+
+    if(!YDom.hasClass(link, "studio-section-widget-close")){
+        YDom.setStyle(table, "display", "none");
+        YDom.addClass(link, "studio-section-widget-close");
+    }else{
+        YDom.setStyle(table, "display", "block");
+        YDom.removeClass(link, "studio-section-widget-close");
+    }
+};
+
+/**
  * edit an item
  */
 WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
@@ -717,7 +736,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
     var getContentCallback = {
         success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
-            
+
 
             if(contentTO.uri.indexOf("/site") == 0) {
                 CStudioAuthoring.Operations.editContent(
@@ -730,7 +749,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
                     editCallback);
             }
             else {
-                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);      
+                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);
             }
         },
 
@@ -752,7 +771,7 @@ WcmDashboardWidgetCommon.previewItem = function (matchedElement, isChecked) {
             if(contentTO.name.indexOf(".xml") != -1) {
                CStudioAuthoring.Storage.write(CStudioAuthoring.Service.menuParentPathKeyFromItemUrl(contentTO.path), contentTO.path);
             }
-            
+
             CStudioAuthoring.Operations.openPreview(contentTO);
         },
 

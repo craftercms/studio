@@ -52,6 +52,8 @@ CStudioAuthoring.Messages.registerBundle("siteDashboard", "kr", {
     dashletRecentDeployColPageName: "항목 이름",
 
     dashletMyRecentActivityTitle: "내 최근 활동",
+    dashletMyRecentActivityCollapseAll: "모두 축소",
+    dashletMyRecentActivityExpandAll: "모두 확장",
     dashletMyRecentActivityHideLiveItems: "라이브 항목 숨기기",
     dashletMyRecentActivityShowLiveItems: ", 라이브 품목",
     ddashletMyRecentActivityShow: "쇼",

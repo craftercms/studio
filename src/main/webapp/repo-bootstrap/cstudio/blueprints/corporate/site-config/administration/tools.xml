@@ -25,10 +25,12 @@
 				<datasource>img-repository-upload</datasource>
 				<datasource>img-flickr-upload</datasource>
 				<datasource>file-desktop-upload</datasource>
+				<datasource>file-browse-repo</datasource>
 				<datasource>flash-desktop-upload</datasource>
 				<datasource>video-desktop-upload</datasource>
+				<datasource>video-browse-repo</datasource>
 				<datasource>key-value-list</datasource>
-                <datasource>configured-list</datasource>
+                <datasource>configured-list</datasource>                
 			</datasources>
 			<objectTypes>
 				<type>

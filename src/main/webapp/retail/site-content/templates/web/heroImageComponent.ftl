@@ -1,1 +1,0 @@
-<img src="${model.image}" width='620px' >

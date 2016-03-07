@@ -52,6 +52,8 @@
 
         <div id="GoLiveQueue" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-GoLiveQueue" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('GoLiveQueue');"></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="GoLiveQueue-total-count"></span>)
                 </h2>
@@ -69,6 +71,8 @@
 
         <div id="approvedScheduledItems" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-approvedScheduledItems" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('approvedScheduledItems');" ></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="approvedScheduledItems-total-count"></span>)
                 </h2>
@@ -86,6 +90,8 @@
 
         <div id="recentlyMadeLive" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-recentlyMadeLive" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('recentlyMadeLive');"></div>
                 <h2 class="panel-title">
                     <span></span>
                 </h2>
@@ -110,6 +116,8 @@
 
         <div id="MyRecentActivity" class="panel panel-default">
             <div class="panel-heading">
+                <div id="section-widget-MyRecentActivity" class="studio-section-widget"
+                     onclick="return WcmDashboardWidgetCommon.toggleTable('MyRecentActivity');"></div>
                 <h2 class="panel-title">
                     <span></span> (<span class="cstudio-dash-totalcount" id="MyRecentActivity-total-count"></span>)
                 </h2>
@@ -123,7 +131,7 @@
                     </li>
                 </ul>
             </div>
-            <div id="MyRecentActivity-body"></div>
+            <div id="MyRecentActivity-body" style="display:none"></div>
             <div id="sortedBy-MyRecentActivity" style="display:none"></div>
             <div id="sort-type-MyRecentActivity" style="display:none"></div>
         </div>
