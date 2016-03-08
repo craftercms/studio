@@ -1411,7 +1411,7 @@ implements SecurityProvider {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
 
                 List<String> permissions = new LinkedList<String>();
-                permissions.add("{http://www.alfresco.org/model/content/1.0}cmobject.Collaborator");
+                permissions.add("{http://www.alfresco.org/model/content/1.0}cmobject.Coordinator");
                 Ace addAce = session.getObjectFactory().createAce("GROUP_"+group, permissions);
                 List<Ace> addAces = new LinkedList<Ace>();
                 addAces.add(addAce);
