@@ -1154,6 +1154,16 @@ var CStudioForms = CStudioForms || function() {
                     }
                 };
 
+                var collapseFn = function() {
+                    if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
+                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                        CStudioAuthoring.InContextEdit.collapseDialog(editorId);
+                    }else {
+                        window.close();
+                    }
+                   // CStudioAuthoring.Operations.collapseSimpleIceEdit();
+                }
+
                 amplify.subscribe('/field/init/completed', function () {
                     form.asyncFields--;
                     closeAjaxOverlay();
@@ -1264,6 +1274,14 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(closeButtonEl, "click", cancelFn, this);
                 }
+                var colExpButtonEl = document.createElement("input");
+                colExpButtonEl.id = "colExpButtonBtn";
+                YDom.addClass(colExpButtonEl, "btn");
+                YDom.addClass(colExpButtonEl, "btn-default");
+                colExpButtonEl.type = "button";
+                colExpButtonEl.value = "Collapse";
+                formControlBarEl.appendChild(colExpButtonEl);
+                YAHOO.util.Event.addListener(colExpButtonEl, "click", collapseFn, this);
 
             },
 
