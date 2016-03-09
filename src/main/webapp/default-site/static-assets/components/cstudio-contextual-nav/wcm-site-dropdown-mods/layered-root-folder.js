@@ -1155,6 +1155,7 @@ CStudioAuthoringContext.site,
                 retTransferObj.browserUri = treeItem.browserUri;
                 retTransferObj.nodeRef = treeItem.nodeRef;
                 retTransferObj.formId = treeItem.form;
+                retTransferObj.contentType = treeItem.contentType;
                 retTransferObj.formPagePath = treeItem.formPagePath;
                 retTransferObj.isContainer = treeItem.container || treeItem.isContainer;
                 retTransferObj.isComponent = treeItem.component;
@@ -1263,86 +1264,35 @@ CStudioAuthoringContext.site,
                 }
                 return retTransferObj;
             },
+
             /**
              * build the HTML for the scheduled tool tip.
              *
              */
-            buildToolTipRegular: function(label, style, status, editedDate, modifier, lockOwner, itemNameLabel) {
+            buildToolTipRegular: function(label, contentType, style, status, editedDate, modifier, lockOwner, itemNameLabel) {
                 if (!itemNameLabel) {
                     itemNameLabel = "Page";
                 }
 
-                // this API will replace double quotes with ASCII character
-                // to resolve page display issue
                 label = CStudioAuthoring.Utils.replaceWithASCIICharacter(label);
 
-                return sutils.format(
-					[
-                        "<table class='width100 acn-tooltip'>",
-                            "<tr>",
-                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+": </td>",
-                                "<td class='acn-width200'>",
-                                    "<div class='acn-width200' style='word-wrap: break-word;'>{1}</div>",
-                                "</td>",
-                            "</tr>",
-                            "<tr>",
-                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
-                                "<td class='acn-width200'>",
-                                    "<span class='{2}'></span>",
-                                    "<span style='padding-left:2px; position:relative; bottom:2px;'>{3}</span>",
-                                "</td>",
-                            "</tr>",
-                            "<tr>",
-                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
-                                "<td class='acn-width200'>{4}</td>",
-                            "</tr>",
-                            "<tr>",
-                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
-                                "<td class='acn-width200'>{5}</td>",
-                            "</tr>",
-                            "<tr>",
-                                "<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lockedBy")+": </td>",
-                                "<td class='acn-width200'>{6}</td>",
-                            "</tr>",
-                        "</table>"
-                    ].join(''),
-					itemNameLabel, label, style, status, editedDate, modifier, lockOwner);
+                return CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, "")
             },
+
             /**
              * build the HTML for the scheduled tool tip.
              *
              */
-            buildToolTipScheduled: function(label, style, status, editedDate, modifier, schedDate, itemNameLabel) {
+            buildToolTipScheduled: function(label, contentType, style, status, editedDate, modifier, schedDate, itemNameLabel) {
                 if (!itemNameLabel) {
                     itemNameLabel = "Page";
                 }
 
-                // this API will replace double quotes with ASCII character
-                // to resolve page display issue
                 label = CStudioAuthoring.Utils.replaceWithASCIICharacter(label);
 
-                return sutils.format([
-					"<table class='width100 acn-tooltip'>",
-						"<tr>",
-							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, itemNameLabel.toLowerCase())+":</td>",
-							"<td class='acn-width200'><div class='acn-width200' style='word-wrap: break-word;'>{1}</div></td>",
-						"</tr><tr>",
-							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "status")+":</td>",
-							"<td class='acn-width200'><span class='{2}'></span>",
-							"<span style='padding-left:2px;'>{3}</span></td>",
-						"</tr><tr>",
-							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "lastEdited")+": </td>",
-							"<td class='acn-width200'>{4}</td>",
-						"</tr><tr>",
-							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "editedBy")+": </td>",
-							"<td class='acn-width200'>{5}</td>",
-						"</tr><tr>",
-							"<td class='tooltip-title'>"+CMgs.format(siteDropdownLangBundle, "scheduled")+": </td>",
-							"<td class='acn-width200'>{6}</td>",
-						"</tr>",
-					"</table>"
-				].join(""), itemNameLabel, label, style, status, editedDate, modifier, schedDate);
+                return CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
             },
+
 
 			/** 
 			 * render the context menu

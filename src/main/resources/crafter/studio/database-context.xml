@@ -46,4 +46,24 @@
               <property name="basePackage" value="org.craftercms.studio.api.v1.dal" />
               <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
        </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl" init-method="initDataSource">
+        <property name="enabled" value="${studio.db.initializer.enabled}" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+        <property name="vendorScriptsMapping">
+            <map>
+                <entry key="derby" value="crafter/studio/database/createDDL-derby.sql"/>
+                <entry key="mysql" value="crafter/studio/database/createDDL-mysql.sql"/>
+                <entry key="oracle" value="crafter/studio/database/createDDL-oracle.sql"/>
+                <entry key="sqlserver" value="crafter/studio/database/createDDL-sqlserver.sql"/>
+                <entry key="db2" value="crafter/studio/database/createDDL-db2.sql"/>
+            </map>
+        </property>
+        <property name="vendor" value="${studio.db.platform}"/>
+        <property name="delimiter" value=" ;"/>
+    </bean>
 </beans>

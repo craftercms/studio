@@ -1009,13 +1009,23 @@ var CStudioForms = CStudioForms || function() {
                                         var value = form.model["internal-name"];
                                         var name = entityId;
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                        iceWindowCallback.success(contentTO, editorId, name, value);
+
+                                        if(draft) {
+                                            // TODO sent signal to reload preview
+                                        }
+                                        else {
+                                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                                            iceWindowCallback.success(contentTO, editorId, name, value);
+                                        }
                                     }
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
-                                        CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                        //reloadParentWindow();  // the form should never reload itself. It should call it's callback, which may decide to load the page.
+                                        if(draft) {
+                                             // TODO sent signal to reload preview
+                                        }
+                                        else {
+                                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                                        }
                                     }
                                 },
                                 failure: function (err) {
@@ -1154,6 +1164,16 @@ var CStudioForms = CStudioForms || function() {
                     }
                 };
 
+                var collapseFn = function() {
+                    if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
+                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                        CStudioAuthoring.InContextEdit.collapseDialog(editorId);
+                    }else {
+                        window.close();
+                    }
+                   // CStudioAuthoring.Operations.collapseSimpleIceEdit();
+                }
+
                 amplify.subscribe('/field/init/completed', function () {
                     form.asyncFields--;
                     closeAjaxOverlay();
@@ -1264,6 +1284,14 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Event.addListener(window, "unload",unloadFn, this);
                     YAHOO.util.Event.addListener(closeButtonEl, "click", cancelFn, this);
                 }
+                var colExpButtonEl = document.createElement("input");
+                colExpButtonEl.id = "colExpButtonBtn";
+                YDom.addClass(colExpButtonEl, "btn");
+                YDom.addClass(colExpButtonEl, "btn-default");
+                colExpButtonEl.type = "button";
+                colExpButtonEl.value = "Collapse";
+                formControlBarEl.appendChild(colExpButtonEl);
+                YAHOO.util.Event.addListener(colExpButtonEl, "click", collapseFn, this);
 
             },
 

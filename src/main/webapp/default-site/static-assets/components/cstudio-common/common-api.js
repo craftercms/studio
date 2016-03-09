@@ -5885,40 +5885,73 @@ var parentSaveCb = {
                 return scheduledDate;
             },
 
-            buildToolTip: function (itemNameLabel, label, style, status, editedDate, modifier, lockOwner, schedDate) {
-                var schedInfo = "";
-                if (schedDate) {
-                    schedInfo = CStudioAuthoring.StringUtils.format(["</tr><tr>",
-                        "<td class='acn-width80'>Scheduled: </td>",
-                        "<td class='acn-width200'>{0}</td>"].join(""), schedDate);
+            buildToolTip: function (itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate) {
+                label = label.replace(new RegExp(" ", 'g'), "&nbsp;");
+               
+                if(contentType.indexOf("/page/") != -1)
+                contentType = contentType.replace("/page/", "") + "&nbsp;(Page)";
+
+                if(contentType.indexOf("/component/") != -1)
+                contentType = contentType.replace("/component/", "") + "&nbsp;(Component)";
+
+                var toolTipMarkup = [
+                 "<table class='width100 acn-tooltip'>",
+                    "<tr>",
+                    "<td class='acn-width80'><strong>{1}</strong></td>",
+                    "</tr>",
+                    "<tr><td class='acn-width80'><strong>Content&nbsp;Type:</strong> </td>",
+                        "<td class='acn-width200' style='text-transform: capitalize;'>{8}</td></tr>",
+                    
+                    "<tr><td class='acn-width83'><strong>Status:</strong></td>",
+                    "<td class='acn-width200'><span class='{2}'></span>",
+                    "<span style='padding-left:2px;'>{3}</span></td></tr>",
+                    "<tr>"].join("");
+
+                if(modifier && modifier != null && modifier.trim() != "") {
+                    toolTipMarkup += [
+                        "<td class='acn-width80'><strong>Last Edited:</strong> </td>",
+                        "<td class='acn-width200'>{4}</td>",
+                        "</tr><tr>",
+                        "<td class='acn-width80'><strong>Edited by:</strong> </td>",
+                        "<td class='acn-width200'>{5}</td>",
+                        "</tr>"].join("");
                 }
 
-                return CStudioAuthoring.StringUtils.format(["<table class='width100 acn-tooltip'>",
-                    "<tr>",
-                    "<td class='acn-width80'><strong>{0}:</strong></td>",
-                    "<td class='acn-width200'><div class='acn-width200' style='word-wrap: break-word;'>{1}</div></td>",
-                    "</tr>",
-                    /*"<tr><td class='acn-width83'><strong>Status:</strong></td>",
-                    "<td class='acn-width200'><span class='{2}'></span>",
-                    "<span style='padding-left:2px;'>{3}</span></td></tr>",*/
-                    "<tr>",
-                    "<td class='acn-width80'><strong>Last Edited:</strong> </td>",
-                    "<td class='acn-width200'>{4}</td>",
-                    "</tr><tr>",
-                    "<td class='acn-width80'><strong>Edited by:</strong> </td>",
-                    "<td class='acn-width200'>{5}</td>",
-                    "</tr><tr>",
-                    "<td class='acn-width80'><strong>Locked by:</strong> </td>",
-                    "<td class='acn-width200'>{6}</td>",
-                    schedInfo,
-                    "</tr>",
-                    "</table>"].join(""), itemNameLabel, label, style, status, editedDate, modifier, lockOwner);
+                if(lockOwner && lockOwner != null && lockOwner.trim() != "") {                    
+                    toolTipMarkup +=  [
+                        "<tr>",
+                        "<td class='acn-width80'><strong>Locked by:</strong> </td>",
+                        "<td class='acn-width200'>{6}</td>",
+                        "</tr>"].join("");
+                }
+   
+                if (schedDate) {
+                    toolTipMarkup +=  ["<tr>",
+                       "<td class='acn-width80'>Scheduled: </td>",
+                       "<td class='acn-width200'>{7}</td></tr>"].join("");
+                }
+
+                toolTipMarkup += "</table>"
+
+                return CStudioAuthoring.StringUtils.format(
+                        toolTipMarkup, 
+
+                        itemNameLabel, 
+                        label, 
+                        style, 
+                        status, 
+                        editedDate, 
+                        modifier, 
+                        lockOwner, 
+                        schedDate,
+                        contentType);
             },
 
             getTooltipContent: function(item) {
                 var status = this.getContentItemStatus(item);
                 var style = this.getIconFWClasses(item);
                 var internalName = item.internalName;
+                var contentType = item.contentType;
                 var label = "";
                 var formattedEditDate = "";
                 var modifier = "";
@@ -5985,7 +6018,7 @@ var parentSaveCb = {
                 if (item.scheduled == true) {
                     formattedSchedDate = this.formatDateFromString(item.scheduledDate, "tooltipformat");
 
-                    retTitle = this.buildToolTip(itemNameLabel, label,
+                    retTitle = this.buildToolTip(itemNameLabel, label, contentType,
                         style,
                         statusStr,
                         formattedEditDate,
@@ -5994,7 +6027,7 @@ var parentSaveCb = {
                         formattedSchedDate);
                 } else {
 
-                    retTitle = this.buildToolTip(itemNameLabel, label,
+                    retTitle = this.buildToolTip(itemNameLabel, label,contentType,
                         style,
                         statusStr,
                         formattedEditDate,
@@ -6831,6 +6864,24 @@ CStudioAuthoring.InContextEdit = {
                 }
             }
         //}
+    },
+
+    collapseDialog: function(editorId) {
+        var dialog = window.parent.$( ".studio-ice-container-"+editorId),
+            controlBar = $("#formContainer .cstudio-form-controls-container")[0],
+            colExpButtonBtn = $('#colExpButtonBtn');
+
+        if($(dialog).height() != 49){
+            CStudioAuthoring.Utils.Cookies.createCookie("formEngineHeight", $(dialog).height().toString());
+            $(dialog).height(49);
+            $(controlBar).css({ "backgroundColor": "#7E9DBB" });
+            $(controlBar).addClass("collapseForm");
+        } else{
+            $(dialog).height(parseInt(CStudioAuthoring.Utils.Cookies.readCookie("formEngineHeight")));
+            $(controlBar).css({ "backgroundColor": "#f8f8f8" });
+            $(controlBar).removeClass("collapseForm");
+        }
+
     },
 
     regions: [],
