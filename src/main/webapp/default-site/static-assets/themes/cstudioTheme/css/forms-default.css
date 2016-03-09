@@ -297,6 +297,10 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     height: 26px;
 }
 
+.collapseForm{
+    z-index: 99999999;
+}
+
 .collapseForm .btn-primary{
     background-color: #E0E0E0;
     color: #000;
