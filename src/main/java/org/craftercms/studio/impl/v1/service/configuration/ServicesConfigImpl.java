@@ -312,7 +312,7 @@ public class ServicesConfigImpl implements ServicesConfig {
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = contentService.getContentAsDocument(siteConfigPath + "/" + configFileName);
+             document = contentService.getContentAsDocument(site, siteConfigPath + "/" + configFileName);
          } catch (DocumentException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
          }

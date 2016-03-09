@@ -292,7 +292,7 @@ sup {
 
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/rart\/Workspace\/craftersoftware\/studio2\/src\/main\/webapp\/default-site\/scss\/global\.scss}line{font-family:\00003294}}
 #logo {
-  background: url(../../../api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png) no-repeat left;
+  background: url(../../../api/1/services/api/1/content/get-content-at-path.bin?path=/configuration/app-logo.png) no-repeat left;
   float: left;
   margin: 0 0 0 010px;
   padding: 0px 0 0 0; }

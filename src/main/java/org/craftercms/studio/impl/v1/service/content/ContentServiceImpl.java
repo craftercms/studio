@@ -115,11 +115,11 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentAsString(String path)  {
+    public String getContentAsString(String site, String path)  {
         String content = null;
 
         try {
-            content = IOUtils.toString(_contentRepository.getContent("", path));
+            content = IOUtils.toString(_contentRepository.getContent(site, path));
         }
         catch(Exception err) {
             logger.error("Failed to get content as string for path {0}", path);
@@ -130,12 +130,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public Document getContentAsDocument(String path)
+    public Document getContentAsDocument(String site, String path)
     throws DocumentException {
         Document retDocument = null;
         InputStream is = null;
         try {
-            is = this.getContent(path);
+            is = this.getContent(site, path);
         } catch (ContentNotFoundException e) {
             logger.error("Content not found for path {0}", e, path);
         }
@@ -561,7 +561,7 @@ public class ContentServiceImpl implements ContentService {
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
 
-        Document contentDoc = this.getContentAsDocument(fullContentPath);
+        Document contentDoc = this.getContentAsDocument(site, contentPath);
         if(contentDoc != null) {
             Element rootElement = contentDoc.getRootElement();
             

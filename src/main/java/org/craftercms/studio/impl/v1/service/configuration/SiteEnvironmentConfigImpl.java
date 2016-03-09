@@ -173,7 +173,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
-			document = contentService.getContentAsDocument(configLocation);
+			document = contentService.getContentAsDocument(key, configLocation);
 		} catch (DocumentException e) {
 			e.printStackTrace();
 		}

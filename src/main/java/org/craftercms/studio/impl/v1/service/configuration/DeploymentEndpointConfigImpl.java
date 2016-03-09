@@ -52,7 +52,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
         Document document = null;
         DeploymentConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(siteConfigPath);
+            document = contentService.getContentAsDocument(key, siteConfigPath);
         } catch (DocumentException e) {
             e.printStackTrace();
         }

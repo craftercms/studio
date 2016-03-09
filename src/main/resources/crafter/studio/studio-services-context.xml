@@ -625,11 +625,8 @@
     </bean>
 
     <bean id="cstudioGitContentRepository"
-          class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository"
-          init-method="bootstrap">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
+          class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" >
         <property name="rootPath" value="${repository.gitImplementation.path}" />
-        <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
     </bean>
 
     <bean id="cstudioGitContentRepositoryRegistration"

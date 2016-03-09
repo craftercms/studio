@@ -68,7 +68,7 @@ public interface ContentService {
      * @param path
      * @return document
      */
-    String getContentAsString(String path);
+    String getContentAsString(String site, String path);
 
     /**
      * get document from wcm content
@@ -77,7 +77,7 @@ public interface ContentService {
      * @return document
      * @throws DocumentException
      */
-    Document getContentAsDocument(String path) throws DocumentException;
+    Document getContentAsDocument(String site, String path) throws DocumentException;
 
     /**
      * write content

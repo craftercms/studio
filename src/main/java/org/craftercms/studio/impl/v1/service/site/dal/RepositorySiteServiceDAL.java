@@ -47,7 +47,7 @@ public class RepositorySiteServiceDAL extends AbstractSiteServiceDAL {
 		Document retConfigDoc = null;
 		
 		try {
-			retConfigDoc = _contentService.getContentAsDocument("/cstudio/config/sites/"+site+configFilePath);
+			retConfigDoc = _contentService.getContentAsDocument(site, configFilePath);
 		}
 		catch(Exception err) {
 			throw new SiteConfigNotFoundException();

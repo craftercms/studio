@@ -216,29 +216,18 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             // Simple form engine is not using templates - skip copying template and merging content
             return true;
         }
-        String fullPath = contentService.expandRelativeSitePath(site, path);
         // get new template and the current data and merge data
         ContentItemTO item = contentService.getContentItem(site, path, 0);
         if (item != null) {
             contentService.lockContent(site, path);
             Document original = null;
             try {
-                original = contentService.getContentAsDocument(fullPath);
+                original = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
-                logger.error("Error while getting document for " + fullPath, e);
+                logger.error("Error while getting document for site: " + site + " path: " + path, e);
                 return false;
             }
             throw new RuntimeException("Is it getting here?");
-            /*
-            ModelService modelService = getService(ModelService.class);
-            Document template = modelService.getModelTemplate(site, contentType, false, false);
-            String templateVersion = modelService.getTemplateVersion(site, contentType);
-            copyContent(site, original, template, contentType, templateVersion);
-            //cleanAspects(node);
-            // write the content
-            // TODO fix this part as write content is hanging.
-            writeContent(site, path, contentType, node, template);
-            return true;*/
         } else {
             throw new ContentNotFoundException(path + " is not a valid content path.");
         }

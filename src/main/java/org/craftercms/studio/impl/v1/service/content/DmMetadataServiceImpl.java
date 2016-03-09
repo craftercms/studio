@@ -60,10 +60,9 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
     @Override
     public void extractMetadata(String site, String user, String path, String contentType, Document content) throws ServiceException {
         user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
-        String fullPath = contentService.expandRelativeSitePath(site, path);
         if (content == null) {
             try {
-                contentService.getContentAsDocument(fullPath);
+                contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
                 e.printStackTrace();
             }
@@ -95,7 +94,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             //model.put(DmConstants.KEY_SCRIPT_NODE, createScriptNode(actionedUponNodeRef));
             //model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
             try {
-                String script = contentService.getContentAsString(scriptPath);
+                String script = contentService.getContentAsString(site, scriptPath);
                 scriptExecutor.executeScriptString(script, model);
             } catch (Exception e) {
                 throw new ServiceException(e);

@@ -608,7 +608,7 @@ public class NotificationServiceImpl implements NotificationService {
         configFullPath = configFullPath + "/" + configFileName;
         NotificationConfigTO config = null;
         try {
-            Document document = contentService.getContentAsDocument(configFullPath);
+            Document document = contentService.getContentAsDocument(site, configFullPath);
             if (document != null) {
                 Element root = document.getRootElement();
                 config = new NotificationConfigTO();

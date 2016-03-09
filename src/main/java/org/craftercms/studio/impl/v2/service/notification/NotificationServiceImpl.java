@@ -269,7 +269,7 @@ public class NotificationServiceImpl implements NotificationService {
             String configFullPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
             configFullPath = configFullPath + "/" + configFileName;
             try {
-                Document document = contentService.getContentAsDocument(configFullPath);
+                Document document = contentService.getContentAsDocument(site, configFullPath);
                 if (document != null) {
                     Element root = document.getRootElement();
                     final List<Element> languages = root.selectNodes("//lang");

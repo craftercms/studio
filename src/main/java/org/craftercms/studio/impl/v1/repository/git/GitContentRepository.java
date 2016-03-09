@@ -19,47 +19,154 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
-import org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository;
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.to.VersionTO;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
 
-public class GitContentRepository extends DiskContentRepository {
+public class GitContentRepository implements ContentRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
+
+    @Override
+    public boolean contentExists(String site, String path) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        InputStream toRet = null;
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            //repo.resolve()
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+            /*
+
+            tw.addTree(tree); // tree ‘0’
+            tw.setRecursive(false);
+            tw.setFilter(PathFilter.create(path.replaceAll("^/*", "")));
+
+            if (!tw.next()) {
+                return null;
+            }*/
+
+            ObjectId id = tw.getObjectId(0);
+            ObjectLoader objectLoader = repo.open(id);
+            toRet = objectLoader.openStream();
+
+        } catch (IOException e) {
+            logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+        }
+        return toRet;
+    }
 
     @Override
     public boolean writeContent(String site, String path, InputStream content) {
         throw new RuntimeException("Not Implemented");
-        //return super.writeContent(path, content);
+    }
+
+    @Override
+    public boolean createFolder(String site, String path, String name) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public boolean deleteContent(String site, String path) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildren(String site, String path) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public VersionTO[] getContentVersionHistory(String site, String path) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public String createVersion(String site, String path, boolean majorVersion) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public boolean revertContent(String site, String path, String version, boolean major, String comment) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    @Override
+    public Date getModifiedDate(String site, String path) {
+        throw new RuntimeException("Not Implemented");
     }
 
     @Override
     public void lockItem(String site, String path) {
         try {
-            Repository repo = new FileRepositoryBuilder()
-                    .setGitDir(new File(this.getRootPath() + "/wem-projects/" + site + "/" + site + "/centralrepo/.git "))
-                    .readEnvironment()
-                    .findGitDir()
-                    .build();
-
+            Repository repo = getSiteRepositoryInstance(site);
             TreeWalk tw = new TreeWalk(repo);
-
             RevTree tree = getTree(repo);
             tw.addTree(tree); // tree ‘0’
             tw.setRecursive(false);
@@ -78,8 +185,47 @@ public class GitContentRepository extends DiskContentRepository {
             tw.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while locking file for site: " + site + " path: " + path, e);
         }
+    }
+
+    @Override
+    public void unLockItem(String site, String path) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
+
+        Path siteRepoPath = Paths.get(rootPath, "global-configuration", ".git");
+        if (Files.exists(siteRepoPath)) {
+            return openGitRepository(siteRepoPath);
+        } else {
+            Files.deleteIfExists(siteRepoPath);
+            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
+        }
+        return null;
+    }
+
+    private Repository getSiteRepositoryInstance(String site) throws IOException {
+
+        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+        if (Files.exists(siteRepoPath)) {
+            return openGitRepository(siteRepoPath);
+        } else {
+            Files.deleteIfExists(siteRepoPath);
+            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
+        }
+        return null;
+    }
+
+    private Repository openGitRepository(Path repositoryPath) throws IOException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        Repository repository = builder
+                .setGitDir(repositoryPath.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+        return repository;
     }
 
     private RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
@@ -91,12 +237,14 @@ public class GitContentRepository extends DiskContentRepository {
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(lastCommitId);
 
-            System.out.println("Time of commit (seconds since epoch): " + commit.getCommitTime());
-
             // and using commit's tree find the path
             RevTree tree = commit.getTree();
-            System.out.println("Having tree: " + tree);
             return tree;
         }
     }
+
+    public String getRootPath() { return rootPath; }
+    public void setRootPath(String path) { rootPath = path; }
+
+    String rootPath;
 }

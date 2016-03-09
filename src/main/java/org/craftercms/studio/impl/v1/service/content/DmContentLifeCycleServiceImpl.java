@@ -87,7 +87,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
 
             return;
         }
-        String script = contentService.getContentAsString(scriptPath);
+        String script = contentService.getContentAsString(site, scriptPath);
 
         Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
         try {

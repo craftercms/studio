@@ -299,7 +299,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         if (path.endsWith(DmConstants.XML_PATTERN)) {
             Document document = null;
             try {
-                document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, path));
+                document = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
                 logger.error("Error getting xml document for following path: " + contentService.expandRelativeSitePath(site, path));
             }
@@ -416,7 +416,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         try{
             ContentItemTO item = contentService.getContentItem(site, path);
             if (item != null) {
-                Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, path));
+                Document document = contentService.getContentAsDocument(site, path);
                 DmPageNavigationOrderService dmPageNavigationOrderService = getService(DmPageNavigationOrderService.class);
                 dmPageNavigationOrderService.addNavOrder(site, path, document);
                 InputStream content = ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);

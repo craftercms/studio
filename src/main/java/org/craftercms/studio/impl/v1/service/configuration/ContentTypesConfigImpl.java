@@ -91,7 +91,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         Document document = null;
         try {
             if (contentService.contentExists(configFileFullPath)) {
-                document = contentService.getContentAsDocument(configFileFullPath);
+                document = contentService.getContentAsDocument(site, configFileFullPath);
             }
         } catch (DocumentException e) {
             logger.error("No content type configuration document found at " + configFileFullPath, e);

@@ -129,11 +129,10 @@ public class SiteServiceImpl implements SiteService {
 						CStudioConstants.PATTERN_ENVIRONMENT, environment)
 						+ path;
 			} else {
-				configPath = this.sitesConfigPath + "/" + site + path;
+				configPath = this.sitesConfigPath + path;
 			}
 		}
-		logger.debug("[SITESERVICE] loading configuration at " + configPath);
-		String configContent = contentService.getContentAsString(configPath);
+		String configContent = contentService.getContentAsString(site, configPath);
 
 		JSON response = null;
 		Map<String, Object> toRet = null;
@@ -408,7 +407,7 @@ public class SiteServiceImpl implements SiteService {
 
                 if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(childFullPath);
+                        Document doc = contentService.getContentAsDocument(site, childFullPath);
                         dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
                     } catch (ContentNotFoundException e) {
                         logger.error("Failed to extract dependencies for document: " + childFullPath, e);
@@ -433,7 +432,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(childFullPath));
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childFullPath));
                             if (isCss) {
                                 dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
                             } else if (isJs) {
