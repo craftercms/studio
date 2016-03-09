@@ -229,7 +229,7 @@ WcmDashboardWidgetCommon.Ajax = {
             backgroundColor = "#FFFFFF";
             opacity = "0";
             position = "absolute";
-            display = "block";
+            //display = "block";
             width = YDom.getDocumentWidth() + "px";
             height = YDom.getDocumentHeight() + "px";
             top = "0";
@@ -550,6 +550,8 @@ WcmDashboardWidgetCommon.toggleWidget = function (widgetId, pageId, newState) {
     var widgetBodyEl = YDom.get(widgetId + "-body");
     var widgetToggleEl = YDom.get("widget-toggle-" + widgetId) || {};
     var currentState = widgetToggleEl ? (widgetToggleEl.className == 'ttOpen' ? 'closed' : 'open') : 'open';
+    var collapseCookie = CStudioAuthoringContext.site+"-"+widgetId+"-panel";
+    var link = YDom.get("section-widget-" + widgetId);
 
     if (YAHOO.lang.isUndefined(newState)) {
         newState = currentState == 'closed' ? 'open' : 'closed';
@@ -558,13 +560,18 @@ WcmDashboardWidgetCommon.toggleWidget = function (widgetId, pageId, newState) {
     if (newState == 'closed') {
         widgetToggleEl.className = 'ttOpen';
         widgetBodyEl.style.display = "none";
+        YDom.addClass(link, "studio-section-widget-close");
         YDom.setStyle("expand-all-" + widgetId, "display", "none");
         YDom.setStyle("widget-expand-state-" + widgetId, "display", "none");
         YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live")[0], "display", "none");
         YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .recently-made-live-right")[0], "display", "none");
         YDom.setStyle(YAHOO.util.Selector.query("#" + widgetId + " .widget-FilterBy")[0], "display", "none");
     } else {
-        widgetBodyEl.style.display = "block";
+        if(!CStudioAuthoring.Utils.Cookies.readCookie(collapseCookie)){
+            widgetBodyEl.style.display = "block";
+        }else{
+            YDom.addClass(link, "studio-section-widget-close");
+        }
         widgetToggleEl.className = "ttClose";
         YDom.setStyle("expand-all-" + widgetId, "display", "block");
         YDom.setStyle("widget-expand-state-" + widgetId, "display", "block");
@@ -704,17 +711,18 @@ WcmDashboardWidgetCommon.toggleAllItems = function (widgetId) {
  */
 WcmDashboardWidgetCommon.toggleTable = function (widgetId) {
 
-    var widget = YDom.get(widgetId),
-        instance = widget.instance,
-        table = YDom.get(widgetId + "-body"),
-        link = YDom.get("section-widget-" + widgetId);
+    var table = YDom.get(widgetId + "-body"),
+        link = YDom.get("section-widget-" + widgetId),
+        site = CStudioAuthoringContext.site;
 
     if(!YDom.hasClass(link, "studio-section-widget-close")){
         YDom.setStyle(table, "display", "none");
         YDom.addClass(link, "studio-section-widget-close");
+        CStudioAuthoring.Utils.Cookies.createCookie(site+"-"+widgetId+"-panel", "collapse");
     }else{
         YDom.setStyle(table, "display", "block");
         YDom.removeClass(link, "studio-section-widget-close");
+        CStudioAuthoring.Utils.Cookies.eraseCookie(site+"-"+widgetId+"-panel");
     }
 };
 

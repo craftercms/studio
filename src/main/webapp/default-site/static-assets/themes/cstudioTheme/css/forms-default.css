@@ -275,6 +275,46 @@ div.yui-calcontainer.cstudio-form-field-calendar {
     width: 100%;
     z-index: 45;
   padding: 10px 0 0;
+    transition: background-color .5s ease-in-out;
+    -moz-transition: background-color .5s ease-in-out;
+    -webkit-transition: background-color .5s ease-in-out;
+    -o-transition: background-color .5s ease-in-out;
+}
+
+#colExpButtonBtn{
+    float: right;
+    position: relative;
+    top: -31px;
+    right: 16px;
+    background-image: url(../images/icons/arrows_up_down.png);
+    background-repeat: no-repeat;
+    border: none;
+    background-color: transparent;
+    text-indent: -9999px;
+    background-size: 26px;
+    padding: 0;
+    width: 26px;
+    height: 26px;
+}
+
+.collapseForm{
+    z-index: 99999999;
+}
+
+.collapseForm .btn-primary{
+    background-color: #E0E0E0;
+    color: #000;
+    border-color: #E0E0E0;
+}
+
+.collapseForm .btn-primary:hover{
+    background-color: #D2D1D1;
+    color: #000;
+    border-color: #D2D1D1;
+}
+
+.collapseForm #colExpButtonBtn{
+    background-position: 0px -26px;
 }
 
 .cstudio-form-controls-button-container {
