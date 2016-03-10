@@ -20,13 +20,16 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
@@ -42,21 +45,62 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class GitContentRepository implements ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
+    private void addDebugStack() {
+            Thread thread = Thread.currentThread();
+            String threadName = thread.getName();
+            logger.error("Thread: " + threadName);
+            StackTraceElement[] stackTraceElements = thread.getStackTrace();
+            StringBuilder sbStack = new StringBuilder();
+            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
+            for (int i = 2; i < stackSize+2; i++){
+                sbStack.append("\n\t").append(stackTraceElements[i].toString());
+            }
+            RequestContext context = RequestContext.getCurrent();
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+            if (context != null) {
+                HttpServletRequest request = context.getRequest();
+                String url = request.getRequestURI() + "?" + request.getQueryString();
+                logger.error("Http request: " + url);
+            } else if (cronJobContext != null) {
+                logger.error("Cron Job");
+
+            }
+            logger.error("TRACE: Stack trace (depth 10): " + sbStack.toString());
+    }
+
     @Override
     public boolean contentExists(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+        Repository repo = null;
+        try {
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+            if (tw != null && tw.getObjectId(0) != null) {
+                return true;
+            }
+        } catch (IOException e) {
+            logger.info("Content not found for site: " + site + " path: " + path, e);
+        }
+        return false;
     }
 
     @Override
@@ -69,18 +113,8 @@ public class GitContentRepository implements ContentRepository {
             } else {
                 repo = getSiteRepositoryInstance(site);
             }
-            //repo.resolve()
             RevTree tree = getTree(repo);
             TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
-            /*
-
-            tw.addTree(tree); // tree ‘0’
-            tw.setRecursive(false);
-            tw.setFilter(PathFilter.create(path.replaceAll("^/*", "")));
-
-            if (!tw.next()) {
-                return null;
-            }*/
 
             ObjectId id = tw.getObjectId(0);
             ObjectLoader objectLoader = repo.open(id);
@@ -124,7 +158,49 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+
+            ObjectLoader loader = repo.open(tw.getObjectId(0));
+            if (loader.getType() == Constants.OBJ_TREE) {
+                int depth = tw.getDepth();
+                tw.enterSubtree();
+                while (tw.next()) {
+                    if (tw.getDepth() == depth + 1) {
+
+                        RepositoryItem item = new RepositoryItem();
+                        item.name = tw.getNameString();
+
+                        String visitFolderPath = "/" + tw.getPathString();
+                        loader = repo.open(tw.getObjectId(0));
+                        item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                        int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                        if (lastIdx > 0) {
+                            item.path = visitFolderPath.substring(0, lastIdx);
+                        }
+
+                        if (!".DS_Store".equals(item.name)) {
+                            retItems.add(item);
+                        }
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while getting children for site: " + site + " path: " + path);
+        }
+
+        RepositoryItem[] items = new RepositoryItem[retItems.size()];
+        items = retItems.toArray(items);
+        return items;
     }
 
     @Override

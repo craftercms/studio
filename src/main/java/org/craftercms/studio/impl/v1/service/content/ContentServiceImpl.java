@@ -644,7 +644,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
-        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
         item.children = new ArrayList<ContentItemTO>();
@@ -654,11 +653,11 @@ public class ContentServiceImpl implements ContentService {
         || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
-                fullContentPath = fullContentPath.replace("/index.xml", "");
+                contentPath = contentPath.replace("/index.xml", "");
             }
 
 
-            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, item.uri);
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, contentPath);
             boolean indexFound = false;
                 
             if(childRepoItems != null) {
