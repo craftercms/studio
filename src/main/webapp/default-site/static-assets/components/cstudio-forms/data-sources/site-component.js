@@ -23,7 +23,7 @@ function(id, form, properties, constraints)  {
 						success: function(response) {
 							// Some native JSON parsers (e.g. Chrome) don't like the empty string for input
 							var res = response.responseText || "null";
-							var config = YAHOO.lang.JSON.parse(res);
+							var config = YAHOO.lang.JSON.parse(res).descriptorDom;
 							if (config.component == undefined || config.component.items == undefined || config.component.items.item == undefined) {
 								alert(property.value + " is not a component or does not have items.");
 							} else {
@@ -60,7 +60,7 @@ function(id, form, properties, constraints)  {
 YAHOO.extend(CStudioForms.Datasources.SiteComponent, CStudioForms.CStudioFormDatasource, {
 
 	getContextIdUrl: "/api/1/site/context/id.json",
-	getItemServiceUrl: "/api/1/content_store/descriptor.json",
+	getItemServiceUrl: "/api/1/content_store/item.json",
 
     getLabel: function() {
         return CMgs.format(langBundle, "siteComponent");
