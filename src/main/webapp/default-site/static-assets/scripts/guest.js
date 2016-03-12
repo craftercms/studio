@@ -124,12 +124,14 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
     communicator.on(Topics.ICE_TOOLS_INDICATOR, function (message) {
         var flag = false;
+        var compElement = $("[data-studio-ice-target='" + message.iceRef + "']");
         $('.studio-ice-indicator').each(function( index ) {
             if( $(this).data("studioIceTrigger") == message.iceRef){
                 flag = true;
             }
         });
-        if(!flag){
+
+        if(!flag && compElement.is(':visible')){
             var aux = $(crafter.String('<i class="studio-ice-indicator" data-studio-ice-trigger="%@"></i>').fmt(message.iceRef)).css({
                 top: message.position.top,
                 left: message.position.left
