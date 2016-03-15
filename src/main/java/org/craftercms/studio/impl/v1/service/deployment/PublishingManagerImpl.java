@@ -447,7 +447,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         boolean hasRenamedChildren = false;
                         String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                         
-                        if (contentService.contentExists(fullPath)) {
+                        if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
                             try {
                                 RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                                 

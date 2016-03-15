@@ -87,10 +87,9 @@ class SpringContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
 	 */
-	def getContent(site, path) { 
-		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
+	def getContent(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentAsString(contentPath)
+        return springBackedService.getContentAsString(site, path)
 	}
 
 	/**

@@ -255,7 +255,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
                     String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
-                    if (contentService.contentExists(configPath)) {
+                    if (contentService.contentExists(site, configPath)) {
                         ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + configFileName, ""));
                         if (config != null) {
                             contentTypes.add(config);

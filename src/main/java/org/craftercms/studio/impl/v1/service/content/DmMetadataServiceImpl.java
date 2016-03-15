@@ -73,7 +73,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
 
         // Find js location
         String scriptPath = getScriptPath(site, contentType);
-        if (contentService.contentExists(scriptPath)) {
+        if (contentService.contentExists(site, scriptPath)) {
             
             Map<String, Object> model = new HashMap<String, Object>();
             // put any script object needed

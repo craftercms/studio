@@ -93,7 +93,7 @@ public class GitContentRepository implements ContentRepository {
                 repo = getSiteRepositoryInstance(site);
             }
             RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
             if (tw != null && tw.getObjectId(0) != null) {
                 return true;
             }
@@ -114,7 +114,7 @@ public class GitContentRepository implements ContentRepository {
                 repo = getSiteRepositoryInstance(site);
             }
             RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
 
             ObjectId id = tw.getObjectId(0);
             ObjectLoader objectLoader = repo.open(id);
@@ -167,7 +167,7 @@ public class GitContentRepository implements ContentRepository {
                 repo = getSiteRepositoryInstance(site);
             }
             RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, path.replaceAll("^/*", ""), tree);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
 
             ObjectLoader loader = repo.open(tw.getObjectId(0));
             if (loader.getType() == Constants.OBJ_TREE) {
@@ -317,6 +317,14 @@ public class GitContentRepository implements ContentRepository {
             RevTree tree = commit.getTree();
             return tree;
         }
+    }
+
+    private String getGitPath(String path) {
+        logger.error("Path: " + path);
+        String gitPath = path.replaceAll("/+", "/");
+        gitPath = gitPath.replaceAll("^/", "");
+        logger.error("Git Path: " + gitPath);
+        return gitPath;
     }
 
     public String getRootPath() { return rootPath; }

@@ -90,7 +90,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         String configFileFullPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         try {
-            if (contentService.contentExists(configFileFullPath)) {
+            if (contentService.contentExists(site, configFileFullPath)) {
                 document = contentService.getContentAsDocument(site, configFileFullPath);
             }
         } catch (DocumentException e) {
