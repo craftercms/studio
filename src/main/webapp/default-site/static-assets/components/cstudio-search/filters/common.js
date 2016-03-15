@@ -324,7 +324,7 @@ CStudioSearch.FilterRenderer.Common.ContentTypeCol = function() {
 		var value = this.self.contentTypeEl.innerHTML;
 
 		if (value != null && value != "All") {
-			searchContext.filters.push({ qname: "content-type",  value: "'"+value+"'", useWildCard: true });
+			searchContext.filters.push({ qname: "content-type",  value: value, useWildCard: false });
 		}
 
 		return searchContext;
