@@ -1192,8 +1192,15 @@ var CStudioForms = CStudioForms || function() {
                         if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                            var componentsOn = !!(sessionStorage.getItem('components-on'));
+                            if(componentsOn){
+                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            }
                         } else {
                             window.close();
+                            if(componentsOn){
+                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            }
                         }
                     }
                 };
