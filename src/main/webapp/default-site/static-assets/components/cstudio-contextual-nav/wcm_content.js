@@ -466,8 +466,10 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 //                            }
 
                             var editCallback = {
-                                success: function() {
-                                    this.callingWindow.location.reload(true);
+                                success: function(refreshPreview) {
+                                    //this.callingWindow.location.reload(true);
+                                    var cstopic = crafter.studio.preview.cstopic;
+                                    window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
                                 },
                                 failure: function() { },
                                 callingWindow : window

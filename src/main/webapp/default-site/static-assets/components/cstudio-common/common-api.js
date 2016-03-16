@@ -1005,9 +1005,14 @@ var ApproveType = false;
                 }
             },
 
+            refreshPreviewParent: function() {
+                var previewFrameEl = window.parent.document.getElementById("engineWindow");
+                if(previewFrameEl){previewFrameEl.contentWindow.location.reload();}
+            },
+
             refreshPreview: function() {
                 var previewFrameEl = document.getElementById("engineWindow");
-                previewFrameEl.contentWindow.location.reload();
+                if(previewFrameEl){previewFrameEl.contentWindow.location.reload();}
             },
 
             setPreview: function(url) {

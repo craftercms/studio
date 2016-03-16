@@ -118,11 +118,15 @@
                 });
 
                 amplify.subscribe(cstopic('GUEST_SITE_LOAD'), function () {
-                    var dialogIframe = document.getElementsByClassName("studio-ice-dialog")[0];
-                    if (dialogIframe){
-                        dialogIframe.parentNode.parentNode.removeChild(dialogIframe.parentNode);
+                    if(!CStudioAuthoring.Utils.Cookies.readCookie("cstudio-save-draft")) {
+                        var dialogIframe = document.getElementsByClassName("studio-ice-dialog")[0];
+                        if (dialogIframe) {
+                            dialogIframe.parentNode.parentNode.removeChild(dialogIframe.parentNode);
+                        }
+                        CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-save-draft");
                     }
                     self.init();
+
                 });
 
                 amplify.subscribe(cstopic('DND_ZONES_MODEL_REQUEST'), function (item) {
