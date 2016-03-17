@@ -433,7 +433,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			}
 		}
 
-		var pluginList = "paste, noneditable, cs_table, cs_contextmenu, cs_inlinepopups, ";
+		var pluginList = "paste, noneditable, cs_table, cs_contextmenu, cs_inlinepopups, lists, ";
 		for(var l=0; l<rteConfig.rteModules.module.length; l++) {
 			// mce plugin names cannot have a - in them
 			pluginList += "-"+rteConfig.rteModules.module[l].replace(/-/g,"")+",";

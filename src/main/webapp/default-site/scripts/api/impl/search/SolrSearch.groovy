@@ -28,12 +28,11 @@ class SolrSearch {
 			queryStatement    += " *" + keywords + "* "
 		}
 
-
 		// can't support filters for images at this time because images are not indexed
 		//[Object { qname="cm:content.mimetype", value="image/*", useWildCard="true"}]
 		for(int f=0; f<searchParams.filters.size; f++){
 			def filter = searchParams.filters[f]
-			queryStatement    += " AND " + filter.qname + ":" + filter.value + " "
+			queryStatement    += " AND " + filter.qname + ":\"" + filter.value + "\" "
 		}
 
 		results.query = queryStatement
@@ -53,6 +52,9 @@ class SolrSearch {
 
 			query = query.addParam("sort", sort + " " + order)
 		}
+        else {
+              	query = query.addParam("sort", "internal-name_s asc ")
+        }
 
 		try {
  			def executedQuery = searchService.search(query)   

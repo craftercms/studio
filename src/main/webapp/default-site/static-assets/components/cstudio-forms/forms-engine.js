@@ -106,7 +106,7 @@ var CStudioForms = CStudioForms || function() {
                 }
 
                 return path;
-            },
+            }
         };
 
         /**
@@ -737,6 +737,18 @@ var CStudioForms = CStudioForms || function() {
                 return pathStr.replace(/\//g," » ");   // Replace forward slash (/) with " >> "
             },
 
+            _createDialog: function(){
+                var dialog = new YAHOO.widget.SimpleDialog("closeUserWarning",
+                    { width: "300px",fixedcenter: true, visible: false, draggable: false, close: false, modal: true,
+                        text: message, icon: YAHOO.widget.SimpleDialog.ICON_WARN,
+                        constraintoviewport: true
+                    });
+                dialog.setHeader(CMgs.format(formsLangBundle, "cancelDialogHeader"));
+                dialog.render(document.body);
+                dialogEl = document.getElementById("closeUserWarning");
+                dialogEl.dialog = dialog;
+            },
+
             _renderFormWithContent: function(content, formId, formDef, style, customControllerClass, readOnly) {
 
                 function getDateTimeObject(timeObj) {
@@ -993,6 +1005,23 @@ var CStudioForms = CStudioForms || function() {
                         serviceUrl += "&unlock=true";
                     }
 
+                    var createDialog = function(){
+                        var dialogEl = document.getElementById("saveDraftWar");
+                        if(!dialogEl) {
+                            var dialog = new YAHOO.widget.SimpleDialog("saveDraftWar",
+                                { width: "300px", fixedcenter: true, visible: false, draggable: false, close: true, modal: true,
+                                    text: "Draft Save Completed", icon: YAHOO.widget.SimpleDialog.ICON_INFO,
+                                    constraintoviewport: true
+                                });
+                            dialog.setHeader("Notification");
+                            dialog.render(document.body);
+                            dialogEl = document.getElementById("saveDraftWar");
+                            dialogEl.dialog = dialog;
+                        }
+                        dialogEl.dialog.show();
+                        setTimeout(function(){ dialogEl.dialog.hide();}, 1500);
+                    }
+
                     var saveCb = {
                         success: function() {
                             var getContentItemCb = {
@@ -1010,20 +1039,25 @@ var CStudioForms = CStudioForms || function() {
                                         var name = entityId;
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
 
+                                        iceWindowCallback.success(contentTO, editorId, name, value);
                                         if(draft) {
-                                            // TODO sent signal to reload preview
+                                            CStudioAuthoring.Utils.Cookies.createCookie("cstudio-save-draft","true");
+                                            createDialog();
                                         }
                                         else {
+                                            CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-save-draft");
                                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                                            iceWindowCallback.success(contentTO, editorId, name, value);
                                         }
                                     }
                                     else {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                         if(draft) {
-                                             // TODO sent signal to reload preview
+                                            CStudioAuthoring.Utils.Cookies.createCookie("cstudio-save-draft","true");
+                                            window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                            createDialog();
                                         }
                                         else {
+                                            CStudioAuthoring.Utils.Cookies.eraseCookie("cstudio-save-draft");
                                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                                         }
                                     }
@@ -1158,8 +1192,15 @@ var CStudioForms = CStudioForms || function() {
                         if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                            var componentsOn = !!(sessionStorage.getItem('components-on'));
+                            if(componentsOn){
+                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            }
                         } else {
                             window.close();
+                            if(componentsOn){
+                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                            }
                         }
                     }
                 };
