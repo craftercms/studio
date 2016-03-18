@@ -19,6 +19,8 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -28,6 +30,8 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
@@ -59,7 +63,7 @@ import java.util.List;
 public class GitContentRepository implements ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
-
+/*
     private void addDebugStack() {
             Thread thread = Thread.currentThread();
             String threadName = thread.getName();
@@ -82,7 +86,7 @@ public class GitContentRepository implements ContentRepository {
             }
             logger.error("TRACE: Stack trace (depth 10): " + sbStack.toString());
     }
-
+*/
     @Override
     public boolean contentExists(String site, String path) {
         Repository repo = null;
@@ -128,7 +132,33 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean writeContent(String site, String path, InputStream content) {
-        throw new RuntimeException("Not Implemented");
+        boolean success = true;
+
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+
+            FS fs = FS.detect();
+            File repoRoot = repo.getWorkTree();
+            Path filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
+
+            File file = filePath.toFile();
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
+            }
+            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
+        } catch (IOException err) {
+            logger.error("error writing file: site: " + site + " path: " + path, err);
+            success = false;
+        }
+        return success;
     }
 
     @Override
@@ -215,12 +245,29 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public String createVersion(String site, String path, boolean majorVersion) {
-        throw new RuntimeException("Not Implemented");
+        return createVersion(site, path, StringUtils.EMPTY, majorVersion);
     }
 
     @Override
     public String createVersion(String site, String path, String comment, boolean majorVersion) {
-        throw new RuntimeException("Not Implemented");
+
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            Git git = new Git(repo);
+            RevCommit commit = git.commit()
+                    .setOnly(getGitPath(path))
+                    .setMessage(comment)
+                    .call();
+            return commit.getId().toString();
+        } catch (IOException | GitAPIException err) {
+            logger.error("error creating new version for site:  " + site + " path: " + path, err);
+        }
+        return StringUtils.EMPTY;
     }
 
     @Override
@@ -253,7 +300,8 @@ public class GitContentRepository implements ContentRepository {
             }
 
             FS fs = FS.detect();
-            ObjectId id = tw.getObjectId(0);
+            File repoRoot = repo.getWorkTree();
+            Path path1 = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
             File file = new File(tw.getPathString());
             LockFile lock = new LockFile(file, fs);
             lock.lock();
@@ -267,7 +315,26 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void unLockItem(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+
+            FS fs = FS.detect();
+            File file = new File(tw.getPathString());
+            LockFile lock = new LockFile(file, fs);
+            lock.unlock();
+
+            tw.close();
+
+        } catch (IOException e) {
+            logger.error("Error while locking file for site: " + site + " path: " + path, e);
+        }
     }
 
     private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
@@ -320,10 +387,8 @@ public class GitContentRepository implements ContentRepository {
     }
 
     private String getGitPath(String path) {
-        logger.error("Path: " + path);
         String gitPath = path.replaceAll("/+", "/");
         gitPath = gitPath.replaceAll("^/", "");
-        logger.error("Git Path: " + gitPath);
         return gitPath;
     }
 

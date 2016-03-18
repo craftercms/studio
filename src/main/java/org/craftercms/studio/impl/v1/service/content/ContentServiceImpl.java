@@ -160,25 +160,6 @@ public class ContentServiceImpl implements ContentService {
         return retDocument;
     }
 
-
-    @Override
-    public boolean writeContent(String path, InputStream content) {
-
-       boolean writeSuccess = false;
-
-        writeSuccess = _contentRepository.writeContent("", path, content);
-
-        try {
-            _contentRepository.createVersion("", path, false);
-        }
-        catch(Exception err) {
-            // configurable weather or not to blow up the entire write?
-            logger.error("Failed to create version for object at path: " + path, err);
-        }
-        removeItemFromCache(getSiteFromFullPath(path),getRelativeSitePath(path));
-       return writeSuccess;
-    }
-
     @Override
     public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                              String createFolders, String edit, String unlock) throws ServiceException {
@@ -397,7 +378,17 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean writeContent(String site, String path, InputStream content){
-        return writeContent(expandRelativeSitePath(site, path), content);
+        boolean writeSuccess = _contentRepository.writeContent(site, path, content);
+
+        try {
+            _contentRepository.createVersion(site, path, false);
+        }
+        catch(Exception err) {
+            // configurable weather or not to blow up the entire write?
+            logger.error("Failed to create version for object at path: " + path, err);
+        }
+        removeItemFromCache(site, path);
+        return writeSuccess;
     }
 
     @Override
