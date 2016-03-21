@@ -18,7 +18,36 @@
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.chemistry.opencmis.client.api.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.activation.MimetypesFileTypeMap;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.ObjectId;
+import org.apache.chemistry.opencmis.client.api.ObjectType;
+import org.apache.chemistry.opencmis.client.api.Property;
+import org.apache.chemistry.opencmis.client.api.Repository;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
@@ -29,20 +58,6 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.String;
-import java.util.*;
-import java.net.*;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.activation.MimetypesFileTypeMap;
-import javax.servlet.http.*;
-
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
 import org.apache.commons.httpclient.HttpClient;
@@ -52,13 +67,18 @@ import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.*;
+import org.apache.commons.httpclient.methods.multipart.ByteArrayPartSource;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.PartSource;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.*;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
@@ -77,8 +97,7 @@ import org.springframework.http.MediaType;
  * @author russdanner
  *
  */
-public class AlfrescoContentRepository extends AbstractContentRepository 
-implements SecurityProvider {
+public class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
@@ -284,15 +303,22 @@ implements SecurityProvider {
      */
     protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         long startTime = System.currentTimeMillis();
-        InputStream retResponse = null;
+        String serviceURL = buildAlfrescoRequestURL(uri, params);
+        GetMethod getMethod = new GetMethod(serviceURL);
 
-        URI serviceURI = new URI(buildAlfrescoRequestURL(uri, params));        
+        String ssoUsername = getSsoUsername();
+        if (StringUtils.isNotEmpty(ssoUsername)) {
+            getMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
+        }
 
-        retResponse = serviceURI.toURL().openStream();
+        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        httpClient.executeMethod(getMethod);
+
+        InputStream response = getMethod.getResponseBodyAsStream();
 
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("alfrescoGetRequest(String uri, Map<String, String> params); {0}, {1}\n\t\tDuration: {2}", uri, params.values(), duration);
-        return retResponse;
+        return response;
     }
 
     /**
@@ -304,8 +330,13 @@ implements SecurityProvider {
         PostMethod postMethod = new PostMethod(serviceURL);
         postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
 
+        String ssoUsername = getSsoUsername();
+        if (StringUtils.isNotEmpty(ssoUsername)) {
+            postMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
+        }
+
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-        int status = httpClient.executeMethod(postMethod);
+        httpClient.executeMethod(postMethod);
 
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("TRACE: alfrescoPostRequest(String uri, Map<String, String> params, InputStream body, String bodyMimeType; {0}, {1}, {2}, {3}\n\t\tDuration: {4}", uri, params, "stream", bodyMimeType, duration);
@@ -349,6 +380,11 @@ implements SecurityProvider {
 
         postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
 
+        String ssoUsername = getSsoUsername();
+        if (StringUtils.isNotEmpty(ssoUsername)) {
+            postMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
+        }
+
         // connect to alfresco and get response
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         logger.debug("Executing multipart post request to " + uri);
@@ -367,8 +403,7 @@ implements SecurityProvider {
      */
     protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
         String url = "";
-        String serviceUrlBase = alfrescoUrl+"/service";
-        String ticket = getAlfTicket();
+        String serviceUrlBase = alfrescoUrl + "/service";
 
         if(params != null) {
             for(String key : params.keySet()) {
@@ -377,7 +412,11 @@ implements SecurityProvider {
         }
 
         url = serviceUrlBase + uri;
-        url += (url.contains("?")) ? "&alf_ticket="+ticket : "?alf_ticket="+ticket;
+
+        String ticket = getAlfTicket();
+        if (StringUtils.isNotEmpty(ticket)) {
+            url += (url.contains("?"))? "&alf_ticket=" + ticket: "?alf_ticket=" + ticket;
+        }
         
         return url;
     }
@@ -392,7 +431,7 @@ implements SecurityProvider {
     @Override
     public Map<String, String> getUserProfile(String username) {
         addDebugStack();
-        InputStream retStream = null;
+        InputStream retStream;
         Map<String, String> toRet = new HashMap<String,String>();
         if (StringUtils.isEmpty(username)) {
             return toRet;
@@ -452,13 +491,17 @@ implements SecurityProvider {
     @Override
     public String getCurrentUser() {
         addDebugStack();
-        String username = this.getSessionUsername();
+
+        String username = getSsoUsername();
+        if (StringUtils.isEmpty(username)) {
+            username = getSessionUsername();
+        }
+
         return username;
     }
 
     @Override
     public String authenticate(String username, String password) {
-
         String toRet = null;
         try {
             // construct and execute url to download result
@@ -491,29 +534,44 @@ implements SecurityProvider {
 
     @Override
     public boolean validateTicket(String ticket) {
-        long startTime = System.currentTimeMillis();
-        //make me do something
-        ticket = (ticket!=null) ? ticket : getSessionTicket();
-        logger.debug("Validating ticket " + ticket);
-        Map<String, String> params = new HashMap<>();
-        params.put("ticket", ticket);
-        String serviceURL = null;
-        try {
-            serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-            GetMethod getMethod = new GetMethod(serviceURL);
-            HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-            int status = httpClient.executeMethod(getMethod);
-            if (status == HttpStatus.SC_OK) {
+        if (StringUtils.isEmpty(getSsoUsername())) {
+            ticket = (ticket != null)? ticket: getSessionTicket();
+
+            if (StringUtils.isNotEmpty(ticket)) {
+                long startTime = System.currentTimeMillis();
+
+                logger.debug("Validating ticket " + ticket);
+
+                Map<String, String> params = new HashMap<>();
+                params.put("ticket", ticket);
+
+                String serviceURL;
+                try {
+                    serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
+                    GetMethod method = new GetMethod(serviceURL);
+
+                    HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+                    int status = httpClient.executeMethod(method);
+                    if (status == HttpStatus.SC_OK) {
+                        long duration = System.currentTimeMillis() - startTime;
+
+                        logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
+
+                        return true;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error while validating authentication token", e);
+                }
+
                 long duration = System.currentTimeMillis() - startTime;
-                logger.debug("validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
-                return true;
+
+                logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
             }
-        } catch (Exception e) {
-            logger.error("Error while validating authentication token", e);
+
+            return false;
+        } else {
+            return true;
         }
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("TRACE: validateTicket(String ticket); {0}\n\t\tDuration: {1}", ticket, duration);
-        return false;
     }
 
     private void addDebugStack() {
@@ -1050,12 +1108,16 @@ implements SecurityProvider {
     protected Session getCMISSession(boolean alfrescoCMIS) {
         cmisSessionLock.lock();
         try {
-            String ticket = getAlfTicket();
-            if (cmisSessionRegister.containsKey(ticket)) {
-                return cmisSessionRegister.get(ticket);
+            String sessionId = getSsoUsername();
+            if (StringUtils.isEmpty(sessionId)) {
+                sessionId = getAlfTicket();
+            }
+
+            if (cmisSessionRegister.containsKey(sessionId)) {
+                return cmisSessionRegister.get(sessionId);
             } else {
                 Session session = createCMISSession(alfrescoCMIS);
-                cmisSessionRegister.put(ticket, session);
+                cmisSessionRegister.put(sessionId, session);
                 return session;
             }
         } finally {
@@ -1063,10 +1125,15 @@ implements SecurityProvider {
         }
     }
 
-    protected void invalidateCMISSession(String ticket) {
+    protected void invalidateCMISSession() {
         cmisSessionLock.lock();
         try {
-            cmisSessionRegister.remove(ticket);
+            String sessionId = getSsoUsername();
+            if (StringUtils.isEmpty(sessionId)) {
+                sessionId = getAlfTicket();
+            }
+
+            cmisSessionRegister.remove(sessionId);
         } finally {
             cmisSessionLock.unlock();
         }
@@ -1077,15 +1144,18 @@ implements SecurityProvider {
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
 
-        // user credentials - using the standard admin/admin
-        String ticket = getAlfTicket();
-        parameter.put(SessionParameter.USER, "ROLE_TICKET");
-        parameter.put(SessionParameter.PASSWORD, ticket);
+        String ssoUsername = getSsoUsername();
+        if (StringUtils.isNotEmpty(ssoUsername)) {
+            parameter.put(SessionParameter.HEADER + ".0", alfrescoExternalAuthUserHeaderName + ":" + ssoUsername);
+        } else {
+            parameter.put(SessionParameter.USER, "ROLE_TICKET");
+            parameter.put(SessionParameter.PASSWORD, getAlfTicket());
+        }
 
         // connection settings - we're connecting to a public cmis repo,
         // using the AtomPUB binding, but there are other options here,
         // or you can substitute your own URL
-        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + "/api/-default-/public/cmis/versions/1.1/atom/");
+        parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + cmisPath);
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
         // find all the repositories at this URL - there should only be one.
@@ -1174,10 +1244,9 @@ implements SecurityProvider {
     @Override
     public void addUserGroup(String groupName) {
         String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
-
         try {
             InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
-            String result = alfrescoPostRequest("/api/rootgroups/" + groupName, null, bodyStream, "application/json");
+            alfrescoPostRequest("/api/rootgroups/" + groupName, null, bodyStream, "application/json");
         }
         catch(Exception err) {
             logger.error("err adding root group: " + groupName, err);
@@ -1187,10 +1256,9 @@ implements SecurityProvider {
     @Override
     public void addUserGroup(String parentGroup, String groupName) {
         String newGroupRequestBody = "{ \"displayName\":\""+groupName+"\"}";
-
         try {
             InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
-            String result = alfrescoPostRequest("/api/groups/" + parentGroup + "/children/GROUP_" + groupName, null, bodyStream, "application/json");
+            alfrescoPostRequest("/api/groups/" + parentGroup + "/children/GROUP_" + groupName, null, bodyStream, "application/json");
         }
         catch(Exception err) {
             logger.error("err adding group: " + groupName + " to parent group: " + parentGroup, err);
@@ -1202,7 +1270,7 @@ implements SecurityProvider {
         String addUserToGroupRequestBody = "{ \"displayName\":\""+user+"\"}";
         try {
             InputStream bodyStream = IOUtils.toInputStream(addUserToGroupRequestBody, "UTF-8");
-            String result = alfrescoPostRequest("/api/groups/" + groupName + "/children/" + user, null, bodyStream, "application/json");
+            alfrescoPostRequest("/api/groups/" + groupName + "/children/" + user, null, bodyStream, "application/json");
         }
         catch(Exception err) {
             logger.error("err adding user: " + user + " to parent group: " + groupName, err);
@@ -1222,8 +1290,7 @@ implements SecurityProvider {
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             ticket = (String)httpSession.getAttribute("alf_ticket");
-        }
-        else {
+        } else {
             CronJobContext cronJobContext = CronJobContext.getCurrent();
             if (cronJobContext != null) {
                 ticket = cronJobContext.getAuthenticationToken();
@@ -1235,7 +1302,7 @@ implements SecurityProvider {
             }
         }
 
-        if(ticket==null) {
+        if (ticket == null) {
             ticket = "NOTICKET";
         }
 
@@ -1271,6 +1338,21 @@ implements SecurityProvider {
         }
     }
 
+    protected String getSsoUsername() {
+        if (ssoEnabled) {
+            String username = null;
+            RequestContext context = RequestContext.getCurrent();
+
+            if (context != null) {
+                username = context.getRequest().getHeader(ssoUserHeaderName);
+            }
+
+            return username;
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public Date getModifiedDate(String fullPath) {
         long startTime = System.currentTimeMillis();
@@ -1296,29 +1378,39 @@ implements SecurityProvider {
 
     @Override
     public boolean logout() {
-        long startTime = System.currentTimeMillis();
-        //make me do something
-        String ticket = getSessionTicket();
-        logger.debug("Invalidating ticket " + ticket);
-        Map<String, String> params = new HashMap<>();
-        params.put("ticket", ticket);
-        String serviceURL = null;
-        try {
-            serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-            DeleteMethod getMethod = new DeleteMethod(serviceURL);
-            HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-            int status = httpClient.executeMethod(getMethod);
-            if (status == HttpStatus.SC_OK) {
-                long duration = System.currentTimeMillis() - startTime;
-                logger.debug("logout()\n\t\tDuration: {0}", duration);
-                return true;
+        if (StringUtils.isEmpty(getSsoUsername())) {
+            long startTime = System.currentTimeMillis();
+
+            //make me do something
+            String ticket = getSessionTicket();
+
+            logger.debug("Invalidating ticket " + ticket);
+            Map<String, String> params = new HashMap<>();
+            params.put("ticket", ticket);
+
+            String serviceURL;
+            try {
+                serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
+                DeleteMethod method = new DeleteMethod(serviceURL);
+
+                HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+                int status = httpClient.executeMethod(method);
+                if (status == HttpStatus.SC_OK) {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.debug("logout()\n\t\tDuration: {0}", duration);
+                    return true;
+                }
+            } catch (Exception e) {
+                logger.error("Error while invalidating authentication token", e);
             }
-        } catch (Exception e) {
-            logger.error("Error while invalidating authentication token", e);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("TRACE: logout()\n\t\tDuration: {0}", duration);
+
+            return false;
+        } else {
+            return true;
         }
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("TRACE: logout()\n\t\tDuration: {0}", duration);
-        return false;
     }
 
     /**
@@ -1346,7 +1438,6 @@ implements SecurityProvider {
     }
 
     private void bootstrapDir(File dir, String rootPath) {
-
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
             String childPath = child.getAbsolutePath();
@@ -1431,18 +1522,42 @@ implements SecurityProvider {
     }
 
     protected String alfrescoUrl;
+    protected String servicePath = "/service";
+    protected String cmisPath = "/api/-default-/public/cmis/versions/1.1/atom/";
     protected String adminUser;
     protected String adminPassword;
+    protected boolean ssoEnabled;
+    protected String ssoUserHeaderName = "X-Remote-User";
+    protected String alfrescoExternalAuthUserHeaderName = "X-Alfresco-Remote-User";
     protected boolean bootstrapEnabled = false;
 
     public String getAlfrescoUrl() { return alfrescoUrl; }
     public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
+
+    public String getServicePath() { return servicePath; }
+    public void setServicePath(String url) { servicePath = url; }
+
+    public String getCmisPath() { return cmisPath; }
+    public void setCmisPath(String url) { cmisPath = url; }
 
     public String getAdminUser() { return adminUser; }
     public void setAdminUser(String adminUser) { this.adminUser = adminUser; }
 
     public String getAdminPassword() { return adminPassword; }
     public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+
+    public boolean isSsoEnabled() { return ssoEnabled; }
+    public void setSsoEnabled(boolean enabled) { this.ssoEnabled = enabled; }
+
+    public String getSsoUserHeaderName() { return ssoUserHeaderName; }
+    public void setSsoUserHeaderName(String headerName) { this.ssoUserHeaderName = headerName; }
+
+    public String getAlfrescoExternalAuthUserHeaderName() {
+        return alfrescoExternalAuthUserHeaderName;
+    }
+    public void setAlfrescoExternalAuthUserHeaderName(String alfrescoExternalAuthUserHeaderName) {
+        this.alfrescoExternalAuthUserHeaderName = alfrescoExternalAuthUserHeaderName;
+    }
 
     public boolean isBootstrapEnabled() { return bootstrapEnabled; }
     public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
