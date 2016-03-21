@@ -61,7 +61,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 						_self.processPathsForMacros(_self.repoPath),
 						false, { 
 							success: function(formName, name, value) {
-								control.insertItem(name, value);
+								control.insertItem(value, formName.item.internalName);
 								control._renderItems();
 
 								//var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
