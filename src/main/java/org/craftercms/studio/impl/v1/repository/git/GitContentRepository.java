@@ -19,8 +19,10 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -63,6 +65,8 @@ import java.util.List;
 public class GitContentRepository implements ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
+
+    private static String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
 /*
     private void addDebugStack() {
             Thread thread = Thread.currentThread();
@@ -141,12 +145,26 @@ public class GitContentRepository implements ContentRepository {
             } else {
                 repo = getSiteRepositoryInstance(site);
             }
+            String gitPath = getGitPath(path);
             RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            TreeWalk tw = TreeWalk.forPath(repo, gitPath, tree);
 
             FS fs = FS.detect();
             File repoRoot = repo.getWorkTree();
-            Path filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
+            Path filePath = null;
+            if (tw == null) {
+                filePath = Paths.get(fs.normalize(repoRoot.getPath()), gitPath);
+            } else {
+                filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
+            }
+
+            if (!Files.exists(filePath)) {
+                filePath = Files.createFile(filePath);
+                Git git = new Git(repo);
+                git.add()
+                        .addFilepattern(gitPath)
+                        .call();
+            }
 
             File file = filePath.toFile();
             File folder = file.getParentFile();
@@ -154,7 +172,7 @@ public class GitContentRepository implements ContentRepository {
                 folder.mkdirs();
             }
             FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
-        } catch (IOException err) {
+        } catch (IOException | GitAPIException err) {
             logger.error("error writing file: site: " + site + " path: " + path, err);
             success = false;
         }
@@ -163,7 +181,40 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean createFolder(String site, String path, String name) {
-        throw new RuntimeException("Not Implemented");
+        boolean success = true;
+
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+
+            FS fs = FS.detect();
+            File repoRoot = repo.getWorkTree();
+            Path folderPath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString(), name);
+            Path keepPath = Paths.get(folderPath.toString(), ".keep");
+            Files.createDirectories(folderPath);
+            File keep = Files.createFile(keepPath).toFile();
+            String gitPath = Paths.get(tw.getPathString(), name, ".keep").toString();
+            Git git = new Git(repo);
+            git.add()
+                    .addFilepattern(gitPath)
+                    .call();
+
+            RevCommit commit = git.commit()
+                    .setOnly(getGitPath(gitPath))
+                    .setMessage(StringUtils.EMPTY)
+                    .call();
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error creating folder " + name + " for site " + site + " at path " + path, e);
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
@@ -217,7 +268,7 @@ public class GitContentRepository implements ContentRepository {
                             item.path = visitFolderPath.substring(0, lastIdx);
                         }
 
-                        if (!".DS_Store".equals(item.name)) {
+                        if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
                             retItems.add(item);
                         }
                     }
@@ -225,7 +276,7 @@ public class GitContentRepository implements ContentRepository {
             }
 
         } catch (IOException e) {
-            logger.error("Error while getting children for site: " + site + " path: " + path);
+            logger.error("Error while getting children for site: " + site + " path: " + path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
