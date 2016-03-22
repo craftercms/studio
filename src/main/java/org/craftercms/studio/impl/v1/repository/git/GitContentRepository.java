@@ -227,7 +227,11 @@ public class GitContentRepository implements ContentRepository {
                 repo = getSiteRepositoryInstance(site);
             }
             Git git = new Git(repo);
-            git.rm().addFilepattern(getGitPath(path)).call();
+            git.rm()
+                    .addFilepattern(getGitPath(path))
+                    .setCached(false)
+                    .call();
+
             RevCommit commit = git.commit()
                     .setOnly(getGitPath(path))
                     .setMessage(StringUtils.EMPTY)
@@ -303,7 +307,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
-        throw new RuntimeException("Not Implemented");
+        return getContentChildren(site, path);
     }
 
     @Override
