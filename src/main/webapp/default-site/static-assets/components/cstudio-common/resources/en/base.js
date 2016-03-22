@@ -503,6 +503,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     dataType: "Data Type",
     listName: "List Name",
     repositoryPath: "Repository Path",
+    browsePath: "Browse Path",
     string: "String",
     integer: "Integer",
     float: "Float",
