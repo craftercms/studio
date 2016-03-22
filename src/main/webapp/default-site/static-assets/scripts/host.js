@@ -30,7 +30,7 @@
         var isWrite = false;
         var par = [];
         var isLockOwner = function (lockOwner){
-            if (lockOwner != '' && lockOwner != null) {
+            if (lockOwner != '' && lockOwner != null && CStudioAuthoringContext.user != lockOwner) {
                 par = [];
                 isWrite = false;
                 par.push({name: "readonly"});
@@ -104,7 +104,7 @@
         }
         var currentPath = (message.path) ? message.path : CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri;
         var isLockOwner = function (lockOwner){
-            if (lockOwner != '' && lockOwner != null) {
+            if (lockOwner != '' && lockOwner != null && CStudioAuthoringContext.user != lockOwner) {
                 params.class = 'lock';
             }
         }
@@ -119,10 +119,12 @@
                     }else {
                         params.class = 'read';
                     }
+                    communicator.publish(Topics.ICE_TOOLS_INDICATOR, params);
                 } else {
                     var itemCallback = {
                         success: function (contentTO) {
                             isLockOwner(contentTO.item.lockOwner);
+                            communicator.publish(Topics.ICE_TOOLS_INDICATOR, params);
                         },failure: function () {}
                     }
 
@@ -136,7 +138,7 @@
                         params.class = 'read';
                     }
                 }
-                communicator.publish(Topics.ICE_TOOLS_INDICATOR, params);
+
             },failure: function () {}
         }
 
