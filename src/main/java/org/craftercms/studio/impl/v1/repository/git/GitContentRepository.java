@@ -219,7 +219,24 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean deleteContent(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            Git git = new Git(repo);
+            git.rm().addFilepattern(getGitPath(path)).call();
+            RevCommit commit = git.commit()
+                    .setOnly(getGitPath(path))
+                    .setMessage(StringUtils.EMPTY)
+                    .call();
+            return true;
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while deleting content for site: " + site + " path: " + path, e);
+        }
+        return false;
     }
 
     @Override
@@ -249,32 +266,32 @@ public class GitContentRepository implements ContentRepository {
             }
             RevTree tree = getTree(repo);
             TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            if (tw != null) {
+                ObjectLoader loader = repo.open(tw.getObjectId(0));
+                if (loader.getType() == Constants.OBJ_TREE) {
+                    int depth = tw.getDepth();
+                    tw.enterSubtree();
+                    while (tw.next()) {
+                        if (tw.getDepth() == depth + 1) {
 
-            ObjectLoader loader = repo.open(tw.getObjectId(0));
-            if (loader.getType() == Constants.OBJ_TREE) {
-                int depth = tw.getDepth();
-                tw.enterSubtree();
-                while (tw.next()) {
-                    if (tw.getDepth() == depth + 1) {
+                            RepositoryItem item = new RepositoryItem();
+                            item.name = tw.getNameString();
 
-                        RepositoryItem item = new RepositoryItem();
-                        item.name = tw.getNameString();
+                            String visitFolderPath = "/" + tw.getPathString();
+                            loader = repo.open(tw.getObjectId(0));
+                            item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                            int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                            if (lastIdx > 0) {
+                                item.path = visitFolderPath.substring(0, lastIdx);
+                            }
 
-                        String visitFolderPath = "/" + tw.getPathString();
-                        loader = repo.open(tw.getObjectId(0));
-                        item.isFolder = loader.getType() == Constants.OBJ_TREE;
-                        int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
-                        if (lastIdx > 0) {
-                            item.path = visitFolderPath.substring(0, lastIdx);
-                        }
-
-                        if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
-                            retItems.add(item);
+                            if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                retItems.add(item);
+                            }
                         }
                     }
                 }
             }
-
         } catch (IOException e) {
             logger.error("Error while getting children for site: " + site + " path: " + path, e);
         }
@@ -375,14 +392,14 @@ public class GitContentRepository implements ContentRepository {
             }
             RevTree tree = getTree(repo);
             TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            if (tw != null) {
+                FS fs = FS.detect();
+                File file = new File(tw.getPathString());
+                LockFile lock = new LockFile(file, fs);
+                lock.unlock();
 
-            FS fs = FS.detect();
-            File file = new File(tw.getPathString());
-            LockFile lock = new LockFile(file, fs);
-            lock.unlock();
-
-            tw.close();
-
+                tw.close();
+            }
         } catch (IOException e) {
             logger.error("Error while locking file for site: " + site + " path: " + path, e);
         }
