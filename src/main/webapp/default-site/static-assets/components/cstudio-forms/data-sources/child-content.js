@@ -11,6 +11,9 @@ function(id, form, properties, constraints)  {
    		if(properties[i].name == "repoPath") {
  			this.repoPath = properties[i].value;
    		}
+   		if(properties[i].name == "browsePath") {
+ 			this.browsePath = properties[i].value;
+   		}
 
 		if(properties[i].name == "type"){
 			this.type = (Array.isArray(properties[i].value))?"":properties[i].value;
@@ -43,7 +46,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 //				control.addContainerEl = null;
 //				control.containerEl.removeChild(addContainerEl);
 //			}, addContainerEl);
-					
+
 	       	addContainerEl.style.left = control.addButtonEl.offsetLeft + "px";
 	       	addContainerEl.style.top = control.addButtonEl.offsetTop + 22 + "px";
 		        		
@@ -100,8 +103,13 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 			 YAHOO.util.Event.on(browseEl, 'click', function() {
 				control.addContainerEl = null;
 				control.containerEl.removeChild(addContainerEl);
-
-				CStudioAuthoring.Operations.openBrowse("", _self.processPathsForMacros(_self.repoPath), _self.selectItemsCount, "select", true, { 
+				// if the browsePath property is set, use the property instead of the repoPath property
+				// otherwise continue to use the repoPath for both cases for backward compatibility
+				var browsePath = _self.repoPath;
+				if (_self.browsePath != undefined && _self.browsePath != '') {
+					browsePath = _self.browsePath;
+				}
+				CStudioAuthoring.Operations.openBrowse("", _self.processPathsForMacros(browsePath), _self.selectItemsCount, "select", true, {
 					success: function(searchId, selectedTOs) {
 
 						for(var i=0; i<selectedTOs.length; i++) {
@@ -183,6 +191,7 @@ YAHOO.extend(CStudioForms.Datasources.ChildContent, CStudioForms.CStudioFormData
 	getSupportedProperties: function() {
 		return [
 			{ label: CMgs.format(langBundle, "repositoryPath"), name: "repoPath", type: "string" },
+			{ label: CMgs.format(langBundle, "browsePath"), name: "browsePath", type: "string" },
 			{ label: CMgs.format(langBundle, "defaultType"), name: "type", type: "string" }
 		];
 	},
