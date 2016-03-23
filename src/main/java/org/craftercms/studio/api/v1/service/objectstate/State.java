@@ -219,4 +219,8 @@ public enum State {
     public static boolean isInWorkflow(State state) {
         return WORKFLOW_STATES.contains(state);
     }
+
+    public static boolean isUpdateOrSubmitted(State state) {
+        return EDITED_STATES.contains(state) || SUBMITTED_STATES.contains(state);
+    }
 }
