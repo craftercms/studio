@@ -42,6 +42,10 @@ header {
 
 }
 
+.panel > .table-responsive{
+  min-height: 35px;
+}
+
 @media screen and (min-width:0\0) {
   .CodeMirror .CodeMirror-lines pre.CodeMirror-cursor{
     width: 9px;
