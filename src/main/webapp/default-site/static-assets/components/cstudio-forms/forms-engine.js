@@ -986,7 +986,7 @@ var CStudioForms = CStudioForms || function() {
                         serviceUrl += "&oldContentPath=" + path;
                     }
 
-                    if(preview) {
+                    if(preview || draft==true) {
                         serviceUrl += "&unlock=false";
                     }
                     else {
