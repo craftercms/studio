@@ -2,6 +2,7 @@ CStudioForms.Datasources.ConfiguredList = CStudioForms.Datasources.ConfiguredLis
 function(id, form, properties, constraints)  {
    	this.id = id;
    	this.form = form;
+   	this.sort = CStudioForms.Datasources.ConfiguredList.SORT_NONE;
    	this.properties = properties;
    	this.constraints = constraints;
 	this.callbacks = [];
@@ -9,6 +10,10 @@ function(id, form, properties, constraints)  {
 	
 	for(var i=0; i<properties.length; i++) {
 		var property = properties[i]
+		if(property.name == "sort") {
+			this.sort = property.value;
+		}
+
 		if(property.name == "listName") {
 			var cb = { 
 				success: function(config) {
@@ -17,6 +22,19 @@ function(id, form, properties, constraints)  {
                         if(!values.length) {
                             values = [ values.item ];
                         }
+
+                        if(_self.sort != CStudioForms.Datasources.ConfiguredList.SORT_NONE) {
+                        	if(_self.sort == CStudioForms.Datasources.ConfiguredList.SORT_ASC) {
+                        		values = values.sort(function(a, b) { 
+                        				return a.value < b.value;
+                        		 });
+                        	}
+                        	else {
+								values = values.sort(function(a, b){
+									return a.value < b.value;
+								});
+                        	}
+	                    }
 
                         _self.list = values;
 
@@ -112,6 +130,24 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 			label: CMgs.format(langBundle, "listName"),
 			name: "listName",
 			type: "string"
+		},
+		{
+			label: CMgs.format(langBundle, "sort"),
+			name: "sort",
+			type: "dropdown",
+			defaultValue: [{ // Update this array if the dropdown options need to be updated
+				value: CStudioForms.Datasources.ConfiguredList.SORT_NONE,
+				label: "None",
+				selected: true
+			}, {
+				value: CStudioForms.Datasources.ConfiguredList.SORT_ASC,
+				label: CMgs.format(langBundle, "ascending"),
+				selected: false
+			}, {
+				value: CStudioForms.Datasources.ConfiguredList.SORT_DESC,
+				label: CMgs.format(langBundle, "descending"),
+				selected: false
+			}]
 		}];
 	},	
 
@@ -128,7 +164,10 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 		else {
 			cb.success(this.list);
 		}
-	}
+	},
+	SORT_NONE: "none",
+	SORT_DESC: "desc",
+	SORT_ASC: "asc"
 	
 
 });
