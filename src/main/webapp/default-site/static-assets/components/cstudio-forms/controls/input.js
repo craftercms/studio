@@ -36,7 +36,7 @@ YAHOO.extend(CStudioForms.Controls.Input, CStudioForms.CStudioFormField, {
 			}
 			else {
 				obj.clearError("required");
-				//validationExist = true;
+				validationExist = true;
 			}
 		}
 
