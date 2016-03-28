@@ -33,9 +33,13 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalOverride = CStudioAuthoring
 	        callingWindow: window
 	    };
 
+	    var path = oCurrentTextNode.data.path;
+	    if(path.indexOf("/" + data.region) == -1) {
+	    	path += "/" + data.region;
+	    }
 	    CStudioAuthoring.Operations.createNewContent(
 	            CStudioAuthoringContext.site,
-	            oCurrentTextNode.data.path + "/" + data.region,
+	            path,
 	            false,
 	            createCb);
      },
@@ -45,7 +49,12 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalOverride = CStudioAuthoring
 
 	    for (var i = 0; i < filterFolders.length; i++) {
     	    if (filterFolders[i] === treeItem.name) {
-    	   		return true;
+    	    	if(filterFolders[i] != Self.region) {
+	    	   		return true;
+	    	   	}
+	    	   	else {
+	    	   		return false;
+	    	   	}
         	}	
     	}
 
@@ -53,6 +62,8 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalOverride = CStudioAuthoring
 	},
 
 	drawTreeItem: function(treeNodeTO, root, treeNode) {
+		if(treeNodeTO.fileName == "lac") { 
+				treeNode.label = (treeNode.parent.label).replace("*", "") +  "Regional Content"}
 		return treeNode;
 	}
 }            
