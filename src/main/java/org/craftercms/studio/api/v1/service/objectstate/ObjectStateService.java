@@ -26,42 +26,20 @@ import java.util.List;
 
 public interface ObjectStateService {
 
-/*
-    public void beginSystemProcessing(String fullPath);
+    ObjectState getObjectState(String site, String path);
 
-    public void beginSystemProcessing(NodeRef nodeRef);
-
-    public void endSystemProcessing(String fullPath);
-
-    public void endSystemProcessing(NodeRef nodeRef);
-*/
-    public ObjectState getObjectState(String site, String path);
-/*
-    public State getObjectState(NodeRef nodeRef);
-
-    public State getRealObjectState(NodeRef nodeRef);
-*/
     void transition(String site, ContentItemTO item, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
 
     void insertNewEntry(String site, ContentItemTO item);
 
     void insertNewEntry(String site, String path);
 
-    /*
-        public void transition(NodeRef nodeRef, TransitionEvent event);
-
-        public void insertNewObjectEntry(String fullPath);
-
-        public void insertNewObjectEntry(NodeRef nodeRef);
-    */
-    public List<ObjectState> getSubmittedItems(String site);
+    List<ObjectState> getSubmittedItems(String site);
 
     ObjectState getObjectState(String site, String path, boolean insert);
 
-    public void setSystemProcessing(String site, String path, boolean isSystemProcessing);
-/*
-    public void setSystemProcessing(NodeRef nodeRef, boolean isSystemProcessing);
-*/
+    void setSystemProcessing(String site, String path, boolean isSystemProcessing);
+
     void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing);
 
     void updateObjectPath(String site, String oldPath, String newPath);
@@ -69,25 +47,17 @@ public interface ObjectStateService {
     boolean isUpdated(String site, String path);
 
     boolean isUpdatedOrNew(String site, String path);
-/*
-    public boolean isUpdatedOrNew(NodeRef nodeRef);
 
-    public State[][] getTransitionMapping();
-*/
-    public boolean isNew(String site, String path);
-/*
-    public boolean isNew(NodeRef nodeRef);
+    boolean isUpdatedOrSubmitted(String site, String path);
 
-    public boolean isFolderLive(String fullPath);
-*/
-    public List<ObjectState> getChangeSet(String site);
+    boolean isNew(String site, String path);
 
-    public void deleteObjectState(String objectId);
+    List<ObjectState> getChangeSet(String site);
 
-    public void deleteObjectStateForPath(String site, String path);
-/*
-    public void deleteObjectStateForPaths(String site, List<String> paths);
-*/
+    void deleteObjectState(String objectId);
+
+    void deleteObjectStateForPath(String site, String path);
+
     void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
 
     /**
@@ -95,14 +65,13 @@ public interface ObjectStateService {
      */
     List<ObjectState> getObjectStateByStates(String site, List<String> states);
 
-    public boolean isScheduled(String site, String path);
+    boolean isScheduled(String site, String path);
 
-    public boolean isInWorkflow(String site,String path);
-/*
-    public boolean isInWorkflow(NodeRef nodeRef);
-    */
+    boolean isInWorkflow(String site,String path);
 
     void deleteObjectStatesForSite(String site);
 
     boolean isFolderLive(String site, String uri);
+
+    boolean isSubmitted(String site, String dep);
 }

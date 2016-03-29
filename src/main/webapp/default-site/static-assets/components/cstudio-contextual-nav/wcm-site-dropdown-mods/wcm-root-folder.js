@@ -30,6 +30,7 @@
             myTreePages: [],
             copiedItem: null,
             cutItem: null,
+            mods:[],
             instanceCount: 0,
             lastSelectedTextNode: null, //used for holding last selected node; to use it to hold hover effect on a text node when cotex menu is open.
             treePathOpenedEvt: new YAHOO.util.CustomEvent("wcmRootFolderTreePathLoaded", Self),
@@ -41,6 +42,33 @@
                     var instance = new CStudioAuthoring.ContextualNav.WcmRootFolderInstance(config);
                     instance.cannedSearchCache = [];
                     instance.excludeCache = [];
+
+
+                    if(config.params.mods) {
+                        if ((typeof(config.params.mods) == "object")
+                        && (typeof(config.params.mods.mod) != "array")) {
+                            config.params.mods = [config.params.mods.mod]
+                        }
+                    
+
+                        for(var m=0; m<config.params.mods.length; m++) {
+                            // load modules
+                            var mod = config.params.mods[m];
+
+                            CStudioAuthoring.Module.requireModule(mod.name,
+                            '/static-assets/components/cstudio-contextual-nav/wcm-site-dropdown-mods/root-folder-mods/' + mod.name + ".js",
+                            {config: mod}, {
+                                context: this,
+                                moduleLoaded: function (moduleName, moduleClass, moduleConfig) {
+                                    this.context.mods[this.context.mods.length] = moduleClass;
+                                    moduleClass.init(moduleConfig);
+                                }
+                            });
+                        }
+                    }
+
+
+
 
                     if(config.params.excludes) {
                         if ( (typeof(config.params.excludes) == "object")
@@ -232,6 +260,13 @@
                         exclude = true;
                     }
 
+                    if(this.mods) {
+                        for(var m=0; m<this.mods.length; m++) {
+                            var mod = this.mods[m];
+                            exclude = mod.filterItem(treeItems[i]);
+                        }
+                    }
+
 
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
@@ -252,24 +287,24 @@
                         var treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
 
                         var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot());
-                        treeNode.instance = instance;
+                    
+                            treeNode.instance = instance;
 
-                        if (pathToOpenTo != null && treeNode != null) {
-                            if (treeNodeTO.pathSegment == "index.xml") {
-                                if (CStudioAuthoring.Utils.endsWith(treeNodeTO.path, currentLevelPath)) {
-                                    nodeToOpen = treeNode;
+                            if (pathToOpenTo != null && treeNode != null) {
+                                if (treeNodeTO.pathSegment == "index.xml") {
+                                    if (CStudioAuthoring.Utils.endsWith(treeNodeTO.path, currentLevelPath)) {
+                                        nodeToOpen = treeNode;
+                                    }
                                 }
                             }
-                        }
 
-                        treeNodes.push(treeNode);
-                        if (treeNode.labelElId) {
-                            treeNodesLabels.push(treeNode.labelElId);
-                        } else {
-                            treeNodesLabels.push(tree.root.children[i].labelElId);
+                            treeNodes.push(treeNode);
+                            if (treeNode.labelElId) {
+                                treeNodesLabels.push(treeNode.labelElId);
+                            } else {
+                                treeNodesLabels.push(tree.root.children[i].labelElId);
+                            }
                         }
-
-                    }
                 }
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper", {
@@ -378,8 +413,18 @@
                     }
                 }
 
+
+
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
                     var exclude = false;
+
+                    if(this.mods) {
+                        for(var m=0; m<this.mods.length; m++) {
+                            var mod = this.mods[m];
+                            exclude = mod.filterItem(treeItems[i]);
+                        }
+                    }
+
                     if(instance.excludeCache[treeItems[i].path]) {
                         exclude = true;
                     }
@@ -446,6 +491,8 @@
                         }
                     }
                 }
+
+             
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper", {
                     context: treeNodesLabels,
@@ -531,6 +578,13 @@ treeNode.getHtml = function() {
 
                     if (!treeNodeTO.isContainer) {
                         treeNode.isLeaf = true;
+                    }
+                }
+
+                if(this.mods) {
+                    for(var m=0; m<this.mods.length; m++) {
+                        var mod = this.mods[m];
+                        treeNode = mod.drawTreeItem(treeNodeTO, root, treeNode);
                     }
                 }
 
@@ -1359,6 +1413,14 @@ treeNode.getHtml = function() {
 		                   	            }
 
                                         menuId.removeChild(d);  // Remove the "Loading ..." message
+
+                                        if(Self.mods) {
+                                            for(var m=0; m<Self.mods.length; m++) {
+                                                var mod = Self.mods[m];
+                                                treeNode = mod._renderContextMenu(Self.myTree, target, p_aArgs, component, menuItems, oCurrentTextNode, isWrite);
+                                            }
+                                        }
+
 			                            this.args.render();     // Render the site dropdown's context menu
 			                        },
 			                        failure: function() { },

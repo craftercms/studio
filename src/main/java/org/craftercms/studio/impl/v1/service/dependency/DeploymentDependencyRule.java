@@ -55,6 +55,8 @@ public class DeploymentDependencyRule implements DependencyRule {
                             break;
                         }
                     }
+                } else if (objectStateService.isSubmitted(site, dep)) {
+                    dependencies.add(dep);
                 }
             }
         }
