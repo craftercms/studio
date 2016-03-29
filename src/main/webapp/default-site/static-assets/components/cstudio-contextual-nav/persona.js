@@ -37,7 +37,7 @@ CStudioAuthoring.ContextualNav.PersonaNavMod = CStudioAuthoring.ContextualNav.Pe
 					imageEl = document.createElement("img");
 					imageEl.id = "acn-persona-image";
 
-					var serviceUri = "/api/1/profile/get";
+					var serviceUri = "/api/1/profile/get?time=" + new Date();
 					
 					var serviceCallback = {
 						success: function(oResponse) {
@@ -89,7 +89,7 @@ CStudioAuthoring.ContextualNav.PersonaNavMod = CStudioAuthoring.ContextualNav.Pe
 						failure: function(response) {}
 					};
 	
-					YConnect.asyncRequest('GET', serviceUri, serviceCallback);
+					YConnect.asyncRequest('GET', CStudioAuthoring.Service.createEngineServiceUri(serviceUri), serviceCallback);
 
 					containerEl.appendChild(imageEl);
 					el.appendChild(containerEl);
