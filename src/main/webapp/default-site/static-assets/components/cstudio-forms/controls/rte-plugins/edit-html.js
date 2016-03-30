@@ -193,7 +193,11 @@ CStudioAuthoring.Module.requireModule(
 				editor.codeMirror.focus();
 				editor.codeMirror.scrollTo(0, 0); // Scroll to the top of the editor window
 				rteControl.scrollToTopOfElement(rteControl.containerEl, 30);
-                editor.codeMirror.onChange()
+                try{
+                    editor.codeMirror.onChange()
+                }catch(err){
+
+                }
 			},
 
 			disableCodeView: function(editor) {
