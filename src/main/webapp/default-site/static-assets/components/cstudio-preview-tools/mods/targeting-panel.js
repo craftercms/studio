@@ -126,7 +126,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
                     failure: CStudioAuthoring.Utils.noop
                 };
 
-                var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get");
+                var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get?time=" + new Date());
                 YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
 
 
@@ -177,7 +177,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
                     failure: CStudioAuthoring.Utils.noop
 				};
 				
-				var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get");
+				var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get?time=" + new Date());
 				//YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
 			}
 	},
@@ -332,7 +332,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 												event: e
 											};
 											
-											var serviceUri = "/api/1/profile/set" + 
+											var serviceUri = "/api/1/profile/set" +
 												"?username=" + item.personaName;
 											for(var l=0; l<persona.settings.length; l++){
 												var property =  persona.settings[l];
@@ -341,8 +341,10 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 												serviceUri+="&"+property.name + "=" + val.replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g,'').replace(/\s+/g,' ');
 ;	
 											}
+
+                                            serviceUri = serviceUri + "&" + new Date();
 	
-											YConnect.asyncRequest('GET', CStudioAuthoring.Service.createEngineServiceUri(serviceUri), setCurrentCallback);
+											YConnect.asyncRequest('GET', CStudioAuthoring.Service.createEngineServiceUri(encodeURI(serviceUri)), setCurrentCallback);
 										}; 
 									//}
 							} 
