@@ -62,8 +62,8 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalOverride = CStudioAuthoring
 	},
 
 	drawTreeItem: function(treeNodeTO, root, treeNode) {
-		if(treeNodeTO.fileName == "lac") { 
-				treeNode.label = (treeNode.parent.label).replace("*", "") +  "Regional Content"}
+		if(treeNodeTO.fileName == Self.region) { 
+				treeNode.label = Self.region.toUpperCase() + " " + (treeNode.parent.label).replace("*", "") +  "Regional Content"}
 		return treeNode;
 	}
 }            
