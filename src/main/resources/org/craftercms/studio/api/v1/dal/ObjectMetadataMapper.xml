@@ -62,7 +62,7 @@
             <if test="creator != null">creator=#{creator},</if>
             <if test="firstName != null">firstname=#{firstName},</if>
             <if test="lastName != null">lastname=#{lastName},</if>
-            <if test="lockOwner != null">lockowner=#{lastlockOwnerName},</if>
+            <if test="lockOwner != null">lockowner=#{lockOwner},</if>
             <if test="email != null">email=#{email},</if>
             <if test="renamed != null">renamed=#{renamed},</if>
             <if test="oldUrl != null">oldurl=#{oldUrl},</if>
