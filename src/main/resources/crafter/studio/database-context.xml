@@ -1,58 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
 
-       <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
-              <jdbc:script location="classpath:crafter/studio/database/createDDL-${studio.db.platform}.sql" separator=" ;" />
-              <!--jdbc:script location="classpath:crafter/studio/database/updateDDL-${studio.db.platform}.sql" /-->
-       </jdbc:initialize-database>
+    <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
+        <jdbc:script location="classpath:crafter/studio/database/createDDL-${studio.db.platform}.sql" separator=" ;"/>
+        <!--jdbc:script location="classpath:crafter/studio/database/updateDDL-${studio.db.platform}.sql" /-->
+    </jdbc:initialize-database>
 
-       <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-              <property name="properties">
-                     <props>
-                            <prop key="SQL Server">sqlserver</prop>
-                            <prop key="DB2">db2</prop>
-                            <prop key="Oracle">oracle</prop>
-                            <prop key="MySQL">mysql</prop>
-                            <prop key="PostgreSQL">postgres</prop>
-                            <prop key="Derby">derby</prop>
-                     </props>
-              </property>
-       </bean>
-
-       <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
-              <property name="properties" ref="vendorProperties"/>
-       </bean>
-
-       <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-              <property name="driverClassName" value="${studio.db.driver}"/>
-              <property name="url" value="${studio.db.url}"/>
-              <property name="username" value="${studio.db.username}"/>
-              <property name="password" value="${studio.db.password}"/>
-       </bean>
-
-       <!-- define the SqlSessionFactory -->
-       <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-              <property name="dataSource" ref="dataSource" />
-              <property name="databaseIdProvider" ref="databaseIdProvider" />
-              <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain" />
-              <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
-       </bean>
-
-       <!-- scan for mappers and let them be autowired -->
-       <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-              <property name="basePackage" value="org.craftercms.studio.api.v1.dal" />
-              <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-       </bean>
-
-    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
-        <constructor-arg index="0" ref="sqlSessionFactory" />
+    <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="properties">
+            <props>
+                <prop key="SQL Server">sqlserver</prop>
+                <prop key="DB2">db2</prop>
+                <prop key="Oracle">oracle</prop>
+                <prop key="MySQL">mysql</prop>
+                <prop key="PostgreSQL">postgres</prop>
+                <prop key="Derby">derby</prop>
+            </props>
+        </property>
     </bean>
 
-    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl" init-method="initDataSource">
-        <property name="enabled" value="${studio.db.initializer.enabled}" />
+    <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+        <property name="properties" ref="vendorProperties"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
+        <property name="driverClassName" value="${studio.db.driver}"/>
+        <property name="url" value="${studio.db.url}"/>
+        <property name="username" value="${studio.db.username}"/>
+        <property name="password" value="${studio.db.password}"/>
+        <property name="initialSize" value="${studio.db.pool.initialConnections}"/>
+        <property name="maxActive" value="${studio.db.pool.maxActiveConnections}"/>
+        <property name="maxIdle" value="${studio.db.pool.maxIdleConnections}"/>
+        <property name="minIdle" value="${studio.db.pool.minIdleConnections}"/>
+        <property name="maxWait" value="${studio.db.pool.maxWaitTime}"/>
+    </bean>
+
+    <!-- define the SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="databaseIdProvider" ref="databaseIdProvider"/>
+        <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
+        <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
+    </bean>
+
+    <!-- scan for mappers and let them be autowired -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.craftercms.studio.api.v1.dal"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl"
+          init-method="initDataSource">
+        <property name="enabled" value="${studio.db.initializer.enabled}"/>
         <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         <property name="vendorScriptsMapping">
             <map>
