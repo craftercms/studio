@@ -375,7 +375,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 
                 if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                     String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
-                    if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, "")) {
+                    if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
                         RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
 
                         if (children.length < 2) {
@@ -400,7 +400,6 @@ public class PublishingManagerImpl implements PublishingManager {
             
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
                 String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
-                RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                 if (contentService.contentExists(site, path.replace("/" + DmConstants.INDEX_FILE, ""))) {
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
 
@@ -525,9 +524,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     private void deleteFolder(String site, String path, String user, Deployer deployer) {
-        String fullPath = contentService.expandRelativeSitePath(site, path);
-        if (contentService.contentExists(fullPath)) {
-            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+        if (contentService.contentExists(site, path)) {
+            RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 contentService.deleteContent(site, path, false, user);

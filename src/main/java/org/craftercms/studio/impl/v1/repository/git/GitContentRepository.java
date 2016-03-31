@@ -19,14 +19,11 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -35,7 +32,6 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
@@ -51,7 +47,6 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -255,7 +250,51 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
-        throw new RuntimeException("Not Implemented");
+        boolean success = true;
+
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            String gitFromPath = getGitPath(fromPath);
+            RevTree fromTree = getTree(repo);
+            TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
+
+            String gitToPath = getGitPath(toPath);
+            RevTree toTree = getTree(repo);
+            TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
+
+            FS fs = FS.detect();
+            File repoRoot = repo.getWorkTree();
+            Path sourcePath = null;
+            if (fromTw == null) {
+                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), gitFromPath);
+            } else {
+                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), fromTw.getPathString());
+            }
+            Path targetPath = null;
+            if (toTw == null) {
+                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), gitToPath);
+            } else {
+                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), toTw.getPathString());
+            }
+            File sourceFile = sourcePath.toFile();
+            if (sourceFile.isDirectory()) {
+                FileUtils.copyDirectory(sourceFile, targetPath.toFile());
+            } else {
+                FileUtils.copyFileToDirectory(sourceFile, targetPath.toFile());
+            }
+        }
+        catch(Exception err) {
+            // log this error
+            logger.error("Error while copping content from {0} to {1}", err, fromPath, toPath);
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
