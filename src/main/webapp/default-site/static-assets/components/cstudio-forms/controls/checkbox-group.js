@@ -158,7 +158,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
                     inputEl.checked = false;
                     inputEl.id = _self.id + "-all";
 
-                    YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, _self);
+                    YAHOO.util.Event.on(inputEl, 'click', function(evt, context) { context.form.setFocusedField(context) }, _self);
                     YAHOO.util.Event.on(inputEl, 'change', _self.toggleAll, inputEl, _self);
 
                     rowEl.appendChild(inputEl);
@@ -199,7 +199,7 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
                         inputEl.disabled = true;
                     }
 
-                    YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, _self);
+                    YAHOO.util.Event.on(inputEl, 'click', function(evt, context) { context.form.setFocusedField(context) }, _self);
                     YAHOO.util.Event.on(inputEl, 'change', _self.onChange, inputEl, _self);
                     inputEl.context = _self;
                     inputEl.item = item;
