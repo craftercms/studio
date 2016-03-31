@@ -289,6 +289,18 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         }
     }
 
+    protected void removeFromPathMapping(String site, String contentType) {
+        String key = createKey(site, contentType);
+        SiteContentTypePathsTO paths = this.pathMapping.get(site);
+        if (paths != null) {
+            // find a matching path configuration and add
+            for (ContentTypePathTO pathTO : paths.getConfigs()) {
+                pathTO.removeAllowedContentTypes(key);
+            }
+            paths.setLastUpdated(new Date());
+        }
+    }
+
     /**
      * create a new path configuration
      *
@@ -344,6 +356,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         } else {
             cacheService.addScope(cacheContext);
         }
+        removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
         cacheService.put(cacheContext, cacheKey, config);
         this.addContentType(site, contentType, config);

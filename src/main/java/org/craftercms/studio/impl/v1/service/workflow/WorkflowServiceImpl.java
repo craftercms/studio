@@ -158,11 +158,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
 	protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
+        long start = System.currentTimeMillis();
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
         try {
             SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
             JSONObject requestObject = JSONObject.fromObject(request);
+            JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
+            int length = items.size();
+            if (length > 0) {
+                for (int index = 0; index < length; index++) {
+                    objectStateService.setSystemProcessing(site, items.optString(index), true);
+                }
+            }
             boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
             Date scheduledDate = null;
             if (!isNow) {
@@ -173,8 +181,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : null;
             // TODO: check scheduled date to make sure it is not null when isNow
             // = true and also it is not past
-            JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
-            int length = items.size();
+
+
             String schDate = null;
             if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
                 schDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
@@ -184,9 +192,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
 					String stringItem = items.optString(index);
-                    //JSONObject item = items.getJSONObject(index);
                     DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate, null);
-                    String user = submittedBy; //item.getString(JSON_KEY_USER);
+                    String user = submittedBy;
                     submittedItems.add(submittedItem);
                     if (delete) {
                         submittedItem.setSubmittedForDeletion(true);
@@ -290,14 +297,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         String fullPath = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
-        DmPathTO path = new DmPathTO(fullPath);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
 
-        // TODO: check if item is locked
-        //if (!persistenceManagerService.getLockStatus(node).equals(LockStatus.NO_LOCK)) {
-//                	persistenceManagerService.unlock(node);
-        //}
-        /****** end ******/
 		Map<String, Object> properties = new HashMap<>();
 		properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
 		properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail ? 1 : 0);

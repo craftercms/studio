@@ -32,7 +32,7 @@ class SolrSearch {
 		//[Object { qname="cm:content.mimetype", value="image/*", useWildCard="true"}]
 		for(int f=0; f<searchParams.filters.size; f++){
 			def filter = searchParams.filters[f]
-			queryStatement    += " AND " + filter.qname + ":\"" + filter.value + "\" "
+			queryStatement    += " AND " + filter.qname + ":"+ filter.value + " "
 		}
 
 		results.query = queryStatement
