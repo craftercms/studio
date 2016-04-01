@@ -64,7 +64,10 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 		var filterItem = false;
 		var itemPath = treeItem.uri.replace("/index.xml","");
 
-		if(itemPath.indexOf("/"+Self.region) != -1) {
+		if(itemPath == "/site/website/wip" || itemPath.indexOf("/wip/"+Self.region) != -1) {
+                	filterItem = false;
+		}
+		else if(itemPath.indexOf("/"+Self.region) != -1) {
 			filterItem = false;
 		}
         else if(Self.filterPaths.length != 0) {
@@ -86,13 +89,18 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 	},
 
 	drawTreeItem: function(treeNodeTO, root, treeNode) {
-		if(treeNodeTO.fileName == Self.region) { 
+		if(treeNodeTO.uri == "/site/website/wip") {
+			treeNode.label = "Work in Progress";
+		}
+		else if(treeNodeTO.uri.indexOf("/site/website/wip/"+Self.region) != -1) {
+			treeNode.label = Self.region.toUpperCase();
+		}
+		else if(treeNodeTO.fileName == Self.region) { 
 			var label = (treeNode.parent.label) ? treeNode.parent.label.replace("*", "") : "ROOT"; 
+			treeNode.label = Self.region.toUpperCase() + " " + label +  "Regional Content"
+		}
 
-			treeNode.label = Self.region.toUpperCase() + " " + label +  "Regional Content"}
 		return treeNode;
-
 	}
 }            
-            
-CStudioAuthoring.Module.moduleLoaded("regional-tree", CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree);
+      
