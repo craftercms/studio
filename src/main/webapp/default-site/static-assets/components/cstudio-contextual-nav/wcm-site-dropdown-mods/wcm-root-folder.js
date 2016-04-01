@@ -30,7 +30,6 @@
             myTreePages: [],
             copiedItem: null,
             cutItem: null,
-            mods:[],
             instanceCount: 0,
             lastSelectedTextNode: null, //used for holding last selected node; to use it to hold hover effect on a text node when cotex menu is open.
             treePathOpenedEvt: new YAHOO.util.CustomEvent("wcmRootFolderTreePathLoaded", Self),
@@ -49,7 +48,6 @@
                         && (typeof(config.params.mods.mod) != "array")) {
                             config.params.mods = [config.params.mods.mod]
                         }
-                    
 
                         for(var m=0; m<config.params.mods.length; m++) {
                             // load modules
@@ -58,7 +56,7 @@
                             CStudioAuthoring.Module.requireModule(mod.name,
                             '/static-assets/components/cstudio-contextual-nav/wcm-site-dropdown-mods/root-folder-mods/' + mod.name + ".js",
                             {config: mod}, {
-                                context: this,
+                                context: instance,
                                 moduleLoaded: function (moduleName, moduleClass, moduleConfig) {
                                     this.context.mods[this.context.mods.length] = moduleClass;
                                     moduleClass.init(moduleConfig);
@@ -66,8 +64,6 @@
                             });
                         }
                     }
-
-
 
 
                     if(config.params.excludes) {
@@ -115,21 +111,43 @@
                     	}
                     }
                     this.addContentTreeRootFolder(instance);
-                    /**
-                     * EMO-8478
-                     */
-                    var thisComponent = this;
-                    if(YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
-                        window.firstClick = true;
-                        thisComponent.openLatest(instance);
-                    }
-                    YEvent.on('acn-dropdown-toggler', 'click', function() {
-                    	if(!window.firstClick && YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
-                    		window.firstClick = true;
-                    		thisComponent.openLatest(instance);
-                    	}
-                        this.blur();
-                    });					
+
+                    var openTreeFn = function(instance, thisComponent) {
+                        var readyToLoad = false;
+                        if(instance.mods.length > 0) {
+                            readyToLoad = true;
+                            for(var m=0; m<instance.mods.length; m++) {
+                                var mod = instance.mods[m];
+                                if(mod.readyToLoad == false) {
+                                    readyToLoad = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(readyToLoad) {
+                            if(YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
+                                window.firstClick = true;
+                                thisComponent.openLatest(instance);
+                            }
+                            YEvent.on('acn-dropdown-toggler', 'click', function() {
+                                if(!window.firstClick && YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
+                                    window.firstClick = true;
+                                    thisComponent.openLatest(instance);
+                                }
+                                thisComponent.blur();
+                            });
+
+                            Self.wireUpCannedSearches();
+
+                        }
+                        else {
+                            // give mods a bit of time to load then try again
+                            setTimeout(openTreeFn, 1000, instance, thisComponent);                    
+                        }
+                    };
+
+                    setTimeout(openTreeFn, 1000, instance, this); 					
                 }
             },
             
@@ -254,15 +272,24 @@
                     }
                 }
 
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
+                        if(mod.sortTreeItems) {
+                            treeItems = mod.sortTreeItems(treeItems);
+                        }
+                    }
+                }
+
                 for (var i = 0; i < treeItems.length; i++) {
                     var exclude = false;
                     if(instance.excludeCache[treeItems[i].path]) {
                         exclude = true;
                     }
 
-                    if(this.mods) {
-                        for(var m=0; m<this.mods.length; m++) {
-                            var mod = this.mods[m];
+                    if(instance.mods) {
+                        for(var m=0; m<instance.mods.length; m++) {
+                            var mod = instance.mods[m];
                             exclude = mod.filterItem(treeItems[i]);
                         }
                     }
@@ -270,6 +297,7 @@
 
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
+                    var linkSearch = false;
 
                     if (cannedSearches) {
                         for (var l = 0; l < cannedSearches.length; l++) {
@@ -286,7 +314,7 @@
                     if (!isSearch && exclude == false) {
                         var treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
 
-                        var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot());
+                        var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot(), instance);
                     
                             treeNode.instance = instance;
 
@@ -414,13 +442,21 @@
                 }
 
 
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
+                        if(mod.sortTreeItems) {
+                            treeItems = mod.sortTreeItems(treeItems);
+                        }
+                    }
+                }
 
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
                     var exclude = false;
 
-                    if(this.mods) {
-                        for(var m=0; m<this.mods.length; m++) {
-                            var mod = this.mods[m];
+                    if(instance.mods) {
+                        for(var m=0; m<instance.mods.length; m++) {
+                            var mod = instance.mods[m];
                             exclude = mod.filterItem(treeItems[i]);
                         }
                     }
@@ -451,7 +487,7 @@
                         if (itemCannedSearch && itemCannedSearch.length != 0 && itemCannedSearch[0].insertAs != "append") {
                             replaceChildren.push(treeNodeTO.path);
                         } else {
-                            var treeNode = this.drawTreeItem(treeNodeTO, root);
+                            var treeNode = this.drawTreeItem(treeNodeTO, root, instance);
                             //nodes will not have collapse/expand icon if they do not have any children
                             if (treeItems[i].numOfChildren == 0) {
                                 treeNode.isLeaf = true;
@@ -561,7 +597,8 @@ treeNode.getHtml = function() {
             /**
              * render a tree item
              */
-            drawTreeItem: function(treeNodeTO, root) {
+            drawTreeItem: function(treeNodeTO, root, instance) {
+                
                 if (treeNodeTO.container == true || treeNodeTO.name != 'index.xml') {
 
                     if (!treeNodeTO.style.match(/\bfolder\b/)) {
@@ -581,9 +618,9 @@ treeNode.getHtml = function() {
                     }
                 }
 
-                if(this.mods) {
-                    for(var m=0; m<this.mods.length; m++) {
-                        var mod = this.mods[m];
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
                         treeNode = mod.drawTreeItem(treeNodeTO, root, treeNode);
                     }
                 }
@@ -2171,7 +2208,7 @@ treeNode.getHtml = function() {
         this.showRootItem = (config.params["showRootItem"]) ? config.params["showRootItem"] : false;
         this.onClickAction = (config.params["onClick"]) ? config.params["onClick"] : "";
         this.config = config;
-
+        this.mods = [];
     }
     CStudioAuthoring.Module.moduleLoaded("wcm-root-folder", CStudioAuthoring.ContextualNav.WcmRootFolder);
 })();
