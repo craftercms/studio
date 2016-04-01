@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
@@ -240,12 +241,85 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        throw new RuntimeException("Not Implemented");
+        return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        throw new RuntimeException("Not Implemented");
+        boolean success = true;
+
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            String gitFromPath = getGitPath(fromPath);
+            RevTree fromTree = getTree(repo);
+            TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
+
+            String gitToPath = getGitPath(toPath);
+            RevTree toTree = getTree(repo);
+            TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
+
+            FS fs = FS.detect();
+            File repoRoot = repo.getWorkTree();
+            Path sourcePath = null;
+            if (fromTw == null) {
+                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), gitFromPath);
+            } else {
+                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), fromTw.getPathString());
+            }
+            Path targetPath = null;
+            if (toTw == null) {
+                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), gitToPath);
+            } else {
+                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), toTw.getPathString());
+            }
+
+            File source = sourcePath.toFile();
+            File destDir = targetPath.toFile();
+            File dest = destDir;
+            if (StringUtils.isNotEmpty(newName)) {
+                dest = new File(destDir, newName);
+            }
+            if (source.isDirectory()) {
+                File[] dirList = source.listFiles();
+                for (File file : dirList) {
+                    if (file.isDirectory()) {
+                        FileUtils.moveDirectoryToDirectory(file, dest, true);
+                    } else {
+                        FileUtils.moveFileToDirectory(file, dest, true);
+                    }
+                }
+                source.delete();
+            } else {
+                if (dest.isDirectory()) {
+                    FileUtils.moveFileToDirectory(source, dest, true);
+                } else {
+                    source.renameTo(dest);
+                }
+            }
+            Git git = new Git(repo);
+            git.add()
+                    .addFilepattern(gitToPath)
+                    .call();
+            git.rm()
+                    .addFilepattern(gitFromPath)
+                    .call();
+            RevCommit commit = git.commit()
+                    .setOnly(gitFromPath)
+                    .setOnly(gitToPath)
+                    .setMessage(StringUtils.EMPTY)
+                    .call();
+        } catch (IOException | GitAPIException err) {
+            // log this error
+            logger.error("Error while moving content from {0} to {1}", err, fromPath, toPath);
+            success = false;
+        }
+
+        return success;
     }
 
     @Override
@@ -287,8 +361,11 @@ public class GitContentRepository implements ContentRepository {
             } else {
                 FileUtils.copyFileToDirectory(sourceFile, targetPath.toFile());
             }
-        }
-        catch(Exception err) {
+            Git git = new Git(repo);
+            git.add()
+                    .addFilepattern(gitToPath)
+                    .call();
+        } catch (IOException | GitAPIException err) {
             // log this error
             logger.error("Error while copping content from {0} to {1}", err, fromPath, toPath);
             success = false;
@@ -361,7 +438,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public String createVersion(String site, String path, String comment, boolean majorVersion) {
-
+        String toRet = StringUtils.EMPTY;
         try {
             Repository repo;
             if (StringUtils.isEmpty(site)) {
@@ -369,16 +446,25 @@ public class GitContentRepository implements ContentRepository {
             } else {
                 repo = getSiteRepositoryInstance(site);
             }
+
+            String gitPath = getGitPath(path);
             Git git = new Git(repo);
-            RevCommit commit = git.commit()
-                    .setOnly(getGitPath(path))
-                    .setMessage(comment)
+
+            Status status = git.status()
+                    .addPath(gitPath)
                     .call();
-            return commit.getId().toString();
+
+            if (status.hasUncommittedChanges() || !status.isClean()) {
+                RevCommit commit = git.commit()
+                        .setOnly(gitPath)
+                        .setMessage(comment)
+                        .call();
+                toRet = commit.getId().toString();
+            }
         } catch (IOException | GitAPIException err) {
             logger.error("error creating new version for site:  " + site + " path: " + path, err);
         }
-        return StringUtils.EMPTY;
+        return toRet;
     }
 
     @Override
