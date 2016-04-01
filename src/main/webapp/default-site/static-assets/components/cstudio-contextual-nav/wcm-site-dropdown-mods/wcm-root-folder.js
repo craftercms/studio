@@ -137,6 +137,9 @@
                                 }
                                 thisComponent.blur();
                             });
+
+                            Self.wireUpCannedSearches();
+
                         }
                         else {
                             // give mods a bit of time to load then try again
@@ -294,6 +297,7 @@
 
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
+                    var linkSearch = false;
 
                     if (cannedSearches) {
                         for (var l = 0; l < cannedSearches.length; l++) {
@@ -446,7 +450,7 @@
                         }
                     }
                 }
-                
+
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
                     var exclude = false;
 
