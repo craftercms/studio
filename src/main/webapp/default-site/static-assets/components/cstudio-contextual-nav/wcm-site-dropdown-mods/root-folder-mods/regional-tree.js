@@ -1,18 +1,16 @@
 CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree || {
 	Self: this,
+	readyToLoad: false,
 	region: "",
 
 	init: function(moduleConfig) {
 		Self.region = moduleConfig.config.region;
 		Self.filterPaths = [];
 		Self.filterFolders = this.filterFolders;
-		Self.ready = false;
 
 		var cb = { 
 			success: function(results) {
-
 				for(var i=0; i<results.objectList.length; i++) {
-
 					var item = results.objectList[i].item;
 					var pathOfItem = item.localId.replace("/index.xml","");
 					
@@ -22,15 +20,15 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 					}
 				}
 
-				this._self.ready = true;
+				this._self.RegionalTree.readyToLoad = true;
 			},
 			failure: function(err) {
 				console.log("error getting paths for region. err:"+err);
 			},
 			_self: Self
 		};
-		CStudioAuthoring.Service.search(CStudioAuthoringContext.site, 
-			{
+
+		CStudioAuthoring.Service.search(CStudioAuthoringContext.site, {
                 searchType: "",
                 sortBy: "",
                 page: 1,
@@ -46,11 +44,33 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 	_renderContextMenu: function(tree, target, p_aArgs, component, menuItems, oCurrentTextNode, isWrite) {
 	},
 
+	sortTreeItems: function(treeItems) {
+		treeItems.sort(function(a, b){
+			var itemPathA = a.uri;
+			var itemPathB = b.uri;
+
+			if(itemPathA.indexOf("/"+Self.region)) {
+				return 1;
+			}
+			else {
+				return -1;
+			}
+		});
+
+		return treeItems;
+	},
+
 	filterItem: function(treeItem) {
 		var filterItem = false;
 		var itemPath = treeItem.uri.replace("/index.xml","");
 
-		if(Self.filterPaths.length != 0) {
+		if(itemPath == "/site/website/wip" || itemPath.indexOf("/wip/"+Self.region) != -1) {
+                	filterItem = false;
+		}
+		else if(itemPath.indexOf("/"+Self.region) != -1) {
+			filterItem = false;
+		}
+        else if(Self.filterPaths.length != 0) {
 		    // assume it's filtered
 		    filterItem  = true;
 
@@ -62,17 +82,25 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 		    		break;
 		    	}
 	    	}
+
 		}
 		
 		return filterItem;
 	},
 
 	drawTreeItem: function(treeNodeTO, root, treeNode) {
-		if(treeNodeTO.fileName == Self.region) { 
-				treeNode.label = Self.region.toUpperCase() + " " + (treeNode.parent.label).replace("*", "") +  "Regional Content"}
-		return treeNode;
+		if(treeNodeTO.uri == "/site/website/wip") {
+			treeNode.label = "Work in Progress";
+		}
+		else if(treeNodeTO.uri.indexOf("/site/website/wip/"+Self.region) != -1) {
+			treeNode.label = Self.region.toUpperCase();
+		}
+		else if(treeNodeTO.fileName == Self.region) { 
+			var label = (treeNode.parent.label) ? treeNode.parent.label.replace("*", "") : "ROOT"; 
+			treeNode.label = Self.region.toUpperCase() + " " + label +  "Regional Content"
+		}
 
+		return treeNode;
 	}
 }            
-            
-CStudioAuthoring.Module.moduleLoaded("regional-tree", CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree);
+      
