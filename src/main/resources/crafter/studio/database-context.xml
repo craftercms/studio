@@ -36,6 +36,9 @@
         <property name="maxIdle" value="${studio.db.pool.maxIdleConnections}"/>
         <property name="minIdle" value="${studio.db.pool.minIdleConnections}"/>
         <property name="maxWait" value="${studio.db.pool.maxWaitTime}"/>
+        <property name="testOnBorrow" value="${studio.db.testOnBorrow}"/>
+        <property name="validationQuery" value="${studio.db.validationQuery.${studio.db.platform}}"/>
+        <property name="validationInterval" value="${studio.db.validationInterval}"/>
     </bean>
 
     <!-- define the SqlSessionFactory -->
