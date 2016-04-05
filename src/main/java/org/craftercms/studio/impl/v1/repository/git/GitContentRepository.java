@@ -56,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class GitContentRepository implements ContentRepository {
@@ -428,7 +429,36 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+        List<VersionTO> versionHistory = new ArrayList<VersionTO>();
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            ObjectId head = repo.resolve(Constants.HEAD);
+            String gitPath = getGitPath(path);
+            Git git = new Git(repo);
+            Iterable<RevCommit> commits = git.log()
+                    .add(head)
+                    .addPath(gitPath)
+                    .call();
+            Iterator<RevCommit> iterator = commits.iterator();
+            while (iterator.hasNext()) {
+                RevCommit revCommit = iterator.next();
+                VersionTO versionTO = new VersionTO();
+                versionTO.setVersionNumber(revCommit.getId().toString());
+                versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
+                versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime()*1000));
+                versionTO.setComment(revCommit.getShortMessage());
+                versionHistory.add(versionTO);
+            }
+        } catch (IOException | GitAPIException err) {
+            logger.error("error while getting history for content item " + path);
+        }
+        VersionTO[] toRet = new VersionTO[versionHistory.size()];
+        return versionHistory.toArray(toRet);
     }
 
     @Override
