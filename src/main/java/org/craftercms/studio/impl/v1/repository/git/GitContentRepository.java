@@ -499,12 +499,39 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean revertContent(String site, String path, String version, boolean major, String comment) {
-        throw new RuntimeException("Not Implemented");
+        boolean success = false;
+        try {
+            InputStream versionContent = getContentVersion(site, path, version);
+            writeContent(site, path, versionContent);
+            createVersion(site, path, major);
+            success = true;
+        } catch (ContentNotFoundException err) {
+            logger.error("error reverting content for site:  " + site + " path: " + path, err);
+        }
+        return success;
     }
 
     @Override
     public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
-        throw new RuntimeException("Not Implemented");
+        InputStream toRet = null;
+        try {
+            Repository repo;
+            if (StringUtils.isEmpty(site)) {
+                repo = getGlobalConfigurationRepositoryInstance();
+            } else {
+                repo = getSiteRepositoryInstance(site);
+            }
+            RevTree tree = getTreeForCommit(repo, version);
+            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+
+            ObjectId id = tw.getObjectId(0);
+            ObjectLoader objectLoader = repo.open(id);
+            toRet = objectLoader.openStream();
+
+        } catch (IOException err) {
+            logger.error("Error while getting content for file at site: " + site + " path: " + path, err);
+        }
+        return toRet;
     }
 
     @Override
@@ -606,6 +633,21 @@ public class GitContentRepository implements ContentRepository {
         // a RevWalk allows to walk over commits based on some filtering
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(lastCommitId);
+
+            // and using commit's tree find the path
+            RevTree tree = commit.getTree();
+            return tree;
+        }
+    }
+
+    private RevTree getTreeForCommit(Repository repository, String commitId) throws AmbiguousObjectException, IncorrectObjectTypeException,
+            IOException, MissingObjectException {
+        ObjectId commitObjectId = repository.resolve(commitId);
+
+
+        // a RevWalk allows to walk over commits based on some filtering
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(commitObjectId);
 
             // and using commit's tree find the path
             RevTree tree = commit.getTree();
