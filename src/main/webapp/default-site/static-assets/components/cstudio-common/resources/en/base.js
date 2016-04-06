@@ -537,6 +537,14 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     false: "False",
     true: "True",
 
+    /* Audit Log */
+    setAuditLogTabID: "ID",
+    setAuditLogTabUser: "User",
+    setAuditLogTabPath: "Path",
+    setAuditLogTabContentType: "Content Type",
+    setAuditLogTabModifiedDate: "Modified Date",
+    setAuditLogTabActivityType: "Activity Type",
+
     /*Deployment Queues*/
     setQueueTabSelectAll: "Select All",
     setQueueTabID: "ID",

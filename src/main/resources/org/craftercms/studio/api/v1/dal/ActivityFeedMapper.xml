@@ -228,4 +228,44 @@
         DELETE FROM cstudio_activity
         WHERE site_network = #{site}
     </delete>
+
+    <select id="getAuditLogForSite" databaseId="oracle" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from (
+        select *
+        from cstudio_activity
+        where site_network = #{site}
+        order by modified_date desc
+        )
+        where rownum between #{startPos} and (#{startPos} + #{feedSize})
+    </select>
+
+    <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="ActivityFeedMap" databaseId="derby">
+        select *
+        from cstudio_activity
+        where site_network = #{site}
+        order by modified_date desc
+        offset #{startPos} rows fetch next #{feedSize} rows only
+    </select>
+
+    <select id="getAuditLogForSite" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select * from cstudio_activity
+        where site_network = #{site}
+        and [id] in
+        (select top (#{feedSize}) [id] from cstudio_activity
+        where site_network = #{site}
+        and id not in
+        (select top (#{startPos}) [id]
+        from cstudio_activity
+        where site_network = #{site}
+        order by modified_date desc)
+        order by modified_date desc)
+        order by modified_date desc
+    </select>
+
+    <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="ActivityFeedMap">
+        select *
+        from cstudio_activity
+        where site_network = #{site}
+        order by modified_date desc limit #{startPos},#{feedSize}
+    </select>
 </mapper>
