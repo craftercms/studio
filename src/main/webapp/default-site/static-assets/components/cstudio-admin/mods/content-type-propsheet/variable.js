@@ -25,8 +25,23 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Variable, CStudi
                 }
                 CStudioAdminConsole.Tool.ContentTypes.visualization.render();
             };
-			
+
+            var checkVarState = function(event, el) {
+            	var titleEl = YDom.getElementsByClassName("property-input-title");
+            	YAHOO.util.Event.removeListener(titleEl, 'keyup');
+
+            	if(this.value == ""){
+            		YAHOO.util.Event.on(titleEl, 'keyup', updateFieldFn, titleEl);
+            	}
+            }
+
 			YAHOO.util.Event.on(valueEl, 'keyup', updateFieldFn, valueEl);
+
+			if( (fName == "id" || fName == "name") && value !== "" ) {
+				var titleEl = YDom.getElementsByClassName("property-input-title");
+				YAHOO.util.Event.removeListener(titleEl, 'keyup');
+				YAHOO.util.Event.on(valueEl, 'keyup', checkVarState);
+			}
 		}
 		
 		this.valueEl = valueEl;
