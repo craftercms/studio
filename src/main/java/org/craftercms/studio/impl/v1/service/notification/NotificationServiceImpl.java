@@ -17,6 +17,16 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.notification;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -27,23 +37,22 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmPathTO;
+import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
+import org.craftercms.studio.api.v1.to.EmailMessageTO;
+import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
+import org.craftercms.studio.api.v1.to.MessageTO;
+import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
-
-import javax.swing.text.html.parser.ContentModel;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -86,8 +95,8 @@ public class NotificationServiceImpl implements NotificationService {
     
     protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
     protected static final String VAR_REASON = "[REASON]";
-    protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notificaiton";
-    protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notificaiton template [NOTIFICATION_TEMPLATE] has not been not configured.";
+    protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notification";
+    protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notification template [NOTIFICATION_TEMPLATE] has not been not configured.";
     
     
     
@@ -347,7 +356,7 @@ public class NotificationServiceImpl implements NotificationService {
         
         try {
             EmailMessageTemplateTO template = null;
-            
+
             if (isDelete) {
                 if (isPreviewable) {
                     template = getContentSubmissionForDeleteEmailMessageTemplate(site);
@@ -356,12 +365,12 @@ public class NotificationServiceImpl implements NotificationService {
                     template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
                     templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
                 }
-            }
-            else {
-                if (!isPreviewable) {
-                    template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
-                    templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
-                }
+            } else if (!isPreviewable) {
+                template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
+                templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
+            } else {
+                template = getContentSubmissionEmailMessageTemplate(site);
+                templateType = MESSAGE_CONTENT_SUBMISSION;
             }
             
             message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
@@ -413,11 +422,12 @@ public class NotificationServiceImpl implements NotificationService {
                                 template = getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(site);
                                 templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE;
                             }
+                        } else if (!isPreviewable) {
+                            template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
+                            templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
                         } else {
-                            if (!isPreviewable) {
-                                template = getContentSubmissionNoPreviewableEmailMessageTemplate(site);
-                                templateType = MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION;
-                            }
+                            template = getContentSubmissionEmailMessageTemplate(site);
+                            templateType = MESSAGE_CONTENT_SUBMISSION;
                         }
 
                         message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
