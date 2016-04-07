@@ -22,6 +22,7 @@
     <script src="/studio/static-assets/libs/angular-cookies/angular-cookies.js"></script>
     <script src="/studio/static-assets/libs/angular-ui-utils/ui-utils.js"></script>
     <script src="/studio/static-assets/scripts/main.js"></script>
+    <link rel="shortcut icon" href="/studio/static-assets/img/favicon.png">
 
 </head>
 <body class="{{$state.current.cssClass}}">

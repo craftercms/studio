@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css">
     <link rel="stylesheet" href="/studio/static-assets/styles/user-dashboard.css">
     <script src="/studio/static-assets//libs/modernizr/modernizr.js"></script>
+    <link rel="shortcut icon" href="/studio/static-assets/img/favicon.png">
 
     <script>
         CStudioAuthoring = {
