@@ -692,12 +692,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void syncAllContentToPreview(String site) throws ServiceException {
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
-        RequestContext context = RequestContext.getCurrent();
-        String sessionTicket = null;
-        if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            sessionTicket = (String) httpSession.getValue("alf_ticket");
-        }
+
+        String sessionTicket = securityService.getCurrentToken();
         RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
         message.setRepositoryEventContext(repositoryEventContext);
         repositoryReactor.notify(EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT, Event.wrap(message));
