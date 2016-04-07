@@ -56,10 +56,6 @@
         <level value="info" />
     </logger>
 
-    <logger name="org.craftercms.studio.impl.v1.repository.alfresco.AlfrescoContentRepository">
-        <level value="debug" />
-    </logger>
-
     <!-- 3rdparty Loggers -->
     <logger name="org.springframework.core">
         <level value="info" />
