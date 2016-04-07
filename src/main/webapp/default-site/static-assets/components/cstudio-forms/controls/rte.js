@@ -243,9 +243,9 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			this.editor.getWin().scrollTo(0, 0); // Scroll to the top of the editor window
 
 			// The editor selection is automatically cleared in IE9 when the text editor is blurred
-			if (!YAHOO.env.ua.ie || YAHOO.env.ua.ie >= 10) {
+			/*if (!YAHOO.env.ua.ie || YAHOO.env.ua.ie >= 10) {
 				this.clearTextEditorSelection();
-			}
+			}*/
 			this.editor.onDeactivate.dispatch(this.editor, null); // Fire tinyMCE handlers for onDeactivate (eg. used by contextmenu)
 		} else {
 			// The RTE is in code mode
@@ -597,7 +597,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 						YEvent.on(inputEl, 'keypress', _thisControl.count, countEl);
 						YEvent.on(inputEl, 'mouseup', _thisControl.count, countEl);
 						
-						if (!YAHOO.env.ua.ie || YAHOO.env.ua.ie < 10) {
+						if (!navigator.appName == 'Microsoft Internet Explorer') {
 							// Bind focus event 
 							tinymce.dom.Event.add(ed.getWin(), 'focus', function(e) {
 								_thisControl.form.setFocusedField(_thisControl);

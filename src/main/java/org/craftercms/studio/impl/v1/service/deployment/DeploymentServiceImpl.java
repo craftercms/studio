@@ -130,7 +130,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                             getPathRelativeToSite(itemList),
                             listItem.getUser(),
                             // Null == now, anything else is scheduled
-                            scheduleDateNow?listItem.getScheduledDate():null,
+                            scheduleDateNow?null:listItem.getScheduledDate(),
                             Locale.ENGLISH);
                         // no point in looking further, quit looping
                         break;

@@ -42,6 +42,30 @@
                     instance.cannedSearchCache = [];
                     instance.excludeCache = [];
 
+
+                    if(config.params.mods) {
+                        if ((typeof(config.params.mods) == "object")
+                        && (typeof(config.params.mods.mod) != "array")) {
+                            config.params.mods = [config.params.mods.mod]
+                        }
+
+                        for(var m=0; m<config.params.mods.length; m++) {
+                            // load modules
+                            var mod = config.params.mods[m];
+
+                            CStudioAuthoring.Module.requireModule(mod.name,
+                            '/static-assets/components/cstudio-contextual-nav/wcm-site-dropdown-mods/root-folder-mods/' + mod.name + ".js",
+                            {config: mod}, {
+                                context: instance,
+                                moduleLoaded: function (moduleName, moduleClass, moduleConfig) {
+                                    this.context.mods[this.context.mods.length] = moduleClass;
+                                    moduleClass.init(moduleConfig);
+                                }
+                            });
+                        }
+                    }
+
+
                     if(config.params.excludes) {
                         if ( (typeof(config.params.excludes) == "object")
                         && (typeof(config.params.excludes.exclude) != "array")) {
@@ -87,21 +111,43 @@
                     	}
                     }
                     this.addContentTreeRootFolder(instance);
-                    /**
-                     * EMO-8478
-                     */
-                    var thisComponent = this;
-                    if(YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
-                        window.firstClick = true;
-                        thisComponent.openLatest(instance);
-                    }
-                    YEvent.on('acn-dropdown-toggler', 'click', function() {
-                    	if(!window.firstClick && YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
-                    		window.firstClick = true;
-                    		thisComponent.openLatest(instance);
-                    	}
-                        this.blur();
-                    });					
+
+                    var openTreeFn = function(instance, thisComponent) {
+                        var readyToLoad = false;
+                        if(instance.mods.length > 0) {
+                            readyToLoad = true;
+                            for(var m=0; m<instance.mods.length; m++) {
+                                var mod = instance.mods[m];
+                                if(mod.readyToLoad == false) {
+                                    readyToLoad = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(readyToLoad) {
+                            if(YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
+                                window.firstClick = true;
+                                thisComponent.openLatest(instance);
+                            }
+                            YEvent.on('acn-dropdown-toggler', 'click', function() {
+                                if(!window.firstClick && YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
+                                    window.firstClick = true;
+                                    thisComponent.openLatest(instance);
+                                }
+                                thisComponent.blur();
+                            });
+
+                            Self.wireUpCannedSearches();
+
+                        }
+                        else {
+                            // give mods a bit of time to load then try again
+                            setTimeout(openTreeFn, 1000, instance, thisComponent);                    
+                        }
+                    };
+
+                    setTimeout(openTreeFn, 1000, instance, this); 					
                 }
             },
             
@@ -226,15 +272,32 @@
                     }
                 }
 
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
+                        if(mod.sortTreeItems) {
+                            treeItems = mod.sortTreeItems(treeItems);
+                        }
+                    }
+                }
+
                 for (var i = 0; i < treeItems.length; i++) {
                     var exclude = false;
                     if(instance.excludeCache[treeItems[i].path]) {
                         exclude = true;
                     }
 
+                    if(instance.mods) {
+                        for(var m=0; m<instance.mods.length; m++) {
+                            var mod = instance.mods[m];
+                            exclude = mod.filterItem(treeItems[i]);
+                        }
+                    }
+
 
                     var cannedSearches = instance.cannedSearchCache[treeItems[i].path];
                     var isSearch = false;
+                    var linkSearch = false;
 
                     if (cannedSearches) {
                         for (var l = 0; l < cannedSearches.length; l++) {
@@ -251,25 +314,25 @@
                     if (!isSearch && exclude == false) {
                         var treeNodeTO = this.createTreeNodeTransferObject(treeItems[i]);
 
-                        var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot());
-                        treeNode.instance = instance;
+                        var treeNode = this.drawTreeItem(treeNodeTO, tree.getRoot(), instance);
+                    
+                            treeNode.instance = instance;
 
-                        if (pathToOpenTo != null && treeNode != null) {
-                            if (treeNodeTO.pathSegment == "index.xml") {
-                                if (CStudioAuthoring.Utils.endsWith(treeNodeTO.path, currentLevelPath)) {
-                                    nodeToOpen = treeNode;
+                            if (pathToOpenTo != null && treeNode != null) {
+                                if (treeNodeTO.pathSegment == "index.xml") {
+                                    if (CStudioAuthoring.Utils.endsWith(treeNodeTO.path, currentLevelPath)) {
+                                        nodeToOpen = treeNode;
+                                    }
                                 }
                             }
-                        }
 
-                        treeNodes.push(treeNode);
-                        if (treeNode.labelElId) {
-                            treeNodesLabels.push(treeNode.labelElId);
-                        } else {
-                            treeNodesLabels.push(tree.root.children[i].labelElId);
+                            treeNodes.push(treeNode);
+                            if (treeNode.labelElId) {
+                                treeNodesLabels.push(treeNode.labelElId);
+                            } else {
+                                treeNodesLabels.push(tree.root.children[i].labelElId);
+                            }
                         }
-
-                    }
                 }
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper", {
@@ -378,8 +441,26 @@
                     }
                 }
 
+
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
+                        if(mod.sortTreeItems) {
+                            treeItems = mod.sortTreeItems(treeItems);
+                        }
+                    }
+                }
+
                 for (var i = 0, l = treeItems.length, treeNodeTO, renderChild; i < l; i++) {
                     var exclude = false;
+
+                    if(instance.mods) {
+                        for(var m=0; m<instance.mods.length; m++) {
+                            var mod = instance.mods[m];
+                            exclude = mod.filterItem(treeItems[i]);
+                        }
+                    }
+
                     if(instance.excludeCache[treeItems[i].path]) {
                         exclude = true;
                     }
@@ -406,7 +487,7 @@
                         if (itemCannedSearch && itemCannedSearch.length != 0 && itemCannedSearch[0].insertAs != "append") {
                             replaceChildren.push(treeNodeTO.path);
                         } else {
-                            var treeNode = this.drawTreeItem(treeNodeTO, root);
+                            var treeNode = this.drawTreeItem(treeNodeTO, root, instance);
                             //nodes will not have collapse/expand icon if they do not have any children
                             if (treeItems[i].numOfChildren == 0) {
                                 treeNode.isLeaf = true;
@@ -446,6 +527,8 @@
                         }
                     }
                 }
+
+             
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper", {
                     context: treeNodesLabels,
@@ -514,7 +597,8 @@ treeNode.getHtml = function() {
             /**
              * render a tree item
              */
-            drawTreeItem: function(treeNodeTO, root) {
+            drawTreeItem: function(treeNodeTO, root, instance) {
+                
                 if (treeNodeTO.container == true || treeNodeTO.name != 'index.xml') {
 
                     if (!treeNodeTO.style.match(/\bfolder\b/)) {
@@ -531,6 +615,13 @@ treeNode.getHtml = function() {
 
                     if (!treeNodeTO.isContainer) {
                         treeNode.isLeaf = true;
+                    }
+                }
+
+                if(instance.mods) {
+                    for(var m=0; m<instance.mods.length; m++) {
+                        var mod = instance.mods[m];
+                        treeNode = mod.drawTreeItem(treeNodeTO, root, treeNode);
                     }
                 }
 
@@ -1359,6 +1450,14 @@ treeNode.getHtml = function() {
 		                   	            }
 
                                         menuId.removeChild(d);  // Remove the "Loading ..." message
+
+                                        if(Self.mods) {
+                                            for(var m=0; m<Self.mods.length; m++) {
+                                                var mod = Self.mods[m];
+                                                treeNode = mod._renderContextMenu(Self.myTree, target, p_aArgs, component, menuItems, oCurrentTextNode, isWrite);
+                                            }
+                                        }
+
 			                            this.args.render();     // Render the site dropdown's context menu
 			                        },
 			                        failure: function() { },
@@ -2109,7 +2208,7 @@ treeNode.getHtml = function() {
         this.showRootItem = (config.params["showRootItem"]) ? config.params["showRootItem"] : false;
         this.onClickAction = (config.params["onClick"]) ? config.params["onClick"] : "";
         this.config = config;
-
+        this.mods = [];
     }
     CStudioAuthoring.Module.moduleLoaded("wcm-root-folder", CStudioAuthoring.ContextualNav.WcmRootFolder);
 })();

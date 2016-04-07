@@ -16,7 +16,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Variable, CStudi
 		if(updateFn) {
 			var updateFieldFn = function(event, el) {
                 updateFn(event, el);
-                if(YDom.hasClass(this,"property-input-title")){
+                if(YDom.hasClass(this,"property-input-title") && !(YDom.hasClass(this,"no-update"))){
                     var idDatasource = YDom.getElementsByClassName("property-input-name")[0] ? YDom.getElementsByClassName("property-input-name")[0] : YDom.getElementsByClassName("property-input-id")[0];
                     if(idDatasource){
                         idDatasource.value = this.value.replace(/[^A-Za-z0-9-_]/g,"").toLowerCase();
@@ -25,8 +25,23 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Variable, CStudi
                 }
                 CStudioAdminConsole.Tool.ContentTypes.visualization.render();
             };
-			
+
+            var checkVarState = function(event, el) {
+            	var titleEl = YDom.getElementsByClassName("property-input-title");
+            	YAHOO.util.Dom.addClass(titleEl, 'no-update'); 
+
+            	if(this.value == ""){
+            		YAHOO.util.Dom.removeClass(titleEl, 'no-update'); 
+            	}
+            }
+
 			YAHOO.util.Event.on(valueEl, 'keyup', updateFieldFn, valueEl);
+
+			if( (fName == "id" || fName == "name") && value !== "" ) {
+				var titleEl = YDom.getElementsByClassName("property-input-title");
+				YAHOO.util.Dom.addClass(titleEl, 'no-update'); 
+				YAHOO.util.Event.on(valueEl, 'keyup', checkVarState);
+			}
 		}
 		
 		this.valueEl = valueEl;

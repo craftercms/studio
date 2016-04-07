@@ -82,7 +82,7 @@ YAHOO.extend(CStudioForms.Controls.Checkbox, CStudioForms.CStudioFormField, {
 			
 			controlWidgetContainerEl.appendChild(inputEl);
 
-			YAHOO.util.Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
+			YAHOO.util.Event.on(inputEl, 'click', function(evt, context) { context.form.setFocusedField(context) }, this);
 
 			YAHOO.util.Event.on(inputEl, 'change', this._onChangeVal, this);
 			

@@ -293,6 +293,7 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
             YAHOO.util.Dom.addClass(itemEl, 'cstudio-form-control-node-selector-item');
             itemEl.innerHTML = item.value;
             itemEl.style.backgroundColor = "#F0F0F0"; // stylesheet not working due to proxy?
+            itemEl.style.overflowWrap =  "break-word";
             itemEl._index = i;
             itemEl.context = this;
 
