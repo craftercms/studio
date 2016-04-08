@@ -95,10 +95,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
-//    private static final Map<String, Session> cmisSessionRegister = new HashMap<String, Session>();
-//
-//    protected static final ReentrantLock cmisSessionLock = new ReentrantLock();
-
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
         return getContentStreamCMIS(path);
@@ -155,7 +151,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath, String newName) {
-        //addDebugStack();
         return this.copyContentInternal(fromPath, toPath, newName, true);
     }
 
@@ -164,7 +159,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param path path to content
      */
     public RepositoryItem[] getContentChildren(String path) {
-        //addDebugStack();
         RepositoryItem[] items = getContentChildrenCMIS(path);
         return items;
     }
@@ -242,7 +236,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String path) {
-        //addDebugStack();
         return getContentVersionHistoryCMIS(path);
     }
 
@@ -252,7 +245,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param version - old version ID to base to version on
      */
     public boolean revertContent(String path, String version, boolean major, String comment) {
-        //addDebugStack();
         return revertContentCMIS(path, version, major, comment);
     }
 
@@ -346,61 +338,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return response;
     }
 
-//    /**
-//     * create a multipart post request and fire to Alfresco
-//     *
-//     * @param uri
-//     *          the target service URI
-//     * @param params
-//     *          request parameters
-//     * @param body
-//     *          post data
-//     * @param bodyMimeType
-//     *          post data mime type
-//     * @param charSet
-//     *          post data char set
-//     * @return response body
-//     * @throws Exception
-//     */
-//    protected String alfrescoMultipartPostRequest(String uri, Map<String, String> params, InputStream body,
-//                                                  String bodyMimeType, String charSet) throws Exception {
-//        long startTime = System.currentTimeMillis();
-//        String serviceURL = buildAlfrescoRequestURL(uri, new HashMap<String, String>(0));
-//        PostMethod postMethod = new PostMethod(serviceURL);
-//        // create multipart request parts
-//        int partSize = params.size() + 1;
-//        Part[] parts = new Part[partSize];
-//        int index = 0;
-//        for (String key : params.keySet()) {
-//            parts[index] = new StringPart(key, params.get(key));
-//            index++;
-//        }
-//        byte[] bytes = IOUtils.toByteArray(body);
-//        String name = params.get("filename");
-//        PartSource partSource = new ByteArrayPartSource(name, bytes);
-//        parts[index] = new FilePart("filedata", partSource, bodyMimeType, charSet);
-//
-//        postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
-//
-//        String ssoUsername = getSsoUsername();
-//        if (StringUtils.isNotEmpty(ssoUsername)) {
-//            postMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
-//        }
-//
-//        // connect to alfresco and get response
-//        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
-//        logger.debug("Executing multipart post to {0}", uri);
-//        int status = httpClient.executeMethod(postMethod);
-//        logger.debug("Response status back from the server: {0}", status);
-//
-//        long duration = System.currentTimeMillis() - startTime;
-//        logger.debug("alfrescoMultipartPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}, charSet " +
-//                     "= {4}) ({5} ms)", uri, params, "stream", bodyMimeType, charSet, duration);
-//        InputStream responseStream = postMethod.getResponseBodyAsStream();
-//        String response = IOUtils.toString(responseStream);
-//        return response;
-//    }
-
     /**
      * build request URLs 
      */
@@ -441,7 +378,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public Map<String, String> getUserProfile(String username) {
-        //addDebugStack();
         InputStream retStream;
         Map<String, String> toRet = new HashMap<String,String>();
         if (StringUtils.isEmpty(username)) {
@@ -473,7 +409,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public Set<String> getUserGroups(String username) {
-        //addDebugStack();
         InputStream retStream = null;
         Set<String> toRet = new HashSet<String>();
         try {
@@ -502,8 +437,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public String getCurrentUser() {
-        //addDebugStack();
-
         String username = getSsoUsername();
         if (StringUtils.isEmpty(username)) {
             username = getSessionUsername();
@@ -586,31 +519,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         }
     }
 
-//    private void addDebugStack() {
-//        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-//            Thread thread = Thread.currentThread();
-//            String threadName = thread.getName();
-//            logger.debug("Thread: " + threadName);
-//            StackTraceElement[] stackTraceElements = thread.getStackTrace();
-//            StringBuilder sbStack = new StringBuilder();
-//            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
-//            for (int i = 2; i < stackSize+2; i++){
-//                sbStack.append("\n\t").append(stackTraceElements[i].toString());
-//            }
-//            RequestContext context = RequestContext.getCurrent();
-//            CronJobContext cronJobContext = CronJobContext.getCurrent();
-//            if (context != null) {
-//                HttpServletRequest request = context.getRequest();
-//                String url = request.getRequestURI() + "?" + request.getQueryString();
-//                logger.debug("Http request: " + url);
-//            } else if (cronJobContext != null) {
-//                logger.debug("Cron Job");
-//
-//            }
-//            logger.debug("TRACE: Stack trace (depth 10): " + sbStack.toString());
-//        }
-//    }
-
     protected String getNodeRefForPathCMIS(String fullPath) throws ContentNotFoundException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
@@ -627,7 +535,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 nodeRef = property.getValueAsString();
             }
         } catch (CmisBaseException e) {
-            //addDebugStack();
             logger.warn("Object not found in CMIS repository for path: {0}", e, fullPath);
             throw new ContentNotFoundException(e);
         }
@@ -1135,41 +1042,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return createCMISSession(true);
     }
 
-//    protected Session getCMISSession(boolean alfrescoCMIS) {
-//        cmisSessionLock.lock();
-//        try {
-//            String key = getSsoUsername();
-//            if (StringUtils.isEmpty(key)) {
-//                key = getAlfTicket();
-//            }
-//
-//            if (cmisSessionRegister.containsKey(key)) {
-//                return cmisSessionRegister.get(key);
-//            } else {
-//                Session session = createCMISSession(alfrescoCMIS);
-//                logger.debug("CMIS session created for key = {0}", key);
-//                cmisSessionRegister.put(key, session);
-//                return session;
-//            }
-//        } finally {
-//            cmisSessionLock.unlock();
-//        }
-//    }
-//
-//    protected void invalidateCMISSession() {
-//        cmisSessionLock.lock();
-//        try {
-//            String sessionId = getSsoUsername();
-//            if (StringUtils.isEmpty(sessionId)) {
-//                sessionId = getAlfTicket();
-//            }
-//
-//            cmisSessionRegister.remove(sessionId);
-//        } finally {
-//            cmisSessionLock.unlock();
-//        }
-//    }
-
     protected Session createCMISSession(boolean alfrescoCMIS) {
         // Create a SessionFactory and set up the SessionParameter map
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
@@ -1197,8 +1069,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         Repository repository = repositories.get(0);
         parameter.put(SessionParameter.REPOSITORY_ID, repository.getId());
         Session session = sessionFactory.createSession(parameter);
-
-        //logger.debug("New CMIS Session: " + session.getBinding().getSessionId());
 
         return session;
     }
