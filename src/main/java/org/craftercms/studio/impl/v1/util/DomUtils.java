@@ -1,36 +1,38 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- * 
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * <p/>
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * <p/>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * <p/>
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
-import org.w3c.dom.*;
-import java.io.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
-import javax.xml.transform.stream.*;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-
+import java.io.StringWriter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -43,154 +45,150 @@ import org.xml.sax.SAXException;
 
 /**
  * Utilities for handling XML DOMs
- * 
+ *
  * @author rdanner
  */
 public class DomUtils {
 
-	/**
-	 * Given a string create a DOM object
-	 * <p/>
-	 * does NOT check for null strings
-	 * 
-	 * @param xmlAsString
-	 *            dom object to convert
-	 * @return a dom object or null on error
-	 */
-	public static Document createXmlDocument(String xmlAsString) {
+    /**
+     * Given a string create a DOM object
+     * <p/>
+     * does NOT check for null strings
+     *
+     * @param xmlAsString
+     *            dom object to convert
+     * @return a dom object or null on error
+     */
+    public static Document createXmlDocument(String xmlAsString) {
 
-		return createXmlDocument(xmlAsString, "UTF-8");
-	}
+        return createXmlDocument(xmlAsString, "UTF-8");
+    }
 
-	/**
-	 * Given a string create a DOM object
-	 * <p/>
-	 * does NOT check for null strings
-	 * 
-	 * @param xmlAsString
-	 *            dom object to convert
-	 * @return a dom object or null on error
-	 */
-	public static Document createXmlDocument(String xmlAsString, String encoding) {
+    /**
+     * Given a string create a DOM object
+     * <p/>
+     * does NOT check for null strings
+     *
+     * @param xmlAsString
+     *            dom object to convert
+     * @return a dom object or null on error
+     */
+    public static Document createXmlDocument(String xmlAsString, String encoding) {
 
-		Document document = null;
+        Document document = null;
 
-		try {
+        try {
 
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-			dbf.setValidating(false);
-			dbf.setIgnoringComments(false);
-			dbf.setIgnoringElementContentWhitespace(true);
-			dbf.setNamespaceAware(true);	       
+            dbf.setValidating(false);
+            dbf.setIgnoringComments(false);
+            dbf.setIgnoringElementContentWhitespace(true);
+            dbf.setNamespaceAware(true);
 
-			DocumentBuilder builder = dbf.newDocumentBuilder();
-			document = builder.parse(new InputSource(new StringReader(xmlAsString)));
-		}
-		catch(Exception err) {
-			err.printStackTrace();
-		}
-		
-		return document;
-	}
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+            document = builder.parse(new InputSource(new StringReader(xmlAsString)));
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
 
-	/**
-	 * read input stream and produce a Document Object
-	 * 
-	 * @param is
-	 * @return
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws ParserConfigurationException
-	 */
-	public static Document createXmlDocument(InputStream is)
-			throws SAXException, IOException, ParserConfigurationException {
+        return document;
+    }
 
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    /**
+     * read input stream and produce a Document Object
+     *
+     * @param is
+     * @return
+     * @throws SAXException
+     * @throws IOException
+     * @throws ParserConfigurationException
+     */
+    public static Document createXmlDocument(
+        InputStream is) throws SAXException, IOException, ParserConfigurationException {
 
-		dbf.setValidating(false);
-		dbf.setIgnoringComments(false);
-		dbf.setIgnoringElementContentWhitespace(true);
-		dbf.setNamespaceAware(true);
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-		DocumentBuilder db = null;
-		db = dbf.newDocumentBuilder();
-		db.setEntityResolver(new NullResolver());
+        dbf.setValidating(false);
+        dbf.setIgnoringComments(false);
+        dbf.setIgnoringElementContentWhitespace(true);
+        dbf.setNamespaceAware(true);
 
-		return db.parse(is);
-	}
+        DocumentBuilder db = null;
+        db = dbf.newDocumentBuilder();
+        db.setEntityResolver(new NullResolver());
 
-	/**
-	 * convert an xml document to a string
-	 * 
-	 * @param node
-	 *            document node
-	 * @return a string representation of the xml document
-	 */
-	public static String xmlToString(Node node) {
+        return db.parse(is);
+    }
 
-		return xmlToString(node, "UTF-8");
-	}
+    /**
+     * convert an xml document to a string
+     *
+     * @param node
+     *            document node
+     * @return a string representation of the xml document
+     */
+    public static String xmlToString(Node node) {
 
-	/**
-	 * convert an xml document to a string
-	 * 
-	 * @param node
-	 *            document node
-	 * @return a string representation of the xml document
-	 */
-	public static String xmlToString(Node node, String encoding) {
+        return xmlToString(node, "UTF-8");
+    }
 
-		String retXmlAsString = "";
+    /**
+     * convert an xml document to a string
+     *
+     * @param node
+     *            document node
+     * @return a string representation of the xml document
+     */
+    public static String xmlToString(Node node, String encoding) {
 
-		try {
-			Source source = new DOMSource(node);
-			StringWriter stringWriter = new StringWriter();
-			Result result = new StreamResult(stringWriter);
-			TransformerFactory factory = TransformerFactory.newInstance();
-			Transformer transformer = factory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
+        String retXmlAsString = "";
 
-			transformer.transform(source, result);
-			retXmlAsString = stringWriter.toString();
+        try {
+            Source source = new DOMSource(node);
+            StringWriter stringWriter = new StringWriter();
+            Result result = new StreamResult(stringWriter);
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
 
-			// for some reason encoding is not handling entity references - need
-			// to look in to the further
-			retXmlAsString = retXmlAsString.replace("&nbsp;", "&#160;");
+            transformer.transform(source, result);
+            retXmlAsString = stringWriter.toString();
 
-		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			e.printStackTrace();
-		}
+            // for some reason encoding is not handling entity references - need
+            // to look in to the further
+            retXmlAsString = retXmlAsString.replace("&nbsp;", "&#160;");
 
-		return retXmlAsString;
-	}
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
 
-	/**
-	 * write string to console but ensure encoding is UTF-8
-	 * 
-	 * @param value
-	 *            to write
-	 */
-	public static void dumpStringToConsole(String value)
-	{	
-		try {
-			java.io.PrintStream outx = new java.io.PrintStream(System.out, true, "UTF-8");
-			outx.println(value);
-		}
-		catch(Exception e)
-		{
-			System.out.println("error dumping string to console" + e);
-		}
-	}
-}
+        return retXmlAsString;
+    }
 
-class NullResolver implements EntityResolver {
+    /**
+     * write string to console but ensure encoding is UTF-8
+     *
+     * @param value
+     *            to write
+     */
+    public static void dumpStringToConsole(String value) {
+        try {
+            java.io.PrintStream outx = new java.io.PrintStream(System.out, true, "UTF-8");
+            outx.println(value);
+        } catch (Exception e) {
+            System.out.println("error dumping string to console" + e);
+        }
+    }
 
-	public InputSource resolveEntity(String publicId, String systemId)
-			throws SAXException, IOException {
+    private static class NullResolver implements EntityResolver {
 
-		return new InputSource(new StringReader(""));
-	}
+        public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+
+            return new InputSource(new StringReader(""));
+        }
+    }
+
 }

@@ -39,6 +39,8 @@ public interface SecurityService {
 	 */
 	String getCurrentUser();
 
+    String getCurrentToken();
+
     Set<String> getUserRoles(String site, String user);
 
     Map<String, String> getUserProfile(String user);

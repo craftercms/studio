@@ -11,20 +11,23 @@
         <property name="adminUser" value="${repositoryJob.username}"/>
         <property name="adminPassword" value="${repositoryJob.password}"/>
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfresco') and '${crafter.repository.bootstrapEnabled}'}" />
+        <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
+        <property name="ssoUserHeaderName" value="${crafter.studio.sso.headerName}"/>
+        <property name="alfrescoExternalAuthUserHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
     </bean>
 
-   <alias name="cstudioAlfrescoContentRepositoryUnCached" 
-          alias="cstudioAlfrescoContentRepository"/>
+    <alias name="cstudioAlfrescoContentRepositoryUnCached"
+           alias="cstudioAlfrescoContentRepository"/>
 
-    <bean id="cstudioAlfrescoContentRepositoryRegistration" 
+    <bean id="cstudioAlfrescoContentRepositoryRegistration"
           parent="cstudioContentRepositoryRegistration">
         <property name="contentRepository" ref="cstudioAlfrescoContentRepositoryUnCached"/>
         <property name="repositoryType" value="alfresco"/>
     </bean>
 
     <!-- mixed option -->
-    <bean id="cstudioDevPathMappedContentRepository" 
-        class="org.craftercms.studio.impl.v1.repository.path.PathMappedContentRepository">
+    <bean id="cstudioDevPathMappedContentRepository"
+          class="org.craftercms.studio.impl.v1.repository.path.PathMappedContentRepository">
         <property name="defaultRepository" ref="cstudioAlfrescoContentRepositoryUnCached"/>
         <!-- assume development model, content in alfresco, JS, CSS, templates and config in disk -->
         <property name="pathRepositoryMap">
@@ -41,15 +44,12 @@
                 <entry key="^/versions/cstudio/blueprints/[^/]+/site-config/.*">
                     <ref bean="cstudioDiskContentRepository" />
                 </entry>
-
-
                 <entry key="^/wem-projects/[^/]+/[^/]+/work-area/static-assets/app/.*">
                     <ref bean="cstudioDiskContentRepository" />
                 </entry>
                 <entry key="^/versions/wem-projects/[^/]+/[^/]+/work-area/static-assets/app/.*">
                     <ref bean="cstudioDiskContentRepository" />
                 </entry>
-
                 <entry key="^/wem-projects/[^/]+/[^/]+/work-area/templates/.*">
                     <ref bean="cstudioDiskContentRepository" />
                 </entry>
@@ -60,7 +60,7 @@
         </property>
     </bean>
 
-    <bean id="cstudioDiskAndAlfrescoMappedDevContentRepositoryRegistration" 
+    <bean id="cstudioDiskAndAlfrescoMappedDevContentRepositoryRegistration"
           parent="cstudioContentRepositoryRegistration">
         <property name="contentRepository" ref="cstudioDevPathMappedContentRepository"/>
         <property name="repositoryType" value="diskAndAlfrescoMappedDev"/>
@@ -73,10 +73,13 @@
         <property name="adminPassword" value="${repositoryJob.password}"/>
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfrescoext') and '${crafter.repository.bootstrapEnabled}'}" />
         <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
+        <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
+        <property name="ssoUserHeaderName" value="${crafter.studio.sso.headerName}"/>
+        <property name="alfrescoExternalAuthUserHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
     </bean>
 
-   <alias name="cstudioAlfrescoExtContentRepositoryUnCached" 
-          alias="cstudioAlfrescoExtContentRepository"/>
+    <alias name="cstudioAlfrescoExtContentRepositoryUnCached"
+           alias="cstudioAlfrescoExtContentRepository"/>
 
     <bean id="cstudioAlfrescoExtContentRepositoryRegistration"
           parent="cstudioContentRepositoryRegistration">
@@ -84,16 +87,15 @@
         <property name="repositoryType" value="alfrescoext"/>
     </bean>
 
-
     <!-- ////////////////////////////////////// -->
     <!--         security layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioAlfrescoSecurityProvider" 
+    <bean id="cstudioAlfrescoSecurityProvider"
           class="org.craftercms.studio.impl.v1.service.security.CachedSecurityProvider">
         <property name="provider" ref="cstudioAlfrescoContentRepositoryUnCached"/>
     </bean>
 
-    <bean id="cstudioAlfrescoSecurityProviderRegistration" 
+    <bean id="cstudioAlfrescoSecurityProviderRegistration"
           parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="cstudioAlfrescoSecurityProvider"/>
         <property name="providerType" value="alfresco"/>
