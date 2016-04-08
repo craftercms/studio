@@ -159,13 +159,13 @@
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
          <property name="contentRepository" ref="cstudioContentRepository"/>
          <property name="deployerFactory" ref="cstudioDeployerFactory"/>
-         <property name="repositoryReactor" ref="repositoryReactor"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
+         <property name="previewSync" ref="previewSync"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
@@ -973,5 +973,5 @@
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
+    <import resource="classpath:crafter/studio/studio-ebus-config.xml"/>
 </beans>

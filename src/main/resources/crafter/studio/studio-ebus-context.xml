@@ -22,19 +22,20 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:annotation-config/>
+    <bean id="previewSync" class="org.craftercms.studio.impl.v1.deployment.PreviewSync">
+        <property name="previewDeployer" ref="studioPreviewDeployer"/>
+    </bean>
 
-    <import resource="classpath*:/crafter/ebus/ebus-context.xml"/>
-    <context:component-scan base-package="org.craftercms.commons.ebus"/>
-    <context:component-scan base-package="org.craftercms.studio.impl.v1.ebus"/>
+    <bean id="clearConfigurationCache" class="org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+        <property name="securityProvider" ref="securityProvider" />
+        <property name="adminUser" value="${repositoryJob.username}"/>
+        <property name="adminPassword" value="${repositoryJob.password}"/>
+    </bean>
 
-    <bean name="repositoryReactor" factory-bean="reactorFactory" factory-method="createReactor"/>
-
-    <bean name="distributedReactor" factory-bean="reactorFactory" factory-method="createReactor"/>
-
-    <bean id="studioDistributedEBusFacade" class="org.craftercms.studio.impl.v1.ebus.DistributedPeerEBusFacedImpl">
-        <property name="distributedReactor" ref="distributedReactor"/>
-        <property name="peerList" value="#{'${crafter.studio.ebus.peers}'.split(';')}"/>
+    <bean id="previewSync" class="org.craftercms.studio.impl.v1.ebus.PreviewSync">
+        <property name="previewDeployer" ref="studioPreviewDeployer" />
     </bean>
 
 </beans>

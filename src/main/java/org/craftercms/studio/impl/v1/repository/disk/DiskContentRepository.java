@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,8 +36,6 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
-
-import reactor.core.Reactor;
 
 import java.nio.file.*;
 import java.nio.file.attribute.*;
@@ -572,14 +569,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return modifiedDate;
     }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
-
     String rootPath;
     public String getRootPath() { return rootPath; }
     public void setRootPath(String path) { rootPath = path; }
 
-    protected Reactor repositoryReactor;
 
     /**
      * A {@code FileVisitor} that copies a file-tree ("cp -r")

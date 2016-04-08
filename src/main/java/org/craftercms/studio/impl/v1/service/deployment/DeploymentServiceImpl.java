@@ -20,14 +20,10 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -51,15 +47,12 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.Reactor;
-import reactor.event.Event;
-
-import javax.servlet.http.HttpSession;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -690,17 +683,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        RequestContext context = RequestContext.getCurrent();
-        String sessionTicket = null;
-        if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            sessionTicket = (String) httpSession.getValue("alf_ticket");
-        }
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT, Event.wrap(message));
+        previewSync.syncAllContentToPreview(site);
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {
@@ -849,9 +832,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeployerFactory getDeployerFactory() { return deployerFactory; }
     public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
-
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -872,6 +852,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.notificationService = notificationService;
     }
 
+    public PreviewSync getPreviewSync() { return previewSync; }
+    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -882,7 +865,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected DeployerFactory deployerFactory;
-    protected Reactor repositoryReactor;
+    protected PreviewSync previewSync;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;

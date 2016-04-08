@@ -14,18 +14,33 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.ebus;
 
-import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
-import reactor.function.Consumer;
-import reactor.tcp.TcpConnection;
+import org.jgroups.JChannel;
+import org.jgroups.blocks.RpcDispatcher;
 
-public class DistributedEBussConnectionConsumer implements Consumer<TcpConnection<DistributedEventMessage, String>> {
-    @Override
-    public void accept(TcpConnection<DistributedEventMessage, String> distributedEventMessageStringTcpConnection) {
-        distributedEventMessageStringTcpConnection.in()
-                .consume(new DistributedEBusConsumer());
+public abstract class BaseEBusEvent {
+
+    public BaseEBusEvent() throws Exception {
+        JChannel channel = new JChannel();
+        rpcDispatcher = new RpcDispatcher(channel, this);
+        channel.connect("StudioCluster");
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (rpcDispatcher != null) {
+            rpcDispatcher.close();
+            rpcDispatcher = null;
+        }
+        super.finalize();
+    }
+
+    public RpcDispatcher getRpcDispatcher() { return rpcDispatcher; }
+    public void setRpcDispatcher(RpcDispatcher rpcDispatcher) { this.rpcDispatcher = rpcDispatcher; }
+
+    protected RpcDispatcher rpcDispatcher;
 }

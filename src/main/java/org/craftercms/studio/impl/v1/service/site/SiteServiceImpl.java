@@ -22,8 +22,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.ebus.annotations.EventHandler;
-import org.craftercms.commons.ebus.annotations.EventSelectorType;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -57,8 +55,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import reactor.core.Reactor;
-import reactor.event.Event;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -538,17 +534,6 @@ public class SiteServiceImpl implements SiteService {
         reloadSiteConfiguration(site, true);
     }
 
-    @EventHandler(
-            event = EBusConstants.CLUSTER_CLEAR_CACHE_EVENT,
-            ebus = EBusConstants.DISTRIBUTED_REACTOR,
-            type = EventSelectorType.REGEX
-    )
-    public void onClearCacheEvent(final Event<ClearCacheEventMessage> event) {
-        logger.debug("On clear cache event");
-        ClearCacheEventMessage message = event.getData();
-        reloadSiteConfiguration(message.getSite(), false);
-    }
-
     @Override
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         CacheService cacheService = cacheTemplate.getCacheService();
@@ -574,12 +559,7 @@ public class SiteServiceImpl implements SiteService {
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
         if (triggerEvent) {
-            ClearCacheEventMessage message = new ClearCacheEventMessage(site);
-            DistributedEventMessage distributedEventMessage = new DistributedEventMessage();
-            distributedEventMessage.setEventKey(EBusConstants.CLUSTER_CLEAR_CACHE_EVENT);
-            distributedEventMessage.setMessageClass(ClearCacheEventMessage.class);
-            distributedEventMessage.setMessage(message);
-            distributedPeerEBusFacade.notifyCluster(distributedEventMessage);
+            clearConfigurationCache.clearConfigurationCache(site);
         }
         cacheService.put(cacheContext, cacheKey, siteConfig);
     }
@@ -647,17 +627,11 @@ public class SiteServiceImpl implements SiteService {
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
-    public Reactor getRepositoryRector() { return repositoryRector; }
-    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
-
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
     public ContentTypeService getContentTypeService() { return contentTypeService; }
     public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
-
-    public DistributedPeerEBusFacade getDistributedPeerEBusFacade() { return distributedPeerEBusFacade; }
-    public void setDistributedPeerEBusFacade(DistributedPeerEBusFacade distributedPeerEBusFacade) { this.distributedPeerEBusFacade = distributedPeerEBusFacade; }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
@@ -693,10 +667,8 @@ public class SiteServiceImpl implements SiteService {
 	protected DeploymentService deploymentService;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected Reactor repositoryRector;
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
-    protected DistributedPeerEBusFacade distributedPeerEBusFacade;
     protected SecurityProvider securityProvider;
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;

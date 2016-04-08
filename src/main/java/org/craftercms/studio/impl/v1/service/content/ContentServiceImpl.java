@@ -31,9 +31,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
@@ -52,7 +49,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
-import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
@@ -64,8 +61,6 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-import reactor.core.Reactor;
-import reactor.event.Event;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -242,14 +237,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             removeItemFromCache(site, relativePath);
-
-            RepositoryEventMessage message = new RepositoryEventMessage();
-            message.setSite(site);
-            message.setPath(relativePath);
-            String sessionTicket = securityProvider.getCurrentToken();
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            message.setRepositoryEventContext(repositoryEventContext);
-            previewSync.syncPath(site, relativePath, repositoryEventContext);
+            previewSync.syncPath(site, relativePath);
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -350,13 +338,7 @@ public class ContentServiceImpl implements ContentService {
 
             String relativePath = getRelativeSitePath(site, fullPath);
             removeItemFromCache(site, relativePath);
-            RepositoryEventMessage message = new RepositoryEventMessage();
-            message.setSite(site);
-            message.setPath(relativePath);
-            String sessionTicket = securityProvider.getCurrentToken();
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            message.setRepositoryEventContext(repositoryEventContext);
-            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            previewSync.notifyUpdateContent(site, relativePath);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -414,14 +396,7 @@ public class ContentServiceImpl implements ContentService {
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
         removeItemFromCache(site, path);
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(path);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_DELETE_EVENT, Event.wrap(message));
+        previewSync.notifyDeleteContent(site, path);
         return toRet;
     }
 
@@ -459,15 +434,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
         boolean toRet = _contentRepository.moveContent(site, fromPath, toPath);
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath);
-        message.setOldPath(fromPath);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        previewSync.notifyMoveContent(site, toPath, fromPath);
         return toRet;
     }
 
@@ -475,14 +442,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean moveContent(String site, String fromPath, String toPath, String newName) {
         boolean toRet = _contentRepository.moveContent(site, fromPath, toPath, newName);
 
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath + "/" + newName);
-        message.setOldPath(fromPath);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        previewSync.notifyMoveContent(site, toPath, fromPath);
         return toRet;
     }
 
@@ -979,18 +939,9 @@ public class ContentServiceImpl implements ContentService {
         boolean success = false;
 
         success = _contentRepository.revertContent(site, path, version, major, comment);
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(path);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
-
         if(success) {
-            // publish item udated event or push to preview
+            previewSync.notifyUpdateContent(site, path);
         }
-
         return success;
     }
 
@@ -1437,7 +1388,6 @@ public class ContentServiceImpl implements ContentService {
     protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
-    protected Reactor repositoryReactor;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;
@@ -1471,9 +1421,6 @@ public class ContentServiceImpl implements ContentService {
 
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
-
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
