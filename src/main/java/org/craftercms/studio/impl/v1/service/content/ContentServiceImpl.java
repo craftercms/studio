@@ -162,7 +162,7 @@ public class ContentServiceImpl implements ContentService {
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String path, InputStream content) throws ServiceException {
 
        boolean writeSuccess = false;
 
@@ -396,7 +396,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean writeContent(String site, String path, InputStream content){
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
         return writeContent(expandRelativeSitePath(site, path), content);
     }
 

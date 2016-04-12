@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.translation.TranslationService;
@@ -89,7 +90,7 @@ public class TranslationServiceImpl implements TranslationService {
 	}
 
 	@Override
-	public void updateSiteWithTranslatedContent(String targetSite, String path, InputStream content) {
+	public void updateSiteWithTranslatedContent(String targetSite, String path, InputStream content) throws ServiceException {
 		_translationContentDAL.updateSiteWithTranslatedContent(targetSite, path, content);
 	}
 

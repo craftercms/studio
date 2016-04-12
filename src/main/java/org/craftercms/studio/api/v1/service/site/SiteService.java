@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.site;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.dom4j.Document;
@@ -44,14 +45,14 @@ public interface SiteService {
 	 * (can be any kind of content)
 	 * @param path
 	 */
-    boolean writeConfiguration(String site, String path, InputStream content);
+    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException;
 
 	/**
 	 * write configuraiton content at the given path
 	 * (can be any kind of content)
 	 * @param path
 	 */
-	boolean writeConfiguration(String path, InputStream content);
+	boolean writeConfiguration(String path, InputStream content) throws ServiceException;
 	
 	/**
 	 * given a site ID return the configuration as a document
