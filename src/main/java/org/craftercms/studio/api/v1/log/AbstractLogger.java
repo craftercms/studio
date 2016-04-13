@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.log;
 
-import java.lang.Thread;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
@@ -58,9 +57,7 @@ public abstract class AbstractLogger implements Logger {
         catch(Exception eExpandFailure) {
             retMessage = pattern + " and arguments " + args + " failed to expand in to message " + eExpandFailure;
         }
-        
-		String threadId = Thread.currentThread().getName();
 		
-		return "["+threadId+"] " + retMessage;
+		return retMessage;
 	}
 }

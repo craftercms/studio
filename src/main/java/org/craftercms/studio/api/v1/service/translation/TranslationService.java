@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.translation;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -73,5 +75,5 @@ public interface TranslationService {
 	 * @param path the path to content
 	 * @param content the content stream
 	 */
-	void updateSiteWithTranslatedContent(String targetSite, String path, InputStream content);
+	void updateSiteWithTranslatedContent(String targetSite, String path, InputStream content) throws ServiceException;
 }

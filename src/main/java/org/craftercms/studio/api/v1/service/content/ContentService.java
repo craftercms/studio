@@ -86,7 +86,7 @@ public interface ContentService {
      * @param content stream of content to write
      * @return return true if successful
      */
-    boolean writeContent(String path, InputStream content);
+    boolean writeContent(String path, InputStream content) throws ServiceException;
 
     /**
      * write content
@@ -96,7 +96,7 @@ public interface ContentService {
      * @param content stream of content to write
      * @return return true if successful
      */
-    boolean writeContent(String site, String path, InputStream content);
+    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
 
     /**
      * create a folder

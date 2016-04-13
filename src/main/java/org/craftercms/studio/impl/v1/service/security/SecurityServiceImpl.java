@@ -18,6 +18,14 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
@@ -39,9 +47,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import java.util.Map;
-import java.util.*;
-
 /**
  * @author Dejan Brkic
  */
@@ -62,6 +67,11 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public String getCurrentUser() {
         return securityProvider.getCurrentUser();
+    }
+
+    @Override
+    public String getCurrentToken() {
+        return securityProvider.getCurrentToken();
     }
 
     @Override

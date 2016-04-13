@@ -431,7 +431,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
      * Update file directly rather than going through the pipeline processor
      * TODO - remove this to use the pipeline processor
      */
-    protected void updateFileDirect(String site, String relativePath,InputStream input){
+    protected void updateFileDirect(String site, String relativePath,InputStream input) throws ServiceException {
         try {
             contentService.writeContent(site, relativePath, input);
         } finally {

@@ -26,16 +26,19 @@
         <property name="properties" ref="vendorProperties"/>
     </bean>
 
-    <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
-        <property name="driverClassName" value="${studio.db.driver}"/>
-        <property name="url" value="${studio.db.url}"/>
-        <property name="username" value="${studio.db.username}"/>
-        <property name="password" value="${studio.db.password}"/>
-        <property name="initialSize" value="${studio.db.pool.initialConnections}"/>
-        <property name="maxActive" value="${studio.db.pool.maxActiveConnections}"/>
-        <property name="maxIdle" value="${studio.db.pool.maxIdleConnections}"/>
-        <property name="minIdle" value="${studio.db.pool.minIdleConnections}"/>
-        <property name="maxWait" value="${studio.db.pool.maxWaitTime}"/>
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <property name="driverClassName" value="${studio.db.driver}" />
+        <property name="url" value="${studio.db.url}" />
+        <property name="username" value="${studio.db.username}" />
+        <property name="password" value="${studio.db.password}" />
+        <property name="initialSize" value="${studio.db.pool.initialConnections}" />
+        <property name="maxTotal" value="${studio.db.pool.maxActiveConnections}" />
+        <property name="maxIdle" value="${studio.db.pool.maxIdleConnections}" />
+        <property name="minIdle" value="${studio.db.pool.minIdleConnections}" />
+        <property name="maxWaitMillis" value="${studio.db.pool.maxWaitTime}" />
+        <property name="testOnBorrow" value="${studio.db.testOnBorrow}" />
+        <property name="validationQuery" value="${studio.db.validationQuery.${studio.db.platform}}" />
+        <property name="validationQueryTimeout" value="${studio.db.validationInterval}"/>
     </bean>
 
     <!-- define the SqlSessionFactory -->
