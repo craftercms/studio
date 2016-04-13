@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.repository;
 
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -59,7 +60,7 @@ public interface ContentRepository {
      * @param content stream of content to write
      * @return true if successful
      */
-    boolean writeContent(String path, InputStream content);
+    boolean writeContent(String path, InputStream content) throws ServiceException;
 
     /**
      * create a folder

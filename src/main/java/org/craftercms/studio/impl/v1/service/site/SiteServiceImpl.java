@@ -79,18 +79,18 @@ public class SiteServiceImpl implements SiteService {
     private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
 	
 	@Override
-	public boolean writeConfiguration(String site, String path, InputStream content) {
+	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
 		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
         clearConfigurationCache.clearConfigurationCache(site);
         return toRet;
 	}
 
 	@Override	
-	public boolean writeConfiguration(String path, InputStream content) {
-		boolean toRetrun = contentRepository.writeContent(path, content);
+	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
+		boolean toReturn = contentRepository.writeContent(path, content);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
-        return toRetrun;
+        return toReturn;
 	}
 
     private String extractSiteFromConfigurationPath(String configurationPath) {
