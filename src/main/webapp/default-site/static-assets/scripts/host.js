@@ -406,16 +406,21 @@
 
         });
 
-        var path = hash.page;
+        var path = hash.page,
+            hashPage = hash.page;
 
         if(path.indexOf(".") != -1) {
-        	if(path.indexOf(".html") != -1 || path.indexOf(".xml") != -1 ) {
-        		path = ('/site/website/'+ hash.page).replace('//','/');
-        		path = path.replace('.html', '.xml')
-        	}
+            if(path.indexOf(".html") != -1 || path.indexOf(".xml") != -1 ) {
+                path = ('/site/website/'+ hashPage).replace('//','/');
+                path = path.replace('.html', '.xml')
+            }
         }
         else {
-        	path = ('/site/website/'+ hash.page+'/index.xml').replace('//','/');
+            if (hash.page.indexOf('?') != -1) {
+                hashPage = hash.page.substring(0, hash.page.indexOf('?'));
+            }
+
+            path = ('/site/website/'+ hashPage+'/index.xml').replace('//','/');
         }
 
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
