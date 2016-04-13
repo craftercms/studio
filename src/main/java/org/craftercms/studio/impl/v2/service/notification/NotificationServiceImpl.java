@@ -30,6 +30,7 @@ import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -402,11 +403,15 @@ public class NotificationServiceImpl implements NotificationService {
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
             Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site)
                 , configFileName);
-
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
+            generalLockService.lock(cacheContext.getId());
+            try {
+                if (cacheService.hasScope(cacheContext)) {
+                    cacheService.remove(cacheContext, cacheKey);
+                } else {
+                    cacheService.addScope(cacheContext);
+                }
+            } finally {
+                generalLockService.unlock(cacheContext.getId());
             }
             Map<String, NotificationConfigTO> config = loadConfig(site);
             cacheService.put(cacheContext, cacheKey, config);
@@ -421,8 +426,13 @@ public class NotificationServiceImpl implements NotificationService {
     protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         Map<String, NotificationConfigTO> config = cacheTemplate.getObject(cacheContext, new Callback<Map<String,
             NotificationConfigTO>>() {
@@ -505,5 +515,10 @@ public class NotificationServiceImpl implements NotificationService {
     public void setTemplateTimezone(final String templateTimezone) {
         this.templateTimezone = templateTimezone;
     }
+
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
+    protected GeneralLockService generalLockService;
 }
 
