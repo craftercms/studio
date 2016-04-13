@@ -996,8 +996,9 @@ treeNode.getHtml = function() {
                 if(instance.openArray[i].indexOf(aux) > -1){
                     instance.openArray.splice(i, 1);
                 }
-                if(instance.openArray.length > 0 && instance.openArray[i].indexOf(path) > -1){
-                    flag = false;
+                if(instance.openArray.length > 0 && instance.openArray[i]){
+                    if(instance.openArray[i].indexOf(path) > -1)
+                        flag = false;
                 }
             }
         }
