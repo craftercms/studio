@@ -41,6 +41,15 @@
                     var instance = new CStudioAuthoring.ContextualNav.WcmRootFolderInstance(config);
                     instance.cannedSearchCache = [];
                     instance.excludeCache = [];
+                    instance.openArray = [];
+                    var latestStored = storage.read( Self.getStoredPathKey(instance) );
+                    if(latestStored){
+                        if(latestStored.indexOf(',')!=-1){
+                            instance.openArray = latestStored.split(",");
+                        }else{
+                            instance.openArray.push(latestStored);
+                        }
+                    }
 
 
                     if(config.params.mods) {
@@ -112,10 +121,10 @@
                     }
                     this.addContentTreeRootFolder(instance);
 
+                    var contOpenTreeTimes = 0;
                     var openTreeFn = function(instance, thisComponent) {
-                        var readyToLoad = false;
+                        var readyToLoad = true;
                         if(instance.mods.length > 0) {
-                            readyToLoad = true;
                             for(var m=0; m<instance.mods.length; m++) {
                                 var mod = instance.mods[m];
                                 if(mod.readyToLoad == false) {
@@ -125,7 +134,8 @@
                             }
                         }
 
-                        if(readyToLoad) {
+                        if(readyToLoad || contOpenTreeTimes < 5) {
+                            contOpenTreeTimes = 0;
                             if(YAHOO.util.Dom.getStyle("acn-dropdown-menu-wrapper", "display") != "none") {
                                 window.firstClick = true;
                                 thisComponent.openLatest(instance);
@@ -143,7 +153,8 @@
                         }
                         else {
                             // give mods a bit of time to load then try again
-                            setTimeout(openTreeFn, 1000, instance, thisComponent);                    
+                            contOpenTreeTimes++;
+                            setTimeout(openTreeFn, 1000, instance, thisComponent);
                         }
                     };
 
@@ -190,6 +201,9 @@
 
                 var tree = instance.tree = new YAHOO.widget.TreeView(treeEl);
                 tree.setDynamicLoad(this.onLoadNodeDataOnClick);
+                /*tree.subscribe("collapse", function(node) {this.collapseTree});
+                tree.subscribe("expand", function(node) {this.expandTree});*/
+
                 tree.FOCUS_CLASS_NAME = null;
 
 				var label = treeEl.previousElementSibling;
@@ -256,6 +270,8 @@
              * render function called on root level elements
              */
             drawTree: function(treeItems, tree, pathToOpenTo, instance) {
+
+                self = this;
 
 				var treeNodes = [];
                 var treeNodesLabels = new Array();
@@ -364,6 +380,7 @@
                         expandedNodeStyle = expandedNodeStyle.replace(" acn-collapsed-tree-node-label", "");
                         nodeId.className = expandedNodeStyle + " acn-expanded-tree-node-label";
                     }
+                    self.expandTree(node);
 
                     return true;
                 });
@@ -374,6 +391,9 @@
                     var collapsedNodeStyle = nodeId.className;
                     collapsedNodeStyle = collapsedNodeStyle.replace(" acn-expanded-tree-node-label", "");
                     nodeId.className = collapsedNodeStyle + " acn-collapsed-tree-node-label";
+
+                    self.collapseTree(node);
+
                     return true;
                 });
 
@@ -662,53 +682,68 @@ treeNode.getHtml = function() {
                 }
             },
             
-            getStoredPathKey: function(instance) {
-				return (instance.config.params.path ? instance.config.params.path : instance.config.params.paths.path[0] + '-latest-opened-path');
+            getStoredPathKey: function(instance, path) {
+                return (CStudioAuthoringContext.site + "-"+ instance.label.replace(" ", "").toLowerCase() + '-opened');
 			},
 
 			openLatest: function(instance){
 
-                var latestStored;
+                var latestStored = [];
                 try {
                     // TODO: revise this way to get the current page in preview
                     // CStudioAuthoringContext properties isPreview and previewCurrentPath are set on overlayhook.get.html.ftl
                     if (instance.label == "Pages" && CStudioAuthoringContext.isPreview === true) {
-                        latestStored = CStudioAuthoringContext.previewCurrentPath;
+                        //latestStored = CStudioAuthoringContext.previewCurrentPath;
                     }
                 } catch (ex) { }
-                if (typeof latestStored === "undefined") {
-                    latestStored = storage.read( Self.getStoredPathKey(instance) );
+                if (latestStored.length <= 0) {
+                    var latestStoredVar = storage.read( Self.getStoredPathKey(instance) );
+                    if(latestStoredVar){
+                        if(latestStoredVar.indexOf(',')!=-1){
+                            latestStored = latestStoredVar.split(",");
+                        }else{
+                            latestStored.push(latestStoredVar);
+                        }
+                    }
+
                 }
 
-				if(latestStored){
+				if(latestStored.length > 0){
 					var treeEl = instance.rootFolderEl,
 						site = treeEl.rootFolderSite,
 						rootPath = treeEl.rootFolderPath,
 						tree = instance.tree = new YAHOO.widget.TreeView(treeEl),
-						paths = null,
-						counter = 0,
-						recursiveCalls = 0,
-						pathTrace = rootPath,
-						updatePathTrace = function(){ return (pathTrace = (pathTrace + "/" + paths[counter++])); },
+						paths = [],
+						counter = [],
+						recursiveCalls = [],
+                        tmp = [],
+                        k = 0,
+                        pathTrace = [],
+						updatePathTrace = function(j){ return (pathTrace[j] = (pathTrace[j] + "/" + paths[j][counter[j]++])); },
+                        nextPathTrace = function(j){
+                            var cont = j == 0 ? 0 : counter[j] + 1;
+                            return (pathTrace[j] + "/" + paths[j][counter[j]]); }
 						$ = YAHOO.util.Selector.query;
+                    pathTrace[k] = rootPath;
+                    counter[k] = 0;
 					(function(){
-						var tmp = latestStored.replace(rootPath, "");
-						paths = tmp.length ? (tmp.charAt(0) == "/" ? tmp.substr(1) : tmp).split("/") : null;
-						recursiveCalls = tmp.length ? paths.length : 0;
+						tmp[k] = latestStored[k].replace(rootPath, "");
+						paths[k] = tmp[k].length ? (tmp[k].charAt(0) == "/" ? tmp[k].substr(1) : tmp[k]).split("/") : null;
+						recursiveCalls[k] = tmp[k].length ? paths[k].length : 0;
 					})();
 					var label = instance.rootFolderEl.previousElementSibling;
 					YDom.addClass(label, "loading");
-					var doCall = function(n){
+					var doCall = function(n, j){
 						Self.onLoadNodeDataOnClick(n, function(){
 							n.loadComplete();
-							if (counter < recursiveCalls) {
-								updatePathTrace();
-								var node = tree.getNodeByProperty("path", pathTrace);
+							if (counter[j] < recursiveCalls[j]) {
+								updatePathTrace(j);
+								var node = tree.getNodeByProperty("path", pathTrace[j]);
 								if (node != null) {
 									var loadEl = $(".ygtvtp", node.getEl(), true);
 									loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
 									YDom.addClass(loadEl, "ygtvloading");
-									doCall(node);
+									doCall(node, j);
 								} else {
 									YDom.removeClass(label, "loading");
 									YDom.removeClass($(".ygtvloading", treeEl), "ygtvloading");
@@ -717,16 +752,44 @@ treeNode.getHtml = function() {
                                     Self.firePathLoaded(instance);
 								}
 							} else {
-								YDom.removeClass(label, "loading");
-								YDom.removeClass($(".ygtvloading", treeEl), "ygtvloading");
-								// Add hover effect to nodes
-								Self.nodeHoverEffects(this);
+                                k++;
+                                if (latestStored.length > k) {
+                                    pathTrace[k] = rootPath;
+                                    counter[k] = 0;
+                                    (function () {
+                                        tmp[k] = latestStored[k].replace(rootPath, "");
+                                        paths[k] = tmp[k].length ? (tmp[k].charAt(0) == "/" ? tmp[k].substr(1) : tmp[k]).split("/") : null;
+                                        recursiveCalls[k] = tmp[k].length ? paths[k].length : 0;
+                                    })();
+                                    var node, loadEl;
+                                    for (var i = 0; recursiveCalls[k] > i; i++) {
+                                        if (tree.getNodeByProperty("path", nextPathTrace(k)) != null) {
+                                            updatePathTrace(k);
+                                        }
+                                    }
+                                    node = tree.getNodeByProperty("path", pathTrace[k]);
+                                    if (node == null) {
+                                        node = tree.getNodeByProperty("path", updatePathTrace(k));
+                                        loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
+                                    } else {
+                                        loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
+                                    }
+                                    YDom.addClass(loadEl, "ygtvloading");
+                                    doCall(node, k);
+                                } else {
+                                    //YDom.removeClass(label, "loading");
+                                    //Self.firePathLoaded(instance);
+                                }
+
+                                YDom.removeClass(label, "loading");
+                                YDom.removeClass($(".ygtvloading", treeEl), "ygtvloading");
+                                // Add hover effect to nodes
+                                Self.nodeHoverEffects(this);
                                 Self.firePathLoaded(instance);
 							}
 						});
 					}
 					tree.setDynamicLoad(this.onLoadNodeDataOnClick);
-					//reduce extra call, if applicable
 					if (this.pathOnlyHasCannedSearch(rootPath, instance)) {
 						var dummy = new Object();
 						dummy.path = rootPath;
@@ -754,7 +817,7 @@ treeNode.getHtml = function() {
                                 success: function(treeData) {
 
                                     //if(servPath == "/site/website")
-                                        window.treeData = treeData;
+                                    window.treeData = treeData;
 
                                     var items = treeData.item.children;
                                     if (instance.showRootItem) {
@@ -762,17 +825,17 @@ treeNode.getHtml = function() {
                                     }
                                     instance.state = Self.ROOT_OPEN;
                                     Self.drawTree(items, tree, null, instance);
-                                    if (latestStored != Self.ROOT_OPENED) {
+                                    if (latestStored[k] != Self.ROOT_OPENED) {
                                         var node, loadEl;
                                         node = tree.getNodeByProperty("path", treeData.item.path);
                                         if(node == null) {
-                                            node = tree.getNodeByProperty("path", updatePathTrace());
+                                            node = tree.getNodeByProperty("path", updatePathTrace(k));
                                             loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
                                         } else {
                                             loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
                                         }
                                         YDom.addClass(loadEl, "ygtvloading");
-                                        doCall(node);
+                                        doCall(node, k);
                                     } else {
                                         YDom.removeClass(label, "loading");
                                         Self.firePathLoaded(instance);
@@ -865,7 +928,7 @@ treeNode.getHtml = function() {
                 	site = node.treeNodeTO.site,
                 	pathToOpenTo = node.openToPath;
 
-				Self.save(node.instance, plainpath);
+				//Self.save(node.instance, plainpath);
 
 
 				var serviceCb = {
@@ -909,9 +972,54 @@ treeNode.getHtml = function() {
 				
 	            CStudioAuthoring.Service.lookupSiteContent(site, path, 1, "default", serviceCb);
     },
+
+    expandTree: function(node, fnLoadComplete) {
+        var plainpath = node.treeNodeTO.path;
+        Self.save(node.instance, plainpath);
+    },
+
+    collapseTree: function(node, fnLoadComplete) {
+        var fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1];
+        var plainpath = node.treeNodeTO.path.replace("/" + fileName, "");
+        plainpath = plainpath == '/site' ? "root-folder" : plainpath;
+        //Self.remove(node.instance, plainpath);
+        Self.save(node.instance, plainpath, fileName);
+    },
     
-    save: function(instance, path) {
-        storage.write(Self.getStoredPathKey(instance), path, 360);
+    save: function(instance, path, fileName) {
+        var flag = true;
+        for(var i=0; i < instance.openArray.length; i++){
+            if(path.indexOf(instance.openArray[i]) > -1){
+                instance.openArray.splice(i, 1);
+            }else{
+                var aux = path + "/" + fileName;
+                if(instance.openArray[i].indexOf(aux) > -1){
+                    instance.openArray.splice(i, 1);
+                }
+                if(instance.openArray.length > 0 && instance.openArray[i]){
+                    if(instance.openArray[i].indexOf(path) > -1)
+                        flag = false;
+                }
+            }
+        }
+        if(flag) {
+            if(path == "root-folder"){
+                instance.openArray = [];
+            }
+            instance.openArray.push(path);
+        }
+        for(var i=0; i < instance.openArray.length; i++){
+
+            if (instance.openArray.length > 1 && instance.openArray[i].indexOf("root-folder") > -1) {
+                instance.openArray.splice(i, 1);
+            }
+        }
+        //storage.write(Self.getStoredPathKey(instance, path), path, 360);
+        storage.write(Self.getStoredPathKey(instance, path), instance.openArray.toString(), 360);
+    },
+
+    remove: function (instance, path) {
+       storage.eliminate( Self.getStoredPathKey(instance) );
     },
     
     /**
