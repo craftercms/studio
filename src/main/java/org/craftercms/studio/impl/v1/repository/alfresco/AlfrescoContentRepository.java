@@ -1191,7 +1191,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     protected String getCurrentTicket() {
-        String ticket = "UNSET";
+        String ticket;
         RequestContext context = RequestContext.getCurrent();
 
         if (context != null) {
@@ -1252,6 +1252,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 }
             }
 
+            if (StringUtils.isNotEmpty(username)) {
+                logger.debug("SSO username found: {0}", username);
+            }
+
             return username;
         } else {
             return null;
@@ -1277,7 +1281,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     @Override
     public Date getModifiedDate(String fullPath) {
         long startTime = System.currentTimeMillis();
-        Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
