@@ -57,6 +57,7 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -73,6 +74,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -118,7 +120,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String path, InputStream content) throws ServiceException {
         logger.debug("writing content to " + path);
         //addDebugStack();
         return writeContentCMIS(path, content);
@@ -630,7 +632,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return items;
     }
 
-    protected boolean writeContentCMIS(String fullPath, InputStream content) {
+    protected boolean writeContentCMIS(String fullPath, InputStream content) throws ServiceException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -652,11 +654,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getBaseType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document =
-                        (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     String pwcId = document.getVersionSeriesCheckedOutId();
                     if (pwcId != null) {
                         org.apache.chemistry.opencmis.client.api.Document pwcDocument =
-                            (org.apache.chemistry.opencmis.client.api.Document)session.getObject(pwcId);
+                                (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
                         pwcDocument.checkIn(false, null, contentStream, null);
                     } else {
                         document.setContentStream(contentStream, true);
@@ -679,24 +681,27 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     boolean created = createMissingFoldersCMIS(folderPath);
                     if (created) {
                         folderCmisObject = session.getObjectByPath(folderPath);
-                        folder = (Folder)folderCmisObject;
+                        folder = (Folder) folderCmisObject;
                     } else {
                         return false;
                     }
                 } else {
-                    folder = (Folder)folderCmisObject;
+                    folder = (Folder) folderCmisObject;
                 }
                 Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
                 properties.put(PropertyIds.NAME, filename);
                 org.apache.chemistry.opencmis.client.api.Document newDoc = folder.createDocument(
-                    properties, contentStream, VersioningState.MINOR);
+                        properties, contentStream, VersioningState.MINOR);
                 session.removeObjectFromCache(newDoc.getId());
                 session.clear();
             }
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("writeContentCMIS(fullPath = {0}, content = {1}); ({2} ms)", fullPath, "stream", duration);
             return true;
+        } catch (CmisUnauthorizedException err) {
+            logger.error("Error writing content to a path {0}", err, fullPath);
+            throw new ServiceException(err);
         } catch (CmisBaseException e) {
             logger.error("Error writing content to a path {0}", e, fullPath);
         } catch (NullPointerException e) {
@@ -1380,7 +1385,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 } else if (child.isFile()) {
                     try {
                         writeContentCMIS(relativePath, FileUtils.openInputStream(child));
-                    } catch (IOException e) {
+                    } catch (IOException | ServiceException e) {
                         logger.error("Error while bootstrapping file: " + relativePath, e);
                     }
                 }

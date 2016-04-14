@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.translation.dal;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -46,5 +47,5 @@ public interface TranslationContentDAL {
 	/**
 	 * update site with translated content and update linking
 	 */
-	void updateSiteWithTranslatedContent(String site, String path, InputStream content);
+	void updateSiteWithTranslatedContent(String site, String path, InputStream content) throws ServiceException;
 }

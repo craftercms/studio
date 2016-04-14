@@ -51,17 +51,18 @@
                 amplify.subscribe('/operation/failed', function () {
                     self.ajaxOverlay.hide();
                 });
-                
-                amplify.subscribe('/page-model/loaded', function (data) { 
 
-                    var dom = (new window.DOMParser())
-                        .parseFromString(data.model, "text/xml").documentElement;
+                amplify.subscribe('/page-model/loaded', function (data) {
 
-                    var contentMap = CStudioForms.Util.xmlModelToMap(dom);
+                    try {
+                        var dom = (new window.DOMParser())
+                            .parseFromString(data.model, "text/xml").documentElement;
 
-                    switch (data.operation) {
+                        var contentMap = CStudioForms.Util.xmlModelToMap(dom);
 
-                        case "init-components":
+                        switch (data.operation) {
+
+                            case "init-components":
                                 self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
                                 // TODO is it requried to send component model to host > guest?
                                 // self.linkComponentsToModel(contentMap);
@@ -73,28 +74,31 @@
                                     self.expand();
                                 }
 
-                            return;
+                                return;
 
-                        case "save-components":
-                        case "save-components-new":
-                            CStudioForms.Util.loadFormDefinition(contentMap['content-type'], {
-                                success: function (formDefinition) {
-                                    $.extend(contentMap, data.zones ? data.zones : self.zones);
-                                    amplify.publish('components/form-def/loaded', {
-                                        contentMap: contentMap,
-                                        pagePath: data.pagePath,
-                                        formDefinition: formDefinition,
-                                        isNew: (data.operation === 'save-components-new') ? true : false,
-                                        conComp: data.conComp
-                                    });
-                                },
-                                failure: function () {
-                                    amplify.publish('/operation/failed');
-                                    alert("failed to load form definition");
-                                }
-                            });
-                            return;
+                            case "save-components":
+                            case "save-components-new":
+                                CStudioForms.Util.loadFormDefinition(contentMap['content-type'], {
+                                    success: function (formDefinition) {
+                                        $.extend(contentMap, data.zones ? data.zones : self.zones);
+                                        amplify.publish('components/form-def/loaded', {
+                                            contentMap: contentMap,
+                                            pagePath: data.pagePath,
+                                            formDefinition: formDefinition,
+                                            isNew: (data.operation === 'save-components-new') ? true : false,
+                                            conComp: data.conComp
+                                        });
+                                    },
+                                    failure: function () {
+                                        amplify.publish('/operation/failed');
+                                        alert("failed to load form definition");
+                                    }
+                                });
+                                return;
 
+                        }
+                    }catch(err){
+                        amplify.publish('/operation/failed');
                     }
 
                 });

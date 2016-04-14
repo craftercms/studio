@@ -42,3 +42,5 @@
 <script>document.domain = "${cookieDomain}";</script>
 
 </#if>
+
+<link rel="shortcut icon" href="/studio/static-assets/img/favicon.png">
