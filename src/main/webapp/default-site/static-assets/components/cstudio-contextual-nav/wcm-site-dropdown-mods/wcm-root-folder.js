@@ -723,7 +723,7 @@ treeNode.getHtml = function() {
                         nextPathTrace = function(j){
                             var cont = j == 0 ? 0 : counter[j] + 1;
                             return (pathTrace[j] + "/" + paths[j][counter[j]]); }
-						$ = YAHOO.util.Selector.query;
+						YSelector = YAHOO.util.Selector.query;
                     pathTrace[k] = rootPath;
                     counter[k] = 0;
 					(function(){
@@ -740,13 +740,13 @@ treeNode.getHtml = function() {
 								updatePathTrace(j);
 								var node = tree.getNodeByProperty("path", pathTrace[j]);
 								if (node != null) {
-									var loadEl = $(".ygtvtp", node.getEl(), true);
-									loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
+									var loadEl = YSelector(".ygtvtp", node.getEl(), true);
+									loadEl == null && (loadEl = YSelector(".ygtvlp", node.getEl(), true));
 									YDom.addClass(loadEl, "ygtvloading");
 									doCall(node, j);
 								} else {
 									YDom.removeClass(label, "loading");
-									YDom.removeClass($(".ygtvloading", treeEl), "ygtvloading");
+									YDom.removeClass(YSelector(".ygtvloading", treeEl), "ygtvloading");
 									// Add hover effect to nodes
 									Self.nodeHoverEffects(this);
                                     Self.firePathLoaded(instance);
@@ -782,7 +782,7 @@ treeNode.getHtml = function() {
                                 }
 
                                 YDom.removeClass(label, "loading");
-                                YDom.removeClass($(".ygtvloading", treeEl), "ygtvloading");
+                                YDom.removeClass(YSelector(".ygtvloading", treeEl), "ygtvloading");
                                 // Add hover effect to nodes
                                 Self.nodeHoverEffects(this);
                                 Self.firePathLoaded(instance);
@@ -1042,8 +1042,8 @@ treeNode.getHtml = function() {
         }
         
 	   	tree.removeChildren(node);
-		var loadEl = $(".ygtvtp", node.getEl(), true);
-		loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
+		var loadEl = YSelector(".ygtvtp", node.getEl(), true);
+		loadEl == null && (loadEl = YSelector(".ygtvlp", node.getEl(), true));
 		YDom.addClass(loadEl, "ygtvloading");
 		node.renderChildren();
 		node.refresh();
@@ -1065,8 +1065,8 @@ treeNode.getHtml = function() {
 						//we should refresh the parent node to remove expand collapse icon 
 						if (parNode && parNode.children && parNode.children.length == 1) {
 							tree.removeChildren(parNode);
-							var parLoadEl = $(".ygtvtp", parNode.getEl(), true);
-							parLoadEl == null && (parLoadEl = $(".ygtvlp", parNode.getEl(), true));
+							var parLoadEl = YSelector(".ygtvtp", parNode.getEl(), true);
+							parLoadEl == null && (parLoadEl = YSelector(".ygtvlp", parNode.getEl(), true));
 							YDom.addClass(parLoadEl, "ygtvloading");
 							parNode.renderChildren();
 							parNode.refresh();
