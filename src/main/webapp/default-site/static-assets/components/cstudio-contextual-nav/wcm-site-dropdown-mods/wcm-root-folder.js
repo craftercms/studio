@@ -682,7 +682,7 @@ treeNode.getHtml = function() {
                 }
             },
             
-            getStoredPathKey: function(instance, path) {
+            getStoredPathKey: function(instance) {
                 return (CStudioAuthoringContext.site + "-"+ instance.label.replace(" ", "").toLowerCase() + '-opened');
 			},
 
@@ -991,10 +991,15 @@ treeNode.getHtml = function() {
         for(var i=0; i < instance.openArray.length; i++){
             if(path.indexOf(instance.openArray[i]) > -1){
                 instance.openArray.splice(i, 1);
+                i--;
+                continue;
             }else{
-                var aux = path + "/" + fileName;
+                var aux = path;
+                if(fileName){aux = aux + '/' + fileName;}
                 if(instance.openArray[i].indexOf(aux) > -1){
                     instance.openArray.splice(i, 1);
+                    i--;
+                    continue;
                 }
                 if(instance.openArray.length > 0 && instance.openArray[i]){
                     if(instance.openArray[i].indexOf(path) > -1)
@@ -1015,7 +1020,7 @@ treeNode.getHtml = function() {
             }
         }
         //storage.write(Self.getStoredPathKey(instance, path), path, 360);
-        storage.write(Self.getStoredPathKey(instance, path), instance.openArray.toString(), 360);
+        storage.write(Self.getStoredPathKey(instance), instance.openArray.toString(), 360);
     },
 
     remove: function (instance, path) {
