@@ -1035,8 +1035,9 @@ var ApproveType = false;
                 var filename = (contentTO.pathSegment) ? contentTO.pathSegment : contentTO.name;
 
                 if (CStudioAuthoring.Utils.endsWith(filename, ".xml")) {
-
                     url = CStudioAuthoringContext.previewAppBaseUri + contentTO.browserUri;
+                    url = url.replace('.xml', '.html');
+
                     if (contentTO.document && contentTO.assets && contentTO.assets.length == 1) {
                         url = CStudioAuthoringContext.previewAppBaseUri + contentTO.assets[0].uri;
                     }
