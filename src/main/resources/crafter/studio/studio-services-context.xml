@@ -637,6 +637,12 @@
     <!--         Security layer               -->
     <!-- ////////////////////////////////////// -->
 
+    <bean id="crafter.studioSecurityFilter" class="org.craftercms.studio.impl.v1.web.filter.StudioSecurityFilter">
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="urlsToInclude" value="${crafter.studio.security.urlsToInclude}"/>
+        <property name="urlsToExclude" value="${crafter.studio.security.urlsToExclude}"/>
+    </bean>
+
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="providerType" value="${securityType}"/>
     </bean>
