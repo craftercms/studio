@@ -911,6 +911,15 @@ var CStudioForms = CStudioForms || function() {
                      * See file-name.js function _onChange().
                      */
 
+                    if(form.definition.objectType == "page"){
+                        var pagePath = entityId.replace('/site/website/', '');
+                        file = pagePath.split("/").pop();
+
+                        if(file != "index.xml") {
+                            folderName = "";
+                        }
+                    }
+
                     if (changeTemplate == "true") {
                         if (form.definition.contentAsFolder == "false") {
                             entityId = entityId.replace("/index.xml");
