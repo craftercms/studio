@@ -910,16 +910,7 @@ var CStudioForms = CStudioForms || function() {
                      * No folderName means it is NOT a content-as-folder content type.
                      * See file-name.js function _onChange().
                      */
-
-                    if(form.definition.objectType == "page"){
-                        var pagePath = entityId.replace('/site/website/', '');
-                        file = pagePath.split("/").pop();
-
-                        if(file != "index.xml") {
-                            folderName = "";
-                        }
-                    }
-
+                    
                     if (changeTemplate == "true") {
                         if (form.definition.contentAsFolder == "false") {
                             entityId = entityId.replace("/index.xml");
