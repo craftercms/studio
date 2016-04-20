@@ -915,11 +915,11 @@ var CStudioForms = CStudioForms || function() {
                         var pagePath = entityId.replace('/site/website/', '');
                         file = pagePath.split("/").pop();
 
-                        if(file != "index.xml") {
+                        if((file.indexOf(".xml") > -1) && (file != "index.xml")) {
                             folderName = "";
                         }
                     }
-
+                    
                     if (changeTemplate == "true") {
                         if (form.definition.contentAsFolder == "false") {
                             entityId = entityId.replace("/index.xml");
