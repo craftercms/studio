@@ -4,6 +4,8 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.ContentType
 import groovyx.net.http.Method
 import groovyx.net.http.RESTClient
+import java.util.regex.Pattern
+import java.util.regex.Matcher
 
 /**
  * Link Checker class 
@@ -11,22 +13,55 @@ import groovyx.net.http.RESTClient
 public class LinkChecker {
 	static String baseUrl = "http://localhost:9080"
 	static String scanRootPath = "/"
+	static String notificationList = ""
+	static Object notificationService = null
+	static Object siteService = null
+	static boolean isRunning = false
 
 	/**
 	 * Test the whole site for dead links then send an email report to an list of email addresses
 	 */
-	static testSiteForDeadLinks(logger) {
+	static testSiteForDeadLinks(site, logger, context) {
 		def report = [:]
 		report.checkedLinks = []
 		report.brokenLinks = []
 
-		logger.info("======================================================================")
-		logger.info(" Running link checker job")
-		logger.info("======================================================================")
+		// this checker runs on a chron and can be invoked from a rest script
+		// this checker can take a long time on large sites. 
+		// DO NOT RUN, if already in progress
+		if(!isRunning) {
 
-		testUrlForDeadLinks(baseUrl+scanRootPath, report, true, logger)
+			try {
+				isRunning = true
 
-		sendReport(["russ.danner@craftersoftware.com"], report, logger)
+				logger.info("======================================================================")
+				logger.info(" Running link checker job")
+				logger.info("======================================================================")
+
+				notificationService = context.applicationContext.get("cstudioNotificationService") 
+				siteService = context.applicationContext.get("cstudioSiteServiceSimple") 
+				
+				if(siteService) {
+					def config = siteService.getConfiguration(site, "/site-config.xml", false)
+
+					if(config.linkChecking != null) {
+						if(config.linkChecking.baseUrl) baseUrl = config.linkChecking.baseUrl
+						if(config.linkChecking.scanRootPath) baseUrl = config.linkChecking.scanRootPath
+						if(config.linkChecking.notificationList) baseUrl = config.linkChecking.notificationList
+					}
+
+					testUrlForDeadLinks(baseUrl+scanRootPath, site, report, true, logger)
+
+					sendReport(site, notificationList, report, logger)
+				}
+				else {
+					logger.error("not able to location brean cstudioSiteServiceSimple from context '"+context+"'")
+				}
+			}
+			finally {
+				isRunning = false
+			}
+		}
 
 		return report
 	}
@@ -34,7 +69,7 @@ public class LinkChecker {
 	/**
 	 * Send the report via email
 	 */
-	static sendReport(emailList, report, logger) {
+	static sendReport(site, notificationList, report, logger) {
 		// for each link checked
 		try {
 			logger.info("CHECKED THE FOLLOWING LINKS ("+report.checkedLinks.size+") :")
@@ -47,6 +82,14 @@ public class LinkChecker {
 				def brokenLink = report.brokenLinks.get(j)
 				logger.info(".....: " + brokenLink.url + ", " + brokenLink.message)
 			}
+
+			notificationService.sendGenericNotification(
+				site, 
+				"/site/website/index.xml",   
+				notificationList, 
+				notificationList, 
+				"brokenLinkNotice", 
+				report)
 		}
 		catch(Exception ex) {
 		  logger.error("ERROR REPORTING: "+ex)
@@ -59,7 +102,7 @@ public class LinkChecker {
 	 * Also note, the report keeps track of what links were checked and this method WILL NOT RE-CHECK a link
 	 * a link that has already been checked.
 	 */
-	static testUrlForDeadLinks(url, report, recurseFlag, logger) {
+	static testUrlForDeadLinks(url, site, report, recurseFlag, logger) {
 
 		if(!report.checkedLinks.contains(url)) {
 			// add the link to the report so that we don't recheck the same path later
@@ -68,7 +111,7 @@ public class LinkChecker {
 			logger.info("checking link (" + report.checkedLinks.size + ") : " + url)
 
 			// test the link
-			def result = testLink(url, logger)
+			def result = testLink(url+"?crafterSite="+site, logger)
 
 			if(result.success) { 
 				
@@ -81,11 +124,11 @@ public class LinkChecker {
 
 						if(link.toLowerCase().contains("http://") || link.toLowerCase().contains("https://")) {
 							// link is absolute, do not recurse on the test
-							testUrlForDeadLinks(link, report, false, logger)
+							testUrlForDeadLinks(link, site, report, false, logger)
 						}
 						else {
 							// link is relative, recurse after testing on sub links
-							testUrlForDeadLinks(baseUrl+link, report, true, logger)
+							testUrlForDeadLinks(baseUrl+link, site, report, true, logger)
 						}
 					}
 				}
@@ -121,21 +164,34 @@ public class LinkChecker {
 
 		) {  // any of the above pages or css files should be scanned for sub links
 		 	 // there is no point in scanning images etc
-		 	 // PDFs, Documents and Javascript are difficult to scan and so are out of scope at the moment  
+		 	 // PDFs, Documents and Javascript are difficult to scan and so are out of scope at the moment  	
 
-			// /<a\s[^>]*href=\"([^\"]*)\"[^>]*>(.*)<\/a>/siU
-			// /<a\s[^>]*link=\"([^\"]*)\"[^>]*>(.*)<\/a>/siU
+String A_HREF_PATTERN = '<a[^>]+href=\\"(.*?)\\"[^>]*>.*?</a>'
 
-			
-			//if(matcher.matches()) {
-			//	logger.info("found " + matcher.getCount() + "references in code at '" + url + "'")
-			//	
-			//	for(def i=0; i < matcher.length; i++) {
-			//		def ref = matcher[i][0];
-			//	} 
-			//}
+		 	def refPatterns = [A_HREF_PATTERN]
 
-			foundReferences.add("/about-us")
+		 	for(def i=0; i < refPatterns.size; i++) {
+		 		def refPattern = refPatterns.get(i)
+
+		 		def matcher = (content =~ Pattern.compile(refPattern))
+
+		 		logger.info("MATCHES " + matcher.getCount() )
+
+				if(matcher.getCount() > 0) {
+					logger.info("found " + matcher.getCount() + " references in code at '" + url + "'")
+					
+					for(def j=0; j < matcher.getCount(); j++) {
+						def referenceUrl = matcher[j][1]
+
+						if(!referenceUrl.startsWith("#")) {
+							if(!foundReferences.contains(referenceUrl)) {
+								logger.info("adding reference: '" + referenceUrl + "'")
+								foundReferences.add(referenceUrl)
+							}
+						}
+					} 					
+				}
+		 	}
 		}
 
 		return foundReferences
