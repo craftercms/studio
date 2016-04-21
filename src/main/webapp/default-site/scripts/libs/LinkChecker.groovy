@@ -11,6 +11,11 @@ import java.util.regex.Matcher
  * Link Checker class 
  */
 public class LinkChecker {
+	static final String A_HREF_PATTERN = '<a[^>]+href=\\"(.*?)\\"[^>]*>.*?</a>'
+	static final String LINK_HREF_PATTERN = '<link[^>]+href=\\"(.*?)\\"[^>]*>'
+	static final String SCRIPT_HREF_PATTERN = '<script[^>]+src=\\"(.*?)\\"[^>]*>'
+	static final String IMG_HREF_PATTERN = '<script[^>]+src=\\"(.*?)\\"[^>]*>'
+
 	static String baseUrl = "http://localhost:9080"
 	static String scanRootPath = "/"
 	static String notificationList = ""
@@ -83,13 +88,16 @@ public class LinkChecker {
 				logger.info(".....: " + brokenLink.url + ", " + brokenLink.message)
 			}
 
+			def emailParams = [:]
+			emailParams.put("report", report)
+			
 			notificationService.sendGenericNotification(
 				site, 
 				"/site/website/index.xml",   
-				notificationList, 
-				notificationList, 
+				""+notificationList, 
+				""+notificationList, 
 				"brokenLinkNotice", 
-				report)
+				emailParams)
 		}
 		catch(Exception ex) {
 		  logger.error("ERROR REPORTING: "+ex)
@@ -108,7 +116,7 @@ public class LinkChecker {
 			// add the link to the report so that we don't recheck the same path later
 			
 			report.checkedLinks.add(url)
-			logger.info("checking link (" + report.checkedLinks.size + ") : " + url)
+			//logger.info("checking link (" + report.checkedLinks.size + ") : " + url)
 
 			// test the link
 			def result = testLink(url+"?crafterSite="+site, logger)
@@ -166,26 +174,21 @@ public class LinkChecker {
 		 	 // there is no point in scanning images etc
 		 	 // PDFs, Documents and Javascript are difficult to scan and so are out of scope at the moment  	
 
-String A_HREF_PATTERN = '<a[^>]+href=\\"(.*?)\\"[^>]*>.*?</a>'
-
-		 	def refPatterns = [A_HREF_PATTERN]
+		 	def refPatterns = [A_HREF_PATTERN, LINK_HREF_PATTERN, IMG_HREF_PATTERN, SCRIPT_HREF_PATTERN]
 
 		 	for(def i=0; i < refPatterns.size; i++) {
 		 		def refPattern = refPatterns.get(i)
 
 		 		def matcher = (content =~ Pattern.compile(refPattern))
 
-		 		logger.info("MATCHES " + matcher.getCount() )
-
 				if(matcher.getCount() > 0) {
-					logger.info("found " + matcher.getCount() + " references in code at '" + url + "'")
 					
 					for(def j=0; j < matcher.getCount(); j++) {
 						def referenceUrl = matcher[j][1]
 
 						if(!referenceUrl.startsWith("#")) {
 							if(!foundReferences.contains(referenceUrl)) {
-								logger.info("adding reference: '" + referenceUrl + "'")
+								//logger.info("adding reference: '" + referenceUrl + "'")
 								foundReferences.add(referenceUrl)
 							}
 						}
