@@ -726,7 +726,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				timeEl.setAttribute("data-cursor", caretPos);
 			}, timeEl, this);
 
-			YAHOO.util.Event.on(timeEl, 'change',  this._onChangeVal, this);
+			YAHOO.util.Event.on(timeEl, 'change',  this.updateTime, this, true);
 
 			YAHOO.util.Event.addListener(timeEl, 'keyup', function(e) {
 				var caretPos = this.saveCaretPosition(timeEl);
@@ -1058,9 +1058,38 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 	setDateTime: function(value, type) {
 		var dateTimePath = this.form.model,
-			dateTime;
+			dateTime,
+			dateTimeSplit,
+			res,
+			val;
 
-		dateTime = this.getDescendantProp(dateTimePath, (this.id)) ? (this.getDescendantProp(dateTimePath, (this.id))).split(" ") : ["", "04:00:00"];
+		// dateTime = this.getDescendantProp(dateTimePath, (this.id)) ? (this.getDescendantProp(dateTimePath, (this.id))).split(" ") : ["", "04:00:00"];
+		// res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
+
+		if(this.getDescendantProp(dateTimePath, (this.id))) {
+			dateTime = (this.getDescendantProp(dateTimePath, (this.id))).split(" ");
+			res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
+			val = eval("(" + (res.responseText) + ")");
+			dateTime = val.convertedTimezone.split(" ");
+		}else {
+			var date = new Date(),
+				dd = date.getDate(),
+				mm = date.getMonth()+1, //January is 0!
+				yyyy = date.getFullYear(),
+				hh = date.getHours(),
+				m = date.getMinutes();
+
+			if(dd<10) {
+				dd='0'+dd
+			}
+			if(mm<10) {
+				mm='0'+mm
+			}
+			date = mm+'/'+dd+'/'+yyyy;
+			time = hh+':'+m+':'+'00';
+			dateTime = [date, time];
+		}
+
 
 		if (type == 'date' && this.dateEl) {
 			this.dateEl.value = value;
@@ -1070,8 +1099,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			dateTime[1] = value;
 		}
 
-		dateTime = dateTime[0] + " " + dateTime[1];
-		this.value = dateTime;
+		res = this.convertDateTimeSync(dateTime[0], dateTime[1], this.timezone, "GMT");
+		val = eval("(" + (res.responseText) + ")");
+
+		this.value = val.convertedTimezone;
 
 		this.validate(null, this, true);
 
