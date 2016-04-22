@@ -118,7 +118,10 @@
         me.$('.date-picker').datetimepicker({
             format: 'm/d/Y h:i a',
             dateFormat: "m/d/Y",
-            formatTime:	'h:i a'
+            formatTime:	'h:i a',
+            minDate: '0',
+            minTime: 0,
+            step: 15
         });
 
         me.$('.date-picker').change(function () {
