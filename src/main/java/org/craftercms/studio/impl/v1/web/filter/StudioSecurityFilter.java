@@ -43,10 +43,14 @@ public class StudioSecurityFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
 
-        if ((includeRequest(httpRequest) || !excludeRequest(httpRequest))) {
-            doFilterInternal((HttpServletRequest)request, (HttpServletResponse)response, chain);
-        } else {
+        if (ArrayUtils.contains(exceptionUrls, HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
             chain.doFilter(request, response);
+        } else {
+            if ((includeRequest(httpRequest) || !excludeRequest(httpRequest))) {
+                doFilterInternal((HttpServletRequest) request, (HttpServletResponse) response, chain);
+            } else {
+                chain.doFilter(request, response);
+            }
         }
     }
 
@@ -109,11 +113,15 @@ public class StudioSecurityFilter extends GenericFilterBean {
     public String[] getUrlsToExclude() { return urlsToExclude; }
     public void setUrlsToExclude(String[] urlsToExclude) { this.urlsToExclude = urlsToExclude; }
 
+    public String[] getExceptionUrls() { return exceptionUrls; }
+    public void setExceptionUrls(String[] exceptionUrls) { this.exceptionUrls = exceptionUrls; }
+
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
     protected String[] urlsToInclude;
     protected String[] urlsToExclude;
+    protected String[] exceptionUrls;
     protected SecurityProvider securityProvider;
 
     protected PathMatcher pathMatcher;
