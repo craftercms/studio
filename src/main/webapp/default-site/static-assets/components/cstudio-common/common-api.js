@@ -6877,7 +6877,7 @@ CStudioAuthoring.InContextEdit = {
             controlBar = $("#formContainer .cstudio-form-controls-container")[0],
             colExpButtonBtn = $('#colExpButtonBtn');
 
-        if($(dialog).height() != 49){
+        if( Math.floor($(dialog).height()) != 49){
             CStudioAuthoring.Utils.Cookies.createCookie("formEngineHeight", $(dialog).height().toString());
             $(dialog).height(49);
             $(controlBar).css({ "backgroundColor": "#7E9DBB" });
