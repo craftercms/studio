@@ -13,5 +13,6 @@
         <property name="securityProvider" ref="securityProvider" />
         <property name="adminUser" value="${repositoryJob.username}"/>
         <property name="adminPassword" value="${repositoryJob.password}"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 </beans>
