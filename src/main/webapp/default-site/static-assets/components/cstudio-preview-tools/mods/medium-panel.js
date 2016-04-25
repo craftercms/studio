@@ -153,16 +153,12 @@ CStudioAuthoring.MediumPanel = CStudioAuthoring.MediumPanel || {
             orientation = (width < height) ? 'portrait' : 'landscape';
             $body.addClass('studio-device-preview-' + orientation);
 
-            // Add up the border widths to the iframe dimenssions
-            // to get more accurate preview dimenssions
-            if (orientation === 'portrait') {
-                //height += 100;
-                //width += 20;
-                studioPreviewHeight = height + 22;
-            } else /*if (orientation === 'landscape')*/ {
-                //height += 20;
-                //width += 100;
-                studioPreviewHeight = height + 62;
+            //used box-sixing set to content-box, so border is not a part of width and height
+            if ((orientation === 'portrait' && CStudioAuthoringContext.channel === "ipad")
+                || CStudioAuthoringContext.channel === "browser" ) {
+                $engine.css("margin", "0 auto");
+            }else {
+                $engine.css("margin", "auto");
             }
 
         }

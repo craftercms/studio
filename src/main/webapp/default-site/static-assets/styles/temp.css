@@ -15771,7 +15771,10 @@ body.masked {
   border-color: #555;
   border-style: solid;
   border-radius: 20px;
-  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4); }
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box; }
 
 .studio-device-preview-landscape #engineWindow {
   border-width: 10px 50px; }

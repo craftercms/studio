@@ -52,6 +52,7 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
             WcmDashboardWidgetCommon.getSimpleRow("endpoint",widgetId,CMgs.format(langBundle, "dashletRecentDeployColEndpoint"),"minimize")+
             "<th id='fullUri' class='width0'></th>"+
             WcmDashboardWidgetCommon.getSimpleRow("madeliveDate",widgetId,CMgs.format(langBundle, "dashletRecentDeployColMadeLiveDateDate"),"ttThColLast alignRight minimize");
+            WcmDashboardWidgetCommon.getSimpleRow("publisher", widgetId, CMgs.format(langBundle, "dashletRecentDeployColDeployBy"),"minimize");
 
         return header;
     };
@@ -183,7 +184,8 @@ CStudioAuthoringWidgets.RecentlyMadeLiveDashboard = CStudioAuthoringWidgets.Rece
                 "<td class='urlCol' title='",browserUri,"'>", displayBrowserUri, "</td>",
                 "<td title='fullUri' class='width0'>", uri, "</td>",
                 "<td title='",endpoint,"'>", displayEndpoint, "</td>",
-                "<td class='alignRight ttThColLast'>", CStudioAuthoring.Utils.formatDateFromString(item.eventDate), "</td>"
+                "<td class='alignRight ttThColLast'>", CStudioAuthoring.Utils.formatDateFromString(item.eventDate), "</td>",
+                "<td class='alignRight ttThColLast'>", item.user, "</td>"
             ]);
         }
 
