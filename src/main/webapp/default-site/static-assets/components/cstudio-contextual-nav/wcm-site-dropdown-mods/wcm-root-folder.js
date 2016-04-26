@@ -1858,7 +1858,7 @@ treeNode.getHtml = function() {
 
                 var editCb = {
                     success: function() {
-                        this.callingWindow.location.reload(true);
+                        CStudioAuthoring.Operations.refreshPreview();
                     },
 
                     failure: function() {
