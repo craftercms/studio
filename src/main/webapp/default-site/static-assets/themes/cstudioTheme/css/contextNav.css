@@ -510,6 +510,8 @@ body .mask{
     text-align: center !important;
     top: 51px;
     width: 100%;
+    left: 0px;
+    z-index: 999;
 }
 
 .acnDisabledContent {

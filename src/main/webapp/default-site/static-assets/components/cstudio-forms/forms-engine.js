@@ -1083,6 +1083,16 @@ var CStudioForms = CStudioForms || function() {
                             };
 
                             CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, entityId, getContentItemCb, false, false);
+                            var acnDraftContent = YDom.getElementsByClassName("acnDraftContent", null, parent.document)[0];
+                            if(acnDraftContent){
+                                acnDraftContent.remove();
+                            }
+                            if(!acnDraftContent && saveDraft){
+                                var noticeEl = document.createElement("div");
+                                parent.document.querySelector("#studioBar nav .container-fluid").appendChild(noticeEl);
+                                YDom.addClass(noticeEl, "acnDraftContent");
+                                noticeEl.innerHTML = CMgs.format(formsLangBundle, "wcmContentSavedAsDraft");
+                            }
                         },
                         failure: function(err) {
                             try{
