@@ -3,10 +3,12 @@ package org.craftercms.studio.impl.v1.ebus;
 
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -40,10 +42,15 @@ public class ClearConfigurationCache {
         String site = message.getSite();
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.removeScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.removeScope(cacheContext);
+            }
+            cacheService.addScope(cacheContext);
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
-        cacheService.addScope(cacheContext);
         String ticket = securityProvider.authenticate(adminUser, adminPassword);
         RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
         RepositoryEventContext.setCurrent(repositoryEventContext);
@@ -84,10 +91,14 @@ public class ClearConfigurationCache {
     public String getAdminPassword() { return adminPassword; }
     public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected SecurityProvider securityProvider;
     protected RpcDispatcher rpcDispatcher;
     protected SiteService siteService;
     protected CacheTemplate cacheTemplate;
     protected String adminUser;
     protected String adminPassword;
+    protected GeneralLockService generalLockService;
 }

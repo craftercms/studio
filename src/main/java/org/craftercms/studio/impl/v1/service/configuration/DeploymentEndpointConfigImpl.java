@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.DeploymentConfigTO;
@@ -144,8 +145,13 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
         //checkForUpdate(site);
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         CacheService cacheService = cacheTemplate.getCacheService();
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
             @Override
@@ -178,10 +184,15 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.remove(cacheContext, cacheKey);
-        } else {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.remove(cacheContext, cacheKey);
+            } else {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         DeploymentConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
@@ -199,8 +210,12 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     public String getConfigFileName() { return configFileName; }
     public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected ContentService contentService;
     protected CacheTemplate cacheTemplate;
     protected String configPath;
     protected String configFileName;
+    protected GeneralLockService generalLockService;
 }

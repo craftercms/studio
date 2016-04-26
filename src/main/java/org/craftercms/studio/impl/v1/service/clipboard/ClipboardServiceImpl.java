@@ -177,8 +177,13 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         cacheService.remove(cacheContext, cacheKey);
     }

@@ -110,6 +110,7 @@
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
         <property name="importService" ref="cstudioImportService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -178,6 +179,7 @@
          <property name="contentService" ref="cstudioContentService"/>
          <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
          <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
+         <property name="generalLockService" ref="cstudioGeneralLockService"/>
      </bean>
 
     <bean id="cstudioNotificationServicev2"
@@ -192,6 +194,7 @@
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="enable" value="${notificationService.v2.enable}"/>
         <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -206,6 +209,7 @@
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
@@ -215,6 +219,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
@@ -222,6 +227,7 @@
         <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate" />
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
@@ -259,6 +265,7 @@
         <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -276,6 +283,7 @@
         <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
@@ -348,6 +356,7 @@
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -627,6 +636,13 @@
     <!-- ////////////////////////////////////// -->
     <!--         Security layer               -->
     <!-- ////////////////////////////////////// -->
+
+    <bean id="crafter.studioSecurityFilter" class="org.craftercms.studio.impl.v1.web.filter.StudioSecurityFilter">
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="urlsToInclude" value="${crafter.studio.security.urlsToInclude}"/>
+        <property name="urlsToExclude" value="${crafter.studio.security.urlsToExclude}"/>
+        <property name="exceptionUrls" value="${crafter.studio.security.exceptionUrls}"/>
+    </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="providerType" value="${securityType}"/>
