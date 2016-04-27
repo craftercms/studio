@@ -1355,7 +1355,7 @@ treeNode.getHtml = function() {
              *
              */
             buildToolTipScheduled: function(label, contentType, style, status, editedDate, modifier, schedDate, itemNameLabel) {
-                var tip = "";
+                var toolTip = "";
                 if (!itemNameLabel) {
                     itemNameLabel = "Page";
                 }
@@ -1363,12 +1363,12 @@ treeNode.getHtml = function() {
                 label = CStudioAuthoring.Utils.replaceWithASCIICharacter(label);
 
                 try {
-                    tip = CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
+                    toolTip = CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
                 }
                 catch(err) {
                     //console.log(err);
                 }
-                return tip;
+                return toolTip;
             },
 
 
