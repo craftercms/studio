@@ -601,7 +601,7 @@ var CStudioForms = CStudioForms || function() {
                 this.focusedField = field;
 
                 if(previousFocusedField && (previousFocusedField !== field))
-                    previousFocusedField.focusOut();
+                        previousFocusedField.focusOut();
 
                 if(field) {
                     this.focusedField.focusIn();
@@ -1084,7 +1084,7 @@ var CStudioForms = CStudioForms || function() {
 
                             CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, entityId, getContentItemCb, false, false);
                             var acnDraftContent = YDom.getElementsByClassName("acnDraftContent", null, parent.document)[0];
-                            if(acnDraftContent){
+                            if(acnDraftContent && !saveDraft){
                                 acnDraftContent.parentNode.removeChild(acnDraftContent);
                             }
                             if(!acnDraftContent && saveDraft){
