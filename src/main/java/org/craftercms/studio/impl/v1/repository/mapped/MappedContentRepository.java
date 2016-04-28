@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class MappedContentRepository extends AbstractContentRepository {
      }
 
     @Override
-    public boolean writeContent(String site, String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
        ContentRepository repo = lookupRepo(repositoryType);
         return repo.writeContent(site, path, content);
     }

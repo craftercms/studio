@@ -359,7 +359,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean writeContent(String site, String path, InputStream content){
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
         boolean writeSuccess = _contentRepository.writeContent(site, path, content);
 
         try {
@@ -757,8 +757,13 @@ public class ContentServiceImpl implements ContentService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         cacheService.remove(cacheContext, cacheKey);
     }

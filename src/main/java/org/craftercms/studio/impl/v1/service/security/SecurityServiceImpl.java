@@ -18,6 +18,14 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
@@ -27,6 +35,7 @@ import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -38,9 +47,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
-
-import java.util.Map;
-import java.util.*;
 
 /**
  * @author Dejan Brkic
@@ -65,6 +71,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public String getCurrentToken() {
+        return securityProvider.getCurrentToken();
+    }
+
+    @Override
     public Map<String,String> getUserProfile(String user) {
         return securityProvider.getUserProfile(user);
     }
@@ -76,8 +87,13 @@ public class SecurityServiceImpl implements SecurityService {
 
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         CacheService cacheService = cacheTemplate.getCacheService();
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
@@ -248,8 +264,13 @@ public class SecurityServiceImpl implements SecurityService {
             // get the config files from the permissionsConfigMap based on the key
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
             CacheService cacheService = cacheTemplate.getCacheService();
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
+            generalLockService.lock(cacheContext.getId());
+            try {
+                if (!cacheService.hasScope(cacheContext)) {
+                    cacheService.addScope(cacheContext);
+                }
+            } finally {
+                generalLockService.unlock(cacheContext.getId());
             }
             PermissionsConfigTO rolesConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
                 @Override
@@ -512,11 +533,16 @@ public class SecurityServiceImpl implements SecurityService {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
         Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.remove(cacheContext, permissionsKey);
-            cacheService.remove(cacheContext, rolesKey);
-        } else {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.remove(cacheContext, permissionsKey);
+                cacheService.remove(cacheContext, rolesKey);
+            } else {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, permissionsFileName);
         PermissionsConfigTO rolesConfigTO = loadConfiguration(site, roleMappingsFileName);
@@ -530,11 +556,16 @@ public class SecurityServiceImpl implements SecurityService {
         StudioCacheContext cacheContext = new StudioCacheContext("###GLOBAL###", true);
         Object permissionsKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalPermissionsFileName);
         Object rolesKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalRoleMappingsFileName);
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.remove(cacheContext, permissionsKey);
-            cacheService.remove(cacheContext, rolesKey);
-        } else {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.remove(cacheContext, permissionsKey);
+                cacheService.remove(cacheContext, rolesKey);
+            } else {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         PermissionsConfigTO permissionsConfigTO = loadGlobalPermissionsConfiguration();
         PermissionsConfigTO rolesConfigTO = loadGlobalRolesConfiguration();
@@ -577,6 +608,9 @@ public class SecurityServiceImpl implements SecurityService {
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected String roleMappingsFileName;
     protected String permissionsFileName;
     protected String globalConfigPath;
@@ -587,4 +621,5 @@ public class SecurityServiceImpl implements SecurityService {
     protected ContentService contentService;
     protected String configPath;
     protected CacheTemplate cacheTemplate;
+    protected GeneralLockService generalLockService;
 }

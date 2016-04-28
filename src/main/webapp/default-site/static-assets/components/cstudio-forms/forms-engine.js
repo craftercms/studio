@@ -911,6 +911,15 @@ var CStudioForms = CStudioForms || function() {
                      * See file-name.js function _onChange().
                      */
 
+                    if(form.definition.objectType == "page"){
+                        var pagePath = entityId.replace('/site/website/', '');
+                        file = pagePath.split("/").pop();
+
+                        if((file.indexOf(".xml") > -1) && (file != "index.xml")) {
+                            folderName = "";
+                        }
+                    }
+                    
                     if (changeTemplate == "true") {
                         if (form.definition.contentAsFolder == "false") {
                             entityId = entityId.replace("/index.xml");
@@ -1189,6 +1198,10 @@ var CStudioForms = CStudioForms || function() {
                         }
                         dialogEl.dialog.show();
                     }else{
+                        if( path && path.indexOf(".xml") != -1) {
+                            var entityId = buildEntityIdFn();
+                            CStudioAuthoring.Service.unlockContentItemSync(CStudioAuthoringContext.site, entityId);
+                        }
                         if((iceId && iceId !="") || (iceComponent && iceComponent != "")) {
                             var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);

@@ -82,12 +82,21 @@ public interface ContentService {
     /**
      * write content
      *
+     * @param path    path to content
+     * @param content stream of content to write
+     * @return return true if successful
+     */
+    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
+
+    /**
+     * write content
+     *
      * @param site    - the project ID
      * @param path    path to content
      * @param content stream of content to write
      * @return return true if successful
      */
-    boolean writeContent(String site, String path, InputStream content);
+    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
 
     /**
      * create a folder

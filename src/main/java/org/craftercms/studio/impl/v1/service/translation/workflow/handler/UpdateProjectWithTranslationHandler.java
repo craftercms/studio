@@ -18,10 +18,13 @@
 package org.craftercms.studio.impl.v1.service.translation.workflow.handler;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.translation.ProviderException;
 import org.craftercms.studio.api.v1.service.translation.TranslationService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
@@ -68,8 +71,22 @@ public class UpdateProjectWithTranslationHandler implements JobStateHandler {
 			}
 			if (ex.isFatal())
 				retState = WorkflowService.STATE_ENDED;
-		}
-		return retState;
+		} catch (ServiceException e) {
+            String submitter = prop.get("submitter");
+            // Send notification only once.
+            if (prop.put("notified", submitter) == null) {
+                NotificationService service = workflowService.getNotificationService();
+                HashMap<String, String> params = new HashMap<String, String>();
+                StringWriter buf = new StringWriter();
+                PrintWriter out = new PrintWriter(buf);
+                e.printStackTrace(out);
+                out.flush();
+                params.put("exception", Matcher.quoteReplacement(buf.toString()));
+                service.sendGenericNotification(sourceSite, path, submitter, submitter, "translation-retrieval-failed", params);
+            }
+            retState = WorkflowService.STATE_ENDED;
+        }
+        return retState;
 	}
 
 	/** getter translationService */

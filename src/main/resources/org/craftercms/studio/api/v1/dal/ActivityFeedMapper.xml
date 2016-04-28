@@ -86,6 +86,19 @@
         order by modified_date desc
     </select>
 
+    <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap"
+        databaseId="postgres">
+        select *
+        from cstudio_activity
+        where post_user_id = #{userId}
+        and site_network = #{siteNetwork}
+        and summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and content_type = #{contentType}
+        </if>
+        order by modified_date desc limit #{feedSize} offset #{startPos}
+    </select>
+
     <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap">
         select *
         from cstudio_activity
@@ -174,6 +187,25 @@
         </foreach>
         order by act.modified_date desc
         offset #{startPos} rows fetch next #{feedSize} rows only
+    </select>
+
+    <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap"
+        databaseId="postgres">
+        select act.*
+        from cstudio_activity act
+        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        where act.post_user_id = #{userId}
+        and act.site_network = #{siteNetwork}
+        and act.summary_format = #{summaryFormat}
+        <if test="contentType != null and contentType != 'all' ">
+            and act.content_type = #{contentType}
+        </if>
+        and os.state NOT IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        order by act.modified_date desc limit #{feedSize} offset #{startPos}
     </select>
 
     <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="ActivityFeedMap">

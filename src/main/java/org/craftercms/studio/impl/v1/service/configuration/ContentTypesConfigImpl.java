@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
@@ -69,8 +70,13 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                     .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
             Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
+            generalLockService.lock(cacheContext.getId());
+            try {
+                if (!cacheService.hasScope(cacheContext)) {
+                    cacheService.addScope(cacheContext);
+                }
+            } finally {
+                generalLockService.unlock(cacheContext.getId());
             }
             ContentTypeConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<ContentTypeConfigTO>() {
                 @Override
@@ -351,10 +357,15 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                 .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
         Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.remove(cacheContext, cacheKey);
-        } else {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.remove(cacheContext, cacheKey);
+            } else {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
@@ -383,9 +394,13 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected Map<String, SiteContentTypePathsTO> pathMapping = new HashMap<String, SiteContentTypePathsTO>();
     protected ContentService contentService;
     protected String configPath;
     protected String configFileName;
     protected CacheTemplate cacheTemplate;
+    protected GeneralLockService generalLockService;
 }

@@ -73,7 +73,7 @@ CREATE TABLE cstudio_pagenavigationordersequence
 (
   folder_id character varying(100) NOT NULL,
   site character varying(50) NOT NULL,
-  path character text NOT NULL,
+  path text NOT NULL,
   max_count double precision NOT NULL,
   CONSTRAINT cstudio_pagenavigationordersequence_pkey PRIMARY KEY (folder_id)
 ) ;
@@ -227,7 +227,7 @@ CREATE TABLE cstudio_objectmetadata
   path text NOT NULL,
   name character varying(45),
   modified timestamp without time zone,
-  modifier timestamp without time zone,
+  modifier character varying(255),
   owner character varying(255),
   creator character varying(255),
   firstname character varying(255),
@@ -239,7 +239,7 @@ CREATE TABLE cstudio_objectmetadata
   deleteurl text,
   imagewidth integer,
   imageheight integer,
-  approvedby character varying(255) NOT NULL,
+  approvedby character varying(255),
   submittedby character varying(255),
   sendemail integer,
   submissioncomment text,

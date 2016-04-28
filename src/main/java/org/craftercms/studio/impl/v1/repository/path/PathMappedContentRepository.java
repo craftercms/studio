@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -120,7 +121,7 @@ public class PathMappedContentRepository extends AbstractContentRepository {
      }
 
     @Override
-    public boolean writeContent(String site, String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
        ContentRepository repo = lookupRepo(path);
         return repo.writeContent(site, path, content);
     }

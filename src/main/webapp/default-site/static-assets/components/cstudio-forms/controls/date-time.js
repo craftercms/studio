@@ -1,34 +1,34 @@
-CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||  
-function(id, form, owner, properties, constraints, readonly)  {
-	this.owner = owner;
-	this.owner.registerField(this);
-	this.errors = []; 
-	this.properties = properties;
-	this.constraints = constraints;
-	this.dateEl = null;
-	this.countEl = null;
-	this.required = false;
-	this.value = "_not-set";
-	this.form = form;
-	this.id = id;
-	this.readonly = readonly;
-	this.showTime = false;
-	this.showDate = false;
-	this.showNowLink = false;
-	this.populate = false;
-	this.timezone = "";
-	this.allowPastDate = false;
-	this.startDateTimeObj;		// Object storing the time when the form was loaded; will be used to adjust startTzDateTimeStr before the form is saved
-	this.startTzDateTimeStr;	// Time the form was loaded (adjusted to the site's timezone)
-	
-	return this;
-}
+CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||
+	function(id, form, owner, properties, constraints, readonly)  {
+		this.owner = owner;
+		this.owner.registerField(this);
+		this.errors = [];
+		this.properties = properties;
+		this.constraints = constraints;
+		this.dateEl = null;
+		this.countEl = null;
+		this.required = false;
+		this.value = "_not-set";
+		this.form = form;
+		this.id = id;
+		this.readonly = readonly;
+		this.showTime = false;
+		this.showDate = false;
+		this.showNowLink = false;
+		this.populate = false;
+		this.timezone = "";
+		this.allowPastDate = false;
+		this.startDateTimeObj;		// Object storing the time when the form was loaded; will be used to adjust startTzDateTimeStr before the form is saved
+		this.startTzDateTimeStr;	// Time the form was loaded (adjusted to the site's timezone)
+
+		return this;
+	}
 
 YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
-    getLabel: function() {
-        return CMgs.format(langBundle, "dateTime");
-    },
+	getLabel: function() {
+		return CMgs.format(langBundle, "dateTime");
+	},
 
 	validate: function(evt, obj, dateCheck) {
 		var dateValue = (obj.showDate) ? obj.dateEl.value : "",
@@ -36,7 +36,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			valid;
 
 		if (obj.required) {
-			if ((obj.showDate && dateValue == "") || 
+			if ((obj.showDate && dateValue == "") ||
 				(obj.showTime && timeValue == "")) {
 				obj.setError("required", "Field is Required");
 				obj.renderValidation(true);
@@ -58,8 +58,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			// Date check: if show and date fields are present, and the date value is populated, 
 			// OR if show and date fields are present, and the date and the time values are empty
 			// then clear any previos errors
-			else if (dateCheck && obj.showDate && obj.showTime && dateValue != "" || 
-					  dateCheck && obj.showDate && obj.showTime && timeValue == "" && dateValue == "") {
+			else if (dateCheck && obj.showDate && obj.showTime && dateValue != "" ||
+				dateCheck && obj.showDate && obj.showTime && timeValue == "" && dateValue == "") {
 				obj.removeMessage("date-required");
 				obj.clearError("required");
 				obj.renderValidation(false);
@@ -71,9 +71,12 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		return valid;
 	},
 
-    _onChangeVal: function(evt, obj) {
-        obj.edited = true;
-    },
+	_onChangeVal: function(evt, obj) {
+		obj.edited = true;
+		if(this._onChange){
+			this._onChange(evt, obj);
+		}
+	},
 
 	// Get the UTC date representation for what is currently in the UI fields (date/time)
 	// Returns a date/time value in a string (see getConvertFormat for value format)
@@ -98,7 +101,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				var mi = timeFields[1];
 				var ss = timeFields[2];
 				hh = (isPm && hh != 12) ? hh + 12 : ((!isPm && hh == 12) ? 0 : hh);
-                var hpad = (hh<10)?"0":"";
+				var hpad = (hh<10)?"0":"";
 				timeVal = hpad + hh + ":" + mi + ":" + ss;
 			} else {
 				timeVal = "";	// Default time value if the user doesn't populate the time field
@@ -108,19 +111,19 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				this.showTime && !this.showDate && timeValue != "") {
 
 				res = this.convertDateTimeSync(dateVal, timeVal, this.timezone, "GMT");
-	            val = eval("(" + (res.responseText) + ")");
+				val = eval("(" + (res.responseText) + ")");
 
-	            if (res.status == 200 && val.convertedTimezone) {
-	            	res = val.convertedTimezone.split(" ");
-	            	return res[0] + " " + res[1];
+				if (res.status == 200 && val.convertedTimezone) {
+					res = val.convertedTimezone.split(" ");
+					return res[0] + " " + res[1];
 
-	            } else {
-	            	return false;
-	            }
+				} else {
+					return false;
+				}
 			} else {
 				return "";	// The date/time fields are empty
 			}
-		} 
+		}
 		// If the form doesn't validate, it should trigger errors when the fields are blurred so 
 		// in theory, it should never reach this point (because this function -getFieldValue- should be called on beforeSave).
 		return false;
@@ -132,24 +135,24 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	 * @param el element
 	 */
 	count: function(evt, countEl, el) {
-    },
+	},
 
-    updateDate: function(type, args, calendarObj) {
-    	var dates = args[0];
+	updateDate: function(type, args, calendarObj) {
+		var dates = args[0];
 		var date = dates[0];
 		var divPrefix = this.id + '-';
 
-	    var calEl = document.getElementById(divPrefix + 'calendarContainer');
+		var calEl = document.getElementById(divPrefix + 'calendarContainer');
 
-        var mm = (date[1] < 10)?"0" + date[1]:date[1];
-        var dd = (date[2] < 10)?"0" + date[2]:date[2];
-        var yyyy = date[0];
+		var mm = (date[1] < 10)?"0" + date[1]:date[1];
+		var dd = (date[2] < 10)?"0" + date[2]:date[2];
+		var yyyy = date[0];
 
-        this.setDateTime(mm + '/' + dd + '/' + yyyy, 'date');
-        calendarObj.hide();
-        this._onChangeVal(null, this)
+		this.setDateTime(mm + '/' + dd + '/' + yyyy, 'date');
+		calendarObj.hide();
+		this._onChangeVal(null, this)
 	},
-	
+
 	createServiceUri: function(time, srcTimezone, destTimezone, dateFormat){
 		var baseUrl = CStudioAuthoringContext.authoringAppBaseUri;
 		var serviceUrl = "/api/1/services/util/time/convert-time.json?";
@@ -159,7 +162,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		url += "&srcTimezone=" + srcTimezone;
 		url += "&destTimezone="  + destTimezone;
 		url += "&dateFormat=" + dateFormat;
-		
+
 		return url;
 	},
 
@@ -173,10 +176,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	getDateTimeString: function (date, time) {
 		// There should always be a time value or else, we risk calculating the date value incorrectly; but, just in case ...
 		var dateTimeStr = (date) ? date + ((time) ? "%20" + time : "%2000:00:00") :
-							       "" + time;
+		"" + time;
 		return dateTimeStr;
 	},
-	
+
 	// TO-DO: improvement
 	// Currently this is making a synchronous call to get the UTC representation of a date. The size of the transfer of 
 	// information made through this call is small so it shouldn't affect UX considerably. This call is synchronous because 
@@ -201,7 +204,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	convertDateTime: function(date, time, srcTimezone, destTimezone, callback){
 		var format = this.getConvertFormat(date),
 			convertString = this.getDateTimeString(date, time);
-		
+
 		var service = this.createServiceUri(convertString, srcTimezone, destTimezone, format);
 		YAHOO.util.Connect.initHeader("Content-Type", "application/json; charset=utf-8");
 		YAHOO.util.Connect.asyncRequest('GET', service, callback);
@@ -210,12 +213,12 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	// set the timestamp and format for the output
 	setTimeStamp : function (timeStamp, timeFormat) {
 		return this._padAZero(timeStamp.getHours())
-				+ ':'
-				+ this._padAZero(timeStamp.getMinutes())
-				+ ':'
-				+ this._padAZero(timeStamp.getSeconds())
-				+ ' '
-				+ timeFormat;
+			+ ':'
+			+ this._padAZero(timeStamp.getMinutes())
+			+ ':'
+			+ this._padAZero(timeStamp.getSeconds())
+			+ ' '
+			+ timeFormat;
 	},
 
 	updateTime : function(evt, param) {
@@ -326,7 +329,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 			}
 		];
-		
+
 		//Parses a string to figure out the time it represents
 		function parseTimeString(s) {
 			for (var i = 0; i < timeParsePatterns.length; i++) {
@@ -341,10 +344,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 		//parse the value using patterns and retrive the date with format
 		var inputTime = parseTimeString(this.timeEl.value);
-		
+
 		if(inputTime == undefined) {
 			if(this.timeEl.value != ""){
-			    alert('( '+this.timeEl.value+' ) is not a valid time format, please provide a valid time');
+				alert('( '+this.timeEl.value+' ) is not a valid time format, please provide a valid time');
 			}
 			this.timeEl.value = "";
 			this.setDateTime("", "time");
@@ -381,166 +384,166 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 	 * create timepicker increment and decrement helper
 	 * that increse the input time
 	 */
-	
+
 	textFieldTimeIncrementHelper : function(triggerEl, targetEl, event, keyCode) {
 
-	    var incrementHandler = function(type, args) {
+		var incrementHandler = function(type, args) {
 
-                  var timePicker = YDom.get(targetEl),
-                      timeValue = timePicker.value,
-                      cursorPosition;
+			var timePicker = YDom.get(targetEl),
+				timeValue = timePicker.value,
+				cursorPosition;
 
-                  if( timeValue != 'Time...' && timeValue != ''){
-                      var timeValueArray = timeValue.split(/[: ]/),
-                          hourValue = timeValueArray[0],
-                          minuteValue = timeValueArray[1],
-                          secondValue = timeValueArray[2],
-                          amPmValue = timeValueArray[3];
+			if( timeValue != 'Time...' && timeValue != ''){
+				var timeValueArray = timeValue.split(/[: ]/),
+					hourValue = timeValueArray[0],
+					minuteValue = timeValueArray[1],
+					secondValue = timeValueArray[2],
+					amPmValue = timeValueArray[3];
 
-                      cursorPosition = timePicker.getAttribute('data-cursor');
+				cursorPosition = timePicker.getAttribute('data-cursor');
 
-                      if( cursorPosition > -1 && cursorPosition < 3){
+				if( cursorPosition > -1 && cursorPosition < 3){
 
-                          if(hourValue.charAt(0) == '0')
-                              hourValue = hourValue.charAt(1);
+					if(hourValue.charAt(0) == '0')
+						hourValue = hourValue.charAt(1);
 
-                          hourValue = (parseInt(hourValue, 10)%12)+1;
+					hourValue = (parseInt(hourValue, 10)%12)+1;
 
-                          if(hourValue.toString().length < 2)
-                              hourValue =	"0"+hourValue;
-                          else
-                              hourValue = hourValue.toString();
-                      }else if(cursorPosition > 2 && cursorPosition < 6){
+					if(hourValue.toString().length < 2)
+						hourValue =	"0"+hourValue;
+					else
+						hourValue = hourValue.toString();
+				}else if(cursorPosition > 2 && cursorPosition < 6){
 
-                          if(minuteValue.charAt(0) == '0')
-                              minuteValue = minuteValue.charAt(1);
+					if(minuteValue.charAt(0) == '0')
+						minuteValue = minuteValue.charAt(1);
 
-                              if(parseInt(minuteValue, 10) == 59){
-                                  minuteValue = (parseInt(minuteValue, 10)%59);
-                              }else{
-                                  minuteValue = (parseInt(minuteValue, 10)%59)+1;
-                              }
+					if(parseInt(minuteValue, 10) == 59){
+						minuteValue = (parseInt(minuteValue, 10)%59);
+					}else{
+						minuteValue = (parseInt(minuteValue, 10)%59)+1;
+					}
 
-                              if(minuteValue.toString().length < 2)
-                                  minuteValue =	"0"+minuteValue;
-                              else
-                                  minuteValue = minuteValue.toString();
+					if(minuteValue.toString().length < 2)
+						minuteValue =	"0"+minuteValue;
+					else
+						minuteValue = minuteValue.toString();
 
-                      }else if(cursorPosition > 5 && cursorPosition < 9){
-                          if(secondValue.charAt(0) == '0')
-                              secondValue = secondValue.charAt(1);
+				}else if(cursorPosition > 5 && cursorPosition < 9){
+					if(secondValue.charAt(0) == '0')
+						secondValue = secondValue.charAt(1);
 
-                              if(parseInt(secondValue, 10) == 59){
-                                  secondValue = (parseInt(secondValue, 10)%59);
-                              }else{
-                                  secondValue = (parseInt(secondValue, 10)%59)+1;
-                              }
+					if(parseInt(secondValue, 10) == 59){
+						secondValue = (parseInt(secondValue, 10)%59);
+					}else{
+						secondValue = (parseInt(secondValue, 10)%59)+1;
+					}
 
-                              if(secondValue.toString().length < 2)
-                                  secondValue =	"0"+secondValue;
-                              else
-                                  secondValue = secondValue.toString();
-                      }else if(cursorPosition > 8){
-                          amPmValue = (amPmValue == 'a.m.') ? 'p.m.' : 'a.m.';
-                      }
+					if(secondValue.toString().length < 2)
+						secondValue =	"0"+secondValue;
+					else
+						secondValue = secondValue.toString();
+				}else if(cursorPosition > 8){
+					amPmValue = (amPmValue == 'a.m.') ? 'p.m.' : 'a.m.';
+				}
 
-                      timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
-                  }
-              };
-						
+				timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
+			}
+		};
+
 		YEvent.addListener(triggerEl, event, incrementHandler);
 
 		if (keyCode) {
-		    // Add keyboard support, incomplete --CSTUDIO-401
-		    klInc = new YAHOO.util.KeyListener(targetEl, { keys: keyCode}, incrementHandler);
-		    klInc.enable();
+			// Add keyboard support, incomplete --CSTUDIO-401
+			klInc = new YAHOO.util.KeyListener(targetEl, { keys: keyCode}, incrementHandler);
+			klInc.enable();
 		}
 	},
-	
+
 	/**
 	 * create timepicker decrement and decrement helper
 	 * that decrese the input time
 	 */
 	textFieldTimeDecrementHelper : function(triggerEl, targetEl, event, keyCode) {
 
-	    var decrementHandler = function(type, args) {
+		var decrementHandler = function(type, args) {
 
-                  var timePicker = YDom.get(targetEl),
-                         timeValue = timePicker.value,
-                         cursorPosition;
+			var timePicker = YDom.get(targetEl),
+				timeValue = timePicker.value,
+				cursorPosition;
 
-                  if( timeValue != 'Time...' && timeValue != ''){
-                      var timeValueArray = timeValue.split(/[: ]/),
-                             hourValue = timeValueArray[0],
-                             minuteValue = timeValueArray[1],
-                             secondValue = timeValueArray[2],
-                             amPmValue = timeValueArray[3];
+			if( timeValue != 'Time...' && timeValue != ''){
+				var timeValueArray = timeValue.split(/[: ]/),
+					hourValue = timeValueArray[0],
+					minuteValue = timeValueArray[1],
+					secondValue = timeValueArray[2],
+					amPmValue = timeValueArray[3];
 
-                         cursorPosition = timePicker.getAttribute('data-cursor');
+				cursorPosition = timePicker.getAttribute('data-cursor');
 
-                      if( cursorPosition > -1 && cursorPosition < 3){
+				if( cursorPosition > -1 && cursorPosition < 3){
 
-                          if(hourValue.charAt(0) == '0')
-                              hourValue = hourValue.charAt(1);
+					if(hourValue.charAt(0) == '0')
+						hourValue = hourValue.charAt(1);
 
-                          if(parseInt(hourValue, 10) == 1){
-                              hourValue = 12;
-                          }else{
-                              hourValue = (parseInt(hourValue, 10)-1)%12;
-                          }
+					if(parseInt(hourValue, 10) == 1){
+						hourValue = 12;
+					}else{
+						hourValue = (parseInt(hourValue, 10)-1)%12;
+					}
 
-                          if(hourValue.toString().length < 2)
-                              hourValue =	"0"+hourValue;
-                          else
-                              hourValue = hourValue.toString();
-                      }else if(cursorPosition > 2 && cursorPosition < 6){
+					if(hourValue.toString().length < 2)
+						hourValue =	"0"+hourValue;
+					else
+						hourValue = hourValue.toString();
+				}else if(cursorPosition > 2 && cursorPosition < 6){
 
-                          if(minuteValue.charAt(0) == '0')
-                              minuteValue = minuteValue.charAt(1);
+					if(minuteValue.charAt(0) == '0')
+						minuteValue = minuteValue.charAt(1);
 
-                              if(parseInt(minuteValue, 10) == 0){
-                                  minuteValue = 59;
-                              }else{
-                                  minuteValue = (parseInt(minuteValue, 10)-1)%59;
-                              }
+					if(parseInt(minuteValue, 10) == 0){
+						minuteValue = 59;
+					}else{
+						minuteValue = (parseInt(minuteValue, 10)-1)%59;
+					}
 
-                              if(minuteValue.toString().length < 2)
-                                  minuteValue =	"0"+minuteValue;
-                              else
-                                  minuteValue = minuteValue.toString();
+					if(minuteValue.toString().length < 2)
+						minuteValue =	"0"+minuteValue;
+					else
+						minuteValue = minuteValue.toString();
 
-                      }else if(cursorPosition > 5 && cursorPosition < 9){
-                          if(secondValue.charAt(0) == '0')
-                              secondValue = secondValue.charAt(1);
+				}else if(cursorPosition > 5 && cursorPosition < 9){
+					if(secondValue.charAt(0) == '0')
+						secondValue = secondValue.charAt(1);
 
-                              if(parseInt(secondValue, 10) == 0){
-                                  secondValue = 59;
-                              }else{
-                                  secondValue = (parseInt(secondValue, 10)-1)%59;
-                              }
+					if(parseInt(secondValue, 10) == 0){
+						secondValue = 59;
+					}else{
+						secondValue = (parseInt(secondValue, 10)-1)%59;
+					}
 
-                              if(secondValue.toString().length < 2)
-                                  secondValue =	"0"+secondValue;
-                              else
-                                  secondValue = secondValue.toString();
-                      }else if(cursorPosition > 8){
-                          if(amPmValue == 'a.m.')
-                              amPmValue = 'p.m.';
-                          else
-                              amPmValue = 'a.m.';
-                      }
+					if(secondValue.toString().length < 2)
+						secondValue =	"0"+secondValue;
+					else
+						secondValue = secondValue.toString();
+				}else if(cursorPosition > 8){
+					if(amPmValue == 'a.m.')
+						amPmValue = 'p.m.';
+					else
+						amPmValue = 'a.m.';
+				}
 
-                      timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
-                  }
-              };
-						
+				timePicker.value = hourValue+":"+minuteValue+":"+secondValue+" "+amPmValue;
+			}
+		};
+
 		YEvent.addListener(triggerEl, event, decrementHandler);
 
-              if (keyCode) {
-                  // Add keyboard support, incomplete --CSTUDIO-401
-                  klDec = new YAHOO.util.KeyListener(targetEl, { keys: keyCode}, decrementHandler);
-                  klDec.enable();
-              }
+		if (keyCode) {
+			// Add keyboard support, incomplete --CSTUDIO-401
+			klDec = new YAHOO.util.KeyListener(targetEl, { keys: keyCode}, decrementHandler);
+			klDec.enable();
+		}
 	},
 
 	/*
@@ -576,7 +579,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 			};
 			this.getCurrentDateTime(nowObj, this.timezone, cb);
-            this._onChangeVal(null, this);
+			this._onChangeVal(null, this);
 
 		}, this, true);
 		containerEl.appendChild(dl);
@@ -603,211 +606,211 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		this.form.registerBeforeSaveCallback(beforeSaveCb);
 
 		for(var i=0; i<config.properties.length; i++) {
-		    var prop = config.properties[i];
-		
-	        if(prop.name == "showTime" && prop.value == "true") {
-		       this.showTime =  true;
-	        }
-	
-	        if(prop.name == "showDate" && prop.value == "true") {
-	        	this.showDate = true;
-		    }
+			var prop = config.properties[i];
 
-		     if(prop.name == "showNowLink" && prop.value == "true") {
-	        	this.showNowLink = true;
-		    }
+			if(prop.name == "showTime" && prop.value == "true") {
+				this.showTime =  true;
+			}
 
-		    if(prop.name == "populate" && prop.value == "true") {
-		       this.populate = true;
-		    }
+			if(prop.name == "showDate" && prop.value == "true") {
+				this.showDate = true;
+			}
 
-	        if(prop.name == "allowPastDate" && prop.value == "true") {
-		       this.allowPastDate = true;
-		    }
-		    				
-		    if((prop.name == "readonly" && prop.value == "true") || 
-		    	(prop.name == "readonlyEdit" && prop.value == "true" && window.location.search.indexOf("edit=true") >= 1)){
+			if(prop.name == "showNowLink" && prop.value == "true") {
+				this.showNowLink = true;
+			}
+
+			if(prop.name == "populate" && prop.value == "true") {
+				this.populate = true;
+			}
+
+			if(prop.name == "allowPastDate" && prop.value == "true") {
+				this.allowPastDate = true;
+			}
+
+			if((prop.name == "readonly" && prop.value == "true") ||
+				(prop.name == "readonlyEdit" && prop.value == "true" && window.location.search.indexOf("edit=true") >= 1)){
 				this.readonly = true;
 			}
-	    }
+		}
 
 		var today = new Date(),
-		    dd = today.getDate(),
-		    mm = today.getMonth()+1,
-		    yyyy = today.getFullYear();
+			dd = today.getDate(),
+			mm = today.getMonth()+1,
+			yyyy = today.getFullYear();
 
 		var divPrefix = this.id + "-";
 
 		var titleEl = document.createElement("span");
 
-	        YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
-		    titleEl.innerHTML = config.title;
-		
+		YAHOO.util.Dom.addClass(titleEl, 'cstudio-form-field-title');
+		titleEl.innerHTML = config.title;
+
 		var controlWidgetContainerEl = document.createElement("div");
-		    YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'date-time-container');
-		    if (this.readonly) {
-           		YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'read-only');
-           	}
+		YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'date-time-container');
+		if (this.readonly) {
+			YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'read-only');
+		}
 
 		var validEl = document.createElement("span");
-			YAHOO.util.Dom.addClass(validEl, 'validation-hint');
-		    YAHOO.util.Dom.addClass(validEl, 'cstudio-form-control-validation');
-		    controlWidgetContainerEl.appendChild(validEl);
-		
-		    if(this.showDate) {
-					var dateEl = document.createElement("input");
+		YAHOO.util.Dom.addClass(validEl, 'validation-hint');
+		YAHOO.util.Dom.addClass(validEl, 'cstudio-form-control-validation');
+		controlWidgetContainerEl.appendChild(validEl);
 
-					dateEl.id = divPrefix + "cstudio-form-control-date-input";
-					dateEl.className = "date-control";
-					dateEl.readOnly = "readonly";
-					this.dateEl = dateEl;
-					YAHOO.util.Dom.addClass(dateEl, 'datum');
-					YAHOO.util.Dom.addClass(dateEl, 'date');
+		if(this.showDate) {
+			var dateEl = document.createElement("input");
 
-					controlWidgetContainerEl.appendChild(dateEl);
+			dateEl.id = divPrefix + "cstudio-form-control-date-input";
+			dateEl.className = "date-control";
+			dateEl.readOnly = "readonly";
+			this.dateEl = dateEl;
+			YAHOO.util.Dom.addClass(dateEl, 'datum');
+			YAHOO.util.Dom.addClass(dateEl, 'date');
 
-				YAHOO.util.Event.on(dateEl, 'blur', function(e, _this) { 
-					_this.validate(e, _this, true);
-				}, this);
+			controlWidgetContainerEl.appendChild(dateEl);
 
-				if (this.readonly)	{
-					dateEl.disabled = true;	
-				}
+			YAHOO.util.Event.on(dateEl, 'blur', function(e, _this) {
+				_this.validate(e, _this, true);
+			}, this);
 
-                YAHOO.util.Event.on(dateEl, 'change',  this._onChangeVal, this);
-            }
-		
-		    if (this.showTime) {
-		    	var timeWrapper, timeEl, incrementControlEl, decrementControlEl, timezoneEl;
+			if (this.readonly)	{
+				dateEl.disabled = true;
+			}
 
-		    	timeWrapper = document.createElement("div");
-		    	YAHOO.util.Dom.addClass(timeWrapper, 'time-container');
+			YAHOO.util.Event.on(dateEl, 'change',  this._onChangeVal, this);
+		}
 
-		      	timeEl = document.createElement("input");
-		        timeEl.id = divPrefix + 'timepicker';
-		        timeEl.className = "time-control";
-		        timeEl.setAttribute("data-cursor", 0);
-		        this.timeEl = timeEl;
-		        YAHOO.util.Dom.addClass(timeEl, 'datum');
-				YAHOO.util.Dom.addClass(timeEl, 'time');
+		if (this.showTime) {
+			var timeWrapper, timeEl, incrementControlEl, decrementControlEl, timezoneEl;
 
-	       		if (!this.readonly) {
-	       			incrementControlEl = document.createElement("input");
-		            incrementControlEl.type="button";
-		            incrementControlEl.id=divPrefix + "timeIncrementButton";
-		            incrementControlEl.className = "time-increment";
-                    YAHOO.util.Event.on(incrementControlEl, 'click',  this._onChangeVal, this);
+			timeWrapper = document.createElement("div");
+			YAHOO.util.Dom.addClass(timeWrapper, 'time-container');
 
-		       		decrementControlEl = document.createElement("input");
-		            decrementControlEl.type="button";
-		            decrementControlEl.id=divPrefix + "timeDecrementButton";
-		            decrementControlEl.className = "time-decrement";
-                    YAHOO.util.Event.on(decrementControlEl, 'click',  this._onChangeVal, this);
+			timeEl = document.createElement("input");
+			timeEl.id = divPrefix + 'timepicker';
+			timeEl.className = "time-control";
+			timeEl.setAttribute("data-cursor", 0);
+			this.timeEl = timeEl;
+			YAHOO.util.Dom.addClass(timeEl, 'datum');
+			YAHOO.util.Dom.addClass(timeEl, 'time');
 
-		            timeWrapper.appendChild(incrementControlEl);
-		            timeWrapper.appendChild(decrementControlEl);
-	       		}
+			if (!this.readonly) {
+				incrementControlEl = document.createElement("input");
+				incrementControlEl.type="button";
+				incrementControlEl.id=divPrefix + "timeIncrementButton";
+				incrementControlEl.className = "time-increment";
+				YAHOO.util.Event.on(incrementControlEl, 'click',  this._onChangeVal, this);
 
-	            timeWrapper.appendChild(timeEl);
-	            controlWidgetContainerEl.appendChild(timeWrapper);		           
-	           
-	            if (this.readonly){
-		           timeEl.disabled = true;
-	            }
+				decrementControlEl = document.createElement("input");
+				decrementControlEl.type="button";
+				decrementControlEl.id=divPrefix + "timeDecrementButton";
+				decrementControlEl.className = "time-decrement";
+				YAHOO.util.Event.on(decrementControlEl, 'click',  this._onChangeVal, this);
 
-	            //Subscriptions
-		       	YAHOO.util.Event.addListener(timeEl, 'blur', this.updateTime, this, true);
-		     	
-		     	YAHOO.util.Event.addListener(timeEl, 'click', function(e) {
-		     		var caretPos = this.saveCaretPosition(timeEl);
-		     		timeEl.setAttribute("data-cursor", caretPos);
-				}, timeEl, this);
+				timeWrapper.appendChild(incrementControlEl);
+				timeWrapper.appendChild(decrementControlEl);
+			}
 
-                YAHOO.util.Event.on(timeEl, 'change',  this._onChangeVal, this);
+			timeWrapper.appendChild(timeEl);
+			controlWidgetContainerEl.appendChild(timeWrapper);
 
-				YAHOO.util.Event.addListener(timeEl, 'keyup', function(e) {
-					var caretPos = this.saveCaretPosition(timeEl);
-		     		timeEl.setAttribute("data-cursor", caretPos);
-				}, timeEl, this);
+			if (this.readonly){
+				timeEl.disabled = true;
+			}
 
-				if (!this.readonly) {
-					this.textFieldTimeIncrementHelper(incrementControlEl.id, timeEl.id, 'click');
-					this.textFieldTimeDecrementHelper(decrementControlEl.id, timeEl.id, 'click');
-				}
+			//Subscriptions
+			YAHOO.util.Event.addListener(timeEl, 'blur', this.updateTime, this, true);
 
-				timezoneEl = document.createElement("span");
-				timezoneEl.id = divPrefix + "timezoneCode";
-				controlWidgetContainerEl.appendChild(timezoneEl);
-		    }
+			YAHOO.util.Event.addListener(timeEl, 'click', function(e) {
+				var caretPos = this.saveCaretPosition(timeEl);
+				timeEl.setAttribute("data-cursor", caretPos);
+			}, timeEl, this);
 
-		    if (this.showNowLink && !this.readonly) {
-		    	// only show the link if the field is editable
-				  this._renderDateLink(controlWidgetContainerEl, "Set Now");
-		    }
+			YAHOO.util.Event.on(timeEl, 'change',  this.updateTime, this, true);
 
-		    if (!this.readonly) {
-		    	// Render a link to clear the date and/or time values
-		    	var clearDateEl = document.createElement("a"),
-		            clearDateLabel = document.createTextNode("Clear");
+			YAHOO.util.Event.addListener(timeEl, 'keyup', function(e) {
+				var caretPos = this.saveCaretPosition(timeEl);
+				timeEl.setAttribute("data-cursor", caretPos);
+			}, timeEl, this);
 
-      		clearDateEl.className = "clear-link";
-      		clearDateEl.href = "#";
-      		clearDateEl.appendChild(clearDateLabel);
+			if (!this.readonly) {
+				this.textFieldTimeIncrementHelper(incrementControlEl.id, timeEl.id, 'click');
+				this.textFieldTimeDecrementHelper(decrementControlEl.id, timeEl.id, 'click');
+			}
 
-      		YAHOO.util.Event.addListener(clearDateEl, 'click', function(e) {
-      				YAHOO.util.Event.preventDefault(e);
-                    this._onChangeVal(null, this);
-			     		this.setDateTime('', 'date');
-			     		this.setDateTime('', 'time');
-					}, clearDateEl, this);
-						
-					controlWidgetContainerEl.appendChild(clearDateEl);
-		    }
+			timezoneEl = document.createElement("span");
+			timezoneEl.id = divPrefix + "timezoneCode";
+			controlWidgetContainerEl.appendChild(timezoneEl);
+		}
+
+		if (this.showNowLink && !this.readonly) {
+			// only show the link if the field is editable
+			this._renderDateLink(controlWidgetContainerEl, "Set Now");
+		}
+
+		if (!this.readonly) {
+			// Render a link to clear the date and/or time values
+			var clearDateEl = document.createElement("a"),
+				clearDateLabel = document.createTextNode("Clear");
+
+			clearDateEl.className = "clear-link";
+			clearDateEl.href = "#";
+			clearDateEl.appendChild(clearDateLabel);
+
+			YAHOO.util.Event.addListener(clearDateEl, 'click', function(e) {
+				YAHOO.util.Event.preventDefault(e);
+				this._onChangeVal(null, this);
+				this.setDateTime('', 'date');
+				this.setDateTime('', 'time');
+			}, clearDateEl, this);
+
+			controlWidgetContainerEl.appendChild(clearDateEl);
+		}
 
 		this.renderHelp(config, controlWidgetContainerEl);
 
-	    var descriptionEl = document.createElement("span");
-	    	YAHOO.util.Dom.addClass(descriptionEl, 'description');
-		    YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
-		    descriptionEl.innerHTML = config.description;		
-		
+		var descriptionEl = document.createElement("span");
+		YAHOO.util.Dom.addClass(descriptionEl, 'description');
+		YAHOO.util.Dom.addClass(descriptionEl, 'cstudio-form-field-description');
+		descriptionEl.innerHTML = config.description;
+
 		var calEl = document.createElement("div");
-		    calEl.id = divPrefix + "calendarContainer";
-		    YAHOO.util.Dom.addClass(calEl, 'cstudio-form-field-calendar');
-		    YAHOO.util.Dom.addClass(calEl, 'hidden');
+		calEl.id = divPrefix + "calendarContainer";
+		YAHOO.util.Dom.addClass(calEl, 'cstudio-form-field-calendar');
+		YAHOO.util.Dom.addClass(calEl, 'hidden');
 
 		controlWidgetContainerEl.appendChild(calEl);
-	    containerEl.appendChild(titleEl);
-	    containerEl.appendChild(controlWidgetContainerEl);
-	    containerEl.appendChild(descriptionEl);
+		containerEl.appendChild(titleEl);
+		containerEl.appendChild(controlWidgetContainerEl);
+		containerEl.appendChild(descriptionEl);
 
-	   	if (this.showDate) {
-	      var calDivId = divPrefix + "date-time-id";
- 	      var minDate = (this.allowPastDate == true) ? null : mm + '/' + dd + '/' + yyyy; // today's date
-				var navConfig = {
-					strings: {
-						month: "Choose Month",
-						year: "Enter Year",
-						submit: "OK",
-						cancel: "Cancel",
-						invalidYear: "Please enter a valid year"
-					},
-					initialFocus: "year"
-				};
+		if (this.showDate) {
+			var calDivId = divPrefix + "date-time-id";
+			var minDate = (this.allowPastDate == true) ? null : mm + '/' + dd + '/' + yyyy; // today's date
+			var navConfig = {
+				strings: {
+					month: "Choose Month",
+					year: "Enter Year",
+					submit: "OK",
+					cancel: "Cancel",
+					invalidYear: "Please enter a valid year"
+				},
+				initialFocus: "year"
+			};
 
-	      var calendarComponent = new YAHOO.widget.Calendar(calDivId, calEl.id, {title: "Select Date", mindate: minDate, close:true, navigator: navConfig});
-          calendarComponent.render();
-          calendarComponent.hide();
-          YAHOO.util.Dom.removeClass(calEl, "hidden");
+			var calendarComponent = new YAHOO.widget.Calendar(calDivId, calEl.id, {title: "Select Date", mindate: minDate, close:true, navigator: navConfig});
+			calendarComponent.render();
+			calendarComponent.hide();
+			YAHOO.util.Dom.removeClass(calEl, "hidden");
 
-          YAHOO.util.Event.addListener(dateEl, "click", function (e) {
-          	this.show();
-          }, calendarComponent, true);
-          calendarComponent.selectEvent.subscribe(this.updateDate, calendarComponent, this);
-       }
+			YAHOO.util.Event.addListener(dateEl, "click", function (e) {
+				this.show();
+			}, calendarComponent, true);
+			calendarComponent.selectEvent.subscribe(this.updateDate, calendarComponent, this);
+		}
 	},
 
-	saveCaretPosition: function (inputEl) {		
+	saveCaretPosition: function (inputEl) {
 		var iCaretPos = 0;
 
 		// IE Support
@@ -854,11 +857,11 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				timeVals = datetimeStr.split(":");
 			}
 			hh = parseInt(timeVals[0], 10),
-			mi = timeVals[1],
-			ss = timeVals[2],
-			a = (hh < 12) ? "a.m." : "p.m.",
-			h = (hh > 12) ? hh - 12 : ((hh == 0) ? 12 : hh),
-			hpad = (h < 10)?"0":"";
+				mi = timeVals[1],
+				ss = timeVals[2],
+				a = (hh < 12) ? "a.m." : "p.m.",
+				h = (hh > 12) ? hh - 12 : ((hh == 0) ? 12 : hh),
+				hpad = (h < 10)?"0":"";
 
 			dateObj = {
 				"date" : (includeDate) ? values[0] : "",
@@ -871,7 +874,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			};
 		}
 		return dateObj;
-	}, 
+	},
 
 	displayMessage: function (msgStr, msgType, msgClass) {
 		var msgContainer = YAHOO.util.Selector.query(".date-time-container", this.containerEl, true),
@@ -902,7 +905,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		} else {
 			if (showDate) {
 				dateEl.value = dateObj.date;
-		    } else if (showTime) {
+			} else if (showTime) {
 				timeEl.value = dateObj.time;
 			}
 		}
@@ -923,30 +926,30 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 						tzDateTimeObj = _self.getFormattedDateTimeObject(timezoneTime, true),
 						res, data, timeObj;
 
-						if (_self.populate) {
-							// Get the current date/time to fill the fields that are empty
-							timezoneNowObj = _self.getFormattedDateTimeObject(_self.startTzDateTimeStr, true);
-						}
-						
-						if (emptyDate) {
-							// The time was calculated using refDateVal so the date field should really be 
-							// blank or be populated with the current date; this is for backwards compatibility since
-							// before it was possible to save only the date or only the time.
-							tzDateTimeObj.date = (_self.populate) ? timezoneNowObj.date : "";
-						}
+					if (_self.populate) {
+						// Get the current date/time to fill the fields that are empty
+						timezoneNowObj = _self.getFormattedDateTimeObject(_self.startTzDateTimeStr, true);
+					}
 
-						if (emptyTime) {
-							// The date was calculated using refTimeVal so the time field should really be 
-							// blank or be populated with the current date; this is for backwards compatibility since
-							// before it was possible to save only the date or only the time.
-							tzDateTimeObj.time = (_self.populate) ? timezoneNowObj.time : "";
-						}
+					if (emptyDate) {
+						// The time was calculated using refDateVal so the date field should really be
+						// blank or be populated with the current date; this is for backwards compatibility since
+						// before it was possible to save only the date or only the time.
+						tzDateTimeObj.date = (_self.populate) ? timezoneNowObj.date : "";
+					}
 
-						_self.populateDateTime(tzDateTimeObj, _self.dateEl, _self.timeEl, _self.showDate, _self.showTime);
-						// The date/time restored should be correct; however, the fields are validated so that the validation icon is rendered
-						// in case the fields are required
-						_self.validate(null, _self);
-						// _self.displayTimezoneWarning(_self.startDateTimeObj, _self.startTzDateTimeStr);
+					if (emptyTime) {
+						// The date was calculated using refTimeVal so the time field should really be
+						// blank or be populated with the current date; this is for backwards compatibility since
+						// before it was possible to save only the date or only the time.
+						tzDateTimeObj.time = (_self.populate) ? timezoneNowObj.time : "";
+					}
+
+					_self.populateDateTime(tzDateTimeObj, _self.dateEl, _self.timeEl, _self.showDate, _self.showTime);
+					// The date/time restored should be correct; however, the fields are validated so that the validation icon is rendered
+					// in case the fields are required
+					_self.validate(null, _self);
+					// _self.displayTimezoneWarning(_self.startDateTimeObj, _self.startTzDateTimeStr);
 				},
 				failure: function(response) {
 					console.log("Unable to convert stored date/time values");
@@ -990,16 +993,16 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 					emptyTime = true;
 				}
 			}
-		  	this.convertDateTime(dateVal, timeVal, "GMT", this.timezone, cb);
+			this.convertDateTime(dateVal, timeVal, "GMT", this.timezone, cb);
 		} else {
 			//No value exists yet
 			if (this.populate) {
 				// Populate it with the current time (see getCurrentDateTime)
 				timezoneNowObj = this.getFormattedDateTimeObject(this.startTzDateTimeStr, true);
 				this.populateDateTime(timezoneNowObj, this.dateEl, this.timeEl, this.showDate, this.showTime);
-	    	}
-     	   	this.validate(null, this);
-     	   	// this.displayTimezoneWarning(this.startDateTimeObj, this.startTzDateTimeStr);
+			}
+			this.validate(null, this);
+			// this.displayTimezoneWarning(this.startDateTimeObj, this.startTzDateTimeStr);
 		}
 	},
 
@@ -1019,7 +1022,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			success: function (response) {
 				var data = eval("(" + response.responseText + ")"),
 					timezoneNow = data.convertedTimezone;
-					_self.startTzDateTimeStr = timezoneNow;
+				_self.startTzDateTimeStr = timezoneNow;
 
 				_self.routeDateTimePopulation(storedVal);
 			},
@@ -1031,12 +1034,12 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		this.startDateTimeObj = nowObj;
 		this.getCurrentDateTime(nowObj, configTimezone, cb);
 	},
-	
+
 	setValue: function(value) {
-        this.edited = false;
+		this.edited = false;
 		var timezoneCb = {
 			context: this,
-			
+
 			success: function(config){
 				var timezoneStr;
 				this.context.timezone = config['default-timezone'];
@@ -1046,37 +1049,86 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				}
 				this.context._setValue(value, this.context.timezone);
 			},
-				
+
 			failure: function(){
 			}
 		}
-		CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);	
+		CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, "/site-config.xml", timezoneCb);
 	},
 
 	setDateTime: function(value, type) {
+		var dateTimePath = this.form.model,
+			dateTime,
+			dateTimeSplit,
+			res,
+			val;
+
+		// dateTime = this.getDescendantProp(dateTimePath, (this.id)) ? (this.getDescendantProp(dateTimePath, (this.id))).split(" ") : ["", "04:00:00"];
+		// res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
+
+		if(this.getDescendantProp(dateTimePath, (this.id))) {
+			dateTime = (this.getDescendantProp(dateTimePath, (this.id))).split(" ");
+			res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
+			val = eval("(" + (res.responseText) + ")");
+			dateTime = val.convertedTimezone.split(" ");
+		}else {
+			var date = new Date(),
+				dd = date.getDate(),
+				mm = date.getMonth()+1, //January is 0!
+				yyyy = date.getFullYear(),
+				hh = date.getHours(),
+				m = date.getMinutes();
+
+			if(dd<10) {
+				dd='0'+dd
+			}
+			if(mm<10) {
+				mm='0'+mm
+			}
+			date = mm+'/'+dd+'/'+yyyy;
+			time = hh+':'+m+':'+'00';
+			dateTime = [date, time];
+		}
+
 
 		if (type == 'date' && this.dateEl) {
 			this.dateEl.value = value;
+			dateTime[0] = value;
 		} else if (type == 'time' && this.timeEl) {
 			this.timeEl.value = value;
+			dateTime[1] = value;
 		}
+
+		res = this.convertDateTimeSync(dateTime[0], dateTime[1], this.timezone, "GMT");
+		val = eval("(" + (res.responseText) + ")");
+
+		this.value = val.convertedTimezone;
+
 		this.validate(null, this, true);
+
+		this.form.updateModel(this.id, this.getValue());
+	},
+
+	getDescendantProp: function(obj, desc) {
+		var arr = desc.split("|");
+		while(arr.length && (obj = obj[arr.shift()]));
+		return obj;
 	},
 
 	getName: function() {
 		return "date-time";
 	},
-	
+
 	getSupportedProperties: function() {
 		return [
-		        { label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
-				{ label: CMgs.format(langBundle, "showTime"), name: "showTime", type: "boolean" },
-				{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
-				{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
-				{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },
-				{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
-				{ label: CMgs.format(langBundle, "readonlyOnEdit"), name: "readonlyEdit", type: "boolean", defaultValue: "false" }
-			];
+			{ label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "showTime"), name: "showTime", type: "boolean" },
+			{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
+			{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },
+			{ label: CMgs.format(langBundle, "readonly"), name: "readonly", type: "boolean" },
+			{ label: CMgs.format(langBundle, "readonlyOnEdit"), name: "readonlyEdit", type: "boolean", defaultValue: "false" }
+		];
 	},
 
 	getSupportedConstraints: function() {
