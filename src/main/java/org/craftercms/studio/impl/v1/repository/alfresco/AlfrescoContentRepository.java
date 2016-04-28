@@ -44,6 +44,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.*;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -61,6 +62,7 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -264,9 +266,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      *@param isCut
      *              true for move  @return  true if successful
      */
-    protected boolean copyContentInternal(String fromPath, String toPath, String newName, boolean isCut) {
+    protected boolean copyContentInternal(String site, String fromPath, String toPath, String newName, boolean isCut) {
         logger.debug((isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
-        return copyContentInternalCMIS(fromPath, toPath, newName, isCut);
+        return copyContentInternalCMIS(site, fromPath, toPath, newName, isCut);
     }
 
     /**
@@ -557,7 +559,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return inputStream;
     }
 
-    protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+    protected RepositoryItem[] getContentChildrenCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -779,7 +781,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return versions;
     }
 
-    protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+    protected boolean revertContentCMIS(String site, String fullPath, String version, boolean major, String comment) {
         long startTime = System.currentTimeMillis();
         boolean success = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -926,7 +928,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return newFolderRef;
     }
 
-    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, String newName, boolean isCut) {
+    protected boolean copyContentInternalCMIS(String site, String fromFullPath, String toFullPath, String newName, boolean isCut) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
