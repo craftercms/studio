@@ -423,6 +423,8 @@
             path = ('/site/website/'+ hashPage+'/index.xml').replace('//','/');
         }
 
+        path =  path.replace('//','/');
+
         CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
             success: function(content) {
                 CStudioAuthoring.SelectedContent.setContent(content.item);

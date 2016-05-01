@@ -601,7 +601,7 @@ var CStudioForms = CStudioForms || function() {
                 this.focusedField = field;
 
                 if(previousFocusedField && (previousFocusedField !== field))
-                    previousFocusedField.focusOut();
+                        previousFocusedField.focusOut();
 
                 if(field) {
                     this.focusedField.focusIn();
@@ -1083,6 +1083,16 @@ var CStudioForms = CStudioForms || function() {
                             };
 
                             CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, entityId, getContentItemCb, false, false);
+                            var acnDraftContent = YDom.getElementsByClassName("acnDraftContent", null, parent.document)[0];
+                            if(acnDraftContent && !saveDraft){
+                                acnDraftContent.parentNode.removeChild(acnDraftContent);
+                            }
+                            if(!acnDraftContent && saveDraft){
+                                var noticeEl = document.createElement("div");
+                                parent.document.querySelector("#studioBar nav .container-fluid").appendChild(noticeEl);
+                                YDom.addClass(noticeEl, "acnDraftContent");
+                                noticeEl.innerHTML = CMgs.format(formsLangBundle, "wcmContentSavedAsDraft");
+                            }
                         },
                         failure: function(err) {
                             try{
