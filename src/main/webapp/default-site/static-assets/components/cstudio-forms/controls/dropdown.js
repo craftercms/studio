@@ -22,11 +22,10 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
     getLabel: function() {
         return CMgs.format(langBundle, "dropdown");
     },
-    
-	_onChange: function(evt, obj) {
-        if(obj.inputEl)
-		    obj.value = obj.inputEl.value;
-		
+
+	validate: function(obj) {
+		if(obj.inputEl)
+			obj.value = obj.inputEl.value;
 		if(obj.required) {
 			if(obj.value == "") {
 				obj.setError("required", "Field is Required");
@@ -39,9 +38,12 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 		}
 		else {
 			obj.renderValidation(false, true);
-		}			
-
+		}
 		obj.owner.notifyValidation();
+	},
+
+	_onChange: function(evt, obj) {
+		this.validate(obj);
 		obj.form.updateModel(obj.id, obj.getValue());
 	},
 
@@ -151,6 +153,8 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
                     // This call only makes sense for user actioned changes and
                     // it is actually wiping out the value of the model when initialising
                     // _self._onChange(null, _self);
+
+					_self.validate(_self);
 				}
 			};
 

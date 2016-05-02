@@ -359,7 +359,9 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     deploymentTabEndpointProperty: "Property",
     deploymentTabEndpointValue: "Value",
 
-    currentPage: "Current Page"
+    currentPage: "Current Page",
+
+    wcmContentSavedAsDraft: "Content was saved as DRAFT. Some required fields may not be populated. This can cause errors when previewed or deployed.",
 
 });
 

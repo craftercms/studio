@@ -96,6 +96,7 @@ CStudioAdminConsole.Toolbar.prototype = {
 	   	var onRenderWorkAreaFn =  function(evt, params) {
 	  		if(params.toolbar.selectedEl) {
 		  		YDom.removeClass(params.toolbar.selectedEl, "cstudio-admin-console-item-selected");
+                CStudioAdminConsole.CommandBar.hide();
 	  		}
 	  		
 	  		params.toolbar.selectedEl = this;

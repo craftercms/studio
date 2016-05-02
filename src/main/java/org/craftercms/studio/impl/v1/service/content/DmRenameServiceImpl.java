@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
@@ -423,8 +424,13 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         cacheService.remove(cacheContext, cacheKey);
     }
@@ -632,6 +638,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
     protected SecurityService securityService;
     protected ContentService contentService;
     protected ObjectStateService objectStateService;
@@ -644,4 +653,5 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected ObjectMetadataManager objectMetadataManager;
     protected DmDependencyService dmDependencyService;
     protected CacheTemplate cacheTemplate;
+    protected GeneralLockService generalLockService;
 }

@@ -1035,8 +1035,9 @@ var ApproveType = false;
                 var filename = (contentTO.pathSegment) ? contentTO.pathSegment : contentTO.name;
 
                 if (CStudioAuthoring.Utils.endsWith(filename, ".xml")) {
-
                     url = CStudioAuthoringContext.previewAppBaseUri + contentTO.browserUri;
+                    url = url.replace('.xml', '.html');
+
                     if (contentTO.document && contentTO.assets && contentTO.assets.length == 1) {
                         url = CStudioAuthoringContext.previewAppBaseUri + contentTO.assets[0].uri;
                     }
@@ -6876,7 +6877,7 @@ CStudioAuthoring.InContextEdit = {
             controlBar = $("#formContainer .cstudio-form-controls-container")[0],
             colExpButtonBtn = $('#colExpButtonBtn');
 
-        if($(dialog).height() != 49){
+        if( Math.floor($(dialog).height()) != 49){
             CStudioAuthoring.Utils.Cookies.createCookie("formEngineHeight", $(dialog).height().toString());
             $(dialog).height(49);
             $(controlBar).css({ "backgroundColor": "#7E9DBB" });
