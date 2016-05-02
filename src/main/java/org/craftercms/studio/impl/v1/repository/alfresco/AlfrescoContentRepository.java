@@ -34,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
 
@@ -98,12 +100,12 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
-        return getContentStreamCMIS(path);
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        return getContentStreamCMIS(site, path);
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
@@ -134,7 +136,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     @Override
     public boolean deleteContent(String site, String path) {
         logger.debug("deleting content at " + path);
-        return deleteContentCMIS(path);
+        return deleteContentCMIS(site, path);
     }
 
     @Override
@@ -234,7 +236,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param path - the path of the item
      */
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        return getContentVersionHistoryCMIS(path);
+        return getContentVersionHistoryCMIS(site, path);
     }
 
     /** 
@@ -541,7 +543,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return nodeRef;
     }
 
-    protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+    protected InputStream getContentStreamCMIS(String site, String fullPath) throws ContentNotFoundException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -710,7 +712,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return false;
     }
 
-    protected boolean deleteContentCMIS(String fullPath) {
+    protected boolean deleteContentCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -745,7 +747,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return result;
     }
 
-    protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+    protected VersionTO[] getContentVersionHistoryCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         VersionTO[] versions = new VersionTO[0];
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -977,7 +979,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         }
                     }
                     if (isCut) {
-                        deleteContentCMIS(cleanFromPath);
+                        deleteContentCMIS(site, cleanFromPath);
                     }
                     session.clear();
                     long duration = System.currentTimeMillis() - startTime;
@@ -1076,7 +1078,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
-        lockItemCMIS(fullPath);
     }
 
     protected void lockItemCMIS(String fullPath) {
