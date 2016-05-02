@@ -1355,13 +1355,20 @@ treeNode.getHtml = function() {
              *
              */
             buildToolTipScheduled: function(label, contentType, style, status, editedDate, modifier, schedDate, itemNameLabel) {
+                var toolTip = "";
                 if (!itemNameLabel) {
                     itemNameLabel = "Page";
                 }
 
                 label = CStudioAuthoring.Utils.replaceWithASCIICharacter(label);
 
-                return CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
+                try {
+                    toolTip = CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
+                }
+                catch(err) {
+                    //console.log(err);
+                }
+                return toolTip;
             },
 
 

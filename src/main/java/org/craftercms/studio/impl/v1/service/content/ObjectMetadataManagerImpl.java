@@ -113,7 +113,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        params.put("lockOwner", "");
+        params.put("lockOwner", null);
         objectMetadataMapper.setLockOwner(params);
     }
 

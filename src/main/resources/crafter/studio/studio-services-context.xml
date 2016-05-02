@@ -713,6 +713,7 @@
             </map>
         </property>
         <property name="defaultFilter" ref="cstudioAllFilter"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="servicesManager" ref="cstudioServicesManager" />
     </bean>
 

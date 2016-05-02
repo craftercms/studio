@@ -3178,7 +3178,7 @@ div#acn-active-content {
   margin: 5px 0 0;
   padding: 0 0 5px; }
 .acn-dropdown-wrapper .acn-dropdown-menu {
-  padding: 15px 20px;
+  padding: 26px 20px 15px 20px;
   overflow-y: scroll;
   overflow-x: scroll;
   text-align: left;

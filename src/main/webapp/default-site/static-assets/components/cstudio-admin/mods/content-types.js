@@ -130,6 +130,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
 					{label:"Cancel", fn: function() {
 						CStudioAdminConsole.isDirty = false;
 						  _self.renderWorkarea();
+                          CStudioAdminConsole.CommandBar.hide();
 					} }]);
 					amplify.publish("/content-type/loaded");
 			},
