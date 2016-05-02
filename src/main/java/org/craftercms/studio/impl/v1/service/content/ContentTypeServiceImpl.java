@@ -116,6 +116,10 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
+        if (pathsConfig == null) {
+            reloadConfiguration(site);
+            pathsConfig = contentTypesConfig.getPathMapping(site);
+        }
         if (pathsConfig != null && pathsConfig.getConfigs() != null) {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
             for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {

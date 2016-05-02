@@ -43,7 +43,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
-import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -162,13 +162,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         writeContent(site, destination, fileName, user, content, contentType, false, writeOperation);
 
         removeItemFromCache(site, destination + "/" + fileName);
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(destination + "/" + fileName);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        previewSync.syncPath(site, destination + "/" + fileName, repositoryEventContext);
+        previewSync.syncPath(site, destination + "/" + fileName);
 
         return destination + "/" + fileName;
     }

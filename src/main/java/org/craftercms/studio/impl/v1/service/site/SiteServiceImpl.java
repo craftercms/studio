@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -49,6 +48,7 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
+import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,13 +78,19 @@ public class SiteServiceImpl implements SiteService {
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
 		boolean toRet = contentRepository.writeContent(site, path, content);
+        contentRepository.createVersion(site, path, false);
+        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
+            contentTypeUpdated.contentTypeUpdated(site, path.replace(contentTypeService.getConfigPath(), ""));
+        }
         clearConfigurationCache.clearConfigurationCache(site);
+
         return toRet;
 	}
 
 	@Override	
 	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
 		boolean toReturn = contentRepository.writeContent("", path, content);
+        contentRepository.createVersion("", path, false);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
         return toReturn;
@@ -653,6 +659,9 @@ public class SiteServiceImpl implements SiteService {
     public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
     public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
 
+    public ContentTypeUpdated getContentTypeUpdated() { return contentTypeUpdated; }
+    public void setContentTypeUpdated(ContentTypeUpdated contentTypeUpdated) { this.contentTypeUpdated = contentTypeUpdated; }
+
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
 
@@ -686,6 +695,7 @@ public class SiteServiceImpl implements SiteService {
     protected SecurityProvider securityProvider;
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
+    protected ContentTypeUpdated contentTypeUpdated;
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;

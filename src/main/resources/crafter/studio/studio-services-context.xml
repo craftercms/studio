@@ -63,7 +63,6 @@
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
@@ -105,10 +104,10 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
+        <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
@@ -622,7 +621,6 @@
     <bean id="cstudioDiskContentRepository" 
         class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
         init-method="bootstrap">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="${repository.diskImplementation.path}" />
         <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
     </bean>

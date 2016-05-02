@@ -22,10 +22,6 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean id="previewSync" class="org.craftercms.studio.impl.v1.deployment.PreviewSync">
-        <property name="previewDeployer" ref="studioPreviewDeployer"/>
-    </bean>
-
     <bean id="clearConfigurationCache" class="org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate" />
@@ -36,6 +32,12 @@
 
     <bean id="previewSync" class="org.craftercms.studio.impl.v1.ebus.PreviewSync">
         <property name="previewDeployer" ref="studioPreviewDeployer" />
+        <property name="securityProvider" ref="securityProvider" />
+    </bean>
+
+    <bean id="contentTypeUpdated" class="org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated">
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="activityService" ref="cstudioActivityService"/>
     </bean>
 
 </beans>

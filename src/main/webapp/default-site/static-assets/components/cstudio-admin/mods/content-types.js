@@ -113,13 +113,11 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes, CStudioAdminConsole.Tool, {
                                         langBundle: langBundle
                                     };
 
-                                    var defPath = '/cstudio/config/sites/' +
-                                        CStudioAuthoringContext.site +
-                                        '/content-types' + formDef.contentType +
+                                    var defPath = '/config/studio/content-types' + formDef.contentType +
                                         '/form-definition.xml';
 
                                     var url = "/api/1/services/api/1/site/write-configuration.json" +
-                                        "?path=" + defPath;
+                                        "?site=" + CStudioAuthoringContext.site + "&path=" + defPath;
 
 									YAHOO.util.Connect.resetFormState();
                                     YAHOO.util.Connect.setDefaultPostHeader(false);
