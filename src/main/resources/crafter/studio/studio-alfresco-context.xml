@@ -76,6 +76,7 @@
         <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
         <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
         <property name="ssoHeaderName" value="${crafter.studio.sso.headerName}"/>
+        <property name="ssoUsernamePattern" value="${crafter.studio.sso.username.pattern}"/>
         <property name="alfrescoExternalAuthHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
     </bean>
 
