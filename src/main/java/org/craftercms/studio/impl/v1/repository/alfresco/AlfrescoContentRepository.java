@@ -34,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
 
@@ -297,7 +299,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            getMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
+            getMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
@@ -324,7 +326,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            postMethod.addRequestHeader(alfrescoExternalAuthUserHeaderName, ssoUsername);
+            postMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
         HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
@@ -1054,7 +1056,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            parameter.put(SessionParameter.HEADER + ".0", alfrescoExternalAuthUserHeaderName + ":" + ssoUsername);
+            parameter.put(SessionParameter.HEADER + ".0", alfrescoExternalAuthHeaderName + ":" + ssoUsername);
         } else {
             parameter.put(SessionParameter.USER, "ROLE_TICKET");
             parameter.put(SessionParameter.PASSWORD, getAlfTicket());
@@ -1249,7 +1251,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             RequestContext context = RequestContext.getCurrent();
 
             if (context != null) {
-                username = context.getRequest().getHeader(ssoUserHeaderName);
+                username = context.getRequest().getHeader(ssoHeaderName);
             } else {
                 String ticket = getJobOrEventTicket();
                 if (StringUtils.isNotEmpty(ticket)) {
@@ -1258,12 +1260,25 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             }
 
             if (StringUtils.isNotEmpty(username)) {
+                if (ssoUsernamePattern != null) {
+                    username = extractSsoUsername(username);
+                }
+
                 logger.debug("SSO username found: {0}", username);
             }
 
             return username;
         } else {
             return null;
+        }
+    }
+
+    protected String extractSsoUsername(String username) {
+        Matcher matcher = ssoUsernamePattern.matcher(username);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        } else {
+            return username;
         }
     }
 
@@ -1457,43 +1472,100 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     protected String adminUser;
     protected String adminPassword;
     protected boolean ssoEnabled;
-    protected String ssoUserHeaderName;
-    protected String alfrescoExternalAuthUserHeaderName;
+    protected String ssoHeaderName;
+    protected Pattern ssoUsernamePattern;
+    protected String alfrescoExternalAuthHeaderName;
     protected boolean bootstrapEnabled = false;
 
-    public String getAlfrescoUrl() { return alfrescoUrl; }
-    public void setAlfrescoUrl(String url) { alfrescoUrl = url; }
-
-    public String getServicePath() { return servicePath; }
-    public void setServicePath(String url) { servicePath = url; }
-
-    public String getSsoServicePath() { return ssoServicePath; }
-    public void setSsoServicePath(String ssoServicePath) { this.ssoServicePath = ssoServicePath; }
-
-    public String getCmisPath() { return cmisPath; }
-    public void setCmisPath(String url) { cmisPath = url; }
-
-    public String getAdminUser() { return adminUser; }
-    public void setAdminUser(String adminUser) { this.adminUser = adminUser; }
-
-    public String getAdminPassword() { return adminPassword; }
-    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
-
-    public boolean isSsoEnabled() { return ssoEnabled; }
-    public void setSsoEnabled(boolean enabled) { this.ssoEnabled = enabled; }
-
-    public String getSsoUserHeaderName() { return ssoUserHeaderName; }
-    public void setSsoUserHeaderName(String headerName) { this.ssoUserHeaderName = headerName; }
-
-    public String getAlfrescoExternalAuthUserHeaderName() {
-        return alfrescoExternalAuthUserHeaderName;
-    }
-    public void setAlfrescoExternalAuthUserHeaderName(String alfrescoExternalAuthUserHeaderName) {
-        this.alfrescoExternalAuthUserHeaderName = alfrescoExternalAuthUserHeaderName;
+    public String getAlfrescoUrl() {
+        return alfrescoUrl;
     }
 
-    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
-    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
+    public void setAlfrescoUrl(String url) {
+        alfrescoUrl = url;
+    }
+
+    public String getServicePath() {
+        return servicePath;
+    }
+
+    public void setServicePath(String url) {
+        servicePath = url;
+    }
+
+    public String getSsoServicePath() {
+        return ssoServicePath;
+    }
+
+    public void setSsoServicePath(String ssoServicePath) {
+        this.ssoServicePath = ssoServicePath;
+    }
+
+    public String getCmisPath() {
+        return cmisPath;
+    }
+
+    public void setCmisPath(String url) {
+        cmisPath = url;
+    }
+
+    public String getAdminUser() {
+        return adminUser;
+    }
+
+    public void setAdminUser(String adminUser) {
+        this.adminUser = adminUser;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
+
+    public boolean isSsoEnabled() {
+        return ssoEnabled;
+    }
+
+    public void setSsoEnabled(boolean enabled) {
+        this.ssoEnabled = enabled;
+    }
+
+    public String getSsoHeaderName() {
+        return ssoHeaderName;
+    }
+
+    public void setSsoHeaderName(String headerName) {
+        this.ssoHeaderName = headerName;
+    }
+
+    public String getSsoUsernamePattern() {
+        return ssoUsernamePattern.pattern();
+    }
+
+    public void setSsoUsernamePattern(String ssoUsernamePattern) {
+        if (StringUtils.isNotEmpty(ssoUsernamePattern)) {
+            this.ssoUsernamePattern = Pattern.compile(ssoUsernamePattern);
+        }
+    }
+
+    public String getAlfrescoExternalAuthHeaderName() {
+        return alfrescoExternalAuthHeaderName;
+    }
+
+    public void setAlfrescoExternalAuthHeaderName(String alfrescoExternalAuthHeaderName) {
+        this.alfrescoExternalAuthHeaderName = alfrescoExternalAuthHeaderName;
+    }
+
+    public boolean isBootstrapEnabled() {
+        return bootstrapEnabled;
+    }
+
+    public void setBootstrapEnabled(boolean bootstrapEnabled) {
+        this.bootstrapEnabled = bootstrapEnabled;
+    }
 
 }
 

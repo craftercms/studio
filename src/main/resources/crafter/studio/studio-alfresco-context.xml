@@ -12,8 +12,9 @@
         <property name="adminPassword" value="${repositoryJob.password}"/>
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfresco') and '${crafter.repository.bootstrapEnabled}'}" />
         <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
-        <property name="ssoUserHeaderName" value="${crafter.studio.sso.headerName}"/>
-        <property name="alfrescoExternalAuthUserHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
+        <property name="ssoHeaderName" value="${crafter.studio.sso.headerName}"/>
+        <property name="ssoUsernamePattern" value="${crafter.studio.sso.username.pattern}"/>
+        <property name="alfrescoExternalAuthHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
     </bean>
 
     <alias name="cstudioAlfrescoContentRepositoryUnCached"
@@ -74,8 +75,8 @@
         <property name="bootstrapEnabled" value="#{'${repositoryType}'.equals('alfrescoext') and '${crafter.repository.bootstrapEnabled}'}" />
         <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
         <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
-        <property name="ssoUserHeaderName" value="${crafter.studio.sso.headerName}"/>
-        <property name="alfrescoExternalAuthUserHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
+        <property name="ssoHeaderName" value="${crafter.studio.sso.headerName}"/>
+        <property name="alfrescoExternalAuthHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
     </bean>
 
     <alias name="cstudioAlfrescoExtContentRepositoryUnCached"
