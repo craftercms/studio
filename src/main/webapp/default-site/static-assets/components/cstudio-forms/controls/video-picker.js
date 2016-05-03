@@ -419,8 +419,9 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             YAHOO.util.Dom.addClass(delEl, 'cstudio-button-disabled');
         }
 
-        YAHOO.util.Event.addListener(addEl, "click", this.addVideo, this, true);
-        YAHOO.util.Event.addListener(delEl, "click", this.deleteVideo, this, true);
+        YAHOO.util.Event.addListener(videoEl, "click", function(evt, context) { context.form.setFocusedField(context);}, this, true);
+        YAHOO.util.Event.addListener(addEl, "click", function(evt, context) { context.form.setFocusedField(context); this.addVideo();}, this, true);
+        YAHOO.util.Event.addListener(delEl, "click", function(evt, context) { context.form.setFocusedField(context); this.deleteVideo();}, this, true);
         YAHOO.util.Event.addListener(zoomEl, "click", this.createDialog, this, true);
     },
 

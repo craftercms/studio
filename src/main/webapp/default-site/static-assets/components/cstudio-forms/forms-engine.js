@@ -635,10 +635,14 @@ var CStudioForms = CStudioForms || function() {
                 this.focusedField = field;
 
                 if(previousFocusedField && (previousFocusedField !== field))
+                    if(field && previousFocusedField && previousFocusedField.focusOut) {
                         previousFocusedField.focusOut();
+                    }
 
                 if(field) {
-                    this.focusedField.focusIn();
+                    if(this.focusedField.focusIn) {
+                        this.focusedField.focusIn();
+                    }
                 }
                 else {
                     this.focusedField = null;
@@ -1554,6 +1558,7 @@ var CStudioForms = CStudioForms || function() {
                 var formSection = repeatContainerEl.formSection;
                 var sectionEl = repeatContainerEl.sectionEl;
                 var containerEl = repeatContainerEl;
+                var self = this;
 
                 // render with items
                 var currentCount = (form.model[repeat.id]) ? form.model[repeat.id].length : 0;
@@ -1576,6 +1581,7 @@ var CStudioForms = CStudioForms || function() {
                     YAHOO.util.Dom.addClass(addEl, 'cstudio-form-repeat-control');
                     addEl.innerHTML = "Add First Item";
                     addEl.onclick = function() {
+                        repeatContainerEl.form.setFocusedField(repeatContainerEl);
                         form.model[repeat.id] = [];
                         form.model[repeat.id][0] = [];
 
@@ -1610,13 +1616,14 @@ var CStudioForms = CStudioForms || function() {
                     var addEl = document.createElement("a");
                     repeatInstanceContainerEl.appendChild(addEl);
                     YAHOO.util.Dom.addClass(addEl, 'cstudio-form-repeat-control');
-                    addEl.innerHTML = CMgs.format(formsLangBundle, "repeatAddAnother");;
+                    addEl.innerHTML = CMgs.format(formsLangBundle, "repeatAddAnother");
                     if(form.readOnly || maxOccurs != "*" && currentCount >= maxOccurs) {
                         YAHOO.util.Dom.addClass(addEl, 'cstudio-form-repeat-control-disabled');
                     }
                     else {
                         addEl.onclick = function() {
                             form.onBeforeUiRefresh();
+                            repeatContainerEl.form.setFocusedField(repeatContainerEl);
                             var itemArray = form.model[repeat.id];
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
@@ -1634,7 +1641,8 @@ var CStudioForms = CStudioForms || function() {
                     }
                     else {
                         upEl.onclick = function() {
-                            form.setFocusedField(null);
+                            //form.setFocusedField(null);
+                            repeatContainerEl.form.setFocusedField(repeatContainerEl);
                             form.onBeforeUiRefresh();
                             var itemArray = form.model[repeat.id];
                             var repeatArrayIndex = this.parentNode._repeatIndex;
@@ -1655,7 +1663,8 @@ var CStudioForms = CStudioForms || function() {
                     }
                     else {
                         downEl.onclick = function() {
-                            form.setFocusedField(null);
+                            //form.setFocusedField(null);
+                            repeatContainerEl.form.setFocusedField(repeatContainerEl);
                             form.onBeforeUiRefresh();
                             var itemArray = form.model[repeat.id];
                             var repeatArrayIndex = this.parentNode._repeatIndex;
@@ -1676,6 +1685,7 @@ var CStudioForms = CStudioForms || function() {
                     }
                     else {
                         deleteEl.onclick = function() {
+                            repeatContainerEl.form.setFocusedField(repeatContainerEl);
                             form.onBeforeUiRefresh();
                             var itemArray = form.model[repeat.id];
                             var repeatArrayIndex = this.parentNode._repeatIndex;
