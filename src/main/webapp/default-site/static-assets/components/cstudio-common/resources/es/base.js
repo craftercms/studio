@@ -466,6 +466,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     imageManager: "Administrador de Imágenes",
     showDate: "Mostrar Fecha",
     showTime: "Mostrar Hora",
+    showClear: "Mostrar Limpiar Valor",
     setNowLink: "Establecer Link de Ahora",
     populated: "Poblado",
     allowPastDate: "Permitir Fecha Pasada",

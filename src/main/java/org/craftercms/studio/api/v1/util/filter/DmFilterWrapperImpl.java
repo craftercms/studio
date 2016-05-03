@@ -50,6 +50,11 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
         this.servicesManager = servicesManager;
     }
 
+    protected ServicesConfig servicesConfig;
+
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
     @Override
     public boolean accept(ContentItemTO item, String filterType) {
         if(item != null) {
@@ -76,7 +81,6 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
     }
 
     protected List<String> getFilterPatterns(String site, String filterType) {
-        ServicesConfig servicesConfig = servicesManager.getService(ServicesConfig.class);
         if (DmConstants.CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
             List<String> toRet = servicesConfig.getComponentPatterns(site);
             List<String> levelConfig = servicesConfig.getLevelDescriptorPatterns(site);

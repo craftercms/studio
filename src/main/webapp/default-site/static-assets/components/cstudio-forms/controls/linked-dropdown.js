@@ -10,7 +10,7 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.required = false;
 	this.value = "_not-set";
 	this.form = form;
-	this.id = "linked-dropdown";
+	this.id = id;
 	this.depends = "";
 	this.readonly = readonly;
 	

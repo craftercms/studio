@@ -163,7 +163,7 @@ var CStudioForms = CStudioForms || function() {
         };
 
         CStudioFormField.prototype = {
-            
+
             getFixedId: function() {
                 return "";
             },
@@ -459,6 +459,27 @@ var CStudioForms = CStudioForms || function() {
                 return { requirements: requirements, invalid: invalid };
             },
 
+            getValidationStateDraft: function() {
+                var requirements = 0;
+                var invalid = 0;
+
+                for(var i=0; i<this.fields.length; i++) {
+                    var field = this.fields[i];
+
+                    if(field.id == "file-name") {
+                        requirements += field.getRequirementCount();
+
+                        var errors = field.getErrors();
+                        var errsize = 0, key;
+                        for (key in errors) {
+                            if (errors.hasOwnProperty(key)) invalid++;
+                        }
+                    }
+                }
+
+                return { requirements: requirements, invalid: invalid };
+            },
+
             notifyValidation: function() {
                 var validationEl = YAHOO.util.Dom.getElementsByClassName("cstudio-form-section-validation", null, this.containerEl)[0];
                 var indicatorEl = YAHOO.util.Dom.getElementsByClassName("cstudio-form-section-indicator", null, this.containerEl)[0];
@@ -526,6 +547,19 @@ var CStudioForms = CStudioForms || function() {
 
                 for(var i=0; i<this.sections.length; i++) {
                     if(this.sections[i].getValidationState().invalid > 0) {
+                        inError = true;
+                        break;
+                    }
+                }
+
+                return inError;
+            },
+
+            isInErrorDraft: function() {
+                var inError = false;
+
+                for(var i=0; i<this.sections.length; i++) {
+                    if(this.sections[i].getValidationStateDraft().invalid > 0) {
                         inError = true;
                         break;
                     }
@@ -923,7 +957,7 @@ var CStudioForms = CStudioForms || function() {
                             folderName = "";
                         }
                     }
-                    
+
                     if (changeTemplate == "true") {
                         if (form.definition.contentAsFolder == "false") {
                             entityId = entityId.replace("/index.xml");
@@ -980,7 +1014,7 @@ var CStudioForms = CStudioForms || function() {
 
                     var entityId = buildEntityIdFn();
                     var entityFile = entityId.substring(entityId.lastIndexOf('/') + 1);
-                    if(form.isInError() && draft==false) {
+                    if((form.isInError() && draft==false) || (form.isInErrorDraft() && draft ==true)) {
                         alert(CMgs.format(formsLangBundle, "errMissingRequirements"));
                         if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                         if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
@@ -1082,7 +1116,7 @@ var CStudioForms = CStudioForms || function() {
                                     if(saveAndCloseEl) saveAndCloseEl.disabled = false;
                                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = false;
                                     if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = false;
-                                       
+
                                 }
                             };
 
@@ -1239,7 +1273,7 @@ var CStudioForms = CStudioForms || function() {
                     }else {
                         window.close();
                     }
-                   // CStudioAuthoring.Operations.collapseSimpleIceEdit();
+                    // CStudioAuthoring.Operations.collapseSimpleIceEdit();
                 }
 
                 amplify.subscribe('/field/init/completed', function () {
@@ -1261,7 +1295,7 @@ var CStudioForms = CStudioForms || function() {
                         var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
                         var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
                         var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
-                                       
+
                         if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
                         if(saveAndCloseEl) saveAndCloseEl.disabled = true;
                         if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
@@ -1270,28 +1304,28 @@ var CStudioForms = CStudioForms || function() {
                     };
 
 
-                   var saveButtonDraftEl = document.createElement("input");
-                   saveButtonDraftEl.id = "cstudioSaveAndCloseDraft";
-                   YDom.addClass(saveButtonDraftEl, "btn");
-                   YDom.addClass(saveButtonDraftEl, "btn-primary");
-                   YDom.addClass(saveButtonDraftEl, "cstudio-button-first");
-                   saveButtonDraftEl.type = "button";
-                   saveButtonDraftEl.value = CMgs.format(formsLangBundle, "saveAndCloseDraft");
-                   formButtonContainerEl.appendChild(saveButtonDraftEl);
-                   
-                   saveButtonDraftEl.onclick = function() {
-                     var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
-                     var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
-                     var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
+                    var saveButtonDraftEl = document.createElement("input");
+                    saveButtonDraftEl.id = "cstudioSaveAndCloseDraft";
+                    YDom.addClass(saveButtonDraftEl, "btn");
+                    YDom.addClass(saveButtonDraftEl, "btn-primary");
+                    YDom.addClass(saveButtonDraftEl, "cstudio-button-first");
+                    saveButtonDraftEl.type = "button";
+                    saveButtonDraftEl.value = CMgs.format(formsLangBundle, "saveAndCloseDraft");
+                    formButtonContainerEl.appendChild(saveButtonDraftEl);
 
-                     if(saveAndCloseEl) saveAndCloseEl.disabled = true;
-                     if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
-                     if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
-                   
-                     saveFn(false, true);
-                   };
-                                       
-                                       
+                    saveButtonDraftEl.onclick = function() {
+                        var saveAndCloseEl = document.getElementById("cstudioSaveAndClose");
+                        var saveAndPreviewEl = document.getElementById("cstudioSaveAndPreview");
+                        var saveAndCloseDraftEl = document.getElementById("cstudioSaveAndCloseDraft");
+
+                        if(saveAndCloseEl) saveAndCloseEl.disabled = true;
+                        if(saveAndCloseDraftEl) saveAndCloseDraftEl.disabled = true;
+                        if(saveAndPreviewEl) saveAndPreviewEl.disabled = true;
+
+                        saveFn(false, true);
+                    };
+
+
                     var previewButtonEl = document.createElement("input");
                     YDom.addClass(previewButtonEl, "btn");
                     YDom.addClass(previewButtonEl, "btn-default");
@@ -1694,8 +1728,8 @@ var CStudioForms = CStudioForms || function() {
                             var fieldId = moduleConfig.config.field.id;
                             if(repeatField) {
                                 fieldId = moduleConfig.config.repeatField.id + "|" +
-                                moduleConfig.config.repeatIndex + "|" +
-                                moduleConfig.config.field.id;
+                                    moduleConfig.config.repeatIndex + "|" +
+                                    moduleConfig.config.field.id;
                             }
 
                             var formField = new moduleClass(
@@ -1881,14 +1915,14 @@ var CStudioForms = CStudioForms || function() {
 
                 html += "<div id='ice-container'>";
                 html +="<div id='ice-body'  class='cstudio-form-section-body'>" // secion body
-                +   "<div id='ice-body-controls'>" // section controls
-                +   "</div>"
-                + "</div>";
+                    +   "<div id='ice-body-controls'>" // section controls
+                    +   "</div>"
+                    + "</div>";
                 html += "</div>";
                 html +="</div>" // end form
 
                 html +="<div class='cstudio-form-controls-container'>" // command bar
-                + "</div>";
+                    + "</div>";
                 html+="</div>";
 
                 return html;
@@ -1913,15 +1947,15 @@ var CStudioForms = CStudioForms || function() {
                         def.contentType = formId;
 
                         // handle datasources
-                        
-                        if(!def.datasources 
-                        || typeof def.datasources === 'string') {
+
+                        if(!def.datasources
+                            || typeof def.datasources === 'string') {
                             def.datasources = [];
                         }
                         else {
                             def.datasources = def.datasources.datasource;
                         }
-                        
+
                         if(!def.datasources.length) {
                             def.datasources = [].concat(def.datasources);
                         }
@@ -1929,7 +1963,7 @@ var CStudioForms = CStudioForms || function() {
                         for(var k=0; k < def.datasources.length; k++) {
                             var datasource = def.datasources[k];
                             datasource.form = def;
-                            
+
                             if(!datasource.properties || ! datasource.properties.property) {
                                 datasource.properties = [];
                             }
@@ -2182,9 +2216,9 @@ var CStudioForms = CStudioForms || function() {
 
             serializeModelToXml: function(form, saveDraft) {
                 var xml = "<"+form.definition.objectType+">\r\n";
-                
+
                 if(saveDraft) {
-                   xml += "\t<savedAsDraft>true</savedAsDraft>";
+                    xml += "\t<savedAsDraft>true</savedAsDraft>";
                 }
                 xml += "\t<content-type>" + form.definition.contentType + "</content-type>";
 
@@ -2227,9 +2261,9 @@ var CStudioForms = CStudioForms || function() {
                                 if(property.name == "tokenize"  && property.value == "true") {
                                     fieldInstruction.tokenize = true;
                                 }
-                            } 
-                            catch(err) { 
-                                alert(err) 
+                            }
+                            catch(err) {
+                                alert(err)
                             }
                         }
                     }
@@ -2255,9 +2289,9 @@ var CStudioForms = CStudioForms || function() {
                     var invalidFields = [];
 
                     try {
-                       if(fieldInstruction && fieldInstruction.tokenize == true) {
-                         attributes += " tokenized='true' ";
-                       }
+                        if(fieldInstruction && fieldInstruction.tokenize == true) {
+                            attributes += " tokenized='true' ";
+                        }
                     }
                     catch(err) {
                         alert(err);

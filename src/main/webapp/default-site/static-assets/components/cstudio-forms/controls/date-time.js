@@ -14,6 +14,7 @@ CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||
 		this.readonly = readonly;
 		this.showTime = false;
 		this.showDate = false;
+		this.showClear = false;
 		this.showNowLink = false;
 		this.populate = false;
 		this.timezone = "";
@@ -617,6 +618,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				this.showDate = true;
 			}
 
+			if(prop.name == "showClear" && prop.value == "true") {
+				this.showClear = true;
+			}
+
 			if(prop.name == "showNowLink" && prop.value == "true") {
 				this.showNowLink = true;
 			}
@@ -753,10 +758,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			this._renderDateLink(controlWidgetContainerEl, "Set Now");
 		}
 
-		if (!this.readonly) {
+		if (!this.readonly && this.showClear) {
 			// Render a link to clear the date and/or time values
 			var clearDateEl = document.createElement("a"),
-				clearDateLabel = document.createTextNode("Clear"),
+				clearDateLabel = document.createTextNode("Clear Value"),
                 self = this;
 
 			clearDateEl.className = "clear-link";
@@ -1130,6 +1135,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		return [
 			{ label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
 			{ label: CMgs.format(langBundle, "showTime"), name: "showTime", type: "boolean" },
+			{ label: CMgs.format(langBundle, "showClear"), name: "showClear", type: "boolean", defaultValue: "false"},
 			{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
 			{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
 			{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },
