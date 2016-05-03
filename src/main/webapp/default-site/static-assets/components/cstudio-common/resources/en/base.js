@@ -484,6 +484,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     imageManager: "Image Manager",
     showDate: "Show Date",
     showTime: "Show Time",
+    showClear: "Show Clear Value",
     setNowLink: "Set Now Link",
     populated: "Populated",
     allowPastDate: "Allow Past Date",
