@@ -197,6 +197,7 @@ YAHOO.extend(CStudioForms.Controls.PageNavOrder, CStudioForms.CStudioFormField, 
 		}
 
 		YAHOO.util.Event.addListener(dropdownEl, "change", this.showEditPosition, this, true);
+        YAHOO.util.Event.on(dropdownEl, 'click', function(evt, context) { context.form.setFocusedField(context) }, this);
 		YAHOO.util.Event.addListener(editPositionEl, "click", this.showEditPositionDialog, this, true);
 	},
 

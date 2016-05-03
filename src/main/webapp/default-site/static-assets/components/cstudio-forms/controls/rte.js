@@ -631,7 +631,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
         // Update all content before saving the form (all content is automatically updated on focusOut)
         var callback = {};
         callback.beforeSave = function () {
-            _thisControl.focusOut();
+            //_thisControl.focusOut();
+            _thisControl.save();
         };
         _thisControl.form.registerBeforeSaveCallback(callback);
 	},

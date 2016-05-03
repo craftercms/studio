@@ -231,6 +231,8 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
         this._renderItems();
         this._setActions();
+
+        YAHOO.util.Event.addListener(nodeItemsContainerEl, "click", function(evt, context) { context.form.setFocusedField(context);}, this, true);
     },
 
     _setActions: function () {
@@ -244,8 +246,9 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
                 YAHOO.util.Dom.removeClass(this.addButtonEl, 'cstudio-button-disabled');
                 this.addButtonEl.disabled = false;
                 // give control to the node selector to render the add
-                YAHOO.util.Event.on(this.addButtonEl, 'click', function() {
+                YAHOO.util.Event.on(this.addButtonEl, 'click', function(evt) {
                     var selectItemsCount = _self.getItemsLeftCount();
+                    _self.form.setFocusedField(_self);
                     if (selectItemsCount == 0) {
                         alert("You can't add more items, Remove one and try again.");
                     }
@@ -258,12 +261,14 @@ YAHOO.extend(CStudioForms.Controls.NodeSelector, CStudioForms.CStudioFormField, 
 
             if (datasource.edit) {
                 this.allowEdit = true;
-                YAHOO.util.Event.on(this.editButtonEl, 'click', function() {
+                YAHOO.util.Event.on(this.editButtonEl, 'click', function(evt) {
+                    _self.form.setFocusedField(_self);
                     datasource.edit(_self.items[_self.selectedItemIndex].key, _self);
                 }, this.editButtonEl);
             }
 
-            YAHOO.util.Event.on(this.deleteButtonEl, 'click', function() {
+            YAHOO.util.Event.on(this.deleteButtonEl, 'click', function(evt) {
+                _self.form.setFocusedField(_self);
                 _self.deleteItem(_self.selectedItemIndex);
                 _self._renderItems();
             }, this.deleteButtonEl);

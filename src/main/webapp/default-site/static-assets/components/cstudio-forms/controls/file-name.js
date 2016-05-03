@@ -245,7 +245,9 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
         this.defaultValue = config.defaultValue;
 
         var Event = YAHOO.util.Event, me = this;
-        Event.on(inputEl, 'focus', function(evt, context) { context.form.setFocusedField(context) }, this);
+        Event.on(inputEl, 'click', function(evt, context) {
+            context.form.setFocusedField(context) },
+            this);
         Event.on(inputEl, 'change', this._onChangeVal, this);
         Event.on(inputEl, 'blur', this._onChange, this);
         Event.on(inputEl, 'keyup', this.processKey, inputEl);
@@ -319,6 +321,7 @@ YAHOO.extend(CStudioForms.Controls.FileName, CStudioForms.CStudioFormField, {
 
             YAHOO.util.Event.on(editFileNameBtn, 'click', function(){
             	var edit = true;
+                _self.form.setFocusedField(_self);
             	if(_self.showWarnOnEdit){
             		edit = confirm("Changing this value may result in broken links");
             	}
