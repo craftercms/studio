@@ -14,6 +14,7 @@ CStudioForms.Controls.DateTime = CStudioForms.Controls.DateTime ||
 		this.readonly = readonly;
 		this.showTime = false;
 		this.showDate = false;
+		this.showClear = false;
 		this.showNowLink = false;
 		this.populate = false;
 		this.timezone = "";
@@ -559,8 +560,9 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		dl.className = "date-link";
 		dl.innerHTML = label;
 
-		YAHOO.util.Event.on(dl, "click", function(e) {
+		YAHOO.util.Event.on(dl, "click", function(e, context) {
 			YAHOO.util.Event.preventDefault(e);
+            context.form.setFocusedField(context);
 
 			var _self = this,
 				nowObj = new Date(), cb;
@@ -614,6 +616,10 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 			if(prop.name == "showDate" && prop.value == "true") {
 				this.showDate = true;
+			}
+
+			if(prop.name == "showClear" && prop.value == "true") {
+				this.showClear = true;
 			}
 
 			if(prop.name == "showNowLink" && prop.value == "true") {
@@ -678,6 +684,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			}
 
 			YAHOO.util.Event.on(dateEl, 'change',  this._onChangeVal, this);
+            YAHOO.util.Event.addListener(dateEl, "click", function(evt, context) { context.form.setFocusedField(context);}, this, true);
 		}
 
 		if (this.showTime) {
@@ -700,12 +707,14 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 				incrementControlEl.id=divPrefix + "timeIncrementButton";
 				incrementControlEl.className = "time-increment";
 				YAHOO.util.Event.on(incrementControlEl, 'click',  this._onChangeVal, this);
+                YAHOO.util.Event.on(incrementControlEl, 'click',  function() { self.form.setFocusedField(self);}, this);
 
 				decrementControlEl = document.createElement("input");
 				decrementControlEl.type="button";
 				decrementControlEl.id=divPrefix + "timeDecrementButton";
 				decrementControlEl.className = "time-decrement";
 				YAHOO.util.Event.on(decrementControlEl, 'click',  this._onChangeVal, this);
+                YAHOO.util.Event.on(decrementControlEl, 'click',  function() { self.form.setFocusedField(self);}, this);
 
 				timeWrapper.appendChild(incrementControlEl);
 				timeWrapper.appendChild(decrementControlEl);
@@ -723,6 +732,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 			YAHOO.util.Event.addListener(timeEl, 'click', function(e) {
 				var caretPos = this.saveCaretPosition(timeEl);
+                self.form.setFocusedField(self);
 				timeEl.setAttribute("data-cursor", caretPos);
 			}, timeEl, this);
 
@@ -748,10 +758,11 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			this._renderDateLink(controlWidgetContainerEl, "Set Now");
 		}
 
-		if (!this.readonly) {
+		if (!this.readonly && this.showClear) {
 			// Render a link to clear the date and/or time values
 			var clearDateEl = document.createElement("a"),
-				clearDateLabel = document.createTextNode("Clear");
+				clearDateLabel = document.createTextNode("Clear Value"),
+                self = this;
 
 			clearDateEl.className = "clear-link";
 			clearDateEl.href = "#";
@@ -759,6 +770,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 			YAHOO.util.Event.addListener(clearDateEl, 'click', function(e) {
 				YAHOO.util.Event.preventDefault(e);
+                self.form.setFocusedField(self);
 				this._onChangeVal(null, this);
 				this.setDateTime('', 'date');
 				this.setDateTime('', 'time');
@@ -1123,6 +1135,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		return [
 			{ label: CMgs.format(langBundle, "showDate"), name: "showDate", type: "boolean", defaultValue: "true" },
 			{ label: CMgs.format(langBundle, "showTime"), name: "showTime", type: "boolean" },
+			{ label: CMgs.format(langBundle, "showClear"), name: "showClear", type: "boolean", defaultValue: "false"},
 			{ label: CMgs.format(langBundle, "setNowLink"), name: "showNowLink", type: "boolean", defaultValue: "false" },
 			{ label: CMgs.format(langBundle, "populated"), name: "populate", type: "boolean", defaultValue: "true" },
 			{ label: CMgs.format(langBundle, "allowPastDate"), name: "allowPastDate", type: "boolean", defaultValue: "false" },

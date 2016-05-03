@@ -438,6 +438,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
     imageManager: "이미지 관리자",
     showDate: "쇼 날짜",
     showTime: "쇼 타임",
+    showClear: "표시 지우기 값",
     setNowLink: "이제 링크 설정",
     populated: "인구",
     allowPastDate: "과거 날짜 허용",
