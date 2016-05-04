@@ -385,6 +385,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     createNewType: "Crear un Nuevo Tipo",
     save: "Guardar",
     saved: "Guardado",
+    clearVal: "Limpiar Valor",
     saveFailed: "No Se Pudo Guardar",
     formSection: "Sección del Formulario",
     repeatingGroup: "Repetir Grupo",

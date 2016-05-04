@@ -591,6 +591,8 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		// we need to make the general layout of a control inherit from common
 		// you should be able to override it -- but most of the time it wil be the same
 		containerEl.id = this.id;
+		var CMgs = CStudioAuthoring.Messages;
+		var langBundle = CMgs.getBundle("contentTypes", CStudioAuthoringContext.lang);
 
 		var beforeSaveCb = {
 			beforeSave: function(paramObj) {
@@ -761,7 +763,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		if (!this.readonly && this.showClear) {
 			// Render a link to clear the date and/or time values
 			var clearDateEl = document.createElement("a"),
-				clearDateLabel = document.createTextNode("Clear Value"),
+				clearDateLabel = document.createTextNode(CMgs.format(langBundle, "clearVal")),
                 self = this;
 
 			clearDateEl.className = "clear-link";
