@@ -1075,10 +1075,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			res,
 			val;
 
-		// dateTime = this.getDescendantProp(dateTimePath, (this.id)) ? (this.getDescendantProp(dateTimePath, (this.id))).split(" ") : ["", "04:00:00"];
-		// res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
-
-		if(this.getDescendantProp(dateTimePath, (this.id))) {
+		if(this.getDescendantProp(dateTimePath, (this.id)) && value != '') {
 			dateTime = (this.getDescendantProp(dateTimePath, (this.id))).split(" ");
 			res = this.convertDateTimeSync(dateTime[0], dateTime[1], "GMT", this.timezone);
 			val = eval("(" + (res.responseText) + ")");
