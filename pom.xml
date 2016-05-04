@@ -6,7 +6,7 @@
     <artifactId>crafter-studio-2</artifactId>
     <name>Crafter Studio</name>
     <packaging>war</packaging>
-    <version>2.5.0.e</version>
+    <version>2.5.0.0.1.e</version>
     <url>http://www.craftercms.org</url>
 
     <parent>
