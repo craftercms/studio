@@ -1710,7 +1710,7 @@ var CStudioForms = CStudioForms || function() {
              * render a field
              * repeatField, repeatIndex are used only when repeat
              */
-            _renderField: function(formDef, field, form, formSection, sectionEl, repeatField, repeatIndex) {
+            _renderField: function(formDef, field, form, formSection, sectionEl, repeatField, repeatIndex, pencilMode) {
                 if(form.customController && form.customController.isFieldRelevant(field) == false) {
                     return;
                 }
@@ -1738,7 +1738,8 @@ var CStudioForms = CStudioForms || function() {
                                 this.section,
                                 moduleConfig.config.field.properties,
                                 moduleConfig.config.field.constraints,
-                                form.readOnly);
+                                form.readOnly,
+                                pencilMode);
 
                             formField.initialize(moduleConfig.config.field, this.containerEl);
 
@@ -1807,7 +1808,7 @@ var CStudioForms = CStudioForms || function() {
                         if(field) {
                             if(field.iceId == iceId) {
                                 if(field.type != "repeat") {
-                                    this._renderField(formDef, field, form, formSection, sectionBodyEl);
+                                    this._renderField(formDef, field, form, formSection, sectionBodyEl, null, null, true);
                                     CStudioAuthoring.InContextEdit.autoSizeIceDialog();
                                 }
                                 else {
