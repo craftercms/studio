@@ -32,25 +32,25 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -659,6 +659,51 @@ public class GitContentRepository implements ContentRepository {
         String gitPath = path.replaceAll("/+", "/");
         gitPath = gitPath.replaceAll("^/", "");
         return gitPath;
+    }
+
+    public void createPatch() {
+        try (Repository repository = getSiteRepositoryInstance("gitreposite")) {
+            try (Git git = new Git(repository)) {
+
+                // the diff works on TreeIterators, we prepare two for the two branches
+                AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, "refs/remotes/origin/master");
+                AbstractTreeIterator newTreeParser = prepareTreeParser(repository, "refs/heads/master");
+
+                // then the procelain diff-command returns a list of diff entries
+                List<DiffEntry> diff = git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call();
+                OutputStream os = new FileOutputStream("/Users/dejanbrkic/gitpatchtest.diff");
+                DiffFormatter df = new DiffFormatter(new SafeBufferedOutputStream(os));
+                df.setRepository(repository);
+                df.format(diff);
+                df.flush();
+                df.close();
+                os.close();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private AbstractTreeIterator prepareTreeParser(Repository repository, String ref) throws IOException,
+            MissingObjectException,
+            IncorrectObjectTypeException {
+        // from the commit we can build the tree which allows us to construct the TreeParser
+        Ref head = repository.exactRef(ref);
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit commit = walk.parseCommit(head.getObjectId());
+            RevTree tree = walk.parseTree(commit.getTree().getId());
+
+            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
+            try (ObjectReader oldReader = repository.newObjectReader()) {
+                oldTreeParser.reset(oldReader, tree.getId());
+            }
+
+            walk.dispose();
+
+            return oldTreeParser;
+        }
     }
 
     public String getRootPath() { return rootPath; }
