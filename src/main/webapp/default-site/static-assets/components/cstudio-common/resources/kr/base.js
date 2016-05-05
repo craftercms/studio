@@ -360,6 +360,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
     createNewType: "새로운 유형 만들기",
     save: "저장",
     saved: "저장",
+    clearVal: "지우기 값",
     saveFailed: "저장 실패",
     formSection: "양식 섹션",
     repeatingGroup: "반복 그룹",
