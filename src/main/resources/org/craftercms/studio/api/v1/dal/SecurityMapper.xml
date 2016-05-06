@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2016 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.SecurityMapper">
+
+    <select id="getUser" resultType="User">
+        SELECT * FROM cstudio_user WHERE username = #{username}
+    </select>
+
+    <select id="getUserGroups" resultType="Group">
+        SELECT cstudio_group.* FROM
+        (cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username
+        WHERE cstudio_user.username = #{username})
+        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id
+    </select>
+
+    <select id="getUserRoles" resultType="Role">
+        SELECT cstudio_role.* FROM
+        ((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username
+        WHERE cstudio_user.username = #{username})
+        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id)
+        INNER JOIN cstudio_role ON cstudio_group.roleid = cstudio_role.id
+    </select>
+
+    <select id="getUserPermissions" resultType="Permission">
+        SELECT cstudio_permission.* FROM
+        ((((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username
+        WHERE cstudio_user.username = #{username})
+        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id)
+        INNER JOIN cstudio_role ON cstudio_group.roleid = cstudio_role.id)
+        INNER JOIN cstudio_rolepermission ON cstudio_role.id = cstudio_rolepermission.roleid)
+        INNER JOIN cstudio_permission ON cstudio_rolepermission.permissionid = cstudio_permission.id)
+    </select>
+</mapper>
