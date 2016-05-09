@@ -1501,6 +1501,8 @@ treeNode.getHtml = function() {
                                         }
                                     }
                                 }
+                                p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.copyOption ]);
 
 		                   		p_aArgs.render();
 								menuId.removeChild(d);
@@ -1509,13 +1511,14 @@ treeNode.getHtml = function() {
 			                    if (isComponent == true || isLevelDescriptor == true) {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
+                                        p_aArgs.addItems([ menuItems.separator ]);
 			                        	if (isUserAllowed) {
-
                                             if (isDeleteAllowed) {
-				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
 			                        		}
 			                        	}
+                                        p_aArgs.addItems([ menuItems.copyOption ]);
+
 			                        } else {
 			                        	if (isUserAllowed) {
 				                        	p_aArgs.addItems([ menuItems.editOption ]);
@@ -1539,6 +1542,8 @@ treeNode.getHtml = function() {
                                             if (isCreateContentAllowed) {
                                                 p_aArgs.addItems([ menuItems.newContentOption ]);
                                             }
+                                            p_aArgs.addItems([ menuItems.separator ]);
+                                            p_aArgs.addItems([ menuItems.copyOption ]);
 			                        	}
 			                        }
 			                    } else {
@@ -1602,6 +1607,8 @@ treeNode.getHtml = function() {
                                                         p_aArgs.addItems([ menuItems.newContentOption ]);
                                                     }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        }
 					                        } else {
 				                        		if (isUserAllowed) {
@@ -1615,11 +1622,15 @@ treeNode.getHtml = function() {
                                                         p_aArgs.addItems([ menuItems.separator ]);
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
                                                     if (isCreateContentAllowed) {
                                                         p_aArgs.addItems([ menuItems.newContentOption ]);
                                                     }
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        }
 					                        }
 					                    } else {
@@ -1640,6 +1651,8 @@ treeNode.getHtml = function() {
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
 					                        } else {
 					                        	p_aArgs.addItems([ menuItems.viewOption ]);
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.copyOption ]);
 					                        }
 					                    }
 			                        }
