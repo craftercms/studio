@@ -237,7 +237,11 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                         $( "#acn-resize" ).resizable({
                             minHeight: 150,
                             minWidth: 265,
+                            start: function(event, ui) {
+                                $('#engineWindow').css('pointer-events','none');
+                            },
                             stop: function( event, ui ) {
+                                $('#engineWindow').css('pointer-events','auto');
                                 self.oPreferences.width = ui.size.width + "px";
                                 self.oPreferences.height = ui.size.height + "px";
                                 self.save();
