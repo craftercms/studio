@@ -17,28 +17,11 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+import scripts.api.ServiceFactory;
 
-import java.util.List;
-import java.util.Map;
-
-public interface SecurityMapper {
-
-    User getUser(String username);
-
-    List<Group> getUserGroups(String username);
-
-    List<Role> getUserRoles(String username);
-
-    List<Permission> getUserPermissions(String username);
-
-    UserSession getUserSession(String token);
-
-    void createUserSession(Map params);
-
-    void destroySession(Map params);
-
-    void extendSession(UserSession session);
-
-    void deactivateSession(String token);
-}
+def pass = params.pass;
+def context = ServiceFactory.createContext(applicationContext, request);
+def springBackedService = context.applicationContext.get("cstudioDbSecurityProvider");
+def ret = [:];
+ret.hash = springBackedService.getPasswordHash(pass);
+return ret;

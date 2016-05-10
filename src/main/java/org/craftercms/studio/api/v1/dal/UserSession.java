@@ -19,26 +19,27 @@
 
 package org.craftercms.studio.api.v1.dal;
 
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.Date;
 
-public interface SecurityMapper {
+public class UserSession implements Serializable {
 
-    User getUser(String username);
+    private static final long serialVersionUID = 6507684142290837585L;
 
-    List<Group> getUserGroups(String username);
+    private String token;
+    private String username;
+    private int active;
+    private Date expires;
 
-    List<Role> getUserRoles(String username);
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 
-    List<Permission> getUserPermissions(String username);
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    UserSession getUserSession(String token);
+    public int getActive() { return active; }
+    public void setActive(int active) { this.active = active; }
 
-    void createUserSession(Map params);
-
-    void destroySession(Map params);
-
-    void extendSession(UserSession session);
-
-    void deactivateSession(String token);
+    public Date getExpires() { return expires; }
+    public void setExpires(Date expires) { this.expires = expires; }
 }

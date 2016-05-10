@@ -684,6 +684,16 @@
         <property name="providerType" value="demo"/>
     </bean>
 
+    <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbSecurityProvider">
+        <property name="sessionTimeout" value="${crafter.studio.security.db.sessionTimeout}"/>
+    </bean>
+
+    <bean id="cstudioDbSecurityProviderRegistration"
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioDbSecurityProvider"/>
+        <property name="providerType" value="db"/>
+    </bean>
+
     <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
          do anything.  Remember another repostory may be configured for use and Alfresco 
          may not exist on the server. I.e. evaluation
