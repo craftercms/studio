@@ -484,9 +484,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             content = content[0];
                             option.onclick = function() {
 
-                                content.uri = content.uri.replace("//", "/");
-                                if(content.uri.indexOf("/site") == 0) {
-                                    if (isWrite == false) {
+                                if (isWrite == false) {
                                         CStudioAuthoring.Operations.viewContent(
                                             content.form,
                                             CStudioAuthoringContext.siteId,
@@ -505,28 +503,6 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             false,
                                             editCallback);
                                     }
-                                }
-                                else if(content.uri.indexOf(".ftl") != -1
-                                || content.uri.indexOf(".css")  != -1
-                                || content.uri.indexOf(".js") != -1
-                                || content.uri.indexOf(".groovy") != -1
-                                || content.uri.indexOf(".txt") != -1
-                                || content.uri.indexOf(".html") != -1
-                                || content.uri.indexOf(".hbs") != -1
-                                || content.uri.indexOf(".xml") != -1
-                                ) {
-                                    var editCb = {
-                                        success: function() {
-                                            this.callingWindow.location.reload(true);
-                                        },
-
-                                        failure: function() {
-                                        },
-
-                                        callingWindow: window
-                                    };
-
-                                    CStudioAuthoring.Operations.openTemplateEditor(content.uri, "default", editCb);                                }
                             }; 
 
                             // relevant flag, allowing document & banner to be editable from Search result

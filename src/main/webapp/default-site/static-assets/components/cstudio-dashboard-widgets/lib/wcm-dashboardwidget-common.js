@@ -792,9 +792,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
         success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
 
-
-            if (contentTO.uri.indexOf("/site") == 0) {
-                CStudioAuthoring.Operations.editContent(
+            CStudioAuthoring.Operations.editContent(
                     contentTO.form,
                     CStudioAuthoringContext.siteId,
                     contentTO.uri,
@@ -802,10 +800,6 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
                     contentTO.uri,
                     false,
                     editCallback);
-            }
-            else {
-                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);
-            }
         },
 
         failure: function () {

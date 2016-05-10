@@ -689,7 +689,11 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             callingWindow: window
         };
 
-        CStudioAuthoring.Operations.openTemplateEditor(path, "default", editCb);
+        //CStudioAuthoring.Operations.openTemplateEditor(path, "default", editCb);
+        CStudioAuthoring.Operations.editContent(
+            oCurrentTextNode.data.formId,
+            CStudioAuthoringContext.site,path,
+            oCurrentTextNode.data.nodeRef, path, false, editCb);
     },
 
     createNewTemplate: function() {
