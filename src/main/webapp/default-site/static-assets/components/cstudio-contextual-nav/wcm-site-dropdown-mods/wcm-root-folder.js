@@ -1877,8 +1877,21 @@ treeNode.getHtml = function() {
                 var path = (oCurrentTextNode.data.uri);
 
                 var editCb = {
-                    success: function() {
-                        CStudioAuthoring.Operations.refreshPreview();
+                    success: function(contentTO, editorId, name, value, draft) {
+                        if(CStudioAuthoringContext.isPreview){
+                            try{
+                                CStudioAuthoring.Operations.refreshPreview();
+                            }catch(err) {
+                                if(!draft) {
+                                    this.callingWindow.location.reload(true);
+                                }
+                            }
+                        }
+                        else {
+                            if(!draft) {
+                                this.callingWindow.location.reload(true);
+                            }
+                        }
                     },
 
                     failure: function() {

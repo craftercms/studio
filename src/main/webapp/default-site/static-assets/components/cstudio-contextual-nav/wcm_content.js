@@ -466,10 +466,23 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 //                            }
 
                             var editCallback = {
-                                success: function(refreshPreview) {
+                                success: function(contentTO, editorId, name, value, draft) {
                                     //this.callingWindow.location.reload(true);
-                                    var cstopic = crafter.studio.preview.cstopic;
-                                    window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                    if(CStudioAuthoringContext.isPreview){
+                                        try{
+                                            var cstopic = crafter.studio.preview.cstopic;
+                                            window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                        }catch(err) {
+                                            if(!draft) {
+                                                this.callingWindow.location.reload(true);
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        if(!draft) {
+                                            this.callingWindow.location.reload(true);
+                                        }
+                                    }
                                 },
                                 failure: function() { },
                                 callingWindow : window

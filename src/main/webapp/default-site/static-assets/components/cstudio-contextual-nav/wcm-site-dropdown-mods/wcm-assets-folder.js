@@ -646,12 +646,25 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
      * "contextmenu" event that triggered the display of the
      * ContextMenu instance.
      */
-    editContent: function() {
+    editContent: function(contentTO, editorId, name, value, draft) {
         var path = (oCurrentTextNode.data.uri);
 
         var editCb = {
             success: function() {
-                this.callingWindow.location.reload(true);
+                if(CStudioAuthoringContext.isPreview){
+                    try{
+                        CStudioAuthoring.Operations.refreshPreview();
+                    }catch(err) {
+                        if(!draft) {
+                            this.callingWindow.location.reload(true);
+                        }
+                    }
+                }
+                else {
+                    if(!draft) {
+                        this.callingWindow.location.reload(true);
+                    }
+                }
             },
 
             failure: function() {
