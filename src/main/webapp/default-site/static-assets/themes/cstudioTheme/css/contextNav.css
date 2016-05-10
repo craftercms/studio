@@ -534,6 +534,7 @@ body .mask{
 body.yui-skin-cstudioTheme .mask{
   background-color: rgb(68, 68, 68);
   opacity: 0.5;
+    position: fixed;
 }
 
 .yui-overlay.yui-panel{
