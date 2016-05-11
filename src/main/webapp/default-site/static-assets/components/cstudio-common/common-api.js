@@ -1621,11 +1621,38 @@ var ApproveType = false;
             editContent: function(formId, site, id, noderef, path, asPopup, callback,auxParams) {
 
                 var CSA = CStudioAuthoring,
+                    uri = id.replace("//", "/"),
                     params = { site: (site || CStudioAuthoringContext.site), path: path },
                     doEdit = function () {
-                        CSA.Operations.openContentWebForm(
-                            formId, id, noderef, path, true, asPopup, callback, auxParams);
-                    };
+
+                        if(uri.indexOf("/site") == 0) {
+                            CSA.Operations.openContentWebForm(
+                                formId, id, noderef, path, true, asPopup, callback, auxParams);
+                        }
+                        else if(uri.indexOf(".ftl") != -1
+                        || uri.indexOf(".css")  != -1
+                        || uri.indexOf(".js") != -1
+                        || uri.indexOf(".groovy") != -1
+                        || uri.indexOf(".txt") != -1
+                        || uri.indexOf(".html") != -1
+                        || uri.indexOf(".hbs") != -1
+                        || uri.indexOf(".xml") != -1
+                        ) {
+                            var editCb = {
+                                success: function () {
+                                    this.callingWindow.location.reload(true);
+                                },
+
+                                failure: function () {
+                                },
+
+                                callingWindow: window
+                            };
+
+                            CStudioAuthoring.Operations.openTemplateEditor(uri, "default", editCb);
+                        }
+
+                };
 
                 CSA.Operations.getWorkflowAffectedFiles(params, {
                     success: function (content) {
