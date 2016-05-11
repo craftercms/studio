@@ -780,8 +780,21 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
 
     var editCallback = {
-        success: function () {
-            this.callingWindow.location.reload(true);
+        success: function (ontentTO, editorId, name, value, draft) {
+            if(CStudioAuthoringContext.isPreview){
+                try{
+                    CStudioAuthoring.Operations.refreshPreview();
+                }catch(err) {
+                    if(!draft) {
+                        this.callingWindow.location.reload(true);
+                    }
+                }
+            }
+            else {
+                if(!draft) {
+                    this.callingWindow.location.reload(true);
+                }
+            }
         },
         failure: function () {
         },
@@ -792,9 +805,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
         success: function (contentTO) {
             WcmDashboardWidgetCommon.Ajax.enableDashboard();
 
-
-            if (contentTO.uri.indexOf("/site") == 0) {
-                CStudioAuthoring.Operations.editContent(
+            CStudioAuthoring.Operations.editContent(
                     contentTO.form,
                     CStudioAuthoringContext.siteId,
                     contentTO.uri,
@@ -802,10 +813,6 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
                     contentTO.uri,
                     false,
                     editCallback);
-            }
-            else {
-                CStudioAuthoring.Operations.openTemplateEditor(contentTO.uri, "default", editCallback);
-            }
         },
 
         failure: function () {

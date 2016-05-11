@@ -1086,7 +1086,7 @@ var CStudioForms = CStudioForms || function() {
                                         var name = entityId;
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
 
-                                        iceWindowCallback.success(contentTO, editorId, name, value);
+                                        iceWindowCallback.success(contentTO, editorId, name, value, draft);
                                         if(draft) {
                                             CStudioAuthoring.Utils.Cookies.createCookie("cstudio-save-draft","true");
                                             createDialog();
