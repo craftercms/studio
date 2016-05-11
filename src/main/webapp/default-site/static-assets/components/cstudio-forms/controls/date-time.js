@@ -678,10 +678,14 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 			dateEl.className = "date-control";
 			dateEl.readOnly = "readonly";
 			this.dateEl = dateEl;
+
+			YAHOO.util.Dom.addClass(dateElContainer, 'date-el-container');
+
 			YAHOO.util.Dom.addClass(dateEl, 'datum');
 			YAHOO.util.Dom.addClass(dateEl, 'date');
 
-			controlWidgetContainerEl.appendChild(dateEl);
+			controlWidgetContainerEl.appendChild(dateElContainer);
+			dateElContainer.appendChild(dateEl);
 
 			YAHOO.util.Event.on(dateEl, 'blur', function(e, _this) {
 				_this.validate(e, _this, true);
