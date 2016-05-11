@@ -587,7 +587,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		containerEl.appendChild(dl);
 	},
 
-	render: function(config, containerEl) {
+	render: function(config, containerEl, lastTwo) {
 		// we need to make the general layout of a control inherit from common
 		// you should be able to override it -- but most of the time it wil be the same
 		containerEl.id = this.id;
@@ -656,10 +656,16 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 
 		var controlWidgetContainerEl = document.createElement("div");
 		YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'date-time-container');
+
+		if(lastTwo) {
+			YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'date-time-container on-top');
+		}
+
 		if (this.readonly) {
 			YAHOO.util.Dom.addClass(controlWidgetContainerEl, 'read-only');
 		}
 
+		var dateElContainer = document.createElement("div");
 		var validEl = document.createElement("span");
 		YAHOO.util.Dom.addClass(validEl, 'validation-hint');
 		YAHOO.util.Dom.addClass(validEl, 'cstudio-form-control-validation');
@@ -793,7 +799,7 @@ YAHOO.extend(CStudioForms.Controls.DateTime, CStudioForms.CStudioFormField, {
 		YAHOO.util.Dom.addClass(calEl, 'cstudio-form-field-calendar');
 		YAHOO.util.Dom.addClass(calEl, 'hidden');
 
-		controlWidgetContainerEl.appendChild(calEl);
+		dateElContainer.appendChild(calEl);
 		containerEl.appendChild(titleEl);
 		containerEl.appendChild(controlWidgetContainerEl);
 		containerEl.appendChild(descriptionEl);

@@ -20,6 +20,7 @@
 
 div.yui-calcontainer.cstudio-form-field-calendar {
     margin-bottom: 8px;
+    left: 0;
 }
 
 .cstudio-form-control-filename-edit {
@@ -935,6 +936,15 @@ div.yui-calcontainer.cstudio-form-field-calendar {
 .date-time-container.read-only .date-control,
 .date-time-container.read-only .time-control { color: #999; }
 input[disabled]{background-color: whitesmoke;}
+
+.cstudio-form-field-container .date-time-container .date-el-container {
+    position: relative;
+    display: inline;
+}
+
+.cstudio-form-field-container .date-time-container.on-top .cstudio-form-field-calendar {
+    top: -275px !important;
+}
 
 .cstudio-form-control-dropdown{max-width: 62%;}
 
