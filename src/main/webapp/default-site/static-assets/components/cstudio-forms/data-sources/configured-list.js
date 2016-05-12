@@ -2,7 +2,7 @@ CStudioForms.Datasources.ConfiguredList = CStudioForms.Datasources.ConfiguredLis
 function(id, form, properties, constraints)  {
    	this.id = id;
    	this.form = form;
-   	this.sort = CStudioForms.Datasources.ConfiguredList.SORT_NONE;
+	this.sort = this.SORT_NONE;
    	this.properties = properties;
    	this.constraints = constraints;
 	this.callbacks = [];
@@ -11,7 +11,13 @@ function(id, form, properties, constraints)  {
 	for(var i=0; i<properties.length; i++) {
 		var property = properties[i]
 		if(property.name == "sort") {
-			this.sort = property.value;
+			var propValues = JSON.parse(property.value);
+
+			for(var x = 0; x < propValues.length; x++) {
+				if(propValues[x].selected){
+					this.sort = propValues[x].label;
+				}
+			}
 		}
 
 		if(property.name == "listName") {
@@ -23,10 +29,10 @@ function(id, form, properties, constraints)  {
                             values = [ values.item ];
                         }
 
-                        if(_self.sort != CStudioForms.Datasources.ConfiguredList.SORT_NONE) {
-                        	if(_self.sort == CStudioForms.Datasources.ConfiguredList.SORT_ASC) {
+						if(_self.sort != _self.SORT_NONE) {
+							if(_self.sort == _self.SORT_ASC) {
                         		values = values.sort(function(a, b) { 
-                        				return a.value < b.value;
+                        				return a.value > b.value;
                         		 });
                         	}
                         	else {
@@ -165,9 +171,9 @@ YAHOO.extend(CStudioForms.Datasources.ConfiguredList, CStudioForms.CStudioFormDa
 			cb.success(this.list);
 		}
 	},
-	SORT_NONE: "none",
-	SORT_DESC: "desc",
-	SORT_ASC: "asc"
+	SORT_NONE: "None",
+	SORT_DESC: "descending",
+	SORT_ASC: "ascending"
 	
 
 });
