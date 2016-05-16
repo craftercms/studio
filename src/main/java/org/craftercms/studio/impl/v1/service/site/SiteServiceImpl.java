@@ -304,34 +304,37 @@ public class SiteServiceImpl implements SiteService {
 
    	@Override
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
- 		boolean success = true;
+        boolean success = true;
+
  		try {
+            if (createSiteV2) {
+                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
+            } else {
+                contentRepository.createFolder(siteId, "/wem-projects/" + siteId + "/" + siteId, "work-area");
+                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-content",
+                        "/wem-projects/" + siteId + "/" + siteId + "/work-area");
 
-			contentRepository.createFolder(siteId, "/wem-projects/"+siteId+"/"+siteId, "work-area");
-			contentRepository.copyContent(siteId, "/cstudio/blueprints/"+blueprintName+"/site-content",
-				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+                String siteConfigFolder = "/cstudio/config/sites/" + siteId;
+                contentRepository.createFolder(siteId, "/cstudio/config/sites/", siteId);
+                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-config",
+                        siteConfigFolder);
 
-	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder(siteId, "/cstudio/config/sites/", siteId);
-	 		contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-config",
-					siteConfigFolder);
+                replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
+                replaceFileContent(siteConfigFolder + "/role-mappings-config.xml", "SITENAME", siteId);
+                replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
 
-			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
-	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITENAME", siteId);
-	 		replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
+                // Add user groups
+                securityService.addUserGroup("crafter_" + siteId);
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
+                securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
-			// Add user groups
-			securityService.addUserGroup("crafter_" + siteId);
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
-			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
-
-            // set permissions for groups
-            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_admin");
-            securityProvider.addConfigWritePermission("/cstudio/config/sites/"+siteId, "crafter_" + siteId + "_admin");
-            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_author");
-
+                // set permissions for groups
+                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_admin");
+                securityProvider.addConfigWritePermission("/cstudio/config/sites/" + siteId, "crafter_" + siteId + "_admin");
+                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_author");
+            }
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
@@ -370,6 +373,14 @@ public class SiteServiceImpl implements SiteService {
 	 	}
 
 	 	return success;
+    }
+
+    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc) {
+        boolean success = true;
+
+        // create site with git repo
+
+        return success;
     }
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
@@ -673,6 +684,9 @@ public class SiteServiceImpl implements SiteService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public boolean isCreateSiteV2() { return createSiteV2; }
+    public void setCreateSiteV2(boolean createSiteV2) { this.createSiteV2 = createSiteV2; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -699,6 +713,8 @@ public class SiteServiceImpl implements SiteService {
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
+
+    protected boolean createSiteV2;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

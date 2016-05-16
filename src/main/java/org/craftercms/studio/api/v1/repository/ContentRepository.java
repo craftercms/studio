@@ -207,9 +207,5 @@ public interface ContentRepository {
     void unLockItem(String site, String path);
 
 
-
-
-
-
-
+    boolean createSiteFromBlueprint(String blueprintName, String siteId);
 }

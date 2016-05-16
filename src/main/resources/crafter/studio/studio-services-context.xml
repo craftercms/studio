@@ -110,6 +110,7 @@
         <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="createSiteV2" value="${siteService.createSite.v2.enable}"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">

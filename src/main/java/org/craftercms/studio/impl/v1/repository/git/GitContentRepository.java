@@ -51,13 +51,13 @@ import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class GitContentRepository implements ContentRepository {
 
@@ -703,6 +703,122 @@ public class GitContentRepository implements ContentRepository {
             walk.dispose();
 
             return oldTreeParser;
+        }
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        // create git repository for site content
+        createSiteRepository(siteId);
+        // copy files from blueprint
+        copyContentFromBlueprint(blueprintName, siteId);
+        // commit everything so it is visible
+        createInitialCommit(siteId);
+
+        return true;
+    }
+
+    private boolean createSiteRepository(String site) {
+        boolean success = true;
+        Path siteRepoPath = Paths.get(rootPath, "sites", site);
+        try {
+            Files.deleteIfExists(siteRepoPath);
+            siteRepoPath = Paths.get(siteRepoPath.toAbsolutePath().toString(), ".git");
+            Repository repository = FileRepositoryBuilder.create(siteRepoPath.toFile());
+            repository.create();
+        } catch (IOException e) {
+            logger.error("Error while creating repository for site " + site, e);
+            success = false;
+        }
+        return success;
+    }
+
+    private void copyContentFromBlueprint(String blueprint, String site) {
+        Path siteRepoPath = Paths.get(rootPath, "sites", site);
+        Path blueprintPath = Paths.get(rootPath, "global-configuration", "blueprints", blueprint);
+        File blueprintFolder = blueprintPath.toAbsolutePath().toFile();
+        File[] blueprintContents = blueprintFolder.listFiles();
+        for (File blueprintContent : blueprintContents) {
+            Path source = Paths.get(blueprintContent.getAbsolutePath());
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            TreeCopier tc = new TreeCopier(source, siteRepoPath);
+            try {
+                Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+            } catch (IOException err) {
+                logger.error("Error copping files from blueprint", err);
+            }
+        }
+    }
+
+    class TreeCopier implements FileVisitor<Path> {
+        private final Path source;
+        private final Path target;
+
+        TreeCopier(Path source, Path target) {
+            this.source = source;
+            this.target = target;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            CopyOption[] options = new CopyOption[0];
+
+            Path newdir = target.resolve(source.relativize(dir));
+            try {
+                Files.copy(dir, newdir, options);
+            } catch (FileAlreadyExistsException x) {
+                // ignore
+            } catch (IOException err) {
+                logger.error("Unable to create: %s: %s%n", newdir, err);
+                return SKIP_SUBTREE;
+            }
+            return CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            CopyOption[] options = new CopyOption[] { REPLACE_EXISTING };
+            try {
+                Files.copy(file, target.resolve(source.relativize(file)), options);
+            } catch (IOException err) {
+                logger.error("Unable to copy: %s: %s%n", source, err);
+            }
+            return CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            if (exc instanceof FileSystemLoopException) {
+                logger.error("cycle detected: " + file);
+            } else {
+                logger.error("Unable to copy: %s: %s%n", file, exc);
+            }
+            return CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            return CONTINUE;
+        }
+    }
+
+    private void createInitialCommit(String site) {
+        String toRet = StringUtils.EMPTY;
+        try {
+            Repository repo = getSiteRepositoryInstance(site);
+
+            Git git = new Git(repo);
+
+            Status status = git.status().call();
+
+            if (status.hasUncommittedChanges() || !status.isClean()) {
+                RevCommit commit = git.commit()
+                        .setMessage("initial content")
+                        .call();
+                toRet = commit.getId().toString();
+            }
+        } catch (IOException | GitAPIException err) {
+            logger.error("error creating initial commit for site:  " + site, err);
         }
     }
 
