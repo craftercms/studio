@@ -128,7 +128,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     public void deleteObjectMetadata(String site, String path) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
-        params.put("path", site);
+        params.put("path", path);
         objectMetadataMapper.deleteEntry(params);
     }
 
