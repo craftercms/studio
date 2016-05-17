@@ -655,6 +655,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         }
     }
 
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        return false;
+    }
+
     public boolean isBootstrapEnabled() { return bootstrapEnabled; }
     public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
 

@@ -193,4 +193,10 @@ public class MappedContentRepository extends AbstractContentRepository {
         ContentRepository repo = lookupRepo(repositoryType);
         return repo.getModifiedDate(site, path);
     }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        ContentRepository repo = lookupRepo(repositoryType);
+        return repo.createSiteFromBlueprint(blueprintName, siteId);
+    }
 }

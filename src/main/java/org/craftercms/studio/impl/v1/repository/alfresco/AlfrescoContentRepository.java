@@ -1457,6 +1457,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        return false;
+    }
+
+    @Override
     public void addConfigWritePermission(String path, String group) {
         setWritePermission(path, group);
     }

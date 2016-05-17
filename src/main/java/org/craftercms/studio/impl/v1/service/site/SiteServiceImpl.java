@@ -379,6 +379,7 @@ public class SiteServiceImpl implements SiteService {
         boolean success = true;
 
         // create site with git repo
+        contentRepository.createSiteFromBlueprint(blueprintName, siteId);
 
         return success;
     }
@@ -502,7 +503,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", "/cstudio/blueprints");
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", "/blueprints");
 		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
 		int idx = 0;
 		for (RepositoryItem folder : blueprintsFolders) {

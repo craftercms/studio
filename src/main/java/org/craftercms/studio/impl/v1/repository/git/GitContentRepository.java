@@ -781,7 +781,7 @@ public class GitContentRepository implements ContentRepository {
             try {
                 Files.copy(file, target.resolve(source.relativize(file)), options);
             } catch (IOException err) {
-                logger.error("Unable to copy: %s: %s%n", source, err);
+                logger.error("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
             }
             return CONTINUE;
         }
