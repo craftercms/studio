@@ -113,7 +113,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        params.put("lockOwner", "");
+        params.put("lockOwner", null);
         objectMetadataMapper.setLockOwner(params);
     }
 
@@ -128,7 +128,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     public void deleteObjectMetadata(String site, String path) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
-        params.put("path", site);
+        params.put("path", path);
         objectMetadataMapper.deleteEntry(params);
     }
 

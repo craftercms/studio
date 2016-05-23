@@ -42,7 +42,7 @@ YAHOO.extend(CStudioForms.Controls.LinkTextarea, CStudioForms.CStudioFormField, 
 					var el = item;
 					var properties = item.properties.forEach(function(prop){
 						if (prop.name == "depends") {
-							if( id.includes(prop.value) && prop.value != "") {
+							if( id.includes(prop.value) && prop.value != "" && el.value == "_blank") {
 								el.required = true;
 								el.setError("required", "Field is Required");
 								el.renderValidation(true, false);

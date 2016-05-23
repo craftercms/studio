@@ -407,6 +407,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
     },
 
     addImage: function(){
+
         var _self = this;
         var imageManagerNames = this.datasources;
 
@@ -748,8 +749,9 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             YAHOO.util.Dom.addClass(delEl, 'cstudio-button-disabled');
         }
 
-        YAHOO.util.Event.addListener(addEl, "click", this.addImage, this, true);
-        YAHOO.util.Event.addListener(delEl, "click", this.deleteImage, this, true);
+        YAHOO.util.Event.addListener(imageEl, "click", function(evt, context) { context.form.setFocusedField(context);}, this, true);
+        YAHOO.util.Event.addListener(addEl, "click", function(evt, context) { context.form.setFocusedField(context); this.addImage(); }, this, true);
+        YAHOO.util.Event.addListener(delEl, "click", function(evt, context) { context.form.setFocusedField(context); this.deleteImage(); }, this, true);
         YAHOO.util.Event.addListener(zoomEl, "click", this.createDialog, this, true);
 
         YAHOO.util.Event.addListener(imageEl,"mouseover", this.showButtons,this,true);

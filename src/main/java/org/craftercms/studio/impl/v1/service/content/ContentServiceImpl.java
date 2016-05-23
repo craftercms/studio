@@ -685,7 +685,7 @@ public class ContentServiceImpl implements ContentService {
                     else {
                         if (depth > 1) {
                             String childPath = getRelativeSitePath(item.site, childRepoItems[j].path + "/" + childRepoItems[j].name);
-                            if (childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
+                            if (childPath.startsWith("/site/website/") && childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
                                 children.add(getContentItem(item.site, childPath + "/index.xml", depth - 1));
                             } else {
                                 children.add(getContentItem(item.site, childPath, depth - 1));
@@ -810,8 +810,13 @@ public class ContentServiceImpl implements ContentService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         Object cacheKey = cacheTemplate.getKey(site, path);
-        if (!cacheService.hasScope(cacheContext)) {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         cacheService.remove(cacheContext, cacheKey);
     }

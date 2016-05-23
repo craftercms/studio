@@ -510,6 +510,8 @@ body .mask{
     text-align: center !important;
     top: 51px;
     width: 100%;
+    left: 0px;
+    z-index: 999;
 }
 
 .acnDisabledContent {
@@ -532,6 +534,7 @@ body .mask{
 body.yui-skin-cstudioTheme .mask{
   background-color: rgb(68, 68, 68);
   opacity: 0.5;
+    position: fixed;
 }
 
 .yui-overlay.yui-panel{

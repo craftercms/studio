@@ -41,15 +41,17 @@
                     var instance = new CStudioAuthoring.ContextualNav.WcmRootFolderInstance(config);
                     instance.cannedSearchCache = [];
                     instance.excludeCache = [];
-                    instance.openArray = [];
+                    instance.openArray = {};
                     var latestStored = storage.read( Self.getStoredPathKey(instance) );
                     if(latestStored){
-                        if(latestStored.indexOf(',')!=-1){
-                            instance.openArray = latestStored.split(",");
+                        if(latestStored.indexOf(',')!=-1 || latestStored.indexOf('[')!=-1 || latestStored.indexOf('{')!=-1){
+                            instance.openArray = JSON.parse(latestStored);
                         }else{
+                            instance.openArray = [];
                             instance.openArray.push(latestStored);
                         }
                     }
+                    instance.pathNumber = 0;
 
 
                     if(config.params.mods) {
@@ -382,6 +384,18 @@
                     }
                     self.expandTree(node);
 
+                    if (Object.prototype.toString.call(instance.path) === '[object Array]') {
+                        if (instance.path.length - 1 == instance.pathNumber) {
+                            var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                            for (var i = 0; i < treeChild.length; i++) {
+                                treeChild[i].setAttribute("num", instance.path[i].replace(/\//g, "").toLowerCase());
+                            }
+                        }
+                    }else{
+                        var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                        treeChild[0].setAttribute("num", instance.path.replace(/\//g, "").toLowerCase());
+                    }
+
                     return true;
                 });
 
@@ -393,6 +407,18 @@
                     nodeId.className = collapsedNodeStyle + " acn-collapsed-tree-node-label";
 
                     self.collapseTree(node);
+
+                    if (Object.prototype.toString.call(instance.path) === '[object Array]') {
+                        if (instance.path.length - 1 == instance.pathNumber) {
+                            var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                            for (var i = 0; i < treeChild.length; i++) {
+                                treeChild[i].setAttribute("num", instance.path[i].replace(/\//g, "").toLowerCase());
+                            }
+                        }
+                    }else{
+                        var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                        treeChild[0].setAttribute("num", instance.path.replace(/\//g, "").toLowerCase());
+                    }
 
                     return true;
                 });
@@ -414,6 +440,20 @@
                 }, tree, false);
 
                 tree.draw();
+               if (Object.prototype.toString.call(instance.path) === '[object Array]') {
+                   if (instance.path.length - 1 == instance.pathNumber) {
+                       var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                       for (var i = 0; i < treeChild.length; i++) {
+                           treeChild[i].setAttribute("num", instance.path[i].replace(/\//g, "").toLowerCase());
+                       }
+                   }
+               }else{
+                   var treeChild = tree.getEl().querySelectorAll(".ygtvchildren > .ygtvitem");
+                   treeChild[0].setAttribute("num", instance.path.replace(/\//g, "").toLowerCase());
+               }
+                instance.pathNumber++;
+                if(instance.path.length - 1 < instance.pathNumber){instance.pathNumber = 0;}
+
 				Self.wireUpCannedSearches();
 
                 if (nodeToOpen != null) {
@@ -665,7 +705,7 @@ treeNode.getHtml = function() {
                         instance.state = WcmRootFolder.ROOT_OPEN;
 						if (!instance.firstDraw) {
 							Self.initializeContentTree(instance.rootFolderEl, path, instance);
-                            Self.save(instance, Self.ROOT_OPENED);
+                            Self.save(instance, Self.ROOT_OPENED, null, "root-folder");
 						}
                     } else {
                         instance.rootFolderEl.style.display = 'none';
@@ -688,7 +728,8 @@ treeNode.getHtml = function() {
 
 			openLatest: function(instance){
 
-                var latestStored = [];
+                var latestStored = {};
+                var index = instance.indexPath;
                 try {
                     // TODO: revise this way to get the current page in preview
                     // CStudioAuthoringContext properties isPreview and previewCurrentPath are set on overlayhook.get.html.ftl
@@ -696,54 +737,58 @@ treeNode.getHtml = function() {
                         //latestStored = CStudioAuthoringContext.previewCurrentPath;
                     }
                 } catch (ex) { }
-                if (latestStored.length <= 0) {
+                if (!Object.keys(latestStored).length) {
                     var latestStoredVar = storage.read( Self.getStoredPathKey(instance) );
                     if(latestStoredVar){
-                        if(latestStoredVar.indexOf(',')!=-1){
-                            latestStored = latestStoredVar.split(",");
+                        if(latestStoredVar.indexOf(',')!=-1 || latestStoredVar.indexOf('[')!=-1 || latestStoredVar.indexOf('{')!=-1){
+                            latestStored = JSON.parse(latestStoredVar);
                         }else{
+                            latestStored = [];
                             latestStored.push(latestStoredVar);
                         }
                     }
-
                 }
 
-				if(latestStored.length > 0){
+				if(Object.keys(latestStored).length >= 1){
 					var treeEl = instance.rootFolderEl,
 						site = treeEl.rootFolderSite,
 						rootPath = treeEl.rootFolderPath,
 						tree = instance.tree = new YAHOO.widget.TreeView(treeEl),
-						paths = [],
-						counter = [],
-						recursiveCalls = [],
-                        tmp = [],
-                        k = 0,
-                        pathTrace = [],
-						updatePathTrace = function(j){ return (pathTrace[j] = (pathTrace[j] + "/" + paths[j][counter[j]++])); },
-                        nextPathTrace = function(j){
-                            var cont = j == 0 ? 0 : counter[j] + 1;
-                            return (pathTrace[j] + "/" + paths[j][counter[j]]); }
+						paths = {},
+						counter = {},
+						recursiveCalls = {},
+                        tmp = {},
+                        k = {},
+                        pathTrace = {},
+                        rooth = {},
+						updatePathTrace = function(j, key){ return (pathTrace[key][j] = (pathTrace[key][j] + "/" + paths[key][j][counter[key][j]++])); },
+                        nextPathTrace = function(j, key){
+                            var cont = j == 0 ? 0 : counter[key][j] + 1;
+                            return (pathTrace[key][j] + "/" + paths[key][j][counter[key][j]]); }
 						YSelector = YAHOO.util.Selector.query;
-                    pathTrace[k] = rootPath;
-                    counter[k] = 0;
-					(function(){
-						tmp[k] = latestStored[k].replace(rootPath, "");
-						paths[k] = tmp[k].length ? (tmp[k].charAt(0) == "/" ? tmp[k].substr(1) : tmp[k]).split("/") : null;
-						recursiveCalls[k] = tmp[k].length ? paths[k].length : 0;
-					})();
 					var label = instance.rootFolderEl.previousElementSibling;
 					YDom.addClass(label, "loading");
-					var doCall = function(n, j){
+					var doCall = function(n, j, key){
 						Self.onLoadNodeDataOnClick(n, function(){
 							n.loadComplete();
-							if (counter[j] < recursiveCalls[j]) {
-								updatePathTrace(j);
-								var node = tree.getNodeByProperty("path", pathTrace[j]);
+							if (counter[key][j] < recursiveCalls[key][j]) {
+								updatePathTrace(j, key);
+								var node = tree.getNodesByProperty("path", pathTrace[key][j]);
 								if (node != null) {
-									var loadEl = YSelector(".ygtvtp", node.getEl(), true);
-									loadEl == null && (loadEl = YSelector(".ygtvlp", node.getEl(), true));
-									YDom.addClass(loadEl, "ygtvloading");
-									doCall(node, j);
+                                    for(n = 0; node.length > n;  n++) {
+                                        var el = node[n].getEl(), num;
+                                        num = el.getAttribute('num');
+                                        if(!num){
+                                            while ((el = el.parentElement) && !el.hasAttribute("num"));
+                                        }
+                                        num = el.getAttribute('num');
+                                        if(num == key) {
+                                            var loadEl = YSelector(".ygtvtp", node[n].getEl(), true);
+                                            loadEl == null && (loadEl = YSelector(".ygtvlp", node[n].getEl(), true));
+                                            YDom.addClass(loadEl, "ygtvloading");
+                                            doCall(node[n], j, key);
+                                        }
+                                    }
 								} else {
 									YDom.removeClass(label, "loading");
 									YDom.removeClass(YSelector(".ygtvloading", treeEl), "ygtvloading");
@@ -752,30 +797,42 @@ treeNode.getHtml = function() {
                                     Self.firePathLoaded(instance);
 								}
 							} else {
-                                k++;
-                                if (latestStored.length > k) {
-                                    pathTrace[k] = rootPath;
-                                    counter[k] = 0;
+                                k[key]++;
+                                if (latestStored[key].length > k[key]) {
+                                    pathTrace[key][k[key]] = rooth[key];
+                                    counter[key][k[key]] = 0;
                                     (function () {
-                                        tmp[k] = latestStored[k].replace(rootPath, "");
-                                        paths[k] = tmp[k].length ? (tmp[k].charAt(0) == "/" ? tmp[k].substr(1) : tmp[k]).split("/") : null;
-                                        recursiveCalls[k] = tmp[k].length ? paths[k].length : 0;
+                                        tmp[key][k[key]] = latestStored[key][k[key]].replace(rooth[key], "");
+                                        paths[key][k[key]] = tmp[key][k[key]].length ? (tmp[key][k[key]].charAt(0) == "/" ? tmp[key][k[key]].substr(1) : tmp[key][k[key]]).split("/") : null;
+                                        recursiveCalls[key][k[key]] = tmp[key][k[key]].length ? paths[key][k[key]].length : 0;
                                     })();
                                     var node, loadEl;
-                                    for (var i = 0; recursiveCalls[k] > i; i++) {
-                                        if (tree.getNodeByProperty("path", nextPathTrace(k)) != null) {
-                                            updatePathTrace(k);
+                                    for (var i = 0; recursiveCalls[key][k[key]] > i; i++) {
+                                        if (tree.getNodeByProperty("path", nextPathTrace(k[key], key)) != null) {
+                                            updatePathTrace(k[key], key);
                                         }
                                     }
-                                    node = tree.getNodeByProperty("path", pathTrace[k]);
+                                    node = tree.getNodesByProperty("path", pathTrace[key][k[key]]);
                                     if (node == null) {
-                                        node = tree.getNodeByProperty("path", updatePathTrace(k));
-                                        loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
-                                    } else {
-                                        loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
+                                        node = tree.getNodesByProperty("path", updatePathTrace(k[key], key));
                                     }
-                                    YDom.addClass(loadEl, "ygtvloading");
-                                    doCall(node, k);
+
+                                    if (node != null) {
+                                        for (var i = 0; node.length > i; i++) {
+                                        var el = node[i].getEl(), num;
+                                            num = el.getAttribute('num');
+                                            if (!num) {
+                                                while ((el = el.parentElement) && !el.hasAttribute("num"));
+                                            }
+                                            num = el.getAttribute('num');
+                                            if (num == key) {
+                                                var loadEl = YSelector(".ygtvtp", node[i].getEl(), true);
+                                                loadEl == null && (loadEl = YSelector(".ygtvlp", node[i].getEl(), true));
+                                                YDom.addClass(loadEl, "ygtvloading");
+                                                doCall(node[i], k[key], key);
+                                            }
+                                       }
+                                    }
                                 } else {
                                     //YDom.removeClass(label, "loading");
                                     //Self.firePathLoaded(instance);
@@ -814,7 +871,15 @@ treeNode.getHtml = function() {
                                 servPath = rootPath;
                             }
                             CStudioAuthoring.Service.lookupSiteContent(site, servPath, 1, "default", {
-                                success: function(treeData) {
+                                success: function (treeData) {
+                                    var key = treeData.item.path.replace(/\//g, "").toLowerCase();
+                                        paths[key] = [],
+                                        counter[key] = [],
+                                        recursiveCalls[key] = [],
+                                        tmp[key] = {}
+                                        k[key] = 0,
+                                        pathTrace[key] = [],
+                                        rooth[key] = treeData.item.path;
 
                                     //if(servPath == "/site/website")
                                     window.treeData = treeData;
@@ -825,23 +890,34 @@ treeNode.getHtml = function() {
                                     }
                                     instance.state = Self.ROOT_OPEN;
                                     Self.drawTree(items, tree, null, instance);
-                                    if (latestStored[k] != Self.ROOT_OPENED) {
+
+                                    if (latestStored[key] && latestStored[key][[key]] != Self.ROOT_OPENED) {
+                                        pathTrace[key][k[key]] = treeData.item.path;
+                                        counter[key][k[key]] = 0;
+                                        (function () {
+                                            tmp[key][k[key]] = latestStored[key][k[key]].replace(treeData.item.path, "");
+                                            paths[key][k[key]] = tmp[key][k[key]].length ? (tmp[key][k[key]].charAt(0) == "/" ? tmp[key][k[key]].substr(1) : tmp[key][k[key]]).split("/") : null;
+                                            recursiveCalls[key][k[key]] = tmp[key][k[key]].length ? paths[key][k[key]].length : 0;
+                                        })();
                                         var node, loadEl;
                                         node = tree.getNodeByProperty("path", treeData.item.path);
-                                        if(node == null) {
-                                            node = tree.getNodeByProperty("path", updatePathTrace(k));
+                                        if (node == null) {
+                                            node = tree.getNodeByProperty("path", updatePathTrace(k[key], key));
                                             loadEl = YAHOO.util.Selector.query(".ygtvtp", node.getEl(), true);
                                         } else {
                                             loadEl = YAHOO.util.Selector.query(".ygtvlp", node.getEl(), true);
                                         }
                                         YDom.addClass(loadEl, "ygtvloading");
-                                        doCall(node, k);
+                                        //YDom.setAttribute ( node , "index" ,instance.pathNumber  );
+                                        doCall(node, k[key], key);
                                     } else {
                                         YDom.removeClass(label, "loading");
                                         Self.firePathLoaded(instance);
                                     }
+                                    index = instance.indexPath++;
                                 },
-                                failure: function() { }
+                                failure: function () {
+                                }
                             })
                         }
 					}
@@ -974,53 +1050,76 @@ treeNode.getHtml = function() {
     },
 
     expandTree: function(node, fnLoadComplete) {
-        var plainpath = node.treeNodeTO.path;
-        Self.save(node.instance, plainpath);
+        var fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1],
+            roothpath = node.treeNodeTO.path.replace("/" + fileName, ""),
+            plainpath = node.treeNodeTO.path,
+            el = node.getEl(),
+            num = el.getAttribute('num');
+        plainpath = roothpath == '/site' ? "root-folder" : plainpath;
+        if(!num){
+            while ((el = el.parentElement) && !el.hasAttribute("num"));
+        }
+        Self.save(node.instance, plainpath, null, el.getAttribute('num') ? el.getAttribute('num') : "root-folder", "expand");
     },
 
     collapseTree: function(node, fnLoadComplete) {
-        var fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1];
-        var plainpath = node.treeNodeTO.path.replace("/" + fileName, "");
-        plainpath = plainpath == '/site' ? "root-folder" : plainpath;
+        var path = node.treeNodeTO.path.replace(/\//g, "").toLowerCase();
+            fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1],
+            plainpath = node.treeNodeTO.path.replace("/" + fileName, ""),
+            el = node.getEl(),
+            num = el.getAttribute('num');
+        plainpath = (plainpath == '/site') || path == num ? "root-folder" : plainpath;
+        if(!num){
+            while ((el = el.parentElement) && !el.hasAttribute("num"));
+        }
         //Self.remove(node.instance, plainpath);
-        Self.save(node.instance, plainpath, fileName);
+        Self.save(node.instance, plainpath, fileName, el.getAttribute('num') ? el.getAttribute('num') : "root-folder", "collapse");
     },
     
-    save: function(instance, path, fileName) {
+    save: function(instance, path, fileName, num, mode) {
         var flag = true;
-        for(var i=0; i < instance.openArray.length; i++){
-            if(path.indexOf(instance.openArray[i]) > -1){
-                instance.openArray.splice(i, 1);
+        if(!instance.openArray[num]){
+            instance.openArray[num] = [];
+        }
+        for(var i=0; i < instance.openArray[num].length; i++){
+            if(path.indexOf(instance.openArray[num][i]) > -1){
+                instance.openArray[num].splice(i, 1);
                 i--;
                 continue;
             }else{
                 var aux = path;
                 if(fileName){aux = aux + '/' + fileName;}
-                if(instance.openArray[i].indexOf(aux) > -1){
-                    instance.openArray.splice(i, 1);
+                if(instance.openArray[num][i].indexOf(aux) > -1){
+                    instance.openArray[num].splice(i, 1);
                     i--;
                     continue;
                 }
-                if(instance.openArray.length > 0 && instance.openArray[i]){
-                    if(instance.openArray[i].indexOf(path) > -1)
+                if(instance.openArray[num].length > 0 && instance.openArray[num][i]){
+                    if(instance.openArray[num][i].indexOf(path) > -1)
                         flag = false;
                 }
             }
         }
         if(flag) {
             if(path == "root-folder"){
-                instance.openArray = [];
+                instance.openArray[num] = [];
             }
-            instance.openArray.push(path);
+            instance.openArray[num].push(path);
         }
-        for(var i=0; i < instance.openArray.length; i++){
+        for(var i=0; i < instance.openArray[num].length; i++){
 
-            if (instance.openArray.length > 1 && instance.openArray[i].indexOf("root-folder") > -1) {
-                instance.openArray.splice(i, 1);
+            if (instance.openArray[num].length > 1 && instance.openArray[num][i].indexOf("root-folder") > -1) {
+                instance.openArray[num].splice(i, 1);
+            }
+
+            if (instance.openArray[num].length < 2 && instance.openArray[num][i].indexOf("root-folder") > -1 &&
+                num != "root-folder" && mode != "expand") {
+                delete instance.openArray[num];
+                break;
             }
         }
         //storage.write(Self.getStoredPathKey(instance, path), path, 360);
-        storage.write(Self.getStoredPathKey(instance), instance.openArray.toString(), 360);
+        storage.write(Self.getStoredPathKey(instance), JSON.stringify(instance.openArray), 360);
     },
 
     remove: function (instance, path) {
@@ -1256,13 +1355,20 @@ treeNode.getHtml = function() {
              *
              */
             buildToolTipScheduled: function(label, contentType, style, status, editedDate, modifier, schedDate, itemNameLabel) {
+                var toolTip = "";
                 if (!itemNameLabel) {
                     itemNameLabel = "Page";
                 }
 
                 label = CStudioAuthoring.Utils.replaceWithASCIICharacter(label);
 
-                return CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
+                try {
+                    toolTip = CStudioAuthoring.Utils.buildToolTip(itemNameLabel, label, contentType, style, status, editedDate, modifier, lockOwner, schedDate);
+                }
+                catch(err) {
+                    //console.log(err);
+                }
+                return toolTip;
             },
 
 
@@ -1395,6 +1501,8 @@ treeNode.getHtml = function() {
                                         }
                                     }
                                 }
+                                p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.copyOption ]);
 
 		                   		p_aArgs.render();
 								menuId.removeChild(d);
@@ -1403,13 +1511,14 @@ treeNode.getHtml = function() {
 			                    if (isComponent == true || isLevelDescriptor == true) {
 			                        if (formPath == "" || formPath == undefined) {
 			                        	p_aArgs.addItems([ menuItems.viewOption ]);
+                                        p_aArgs.addItems([ menuItems.separator ]);
 			                        	if (isUserAllowed) {
-
                                             if (isDeleteAllowed) {
-				                        	    p_aArgs.addItems([ menuItems.separator ]);
 			                        		    p_aArgs.addItems([ menuItems.deleteOption ]);
 			                        		}
 			                        	}
+                                        p_aArgs.addItems([ menuItems.copyOption ]);
+
 			                        } else {
 			                        	if (isUserAllowed) {
 				                        	p_aArgs.addItems([ menuItems.editOption ]);
@@ -1433,6 +1542,8 @@ treeNode.getHtml = function() {
                                             if (isCreateContentAllowed) {
                                                 p_aArgs.addItems([ menuItems.newContentOption ]);
                                             }
+                                            p_aArgs.addItems([ menuItems.separator ]);
+                                            p_aArgs.addItems([ menuItems.copyOption ]);
 			                        	}
 			                        }
 			                    } else {
@@ -1496,6 +1607,8 @@ treeNode.getHtml = function() {
                                                         p_aArgs.addItems([ menuItems.newContentOption ]);
                                                     }
 						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        }
 					                        } else {
 				                        		if (isUserAllowed) {
@@ -1509,11 +1622,15 @@ treeNode.getHtml = function() {
                                                         p_aArgs.addItems([ menuItems.separator ]);
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
                                                     if (isCreateContentAllowed) {
                                                         p_aArgs.addItems([ menuItems.newContentOption ]);
                                                     }
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
 						                        }
 					                        }
 					                    } else {
@@ -1534,6 +1651,8 @@ treeNode.getHtml = function() {
 					                        	p_aArgs.addItems([ menuItems.copyOption ]);
 					                        } else {
 					                        	p_aArgs.addItems([ menuItems.viewOption ]);
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.copyOption ]);
 					                        }
 					                    }
 			                        }
@@ -1758,8 +1877,21 @@ treeNode.getHtml = function() {
                 var path = (oCurrentTextNode.data.uri);
 
                 var editCb = {
-                    success: function() {
-                        this.callingWindow.location.reload(true);
+                    success: function(contentTO, editorId, name, value, draft) {
+                        if(CStudioAuthoringContext.isPreview){
+                            try{
+                                CStudioAuthoring.Operations.refreshPreview();
+                            }catch(err) {
+                                if(!draft) {
+                                    this.callingWindow.location.reload(true);
+                                }
+                            }
+                        }
+                        else {
+                            if(!draft) {
+                                this.callingWindow.location.reload(true);
+                            }
+                        }
                     },
 
                     failure: function() {

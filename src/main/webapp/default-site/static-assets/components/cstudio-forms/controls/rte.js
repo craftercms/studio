@@ -1,5 +1,5 @@
 CStudioForms.Controls.RTE = CStudioForms.Controls.RTE ||  
-function(id, form, owner, properties, constraints, readonly)  {
+function(id, form, owner, properties, constraints, readonly, pencilMode)  {
 	this.owner = owner;
 	this.owner.registerField(this);
 	this.errors = []; 
@@ -20,7 +20,8 @@ function(id, form, owner, properties, constraints, readonly)  {
 	this.codeModeXreduction = 130;	// Amount of pixels deducted from the total width value of the RTE in code mode
 	this.codeModeYreduction = 130;	// Amount of pixels deducted from the total height value of the RTE in code mode
 	this.rteWidth;
-	this.delayedInit = true; 	// Flag that indicates that this control takes a while to initialize 
+	this.delayedInit = true; 	// Flag that indicates that this control takes a while to initialize
+    this.pencilMode = pencilMode;
 	
 	return this;
 }
@@ -269,7 +270,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
 		var sizeCookie = tinymce.util.Cookie.getHash("TinyMCE_" + editor.id + "_size" + window.name);
 		var cookieHeight = (sizeCookie) ? sizeCookie.ch : 0;
-		
+		var formBody = document.getElementsByTagName("body")[0];
+		var scrollTop = formBody.scrollTop;
+
+		tinymce.DOM.setStyle(editor.editorId + "_ifr", "height", cookieHeight + "px");
+
 		var heightVal = Math.max(editor.settings.height, cookieHeight),
 			currentHeight = +tinymce.DOM.getStyle(this.editor.editorId + "_ifr", "height").split("px")[0];
 
@@ -277,6 +282,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
 		if (currentHeight < heightVal || onInit) {
 			tinymce.DOM.setStyle(editor.editorId + "_ifr", "height", heightVal + "px");
+			formBody.scrollTop = scrollTop;
 		}
 	},
 
@@ -411,11 +417,16 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 					this.rteWidth = (typeof prop.value == "string" && prop.value) ? prop.value : "400";
                     width = this.resizeTextView(containerEl, this.rteWidth, { "rte-container" : controlWidgetContainerEl});
                     break;
-				case "height" : 
-					var height = (prop.value === undefined) ? 140 : (Array.isArray(prop.value)) ? 140 : Math.max(+(prop.value), 50);
-					if (isNaN(height)) {
-						height = 140;
-					}
+				case "height" :
+                    var height;
+                    if(!this.pencilMode) {
+                        height = (prop.value === undefined) ? 140 : (Array.isArray(prop.value)) ? 140 : Math.max(+(prop.value), 50);
+                        if (isNaN(height)) {
+                            height = 140;
+                        }
+                    }else{
+                        height = 330;
+                    }
 					
 					break;
 				case "maxlength" :
@@ -631,7 +642,8 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
         // Update all content before saving the form (all content is automatically updated on focusOut)
         var callback = {};
         callback.beforeSave = function () {
-            _thisControl.focusOut();
+            //_thisControl.focusOut();
+            _thisControl.save();
         };
         _thisControl.form.registerBeforeSaveCallback(callback);
 	},

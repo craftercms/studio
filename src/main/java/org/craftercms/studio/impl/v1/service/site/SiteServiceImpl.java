@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -350,8 +351,13 @@ public class SiteServiceImpl implements SiteService {
 
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
+            generalLockService.lock(cacheContext.getId());
+            try {
+                if (!cacheService.hasScope(cacheContext)) {
+                    cacheService.addScope(cacheContext);
+                }
+            } finally {
+                generalLockService.unlock(cacheContext.getId());
             }
             clearConfigurationCache.clearConfigurationCache(siteId);
             deploymentService.syncAllContentToPreview(siteId);
@@ -554,10 +560,15 @@ public class SiteServiceImpl implements SiteService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
-        if (cacheService.hasScope(cacheContext)) {
-            cacheService.remove(cacheContext, cacheKey);
-        } else {
-            cacheService.addScope(cacheContext);
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (cacheService.hasScope(cacheContext)) {
+                cacheService.remove(cacheContext, cacheKey);
+            } else {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
         }
         SiteTO siteConfig = new SiteTO();
         siteConfig.setSite(site);
@@ -676,7 +687,10 @@ public class SiteServiceImpl implements SiteService {
 		this.notificationService2 = notificationService2;
 	}
 
-	protected SiteServiceDAL _siteServiceDAL;
+    public GeneralLockService getGeneralLockService() { return generalLockService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
+    protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
 	protected String sitesConfigPath;
@@ -702,6 +716,7 @@ public class SiteServiceImpl implements SiteService {
     protected ClearConfigurationCache clearConfigurationCache;
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
+    protected GeneralLockService generalLockService;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

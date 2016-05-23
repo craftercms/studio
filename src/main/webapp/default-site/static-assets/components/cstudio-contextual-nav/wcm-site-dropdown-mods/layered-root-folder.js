@@ -1435,6 +1435,8 @@ CStudioAuthoringContext.site,
                                         }
                                     }
                                 }
+                                p_aArgs.addItems([ menuItems.separator ]);
+                                p_aArgs.addItems([ menuItems.copyOption ]);
 
 		                   		p_aArgs.render();
 								menuId.removeChild(d);
@@ -1451,6 +1453,7 @@ CStudioAuthoringContext.site,
 
                                         if(isOverlay===false) {
                                             p_aArgs.addItems([menuItems.overlayOption ]);
+                                            p_aArgs.addItems([ menuItems.separator ]);
                                         }
                                         else {
 
@@ -1462,6 +1465,8 @@ CStudioAuthoringContext.site,
     			                        		}
     			                        	}
                                         }
+
+                                        p_aArgs.addItems([ menuItems.copyOption ]);
 			                        } else {
 			                        	if (isUserAllowed) {
                                             if(isOverlay===false) {
@@ -1494,6 +1499,8 @@ CStudioAuthoringContext.site,
                                                 if (isCreateContentAllowed) {
                                                     p_aArgs.addItems([ menuItems.newContentOption ]);
                                                 }
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                                p_aArgs.addItems([ menuItems.copyOption ]);
                                             }
 			                        	}
 			                        }
@@ -1562,6 +1569,8 @@ CStudioAuthoringContext.site,
                                                             p_aArgs.addItems([ menuItems.newContentOption ]);
                                                         }
     						                        	p_aArgs.addItems([ menuItems.newFolderOption ]);
+                                                        p_aArgs.addItems([ menuItems.separator ]);
+                                                        p_aArgs.addItems([ menuItems.copyOption ]);
     						                        }
     					                        } else {
     				                        		if (isUserAllowed) {
@@ -1575,11 +1584,15 @@ CStudioAuthoringContext.site,
                                                             p_aArgs.addItems([ menuItems.separator ]);
                                                             p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                         }
+                                                        p_aArgs.addItems([ menuItems.separator ]);
+                                                        p_aArgs.addItems([ menuItems.copyOption ]);
     						                        } else {
     						                        	p_aArgs.addItems([ menuItems.viewOption ]);
                                                         if (isCreateContentAllowed) {
                                                             p_aArgs.addItems([ menuItems.newContentOption ]);
                                                         }
+                                                        p_aArgs.addItems([ menuItems.separator ]);
+                                                        p_aArgs.addItems([ menuItems.copyOption ]);
     						                        }
     					                        }
     					                    } else {
@@ -1600,6 +1613,8 @@ CStudioAuthoringContext.site,
     					                        	p_aArgs.addItems([ menuItems.copyOption ]);
     					                        } else {
     					                        	p_aArgs.addItems([ menuItems.viewOption ]);
+                                                    p_aArgs.addItems([ menuItems.separator ]);
+                                                    p_aArgs.addItems([ menuItems.copyOption ]);
     					                        }
     					                    }
     			                        }
@@ -1832,8 +1847,21 @@ CStudioAuthoringContext.site,
                 var path = (oCurrentTextNode.data.uri);
 
                 var editCb = {
-                    success: function() {
-                        this.callingWindow.location.reload(true);
+                    success: function(contentTO, editorId, name, value, draft) {
+                        if(CStudioAuthoringContext.isPreview){
+                            try{
+                                CStudioAuthoring.Operations.refreshPreview();
+                            }catch(err) {
+                                if(!draft) {
+                                    this.callingWindow.location.reload(true);
+                                }
+                            }
+                        }
+                        else {
+                            if(!draft) {
+                                this.callingWindow.location.reload(true);
+                            }
+                        }
                     },
 
                     failure: function() {

@@ -199,7 +199,10 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
                         inputEl.disabled = true;
                     }
 
-                    YAHOO.util.Event.on(inputEl, 'click', function(evt, context) { context.form.setFocusedField(context) }, _self);
+                    YAHOO.util.Event.on(inputEl, 'click', function(evt, context) {
+                        context.form.setFocusedField(context);
+                        _self.checkStates(this);
+                    }, _self);
                     YAHOO.util.Event.on(inputEl, 'change', _self.onChange, inputEl, _self);
                     inputEl.context = _self;
                     inputEl.item = item;
@@ -280,6 +283,28 @@ YAHOO.extend(CStudioForms.Controls.CheckBoxGroup, CStudioForms.CStudioFormField,
         this.hiddenEl.value = this.valueToString();
         this.validate();
         this._onChangeVal(evt, this);
+    },
+
+    checkStates: function(el) {
+        var ancestor = YAHOO.util.Dom.getAncestorByClassName(el, "checkbox-group"),
+            checkboxes = YAHOO.util.Selector.query('.checkbox input[type="checkbox"]', ancestor),
+            state = el.checked,
+            allSameState = true,
+            checkAllEl = YAHOO.util.Selector.query('.checkbox.select-all input[type="checkbox"]', ancestor)[0];
+
+        checkboxes.forEach( function (el) {
+            var isSelectAll = el.parentElement.className.indexOf('select-all') != -1;
+
+            if(!isSelectAll && (el.checked != state)){
+                allSameState = false;
+            }
+        });
+
+        if(allSameState) {
+            checkAllEl.checked = state;
+        }else {
+            checkAllEl.checked = false;
+        }
     },
 
     onChange: function(evt, el) {

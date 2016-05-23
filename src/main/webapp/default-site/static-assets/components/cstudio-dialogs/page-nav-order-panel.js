@@ -311,7 +311,6 @@ YAHOO.extend(CStudioForms.DDList, YAHOO.util.DDProxy, {
         // make the proxy look like the source element
         var dragEl = this.getDragEl();
         var clickEl = this.getEl();
-        YAHOO.util.Dom.setStyle(clickEl, "visibility", "hidden");
 
         dragEl.innerHTML = clickEl.innerHTML;
 
@@ -339,7 +338,6 @@ YAHOO.extend(CStudioForms.DDList, YAHOO.util.DDProxy, {
         var proxy = this.getDragEl();
 
         // Show the proxy element and animate it to the src element's location
-        YAHOO.util.Dom.setStyle(proxy, "visibility", "");
         var a = new YAHOO.util.Motion( 
             proxy, { 
                 points: { 

@@ -359,7 +359,9 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     deploymentTabEndpointProperty: "Property",
     deploymentTabEndpointValue: "Value",
 
-    currentPage: "Current Page"
+    currentPage: "Current Page",
+
+    wcmContentSavedAsDraft: "Content was saved as DRAFT. Some required fields may not be populated. This can cause errors when previewed or deployed.",
 
 });
 
@@ -399,6 +401,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     createNewType: "Create New Type",
     save: "Save",
     saved: "Saved",
+    clearVal: "Clear Value",
     saveFailed: "Save Failed",
     formSection: "Form Section",
     repeatingGroup: "Repeating Group",
@@ -482,6 +485,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     imageManager: "Image Manager",
     showDate: "Show Date",
     showTime: "Show Time",
+    showClear: "Show Clear Value",
     setNowLink: "Set Now Link",
     populated: "Populated",
     allowPastDate: "Allow Past Date",
