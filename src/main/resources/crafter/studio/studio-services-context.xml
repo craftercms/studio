@@ -243,6 +243,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
+        <property name="enableManualDependencyApproving" value="${dmDependenciesService.enableManualDependencyApproving}"/>
+        <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
