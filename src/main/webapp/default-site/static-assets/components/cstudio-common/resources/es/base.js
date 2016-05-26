@@ -98,7 +98,7 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "es", {
     wcmContentApprove: "Aprobar y Publicar",
     wcmContentDuplicate: "Duplicar",
     wcmContentHistory: "Historial",
-    wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
+    wcmContentPageDisabled: "This page is Disabled.",
 
     InProgress: "Editado",
     Deleted: "Eliminado",
