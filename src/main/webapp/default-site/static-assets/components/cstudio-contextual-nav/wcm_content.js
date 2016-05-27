@@ -51,6 +51,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                      * initialize widget
                      */
                     init: function() {
+                        var me = this;
+
                         CStudioAuthoring.Events.contentSelected.subscribe(function(evtName, contentTO) {
                             var selectedContent,
                                 callback;
@@ -79,6 +81,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                             YDom.addClass(noticeEl, "acnDisabledContent");
                                             noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                        }else{
+                                            me.removeDisableMessage();
                                         }
 
                                         for(var s=0; s<selectedContent.length; s++) {
@@ -132,6 +136,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                         _this.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                         YDom.addClass(noticeEl, "acnDisabledContent");
                                         noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                    }else{
+                                        me.removeDisableMessage();
                                     }
                                 } else {
                                     _this.renderSelectNone();
@@ -210,11 +216,20 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         return result;
                     },
 
+                    removeDisableMessage: function() {
+                        var messages = YDom.getElementsByClassName('acnDisabledContent');
+
+                        for(var x = 0; x < messages.length; x++) {
+                            messages[x].remove();
+                        }
+                    },
+
                     /**
                      * render the navigation bar
                      */
                     drawNav: function() {
-                        var selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
+                        var selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent(),
+                            me = this;
 
                         var callback = {
                             success: function(isWrite, perms) {
@@ -226,6 +241,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                     YDom.addClass(noticeEl, "acnDisabledContent");
                                     noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                }else{
+                                    me.removeDisableMessage();
                                 }
 
                                 for(var s=0; s<selectedContent.length; s++) {

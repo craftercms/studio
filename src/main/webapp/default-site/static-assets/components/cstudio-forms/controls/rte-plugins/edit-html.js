@@ -215,9 +215,11 @@ CStudioAuthoring.Module.requireModule(
 				editor.getWin().scrollTo(0, 0); // Scroll to the top of the editor window
 
 				rteControl.clearTextEditorSelection();
-				editor.focus();
 
 				rteControl.scrollToTopOfElement(rteControl.containerEl, 30);
+
+				editor.contentWindow.frameElement.focus();
+				$(editor.contentWindow.frameElement).contents().find("body").focus();
 			},
 
 			createControl: function(n, cm) {
