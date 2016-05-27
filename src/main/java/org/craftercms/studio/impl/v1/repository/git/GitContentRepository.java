@@ -34,6 +34,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -736,6 +737,14 @@ public class GitContentRepository implements ContentRepository {
     private void copyContentFromBlueprint(String blueprint, String site) {
         Path siteRepoPath = Paths.get(rootPath, "sites", site);
         Path blueprintPath = Paths.get(rootPath, "global-configuration", "blueprints", blueprint);
+        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
+        try {
+            Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
+        } catch (IOException err) {
+            logger.error("Error copping files from blueprint", err);
+        }
+        /*
         File blueprintFolder = blueprintPath.toAbsolutePath().toFile();
         File[] blueprintContents = blueprintFolder.listFiles();
         for (File blueprintContent : blueprintContents) {
@@ -747,7 +756,7 @@ public class GitContentRepository implements ContentRepository {
             } catch (IOException err) {
                 logger.error("Error copping files from blueprint", err);
             }
-        }
+        }*/
     }
 
     class TreeCopier implements FileVisitor<Path> {
@@ -812,6 +821,7 @@ public class GitContentRepository implements ContentRepository {
             Status status = git.status().call();
 
             if (status.hasUncommittedChanges() || !status.isClean()) {
+                DirCache dirCache = git.add().addFilepattern(".").call();
                 RevCommit commit = git.commit()
                         .setMessage("initial content")
                         .call();
