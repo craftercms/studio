@@ -33,7 +33,8 @@
     content: "*";
     */
 }
-.status-icon.disabled {
+.status-icon.disabled,
+.dashboard-item.disabled {
     text-decoration: line-through;
 }
 
