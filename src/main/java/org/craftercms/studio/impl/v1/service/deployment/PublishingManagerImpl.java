@@ -366,8 +366,8 @@ public class PublishingManagerImpl implements PublishingManager {
         }
         
         if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
-            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
-            
+            //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+            Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
             if (oldPath != null && oldPath.length() > 0) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
@@ -426,7 +426,7 @@ public class PublishingManagerImpl implements PublishingManager {
             
             if (isLive) {
                 if (!importModeEnabled) {
-                    contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), submissionComment, true);
+                    contentRepository.createVersion(site, path, submissionComment, true);
                 }
                 else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
@@ -439,7 +439,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 
                 if (oldPath != null && oldPath.length() > 0) {
                     
-                    Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+                    //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+                    Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
                     deployer.deleteFile(site, oldPath);
                     
                     
@@ -477,7 +478,8 @@ public class PublishingManagerImpl implements PublishingManager {
             
             
             LOGGER.debug("Getting deployer for environment store.");
-            Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+            //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
+            Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
             deployer.deployFile(site, path);
 
 

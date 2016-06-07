@@ -523,6 +523,8 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="password" value="${repositoryJob.password}"/>
+        <property name="userName" value="${repositoryJob.username}"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -533,6 +535,8 @@
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="password" value="${repositoryJob.password}"/>
+        <property name="userName" value="${repositoryJob.username}"/>
     </bean>
 
     <!-- scheduled actions -->
