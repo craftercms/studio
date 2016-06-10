@@ -194,6 +194,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             if (!YDom.isAncestor(tree.id, this.contextEventTarget)) {
                 this.hide();
             }
+            var idTree = tree.id.toString().replace(/-/g,'');
+            Self.myTree = Self.myTreePages[idTree];
         }, tree, false);
 
         tree.draw();
@@ -203,6 +205,9 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
             nodeToOpen.expand();
             nodeToOpen.openToPath = remainingPath;
         }
+
+        var treeId = tree.id.toString().replace(/-/g,'');
+        Self.myTreePages[treeId] = tree
     },
 
     /**
@@ -623,7 +628,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     createContainer: function() {
         var createCb = {
             success: function() {
-                Self.refreshNodes(this.tree,false);
+                Self.refreshNodes(this.tree,false, false, null, null, true);
 
             },
 
@@ -665,6 +670,8 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                         this.callingWindow.location.reload(true);
                     }
                 }
+                eventNS.data = oCurrentTextNode;
+                document.dispatchEvent(eventNS);
             },
 
             failure: function() {
@@ -713,7 +720,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         CStudioAuthoring.Operations.createNewTemplate(oCurrentTextNode.data.uri, {
             success: function(templatePath) {
                 this.callingWindow.location.reload(true);
-                Self.refreshNodes(this.tree,false);
+                Self.refreshNodes(this.tree,false, false, null, null, true);
             }, 
             failure: function() {
                 this.callingWindow.location.reload(true);
@@ -727,7 +734,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     createNewScript: function() {
         CStudioAuthoring.Operations.createNewScript( oCurrentTextNode.data.uri, { 
             success: function(templatePath) {
-                Self.refreshNodes(this.tree,false);  
+                Self.refreshNodes(this.tree,false, false, null, null, true);
             }, 
             failure: function() {
 
@@ -744,7 +751,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     uploadAsset: function() {
         var uploadCb = {
             success: function() {
-                Self.refreshNodes(this.tree,false);
+                Self.refreshNodes(this.tree,false, false, null, null, true);
 
                 // Refresh the "My Recent Activity" section in the dashboard
                 if (typeof WcmDashboardWidgetCommon != 'undefined') {
@@ -831,7 +838,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
 
             dropbox.on(Dropbox.UPLOAD_SUCCESS_EVENT, function (data) {
                 if (treeNode.expanded){
-                    CSA.ContextualNav.WcmAssetsFolder.refreshNodes(treeNode);
+                    CSA.ContextualNav.WcmAssetsFolder.refreshNodes(treeNode,false, false, null, null, true);
                 }
             });
 
@@ -844,7 +851,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     overwriteAsset: function() {
         var uploadCb = {
             success: function() {
-                Self.refreshNodes(this.tree,false);
+                Self.refreshNodes(this.tree,false, false, null, null, true);
 
             },
 

@@ -780,7 +780,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
 
     var editCallback = {
-        success: function (ontentTO, editorId, name, value, draft) {
+        success: function (contentTO, editorId, name, value, draft) {
             if(CStudioAuthoringContext.isPreview){
                 try{
                     CStudioAuthoring.Operations.refreshPreview();
@@ -792,9 +792,11 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
             }
             else {
                 if(!draft) {
-                    this.callingWindow.location.reload(true);
+                    //this.callingWindow.location.reload(true);
                 }
             }
+            eventNS.data = contentTO;
+            document.dispatchEvent(eventNS);
         },
         failure: function () {
         },

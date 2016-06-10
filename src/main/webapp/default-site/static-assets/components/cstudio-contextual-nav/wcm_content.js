@@ -105,6 +105,19 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             }
                         });
 
+                        document.addEventListener('crafter.refresh', function (e) {
+                            selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
+                            YDom.get("activeContentActions").innerHTML = "";
+                            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
+                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri, {
+                                    success: function (content) {
+                                        CStudioAuthoring.SelectedContent.setContent(content.item);
+                                    }
+                                });
+                                _this.drawNav();
+                            }
+                        }, false);
+
                         CStudioAuthoring.Events.contentUnSelected.subscribe(function(evtName, contentTO) {
                             var selectedContent,
                                 totalPerms,
@@ -480,9 +493,11 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     }
                                     else {
                                         if(!draft) {
-                                            this.callingWindow.location.reload(true);
+                                            //this.callingWindow.location.reload(true);
                                         }
                                     }
+                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                    document.dispatchEvent(eventNS);
                                 },
                                 failure: function() { },
                                 callingWindow : window
