@@ -136,7 +136,7 @@
                     iterator, parentUri = "";
                 iterator = function(i, item){
 
-                    var displayName = SUtils.truncate(item.internalName, 32);
+                    var displayName = SUtils.truncate(item.internalName, 39);
                     if (item.newFile) {
                         displayName += "*";
                     }

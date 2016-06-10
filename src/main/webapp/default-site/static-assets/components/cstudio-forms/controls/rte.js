@@ -270,7 +270,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
 		var sizeCookie = tinymce.util.Cookie.getHash("TinyMCE_" + editor.id + "_size" + window.name);
 		var cookieHeight = (sizeCookie) ? sizeCookie.ch : 0;
-		
+		var formBody = document.getElementsByTagName("body")[0];
+		var scrollTop = formBody.scrollTop;
+
+		tinymce.DOM.setStyle(editor.editorId + "_ifr", "height", cookieHeight + "px");
+
 		var heightVal = Math.max(editor.settings.height, cookieHeight),
 			currentHeight = +tinymce.DOM.getStyle(this.editor.editorId + "_ifr", "height").split("px")[0];
 
@@ -278,6 +282,7 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 
 		if (currentHeight < heightVal || onInit) {
 			tinymce.DOM.setStyle(editor.editorId + "_ifr", "height", heightVal + "px");
+			formBody.scrollTop = scrollTop;
 		}
 	},
 

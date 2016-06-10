@@ -65,16 +65,16 @@
                     var oResp = JSON.parse(oResponse.responseText);
                     _this.fire("submitComplete", oResp);
                     _this.fire("submitEnd", oResp);
+                    window.location.reload();
                 },
                 failure: function(oResponse) {
                     var oResp = JSON.parse(oResponse.responseText);
                     _this.fire("submitEnd", oResp);
                     _this.enableActions();
+                    window.location.reload();
                 }
             }
         });
-
-        window.location.reload();
     }
 
     function renderItems(items) {

@@ -265,7 +265,7 @@ var CStudioForms = CStudioForms || function() {
             /**
              * initialize module
              */
-            initialize: function(config, containerEl) {
+            initialize: function(config, containerEl, lastTwo) {
                 this.containerEl = containerEl;
 
                 for(var j=0; j<config.constraints.length; j++) {
@@ -276,7 +276,7 @@ var CStudioForms = CStudioForms || function() {
                     }
                 }
 
-                this.render(config, containerEl);
+                this.render(config, containerEl, lastTwo);
 
                 if (this.delayedInit) {
                     if (this.form.asyncFields == 0) {
@@ -1480,7 +1480,8 @@ var CStudioForms = CStudioForms || function() {
 
                         if(field) {
                             if(field.type != "repeat") {
-                                this._renderField(formDef, field, form, formSection, sectionBodyEl);
+                                var lastTwo = j + 2 >= section.fields.length ? true : false;
+                                this._renderField(formDef, field, form, formSection, sectionBodyEl, undefined, undefined, undefined, lastTwo);
                             } else {
                                 this._renderRepeat(formDef, field, form, formSection, sectionBodyEl);
                             }
@@ -1628,6 +1629,11 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
                             containerEl.reRender(containerEl);
+
+                            var containerElNodes = $(containerEl.childNodes);
+                            containerElLastChildTop = $(containerElNodes.get(repeatArrayIndex)).offset().top;
+                            $('body').scrollTop(containerElLastChildTop);
+
                             repeatEdited = true;
                         }
                     }
@@ -1710,7 +1716,7 @@ var CStudioForms = CStudioForms || function() {
              * render a field
              * repeatField, repeatIndex are used only when repeat
              */
-            _renderField: function(formDef, field, form, formSection, sectionEl, repeatField, repeatIndex, pencilMode) {
+            _renderField: function(formDef, field, form, formSection, sectionEl, repeatField, repeatIndex, pencilMode, lastTwo) {
                 if(form.customController && form.customController.isFieldRelevant(field) == false) {
                     return;
                 }
@@ -1741,7 +1747,7 @@ var CStudioForms = CStudioForms || function() {
                                 form.readOnly,
                                 pencilMode);
 
-                            formField.initialize(moduleConfig.config.field, this.containerEl);
+                            formField.initialize(moduleConfig.config.field, this.containerEl, lastTwo);
 
                             var value = "";
                             if(repeatField) {
@@ -1776,7 +1782,8 @@ var CStudioForms = CStudioForms || function() {
                     containerEl: fieldContainerEl,
                     section: formSection,
                     fieldDef: field,
-                    form: form
+                    form: form,
+                    lastTwo: lastTwo
                 };
 
                 CStudioAuthoring.Module.requireModule(
