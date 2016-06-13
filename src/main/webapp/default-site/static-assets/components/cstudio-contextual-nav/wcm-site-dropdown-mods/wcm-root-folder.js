@@ -472,10 +472,8 @@
                     (function (t, inst) {
                         document.addEventListener('crafter.refresh', function (e) {
                             try {
-                                console.log(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]));
                                 Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure);
                             } catch (er) {
-                                console.log(CStudioAuthoring.SelectedContent.getSelectedContent()[0]);
                                 if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
                                     Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure);
                                 }
@@ -1264,10 +1262,12 @@ treeNode.getHtml = function() {
                                         }else{
                                             style = style + " no-preview";
                                         }
-                                        if(style.indexOf("deleted") == -1) {
-                                            YDom.get(nodeToChange[i].labelElId) ? YDom.get(nodeToChange[i].labelElId).className = style : null;
-                                        }else{
-                                            YDom.get(nodeToChange[i].labelElId) ? Self.findAncestor(YDom.get(nodeToChange[i].labelElId), "ygtvtable").style.display = 'none' : null;
+                                        if(nodeToChange[i].labelStyle.indexOf("folder") != -1 && style.indexOf("deleted") == -1 && treeData.item.isInFlight) {
+                                            style = style + " folder in-flight";
+                                        }
+                                        YDom.get(nodeToChange[i].labelElId) ? YDom.get(nodeToChange[i].labelElId).className = style : null;
+                                        if(style.indexOf("deleted") != -1) {
+                                          YDom.get(nodeToChange[i].labelElId) ? Self.findAncestor(YDom.get(nodeToChange[i].labelElId), "ygtvchildren").style.display = 'none' : null;
                                         }
                                     },
                                     failure: function () {
@@ -1284,14 +1284,14 @@ treeNode.getHtml = function() {
                         var curNode = node[i];
                         if (curNode.nodeType == "CONTENT") {
                             var itemStore = instance ? storage.read(Self.getStoredPathKey(instance)) : null;
-                            console.log(itemStore);
+                            //console.log(itemStore);
                             tree.removeChildren(curNode);
                             var loadEl = YSelector(".ygtvtp", curNode.getEl(), true);
                             loadEl == null && (loadEl = YSelector(".ygtvlp", curNode.getEl(), true));
                             YDom.addClass(loadEl, "ygtvloading");
                             curNode.renderChildren();
                             curNode.refresh();
-                            console.log(itemStore);
+                            //console.log(itemStore);
                             if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
                             self.expandTree(curNode);
 
