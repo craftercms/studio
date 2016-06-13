@@ -51,6 +51,13 @@
     background-position: 0 -101px;
 }
 
+.status-icon.folder.in-flight {
+    background-position: 0 -1234px;
+}
+
+.status-icon.folder.deleted-lock {
+    background-position: 0 -1215px;
+}
 
 /* Pages */
 .status-icon.in-flight {

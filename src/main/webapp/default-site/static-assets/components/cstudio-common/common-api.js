@@ -16,6 +16,18 @@ var JSON = YAHOO.lang.JSON;
 var YEvent = YAHOO.util.Event;
 var ApproveType = false;
 
+// Create the event.
+var eventYS = document.createEvent('Event');
+// Define that the event name is 'build'.
+eventYS.initEvent('crafter.refresh', true, true);
+eventYS.changeStructure = true;
+
+// Create the event.
+var eventNS = document.createEvent("Event");
+// Define that the event name is 'build'.
+eventNS.initEvent("crafter.refresh", true, true);
+eventNS.changeStructure = false;
+
 (function(undefined){
 
     // Private functions
@@ -509,6 +521,7 @@ var ApproveType = false;
                             fn: view,
                             controller: controller,
                             callback: function (dialogue) {
+                                var _self = this;
                                 CSA.Operations.translateContent(formsLangBundle);
                                 if (YDom.get("cancelBtn")) {
                                     YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");
@@ -517,13 +530,17 @@ var ApproveType = false;
                                     YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");
                                 }
                                 this.loadDependencies(items);
-                                this.on("submitComplete", function (evt, args) {
-                                    var reloadFn = function () {
-                                        window.location.reload();
-                                    };
-                                    dialogue.hideEvent.subscribe(reloadFn);
-                                    dialogue.destroyEvent.subscribe(reloadFn);
-                                });
+                                (function (items) {
+                                    _self.on("submitComplete", function (evt, args) {
+                                        var reloadFn = function () {
+                                            //window.location.reload();
+                                            eventNS.data = items[0];
+                                            document.dispatchEvent(eventNS);
+                                        };
+                                        dialogue.hideEvent.subscribe(reloadFn);
+                                        dialogue.destroyEvent.subscribe(reloadFn);
+                                    });
+                                })(items);
                                 // Admin version of the view does not have this events
                                 // but then the call is ignored
                                 this.on("hideRequest", function (evt, args) {
@@ -592,7 +609,10 @@ var ApproveType = false;
                         this.loadPublishingChannels();
 
                         this.on("submitComplete", function(evt, args){
-                            window.location.reload();
+                            //window.location.reload();
+                            dialogue.hide();
+                            eventNS.data = items[0];
+                            document.dispatchEvent(eventNS);
                         });
 
                     }
@@ -2006,7 +2026,7 @@ var parentSaveCb = {
                 if(flow){
 
                     var panel = YDom.getElementsByClassName("yui-panel-container")[0];
-                    if(panel.style.visibility == 'visible' || panel.style.visibility == ''){
+                    if( panel && (panel.style.visibility == 'visible' || panel.style.visibility == '')){
                         panel.style.visibility = "hidden";
                     }
 
@@ -2046,7 +2066,8 @@ var parentSaveCb = {
                 tempMask.appendChild(loadingImageEl);
 
                 document.body.appendChild(tempMask);
-                window.location.reload(true);
+                //window.location.reload(true);
+                document.dispatchEvent(eventNS);
             },
 
             uploadAsset: function(site, path, isUploadOverwrite, uploadCb) {
