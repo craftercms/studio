@@ -25,7 +25,7 @@ YAHOO.extend(CStudioForms.Datasources.VideoBrowseRepo, CStudioForms.CStudioFormD
 						var url = CStudioAuthoringContext.previewAppBaseUri + item.uri;
 						var videoData = {}
 						videoData.previewUrl = url
-						videoData.relativeUrl = url
+						videoData.relativeUrl = item.uri
 						videoData.fileExtension = url.substring(url.lastIndexOf(".")+1);
 						callback.success(videoData);
 					}, 
