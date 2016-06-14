@@ -1629,6 +1629,11 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
                             containerEl.reRender(containerEl);
+
+                            var containerElNodes = $(containerEl.childNodes);
+                            containerElLastChildTop = $(containerElNodes.get(repeatArrayIndex)).offset().top;
+                            $('body').scrollTop(containerElLastChildTop);
+
                             repeatEdited = true;
                         }
                     }

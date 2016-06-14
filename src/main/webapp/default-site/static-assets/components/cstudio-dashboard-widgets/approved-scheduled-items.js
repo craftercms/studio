@@ -173,7 +173,7 @@ CStudioAuthoringWidgets.ApprovedScheduledItemsDashboard = CStudioAuthoringWidget
                 '<td style="padding-left:0px">'+
                     '<div class="', (item.disabled == true ? ' disabled' : ''), '" id="' + ttSpanId + '" title="' + itemTitle + '">',
                         '<span class="iconRow ', itemIconStatus, '"></span>',
-                        '<a class="anchorRow" ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
+				'<a class="anchorRow' , (item.disabled == true ? ' dashboard-item disabled' : '') , '" ', (item.previewable == true) ? 'href="/studio/preview/#/?page='+browserUri+'/&site='+CStudioAuthoringContext.site+'"' : '', ' class="', (item.previewable == true) ? "previewLink" : "non-previewable-link", '">',
                             displayName, (item.isNew == true) ? ' <span style="font-size:16px;">*</span>' : '',
                         '</a>',
                     '</div>',
