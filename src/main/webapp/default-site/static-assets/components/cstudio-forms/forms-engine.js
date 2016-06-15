@@ -1395,6 +1395,9 @@ var CStudioForms = CStudioForms || function() {
                 formControlBarEl.appendChild(colExpButtonEl);
                 YAHOO.util.Event.addListener(colExpButtonEl, "click", collapseFn, this);
 
+                var overlayContainer = parent.document.getElementById(window.frameElement.id).parentElement;
+                YDom.addClass(overlayContainer, "overlay");
+
             },
 
             /**
