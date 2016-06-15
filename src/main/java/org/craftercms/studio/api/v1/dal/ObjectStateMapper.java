@@ -34,6 +34,8 @@ public interface ObjectStateMapper {
 
     void setSystemProcessingBySiteAndPath(Map params);
 
+    void setSystemProcessingBySiteAndPathBulk(Map params);
+
     void insertEntry(ObjectState objectState);
 
     void setObjectState(ObjectState objectState);
