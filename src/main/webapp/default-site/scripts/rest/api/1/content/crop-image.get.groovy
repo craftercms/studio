@@ -8,6 +8,7 @@ import javax.imageio.ImageIO
 def req = request 
 def site = params.site
 def imgPath = params.path
+def newName = params.newname
 def t = params.t.toInteger()
 def l = params.l.toInteger()
 def w = params.w.toInteger()
@@ -21,6 +22,9 @@ def imgCroppedInStream = null
 def imgType = imgPath.substring(imgPath.indexOf(".")+1)
 def imgPathOnly = imgPath.substring(0, imgPath.lastIndexOf("/"))
 def imgFilename = imgPath.substring(imgPath.lastIndexOf("/")+1)
+if (newName) {
+    imgFilename = newName;
+}
 
 def context = ContentServices.createContext(applicationContext, request)
 
