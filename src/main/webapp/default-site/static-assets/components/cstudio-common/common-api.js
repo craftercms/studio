@@ -6940,17 +6940,20 @@ CStudioAuthoring.InContextEdit = {
     collapseDialog: function(editorId) {
         var dialog = window.parent.$( ".studio-ice-container-"+editorId),
             controlBar = $("#formContainer .cstudio-form-controls-container")[0],
-            colExpButtonBtn = $('#colExpButtonBtn');
+            colExpButtonBtn = $('#colExpButtonBtn'),
+            overlayContainer = dialog.find('.overlay');
 
         if( Math.floor($(dialog).height()) != 49){
             CStudioAuthoring.Utils.Cookies.createCookie("formEngineHeight", $(dialog).height().toString());
             $(dialog).height(49);
             $(controlBar).css({ "backgroundColor": "#7E9DBB" });
             $(controlBar).addClass("collapseForm");
+            overlayContainer && overlayContainer.addClass('overlay-collapsed');
         } else{
             $(dialog).height(parseInt(CStudioAuthoring.Utils.Cookies.readCookie("formEngineHeight")));
             $(controlBar).css({ "backgroundColor": "#f8f8f8" });
             $(controlBar).removeClass("collapseForm");
+            overlayContainer && overlayContainer.removeClass('overlay-collapsed');
         }
 
     },

@@ -350,6 +350,23 @@ table.scroll-body {
   border-bottom-right-radius: $border-radius-base;
   transition: height .5s, transform .5s;
   > .bd {
+
+    &.overlay:before {
+      content: '';
+      position: fixed;
+      width: 100%;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.65);
+      transition: height .5s, transform .5s;
+    }
+
+    &.overlay.overlay-collapsed:before {
+      content: '';
+      height: 0;
+    }
+
     iframe {
       top: 0;
       left: 0;
