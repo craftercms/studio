@@ -109,7 +109,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             }
                         });
 
-                        document.addEventListener('crafter.refresh', function (e) {
+                        document.addEventListener('crafter.create.contenMenu', function (e) {
                             selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
                             YDom.get("activeContentActions").innerHTML = "";
                             if(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
