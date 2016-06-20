@@ -1275,13 +1275,19 @@ treeNode.getHtml = function() {
                                         } else {
                                             style = style + " no-preview";
                                         }
+                                        if (treeData.item.contentType == "asset") {
+                                            style = style + " component";
+                                        }
                                         YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).className = style : null;
                                         if (style.indexOf("deleted") != -1 || treeData.item.isDeleted) {
-                                            console.log("deleted " + curNode.labelElId);
                                             var tempSplit = curNode.labelElId.split("labelel");
                                             var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
                                             parentNode.style.display = 'none';
                                             tree.removeNode(curNode);
+                                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                    CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                            }
                                             document.dispatchEvent(eventCM);
                                             Self.refreshAllDashboards();
                                         }
@@ -1292,11 +1298,17 @@ treeNode.getHtml = function() {
                                                 }, 300);
                                             } else {
                                                 cont++;
-                                                if ((curNode.labelStyle.indexOf("folder") != -1 && cont < 15) || (curNode.labelStyle.indexOf("folder") == -1 && cont < 2)) {
+                                                if ((curNode.labelStyle.indexOf("folder") != -1 && cont < 25) || (curNode.labelStyle.indexOf("folder") == -1 && cont < 2)) {
                                                     setTimeout(function () {
                                                         lookupSiteContent(curNode, currentUri, cont);
-                                                        document.dispatchEvent(eventCM);
-                                                        Self.refreshAllDashboards();
+                                                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                            CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                                CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                        }
+                                                        if(curNode.labelStyle.indexOf("folder") == -1) {
+                                                            document.dispatchEvent(eventCM);
+                                                            Self.refreshAllDashboards();
+                                                        }
                                                     }, 300);
                                                 }
                                             }
@@ -2062,7 +2074,8 @@ treeNode.getHtml = function() {
             createContent: function() {
                 var createCb = {
                     success: function() {
-                        this.callingWindow.location.reload(true);
+                        eventYS.data = oCurrentTextNode;
+                        document.dispatchEvent(eventYS);
                     },
                     failure: function() { },
                     callingWindow: window
@@ -2440,7 +2453,7 @@ treeNode.getHtml = function() {
 
                             var editCb = {
                                 success: function() {
-                                    this.callingWindow.location.reload(true);
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function() {

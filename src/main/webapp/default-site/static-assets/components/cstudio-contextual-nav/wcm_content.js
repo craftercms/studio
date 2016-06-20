@@ -579,6 +579,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 var duplicateContentCallback = {
                                     success : function() {
                                         YDom.get("duplicate-loading").style.display = "none";
+                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                        document.dispatchEvent(eventNS);
                                     },
                                     failure: function() {
                                         YDom.get("duplicate-loading").style.display = "none";

@@ -1665,7 +1665,7 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                         ) {
                             var editCb = {
                                 success: function () {
-                                    this.callingWindow.location.reload(true);
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function () {
@@ -1812,7 +1812,14 @@ var parentSaveCb = {
                                             null, //contentTO.nodeRef,
                                             newPath, //contentTO.uri,
                                             false,
-                                            { success: function() {}, failure: function() {}});
+                                            { success: function(contentTO) {
+                                                eventYS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                                if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                    CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                        CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                }
+                                                document.dispatchEvent(eventYS);
+                                            }, failure: function() {}});
                                     },
                                     failure: function() {
 
