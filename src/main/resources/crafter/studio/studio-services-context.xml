@@ -252,6 +252,7 @@
           parent="cstudioRegistrableService">
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="bulkOperationBatchSize" value="${objectStateService.bulkOperationsBatchSize}"/>
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
