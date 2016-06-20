@@ -2056,7 +2056,7 @@ var parentSaveCb = {
                             parentPath = deletedPage.substring(0, deletedPage.lastIndexOf("/"));
                             auxParentPath = parentPath;
                             parentPath = CStudioAuthoringContext.previewAppBaseUri + parentPath;
-                            if(auxParentPath != "/studio/preview") {
+                            if(auxParentPath != "/studio/preview/#/?page=") {
                                 document.location = parentPath;
                             }
                             return;
