@@ -109,7 +109,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             }
                         });
 
-                        document.addEventListener('crafter.refresh', function (e) {
+                        document.addEventListener('crafter.create.contenMenu', function (e) {
                             selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
                             YDom.get("activeContentActions").innerHTML = "";
                             if(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
@@ -579,6 +579,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 var duplicateContentCallback = {
                                     success : function() {
                                         YDom.get("duplicate-loading").style.display = "none";
+                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                        document.dispatchEvent(eventNS);
                                     },
                                     failure: function() {
                                         YDom.get("duplicate-loading").style.display = "none";

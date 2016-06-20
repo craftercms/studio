@@ -286,6 +286,15 @@
                     searchNumberValue,filterByTypeValue);
             },
 
+            refreshAllDashboards: function(){
+                if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                    Self.refreshDashboard("MyRecentActivity");
+                    Self.refreshDashboard("recentlyMadeLive");
+                    Self.refreshDashboard("approvedScheduledItems");
+                    Self.refreshDashboard("GoLiveQueue");
+                }
+            },
+
             /**
              * to check, if extra ajax call can be reduced
              */
@@ -471,6 +480,7 @@
                     self.treePaths.push(tree.id);
                     (function (t, inst) {
                         document.addEventListener('crafter.refresh', function (e) {
+                            document.dispatchEvent(eventCM);
                             try {
                                 Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure);
                             } catch (er) {
@@ -478,13 +488,7 @@
                                     Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure);
                                 }
                             }
-
-                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
-                                Self.refreshDashboard("MyRecentActivity");
-                                Self.refreshDashboard("recentlyMadeLive");
-                                Self.refreshDashboard("approvedScheduledItems");
-                                Self.refreshDashboard("GoLiveQueue");
-                            }
+                            Self.refreshAllDashboards();
 
                         }, false);
 
@@ -1207,7 +1211,8 @@ treeNode.getHtml = function() {
 	refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure) {
 		var tree = tree ? tree : Self.myTree,
             isMytree = false,
-            currentPath = treeNode.data ? treeNode.data.path : treeNode.path;
+            currentPath = treeNode.data ? treeNode.data.path : treeNode.path,
+            currentUri = treeNode.data ? treeNode.data.uri : treeNode.uri;
         if(tree &&  Self.myTree) {
             for (var i = 0; i < self.treePaths.length; i++) {
                 if (self.treePaths[i] == Self.myTree.id) {
@@ -1251,32 +1256,71 @@ treeNode.getHtml = function() {
                     if(nodeToChange){
                         for(var i=0; i<nodeToChange.length;i++) {
                             (function (nodeToChange,i) {
-                            if (nodeToChange[i] && nodeToChange[i].label) {
-                                CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, nodeToChange[i].data.uri, 1, "default", {
-                                    success: function (treeData) {
-                                        var style = "";
-                                        YDom.get(nodeToChange[i].labelElId) ? YDom.get(nodeToChange[i].labelElId).innerHTML = treeData.item.internalName : null;
-                                        style = CStudioAuthoring.Utils.getIconFWClasses(treeData.item);
-                                        if(treeData.item.isPreviewable){
-                                            style = style + " preview";
-                                        }else{
-                                            style = style + " no-preview";
-                                        }
-                                        if(nodeToChange[i].labelStyle.indexOf("folder") != -1 && style.indexOf("deleted") == -1 && treeData.item.isInFlight) {
-                                            style = style + " folder in-flight";
-                                        }
-                                        YDom.get(nodeToChange[i].labelElId) ? YDom.get(nodeToChange[i].labelElId).className = style : null;
-                                        if(style.indexOf("deleted") != -1) {
-                                          YDom.get(nodeToChange[i].labelElId) ? Self.findAncestor(YDom.get(nodeToChange[i].labelElId), "ygtvchildren").style.display = 'none' : null;
-                                        }
-                                    },
-                                    failure: function () {
-                                    }
-                                })
-                            }
+                                lookupSiteContent(nodeToChange[i], currentUri);
                             })(nodeToChange,i);
                         }
                     }
+
+                    function lookupSiteContent(curNode, currentUri, paramCont) {
+                        if (curNode && curNode.label) {
+                            CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, curNode.data.uri, 1, "default", {
+                                success: function (treeData) {
+                                    if (currentUri == treeData.item.uri) {
+                                        var style = "",
+                                            cont = paramCont ? paramCont : 0;
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).innerHTML = treeData.item.internalName : null;
+                                        style = CStudioAuthoring.Utils.getIconFWClasses(treeData.item);
+                                        if (treeData.item.isPreviewable) {
+                                            style = style + " preview";
+                                        } else {
+                                            style = style + " no-preview";
+                                        }
+                                        if (treeData.item.contentType == "asset") {
+                                            style = style + " component";
+                                        }
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).className = style : null;
+                                        if (style.indexOf("deleted") != -1 || treeData.item.isDeleted) {
+                                            var tempSplit = curNode.labelElId.split("labelel");
+                                            var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
+                                            parentNode.style.display = 'none';
+                                            tree.removeNode(curNode);
+                                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                    CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                            }
+                                            document.dispatchEvent(eventCM);
+                                            Self.refreshAllDashboards();
+                                        }
+                                        else {
+                                            if (style.indexOf("in-flight") != -1) {
+                                                setTimeout(function () {
+                                                    lookupSiteContent(curNode, currentUri)
+                                                }, 300);
+                                            } else {
+                                                cont++;
+                                                if ((curNode.labelStyle.indexOf("folder") != -1 && cont < 25) || (curNode.labelStyle.indexOf("folder") == -1 && cont < 2)) {
+                                                    setTimeout(function () {
+                                                        lookupSiteContent(curNode, currentUri, cont);
+                                                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                            CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                                CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                        }
+                                                        if(curNode.labelStyle.indexOf("folder") == -1) {
+                                                            document.dispatchEvent(eventCM);
+                                                            Self.refreshAllDashboards();
+                                                        }
+                                                    }, 300);
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                failure: function () {
+                                }
+                            })
+                        }
+                    }
+
                 }
             }else {
                 if(node) {
@@ -2030,7 +2074,8 @@ treeNode.getHtml = function() {
             createContent: function() {
                 var createCb = {
                     success: function() {
-                        this.callingWindow.location.reload(true);
+                        eventYS.data = oCurrentTextNode;
+                        document.dispatchEvent(eventYS);
                     },
                     failure: function() { },
                     callingWindow: window
@@ -2408,7 +2453,7 @@ treeNode.getHtml = function() {
 
                             var editCb = {
                                 success: function() {
-                                    this.callingWindow.location.reload(true);
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function() {

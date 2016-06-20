@@ -28,6 +28,11 @@ var eventNS = document.createEvent("Event");
 eventNS.initEvent("crafter.refresh", true, true);
 eventNS.changeStructure = false;
 
+// Create the event.
+var eventCM = document.createEvent("Event");
+// Define that the event name is 'build'.
+eventCM.initEvent("crafter.create.contenMenu", true, true);
+
 (function(undefined){
 
     // Private functions
@@ -1660,7 +1665,7 @@ eventNS.changeStructure = false;
                         ) {
                             var editCb = {
                                 success: function () {
-                                    this.callingWindow.location.reload(true);
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function () {
@@ -1807,7 +1812,14 @@ var parentSaveCb = {
                                             null, //contentTO.nodeRef,
                                             newPath, //contentTO.uri,
                                             false,
-                                            { success: function() {}, failure: function() {}});
+                                            { success: function(contentTO) {
+                                                eventYS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                                if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                    CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                        CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                }
+                                                document.dispatchEvent(eventYS);
+                                            }, failure: function() {}});
                                     },
                                     failure: function() {
 
@@ -2026,6 +2038,7 @@ var parentSaveCb = {
                 if(flow){
 
                     var panel = YDom.getElementsByClassName("yui-panel-container")[0];
+                    var  auxParentPath = "";
                     if( panel && (panel.style.visibility == 'visible' || panel.style.visibility == '')){
                         panel.style.visibility = "hidden";
                     }
@@ -2041,8 +2054,11 @@ var parentSaveCb = {
                                 deletedPage = deletedPage.substring(0, deletedPage.length - 1);
                             }
                             parentPath = deletedPage.substring(0, deletedPage.lastIndexOf("/"));
+                            auxParentPath = parentPath;
                             parentPath = CStudioAuthoringContext.previewAppBaseUri + parentPath;
-                            document.location = parentPath;
+                            if(auxParentPath != "/studio/preview/#/?page=") {
+                                document.location = parentPath;
+                            }
                             return;
                         }
                     }
@@ -2065,9 +2081,9 @@ var parentSaveCb = {
                 loadingImageEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
                 tempMask.appendChild(loadingImageEl);
 
-                document.body.appendChild(tempMask);
+                //document.body.appendChild(tempMask);
                 //window.location.reload(true);
-                document.dispatchEvent(eventNS);
+                //document.dispatchEvent(eventNS);
             },
 
             uploadAsset: function(site, path, isUploadOverwrite, uploadCb) {
@@ -4566,6 +4582,14 @@ var parentSaveCb = {
                 }
                 if(item.container && item.name != "index.xml") {
                     name="status-icon folder";
+                }
+
+                if(item.container && item.name != "index.xml") {
+                    name="status-icon folder";
+                }
+
+                if(item.isComponent) {
+                    name= name + " component";
                 }
 
                 return name;
