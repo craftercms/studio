@@ -65,10 +65,30 @@
         WHERE site = #{site} AND path = #{path}
     </update>
 
+    <update id="setSystemProcessingBySiteAndPathBulk" databaseId="postgres" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET system_processing = case when (#{systemProcessing} = TRUE) then 1::bit when (#{systemProcessing} = FALSE) then 0::bit end
+        WHERE site = #{site} AND path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
+
     <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map" flushCache="true">
         UPDATE cstudio_objectstate
         SET system_processing = #{systemProcessing}
         WHERE site = #{site} AND path = #{path}
+    </update>
+
+    <update id="setSystemProcessingBySiteAndPathBulk" parameterType="java.util.Map" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET system_processing = #{systemProcessing}
+        WHERE site = #{site} AND path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
     </update>
 
     <insert id="insertEntry" databaseId="postgres" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true" >
