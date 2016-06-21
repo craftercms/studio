@@ -105,6 +105,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
                                             }
                                             eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
                                             document.dispatchEvent(eventNS);
+                                            YDom.get("curtain").style.display = 'none';
                                             self.dialog.hide();
 										},
 										failure: function (oResponse) {
