@@ -489,6 +489,8 @@
                                 }
                             }
 
+                            Self.refreshAllDashboards();
+
                         }, false);
 
                     })(tree, instance);
@@ -1293,7 +1295,7 @@ treeNode.getHtml = function() {
                                         else {
                                             if (style.indexOf("in-flight") != -1) {
                                                 setTimeout(function () {
-                                                    lookupSiteContent(curNode, currentUri)
+                                                    lookupSiteContent(curNode, currentUri);
                                                 }, 300);
                                             } else {
                                                 cont++;
