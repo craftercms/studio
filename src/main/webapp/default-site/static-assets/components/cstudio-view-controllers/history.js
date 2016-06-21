@@ -101,19 +101,27 @@
                                     revertActionEl.item = selection;
                                     revertActionEl.version = version.versionNumber;
                                     col5El.appendChild(revertActionEl);
-                                    Event.addListener(revertActionEl, "click", function () {
-                                        CStudioAuthoring.Service.revertContentItem(
-                                            CStudioAuthoringContext.site,
-                                            this.item,
-                                            this.version, {
-                                                success: function () {
-                                                    window.location.reload(true);
-                                                },
-                                                failure: function () {
-                                                    alert("revert failed");
-                                                }
-                                            });
-                                    });
+                                    (function (item) {
+                                        Event.addListener(revertActionEl, "click", function () {
+                                            CStudioAuthoring.Service.revertContentItem(
+                                                CStudioAuthoringContext.site,
+                                                this.item,
+                                                this.version, {
+                                                    success: function () {
+                                                        if(CStudioAuthoringContext.isPreview){
+                                                            var cstopic = crafter.studio.preview.cstopic;
+                                                            window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                                        }
+                                                        eventNS.data = item;
+                                                        document.dispatchEvent(eventNS);
+                                                        _this.end();
+                                                    },
+                                                    failure: function () {
+                                                        alert("revert failed");
+                                                    }
+                                                });
+                                        });
+                                    })(history.item);
 
                                     tbody.appendChild(rowEl);
 
