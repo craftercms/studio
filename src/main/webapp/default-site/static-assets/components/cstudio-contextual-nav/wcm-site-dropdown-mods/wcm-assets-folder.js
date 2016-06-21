@@ -719,11 +719,10 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     createNewTemplate: function() {
         CStudioAuthoring.Operations.createNewTemplate(oCurrentTextNode.data.uri, {
             success: function(templatePath) {
-                this.callingWindow.location.reload(true);
                 Self.refreshNodes(this.tree,false, false, null, null, true);
             }, 
             failure: function() {
-                this.callingWindow.location.reload(true);
+                //this.callingWindow.location.reload(true);
             },
 
             callingWindow: window,
@@ -752,28 +751,6 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         var uploadCb = {
             success: function() {
                 Self.refreshNodes(this.tree,false, false, null, null, true);
-
-                // Refresh the "My Recent Activity" section in the dashboard
-                if (typeof WcmDashboardWidgetCommon != 'undefined') {
-                    var myRecentActivitiesInstace = WcmDashboardWidgetCommon.dashboards["MyRecentActivity"];
-                    var filterByTypeEl = YDom.get('widget-filterBy-'+myRecentActivitiesInstace.widgetId);
-                    var filterByTypeValue = 'all';
-                    if(filterByTypeEl && filterByTypeEl.value != '') {
-                        filterByTypeValue = filterByTypeEl.value;
-                    }
-
-                    var searchNumberEl = YDom.get('widget-showitems-'+myRecentActivitiesInstace.widgetId);
-                    var searchNumberValue =  myRecentActivitiesInstace.defaultSearchNumber;
-                    if(searchNumberEl && searchNumberEl.value != '') {
-                        searchNumberValue = searchNumberEl.value;
-                    }
-
-                    WcmDashboardWidgetCommon.loadFilterTableData(
-                        myRecentActivitiesInstace.defaultSortBy,
-                        YDom.get(myRecentActivitiesInstace.widgetId),
-                        myRecentActivitiesInstace.widgetId,
-                        searchNumberValue,filterByTypeValue);
-                }
             },
 
             failure: function() {
