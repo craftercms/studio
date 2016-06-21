@@ -165,7 +165,11 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     submittedItems.add(uri);
                 }
                 DmContentItemComparator comparator = new DmContentItemComparator(DmContentItemComparator.SORT_BROWSER_URI, true, true, true);
-                items = getDependencies(site, submittedItems, comparator, false, deleteDependencies);
+                if (enableManualDependencyApproving) {
+                    items = getDependenciesManualApproving(site, submittedItems, comparator, false, deleteDependencies);
+                } else {
+                    items = getDependencies(site, submittedItems, comparator, false, deleteDependencies);
+                }
             }
             StringBuilder sb = new StringBuilder();
             Set<String> submissionComments = new HashSet<String>();
@@ -519,6 +523,25 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
         return getDependencies(site, submittedItems, comparator,multiLevelChildren,false);
 
+    }
+
+    protected List<ContentItemTO> getDependenciesManualApproving(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren, boolean delDep) throws ServiceException {
+        if (submittedItems != null) {
+            List<ContentItemTO> displayItems = new ArrayList<ContentItemTO>();
+            Set<String> dependenciesPaths = new LinkedHashSet<String>();
+            for (String submittedItem : submittedItems) {
+                dependenciesPaths.add(submittedItem);
+                dependenciesPaths.addAll(submitToApproveDependencyRule.applyRule(site, submittedItem));
+            }
+            for (String depPath : dependenciesPaths) {
+                ContentItemTO itemTo = contentService.getContentItem(site, depPath);
+                displayItems.add(itemTo);
+            }
+
+            return displayItems;
+        } else {
+            throw new ServiceException("No items provided.");
+        }
     }
 
     protected List<ContentItemTO> getDependencies(String site, List<String> submittedItems, DmContentItemComparator comparator, boolean multiLevelChildren, boolean delDep) throws ServiceException {
@@ -1490,10 +1513,18 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public List<String> getIgnoreDependenciesRules() { return ignoreDependenciesRules; }
     public void setIgnoreDependenciesRules(List<String> ignoreDependenciesRules) { this.ignoreDependenciesRules = ignoreDependenciesRules; }
 
+    public boolean isEnableManualDependencyApproving() { return enableManualDependencyApproving; }
+    public void setEnableManualDependencyApproving(boolean enableManualDependencyApproving) { this.enableManualDependencyApproving = enableManualDependencyApproving; }
+
+    public SubmitToApproveDependencyRule getSubmitToApproveDependencyRule() { return submitToApproveDependencyRule; }
+    public void setSubmitToApproveDependencyRule(SubmitToApproveDependencyRule submitToApproveDependencyRule) { this.submitToApproveDependencyRule = submitToApproveDependencyRule; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected List<String> ignoreDependenciesRules = new ArrayList<>();
+    protected boolean enableManualDependencyApproving = false;
+    protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
 
     @Autowired
     protected DependencyMapper dependencyMapper;

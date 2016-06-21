@@ -101,9 +101,26 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             return;
         }
 
-        // TODO: CodeRev: a lot of O(n) here, cant this be done in a single loop inside bulk op?
-        for (String path : paths) {
-            setSystemProcessing(site, path, isSystemProcessing);
+        if (paths.size() < bulkOperationBatchSize) {
+            setSystemProcessingBulkPartial(site, paths, isSystemProcessing);
+        } else {
+            List<List<String>> partitions = new ArrayList<List<String>>();
+            for (int i = 0; i < paths.size();i = i +  bulkOperationBatchSize) {
+                partitions.add(paths.subList(i, Math.min(i + bulkOperationBatchSize, paths.size())));
+            }
+            for (List<String> part : partitions) {
+                setSystemProcessingBulkPartial(site, part, isSystemProcessing);
+            }
+        }
+    }
+
+    private void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
+        if (paths != null && !paths.isEmpty()) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            params.put("paths", paths);
+            params.put("systemProcessing", isSystemProcessing);
+            objectStateMapper.setSystemProcessingBySiteAndPathBulk(params);
         }
     }
 
@@ -431,10 +448,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
+    protected int bulkOperationBatchSize;
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
+    public int getBulkOperationBatchSize() { return bulkOperationBatchSize; }
+    public void setBulkOperationBatchSize(int bulkOperationBatchSize) { this.bulkOperationBatchSize = bulkOperationBatchSize; }
 }

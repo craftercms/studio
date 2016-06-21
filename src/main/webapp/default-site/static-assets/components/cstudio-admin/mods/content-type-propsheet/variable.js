@@ -41,6 +41,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.ContentTypes.PropertyType.Variable, CStudi
 				var titleEl = YDom.getElementsByClassName("property-input-title");
 				YAHOO.util.Dom.addClass(titleEl, 'no-update'); 
 				YAHOO.util.Event.on(valueEl, 'keyup', checkVarState);
+			}else if( fName == "id" && value == ""){
+				YAHOO.util.Event.on(valueEl, 'keyup', checkVarState);
 			}
 		}
 		

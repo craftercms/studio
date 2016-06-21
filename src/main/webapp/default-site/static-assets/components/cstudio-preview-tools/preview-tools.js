@@ -136,7 +136,7 @@
                 var offsetX, panelWidth, rightPadding, panelX, panel, ptoTop, winWidth;
 
                 panel = this.panel;
-                offsetX = panel.cfg.config.x.value;
+                offsetX = panel.cfg.config.x.value > 50 ? 50 : panel.cfg.config.x.value;
                 panelWidth = +(panel.cfg.config.width.value.split("px")[0]);
                 rightPadding = 20;
                 winWidth = window.innerWidth;

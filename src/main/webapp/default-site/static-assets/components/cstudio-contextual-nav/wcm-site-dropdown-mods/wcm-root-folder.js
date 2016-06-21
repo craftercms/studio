@@ -32,6 +32,8 @@
             cutItem: null,
             instanceCount: 0,
             lastSelectedTextNode: null, //used for holding last selected node; to use it to hold hover effect on a text node when cotex menu is open.
+            treePaths: [],
+            menuOn: false,
             treePathOpenedEvt: new YAHOO.util.CustomEvent("wcmRootFolderTreePathLoaded", Self),
             /**
              * initialize module
@@ -200,6 +202,7 @@
                 var site = treeEl.rootFolderSite;
                 var rootPath = treeEl.rootFolderPath;
                 var pathToOpen = (path != undefined) ? path : null;
+                var pathFlag = true;
 
                 var tree = instance.tree = new YAHOO.widget.TreeView(treeEl);
                 tree.setDynamicLoad(this.onLoadNodeDataOnClick);
@@ -217,7 +220,7 @@
 					dummy.path = rootPath;
 					var items = new Array();
 					items.push(dummy);
-					Self.drawTree(items, tree, path, instance);
+					Self.drawTree(items, tree, path, instance, pathFlag);
 					YDom.removeClass(label, "loading");
 					//add hover effect to nodes
 					Self.nodeHoverEffects(this);
@@ -247,7 +250,8 @@
                                 if (instance.showRootItem) {
                                     items = new Array(treeData.item);
                                 }
-                                Self.drawTree(items, tree, path, instance);
+                                Self.drawTree(items, tree, path, instance, pathFlag);
+                                pathFlag = false;
                                 YDom.removeClass(label, "loading");
                                 //add hover effect to nodes
                                 Self.nodeHoverEffects(this);
@@ -260,6 +264,37 @@
                     }
 				}
             },
+
+            refreshDashboard: function(inst){
+                var instace = WcmDashboardWidgetCommon.dashboards[inst];
+                var filterByTypeEl = YDom.get('widget-filterBy-'+instace.widgetId);
+                var filterByTypeValue = 'all';
+                if(filterByTypeEl && filterByTypeEl.value != '') {
+                    filterByTypeValue = filterByTypeEl.value;
+                }
+
+                var searchNumberEl = YDom.get('widget-showitems-'+instace.widgetId);
+                var searchNumberValue =  instace.defaultSearchNumber;
+                if(searchNumberEl && searchNumberEl.value != '') {
+                    searchNumberValue = searchNumberEl.value;
+                }
+
+                WcmDashboardWidgetCommon.loadFilterTableData(
+                    instace.defaultSortBy,
+                    YDom.get(instace.widgetId),
+                    instace.widgetId,
+                    searchNumberValue,filterByTypeValue);
+            },
+
+            refreshAllDashboards: function(){
+                if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                    Self.refreshDashboard("MyRecentActivity");
+                    Self.refreshDashboard("recentlyMadeLive");
+                    Self.refreshDashboard("approvedScheduledItems");
+                    Self.refreshDashboard("GoLiveQueue");
+                }
+            },
+
             /**
              * to check, if extra ajax call can be reduced
              */
@@ -271,7 +306,7 @@
             /**
              * render function called on root level elements
              */
-            drawTree: function(treeItems, tree, pathToOpenTo, instance) {
+            drawTree: function(treeItems, tree, pathToOpenTo, instance, uniquePath) {
 
                 self = this;
 
@@ -361,6 +396,8 @@
                 });
 
                 tree.subscribe('clickEvent', function(args) {
+                    var idTree = tree.id.toString().replace(/-/g,'');
+                    Self.myTree = Self.myTreePages[idTree];
                     Self.onTreeNodeClick(args.node);
 
                     // Prevent the default behavior (i.e. expand/collapse) of links that should take the user to preview
@@ -438,6 +475,24 @@
                 oContextMenu.subscribe('beforeShow', function() {
                 		Self.onTriggerContextMenu(tree, this);
                 }, tree, false);
+
+                if(uniquePath) {
+                    self.treePaths.push(tree.id);
+                    (function (t, inst) {
+                        document.addEventListener('crafter.refresh', function (e) {
+                            document.dispatchEvent(eventCM);
+                            try {
+                                Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure);
+                            } catch (er) {
+                                if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
+                                    Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure);
+                                }
+                            }
+
+                        }, false);
+
+                    })(tree, instance);
+                }
 
                 tree.draw();
                if (Object.prototype.toString.call(instance.path) === '[object Array]') {
@@ -750,6 +805,7 @@ treeNode.getHtml = function() {
                 }
 
 				if(Object.keys(latestStored).length >= 1){
+                    var pathFlag = true;
 					var treeEl = instance.rootFolderEl,
 						site = treeEl.rootFolderSite,
 						rootPath = treeEl.rootFolderPath,
@@ -852,7 +908,7 @@ treeNode.getHtml = function() {
 						dummy.path = rootPath;
 						var items = new Array();
 						items.push(dummy);
-						Self.drawTree(items, tree, null, instance);
+						Self.drawTree(items, tree, null, instance, pathFlag);
 						YDom.removeClass(label, "loading");
 						Self.firePathLoaded(instance);
 					} else {
@@ -889,7 +945,8 @@ treeNode.getHtml = function() {
                                         items = new Array(treeData.item);
                                     }
                                     instance.state = Self.ROOT_OPEN;
-                                    Self.drawTree(items, tree, null, instance);
+                                    Self.drawTree(items, tree, null, instance, pathFlag);
+                                    pathFlag = false;
 
                                     if (latestStored[key] && latestStored[key][[key]] != Self.ROOT_OPENED) {
                                         pathTrace[key][k[key]] = treeData.item.path;
@@ -1050,22 +1107,38 @@ treeNode.getHtml = function() {
     },
 
     expandTree: function(node, fnLoadComplete) {
-        var fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1],
-            roothpath = node.treeNodeTO.path.replace("/" + fileName, ""),
-            plainpath = node.treeNodeTO.path,
-            el = node.getEl(),
-            num = el.getAttribute('num');
-        plainpath = roothpath == '/site' ? "root-folder" : plainpath;
-        if(!num){
-            while ((el = el.parentElement) && !el.hasAttribute("num"));
+        if(node) {
+            var iniPath;
+            try {
+                iniPath = node.treeNodeTO.path;
+            } catch (er) {
+                iniPath = node.path;
+            }
+            var fileName = iniPath.split('/')[node.treeNodeTO.path.split('/').length - 1],
+                roothpath = iniPath.replace("/" + fileName, ""),
+                plainpath = iniPath,
+                el = node.getEl(),
+                num = el.getAttribute('num');
+            plainpath = roothpath == '/site' ? "root-folder" : plainpath;
+            if (!num) {
+                while ((el = el.parentElement) && !el.hasAttribute("num"));
+            }
+            if(el) {
+                Self.save(node.instance, plainpath, null, el.getAttribute('num') ? el.getAttribute('num') : "root-folder", "expand");
+            }
         }
-        Self.save(node.instance, plainpath, null, el.getAttribute('num') ? el.getAttribute('num') : "root-folder", "expand");
     },
 
     collapseTree: function(node, fnLoadComplete) {
-        var path = node.treeNodeTO.path.replace(/\//g, "").toLowerCase();
-            fileName = node.treeNodeTO.path.split('/')[node.treeNodeTO.path.split('/').length - 1],
-            plainpath = node.treeNodeTO.path.replace("/" + fileName, ""),
+        var iniPath;
+        try{
+            iniPath = node.treeNodeTO.path;
+        }catch(er){
+            iniPath = node.path;
+        }
+        var path = iniPath.replace(/\//g, "").toLowerCase();
+            fileName = iniPath.split('/')[node.treeNodeTO.path.split('/').length - 1],
+            plainpath = iniPath.replace("/" + fileName, ""),
             el = node.getEl(),
             num = el.getAttribute('num');
         plainpath = (plainpath == '/site') || path == num ? "root-folder" : plainpath;
@@ -1125,68 +1198,213 @@ treeNode.getHtml = function() {
     remove: function (instance, path) {
        storage.eliminate( Self.getStoredPathKey(instance) );
     },
+
+    findAncestor:function (el, cls) {
+        while ((el = el.parentElement) && !el.classList.contains(cls));
+        return el;
+    },
     
     /**
 	* methos that fires when new items added to tree.
 	*/
-	refreshNodes: function(treeNode,status) {
-		var tree = Self.myTree;
-		var copiedItemNode = Self.copiedItem;
-		var node = tree.getNodeByProperty("path", treeNode.treeNodeTO.path);
-		if (copiedItemNode != null && treeNode.data.path == copiedItemNode.data.path) {
-                node = tree.getNodeByProperty("path", treeNode.parent.data.path);
+	refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure) {
+		var tree = tree ? tree : Self.myTree,
+            isMytree = false,
+            currentPath = treeNode.data ? treeNode.data.path : treeNode.path,
+            currentUri = treeNode.data ? treeNode.data.uri : treeNode.uri;
+        if(tree &&  Self.myTree) {
+            for (var i = 0; i < self.treePaths.length; i++) {
+                if (self.treePaths[i] == Self.myTree.id) {
+                    isMytree = true;
+                }
+            }
+            if (!isMytree) {
+                tree = Self.myTree;
+            }
+        }
+        if(tree) {
+            var copiedItemNode = Self.copiedItem;
+            var node = [];
+            node = tree.getNodesByProperty("path", currentPath) ? tree.getNodesByProperty("path", currentPath) : null;
+            if (copiedItemNode != null && (currentPath == copiedItemNode.data.path) && treeNode.parent) {
+                node = tree.getNodesByProperty("path", treeNode.parent.data.path);
                 Self.copiedItem = null;
-        }
+            }
 
-        if(node) {
-    		if (node.isLeaf) node.isLeaf = false;
+            if (node) {
+                for(var i=0; i<node.length; i++) {
+                    node[i] = parent ? node[i].parent : node[i];
+                    if (node[i].isLeaf) node[i].isLeaf = false;
+                }
+            }
+            else {
+                node = parent ? treeNode.parent : treeNode;
+            }
+
+            if(!changeStructure){
+
+                if(instance){
+                    //Self.initializeContentTree(instance.rootFolderEl, null, instance);
+                    var nodeToChange;
+                    if(parent){
+                        nodeToChange = tree.getNodesByProperty("path", currentPath);
+                    }else{
+                        nodeToChange = node;
+                    }
+
+                    if(nodeToChange){
+                        for(var i=0; i<nodeToChange.length;i++) {
+                            (function (nodeToChange,i) {
+                                lookupSiteContent(nodeToChange[i], currentUri);
+                            })(nodeToChange,i);
+                        }
+                    }
+
+                    function lookupSiteContent(curNode, currentUri, paramCont) {
+                        if (curNode && curNode.label) {
+                            CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, curNode.data.uri, 1, "default", {
+                                success: function (treeData) {
+                                    if (currentUri == treeData.item.uri) {
+                                        var style = "",
+                                            cont = paramCont ? paramCont : 0;
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).innerHTML = treeData.item.internalName : null;
+                                        style = CStudioAuthoring.Utils.getIconFWClasses(treeData.item);
+                                        if (treeData.item.isPreviewable) {
+                                            style = style + " preview";
+                                        } else {
+                                            style = style + " no-preview";
+                                        }
+                                        if (treeData.item.contentType == "asset") {
+                                            style = style + " component";
+                                        }
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).className = style : null;
+                                        if (style.indexOf("deleted") != -1 || treeData.item.isDeleted) {
+                                            var tempSplit = curNode.labelElId.split("labelel");
+                                            var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
+                                            parentNode.style.display = 'none';
+                                            tree.removeNode(curNode);
+                                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                    CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                            }
+                                            document.dispatchEvent(eventCM);
+                                            Self.refreshAllDashboards();
+                                        }
+                                        else {
+                                            if (style.indexOf("in-flight") != -1) {
+                                                setTimeout(function () {
+                                                    lookupSiteContent(curNode, currentUri)
+                                                }, 300);
+                                            } else {
+                                                cont++;
+                                                if ((curNode.labelStyle.indexOf("folder") != -1 && cont < 25) || (curNode.labelStyle.indexOf("folder") == -1 && cont < 2)) {
+                                                    setTimeout(function () {
+                                                        lookupSiteContent(curNode, currentUri, cont);
+                                                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                            CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                                CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                        }
+                                                        if(curNode.labelStyle.indexOf("folder") == -1) {
+                                                            document.dispatchEvent(eventCM);
+                                                            Self.refreshAllDashboards();
+                                                        }
+                                                    }, 300);
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                failure: function () {
+                                }
+                            })
+                        }
+                    }
+
+                }
+            }else {
+                if(node) {
+                    for(var i=0; i<node.length; i++) {
+                        var curNode = node[i];
+                        if (curNode.nodeType == "CONTENT") {
+                            var itemStore = instance ? storage.read(Self.getStoredPathKey(instance)) : null;
+                            //console.log(itemStore);
+                            tree.removeChildren(curNode);
+                            var loadEl = YAHOO.util.Selector.query(".ygtvtp", curNode.getEl(), true);
+                            loadEl == null && (loadEl = YAHOO.util.Selector.query(".ygtvlp", curNode.getEl(), true));
+                            YDom.addClass(loadEl, "ygtvloading");
+                            curNode.renderChildren();
+                            curNode.refresh();
+                            //console.log(itemStore);
+                            if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
+                            self.expandTree(curNode);
+                            Self.refreshAllDashboards();
+
+                        } else {
+                            var root = false;
+                            if (Object.prototype.toString.call(instance.path) === '[object Array]') {
+                                var path;
+                                try {
+                                    path = curNode.data ? curNode.data.path ? curNode.data.path : treeNode.treeNodeTO.path : treeNode.treeNodeTO.path;
+                                } catch (er) {
+                                    path = curNode.data ? curNode.data.path ? curNode.data.path : treeNode.path ? treeNode.path : null : treeNode.path ? treeNode.path : null;
+                                }
+                                for (var i = 0; i <= instance.path.length; i++) {
+                                    if (path == instance.path[i]) {
+                                        root = true;
+                                    }
+                                }
+                            }
+                            if (root && instance) {
+                                Self.initializeContentTree(instance.rootFolderEl, null, instance);
+                                Self.toggleFolderState(instance, "open");
+                            }
+                            Self.refreshAllDashboards();
+                        }
+                    }
+                }
+                if (root && instance) {
+                    var __self = this;
+                    setTimeout(function () {
+                        __self.openLatest(instance);
+                    }, 100);
+                }
+            }
+
+            var treeInner = YDom.get('acn-dropdown-menu-inner');
+            var previousCutEl = YDom.getElementsByClassName("status-icon", null, treeInner);
+
+            for (var i = 0; i < previousCutEl.length; i++) {
+
+                if (previousCutEl[i].style.color == Self.CUT_STYLE_RGB || previousCutEl[i].style.color == Self.CUT_STYLE) {
+
+                    if (status) {
+                        var tempSplit = previousCutEl[i].id.split("labelel");
+                        var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
+                        parentNode.style.display = 'none';
+                        if (Self.cutItem != null) {
+                            var parNode = tree.getNodeByProperty("path", Self.cutItem.parent.data.path);
+                            //if parent have single child and we did cut and paste the child,
+                            //we should refresh the parent node to remove expand collapse icon
+                            if (parNode && parNode.children && parNode.children.length == 1) {
+                                tree.removeChildren(parNode);
+                                var parLoadEl = YSelector(".ygtvtp", parNode.getEl(), true);
+                                parLoadEl == null && (parLoadEl = YSelector(".ygtvlp", parNode.getEl(), true));
+                                YDom.addClass(parLoadEl, "ygtvloading");
+                                parNode.renderChildren();
+                                parNode.refresh();
+                            } else if (parNode) {
+                                //remove the only item from parent node.
+                                tree.removeNode(Self.cutItem);
+                            }
+                            Self.cutItem = null;
+                        }
+                    } else {
+                        previousCutEl[i].removeAttribute("style");
+                    }
+                }
+            }
+
         }
-        else {
-           node = treeNode;
-        }
-        
-	   	tree.removeChildren(node);
-		var loadEl = YSelector(".ygtvtp", node.getEl(), true);
-		loadEl == null && (loadEl = YSelector(".ygtvlp", node.getEl(), true));
-		YDom.addClass(loadEl, "ygtvloading");
-		node.renderChildren();
-		node.refresh();
-		
-		var treeInner = YDom.get('acn-dropdown-menu-inner');
-		var previousCutEl = YDom.getElementsByClassName("status-icon", null, treeInner);
-		
-		for(var i=0; i<previousCutEl.length; i++){
-			
-			if(previousCutEl[i].style.color == Self.CUT_STYLE_RGB || previousCutEl[i].style.color == Self.CUT_STYLE ){
-				
-				if(status){
-					var tempSplit = previousCutEl[i].id.split("labelel");
-					var parentNode = YDom.get(tempSplit[0]+tempSplit[1]);
-					parentNode.style.display = 'none';
-					if (Self.cutItem != null) {
-						var parNode = tree.getNodeByProperty("path", Self.cutItem.parent.data.path);
-						//if parent have single child and we did cut and paste the child,
-						//we should refresh the parent node to remove expand collapse icon 
-						if (parNode && parNode.children && parNode.children.length == 1) {
-							tree.removeChildren(parNode);
-							var parLoadEl = YSelector(".ygtvtp", parNode.getEl(), true);
-							parLoadEl == null && (parLoadEl = YSelector(".ygtvlp", parNode.getEl(), true));
-							YDom.addClass(parLoadEl, "ygtvloading");
-							parNode.renderChildren();
-							parNode.refresh();
-						} else if (parNode) {
-							//remove the only item from parent node.
-							tree.removeNode(Self.cutItem);
-						}
-						Self.cutItem = null;
-					}
-				}else{
-					previousCutEl[i].removeAttribute("style");
-				}
-			}						
-		}
-		
-		
 	},
 	
 	/**
@@ -1747,6 +1965,7 @@ treeNode.getHtml = function() {
 
                 /* Get the TextNode instance that that triggered the display of the ContextMenu instance. */
                 oCurrentTextNode = tree.getNodeByElement(target);
+                Self.menuOn = true;
 
                 /* If item is being processed (inFlight) dont display right context menu */
                 if (oCurrentTextNode != null &&
@@ -1856,7 +2075,8 @@ treeNode.getHtml = function() {
             createContent: function() {
                 var createCb = {
                     success: function() {
-                        this.callingWindow.location.reload(true);
+                        eventYS.data = oCurrentTextNode;
+                        document.dispatchEvent(eventYS);
                     },
                     failure: function() { },
                     callingWindow: window
@@ -1880,7 +2100,8 @@ treeNode.getHtml = function() {
                     success: function(contentTO, editorId, name, value, draft) {
                         if(CStudioAuthoringContext.isPreview){
                             try{
-                                CStudioAuthoring.Operations.refreshPreview();
+                                var cstopic = crafter.studio.preview.cstopic;
+                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
                             }catch(err) {
                                 if(!draft) {
                                     this.callingWindow.location.reload(true);
@@ -1889,9 +2110,11 @@ treeNode.getHtml = function() {
                         }
                         else {
                             if(!draft) {
-                                this.callingWindow.location.reload(true);
+                                //this.callingWindow.location.reload(true);
                             }
                         }
+                        eventNS.data = oCurrentTextNode;
+                        document.dispatchEvent(eventNS);
                     },
 
                     failure: function() {
@@ -1937,7 +2160,7 @@ treeNode.getHtml = function() {
 			createContainer: function() {
 				var createCb = {
 					success: function() {
-                        Self.refreshNodes(this.currentNode,false);
+                        Self.refreshNodes(this.currentNode,false, false, null, null, true);
 					},
 					failure: function() { },
 					callingWindow: window,
@@ -2093,28 +2316,9 @@ treeNode.getHtml = function() {
                                 }
                             }
 
-                            Self.refreshNodes(this.tree,!errorMsgExist);
+                            Self.refreshNodes(this.tree,!errorMsgExist, false, null, null, true);
 
-                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
-                                var myRecentActivitiesInstace = WcmDashboardWidgetCommon.dashboards["MyRecentActivity"];
-                                var filterByTypeEl = YDom.get('widget-filterBy-'+myRecentActivitiesInstace.widgetId);
-                                var filterByTypeValue = 'all';
-                                if(filterByTypeEl && filterByTypeEl.value != '') {
-                                    filterByTypeValue = filterByTypeEl.value;
-                                }
-
-                                var searchNumberEl = YDom.get('widget-showitems-'+myRecentActivitiesInstace.widgetId);
-                                var searchNumberValue =  myRecentActivitiesInstace.defaultSearchNumber;
-                                if(searchNumberEl && searchNumberEl.value != '') {
-                                    searchNumberValue = searchNumberEl.value;
-                                }
-
-                                WcmDashboardWidgetCommon.loadFilterTableData(
-                                    myRecentActivitiesInstace.defaultSortBy,
-                                    YDom.get(myRecentActivitiesInstace.widgetId),
-                                    myRecentActivitiesInstace.widgetId,
-                                    searchNumberValue,filterByTypeValue);
-                            }
+                            Self.refreshDashboard("MyRecentActivity");
 
                             //code below to alert user if destination node url already exist during cut/paste
                             if (errorMsgExist && errorMsg=='DESTINATION_NODE_EXIST'){
@@ -2250,7 +2454,7 @@ treeNode.getHtml = function() {
 
                             var editCb = {
                                 success: function() {
-                                    this.callingWindow.location.reload(true);
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function() {

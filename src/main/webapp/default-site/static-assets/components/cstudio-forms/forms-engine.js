@@ -1395,6 +1395,9 @@ var CStudioForms = CStudioForms || function() {
                 formControlBarEl.appendChild(colExpButtonEl);
                 YAHOO.util.Event.addListener(colExpButtonEl, "click", collapseFn, this);
 
+                var overlayContainer = parent.document.getElementById(window.frameElement.id).parentElement;
+                YDom.addClass(overlayContainer, "overlay");
+
             },
 
             /**
@@ -1629,6 +1632,11 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
                             containerEl.reRender(containerEl);
+
+                            var containerElNodes = $(containerEl.childNodes);
+                            containerElLastChildTop = $(containerElNodes.get(repeatArrayIndex)).offset().top;
+                            $('body').scrollTop(containerElLastChildTop);
+
                             repeatEdited = true;
                         }
                     }
