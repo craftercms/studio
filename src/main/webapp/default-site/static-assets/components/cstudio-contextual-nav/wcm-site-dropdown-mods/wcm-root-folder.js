@@ -488,7 +488,6 @@
                                     Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure);
                                 }
                             }
-                            Self.refreshAllDashboards();
 
                         }, false);
 
@@ -1330,14 +1329,15 @@ treeNode.getHtml = function() {
                             var itemStore = instance ? storage.read(Self.getStoredPathKey(instance)) : null;
                             //console.log(itemStore);
                             tree.removeChildren(curNode);
-                            var loadEl = YSelector(".ygtvtp", curNode.getEl(), true);
-                            loadEl == null && (loadEl = YSelector(".ygtvlp", curNode.getEl(), true));
+                            var loadEl = YAHOO.util.Selector.query(".ygtvtp", curNode.getEl(), true);
+                            loadEl == null && (loadEl = YAHOO.util.Selector.query(".ygtvlp", curNode.getEl(), true));
                             YDom.addClass(loadEl, "ygtvloading");
                             curNode.renderChildren();
                             curNode.refresh();
                             //console.log(itemStore);
                             if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
                             self.expandTree(curNode);
+                            Self.refreshAllDashboards();
 
                         } else {
                             var root = false;
@@ -1358,6 +1358,7 @@ treeNode.getHtml = function() {
                                 Self.initializeContentTree(instance.rootFolderEl, null, instance);
                                 Self.toggleFolderState(instance, "open");
                             }
+                            Self.refreshAllDashboards();
                         }
                     }
                 }
