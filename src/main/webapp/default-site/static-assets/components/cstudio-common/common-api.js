@@ -583,7 +583,9 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                         this.on("submitComplete", function(evt, args){
 
                             var reloadFn = function(){
-                                window.location.reload();
+                                dialogue.hide();
+                                eventNS.data = contentObj;
+                                document.dispatchEvent(eventNS);
                             };
 
                             dialogue.hideEvent.subscribe(reloadFn);

@@ -98,7 +98,15 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 									self = this,
 									serviceCallback = {
 										success:function(oResponse) {
-											 window.location.reload(true);
+											 //window.location.reload(true);
+                                            if(CStudioAuthoringContext.isPreview){
+                                                var cstopic = crafter.studio.preview.cstopic;
+                                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                            }
+                                            eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                            document.dispatchEvent(eventNS);
+                                            YDom.get("curtain").style.display = 'none';
+                                            self.dialog.hide();
 										},
 										failure: function (oResponse) {
 											self.pageRedirect(oResponse);
