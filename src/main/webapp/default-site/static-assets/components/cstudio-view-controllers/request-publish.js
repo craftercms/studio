@@ -65,13 +65,18 @@
                     var oResp = JSON.parse(oResponse.responseText);
                     _this.fire("submitComplete", oResp);
                     _this.fire("submitEnd", oResp);
-                    window.location.reload();
+                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                    eventNS.typeAction = "edit";
+                    document.dispatchEvent(eventNS);
+                    _this.end();
                 },
                 failure: function(oResponse) {
                     var oResp = JSON.parse(oResponse.responseText);
                     _this.fire("submitEnd", oResp);
                     _this.enableActions();
-                    window.location.reload();
+                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                    eventNS.typeAction = "edit";
+                    document.dispatchEvent(eventNS);
                 }
             }
         });
