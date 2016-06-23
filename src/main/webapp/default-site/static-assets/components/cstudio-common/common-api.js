@@ -21,17 +21,21 @@ var eventYS = document.createEvent('Event');
 // Define that the event name is 'build'.
 eventYS.initEvent('crafter.refresh', true, true);
 eventYS.changeStructure = true;
+eventYS.typeAction = "";
 
 // Create the event.
 var eventNS = document.createEvent("Event");
 // Define that the event name is 'build'.
 eventNS.initEvent("crafter.refresh", true, true);
 eventNS.changeStructure = false;
+eventNS.typeAction = "";
 
 // Create the event.
 var eventCM = document.createEvent("Event");
 // Define that the event name is 'build'.
 eventCM.initEvent("crafter.create.contenMenu", true, true);
+
+var nodeOpen = false;
 
 (function(undefined){
 
@@ -540,6 +544,7 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                                         var reloadFn = function () {
                                             //window.location.reload();
                                             eventNS.data = items[0];
+                                            eventNS.typeAction = "";
                                             document.dispatchEvent(eventNS);
                                         };
                                         dialogue.hideEvent.subscribe(reloadFn);
@@ -583,7 +588,10 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                         this.on("submitComplete", function(evt, args){
 
                             var reloadFn = function(){
-                                window.location.reload();
+                                dialogue.hide();
+                                eventNS.data = contentObj;
+                                eventNS.typeAction = "";
+                                document.dispatchEvent(eventNS);
                             };
 
                             dialogue.hideEvent.subscribe(reloadFn);
@@ -617,6 +625,7 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                             //window.location.reload();
                             dialogue.hide();
                             eventNS.data = items[0];
+                            eventNS.typeAction = "";
                             document.dispatchEvent(eventNS);
                         });
 
@@ -1665,6 +1674,7 @@ eventCM.initEvent("crafter.create.contenMenu", true, true);
                         ) {
                             var editCb = {
                                 success: function () {
+                                    eventNS.typeAction = "";
                                     document.dispatchEvent(eventNS);
                                 },
 
@@ -1818,6 +1828,7 @@ var parentSaveCb = {
                                                     CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
                                                         CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
                                                 }
+                                                eventYS.typeAction = "";
                                                 document.dispatchEvent(eventYS);
                                             }, failure: function() {}});
                                     },
