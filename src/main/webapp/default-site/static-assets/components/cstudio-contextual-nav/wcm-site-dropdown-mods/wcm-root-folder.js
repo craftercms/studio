@@ -477,15 +477,16 @@
                 }, tree, false);
 
                 if(uniquePath) {
+                    nodeOpen = true;
                     self.treePaths.push(tree.id);
                     (function (t, inst) {
                         document.addEventListener('crafter.refresh', function (e) {
                             document.dispatchEvent(eventCM);
                             try {
-                                Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure);
+                                Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
                             } catch (er) {
                                 if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
-                                    Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure);
+                                    Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure, e.typeAction);
                                 }
                             }
 
@@ -1209,7 +1210,7 @@ treeNode.getHtml = function() {
     /**
 	* methos that fires when new items added to tree.
 	*/
-	refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure) {
+	refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure, edit) {
 		var tree = tree ? tree : Self.myTree,
             isMytree = false,
             currentPath = treeNode.data ? treeNode.data.path : treeNode.path,
@@ -1258,6 +1259,7 @@ treeNode.getHtml = function() {
                         for(var i=0; i<nodeToChange.length;i++) {
                             (function (nodeToChange,i) {
                                 lookupSiteContent(nodeToChange[i], currentUri);
+                                nodeOpen = true;
                             })(nodeToChange,i);
                         }
                     }
@@ -1306,7 +1308,7 @@ treeNode.getHtml = function() {
                                                             CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
                                                                 CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
                                                         }
-                                                        if(curNode.labelStyle.indexOf("folder") == -1) {
+                                                        if((curNode.labelStyle.indexOf("folder") == -1) && (edit != "edit")) {
                                                             document.dispatchEvent(eventCM);
                                                             Self.refreshAllDashboards();
                                                         }
@@ -1325,6 +1327,7 @@ treeNode.getHtml = function() {
                 }
             }else {
                 if(node) {
+                    nodeOpen = true;
                     for(var i=0; i<node.length; i++) {
                         var curNode = node[i];
                         if (curNode.nodeType == "CONTENT") {
@@ -2116,6 +2119,7 @@ treeNode.getHtml = function() {
                             }
                         }
                         eventNS.data = oCurrentTextNode;
+                        eventNS.typeAction = "edit";
                         document.dispatchEvent(eventNS);
                     },
 

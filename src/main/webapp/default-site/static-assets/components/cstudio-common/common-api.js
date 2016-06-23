@@ -33,6 +33,8 @@ var eventCM = document.createEvent("Event");
 // Define that the event name is 'build'.
 eventCM.initEvent("crafter.create.contenMenu", true, true);
 
+var nodeOpen = false;
+
 (function(undefined){
 
     // Private functions

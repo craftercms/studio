@@ -796,6 +796,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
                 }
             }
             eventNS.data = contentTO.item;
+            eventNS.typeAction = "edit";
             document.dispatchEvent(eventNS);
         },
         failure: function () {
