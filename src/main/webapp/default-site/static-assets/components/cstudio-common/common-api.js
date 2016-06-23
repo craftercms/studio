@@ -21,12 +21,14 @@ var eventYS = document.createEvent('Event');
 // Define that the event name is 'build'.
 eventYS.initEvent('crafter.refresh', true, true);
 eventYS.changeStructure = true;
+eventYS.typeAction = "";
 
 // Create the event.
 var eventNS = document.createEvent("Event");
 // Define that the event name is 'build'.
 eventNS.initEvent("crafter.refresh", true, true);
 eventNS.changeStructure = false;
+eventNS.typeAction = "";
 
 // Create the event.
 var eventCM = document.createEvent("Event");
@@ -542,6 +544,7 @@ var nodeOpen = false;
                                         var reloadFn = function () {
                                             //window.location.reload();
                                             eventNS.data = items[0];
+                                            eventNS.typeAction = "";
                                             document.dispatchEvent(eventNS);
                                         };
                                         dialogue.hideEvent.subscribe(reloadFn);
@@ -587,6 +590,7 @@ var nodeOpen = false;
                             var reloadFn = function(){
                                 dialogue.hide();
                                 eventNS.data = contentObj;
+                                eventNS.typeAction = "";
                                 document.dispatchEvent(eventNS);
                             };
 
@@ -621,6 +625,7 @@ var nodeOpen = false;
                             //window.location.reload();
                             dialogue.hide();
                             eventNS.data = items[0];
+                            eventNS.typeAction = "";
                             document.dispatchEvent(eventNS);
                         });
 
@@ -1669,6 +1674,7 @@ var nodeOpen = false;
                         ) {
                             var editCb = {
                                 success: function () {
+                                    eventNS.typeAction = "";
                                     document.dispatchEvent(eventNS);
                                 },
 
@@ -1822,6 +1828,7 @@ var parentSaveCb = {
                                                     CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
                                                         CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
                                                 }
+                                                eventYS.typeAction = "";
                                                 document.dispatchEvent(eventYS);
                                             }, failure: function() {}});
                                     },

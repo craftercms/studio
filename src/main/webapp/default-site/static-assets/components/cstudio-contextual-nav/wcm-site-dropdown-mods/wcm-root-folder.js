@@ -2081,6 +2081,7 @@ treeNode.getHtml = function() {
                 var createCb = {
                     success: function() {
                         eventYS.data = oCurrentTextNode;
+                        eventYS.typeAction = "";
                         document.dispatchEvent(eventYS);
                     },
                     failure: function() { },
@@ -2119,7 +2120,7 @@ treeNode.getHtml = function() {
                             }
                         }
                         eventNS.data = oCurrentTextNode;
-                        eventNS.typeAction = "edit";
+                        eventNS.typeAction = "";
                         document.dispatchEvent(eventNS);
                     },
 
@@ -2460,6 +2461,7 @@ treeNode.getHtml = function() {
 
                             var editCb = {
                                 success: function() {
+                                    eventNS.typeAction = "";
                                     document.dispatchEvent(eventNS);
                                 },
 
