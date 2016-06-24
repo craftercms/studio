@@ -671,6 +671,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                     }
                 }
                 eventNS.data = oCurrentTextNode;
+                eventNS.typeAction = "";
                 document.dispatchEvent(eventNS);
             },
 

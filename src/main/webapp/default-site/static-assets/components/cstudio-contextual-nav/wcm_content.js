@@ -122,6 +122,43 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             }
                         }, false);
 
+                        document.addEventListener('crafter.refresh', function (e) {
+                            if(!nodeOpen)
+                            {
+                                document.dispatchEvent(eventCM);
+                                _this.refreshAllDashboards();
+                                lookupSiteContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]);
+
+                                function lookupSiteContent(curNode, paramCont) {
+                                    if (curNode) {
+                                        CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, curNode.uri, 1, "default", {
+                                            success: function (treeData) {
+                                                var cont = paramCont ? paramCont : 0;
+
+                                                if (treeData.item.isInFlight) {
+                                                    setTimeout(function () {
+                                                        lookupSiteContent(curNode);
+                                                    }, 300);
+                                                } else {
+                                                    cont++;
+                                                    if (cont < 2) {
+                                                        setTimeout(function () {
+                                                            lookupSiteContent(curNode, cont);
+                                                        }, 300);
+                                                    } else {
+                                                        _this.refreshAllDashboards();
+                                                    }
+                                                }
+                                            },
+                                            failure: function () {
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+
+                        }, false);
+
                         CStudioAuthoring.Events.contentUnSelected.subscribe(function(evtName, contentTO) {
                             var selectedContent,
                                 totalPerms,
@@ -234,6 +271,36 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 
                         for(var x = 0; x < messages.length; x++) {
                             messages[x].remove();
+                        }
+                    },
+
+                    refreshDashboard: function(inst){
+                        var instace = WcmDashboardWidgetCommon.dashboards[inst];
+                        var filterByTypeEl = YDom.get('widget-filterBy-'+instace.widgetId);
+                        var filterByTypeValue = 'all';
+                        if(filterByTypeEl && filterByTypeEl.value != '') {
+                            filterByTypeValue = filterByTypeEl.value;
+                        }
+
+                        var searchNumberEl = YDom.get('widget-showitems-'+instace.widgetId);
+                        var searchNumberValue =  instace.defaultSearchNumber;
+                        if(searchNumberEl && searchNumberEl.value != '') {
+                            searchNumberValue = searchNumberEl.value;
+                        }
+
+                        WcmDashboardWidgetCommon.loadFilterTableData(
+                            instace.defaultSortBy,
+                            YDom.get(instace.widgetId),
+                            instace.widgetId,
+                            searchNumberValue,filterByTypeValue);
+                    },
+
+                    refreshAllDashboards: function(){
+                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                            Self.refreshDashboard("MyRecentActivity");
+                            Self.refreshDashboard("recentlyMadeLive");
+                            Self.refreshDashboard("approvedScheduledItems");
+                            Self.refreshDashboard("GoLiveQueue");
                         }
                     },
 
@@ -513,7 +580,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             //this.callingWindow.location.reload(true);
                                         }
                                     }
-                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                    eventNS.typeAction = "edit";
                                     document.dispatchEvent(eventNS);
                                 },
                                 failure: function() { },
@@ -579,7 +647,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 var duplicateContentCallback = {
                                     success : function() {
                                         YDom.get("duplicate-loading").style.display = "none";
-                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                        eventNS.typeAction = "";
                                         document.dispatchEvent(eventNS);
                                     },
                                     failure: function() {
