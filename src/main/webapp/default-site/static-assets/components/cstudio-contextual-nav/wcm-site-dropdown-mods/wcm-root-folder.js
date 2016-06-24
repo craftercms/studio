@@ -483,7 +483,13 @@
                         document.addEventListener('crafter.refresh', function (e) {
                             document.dispatchEvent(eventCM);
                             try {
-                                Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
+                                if(e.data.length) {
+                                    for (var i = 0; i < e.data.length; i++){
+                                        Self.refreshNodes(e.data[i] ? e.data[i] : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
+                                     }
+                                }else{
+                                    Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
+                                }
                             } catch (er) {
                                 if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
                                     Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure, e.typeAction);
