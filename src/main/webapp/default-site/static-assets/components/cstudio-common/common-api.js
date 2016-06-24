@@ -543,7 +543,7 @@ var nodeOpen = false;
                                     _self.on("submitComplete", function (evt, args) {
                                         var reloadFn = function () {
                                             //window.location.reload();
-                                            eventNS.data = items[0];
+                                            eventNS.data = items;
                                             eventNS.typeAction = "";
                                             document.dispatchEvent(eventNS);
                                         };
@@ -624,7 +624,7 @@ var nodeOpen = false;
                         this.on("submitComplete", function(evt, args){
                             //window.location.reload();
                             dialogue.hide();
-                            eventNS.data = items[0];
+                            eventNS.data = items;
                             eventNS.typeAction = "";
                             document.dispatchEvent(eventNS);
                         });
@@ -1823,10 +1823,10 @@ var parentSaveCb = {
                                             newPath, //contentTO.uri,
                                             false,
                                             { success: function(contentTO) {
-                                                eventYS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                                eventYS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
                                                 if (typeof WcmDashboardWidgetCommon != 'undefined') {
-                                                    CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
-                                                        CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                    CStudioAuthoring.SelectedContent.getSelectedContent() ?
+                                                        CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()) : null;
                                                 }
                                                 eventYS.typeAction = "";
                                                 document.dispatchEvent(eventYS);

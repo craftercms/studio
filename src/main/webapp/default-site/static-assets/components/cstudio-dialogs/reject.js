@@ -103,7 +103,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
                                                 var cstopic = crafter.studio.preview.cstopic;
                                                 window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
                                             }
-                                            eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                            eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
                                             document.dispatchEvent(eventNS);
                                             YDom.get("curtain").style.display = 'none';
                                             self.dialog.hide();

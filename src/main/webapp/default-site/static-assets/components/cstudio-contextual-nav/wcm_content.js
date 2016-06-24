@@ -580,7 +580,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             //this.callingWindow.location.reload(true);
                                         }
                                     }
-                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
                                     eventNS.typeAction = "edit";
                                     document.dispatchEvent(eventNS);
                                 },
@@ -647,7 +647,7 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 var duplicateContentCallback = {
                                     success : function() {
                                         YDom.get("duplicate-loading").style.display = "none";
-                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent()[0];
+                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
                                         eventNS.typeAction = "";
                                         document.dispatchEvent(eventNS);
                                     },
