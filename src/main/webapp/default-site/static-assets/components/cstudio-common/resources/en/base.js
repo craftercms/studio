@@ -489,6 +489,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     setNowLink: "Set Now Link",
     populated: "Populated",
     allowPastDate: "Allow Past Date",
+    useCustomTimezone: "Use Custom Timezone",
     readonly: "Readonly",
     readonlyOnEdit: "Readonly on Edit",
     datasource: "Data Source",
