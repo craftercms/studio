@@ -178,7 +178,7 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 				};
 				
 				var serviceUri = CStudioAuthoring.Service.createEngineServiceUri("/api/1/profile/get?time=" + new Date());
-				//YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
+				YConnect.asyncRequest('GET', serviceUri, getCurrentCallback);
 			}
 	},
 
@@ -322,8 +322,60 @@ CStudioAuthoring.TargetingPanel = CStudioAuthoring.TargetingPanel || {
 											var setCurrentCallback = {
 												success: function(oResponse) {
 													var json = oResponse.responseText;
-													//this.control.toggleFn(this.event);
-													window.location.reload();
+                                                    //this.control.toggleFn(this.event);
+                                                    var serviceUri = "/api/1/profile/get?time=" + new Date();
+                                                    var serviceCallback = {
+                                                        success: function(oResponse) {
+                                                            var json = oResponse.responseText;
+
+                                                            try {
+                                                                var currentProfile = eval("(" + json + ")");
+
+                                                                CStudioAuthoring.Service.lookupConfigurtion(
+                                                                    CStudioAuthoringContext.site,
+                                                                    "/targeting/personas/personas-config.xml", {
+                                                                        success: function(response) {
+                                                                            var config, persona;
+                                                                            var imageEl = document.getElementById("acn-persona-image");
+
+                                                                            config = response.persona;
+
+                                                                            for (var i = 0; i < config.length; i++) {
+                                                                                if (config[i].name.toLowerCase() == currentProfile.username.toLowerCase()) {
+                                                                                    persona = config[i];
+                                                                                    break;
+                                                                                }
+                                                                            }
+
+                                                                            if (!persona) {
+                                                                                for (var i = 0; i < config.length; i++) {
+                                                                                    if (config[i].name.toLowerCase() == "anonymous") {
+                                                                                        persona = config[i];
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                            }
+
+                                                                            imageEl.title = persona.name;
+                                                                            imageEl.src = CStudioAuthoringContext.baseUri + '/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/sites/' + CStudioAuthoringContext.site + "/targeting/personas/thumbs/" + persona.thumb;
+
+                                                                            CStudioAuthoring.TargetingPanel.collapse();
+                                                                            if (YDom.hasClass("targeting-panel-elem", 'contracted')) {
+                                                                                YDom.replaceClass("targeting-panel-elem", 'contracted', 'expanded');
+                                                                            } else {
+                                                                                YDom.replaceClass("targeting-panel-elem", 'expanded', 'contracted');
+                                                                            }
+
+                                                                        },
+
+                                                                        failure: function() {
+                                                                        }
+                                                                    });
+                                                            } catch(err) { }
+                                                        },
+                                                        failure: function(response) {}
+                                                    };
+                                                    YConnect.asyncRequest('GET', CStudioAuthoring.Service.createEngineServiceUri(serviceUri), serviceCallback);
 												},
                                                 failure: CStudioAuthoring.Utils.noop,
 												
