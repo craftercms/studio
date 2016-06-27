@@ -420,13 +420,13 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             }
         }
 
-        function _renameFile(self) {
+        function _renameFile(self, imageData) {
             var container = document.getElementById("crop-popup-btns"),
                 buttons = '<input type="button" class="btn btn-primary cstudio-xform-button ok" disabled id="renameButton" value="Rename" />' +
                     '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>';
             self = self;
 
-            container.innerHTML = '<div style="float: left;"><span style="display: inline-block; float: left; margin-right: 10px; margin-top: 7px;">Filename:</span> <input id="renameFileInput" type="text" style="display: inline-block; width: 220px;"></div>' + buttons;
+            container.innerHTML = '<div class="rename-container" style="float: left; position: relative;" data-extension="' + imageData.fileExtension + '"><span style="display: inline-block; float: left; margin-right: 10px; margin-top: 7px;">Filename:</span> <input id="renameFileInput" type="text" style="display: inline-block; width: 220px; border-right-width: 54px; border-right-color: rgba(204, 204, 204, 0.33);"></div>' + buttons;
 
             YAHOO.util.Event.on("renameFileInput", 'keyup', function(){
                 this.value = this.value.replace(/ /g,"_");
@@ -464,7 +464,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
 
                 YAHOO.util.Event.addListener("uploadCancelButton", "click", this.cropPopupCancel, this, true);
                 YAHOO.util.Event.addListener("renameButton", "click", function(){
-                    _renameFile(self);
+                    _renameFile(self, imageData);
                 });
                 YAHOO.util.Event.addListener("overwriteButton", "click", function(){
                     _cropImage(self);

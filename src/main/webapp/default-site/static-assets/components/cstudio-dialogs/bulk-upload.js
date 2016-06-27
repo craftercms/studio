@@ -37,6 +37,9 @@
             window.addEventListener('keydown', escKeyListener, false);
 
             // Initialise close element click
+            elem.querySelector('a.cancel').addEventListener('click', function (e) {
+                me.close();
+            }, false);
             elem.querySelector('a.close').addEventListener('click', function (e) {
                 me.close();
             }, false);
@@ -54,36 +57,39 @@
 
     HTML = [
         '<div id="{0}" class="bulk-upload full-screen-overlay dropbox-element">',
-            '<a href="javascript:;" class="close" title="Close (Esc)">Done</a>',
-            '<div class="message">',
-                '<div class="pad">',
-                    'Drop the desired files from your desktop into the browser\'s window.',
-                '</div>',
-            '</div>',
-            '<div class="file-display-container">',
-                '<div class="pad">',
-                    // files get displayed here
-                '</div>',
-            '</div>',
-            '<script type="text/html" id="template_{0}">',
-                '<div class="<%= theme.fileDisplay %>">',
-                    '<div class="image shadow clearfix">',
-                        '<%= (file.type.match(/image.*/)) ',
-                            ' ? ',
-                            "'", '<img src="',"'+",'file.src',"+'",'" alt="',"'+",'file.name',"+'",'" title="',"'+",'file.src',"+'",'" />', "'",
-                            ' : ', "'",
-                            '<div class="img">',
-                                '<div class="pad">', "'+", 'file.type', "+'", '</div>',
-                            '</div>', "'",
-                        '%>',
-                        '<strong class="title"><%= file.name %></strong>',
-                        '<div class="details"><%= file.type %> @ <%= Math.round(file.size / 1024) %> KB</div>',
-                        '<div class="progress">',
-                            '<div class="bar"></div>',
-                        '</div>',
-                    '</div>',
-                '</div>',
-            '</script>',
+        '<div class="buttons-container">',
+        '<a href="javascript:;" class="close" title="Close (Esc)" style="display:none;">Done</a>',
+        '<a href="javascript:;" class="cancel" title="Cancel (Esc)">Cancel</a>',
+        '</div>',
+        '<div class="message">',
+        '<div class="pad">',
+        'Drop the desired files from your desktop into the browser\'s window.',
+        '</div>',
+        '</div>',
+        '<div class="file-display-container">',
+        '<div class="pad">',
+        // files get displayed here
+        '</div>',
+        '</div>',
+        '<script type="text/html" id="template_{0}">',
+        '<div class="<%= theme.fileDisplay %>">',
+        '<div class="image shadow clearfix">',
+        '<%= (file.type.match(/image.*/)) ',
+        ' ? ',
+        "'", '<img src="',"'+",'file.src',"+'",'" alt="',"'+",'file.name',"+'",'" title="',"'+",'file.src',"+'",'" />', "'",
+        ' : ', "'",
+        '<div class="img">',
+        '<div class="pad">', "'+", 'file.type', "+'", '</div>',
+        '</div>', "'",
+        '%>',
+        '<strong class="title"><%= file.name %></strong>',
+        '<div class="details"><%= file.type %> @ <%= Math.round(file.size / 1024) %> KB</div>',
+        '<div class="progress">',
+        '<div class="bar"></div>',
+        '</div>',
+        '</div>',
+        '</div>',
+        '</script>',
         '</div>'
     ].join('');
 

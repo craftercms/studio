@@ -67,8 +67,34 @@
     width: 598px;
 }
 
+#cstudio-wcm-popup-div .rename-container:before {
+    content: "."attr(data-extension);
+    top: 9px;
+    right: 20px;
+    color: #000;
+    position: absolute;
+}
+
 .contentTypePopupContent {
     margin: 15px 25px 15px 25px;
+}
+
+.contentTypePopupContent .contentTypePopupBtn .indicator {
+    float: left;
+    margin-right:10px;
+    margin-top: 7px;
+}
+
+.contentTypePopupContent .contentTypePopupBtn .rename-container {
+    float: left;
+    position: relative;
+}
+
+#renameFileInput {
+    display: inline-block;
+    width: 220px;
+    border-right-width: 54px;
+    border-right-color: rgba(204, 204, 204, 0.33);
 }
 
 .contentTypeOuter {
