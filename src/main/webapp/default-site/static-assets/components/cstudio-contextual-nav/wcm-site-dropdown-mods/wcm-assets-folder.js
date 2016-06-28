@@ -575,6 +575,61 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
                         });
                     }
 
+                    var isRelevant = (!(oCurrentTextNode.data.status.toLowerCase().indexOf("live") !== -1));
+                    var isAssetsFolder = !oCurrentTextNode.isLeaf;
+
+                    if(isRelevant && !isAssetsFolder) {
+
+                        if(CStudioAuthoring.Service.isPublishAllowed(perms)) {
+                            this.aMenuItems.push({
+                                text: CMgs.format(siteDropdownLangBundle, "wcmContentApprove"),
+                                onclick: { fn: function(){
+                                    var callback = {
+                                        success: function(contentTO) {
+                                            var selectedContent = [];
+                                            selectedContent.push(contentTO.item);
+
+                                            CStudioAuthoring.Operations.approveCommon(
+                                                CStudioAuthoringContext.site,
+                                                selectedContent,
+                                                false
+                                            );
+                                        },
+                                        failure: function() {
+
+                                        }
+                                    }
+
+                                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, oCurrentTextNode.data.uri, callback, false, false);
+
+                                } }
+                            });
+                        }else {
+                            this.aMenuItems.push({
+                                text: CMgs.format(siteDropdownLangBundle, "wcmContentSubmit"),
+                                onclick: { fn: function(){
+                                    var callback = {
+                                        success: function(contentTO) {
+                                            var selectedContent = [];
+                                            selectedContent.push(contentTO.item);
+
+                                            CStudioAuthoring.Operations.submitContent(
+                                                CStudioAuthoringContext.site,
+                                                selectedContent
+                                            );
+                                        },
+                                        failure: function() {
+
+                                        }
+                                    }
+
+                                    CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, oCurrentTextNode.data.uri, callback, false, false);
+                                } }
+                            });
+                        }
+
+                    }
+
                     var checkClipboardCb = {
                         success: function(collection) {
 
