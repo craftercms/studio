@@ -222,7 +222,9 @@ CStudioAuthoring.Messages.registerBundle("siteDropdown", "es", {
     statusAnd: "y",
     statusSubmitted: "Enviado",
     statusScheduled: "Programado",
-    statusDisabled: "Deshabilitado"
+    statusDisabled: "Deshabilitado",
+    wcmContentSubmit: "Solicitud de Publicación",
+    wcmContentApprove: "Aprobar y Publicar"
 
 });
 
@@ -501,7 +503,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     defaultType: "Tipo por Defecto",
     displayTemplate: "Plantilla de Pantalla",
     mergeStrategy: "Combinar Estrategia",
-	dependsOn: "Depende En",
+    dependsOn: "Depende En",
 
     /*Restrictions*/
     required: "Requerido",
