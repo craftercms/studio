@@ -3686,6 +3686,7 @@ var parentSaveCb = {
                 if (populateDependencies != undefined && !populateDependencies) {
                     serviceUri = serviceUri + "&populateDependencies=false";
                 }
+                serviceUri = serviceUri + "&nocache="+new Date();
 
                 var serviceCallback = {
                     success: function(response) {
@@ -3739,6 +3740,7 @@ var parentSaveCb = {
             lookupSiteContent: function(site, path, depth, order, callback) {
 
                 var serviceUri = this.lookupContentServiceUri + "?site=" + site + "&path=" + path + "&depth=" + depth + "&order=" + order;
+                serviceUri = serviceUri + "&nocache="+new Date();
 
                 var serviceCallback = {
                     success: function(response) {

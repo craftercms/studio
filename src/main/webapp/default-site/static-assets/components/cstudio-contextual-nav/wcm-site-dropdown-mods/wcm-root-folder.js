@@ -485,14 +485,14 @@
                             try {
                                 if(e.data.length) {
                                     for (var i = 0; i < e.data.length; i++){
-                                        Self.refreshNodes(e.data[i] ? e.data[i] : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
+                                        Self.refreshNodes(e.data[i] ? e.data[i] : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
                                      }
                                 }else{
-                                    Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, true, t, inst, e.changeStructure, e.typeAction);
+                                    Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
                                 }
                             } catch (er) {
                                 if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
-                                    Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, true, t, inst, e.changeStructure, e.typeAction);
+                                    Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
                                 }
                             }
 
@@ -1339,16 +1339,18 @@ treeNode.getHtml = function() {
                         if (curNode.nodeType == "CONTENT") {
                             var itemStore = instance ? storage.read(Self.getStoredPathKey(instance)) : null;
                             //console.log(itemStore);
-                            tree.removeChildren(curNode);
-                            var loadEl = YAHOO.util.Selector.query(".ygtvtp", curNode.getEl(), true);
-                            loadEl == null && (loadEl = YAHOO.util.Selector.query(".ygtvlp", curNode.getEl(), true));
-                            YDom.addClass(loadEl, "ygtvloading");
-                            curNode.renderChildren();
-                            curNode.refresh();
-                            //console.log(itemStore);
-                            if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
-                            self.expandTree(curNode);
-                            Self.refreshAllDashboards();
+                            if(YDom.get(curNode.labelElId)) {
+                                tree.removeChildren(curNode);
+                                var loadEl = YAHOO.util.Selector.query(".ygtvtp", curNode.getEl(), true);
+                                loadEl == null && (loadEl = YAHOO.util.Selector.query(".ygtvlp", curNode.getEl(), true));
+                                YDom.addClass(loadEl, "ygtvloading");
+                                curNode.renderChildren();
+                                curNode.refresh();
+                                //console.log(itemStore);
+                                if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
+                                self.expandTree(curNode);
+                                Self.refreshAllDashboards();
+                            }
 
                         } else {
                             var root = false;
@@ -1370,6 +1372,10 @@ treeNode.getHtml = function() {
                                 Self.toggleFolderState(instance, "open");
                             }
                             Self.refreshAllDashboards();
+                        }
+                        if(i >= (node.length - 1)){
+                            eventYS.parent = null;
+                            eventNS.parent = null;
                         }
                     }
                 }
