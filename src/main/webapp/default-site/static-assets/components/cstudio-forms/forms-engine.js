@@ -1183,6 +1183,14 @@ var CStudioForms = CStudioForms || function() {
                 };
 
                 var cancelFn = function() {
+
+                    if (typeof window.parent.CStudioAuthoring.editDisabled !== 'undefined') {
+                        for(var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++){
+                            window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = "";
+                        }
+                        window.parent.CStudioAuthoring.editDisabled = [];
+                    }
+
                     var flag = false;
                     if(form.sections.length){
                         for(var j=0; j < form.sections.length; j++){

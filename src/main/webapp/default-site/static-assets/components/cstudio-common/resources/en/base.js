@@ -223,7 +223,9 @@ CStudioAuthoring.Messages.registerBundle("siteDropdown", "en", {
     statusAnd: "and",
     statusSubmitted: "Submitted",
     statusScheduled: "Scheduled",
-    statusDisabled: "Disabled"
+    statusDisabled: "Disabled",
+    wcmContentSubmit: "Request Publish",
+    wcmContentApprove: "Approve & Publish"
 
 });
 
@@ -521,7 +523,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     displayTemplate: "Display Template",
     mergeStrategy: "Merge Strategy",
     componentPath: "Component Path",
-	dependsOn: "Depends On",
+    dependsOn: "Depends On",
 
     /*Restrictions*/
     required: "Required",

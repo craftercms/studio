@@ -413,6 +413,12 @@ WcmDashboardWidgetCommon.init = function (instance) {
 
                     var editClick = function (event, matchedEl) {
                         WcmDashboardWidgetCommon.editItem(matchedEl, matchedEl.checked);
+
+                        matchedEl.style.pointerEvents = "none";
+                        if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                            CStudioAuthoring.editDisabled = []
+                        }
+                        CStudioAuthoring.editDisabled.push(matchedEl);
                     };
 
                     var viewClick = function (event, matchedEl) {
