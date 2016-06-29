@@ -597,6 +597,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                             content = content[0];
                             option.onclick = function() {
 
+                                this.style.pointerEvents = "none";
+                                if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                                    CStudioAuthoring.editDisabled = []
+                                }
+                                CStudioAuthoring.editDisabled.push(this);
+
                                 if (isWrite == false) {
                                         CStudioAuthoring.Operations.viewContent(
                                             content.form,

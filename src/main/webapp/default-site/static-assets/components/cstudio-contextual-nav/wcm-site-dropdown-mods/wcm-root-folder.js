@@ -2165,6 +2165,12 @@ treeNode.getHtml = function() {
             editContent: function() {
                 var path = (oCurrentTextNode.data.uri);
 
+                this.element.firstChild.style.pointerEvents = "none";
+                if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                    CStudioAuthoring.editDisabled = []
+                }
+                CStudioAuthoring.editDisabled.push(this.element.firstChild);
+
                 var editCb = {
                     success: function(contentTO, editorId, name, value, draft) {
                         if(CStudioAuthoringContext.isPreview){
