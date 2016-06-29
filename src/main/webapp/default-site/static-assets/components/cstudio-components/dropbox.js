@@ -32,7 +32,7 @@
                 .join("p.push('")
                 .split("\r")
                 .join("\\'")
-                + "');",
+            + "');",
             "};",
             "return p.join('');"
         ].join(""));
@@ -284,21 +284,43 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
                 display = this.display,
                 me = this; // instance
 
-            // Loop through list of files user dropped.
-            for (var i = 0, file; file = files[i]; i++) {
+            if(!document.getElementById("folder" + cfg.formData.path)){
+                display.insertAdjacentHTML('beforeEnd',
+                    '<div class="folder-container" data-path="'+ cfg.formData.path +'" id="folder' + cfg.formData.path + '"></div>');
+            }
 
-                // TODO verify file is not repeated (by name?)
+            var length = e.dataTransfer.files.length;
 
-                // TODO implement selective file type accept/reject
-                /* For example for only processing images files */
-                /*
-                 var imageType = /image.* /; <-- REMOVE THE SPACE BETWEEN * & /
-                 if (!file.type.match(imageType)) {
-                 continue;
-                 }
-                 */
+            var queryStringUrlReplacement = function(url, param, value) {
+                var re = new RegExp("[\\?&]" + param + "=([^&#]*)"), match = re.exec(url), delimiter, newString;
 
+                if (match === null) {
+                    // append new param
+                    var hasQuestionMark = /\?/.test(url);
+                    delimiter = hasQuestionMark ? "&" : "?";
+                    newString = url + delimiter + param + "=" + value;
+                } else {
+                    delimiter = match[0].charAt(0);
+                    newString = url.replace(re, delimiter + param + "=" + value);
+                }
+
+                return newString;
+            };
+
+            var getParameter = function(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            };
+
+            var uploadFile = function(file, cfg) {
                 var reader = new FileReader ();
+
+                if(cfg.path) cfg.target = queryStringUrlReplacement(cfg.target, "path", cfg.path);
 
                 reader.onerror = (function (aFile) {
                     return function (evt) {
@@ -340,8 +362,11 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
                                 })
                             };
 
+                        var containerId = cfg.path,
+                            container = document.getElementById("folder" + containerId);
+
                         // Render thumbnail template with the file info (data object).
-                        display.insertAdjacentHTML(
+                        container.insertAdjacentHTML(
                             cfg.newOnTop ? 'afterBegin' : 'beforeEnd', join([
                                 '<div data-dropbox-file-id="', fileID ,'">',
                                 tmpl(cfg.template, data),
@@ -351,13 +376,90 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
                         // Store the file in this instance's file manager
                         manager.push(fileID, data.file);
 
-                        if (cfg.immediateUpload) me.upload(fileID);
+                        if (cfg.immediateUpload) me.upload(fileID, cfg);
 
                     };
                 }) (file);
 
                 // Read in the image file as a data url.
                 reader.readAsDataURL(file);
+            };
+
+            var toArray = function(list) {
+                return Array.prototype.slice.call(list || [], 0);
+            };
+
+            var getAllEntries = function(directoryReader, callback, cfg) {
+                var entries = [];
+
+                var readEntries = function () {
+                    directoryReader.readEntries(function (results) {
+                        if (!results.length) {
+                            entries.sort();
+                            callback(entries, cfg);
+                        } else {
+                            entries = entries.concat(toArray(results));
+                            readEntries();
+                        }
+                    });
+                };
+
+                readEntries();
+            };
+
+            var readDirectory = function(entries, cfg) {
+                for (i = 0; i < entries.length; i++) {
+                    if (entries[i].isDirectory) {
+
+                        var cfgSubFolder = JSON.parse(JSON.stringify(cfg));
+                        cfgSubFolder.path = cfg.path + "/" + entries[i].name;
+
+                        var serviceUri = CStudioAuthoring.Service.createServiceUri("/api/1/services/api/1/content/create-folder.json?site=" + cfg.site + "&path=" + cfg.path + "&name=" + entries[i].name);
+
+                        if(!document.getElementById("folder" + cfg.path + '/' + entries[i].name)){
+                            display.insertAdjacentHTML('beforeEnd',
+                                '<div class="folder-container" data-path="'+ cfg.path + "/"+ entries[i].name +'" id="folder' + cfg.path + '/' + entries[i].name + '"></div>');
+                        }
+
+                        var serviceCallback = {
+                            success: function(oResponse) {
+                                getAllEntries(
+                                    directoryReader,
+                                    readDirectory,
+                                    cfgSubFolder
+                                );
+                            },
+
+                            failure: function (response) {
+                                console.log(response.responseText);
+                            }
+                        };
+
+                        var directoryReader = entries[i].createReader();
+                        YConnect.asyncRequest('POST', serviceUri, serviceCallback);
+
+                    } else {
+                        entries[i].file(function(file){
+                            uploadFile(file, cfg);
+                        });
+                    }
+                }
+            };
+
+            cfg.site = getParameter("site", cfg.target);
+            cfg.path = getParameter("path", cfg.target);
+
+            for (var i = 0; i < length; i++) {
+                var entries = [];
+
+                try{    //chrome feature to upload folders
+                    entries[0] = e.dataTransfer.items[i].webkitGetAsEntry();
+                    readDirectory(entries, cfg);
+                }catch(e){      //other browsers
+                    var file = files[i];
+                    uploadFile(file, cfg);
+                }
+
             }
 
             return false;
@@ -386,13 +488,13 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
         // Verify that the browser has the necessary
         // features for the Dropbox to work
         if ((function () {
-            return join([
-                typeof window.FileReader !== 'undefined',
-                'draggable' in document.createElement('span'),
-                !!window.FormData,
-                "upload" in new XMLHttpRequest
-            ], ' ').indexOf('false') !== -1;
-        }) ()) {
+                return join([
+                        typeof window.FileReader !== 'undefined',
+                        'draggable' in document.createElement('span'),
+                        !!window.FormData,
+                        "upload" in new XMLHttpRequest
+                    ], ' ').indexOf('false') !== -1;
+            }) ()) {
             // TODO fallback to input[type="file"]?
             // TODO use modal instead of an alert?
             alert ('Your browser does not support the necessary features to use drag and drop file uploading');
@@ -441,7 +543,7 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
 
     };
 
-    DP.upload = function (fileID) {
+    DP.upload = function (fileID, cfg) {
 
         /* References
          * @see http://www.w3.org/TR/FileAPI/
@@ -450,7 +552,7 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
          * */
 
         var me = this,
-            cfg = me.oCfg,
+            cfg = cfg ? cfg : me.oCfg,
             display = this.display,
             file = this.manager.get(fileID);
 
@@ -484,6 +586,8 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
             if (success) {
                 me.manager.setCompleted(file.id);
                 me.showUploadProgress( elemProgress, 100, fileUI );
+
+                document.querySelector(".bulk-upload .buttons-container .close").classList.remove("disabled");
             } else {
                 error();
             }
@@ -504,6 +608,8 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
         var fd = new FormData(),
             auxFormData = cfg.formData;
 
+        auxFormData.path = cfg.path ? cfg.path : auxFormData.path;
+
         fd.append(cfg.uploadPostKey, file);
         if (auxFormData) for (var key in auxFormData) {
             fd.append(key, auxFormData[key]);
@@ -511,6 +617,10 @@ if (typeof HTMLElement != "undefined" && !HTMLElement.prototype.insertAdjacentEl
 
         xhr.open("POST", cfg.target);
         xhr.send(fd);
+
+        document.querySelector(".bulk-upload .buttons-container .cancel").style.display = "none";
+        document.querySelector(".bulk-upload .buttons-container .close").style.display = "";
+        document.querySelector(".bulk-upload .buttons-container .close").classList.add("disabled");
 
     }
 
