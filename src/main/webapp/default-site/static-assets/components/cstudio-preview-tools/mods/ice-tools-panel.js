@@ -175,14 +175,54 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                 var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].contentType.split("/");
                 var path = "/scripts/pages/" + contentType[contentType.length - 1] + ".groovy";
 
-                CStudioAuthoring.Operations.openTemplateEditor(path, "default", {
-                    success: function () {
-                        //CStudioAuthoring.Operations.refreshPreview();
-                        location.reload();
-                    },
-                    failure: function () {
-                    }
-                });
+                (function (controllerName) {
+
+                    var getContentItemCb = {
+                        success: function (contentTO) {
+                            var flag = true;
+                            for(var i = 0; i < contentTO.item.children.length; i++){
+                                if(contentTO.item.children[i].name == controllerName){
+                                    flag = false;
+                                }
+                            }
+
+                            (function (flag) {
+                                CStudioAuthoring.Operations.openTemplateEditor(path, "default", {
+                                    success: function () {
+                                        if(CStudioAuthoringContext.isPreview){
+                                            CStudioAuthoring.Operations.refreshPreview();
+                                        }
+                                        if(flag){
+                                            var callback = {
+                                                success: function (contentTOItem) {
+                                                    eventYS.parent = false;
+                                                    eventYS.data =contentTOItem.item;
+                                                    eventYS.typeAction = "";
+                                                    document.dispatchEvent(eventYS);
+                                                },
+                                                failure: function() {
+
+                                                }
+                                            };
+
+                                            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, "/scripts/pages/", callback, false, false);
+                                        }
+                                    },
+                                    failure: function () {
+                                    }
+                                });
+                            })(flag);
+                        },
+                        failure: function() {
+
+                        }
+                    };
+
+                    CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, "/scripts/pages/", 1, "default", getContentItemCb);
+
+
+                })(contentType[contentType.length - 1] + ".groovy");
+
             }else{
                 alert("No controller found");
             }
