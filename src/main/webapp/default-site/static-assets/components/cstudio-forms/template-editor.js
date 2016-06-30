@@ -198,6 +198,14 @@ CStudioAuthoring.Module.requireModule(
 							                failure: function() {
 							                }
 							            };
+
+										if (typeof CStudioAuthoring.editDisabled !== 'undefined') {
+											for(var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++){
+												window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = "";
+											}
+											window.parent.CStudioAuthoring.editDisabled = [];
+										}
+
 							            YAHOO.util.Connect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(cancelEditServiceUrl), cancelEditCb);
 									};
 

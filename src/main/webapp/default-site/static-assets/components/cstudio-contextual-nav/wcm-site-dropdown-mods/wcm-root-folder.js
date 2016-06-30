@@ -1945,10 +1945,67 @@ treeNode.getHtml = function() {
                             || oCurrentTextNode.data.lockOwner === CStudioAuthoringContext.user ) {
                                p_aArgs.addItems([ menuItems.separator ]);
                                 p_aArgs.addItems([ menuItems.unlockOption ]);
-                            }                                                       
+                            }
 
-		                   	
-	                 	},
+                            //add publish/request
+                            var isRelevant = !(oCurrentTextNode.data.lockOwner != "") && !(oCurrentTextNode.data.status.toLowerCase().indexOf("live") !== -1);
+
+                            if(isRelevant && oCurrentTextNode.data.contentType != "folder") {
+                                p_aArgs.addItems([ menuItems.separator ]);
+
+                                if( CStudioAuthoring.Service.isPublishAllowed(results.permissions)){
+                                    p_aArgs.addItems([
+                                        {
+                                            text: CMgs.format(siteDropdownLangBundle, "wcmContentApprove"),
+                                            onclick: { fn: function(){
+                                                var callback = {
+                                                    success: function(contentTO) {
+                                                        var selectedContent = [];
+                                                        selectedContent.push(contentTO.item);
+
+                                                        CStudioAuthoring.Operations.approveCommon(
+                                                            CStudioAuthoringContext.site,
+                                                            selectedContent,
+                                                            false
+                                                        );
+                                                    },
+                                                    failure: function() {
+
+                                                    }
+                                                }
+
+                                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, oCurrentTextNode.data.uri, callback, false, false);
+                                            } }
+                                        }
+                                    ]);
+                                }else {
+                                    p_aArgs.addItems([
+                                        {
+                                            text: CMgs.format(siteDropdownLangBundle, "wcmContentSubmit"),
+                                            onclick: { fn: function(){
+                                                var callback = {
+                                                    success: function(contentTO) {
+                                                        var selectedContent = [];
+                                                        selectedContent.push(contentTO.item);
+
+                                                        CStudioAuthoring.Operations.submitContent(
+                                                            CStudioAuthoringContext.site,
+                                                            selectedContent
+                                                        );
+                                                    },
+                                                    failure: function() {
+
+                                                    }
+                                                }
+
+                                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, oCurrentTextNode.data.uri, callback, false, false);
+                                            } }
+                                        }
+                                    ]);
+                                }
+                            }
+
+                        },
                         failure: function() { }
                     };
 					
@@ -2115,6 +2172,12 @@ treeNode.getHtml = function() {
 
             editContent: function() {
                 var path = (oCurrentTextNode.data.uri);
+
+                this.element.firstChild.style.pointerEvents = "none";
+                if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                    CStudioAuthoring.editDisabled = []
+                }
+                CStudioAuthoring.editDisabled.push(this.element.firstChild);
 
                 var editCb = {
                     success: function(contentTO, editorId, name, value, draft) {
