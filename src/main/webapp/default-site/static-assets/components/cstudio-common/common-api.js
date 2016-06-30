@@ -310,6 +310,9 @@ var nodeOpen = false;
             setContent: function (contentTO) {
                 this.selectedContent = [contentTO];
                 CSA.Events.contentSelected.fire(contentTO);
+
+                var event = new CustomEvent("setContentDone");
+                document.dispatchEvent(event);
             },
 
             /**
