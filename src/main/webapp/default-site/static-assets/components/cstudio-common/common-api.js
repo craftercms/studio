@@ -1674,6 +1674,9 @@ var nodeOpen = false;
                         ) {
                             var editCb = {
                                 success: function () {
+                                    if(CStudioAuthoringContext.isPreview) {
+                                        CStudioAuthoring.Operations.refreshPreview();
+                                    }
                                     eventNS.typeAction = "";
                                     document.dispatchEvent(eventNS);
                                 },
