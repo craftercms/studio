@@ -2076,7 +2076,9 @@ treeNode.getHtml = function() {
             unlockContent: function() {
                 var unlockCb = {
                     success: function() {
-                        this.callingWindow.location.reload(true);
+                        eventNS.data = oCurrentTextNode;
+                        eventNS.typeAction = "";
+                        document.dispatchEvent(eventNS);
                     },
                     failure: function() { },
                     callingWindow: window
