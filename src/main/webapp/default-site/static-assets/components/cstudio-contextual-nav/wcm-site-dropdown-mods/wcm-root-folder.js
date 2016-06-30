@@ -1277,7 +1277,8 @@ treeNode.getHtml = function() {
                                     if (currentUri == treeData.item.uri) {
                                         var style = "",
                                             cont = paramCont ? paramCont : 0;
-                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).innerHTML = treeData.item.internalName : null;
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).innerHTML =
+                                            (treeData.item.internalName != "" ? treeData.item.internalName : treeData.item.name) : null;
                                         style = CStudioAuthoring.Utils.getIconFWClasses(treeData.item);
                                         if (treeData.item.isPreviewable) {
                                             style = style + " preview";
