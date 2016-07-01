@@ -483,7 +483,7 @@
                         document.addEventListener('crafter.refresh', function (e) {
                             document.dispatchEvent(eventCM);
                             try {
-                                if(e.data.length) {
+                                if(e.data && e.data.length) {
                                     for (var i = 0; i < e.data.length; i++){
                                         Self.refreshNodes(e.data[i] ? e.data[i] : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
                                      }
