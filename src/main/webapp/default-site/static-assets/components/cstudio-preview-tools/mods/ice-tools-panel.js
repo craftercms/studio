@@ -69,6 +69,16 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         wrapper.appendChild(regionSelectEl);
         container.appendChild(wrapper);
 
+        var checkRenderingTemplates = function(renderingTemplates) {
+            var noTemplate = true;
+            for(var x = 0; x < renderingTemplates.length; x++){
+                if (renderingTemplates[x].uri != "") {
+                    noTemplate = false;
+                }
+            }
+            return noTemplate;
+        };
+
         wrapper = document.createElement('div');
         YDom.addClass(wrapper, "edit-code template");
 		var templateButtonEl = document.createElement("button");
@@ -86,6 +96,11 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         templateButtonEl.appendChild(templateLabelEl);
         wrapper.style.marginleft = "4px";
         wrapper.appendChild(templateButtonEl);
+
+        if(checkRenderingTemplates(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates)) {
+            templateButtonEl.setAttributeNode(document.createAttribute("disabled"));
+            templateButtonEl.style.pointerEvents = "none";
+        }
 
         container.appendChild(wrapper);
 
@@ -150,7 +165,8 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         }
 
         templateButtonEl.onclick = function() {
-            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates.length > 0) {
+
+            if(!checkRenderingTemplates(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates)) {
                 var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 
                 // if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
@@ -175,14 +191,54 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                 var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].contentType.split("/");
                 var path = "/scripts/pages/" + contentType[contentType.length - 1] + ".groovy";
 
-                CStudioAuthoring.Operations.openTemplateEditor(path, "default", {
-                    success: function () {
-                        //CStudioAuthoring.Operations.refreshPreview();
-                        location.reload();
-                    },
-                    failure: function () {
-                    }
-                });
+                (function (controllerName) {
+
+                    var getContentItemCb = {
+                        success: function (contentTO) {
+                            var flag = true;
+                            for(var i = 0; i < contentTO.item.children.length; i++){
+                                if(contentTO.item.children[i].name == controllerName){
+                                    flag = false;
+                                }
+                            }
+
+                            (function (flag) {
+                                CStudioAuthoring.Operations.openTemplateEditor(path, "default", {
+                                    success: function () {
+                                        if(CStudioAuthoringContext.isPreview){
+                                            CStudioAuthoring.Operations.refreshPreview();
+                                        }
+                                        if(flag){
+                                            var callback = {
+                                                success: function (contentTOItem) {
+                                                    eventYS.parent = false;
+                                                    eventYS.data =contentTOItem.item;
+                                                    eventYS.typeAction = "";
+                                                    document.dispatchEvent(eventYS);
+                                                },
+                                                failure: function() {
+
+                                                }
+                                            };
+
+                                            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, "/scripts/pages/", callback, false, false);
+                                        }
+                                    },
+                                    failure: function () {
+                                    }
+                                });
+                            })(flag);
+                        },
+                        failure: function() {
+
+                        }
+                    };
+
+                    CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, "/scripts/pages/", 1, "default", getContentItemCb);
+
+
+                })(contentType[contentType.length - 1] + ".groovy");
+
             }else{
                 alert("No controller found");
             }

@@ -16,6 +16,27 @@ var JSON = YAHOO.lang.JSON;
 var YEvent = YAHOO.util.Event;
 var ApproveType = false;
 
+// Create the event.
+var eventYS = document.createEvent('Event');
+// Define that the event name is 'build'.
+eventYS.initEvent('crafter.refresh', true, true);
+eventYS.changeStructure = true;
+eventYS.typeAction = "";
+
+// Create the event.
+var eventNS = document.createEvent("Event");
+// Define that the event name is 'build'.
+eventNS.initEvent("crafter.refresh", true, true);
+eventNS.changeStructure = false;
+eventNS.typeAction = "";
+
+// Create the event.
+var eventCM = document.createEvent("Event");
+// Define that the event name is 'build'.
+eventCM.initEvent("crafter.create.contenMenu", true, true);
+
+var nodeOpen = false;
+
 (function(undefined){
 
     // Private functions
@@ -289,6 +310,9 @@ var ApproveType = false;
             setContent: function (contentTO) {
                 this.selectedContent = [contentTO];
                 CSA.Events.contentSelected.fire(contentTO);
+
+                var event = new CustomEvent("setContentDone");
+                document.dispatchEvent(event);
             },
 
             /**
@@ -509,6 +533,7 @@ var ApproveType = false;
                             fn: view,
                             controller: controller,
                             callback: function (dialogue) {
+                                var _self = this;
                                 CSA.Operations.translateContent(formsLangBundle);
                                 if (YDom.get("cancelBtn")) {
                                     YDom.get("cancelBtn").value = CMgs.format(formsLangBundle, "cancel");
@@ -517,13 +542,18 @@ var ApproveType = false;
                                     YDom.get("deleteBtn").value = CMgs.format(formsLangBundle, "deleteDialogDelete");
                                 }
                                 this.loadDependencies(items);
-                                this.on("submitComplete", function (evt, args) {
-                                    var reloadFn = function () {
-                                        window.location.reload();
-                                    };
-                                    dialogue.hideEvent.subscribe(reloadFn);
-                                    dialogue.destroyEvent.subscribe(reloadFn);
-                                });
+                                (function (items) {
+                                    _self.on("submitComplete", function (evt, args) {
+                                        var reloadFn = function () {
+                                            //window.location.reload();
+                                            eventNS.data = items;
+                                            eventNS.typeAction = "";
+                                            document.dispatchEvent(eventNS);
+                                        };
+                                        dialogue.hideEvent.subscribe(reloadFn);
+                                        dialogue.destroyEvent.subscribe(reloadFn);
+                                    });
+                                })(items);
                                 // Admin version of the view does not have this events
                                 // but then the call is ignored
                                 this.on("hideRequest", function (evt, args) {
@@ -561,7 +591,10 @@ var ApproveType = false;
                         this.on("submitComplete", function(evt, args){
 
                             var reloadFn = function(){
-                                window.location.reload();
+                                dialogue.hide();
+                                eventNS.data = contentObj;
+                                eventNS.typeAction = "";
+                                document.dispatchEvent(eventNS);
                             };
 
                             dialogue.hideEvent.subscribe(reloadFn);
@@ -592,7 +625,11 @@ var ApproveType = false;
                         this.loadPublishingChannels();
 
                         this.on("submitComplete", function(evt, args){
-                            window.location.reload();
+                            //window.location.reload();
+                            dialogue.hide();
+                            eventNS.data = items;
+                            eventNS.typeAction = "";
+                            document.dispatchEvent(eventNS);
                         });
 
                     }
@@ -1640,7 +1677,11 @@ var ApproveType = false;
                         ) {
                             var editCb = {
                                 success: function () {
-                                    this.callingWindow.location.reload(true);
+                                    if(CStudioAuthoringContext.isPreview) {
+                                        CStudioAuthoring.Operations.refreshPreview();
+                                    }
+                                    eventNS.typeAction = "";
+                                    document.dispatchEvent(eventNS);
                                 },
 
                                 failure: function () {
@@ -1787,7 +1828,15 @@ var parentSaveCb = {
                                             null, //contentTO.nodeRef,
                                             newPath, //contentTO.uri,
                                             false,
-                                            { success: function() {}, failure: function() {}});
+                                            { success: function(contentTO) {
+                                                eventYS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                                if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                    CStudioAuthoring.SelectedContent.getSelectedContent() ?
+                                                        CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()) : null;
+                                                }
+                                                eventYS.typeAction = "";
+                                                document.dispatchEvent(eventYS);
+                                            }, failure: function() {}});
                                     },
                                     failure: function() {
 
@@ -2006,7 +2055,8 @@ var parentSaveCb = {
                 if(flow){
 
                     var panel = YDom.getElementsByClassName("yui-panel-container")[0];
-                    if(panel.style.visibility == 'visible' || panel.style.visibility == ''){
+                    var  auxParentPath = "";
+                    if( panel && (panel.style.visibility == 'visible' || panel.style.visibility == '')){
                         panel.style.visibility = "hidden";
                     }
 
@@ -2021,8 +2071,11 @@ var parentSaveCb = {
                                 deletedPage = deletedPage.substring(0, deletedPage.length - 1);
                             }
                             parentPath = deletedPage.substring(0, deletedPage.lastIndexOf("/"));
+                            auxParentPath = parentPath;
                             parentPath = CStudioAuthoringContext.previewAppBaseUri + parentPath;
-                            document.location = parentPath;
+                            if(auxParentPath != "/studio/preview/#/?page=") {
+                                document.location = parentPath;
+                            }
                             return;
                         }
                     }
@@ -2045,8 +2098,9 @@ var parentSaveCb = {
                 loadingImageEl.src = contextPath + CStudioAuthoringContext.baseUri + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
                 tempMask.appendChild(loadingImageEl);
 
-                document.body.appendChild(tempMask);
-                window.location.reload(true);
+                //document.body.appendChild(tempMask);
+                //window.location.reload(true);
+                //document.dispatchEvent(eventNS);
             },
 
             uploadAsset: function(site, path, isUploadOverwrite, uploadCb) {
@@ -3638,6 +3692,7 @@ var parentSaveCb = {
                 if (populateDependencies != undefined && !populateDependencies) {
                     serviceUri = serviceUri + "&populateDependencies=false";
                 }
+                serviceUri = serviceUri + "&nocache="+new Date();
 
                 var serviceCallback = {
                     success: function(response) {
@@ -3691,6 +3746,7 @@ var parentSaveCb = {
             lookupSiteContent: function(site, path, depth, order, callback) {
 
                 var serviceUri = this.lookupContentServiceUri + "?site=" + site + "&path=" + path + "&depth=" + depth + "&order=" + order;
+                serviceUri = serviceUri + "&nocache="+new Date();
 
                 var serviceCallback = {
                     success: function(response) {
@@ -4545,6 +4601,14 @@ var parentSaveCb = {
                 }
                 if(item.container && item.name != "index.xml") {
                     name="status-icon folder";
+                }
+
+                if(item.container && item.name != "index.xml") {
+                    name="status-icon folder";
+                }
+
+                if(item.isComponent) {
+                    name= name + " component";
                 }
 
                 return name;
@@ -6902,17 +6966,20 @@ CStudioAuthoring.InContextEdit = {
     collapseDialog: function(editorId) {
         var dialog = window.parent.$( ".studio-ice-container-"+editorId),
             controlBar = $("#formContainer .cstudio-form-controls-container")[0],
-            colExpButtonBtn = $('#colExpButtonBtn');
+            colExpButtonBtn = $('#colExpButtonBtn'),
+            overlayContainer = dialog.find('.overlay');
 
         if( Math.floor($(dialog).height()) != 49){
             CStudioAuthoring.Utils.Cookies.createCookie("formEngineHeight", $(dialog).height().toString());
             $(dialog).height(49);
             $(controlBar).css({ "backgroundColor": "#7E9DBB" });
             $(controlBar).addClass("collapseForm");
+            overlayContainer && overlayContainer.addClass('overlay-collapsed');
         } else{
             $(dialog).height(parseInt(CStudioAuthoring.Utils.Cookies.readCookie("formEngineHeight")));
             $(controlBar).css({ "backgroundColor": "#f8f8f8" });
             $(controlBar).removeClass("collapseForm");
+            overlayContainer && overlayContainer.removeClass('overlay-collapsed');
         }
 
     },

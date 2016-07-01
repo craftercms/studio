@@ -144,6 +144,7 @@ CStudioAuthoring.Dialogs.UploadDialog = CStudioAuthoring.Dialogs.UploadDialog ||
 	uploadPopupSubmit: function(event, args) {
 		var path = args.self.path;
 		var filename = document.getElementById("uploadFileNameId").value.replace('C:\\fakepath\\',"");
+			filename = filename.replace(/ /g, "_"); 						//files are stored with "_" instead of space
 		var basePath = path;
 			path=basePath+filename;
 

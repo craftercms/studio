@@ -98,7 +98,7 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "en", {
     wcmContentApprove: "Approve & Publish",
     wcmContentDuplicate: "Duplicate",
     wcmContentHistory: "History",
-    wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
+    wcmContentPageDisabled: "This page is Disabled.",
     wcmContentSavedAsDraft: "Content was saved as DRAFT. Some required fields may not be populated. This can cause errors when previewed or deployed.",
 
     InProgress: "Edited",
@@ -223,7 +223,9 @@ CStudioAuthoring.Messages.registerBundle("siteDropdown", "en", {
     statusAnd: "and",
     statusSubmitted: "Submitted",
     statusScheduled: "Scheduled",
-    statusDisabled: "Disabled"
+    statusDisabled: "Disabled",
+    wcmContentSubmit: "Request Publish",
+    wcmContentApprove: "Approve & Publish"
 
 });
 
@@ -489,6 +491,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     setNowLink: "Set Now Link",
     populated: "Populated",
     allowPastDate: "Allow Past Date",
+    useCustomTimezone: "Use Custom Timezone",
     readonly: "Readonly",
     readonlyOnEdit: "Readonly on Edit",
     datasource: "Data Source",
@@ -520,7 +523,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     displayTemplate: "Display Template",
     mergeStrategy: "Merge Strategy",
     componentPath: "Component Path",
-	dependsOn: "Depends On",
+    dependsOn: "Depends On",
 
     /*Restrictions*/
     required: "Required",

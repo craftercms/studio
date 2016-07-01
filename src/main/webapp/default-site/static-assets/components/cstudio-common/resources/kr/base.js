@@ -215,7 +215,9 @@ CStudioAuthoring.Messages.registerBundle("siteDropdown", "kr", {
     statusAnd: "과",
     statusSubmitted: "제출",
     statusScheduled: "예약",
-    statusDisabled: "장애인"
+    statusDisabled: "장애인",
+    wcmContentSubmit: "요청 게시",
+    wcmContentApprove: "승인 및 게시"
 
 });
 

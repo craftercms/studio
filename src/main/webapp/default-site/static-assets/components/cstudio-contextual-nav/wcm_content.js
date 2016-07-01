@@ -51,6 +51,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                      * initialize widget
                      */
                     init: function() {
+                        var me = this;
+
                         CStudioAuthoring.Events.contentSelected.subscribe(function(evtName, contentTO) {
                             var selectedContent,
                                 callback;
@@ -79,6 +81,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                             this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                             YDom.addClass(noticeEl, "acnDisabledContent");
                                             noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                        }else{
+                                            me.removeDisableMessage();
                                         }
 
                                         for(var s=0; s<selectedContent.length; s++) {
@@ -104,6 +108,56 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 _this.checkWritePermission(contentTO[0].uri, callback);
                             }
                         });
+
+                        document.addEventListener('crafter.create.contenMenu', function (e) {
+                            selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
+                            YDom.get("activeContentActions").innerHTML = "";
+                            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
+                                CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri, {
+                                    success: function (content) {
+                                        CStudioAuthoring.SelectedContent.setContent(content.item);
+                                    }
+                                });
+                                _this.drawNav();
+                            }
+                        }, false);
+
+                        document.addEventListener('crafter.refresh', function (e) {
+                            if(!nodeOpen)
+                            {
+                                document.dispatchEvent(eventCM);
+                                _this.refreshAllDashboards();
+                                lookupSiteContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]);
+
+                                function lookupSiteContent(curNode, paramCont) {
+                                    if (curNode) {
+                                        CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, curNode.uri, 1, "default", {
+                                            success: function (treeData) {
+                                                var cont = paramCont ? paramCont : 0;
+
+                                                if (treeData.item.isInFlight) {
+                                                    setTimeout(function () {
+                                                        lookupSiteContent(curNode);
+                                                    }, 300);
+                                                } else {
+                                                    cont++;
+                                                    if (cont < 2) {
+                                                        setTimeout(function () {
+                                                            lookupSiteContent(curNode, cont);
+                                                        }, 300);
+                                                    } else {
+                                                        _this.refreshAllDashboards();
+                                                    }
+                                                }
+                                            },
+                                            failure: function () {
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+
+                        }, false);
 
                         CStudioAuthoring.Events.contentUnSelected.subscribe(function(evtName, contentTO) {
                             var selectedContent,
@@ -132,6 +186,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                         _this.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                         YDom.addClass(noticeEl, "acnDisabledContent");
                                         noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                    }else{
+                                        me.removeDisableMessage();
                                     }
                                 } else {
                                     _this.renderSelectNone();
@@ -210,11 +266,50 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                         return result;
                     },
 
+                    removeDisableMessage: function() {
+                        var messages = YDom.getElementsByClassName('acnDisabledContent');
+
+                        for(var x = 0; x < messages.length; x++) {
+                            messages[x].remove();
+                        }
+                    },
+
+                    refreshDashboard: function(inst){
+                        var instace = WcmDashboardWidgetCommon.dashboards[inst];
+                        var filterByTypeEl = YDom.get('widget-filterBy-'+instace.widgetId);
+                        var filterByTypeValue = 'all';
+                        if(filterByTypeEl && filterByTypeEl.value != '') {
+                            filterByTypeValue = filterByTypeEl.value;
+                        }
+
+                        var searchNumberEl = YDom.get('widget-showitems-'+instace.widgetId);
+                        var searchNumberValue =  instace.defaultSearchNumber;
+                        if(searchNumberEl && searchNumberEl.value != '') {
+                            searchNumberValue = searchNumberEl.value;
+                        }
+
+                        WcmDashboardWidgetCommon.loadFilterTableData(
+                            instace.defaultSortBy,
+                            YDom.get(instace.widgetId),
+                            instace.widgetId,
+                            searchNumberValue,filterByTypeValue);
+                    },
+
+                    refreshAllDashboards: function(){
+                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                            Self.refreshDashboard("MyRecentActivity");
+                            Self.refreshDashboard("recentlyMadeLive");
+                            Self.refreshDashboard("approvedScheduledItems");
+                            Self.refreshDashboard("GoLiveQueue");
+                        }
+                    },
+
                     /**
                      * render the navigation bar
                      */
                     drawNav: function() {
-                        var selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent();
+                        var selectedContent = CStudioAuthoring.SelectedContent.getSelectedContent(),
+                            me = this;
 
                         var callback = {
                             success: function(isWrite, perms) {
@@ -226,6 +321,8 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     this._self.containerEl.parentNode.parentNode.appendChild(noticeEl);
                                     YDom.addClass(noticeEl, "acnDisabledContent");
                                     noticeEl.innerHTML = CMgs.format(contextNavLangBundle, "wcmContentPageDisabled");
+                                }else{
+                                    me.removeDisableMessage();
                                 }
 
                                 for(var s=0; s<selectedContent.length; s++) {
@@ -480,9 +577,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                     }
                                     else {
                                         if(!draft) {
-                                            this.callingWindow.location.reload(true);
+                                            //this.callingWindow.location.reload(true);
                                         }
                                     }
+                                    eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                    eventNS.typeAction = "edit";
+                                    document.dispatchEvent(eventNS);
                                 },
                                 failure: function() { },
                                 callingWindow : window
@@ -496,6 +596,12 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
 
                             content = content[0];
                             option.onclick = function() {
+
+                                this.style.pointerEvents = "none";
+                                if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                                    CStudioAuthoring.editDisabled = []
+                                }
+                                CStudioAuthoring.editDisabled.push(this);
 
                                 if (isWrite == false) {
                                         CStudioAuthoring.Operations.viewContent(
@@ -547,6 +653,9 @@ CStudioAuthoring.ContextualNav.WcmActiveContentMod = CStudioAuthoring.Contextual
                                 var duplicateContentCallback = {
                                     success : function() {
                                         YDom.get("duplicate-loading").style.display = "none";
+                                        eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
+                                        eventNS.typeAction = "";
+                                        document.dispatchEvent(eventNS);
                                     },
                                     failure: function() {
                                         YDom.get("duplicate-loading").style.display = "none";

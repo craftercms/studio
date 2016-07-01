@@ -413,6 +413,12 @@ WcmDashboardWidgetCommon.init = function (instance) {
 
                     var editClick = function (event, matchedEl) {
                         WcmDashboardWidgetCommon.editItem(matchedEl, matchedEl.checked);
+
+                        matchedEl.style.pointerEvents = "none";
+                        if (typeof CStudioAuthoring.editDisabled === 'undefined') {
+                            CStudioAuthoring.editDisabled = []
+                        }
+                        CStudioAuthoring.editDisabled.push(matchedEl);
                     };
 
                     var viewClick = function (event, matchedEl) {
@@ -780,7 +786,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
 
     var editCallback = {
-        success: function (ontentTO, editorId, name, value, draft) {
+        success: function (contentTO, editorId, name, value, draft) {
             if(CStudioAuthoringContext.isPreview){
                 try{
                     CStudioAuthoring.Operations.refreshPreview();
@@ -792,9 +798,12 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
             }
             else {
                 if(!draft) {
-                    this.callingWindow.location.reload(true);
+                    //this.callingWindow.location.reload(true);
                 }
             }
+            eventNS.data = contentTO.item;
+            eventNS.typeAction = "edit";
+            document.dispatchEvent(eventNS);
         },
         failure: function () {
         },

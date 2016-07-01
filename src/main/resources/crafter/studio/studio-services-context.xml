@@ -147,6 +147,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
         <property name="submitForApprovalDependencyRule" ref="studioSubmitToApproveDependencyRule" />
+        <property name="enablePublishingWithoutDependencies" value="${workflowService.enablePublishingWithoutDependencies}"/>
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -243,12 +244,15 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
+        <property name="enableManualDependencyApproving" value="${dmDependenciesService.enableManualDependencyApproving}"/>
+        <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
           parent="cstudioRegistrableService">
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="bulkOperationBatchSize" value="${objectStateService.bulkOperationsBatchSize}"/>
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
@@ -937,6 +941,7 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="enablePublishingWithoutDependencies" value="${publishingManager.enablePublishingWithoutDependencies}"/>
     </bean>
 
     <!-- Dependency Rules -->

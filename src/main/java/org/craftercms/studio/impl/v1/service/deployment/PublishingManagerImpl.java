@@ -597,17 +597,19 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
 
-            List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
-            for (String dependentPath : dependentPaths) {
-                if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
-                    String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
-                    if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {
-                        deploymentService.cancelWorkflow(site, dependentPath);
-                        missingDependenciesPaths.add(dependentFullPath);
-                        CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
-                        processItem(dependentItem);
-                        mandatoryDependencies.add(dependentItem);
-                        mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+            if (!enablePublishingWithoutDependencies) {
+                List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
+                for (String dependentPath : dependentPaths) {
+                    if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
+                        String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
+                        if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {
+                            deploymentService.cancelWorkflow(site, dependentPath);
+                            missingDependenciesPaths.add(dependentFullPath);
+                            CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
+                            processItem(dependentItem);
+                            mandatoryDependencies.add(dependentItem);
+                            mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+                        }
                     }
                 }
             }
@@ -686,6 +688,9 @@ public class PublishingManagerImpl implements PublishingManager {
         this.notificationService2 = notificationService2;
     }
 
+    public boolean isEnablePublishingWithoutDependencies() { return enablePublishingWithoutDependencies; }
+    public void setEnablePublishingWithoutDependencies(boolean enablePublishingWithoutDependencies) { this.enablePublishingWithoutDependencies = enablePublishingWithoutDependencies; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -700,6 +705,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected NotificationService notificationService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
+    protected boolean enablePublishingWithoutDependencies = false;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

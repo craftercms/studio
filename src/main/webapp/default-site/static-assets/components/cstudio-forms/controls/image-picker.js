@@ -126,11 +126,14 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         dialog.setHeader("CStudio Warning");
         dialog.render(document.body);
         dialog.show();
+        dialog.innerElement.parentElement.style.setProperty("z-index", "100104", "important");
     },
 
-    createCropDialog: function(Message, imageData, imagePickerCrop) {
+    createCropDialog: function(Message, imageData, imagePickerCrop, repoImage) {
         self = this;
         YDom.removeClass("cstudio-wcm-popup-div", "yui-pe-content");
+
+        self.repoImage = repoImage;
 
         var newdiv = YDom.get("cstudio-wcm-popup-div");
         if (newdiv == undefined) {
@@ -198,7 +201,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="contentTypePopupBtn"> ' +
+                    '<div class="contentTypePopupBtn" id="crop-popup-btns"> ' +
                         '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="cropButton" value="Crop" />' +
                         '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>' +
                     '</div>' +
@@ -355,24 +358,123 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
             }
         }
 
+        function _cropImage(self, newName) {
+            var imageInformation = $image.cropper('getData', true),
+                path = imageData.relativeUrl,
+                site = CStudioAuthoringContext.site,
+                self = self;
+
+            var cropImageCallBack = {
+                success: function(content) {
+                    var imagePicker = self;
+
+                    imageData.relativeUrl = imageData.renameRelativeUrl ? imageData.renameRelativeUrl : imageData.relativeUrl;
+                    imageData.previewUrl = imageData.renamePreviewUrl ? imageData.renamePreviewUrl : imageData.previewUrl;
+
+                    self.setImageData(imagePicker, imageData)
+                    self.cropPopupCancel();
+                },
+                failure: function(message) {
+                    self.showAlert(JSON.parse(message.responseText).message);
+                    self.cropPopupCancel();
+                }
+            }
+
+            if(newName) {
+                var re = /(?:\.([^.]+))?$/,
+                    ext = re.exec(imageData.relativeUrl)[1],    //get original image extension
+                    relativeUrlLastSlashIndex = imageData.relativeUrl.lastIndexOf('/'),
+                    previewUrlLastSlashIndex = imageData.previewUrl.lastIndexOf('/'),
+                    relativeFolder = imageData.relativeUrl.substring(0, relativeUrlLastSlashIndex + 1),
+                    previewFolder = imageData.previewUrl.substring(0, previewUrlLastSlashIndex + 1);
+
+                path = imageData.relativeUrl + '&newname=' + newName + '.' + ext;
+                imageData.renameRelativeUrl = relativeFolder + newName + '.' + ext;
+                imageData.renamePreviewUrl =  previewFolder + newName + '.' + ext;
+
+                var contextExistsCallBack = {
+                    site: site,
+                    path: path,
+                    imageInformation: imageInformation,
+                    cropImageCallBack: cropImageCallBack,
+                    exists: function(exists) {
+                        if(exists) {
+                            // alert("image already exists");
+                            self.showAlert("Image filename already exists");
+                        }else {
+                            try {
+                                CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, cropImageCallBack);
+                            } catch(err) {
+                            }
+                        }
+                    },
+                    failure: function() { }
+                };
+
+                CStudioAuthoring.Service.contentExists(imageData.renameRelativeUrl, contextExistsCallBack);
+            }else{
+                try {
+                    CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, cropImageCallBack);
+                } catch(err) {
+                }
+            }
+        }
+
+        function _renameFile(self, imageData) {
+            var container = document.getElementById("crop-popup-btns"),
+                buttons = '<input type="button" class="btn btn-primary cstudio-xform-button ok" disabled id="renameButton" value="Rename" />' +
+                    '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>';
+            self = self;
+
+            container.innerHTML = '<div class="rename-container" style="float: left; position: relative;" data-extension="' + imageData.fileExtension + '"><span style="display: inline-block; float: left; margin-right: 10px; margin-top: 7px;">Filename:</span> <input id="renameFileInput" type="text" style="display: inline-block; width: 220px; border-right-width: 54px; border-right-color: rgba(204, 204, 204, 0.33);"></div>' + buttons;
+
+            YAHOO.util.Event.on("renameFileInput", 'keyup', function(){
+                this.value = this.value.replace(/ /g,"_");
+                this.value = this.value.replace(/[^A-Za-z0-9-_]/g,"").toLowerCase();
+
+                if(!this.value || this.value == "") {
+                    document.getElementById("renameButton").setAttribute("disabled", "");
+                }else {
+                    document.getElementById("renameButton").removeAttribute("disabled");
+                }
+            });
+
+            YAHOO.util.Event.addListener("renameButton", "click", function(e){
+                _cropImage(self, document.getElementById("renameFileInput").value);
+            });
+
+            YAHOO.util.Event.addListener("uploadCancelButton", "click", function() {
+                self.cropPopupCancel();
+            }, this, true);
+        }
+
         function cropImage(){
             var imageInformation = $image.cropper('getData', true),
                 path = imageData.relativeUrl,
-                site = CStudioAuthoringContext.site;
-            try {
-                CStudioAuthoring.Service.cropImage(site, path, imageInformation.x, imageInformation.y, imageInformation.height, imageInformation.width, {
-                    success: function(content) {
-                        var imagePicker = self;
-                        self.setImageData(imagePicker, imageData)
-                        self.cropPopupCancel();
-                    },
-                    failure: function(message) {
-                        self.showAlert(JSON.parse(message.responseText).message);
-                        self.cropPopupCancel();
-                    }
+                site = CStudioAuthoringContext.site,
+                self = this;
+
+            if(self.repoImage){
+                var container = document.getElementById("crop-popup-btns"),
+                    buttons = '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="overwriteButton" value="Overwrite" />' +
+                        '<input type="button" class="btn btn-primary cstudio-xform-button ok" id="renameButton" value="Rename" />' +
+                        '<input type="button" class="btn btn-default cstudio-xform-button" id="uploadCancelButton" value="Cancel" /></div>';
+
+                container.innerHTML = "<div class='' style='float: left; margin-right:10px; margin-top: 7px;'>File already exists, do you want to overwrite it?</div>" + buttons;
+
+                YAHOO.util.Event.addListener("uploadCancelButton", "click", this.cropPopupCancel, this, true);
+                YAHOO.util.Event.addListener("renameButton", "click", function(){
+                    _renameFile(self, imageData);
                 });
-            } catch(err) {
+                YAHOO.util.Event.addListener("overwriteButton", "click", function(){
+                    _cropImage(self);
+                }, this, true);
+
+            }else {
+                _cropImage(self);
             }
+
+
         }
 
         YAHOO.util.Event.addListener("uploadCancelButton", "click", this.cropPopupCancel, this, true);
@@ -476,9 +578,10 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
         if(datasource) {
             if(datasource.insertImageAction) {
                 var callback = {
-                    success: function(imageData) {
-                        var valid = false;
-                        var message = '';
+                    success: function(imageData, repoImage) {
+                        var valid = false,
+                            message = '',
+                            repoImage;
 
                         if (this.imagePicker.validExtensions.indexOf(imageData.fileExtension) != -1) {
                             valid = true;
@@ -512,7 +615,7 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
                                         message = "Image is smaller than the constraint size";
                                         self.showAlert(message);
                                     }else{
-                                        this.dialog = imagePicker.createCropDialog(message, imageData, this.imagePicker);
+                                        this.dialog = imagePicker.createCropDialog(message, imageData, this.imagePicker, repoImage);
                                         this.dialog.show();
 
                                     }
@@ -937,4 +1040,8 @@ YAHOO.extend(CStudioForms.Controls.ImagePicker, CStudioForms.CStudioFormField, {
     }
 });
 
+CStudioAuthoring.Utils.addCss('/static-assets/libs/cropper/dist/cropper.css');
+CStudioAuthoring.Utils.addCss('/static-assets/themes/cstudioTheme/css/icons.css');
+
 CStudioAuthoring.Module.moduleLoaded("cstudio-forms-controls-image-picker", CStudioForms.Controls.ImagePicker);
+CStudioAuthoring.Module.requireModule("jquery-cropper", "/static-assets/libs/cropper/dist/cropper.js");

@@ -5218,7 +5218,7 @@ span.acn-canned-search {
 .full-screen-overlay {
   z-index: 99999;
   background: rgba(50, 50, 50, 0.8);
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
@@ -5234,13 +5234,14 @@ span.acn-canned-search {
 
 .full-screen-overlay .message {
   top: 20px;
-  background: #ccc;
-  /*border-radius: 10px;*/
+  background: white;
   text-align: center;
   vertical-align: middle;
   font-size: 20px;
   height: 95px;
-  overflow: auto; }
+  overflow: auto;
+  border-bottom: 0 !important;
+  border-radius: 5px 5px 0px 0px; }
 
 .full-screen-overlay .message > * {
   font-size: 20px;
@@ -5248,37 +5249,91 @@ span.acn-canned-search {
 
 .full-screen-overlay .message .pad {
   padding: 25px;
-  padding-bottom: 0; }
+  padding-bottom: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  color: #555555; }
 
 .full-screen-overlay .close {
-  background-color: rgba(200, 200, 200, 0.5);
+  background-color: #7e9dbb;
   border-radius: 10px 10px 10px 10px;
   padding: 5px;
-  position: absolute;
-  right: 20px;
   text-decoration: none;
-  top: 20px; }
+  width: 80px;
+  text-align: center;
+  font-weight: normal;
+  text-shadow: none;
+  opacity: 0.8; }
+  .full-screen-overlay .close.disabled {
+    pointer-events: none;
+    opacity: 0.5; }
+
+.full-screen-overlay .cancel {
+  background-color: white;
+  border: 1px solid #cccccc;
+  border-radius: 10px 10px 10px 10px;
+  padding: 5px;
+  text-decoration: none;
+  width: 85px;
+  text-align: center;
+  font-weight: normal;
+  text-shadow: none;
+  opacity: 0.8;
+  font-size: 18px;
+  line-height: 1;
+  color: #000;
+  float: right; }
 
 .full-screen-overlay .close:hover {
-  background-color: #c8c8c8; }
+  background-color: #5d84a9;
+  opacity: 0.8; }
 
-.file-display-container .pad {
-  padding: 15px; }
+.full-screen-overlay .cancel:hover {
+  background-color: #e6e6e6;
+  border-color: #adadad; }
+
+.file-display-container > .pad {
+  padding: 15px;
+  min-height: 100%;
+  background-color: #ececec;
+  border-radius: 5px;
+  background: url("/studio/static-assets/themes/cstudioTheme/images/bulk_upload.png") no-repeat #ececec;
+  background-position: center center; }
 
 .file-display-container {
-  background: #fff;
-  top: 140px;
-  bottom: 20px;
+  background: white;
+  top: 115px;
+  bottom: 88px;
   overflow: auto;
-  min-height: 200px; }
+  min-height: 200px;
+  border-top-width: 0 !important;
+  border-radius: 0px;
+  padding: 0 20px 0; }
+  .file-display-container .folder-container {
+    padding-bottom: 20px; }
+    .file-display-container .folder-container:before {
+      content: attr(data-path);
+      font-weight: bold; }
+    .file-display-container .folder-container:empty {
+      display: none; }
+
+.bulk-upload .buttons-container {
+  position: absolute;
+  left: 50%;
+  width: 560px;
+  margin-left: -270px;
+  background: white;
+  border-radius: 0px 0px 5px 5px;
+  padding: 20px;
+  bottom: 20px;
+  height: 68px; }
 
 .file-display-container,
 .full-screen-overlay .message {
   position: absolute;
   left: 50%;
-  width: 450px;
-  margin-left: -225px;
-  border: 4px solid #000; }
+  width: 560px;
+  margin-left: -270px; }
 
 .dropbox-element.dropbox-dragover {
   background: rgba(10, 10, 10, 0.85); }
@@ -5289,22 +5344,29 @@ span.acn-canned-search {
   box-shadow: inset 0px 0px 50px #777; }
 
 .dropbox-element .title {
-  display: block; }
+  display: block;
+  color: #616161; }
 
-.dropbox-element .detalis {
-  font-style: italic; }
+.dropbox-element .details {
+  font-style: italic;
+  color: #636363; }
 
 .dropbox-element .dropbox-file-display {
   color: #fff;
-  background-color: #7F9DB9;
-  margin-bottom: 10px;
-  padding-right: 10px; }
+  /* background-color: #7F9DB9; */
+  /* margin-bottom: 10px; */
+  padding-right: 10px;
+  border-bottom: 1px solid #cecece;
+  border-left: 1px solid #cecece;
+  padding-top: 10px;
+  padding-left: 15px;
+  padding-bottom: 10px; }
 
 .dropbox-element .dropbox-file-display img,
 .dropbox-element .dropbox-file-display .img {
   float: left;
-  width: 175px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   margin-right: 10px;
   overflow: hidden;
   background-color: #ccc; }
@@ -5373,7 +5435,8 @@ span.acn-canned-search {
   -webkit-transition: width 0.6s ease;
   -moz-transition: width 0.6s ease;
   -o-transition: width 0.6s ease;
-  transition: width 0.6s ease; }
+  transition: width 0.6s ease;
+  background: repeating-linear-gradient(45deg, #5d84a9, #5d84a9 10px, #7e9dbb 10px, #7e9dbb 20px); }
 
 .no-margin {
   margin: 0; }
@@ -15606,6 +15669,18 @@ margin-left: -3px; */
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
   transition: height .5s, transform .5s; }
+  .studio-ice-dialog > .bd.overlay:before {
+    content: '';
+    position: fixed;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.65);
+    transition: height .5s, transform .5s; }
+  .studio-ice-dialog > .bd.overlay.overlay-collapsed:before {
+    content: '';
+    height: 0; }
   .studio-ice-dialog > .bd iframe {
     top: 0;
     left: 0;
@@ -15730,6 +15805,49 @@ margin-left: -3px; */
   .cstudio-dialogue .yui-module.yui-overlay.yui-panel {
     border: none;
     border-radius: 4px; }
+
+.cstudio-dialogue[id^="viewcontroller-history"] {
+  left: 0px !important;
+  right: 0px !important;
+  width: 90% !important;
+  margin: auto;
+  top: 0px !important;
+  bottom: 0px !important; }
+  .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel {
+    width: 100% !important;
+    min-width: 602px;
+    height: 80%;
+    min-height: 364px;
+    margin-top: 5%;
+    margin-bottom: 5%; }
+    .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body {
+      height: 100%; }
+      .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view {
+        height: 100%; }
+        .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group {
+          height: calc(100% - 110px); }
+          .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing {
+            width: 100%;
+            height: 100%; }
+            .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr {
+              width: 100%;
+              display: table; }
+              .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td {
+                width: 10%; }
+                .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td {
+                  width: 17%; }
+                  .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td {
+                    width: 20%; }
+                    .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + td {
+                      width: 45%; }
+                      .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th + td + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td + td + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th + td + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + th + td + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + th + td + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + th + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + th + td, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + td + th, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td + td + td + td + td {
+                        width: 8%; }
+                .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr th div, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr td div, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr th div, .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody tr td div {
+                  width: 100%; }
+            .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing thead tr {
+              width: calc(100% - 15px); }
+            .cstudio-dialogue[id^="viewcontroller-history"] .yui-panel .cstudio-dialogue-body .history-view .form-group table.item-listing tbody {
+              height: calc(100% - 25px) !important; }
 
 .cstudio-dialogue-mask {
   opacity: .7 !important;

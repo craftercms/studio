@@ -35,7 +35,7 @@ YAHOO.extend(CStudioForms.Datasources.ImgRepoUpload, CStudioForms.CStudioFormDat
 				imageData.relativeUrl = path;
 				imageData.fileExtension = path.substring(path.lastIndexOf(".")+1);
 
-				insertCb.success(imageData);		
+				insertCb.success(imageData, true);
 			}, 
 			failure: function() {
 

@@ -98,7 +98,7 @@ CStudioAuthoring.Messages.registerBundle("contextnav", "es", {
     wcmContentApprove: "Aprobar y Publicar",
     wcmContentDuplicate: "Duplicar",
     wcmContentHistory: "Historial",
-    wcmContentPageDisabled: "Page is disabled: When deployed, a live visitor will see page not found (404) error.",
+    wcmContentPageDisabled: "This page is Disabled.",
 
     InProgress: "Editado",
     Deleted: "Eliminado",
@@ -222,7 +222,9 @@ CStudioAuthoring.Messages.registerBundle("siteDropdown", "es", {
     statusAnd: "y",
     statusSubmitted: "Enviado",
     statusScheduled: "Programado",
-    statusDisabled: "Deshabilitado"
+    statusDisabled: "Deshabilitado",
+    wcmContentSubmit: "Solicitud de Publicación",
+    wcmContentApprove: "Aprobar y Publicar"
 
 });
 
@@ -471,6 +473,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     setNowLink: "Establecer Link de Ahora",
     populated: "Poblado",
     allowPastDate: "Permitir Fecha Pasada",
+    useCustomTimezone: "Usar Timezone Personalizado",
     readonly: "Solo Lectura",
     readonlyOnEdit: "Editar en Solo Lectura",
     datasource: "Fuentes de Dato",
@@ -501,7 +504,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "es", {
     defaultType: "Tipo por Defecto",
     displayTemplate: "Plantilla de Pantalla",
     mergeStrategy: "Combinar Estrategia",
-	dependsOn: "Depende En",
+    dependsOn: "Depende En",
 
     /*Restrictions*/
     required: "Requerido",

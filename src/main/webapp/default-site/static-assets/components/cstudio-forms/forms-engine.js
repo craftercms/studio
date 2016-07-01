@@ -511,6 +511,7 @@ var CStudioForms = CStudioForms || function() {
             this.id = name;
             this.style = style;
             this.definition = formDefinition;
+            this.dynamicFields = [];
             this.sections = [];
             this.datasources = [];
             this.model = model;
@@ -528,6 +529,10 @@ var CStudioForms = CStudioForms || function() {
         };
 
         CStudioForm.prototype = {
+
+            registerDynamicField: function(name) {
+                this.dynamicFields.push(name);
+            },
 
             registerBeforeSaveCallback: function(callback) {
                 this.beforeSaveCallbacks[this.beforeSaveCallbacks.length] = callback;
@@ -1178,6 +1183,14 @@ var CStudioForms = CStudioForms || function() {
                 };
 
                 var cancelFn = function() {
+
+                    if (typeof window.parent.CStudioAuthoring.editDisabled !== 'undefined') {
+                        for(var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++){
+                            window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = "";
+                        }
+                        window.parent.CStudioAuthoring.editDisabled = [];
+                    }
+
                     var flag = false;
                     if(form.sections.length){
                         for(var j=0; j < form.sections.length; j++){
@@ -1394,6 +1407,9 @@ var CStudioForms = CStudioForms || function() {
                 colExpButtonEl.value = "Collapse";
                 formControlBarEl.appendChild(colExpButtonEl);
                 YAHOO.util.Event.addListener(colExpButtonEl, "click", collapseFn, this);
+
+                var overlayContainer = parent.document.getElementById(window.frameElement.id).parentElement;
+                YDom.addClass(overlayContainer, "overlay");
 
             },
 
@@ -1629,6 +1645,11 @@ var CStudioForms = CStudioForms || function() {
                             var repeatArrayIndex = this.parentNode._repeatIndex;
                             itemArray.splice(repeatArrayIndex+1, 0, []);
                             containerEl.reRender(containerEl);
+
+                            var containerElNodes = $(containerEl.childNodes);
+                            containerElLastChildTop = $(containerElNodes.get(repeatArrayIndex)).offset().top;
+                            $('body').scrollTop(containerElLastChildTop);
+
                             repeatEdited = true;
                         }
                     }
@@ -2236,17 +2257,22 @@ var CStudioForms = CStudioForms || function() {
                     }
                 }
 
-                xml += this.printFieldsToXml(form.model, form.definition.sections, form.definition.config);
+                xml += this.printFieldsToXml(form.model, form.dynamicFields, form.definition.sections, form.definition.config);
                 xml += "</"+form.definition.objectType+">";
 
                 return xml;
             },
 
-            printFieldsToXml: function(formModel, formSections, formConfig) {
+            printFieldsToXml: function(formModel, formDynamicFields, formSections, formConfig) {
                 var fieldInstructions = [];
                 var validFields = ['$!', 'objectGroupId', 'objectId', 'folder-name', 'createdDate', 'createdDate_dt', 'lastModifiedDate', 'lastModifiedDate_dt', 'components', 'orderDefault_f', 'placeInNav', 'rteComponents'],
                     output = '',
                     validFieldsStr, fieldRe, section;
+
+                // Add valid fields from the ones created dynamically by controls
+                if (formDynamicFields && formDynamicFields.length > 0) {
+                    validFields = validFields.concat(formDynamicFields);
+                }
 
                 // Add valid fields from form sections
                 for (var i = formSections.length - 1; i >= 0; i--) {

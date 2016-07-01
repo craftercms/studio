@@ -47,6 +47,15 @@
                 controller._initAction('.load-retry');
             });
 
+            controller.on('cancel', function() {
+                if (typeof CStudioAuthoring.editDisabled !== 'undefined') {
+                    for(var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++){
+                        window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = "";
+                    }
+                    window.parent.CStudioAuthoring.editDisabled = [];
+                }
+            });
+
         },
         get: function (elem) {
             return this.controller.getComponent(elem);

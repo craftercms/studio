@@ -18,6 +18,14 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -37,11 +45,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
@@ -166,10 +169,11 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     public void bulkGoLive(String site, String environment, String path) {
-        logger.debug("Starting Bulk Go Live for path " + path + " site " + site);
+        logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         List<String> childrenPaths = new ArrayList<String>();
         ContentItemTO item = contentService.getContentItem(site, path, 2);
+        logger.debug("Traversing subtree for site " + site + " and root path " + path);
         if (item != null) {
             if (!item.isFolder()) {
                 childrenPaths.add(item.getUri());
@@ -182,24 +186,38 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
             }
         }
-        List<String> pathsToPublish = new ArrayList<String>();
-        for (String childPath : childrenPaths) {
-            if (!pathsToPublish.contains(childPath)) {
-                pathsToPublish.add(childPath);
-            }
-            getAllDependenciesRecursive(site, childPath, pathsToPublish);
-        }
+        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path " + path);
+        Set<String> processedPaths = new HashSet<String>();
         Date launchDate = new Date();
-        String aprover = securityService.getCurrentUser();
-        String comment = "Bulk Go Live invoked by " + aprover;
-            logger.debug("Deploying " + pathsToPublish.size() + " items");
-        try {
-            deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
-        } catch (DeploymentException e) {
-            logger.error("Error while running bulk Go Live operation", e);
-        } finally {
-            logger.debug("Finished Bulk Go Live for path " + path + " site " + site);
+        for (String childPath : childrenPaths) {
+            String childHash = DigestUtils.md2Hex(childPath);
+            logger.debug("Processing dependencies for site " + site + " path " + childPath);
+            if (processedPaths.add(childHash)) {
+                List<String> pathsToPublish = new ArrayList<String>();
+                List<String> candidatePathsToPublish = new ArrayList<String>();
+                pathsToPublish.add(childPath);
+                candidatePathsToPublish.add(childPath);
+                getAllDependenciesRecursive(site, childPath, candidatePathsToPublish);
+                for (String pathToAdd : candidatePathsToPublish) {
+                    String hash = DigestUtils.md2Hex(pathToAdd);
+                    if (processedPaths.add(hash)) {
+                        pathsToPublish.add(pathToAdd);
+                    }
+                }
+                String aprover = securityService.getCurrentUser();
+                String comment = "Bulk Go Live invoked by " + aprover;
+                logger.debug("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
+                             childPath);
+                try {
+                    deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
+                } catch (DeploymentException e) {
+                    logger.error("Error while running bulk Go Live operation", e);
+                } finally {
+                    logger.debug("Finished processing deployment package for path " + childPath + " site " + site);
+                }
+            }
         }
+        logger.info("Finished Bulk Go Live for path " + path + " site " + site);
     }
 
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) {
