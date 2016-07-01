@@ -303,6 +303,7 @@
 					return true;
 				return false;
 			},
+
             /**
              * render function called on root level elements
              */
@@ -387,6 +388,34 @@
                             }
                         }
                 }
+
+                document.addEventListener("setContentDone", function(){
+
+                    var checkRenderingTemplates = function(renderingTemplates) {
+                        var noTemplate = true;
+                        for(var x = 0; x < renderingTemplates.length; x++){
+                            if (renderingTemplates[x].uri != "") {
+                                noTemplate = false;
+                            }
+                        }
+                        return noTemplate;
+                    };
+
+                    var icePanel = document.getElementById("ice-tools-panel-elem"),
+                        editTemplateEl;
+
+                    if( icePanel ) {
+                        editTemplateEl = icePanel.getElementsByClassName("edit-code template")[0].firstChild;
+
+                        if(checkRenderingTemplates(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates)) {
+                            editTemplateEl.setAttributeNode(document.createAttribute("disabled"));
+                            editTemplateEl.style.pointerEvents = "none";
+                        }else {
+                            editTemplateEl.removeAttribute("disabled");
+                            editTemplateEl.style.pointerEvents = "";
+                        }
+                    }
+                }, false);
 
                 new YAHOO.widget.Tooltip("acn-context-tooltipWrapper", {
                     context: treeNodesLabels,
