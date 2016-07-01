@@ -69,6 +69,16 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         wrapper.appendChild(regionSelectEl);
         container.appendChild(wrapper);
 
+        var checkRenderingTemplates = function(renderingTemplates) {
+            var noTemplate = true;
+            for(var x = 0; x < renderingTemplates.length; x++){
+                if (renderingTemplates[x].uri != "") {
+                    noTemplate = false;
+                }
+            }
+            return noTemplate;
+        };
+
         wrapper = document.createElement('div');
         YDom.addClass(wrapper, "edit-code template");
 		var templateButtonEl = document.createElement("button");
@@ -86,6 +96,11 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         templateButtonEl.appendChild(templateLabelEl);
         wrapper.style.marginleft = "4px";
         wrapper.appendChild(templateButtonEl);
+
+        if(checkRenderingTemplates(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates)) {
+            templateButtonEl.setAttributeNode(document.createAttribute("disabled"));
+            templateButtonEl.style.pointerEvents = "none";
+        }
 
         container.appendChild(wrapper);
 
@@ -150,7 +165,8 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
         }
 
         templateButtonEl.onclick = function() {
-            if(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates.length > 0) {
+
+            if(!checkRenderingTemplates(CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates)) {
                 var contentType = CStudioAuthoring.SelectedContent.getSelectedContent()[0].renderingTemplates[0].uri;
 
                 // if(CStudioAuthoringContext.channel && CStudioAuthoringContext.channel != "web") {
