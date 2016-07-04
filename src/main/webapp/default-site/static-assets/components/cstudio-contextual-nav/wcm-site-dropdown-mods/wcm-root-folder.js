@@ -1246,13 +1246,15 @@ treeNode.getHtml = function() {
 	* methos that fires when new items added to tree.
 	*/
 	refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure, edit) {
+        var WcmAssetsFolder = CStudioAuthoring.ContextualNav.WcmAssetsFolder;
 		var tree = tree ? tree : Self.myTree,
             isMytree = false,
             currentPath = treeNode.data ? treeNode.data.path : treeNode.path,
-            currentUri = treeNode.data ? treeNode.data.uri : treeNode.uri;
+            currentUri = treeNode.data ? treeNode.data.uri : treeNode.uri,
+            treePathsLocal = self.treePaths ? self.treePaths : WcmAssetsFolder.treePaths;
         if(tree &&  Self.myTree) {
-            for (var i = 0; i < self.treePaths.length; i++) {
-                if (self.treePaths[i] == Self.myTree.id) {
+            for (var i = 0; i < treePathsLocal.length; i++) {
+                if (treePathsLocal[i] == Self.myTree.id) {
                     isMytree = true;
                 }
             }
@@ -1378,7 +1380,7 @@ treeNode.getHtml = function() {
                                 curNode.refresh();
                                 //console.log(itemStore);
                                 if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
-                                self.expandTree(curNode);
+                                self.expandTree ? self.expandTree(curNode) : WcmAssetsFolder.expandTree;
                                 Self.refreshAllDashboards();
                             }
 
