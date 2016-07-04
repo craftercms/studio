@@ -17,7 +17,11 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -47,14 +51,13 @@ public class VersionTO implements Comparable<VersionTO>, Serializable {
      * @return the lastEditedDate
      */
     public String getLastModifiedDate() {
-        return "";
-        // if (lastModifiedDate != null) {
-        //     SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
-        //     String dateStr = ContentFormatUtils.formatDate(format, lastModifiedDate, _timezone);
-        //     return dateStr;
-        // } else {
-        //     return null;
-        // }
+        if (lastModifiedDate != null) {
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            String dateStr = ContentFormatUtils.formatDate(format, lastModifiedDate, _timezone);
+            return dateStr;
+        } else {
+            return null;
+        }
     }
 
     public void setLastModifiedDate(Date lastModifiedDate) {
