@@ -997,6 +997,9 @@ public class ContentServiceImpl implements ContentService {
         boolean success = false;
 
         success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
+
+        removeItemFromCache(site, path);
+
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
         message.setPath(path);
