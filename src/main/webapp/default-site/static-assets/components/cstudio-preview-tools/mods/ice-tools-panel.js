@@ -137,8 +137,8 @@ CStudioAuthoring.IceToolsPanel = CStudioAuthoring.IceToolsPanel || {
                     regionSelectEl.options[0] = new Option(CMgs.format(previewLangBundle, "jumpToRegion"), "0", true, false);
                     for (var i = 0; i < regions.length; i++) {
                         var label = (regions[i].label)
-                            ? regions[i].label
-                            : regions[i].id;
+                            ? regions[i].label.replace(/__/g," ")
+                            : regions[i].id.replace(/__/g," ");
                         regionSelectEl.options[i + 1] = new Option(label, '' + (i + 1), false, false);
                     }
 
