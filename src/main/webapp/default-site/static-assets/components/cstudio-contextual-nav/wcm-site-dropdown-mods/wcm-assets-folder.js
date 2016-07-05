@@ -14,6 +14,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     ROOT_CLOSED: "closed",
     ROOT_TOGGLE: "toggle",
     Self: this,
+    treePaths: [],
 
     /**
      * initialize module
@@ -102,7 +103,7 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     /**
      * render function called on root level elements
      */
-    drawTree: function(treeItems, tree, pathToOpenTo, instance) {
+    drawTree: function(treeItems, tree, pathToOpenTo, instance, uniquePath) {
 
         var treeNodes = new Array();
         var treeNodesLabels = new Array();
@@ -189,6 +190,34 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         contextMenu.subscribe('beforeShow', function() {
             CStudioAuthoring.ContextualNav.WcmAssetsFolder.onTriggerContextMenu(tree, this, contextMenuId);
         }, tree, false);
+
+        //if(uniquePath) {
+            var WcmAssetsFolder = CStudioAuthoring.ContextualNav.WcmAssetsFolder;
+            nodeOpen = true;
+            WcmAssetsFolder.treePaths.push(tree.id);
+            (function (t, inst) {
+                document.addEventListener('crafter.refresh', function (e) {
+                    document.dispatchEvent(eventCM);
+                    try {
+                        if(e.data && e.data.length) {
+                            for (var i = 0; i < e.data.length; i++){
+                                Self.refreshNodes(e.data[i] ? e.data[i] : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
+                            }
+                        }else{
+                            Self.refreshNodes(e.data ? e.data : (oCurrentTextNode != null ? oCurrentTextNode : CStudioAuthoring.SelectedContent.getSelectedContent()[0]), true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
+                        }
+                    } catch (er) {
+                        if (CStudioAuthoring.SelectedContent.getSelectedContent()[0]) {
+                            Self.refreshNodes(CStudioAuthoring.SelectedContent.getSelectedContent()[0], true, e.parent == false? false : true, t, inst, e.changeStructure, e.typeAction);
+                        }
+                    }
+
+                    Self.refreshAllDashboards();
+
+                }, false);
+
+            })(tree, instance);
+        //}
 
         contextMenu.subscribe('show', function() {
             if (!YDom.isAncestor(tree.id, this.contextEventTarget)) {
@@ -374,6 +403,29 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
         }
 
         return false;
+    },
+
+    expandTree: function(node, fnLoadComplete) {
+        if(node) {
+            var iniPath;
+            try {
+                iniPath = node.treeNodeTO.path;
+            } catch (er) {
+                iniPath = node.path;
+            }
+            var fileName = iniPath.split('/')[node.treeNodeTO.path.split('/').length - 1],
+                roothpath = iniPath.replace("/" + fileName, ""),
+                plainpath = iniPath,
+                el = node.getEl(),
+                num = el.getAttribute('num');
+            plainpath = roothpath == '/site' ? "root-folder" : plainpath;
+            if (!num) {
+                while ((el = el.parentElement) && !el.hasAttribute("num"));
+            }
+            if(el) {
+                Self.save(node.instance, plainpath, null, el.getAttribute('num') ? el.getAttribute('num') : "root-folder", "expand");
+            }
+        }
     },
 
     /**
@@ -1039,54 +1091,213 @@ CStudioAuthoring.ContextualNav.WcmAssetsFolder = CStudioAuthoring.ContextualNav.
     /**
      * methos that fires when new items added to tree.
      */
-    refreshNodes: function(treeNode,status) {
-        var tree = Self.myTree;
-        var copiedItemNode = Self.copiedItem;
-        var node = tree.getNodeByProperty("path", treeNode.treeNodeTO.path);
-        if (copiedItemNode != null && treeNode.data.path == copiedItemNode.data.path) {
-            node = tree.getNodeByProperty("path", treeNode.parent.data.path);
-            Self.copiedItem = null;
-        }
-        if (node.isLeaf) node.isLeaf = false;
-        tree.removeChildren(node);
-        var loadEl = $(".ygtvtp", node.getEl(), true);
-        loadEl == null && (loadEl = $(".ygtvlp", node.getEl(), true));
-        YDom.addClass(loadEl, "ygtvloading");
-        node.renderChildren();
-        node.refresh();
-
-        var treeInner = YDom.get('acn-dropdown-menu-inner');
-        var previousCutEl = YDom.getElementsByClassName("status-icon", null, treeInner);
-
-        for(var i=0; i<previousCutEl.length; i++){
-
-            if(previousCutEl[i].style.color == 'rgb(159, 182, 205)' || previousCutEl[i].style.color == '#9FB6CD' ){
-
-                if(status){
-                    var tempSplit = previousCutEl[i].id.split("labelel");
-                    var parentNode = YDom.get(tempSplit[0]+tempSplit[1]);
-                    parentNode.style.display = 'none';
-                    if (Self.cutItem != null) {
-                        var parNode = tree.getNodeByProperty("path", Self.cutItem.parent.data.path);
-                        //if parent have single child and we did cut and paste the child,
-                        //we should refresh the parent node to remove expand collapse icon
-                        if (parNode && parNode.children && parNode.children.length == 1) {
-                            tree.removeChildren(parNode);
-                            var parLoadEl = $(".ygtvtp", parNode.getEl(), true);
-                            parLoadEl == null && (parLoadEl = $(".ygtvlp", parNode.getEl(), true));
-                            YDom.addClass(parLoadEl, "ygtvloading");
-                            parNode.renderChildren();
-                            parNode.refresh();
-                        } else if (parNode) {
-                            //remove the only item from parent node.
-                            tree.removeNode(Self.cutItem);
-                        }
-                        Self.cutItem = null;
-                    }
-                }else{
-                    previousCutEl[i].removeAttribute("style");
+    refreshNodes: function(treeNode, status, parent, tree, instance, changeStructure, edit) {
+        var WcmAssetsFolder = CStudioAuthoring.ContextualNav.WcmAssetsFolder;
+        var tree = tree ? tree : Self.myTree,
+            isMytree = false,
+            currentPath = treeNode.data ? treeNode.data.path : treeNode.path,
+            currentUri = treeNode.data ? treeNode.data.uri : treeNode.uri;
+        if(tree &&  Self.myTree) {
+            for (var i = 0; i < WcmAssetsFolder.treePaths.length; i++) {
+                if (WcmAssetsFolder.treePaths[i] == Self.myTree.id) {
+                    isMytree = true;
                 }
             }
+            if (!isMytree) {
+                tree = Self.myTree;
+            }
+        }
+        if(tree) {
+            var copiedItemNode = Self.copiedItem;
+            var node = [];
+            node = tree.getNodesByProperty("path", currentPath) ? tree.getNodesByProperty("path", currentPath) : null;
+            if (copiedItemNode != null && (currentPath == copiedItemNode.data.path) && treeNode.parent) {
+                node = tree.getNodesByProperty("path", treeNode.parent.data.path);
+                Self.copiedItem = null;
+            }
+
+            if (node) {
+                for(var i=0; i<node.length; i++) {
+                    node[i] = parent ? node[i].parent : node[i];
+                    if (node[i].isLeaf) node[i].isLeaf = false;
+                }
+            }
+            else {
+                node = parent ? treeNode.parent : treeNode;
+            }
+
+            if(!changeStructure){
+
+                if(instance){
+                    //Self.initializeContentTree(instance.rootFolderEl, null, instance);
+                    var nodeToChange;
+                    if(parent){
+                        nodeToChange = tree.getNodesByProperty("path", currentPath);
+                    }else{
+                        nodeToChange = node;
+                    }
+
+                    if(nodeToChange){
+                        for(var i=0; i<nodeToChange.length;i++) {
+                            (function (nodeToChange,i) {
+                                lookupSiteContent(nodeToChange[i], currentUri);
+                                nodeOpen = true;
+                            })(nodeToChange,i);
+                        }
+                    }
+
+                    function lookupSiteContent(curNode, currentUri, paramCont) {
+                        if (curNode && curNode.label) {
+                            CStudioAuthoring.Service.lookupSiteContent(CStudioAuthoringContext.site, curNode.data.uri, 1, "default", {
+                                success: function (treeData) {
+                                    if (currentUri == treeData.item.uri) {
+                                        var style = "",
+                                            cont = paramCont ? paramCont : 0;
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).innerHTML =
+                                            (treeData.item.internalName != "" ? treeData.item.internalName : treeData.item.name) : null;
+                                        style = CStudioAuthoring.Utils.getIconFWClasses(treeData.item);
+                                        if (treeData.item.isPreviewable) {
+                                            style = style + " preview";
+                                        } else {
+                                            style = style + " no-preview";
+                                        }
+                                        if (treeData.item.contentType == "asset") {
+                                            style = style + " component";
+                                        }
+                                        YDom.get(curNode.labelElId) ? YDom.get(curNode.labelElId).className = style : null;
+                                        if (style.indexOf("deleted") != -1 || treeData.item.isDeleted) {
+                                            var tempSplit = curNode.labelElId.split("labelel");
+                                            var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
+                                            parentNode.style.display = 'none';
+                                            tree.removeNode(curNode);
+                                            if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                    CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                            }
+                                            document.dispatchEvent(eventCM);
+                                            Self.refreshAllDashboards();
+                                        }
+                                        else {
+                                            if (style.indexOf("in-flight") != -1) {
+                                                setTimeout(function () {
+                                                    lookupSiteContent(curNode, currentUri);
+                                                }, 300);
+                                            } else {
+                                                cont++;
+                                                if ((curNode.labelStyle.indexOf("folder") != -1 && cont < 25) || (curNode.labelStyle.indexOf("folder") == -1 && cont < 2)) {
+                                                    setTimeout(function () {
+                                                        lookupSiteContent(curNode, currentUri, cont);
+                                                        if (typeof WcmDashboardWidgetCommon != 'undefined') {
+                                                            CStudioAuthoring.SelectedContent.getSelectedContent()[0] ?
+                                                                CStudioAuthoring.SelectedContent.unselectContent(CStudioAuthoring.SelectedContent.getSelectedContent()[0]) : null;
+                                                        }
+                                                        if((curNode.labelStyle.indexOf("folder") == -1) && (edit != "edit")) {
+                                                            document.dispatchEvent(eventCM);
+                                                            Self.refreshAllDashboards();
+                                                        }
+                                                    }, 300);
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                failure: function () {
+                                }
+                            })
+                        }
+                    }
+
+                }
+            }else {
+                if(node) {
+                    nodeOpen = true;
+                    for(var i=0; i<node.length; i++) {
+                        var curNode = node[i];
+                        if (curNode.nodeType == "CONTENT") {
+                            var itemStore = instance ? storage.read(Self.getStoredPathKey(instance)) : null;
+                            //console.log(itemStore);
+                            if(YDom.get(curNode.labelElId)) {
+                                tree.removeChildren(curNode);
+                                var loadEl = YAHOO.util.Selector.query(".ygtvtp", curNode.getEl(), true);
+                                loadEl == null && (loadEl = YAHOO.util.Selector.query(".ygtvlp", curNode.getEl(), true));
+                                YDom.addClass(loadEl, "ygtvloading");
+                                curNode.renderChildren();
+                                curNode.refresh();
+                                //console.log(itemStore);
+                                if (instance) storage.write(Self.getStoredPathKey(instance), itemStore, 360);
+                                self.expandTree(curNode);
+                                Self.refreshAllDashboards();
+                            }
+
+                        } else {
+                            var root = false;
+                            if (Object.prototype.toString.call(instance.path) === '[object Array]') {
+                                var path;
+                                try {
+                                    path = curNode.data ? curNode.data.path ? curNode.data.path : treeNode.treeNodeTO.path : treeNode.treeNodeTO.path;
+                                } catch (er) {
+                                    path = curNode.data ? curNode.data.path ? curNode.data.path : treeNode.path ? treeNode.path : null : treeNode.path ? treeNode.path : null;
+                                }
+                                for (var i = 0; i <= instance.path.length; i++) {
+                                    if (path == instance.path[i]) {
+                                        root = true;
+                                    }
+                                }
+                            }
+                            if (root && instance) {
+                                Self.initializeContentTree(instance.rootFolderEl, null, instance);
+                                Self.toggleFolderState(instance, "open");
+                            }
+                            Self.refreshAllDashboards();
+                        }
+                        if(i >= (node.length - 1)){
+                            eventYS.parent = null;
+                            eventNS.parent = null;
+                        }
+                    }
+                }
+                if (root && instance) {
+                    var __self = this;
+                    setTimeout(function () {
+                        __self.openLatest(instance);
+                    }, 100);
+                }
+            }
+
+            var treeInner = YDom.get('acn-dropdown-menu-inner');
+            var previousCutEl = YDom.getElementsByClassName("status-icon", null, treeInner);
+
+            for (var i = 0; i < previousCutEl.length; i++) {
+
+                if (previousCutEl[i].style.color == Self.CUT_STYLE_RGB || previousCutEl[i].style.color == Self.CUT_STYLE) {
+
+                    if (status) {
+                        var tempSplit = previousCutEl[i].id.split("labelel");
+                        var parentNode = YDom.get(tempSplit[0] + tempSplit[1]);
+                        parentNode.style.display = 'none';
+                        if (Self.cutItem != null) {
+                            var parNode = tree.getNodeByProperty("path", Self.cutItem.parent.data.path);
+                            //if parent have single child and we did cut and paste the child,
+                            //we should refresh the parent node to remove expand collapse icon
+                            if (parNode && parNode.children && parNode.children.length == 1) {
+                                tree.removeChildren(parNode);
+                                var parLoadEl = YSelector(".ygtvtp", parNode.getEl(), true);
+                                parLoadEl == null && (parLoadEl = YSelector(".ygtvlp", parNode.getEl(), true));
+                                YDom.addClass(parLoadEl, "ygtvloading");
+                                parNode.renderChildren();
+                                parNode.refresh();
+                            } else if (parNode) {
+                                //remove the only item from parent node.
+                                tree.removeNode(Self.cutItem);
+                            }
+                            Self.cutItem = null;
+                        }
+                    } else {
+                        previousCutEl[i].removeAttribute("style");
+                    }
+                }
+            }
+
         }
     }
 
