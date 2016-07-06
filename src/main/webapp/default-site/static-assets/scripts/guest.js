@@ -150,6 +150,7 @@ define('guest', ['crafter', 'jquery', 'communicator', 'ice-overlay', 'dnd-contro
 
         for (var i = 0; i < elems.length; ++i) {
             initICETarget(elems[i]);
+            elems[i].setAttribute("data-studio-ice-label", elems[i].getAttribute("data-studio-ice-label").replace(/ /g, "__"));
         }
     }
 
