@@ -216,14 +216,15 @@ CStudioAuthoring.Module.requireModule(
 
 				rteControl.clearTextEditorSelection();
 
-				rteControl.scrollToTopOfElement(rteControl.containerEl, 30);
-
 				editor.contentWindow.frameElement.focus();
 				tinymce.activeEditor.getBody().focus();
 
 				//iefix - when an element with focus disappears programatically focus does not work unless another item is focused
-				parent.document.getElementById("acn-searchtext").focus();
+				$(editor.codeTextArea).show().focus();
 				$("#mce_0_ifr").contents().find('body').focus();
+				$(editor.codeTextArea).hide();
+
+				rteControl.scrollToTopOfElement(rteControl.containerEl, 30);
 			},
 
 			createControl: function(n, cm) {
