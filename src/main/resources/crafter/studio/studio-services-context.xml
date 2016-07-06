@@ -979,6 +979,14 @@
     <!-- Utilities -->
     <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
 
+    <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
+    </bean>
+
     <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
         <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
     </bean>
