@@ -109,8 +109,7 @@
                                                 this.version, {
                                                     success: function () {
                                                         if(CStudioAuthoringContext.isPreview){
-                                                            var cstopic = crafter.studio.preview.cstopic;
-                                                            window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                                            CStudioAuthoring.Operations.refreshPreview();
                                                         }
                                                         eventNS.data = item;
                                                         document.dispatchEvent(eventNS);
