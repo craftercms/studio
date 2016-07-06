@@ -51,6 +51,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 
+<<<<<<< Updated upstream
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -59,6 +60,18 @@ import java.util.*;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+=======
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+>>>>>>> Stashed changes
 
 public class GitContentRepository implements ContentRepository {
 
@@ -451,14 +464,22 @@ public class GitContentRepository implements ContentRepository {
                 VersionTO versionTO = new VersionTO();
                 versionTO.setVersionNumber(revCommit.getId().toString());
                 versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
+<<<<<<< Updated upstream
                 versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime()*1000));
+=======
+                versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000));
+>>>>>>> Stashed changes
                 versionTO.setComment(revCommit.getShortMessage());
                 versionHistory.add(versionTO);
             }
         } catch (IOException | GitAPIException err) {
             logger.error("error while getting history for content item " + path);
         }
+<<<<<<< Updated upstream
         VersionTO[] toRet = new VersionTO[versionHistory.size()];
+=======
+        VersionTO[] toRet = null;
+>>>>>>> Stashed changes
         return versionHistory.toArray(toRet);
     }
 
