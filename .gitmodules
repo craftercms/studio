@@ -1,0 +1,3 @@
+[submodule "Studio"]
+	path = src/main/webapp/default-site/static-assets
+	url = https://github.com/cortiz/studio2-ui.git
