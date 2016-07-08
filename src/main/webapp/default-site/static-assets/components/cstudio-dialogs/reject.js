@@ -100,8 +100,7 @@ CStudioAuthoring.Module.requireModule("publish-dialog",
 										success:function(oResponse) {
 											 //window.location.reload(true);
                                             if(CStudioAuthoringContext.isPreview){
-                                                var cstopic = crafter.studio.preview.cstopic;
-                                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                                CStudioAuthoring.Operations.refreshPreview();
                                             }
                                             eventNS.data = CStudioAuthoring.SelectedContent.getSelectedContent();
                                             document.dispatchEvent(eventNS);

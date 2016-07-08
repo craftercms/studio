@@ -1105,7 +1105,7 @@ var CStudioForms = CStudioForms || function() {
                                         var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
                                         if(draft) {
                                             CStudioAuthoring.Utils.Cookies.createCookie("cstudio-save-draft","true");
-                                            window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                            CStudioAuthoring.Operations.refreshPreview();
                                             createDialog();
                                         }
                                         else {
@@ -1246,7 +1246,7 @@ var CStudioForms = CStudioForms || function() {
                                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
 
                                             if(path == '/site/components/page'){
-                                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                                CStudioAuthoring.Operations.refreshPreview();
                                             }
                                         }
                                     }, isDefault:false },
@@ -1268,12 +1268,12 @@ var CStudioForms = CStudioForms || function() {
                             CStudioAuthoring.InContextEdit.unstackDialog(editorId);
                             var componentsOn = !!(sessionStorage.getItem('components-on'));
                             if(componentsOn){
-                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                CStudioAuthoring.Operations.refreshPreview();
                             }
                         } else {
                             window.close();
                             if(componentsOn){
-                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                CStudioAuthoring.Operations.refreshPreview();
                             }
                         }
                     }

@@ -2215,8 +2215,7 @@ treeNode.getHtml = function() {
                     success: function(contentTO, editorId, name, value, draft) {
                         if(CStudioAuthoringContext.isPreview){
                             try{
-                                var cstopic = crafter.studio.preview.cstopic;
-                                window.top.amplify.publish(cstopic('REFRESH_PREVIEW'));
+                                CStudioAuthoring.Operations.refreshPreview();
                             }catch(err) {
                                 if(!draft) {
                                     this.callingWindow.location.reload(true);
