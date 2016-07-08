@@ -39,8 +39,10 @@ CStudioForms.Controls.RTE.ImageInsert = CStudioForms.Controls.RTE.ImageInsert ||
                         		if(datasource.insertImageAction) {
 	                        		datasource.insertImageAction({
 	                        			success: function(imageData) {
+                                            var cleanUrl = imageData.previewUrl.replace(/^(.+?\.(png|jpe?g)).*$/i, '$1');   //remove timestamp
+
                                             ed.selection.moveToBookmark(actualCaretPositionBookmark);
-	                        				ed.execCommand('mceInsertContent', false, '<img src="' + imageData.previewUrl + '" />');
+	                        				ed.execCommand('mceInsertContent', false, '<img src="' + cleanUrl + '" />');
 	                        				ed.contextControl.save();
 	                        			},
 	                        			failure: function(message) {
