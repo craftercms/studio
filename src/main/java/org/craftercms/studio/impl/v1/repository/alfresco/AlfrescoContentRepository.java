@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.MimetypesFileTypeMap;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpSession;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -61,6 +63,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -98,6 +101,21 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     public static final String SSO_TICKET_PREFIX = "sso_user:";
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
+
+    private static final TypeReference ALFRESCO_RESPONSE_TYPE = new TypeReference<Map<String, Object>>() {};
+
+    protected HttpClient httpClient;
+    protected ObjectMapper objectMapper;
+
+    public AlfrescoContentRepository() {
+        httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        objectMapper = new ObjectMapper();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        ((MultiThreadedHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
+    }
 
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
@@ -292,54 +310,63 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     /**
      * fire GET request to Alfresco with proper security
      */
-    protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+    protected Map<String, Object> alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
-        GetMethod getMethod = new GetMethod(serviceURL);
+        GetMethod method = new GetMethod(serviceURL);
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            getMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         logger.debug("Executing get to {0}", serviceURL);
-        int status = httpClient.executeMethod(getMethod);
-        logger.debug("Response status back from the server: {0}", status);
 
-        InputStream response = getMethod.getResponseBodyAsStream();
+        try {
+            int status = httpClient.executeMethod(method);
 
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoGetRequest(uri = {0}, params = {1}) ({2} ms)", uri, params, duration);
-        return response;
+            logger.debug("Response status back from the server: {0}", status);
+
+            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("alfrescoGetRequest(uri = {0}, params = {1}) ({2} ms)", uri, params, duration);
+
+            method.releaseConnection();
+        }
     }
 
     /**
-     * fire POST request to Alfresco with propert security
+     * fire POST request to Alfresco with proper security
      */
-    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body,
-                                         String bodyMimeType) throws Exception {
+    protected Map<String, Object> alfrescoPostRequest(String uri, Map<String, String> params, InputStream body,
+                                                      String bodyMimeType) throws Exception {
         long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
-        PostMethod postMethod = new PostMethod(serviceURL);
-        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+
+        PostMethod method = new PostMethod(serviceURL);
+        method.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            postMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         logger.debug("Executing post to {0}", serviceURL);
-        int status = httpClient.executeMethod(postMethod);
-        logger.debug("Response status back from the server: {0}", status);
 
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}) ({4} ms)", uri,
-                     params, "stream", bodyMimeType, duration);
-        InputStream responseStream = postMethod.getResponseBodyAsStream();
-        String response = IOUtils.toString(responseStream);
-        return response;
+        try {
+            int status = httpClient.executeMethod(method);
+
+            logger.debug("Response status back from the server: {0}", status);
+
+            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("alfrescoPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}) ({4} ms)",
+                         uri, params, "stream", bodyMimeType, duration);
+
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -394,10 +421,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
-            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
- 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+            Map<String, Object> result = alfrescoGetRequest(downloadURI, lookupContentParams);
 
             toRet.put("userName", (String)result.get("userName"));
             toRet.put("firstName", (String)result.get("firstName"));
@@ -422,10 +446,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
-            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+            Map<String, Object> result = alfrescoGetRequest(downloadURI, lookupContentParams);
 
             List<Map<String, String>> groups = (List<Map<String, String>>)result.get("groups");
             for (Map<String, String> group : groups) {
@@ -459,12 +480,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             String loginRequestBody = "{ \"username\" : \"" + username + "\", \"password\" : \"" + password + "\" }";
             InputStream bodyStream = IOUtils.toInputStream(loginRequestBody, "UTF-8");
 
-            String responseStr = this.alfrescoPostRequest(downloadURI, null, bodyStream, MediaType.APPLICATION_JSON_VALUE);
-
-            if (StringUtils.isNotEmpty(responseStr)) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> result = objectMapper.readValue(responseStr, HashMap.class);
-
+            Map<String, Object> result = alfrescoPostRequest(downloadURI, null, bodyStream,
+                                                             MediaType.APPLICATION_JSON_VALUE);
+            if (MapUtils.isNotEmpty(result)) {
                 Map<String, String> data = (Map<String, String>)result.get("data");
                 toRet = data.get("ticket");
 
@@ -494,12 +512,12 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 Map<String, String> params = new HashMap<>();
                 params.put("ticket", ticket);
 
+                GetMethod method = null;
                 String serviceURL;
                 try {
                     serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                    GetMethod method = new GetMethod(serviceURL);
+                    method = new GetMethod(serviceURL);
 
-                    HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
                     int status = httpClient.executeMethod(method);
                     if (status == HttpStatus.SC_OK) {
                         long duration = System.currentTimeMillis() - startTime;
@@ -510,6 +528,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     }
                 } catch (Exception e) {
                     logger.error("Error while validating authentication token", e);
+                } finally {
+                    if (method != null) {
+                        method.releaseConnection();
+                    }
                 }
 
                 long duration = System.currentTimeMillis() - startTime;
@@ -1332,12 +1354,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> params = new HashMap<>();
             params.put("ticket", ticket);
 
+            DeleteMethod method = null;
             String serviceURL;
+
             try {
                 serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                DeleteMethod method = new DeleteMethod(serviceURL);
+                method = new DeleteMethod(serviceURL);
 
-                HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
                 int status = httpClient.executeMethod(method);
                 if (status == HttpStatus.SC_OK) {
                     long duration = System.currentTimeMillis() - startTime;
@@ -1347,6 +1370,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 }
             } catch (Exception e) {
                 logger.error("Error while invalidating authentication token", e);
+            } finally {
+                if (method != null) {
+                    method.releaseConnection();
+                }
             }
 
             long duration = System.currentTimeMillis() - startTime;
