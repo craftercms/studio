@@ -24,16 +24,19 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.PublishToTargetMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -46,11 +49,32 @@ public class RebuildRepositoryMetadata {
 
     private final static Logger logger = LoggerFactory.getLogger(RebuildRepositoryMetadata.class);
 
+
     public void execute(String site) {
-        cleanOldMetadata(site);
-        rebuildMetadata(site);
+        String ticket = securityService.getCurrentToken();
+        CronJobContext securityContext = new CronJobContext(ticket);
+        RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
+        taskExecutor.execute(task);
     }
 
+    class RebuildRepositoryMetadataTask implements Runnable {
+
+        private String site;
+        private CronJobContext securityContext;
+
+        public RebuildRepositoryMetadataTask(CronJobContext securityContext, String site) {
+            this.securityContext = securityContext;
+            this.site = site;
+        }
+
+        @Override
+        public void run() {
+            CronJobContext.setCurrent(securityContext);
+            cleanOldMetadata(site);
+            rebuildMetadata(site);
+            CronJobContext.clear();
+        }
+    }
     protected boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
@@ -136,7 +160,9 @@ public class RebuildRepositoryMetadata {
     protected ObjectStateService objectStateService;
     protected DmDependencyService dmDependencyService;
     protected ContentService contentService;
+    protected SecurityService securityService;
     protected String previewRepoRootPath;
+    protected TaskExecutor taskExecutor;
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
@@ -150,8 +176,12 @@ public class RebuildRepositoryMetadata {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
     public String getPreviewRepoRootPath() { return previewRepoRootPath; }
     public void setPreviewRepoRootPath(String previewRepoRootPath) { this.previewRepoRootPath = previewRepoRootPath; }
 
-
+    public TaskExecutor getTaskExecutor() { return taskExecutor; }
+    public void setTaskExecutor(TaskExecutor taskExecutor) { this.taskExecutor = taskExecutor; }
 }

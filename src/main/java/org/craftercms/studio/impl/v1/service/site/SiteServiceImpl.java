@@ -605,6 +605,10 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
+    @Override
+    public void rebuildRepositoryMetadata(String site) {
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -689,6 +693,7 @@ public class SiteServiceImpl implements SiteService {
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
 
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
