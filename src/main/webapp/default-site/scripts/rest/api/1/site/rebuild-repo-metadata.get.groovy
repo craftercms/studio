@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-import scripts.api.ServiceFactory;
+import scripts.api.SiteServices;
 
 def result = [:]
 def site = params.site;
 
-def context = ServiceFactory.createContext(applicationContext, request);
-def springBackedService = context.applicationContext.get("studioRebuildRepositoryMetadata");
-springBackedService.execute(site);
+def context = SiteServices.createContext(applicationContext, request);
+result = SiteServices.rebuildRepositoryMetadata(context, site);
 return result;

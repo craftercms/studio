@@ -111,6 +111,7 @@
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
