@@ -6,12 +6,16 @@ if(resourceName == null) {
 
 def classloader = this.getClass().getClassLoader().getParent().getParent().getParent()
 def resource = classloader.getResourceAsStream("crafter/cstudio/ui/"+resourceName)
-
-if( resourceName.contains(".css")
-||  resourceName.contains(".js")) {
-	return resource.text 	
+if(resource != null) {
+	if( resourceName.contains(".css")
+	||  resourceName.contains(".js")) {
+		return resource.text 	
+	}
+	else{
+		response.getOutputStream().write(resource.bytes) 
+	}
 }
-else{
-	response.getOutputStream().write(resource.bytes) 
+else {
+	response.setStatus(404)
+	return "NOT FOUND"
 }
-
