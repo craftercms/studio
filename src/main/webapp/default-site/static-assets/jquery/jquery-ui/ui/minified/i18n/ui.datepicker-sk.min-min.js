@@ -1,3 +1,0 @@
-jQuery(function(b){b.datepicker.regional.sk={closeText:"Zavrieť",prevText:"&#x3c;Predchádzajúci",nextText:"Nasledujúci&#x3e;",currentText:"Dnes",monthNames:["Január","Február","Marec","Apríl","Máj","Jún","Júl","August","September","Október","November","December"],monthNamesShort:["Jan","Feb","Mar","Apr","Máj","Jún","Júl","Aug","Sep","Okt","Nov","Dec"],dayNames:["Nedel'a","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"],dayNamesShort:["Ned","Pon","Uto","Str","Štv","Pia","Sob"],dayNamesMin:["Ne","Po","Ut","St","Št","Pia","So"],dateFormat:"dd.mm.yy",firstDay:0,isRTL:false};
-b.datepicker.setDefaults(b.datepicker.regional.sk)
-});
