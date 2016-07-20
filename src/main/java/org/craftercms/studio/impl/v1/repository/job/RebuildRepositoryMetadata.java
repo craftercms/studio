@@ -42,18 +42,26 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RebuildRepositoryMetadata {
 
     private final static Logger logger = LoggerFactory.getLogger(RebuildRepositoryMetadata.class);
 
+    private static ReentrantLock taskLock = new ReentrantLock();
 
     public void execute(String site) {
-        logger.debug("Starting Rebuild Repository Metadata Task.");
-        String ticket = securityService.getCurrentToken();
-        CronJobContext securityContext = new CronJobContext(ticket);
-        RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
-        taskExecutor.execute(task);
+        if (taskLock.tryLock()) {
+            try {
+                logger.debug("Starting Rebuild Repository Metadata Task.");
+                String ticket = securityService.getCurrentToken();
+                CronJobContext securityContext = new CronJobContext(ticket);
+                RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
+                taskExecutor.execute(task);
+            } finally {
+                taskLock.unlock();
+            }
+        }
     }
 
     class RebuildRepositoryMetadataTask implements Runnable {
