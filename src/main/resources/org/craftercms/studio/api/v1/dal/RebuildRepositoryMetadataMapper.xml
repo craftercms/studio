@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Crafter Studio Web-content authoring solution
+  ~ Copyright (C) 2007-2016 Crafter Software Corporation.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.RebuildRepositoryMetadataMapper">
+
+    <update id="createRebuildRepoMetadataQueue">
+        create table if not exists cstudio_rebuildrepositorymetadata(
+          `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+          `site` VARCHAR(255) NOT NULL,
+          `path` VARCHAR(2000) NOT NULL,
+          `processed` int not null default 0,
+          PRIMARY KEY (`id`),
+          KEY `cstudio_rebuildrepositorymetadata_site_idx` (`site`)
+        )
+        ENGINE =InnoDB
+        DEFAULT CHARSET =utf8
+        ROW_FORMAT=DYNAMIC
+    </update>
+
+    <delete id="deleteRebuildRepoMetadataQueue">
+        drop table cstudio_rebuildrepositorymetadata;
+    </delete>
+    
+    <insert id="insertRebuildRepoMetadataQueue" parameterType="Map">
+        insert into cstudio_rebuildrepositorymetadata (site, path, processed) values
+        <foreach collection="pathList" item="pathItem" separator=",">
+            (#{site}, #{pathItem}, 0)
+        </foreach>
+    </insert>
+
+    <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="mysql">
+        select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 limit #{batchSize}
+    </select>
+
+    <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="derby">
+        select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 rows fetch next #{batchSize} rows only
+    </select>
+
+    <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="sqlserver">
+        select top (#{batchSize}) * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0
+    </select>
+
+    <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="oracle">
+        select * from (
+          select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0
+        )
+        where rownum between 0 and #{batchSize}
+
+    </select>
+
+    <update id="markProcessed">
+        update cstudio_rebuildrepositorymetadata set processed = 1 where site = #{site} and path = #{path}
+    </update>
+</mapper>
