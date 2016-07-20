@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.PublishToTargetMapper;
+import org.craftercms.studio.api.v1.dal.RebuildRepositoryMetadataMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -34,16 +35,13 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class RebuildRepositoryMetadata {
 
@@ -51,6 +49,7 @@ public class RebuildRepositoryMetadata {
 
 
     public void execute(String site) {
+        logger.debug("Starting Rebuild Repository Metadata Task.");
         String ticket = securityService.getCurrentToken();
         CronJobContext securityContext = new CronJobContext(ticket);
         RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
@@ -70,11 +69,43 @@ public class RebuildRepositoryMetadata {
         @Override
         public void run() {
             CronJobContext.setCurrent(securityContext);
-            cleanOldMetadata(site);
-            rebuildMetadata(site);
+            List<Map<String, Object>> existingQueue = getExistingQueue(site);
+            if (!(existingQueue != null && existingQueue.size() > 0)) {
+                logger.debug("Previous task execution queue does not exist.");
+                try {
+                    logger.debug("Cleaning previous task queue.");
+                    rebuildRepositoryMetadataMapper.deleteRebuildRepoMetadataQueue();
+                } catch (Exception err) {
+                    logger.info("Error while deleting rebuild repository metadata queue: " + err.getMessage());
+                }
+                logger.debug("Cleaning existing repository metadata for site " + site);
+                cleanOldMetadata(site);
+                logger.debug("Create and populate Rebuild Repository Metadata Task Queue.");
+                rebuildRepositoryMetadataMapper.createRebuildRepoMetadataQueue();
+                populateRebuildRepositoryMetadataQueue(site);
+            }
+            logger.debug("Initiate rebuild metadata process for site " + site);
+            rebuildMetadata(site, existingQueue);
+            logger.debug("Cleanup rebuild repository metadata queue after task was completed.");
+            rebuildRepositoryMetadataMapper.deleteRebuildRepoMetadataQueue();
             CronJobContext.clear();
         }
     }
+
+    protected List<Map<String, Object>> getExistingQueue(String site) {
+        logger.debug("Get rebuild metadata queue for site " + site + " (batch size: " + batchSize + ").");
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("batchSize", batchSize);
+        List<Map<String, Object>> existingQueue = null;
+        try {
+            existingQueue = rebuildRepositoryMetadataMapper.getNextBatchFromQueue(params);
+        } catch (Exception err) {
+            logger.error("Error while getting rebuild repository metadata: " + err.getMessage());
+        }
+        return existingQueue;
+    }
+
     protected boolean cleanOldMetadata(String site) {
         logger.debug("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
@@ -122,30 +153,67 @@ public class RebuildRepositoryMetadata {
         return true;
     }
 
-    protected boolean rebuildMetadata(String site) {
+    protected boolean populateRebuildRepositoryMetadataQueue(String site) {
+        logger.debug("Populating Rebuild Repository Metadata queue for site " + site);
         Path siteContentRootPath = Paths.get(previewRepoRootPath, contentService.expandRelativeSitePath(site, ""));
+        logger.debug("Retrieving files list for content repository");
         Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(previewRepoRootPath, contentService.expandRelativeSitePath(site, "")).toFile(), null, true);
+        List<String> paths = new ArrayList<String>();
         while (fileIterator.hasNext()) {
             File file = fileIterator.next();
             Path filePath = Paths.get(file.toURI());
             String relativePath = "/" + filePath.subpath(siteContentRootPath.getNameCount(), filePath.getNameCount());
             logger.debug("Processing " + relativePath);
-            logger.debug("Insert content metadata.");
-            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
-            logger.debug("Insert workflow state");
-            objectStateService.insertNewEntry(site, relativePath);
-            if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
-                logger.debug("Calculate dependencies");
-                SAXReader saxReader = new SAXReader();
-                try {
-                    Document document = saxReader.read(file);
-                    dmDependencyService.extractDependencies(site, relativePath, document, null);
-                } catch (DocumentException | ServiceException err) {
-                    logger.debug("Error while calculating dependencies for " + relativePath, err);
-                }
-
+            paths.add(relativePath);
+            if (paths.size() == batchSize) {
+                logger.debug("Insert batch of file paths into queue.");
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("site", site);
+                params.put("pathList", paths);
+                rebuildRepositoryMetadataMapper.insertRebuildRepoMetadataQueue(params);
+                paths = new ArrayList<String>();
             }
+        }
+        if (paths != null && paths.size() > 0) {
+            logger.debug("Insert batch of file paths into queue.");
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            params.put("pathList", paths);
+            rebuildRepositoryMetadataMapper.insertRebuildRepoMetadataQueue(params);
+            paths = new ArrayList<String>();
+        }
+        return true;
+    }
 
+    protected boolean rebuildMetadata(String site, List<Map<String, Object>> existingQueue) {
+        if (existingQueue == null || existingQueue.size() < 1) {
+            existingQueue = getExistingQueue(site);
+        }
+        while (existingQueue != null && existingQueue.size() > 0) {
+            for (Map<String, Object> queueItem : existingQueue) {
+                String relativePath = queueItem.get("path").toString();
+                logger.debug("Processing " + relativePath);
+                logger.debug("Insert content metadata.");
+                objectMetadataManager.insertNewObjectMetadata(site, relativePath);
+                logger.debug("Insert workflow state");
+                objectStateService.insertNewEntry(site, relativePath);
+                if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
+                    logger.debug("Calculate dependencies");
+                    try {
+                        Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+                        dmDependencyService.extractDependencies(site, relativePath, document, null);
+                    } catch (DocumentException | ServiceException err) {
+                        logger.debug("Error while calculating dependencies for " + relativePath, err);
+                    }
+
+                }
+                logger.debug("Mark file as processed.");
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("site", site);
+                params.put("path", relativePath);
+                rebuildRepositoryMetadataMapper.markProcessed(params);
+            }
+            existingQueue = getExistingQueue(site);
         }
         return false;
     }
@@ -156,6 +224,9 @@ public class RebuildRepositoryMetadata {
     @Autowired
     protected PublishToTargetMapper publishToTargetMapper;
 
+    @Autowired
+    protected RebuildRepositoryMetadataMapper rebuildRepositoryMetadataMapper;
+
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
     protected DmDependencyService dmDependencyService;
@@ -163,6 +234,7 @@ public class RebuildRepositoryMetadata {
     protected SecurityService securityService;
     protected String previewRepoRootPath;
     protected TaskExecutor taskExecutor;
+    protected int batchSize;
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
@@ -184,4 +256,7 @@ public class RebuildRepositoryMetadata {
 
     public TaskExecutor getTaskExecutor() { return taskExecutor; }
     public void setTaskExecutor(TaskExecutor taskExecutor) { this.taskExecutor = taskExecutor; }
+
+    public int getBatchSize() { return batchSize; }
+    public void setBatchSize(int batchSize) { this.batchSize = batchSize; }
 }

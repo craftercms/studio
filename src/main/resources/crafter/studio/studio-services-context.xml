@@ -988,6 +988,7 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
         <property name="taskExecutor" ref="studioTaskExecutor" />
+        <property name="batchSize" value="${crafter.repository.rebuildMetadata.batchSize}"/>
     </bean>
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
