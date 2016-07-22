@@ -110,6 +110,7 @@
         <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="createSiteV2" value="${siteService.createSite.v2.enable}"/>
     </bean>
 
@@ -703,7 +704,7 @@
         <property name="providerType" value="db"/>
     </bean>
 
-    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
+    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively
          do anything.  Remember another repostory may be configured for use and Alfresco 
          may not exist on the server. I.e. evaluation
      -->
@@ -1002,6 +1003,23 @@
 
     <!-- Utilities -->
     <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
+
+    <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="previewRepoRootPath" value="${crafter.repository.previewRootPath}"/>
+        <property name="taskExecutor" ref="studioTaskExecutor" />
+        <property name="batchSize" value="${crafter.repository.rebuildMetadata.batchSize}"/>
+    </bean>
+
+    <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="5"/>
+        <property name="maxPoolSize" value="10"/>
+        <property name="queueCapacity" value="25"/>
+    </bean>
 
     <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
         <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>

@@ -18,6 +18,13 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -38,10 +45,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
@@ -166,7 +169,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     public void bulkGoLive(String site, String environment, String path) {
-        logger.debug("Starting Bulk Go Live for path " + path + " site " + site);
+        logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         List<String> childrenPaths = new ArrayList<String>();
         ContentItemTO item = contentService.getContentItem(site, path, 2);
@@ -203,7 +206,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 String comment = "Bulk Go Live invoked by " + aprover;
-                logger.debug("Deploying package of" + pathsToPublish.size() + " items for site " + site + " path " + childPath);
+                logger.debug("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
+                             childPath);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
                 } catch (DeploymentException e) {
@@ -213,7 +217,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
             }
         }
-        logger.debug("Finished Bulk Go Live for path " + path + " site " + site);
+        logger.info("Finished Bulk Go Live for path " + path + " site " + site);
     }
 
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) {

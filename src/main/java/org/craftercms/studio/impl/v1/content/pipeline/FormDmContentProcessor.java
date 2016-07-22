@@ -418,6 +418,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (ContentUtils.matchesPatterns(path, documentPatterns)) {
                 return true;
             }
+
+            // Checking for display patterns also
+            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
+            // cancel if the content is a document
+            if (ContentUtils.matchesPatterns(path, displayPatterns)) {
+                return true;
+            }
         }
         return false;
     }

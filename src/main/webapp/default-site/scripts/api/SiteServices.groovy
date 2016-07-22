@@ -95,4 +95,9 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.importSite(config)
     }
+
+    static rebuildRepositoryMetadata(context, site) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.rebuildRepositoryMetadata(site)
+    }
 }

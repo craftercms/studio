@@ -944,6 +944,18 @@ public class ContentServiceImpl implements ContentService {
         boolean success = false;
 
         success = _contentRepository.revertContent(site, path, version, major, comment);
+        success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
+
+        removeItemFromCache(site, path);
+
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+        message.setPath(path);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+
         if(success) {
             previewSync.notifyUpdateContent(site, path);
         }
@@ -1393,6 +1405,7 @@ public class ContentServiceImpl implements ContentService {
     protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
+    protected Reactor repositoryReactor;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;

@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
 import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
+import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -603,6 +604,11 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
+    @Override
+    public void rebuildRepositoryMetadata(String site) {
+        rebuildRepositoryMetadata.execute(site);
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -685,6 +691,9 @@ public class SiteServiceImpl implements SiteService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public RebuildRepositoryMetadata getRebuildRepositoryMetadata() { return rebuildRepositoryMetadata; }
+    public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) { this.rebuildRepositoryMetadata = rebuildRepositoryMetadata; }
+
     public boolean isCreateSiteV2() { return createSiteV2; }
     public void setCreateSiteV2(boolean createSiteV2) { this.createSiteV2 = createSiteV2; }
 
@@ -714,6 +723,7 @@ public class SiteServiceImpl implements SiteService {
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
+    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
 
     protected boolean createSiteV2;
 
