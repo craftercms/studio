@@ -197,7 +197,12 @@ public class DemoSecurityProvider implements SecurityProvider {
 
     @Override
     public String getCurrentToken() {
-        return activeProcess.get("ticket");
+        RequestContext context = RequestContext.getCurrent();
+        if (context != null) {
+            return activeUser.get("ticket");
+        } else {
+            return activeProcess.get("ticket");
+        }
     }
 
     @Override
