@@ -27,7 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class StudioAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) throws AuthenticationException {
-
+        String nothing = null;
     }
 
     @Override

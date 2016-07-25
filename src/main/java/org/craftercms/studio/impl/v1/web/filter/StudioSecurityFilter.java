@@ -22,6 +22,8 @@ package org.craftercms.studio.impl.v1.web.filter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -33,6 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class StudioSecurityFilter extends GenericFilterBean {
+
+    private final static Logger logger = LoggerFactory.getLogger(StudioSecurityFilter.class);
 
     public StudioSecurityFilter() {
         pathMatcher = new AntPathMatcher();
@@ -47,6 +51,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
             chain.doFilter(request, response);
         } else {
             if ((includeRequest(httpRequest) || !excludeRequest(httpRequest))) {
+                logger.error("Old Filter invoked!");
                 doFilterInternal((HttpServletRequest) request, (HttpServletResponse) response, chain);
             } else {
                 chain.doFilter(request, response);

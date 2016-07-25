@@ -45,14 +45,16 @@
     <security:http pattern="/templates/**" security="none" />
 -->
 
-    <security:http use-expressions="true">
+    <!--<security:http pattern="/api/1/services/api/1/user/login.json" security="none"/> -->
+
+    <security:http use-expressions="true" auto-config="true" entry-point-ref="studioAuthenticationEntryPoint">
         <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="isAnonymous()" />
-        <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="isAnonymous()"/>
-        <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="isAnonymous()"/>
-        <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll"/>
+        <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll"/>
+        <!--security:intercept-url pattern="/api/**" access="isAuthenticated()" /-->
         <security:intercept-url pattern="/**" access="permitAll" />
 
-        <security:form-login login-page="/#/login" default-target-url="/#/sites"/>
+        <!-- security:form-login login-page="/#/login" default-target-url="/#/sites"/-->
         <!--security:logout delete-cookies="JSESSIONID" />
         <security:session-management invalid-session-url="/#/login">
             <security:concurrency-control max-sessions="1" error-if-maximum-exceeded="true" />
@@ -85,6 +87,7 @@
         </security:session-management>
     </security:http>
 -->
+
     <security:authentication-manager>
         <security:authentication-provider>
             <security:user-service>

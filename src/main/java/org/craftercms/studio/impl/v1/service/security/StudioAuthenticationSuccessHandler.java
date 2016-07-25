@@ -31,5 +31,6 @@ public class StudioAuthenticationSuccessHandler implements AuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         // We do not need to do anything extra on REST authentication success, because there is no page to redirect to
+        String nothing = null;
     }
 }
