@@ -40,6 +40,7 @@ public abstract class RepositoryJob implements Job {
             CronJobContext.setCurrent(cronJobContext);
             executeAsSignedInUser();
             CronJobContext.clear();
+            sercurityService.logout();
         } else {
             logger.error("Not able to authenticate user for cron job.");
         }

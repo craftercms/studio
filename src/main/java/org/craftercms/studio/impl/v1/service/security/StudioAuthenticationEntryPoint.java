@@ -19,8 +19,10 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -32,11 +34,22 @@ import java.io.IOException;
 public class StudioAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioAuthenticationEntryPoint.class);
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         // This is invoked when user tries to access a secured REST resource without supplying any credentials
         // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
-        logger.error("\nENTRY POINT\n");
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        String user = securityService.getCurrentUser();
+        if (StringUtils.isNotEmpty(user)) {
+
+        } else {
+            logger.error("\nENTRY POINT\n", authException);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        }
     }
+
+    protected SecurityService securityService;
+
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 }
