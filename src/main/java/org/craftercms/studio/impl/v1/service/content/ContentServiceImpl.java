@@ -1163,19 +1163,22 @@ public class ContentServiceImpl implements ContentService {
                 if (parentItem != null) {
                     int lastIndex = name.lastIndexOf(".");
                     String ext = (item.isFolder()) ? "" : name.substring(lastIndex);
-                    String originalName = (item.isFolder()) ? name : name.substring(0, lastIndex);
+                    String originalName = (item.isFolder() || item.isContainer()) ? name : name.substring(0, lastIndex);
                     List<ContentItemTO> children = parentItem.getChildren();
                     // pattern matching doesn't work here
                     // String childNamePattern = originalName + "%" + ext;
                     int lastNumber = 0;
-                    String namePattern = originalName + "\\-[0-9]+" + ext;
+                    String namePattern = originalName + "-[0-9]+" + ext;
                     if (children != null && children.size() > 0) {
                         // since it is already sorted, we only care about the last matching item
                         for (ContentItemTO child : children) {
-                            if ((item.isFolder() == child.isFolder())) {
+                            if (((item.isFolder() || item.isContainer()) == (child.isFolder() || child.isContainer()))) {
                                 String childName = child.getName();
+                                if ((child.isFolder() || child.isContainer())) {
+                                    childName = ContentUtils.getPageName(child.getBrowserUri());
+                                }
                                 if (childName.matches(namePattern)) {
-                                    Pattern pattern = (item.isFolder()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
+                                    Pattern pattern = (item.isFolder() || item.isContainer()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
                                     Matcher matcher = pattern.matcher(childName);
                                     if (matcher.matches()) {
                                         int helper = ContentFormatUtils.getIntValue(matcher.group(2));
