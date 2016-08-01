@@ -508,7 +508,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
 
             String nodePath = fullPath;
             if (contentItem.isFolder()) {
-                copyChildren(site, user, path, contentItem, destination + contentItem.getName(), pasteItem, deep, true, copiedItems);
+                copyChildren(site, user, path, contentItem, destination + "/" + contentItem.getName(), pasteItem, deep, true, copiedItems);
                 if (contentItem.getChildren() == null || contentItem.getChildren().size() == 0) {
                     contentService.copyContent(site, path, destination);
                 }
