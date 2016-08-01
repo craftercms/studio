@@ -6,7 +6,7 @@
     <artifactId>crafter-studio-2</artifactId>
     <name>Crafter Studio</name>
     <packaging>war</packaging>
-    <version>2.5.1-SNAPSHOT</version>
+    <version>2.5.1</version>
     <url>http://www.craftercms.org</url>
 
     <parent>
@@ -96,14 +96,14 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
+            <version>2.5.1</version>
             <type>war</type>
         </dependency>
 
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
+            <version>2.5.1</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-ebus</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
+            <version>2.5.1</version>
         </dependency>
 
 
