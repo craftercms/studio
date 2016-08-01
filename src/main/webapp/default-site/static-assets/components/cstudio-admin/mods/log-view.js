@@ -79,7 +79,10 @@ YAHOO.extend(CStudioAdminConsole.Tool.LogView, CStudioAdminConsole.Tool, {
 		}
 
 		if(tailEl) {
-			var serviceUri = "/api/1/services/api/1/server/get-log-entries.json";
+			var d = new Date();
+			var n = d.getTime();
+			var since = n;
+			var serviceUri = "/api/1/monitoring/log?since="+since+"&siteId="+CStudioAuthoringContext.site;
 			YConnect.asyncRequest("GET", CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
 		}
 		else {
