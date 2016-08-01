@@ -103,4 +103,5 @@ CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree = CStudioAuthoring.Con
 		return treeNode;
 	}
 }            
-      
+            
+CStudioAuthoring.Module.moduleLoaded("regional-tree", CStudioAuthoring.ContextualNav.WcmRootFolder.RegionalTree);
