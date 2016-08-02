@@ -19,12 +19,17 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class StudioAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
+
+    private final static Logger logger = LoggerFactory.getLogger(StudioAuthenticationProvider.class);
+
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) throws AuthenticationException {
         String nothing = null;
@@ -32,6 +37,7 @@ public class StudioAuthenticationProvider extends AbstractUserDetailsAuthenticat
 
     @Override
     protected UserDetails retrieveUser(String s, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) throws AuthenticationException {
+        logger.error("Provider: " + s);
         return null;
     }
 }

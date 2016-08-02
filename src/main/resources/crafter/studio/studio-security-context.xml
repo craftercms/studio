@@ -45,15 +45,24 @@
     <security:http pattern="/templates/**" security="none" />
 -->
 
+<!--
     <security:http pattern="/api/1/services/api/1/user/login.json" security="none"/>
     <security:http pattern="/api/1/services/api/1/user/logout.json" security="none"/>
     <security:http pattern="/api/1/services/api/1/server/get-available-languages.json" security="none"/>
-
-    <security:http use-expressions="true" auto-config="true" entry-point-ref="studioAuthenticationEntryPoint">
+-->
+    <security:http
+            entry-point-ref="studioAuthenticationEntryPoint"
+            authentication-manager-ref="studioAuthenticationManager"
+            create-session="stateless">
+        <security:csrf disabled="true"/>
+        <security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll" />
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
         <security:intercept-url pattern="/**" access="permitAll" />
 
-        <security:form-login login-page="/#/login" default-target-url="/#/sites"/>
+        <!--security:form-login login-page="/#/login" default-target-url="/#/sites" username-parameter="username" password-parameter="password"/ -->
         <!--security:logout delete-cookies="JSESSIONID" />
         <security:session-management invalid-session-url="/#/login">
             <security:concurrency-control max-sessions="1" error-if-maximum-exceeded="true" />
@@ -61,6 +70,10 @@
         -->
     </security:http>
 
+    <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationTokenProcessingFilter">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="userDetailsManager" ref="studioUsesDetailsManager"/>
+    </bean>
 
     <!--
     <security:http>
@@ -87,12 +100,8 @@
     </security:http>
 -->
 
-    <security:authentication-manager>
-        <security:authentication-provider>
-            <security:user-service>
-                <security:user name="admin" password="admin" authorities="ROLE_USER" />
-            </security:user-service>
-        </security:authentication-provider>
+    <security:authentication-manager id="studioAuthenticationManager">
+        <security:authentication-provider ref="studioAuthenticationProvider"/>
     </security:authentication-manager>
 
     <bean id="studioAuthenticationProvider" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationProvider">
@@ -106,6 +115,8 @@
     <bean id="studioAuthenticationEntryPoint" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationEntryPoint">
         <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
+
+    <bean id="studioUsesDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"></bean>
 
 <!--
     <bean id="studioAuthenticationFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationFilter">

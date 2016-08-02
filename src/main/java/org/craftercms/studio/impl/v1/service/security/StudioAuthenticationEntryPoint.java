@@ -39,13 +39,7 @@ public class StudioAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         // This is invoked when user tries to access a secured REST resource without supplying any credentials
         // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-
-        } else {
-            logger.error("\nENTRY POINT\n", authException);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-        }
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
 
     protected SecurityService securityService;
