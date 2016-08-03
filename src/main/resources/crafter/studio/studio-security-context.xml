@@ -25,31 +25,7 @@
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/security
 		http://www.springframework.org/schema/security/spring-security.xsd">
-<!--
-    <bean id="studioSecurityFilterChain" class="org.springframework.security.web.FilterChainProxy">
-        <constructor-arg>
-            <list>
-                <security:filter-chain pattern="/api/**" filters="securityContextPersistenceFilterWithASCFalse,basicAuthenticationFilter,exceptionTranslationFilter,filterSecurityInterceptor" />
-                <security:filter-chain pattern="/**" filters="securityContextPersistenceFilterWithASCTrue,formLoginFilter,exceptionTranslationFilter,filterSecurityInterceptor" />
-            </list>
-        </constructor-arg>
-    </bean>
---><!--
-    <security:global-method-security pre-post-annotations="enabled" />
 
-    <security:http pattern="/#/login" security="none"/>
-    <security:http pattern="/api/1/services/api/1/user/login.json" security="none"/>
-    <security:http pattern="/api/1/services/api/1/user/logout.json" security="none"/>
-    <security:http pattern="/api/1/services/api/1/server/get-available-languages.json" security="none"/>
-    <security:http pattern="/static-assets/**" security="none"/>
-    <security:http pattern="/templates/**" security="none" />
--->
-
-<!--
-    <security:http pattern="/api/1/services/api/1/user/login.json" security="none"/>
-    <security:http pattern="/api/1/services/api/1/user/logout.json" security="none"/>
-    <security:http pattern="/api/1/services/api/1/server/get-available-languages.json" security="none"/>
--->
     <security:http
             entry-point-ref="studioAuthenticationEntryPoint"
             authentication-manager-ref="studioAuthenticationManager"
@@ -61,13 +37,6 @@
         <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll" />
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
         <security:intercept-url pattern="/**" access="permitAll" />
-
-        <!--security:form-login login-page="/#/login" default-target-url="/#/sites" username-parameter="username" password-parameter="password"/ -->
-        <!--security:logout delete-cookies="JSESSIONID" />
-        <security:session-management invalid-session-url="/#/login">
-            <security:concurrency-control max-sessions="1" error-if-maximum-exceeded="true" />
-        </security:session-management>
-        -->
     </security:http>
 
     <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationTokenProcessingFilter">
@@ -75,56 +44,18 @@
         <property name="userDetailsManager" ref="studioUsesDetailsManager"/>
     </bean>
 
-    <!--
-    <security:http>
-        <security:intercept-url pattern="/#/login" access="permitAll"/>
-        <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="permitAll"/>
-        <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll"/>
-        <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll"/>
-    </security:http>
--->
-        <!--security:form-login login-page="/#/login" default-target-url="/#/sites" authentication-failure-url="/#/login" /-->
-<!--
-    <security:http pattern="/**" entry-point-ref="studioAuthenticationEntryPoint"/> create-session="ifRequired">
-        <security:csrf disabled="true"/>
-        <security:custom-filter before="FORM_LOGIN_FILTER" ref="studioAuthenticationFilter"/>
-    </security:http>-->
-<!--
-    <security:http auto-config="true" use-expressions="true">
-        <security:intercept-url pattern="/**" access="authenticated" />
-        <security:form-login login-page="/#/login" default-target-url="/#/sites"/>
-        <security:logout delete-cookies="JSESSIONID" />
-        <security:session-management invalid-session-url="/#/login">
-            <security:concurrency-control max-sessions="1" error-if-maximum-exceeded="true" />
-        </security:session-management>
-    </security:http>
--->
-
     <security:authentication-manager id="studioAuthenticationManager">
         <security:authentication-provider ref="studioAuthenticationProvider"/>
     </security:authentication-manager>
 
-    <bean id="studioAuthenticationProvider" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationProvider">
-
-    </bean>
-
-    <!--<bean id="studioAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
-        <constructor-arg name="loginFormUrl" value="/#/login"/>
-    </bean>-->
+    <bean id="studioAuthenticationProvider" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationProvider"/>
 
     <bean id="studioAuthenticationEntryPoint" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationEntryPoint">
         <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
-    <bean id="studioUsesDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"></bean>
+    <bean id="studioUsesDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"/>
 
-<!--
-    <bean id="studioAuthenticationFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationFilter">
-        <constructor-arg name="defaultFilterProcessesUrl" value="/**"/>
-        <property name="authenticationManager" ref="authenticationManager" />
-        <property name="authenticationSuccessHandler" ref="studioAuthenticationSuccessHandler" />
-    </bean>
--->
     <bean id="studioAuthenticationSuccessHandler" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationSuccessHandler" />
 
 </beans>
