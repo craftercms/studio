@@ -28,17 +28,4 @@ public interface SecurityMapper {
 
     List<Group> getUserGroups(String username);
 
-    List<Role> getUserRoles(String username);
-
-    List<Permission> getUserPermissions(String username);
-
-    UserSession getUserSession(String token);
-
-    void createUserSession(Map params);
-
-    void destroySession(Map params);
-
-    void extendSession(UserSession session);
-
-    void deactivateSession(String token);
 }

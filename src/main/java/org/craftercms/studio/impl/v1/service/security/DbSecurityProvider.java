@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CipherUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
@@ -78,13 +79,6 @@ public class DbSecurityProvider implements SecurityProvider {
         if (user != null && CipherUtils.matchPassword(user.getPassword(), password)) {
             byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
             String token = randomBytes.toString();
-            Calendar expires = Calendar.getInstance();
-            expires.add(Calendar.MINUTE, sessionTimeout);
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("token", token);
-            params.put("username", username);
-            params.put("expires", expires.getTime());
-            securityMapper.createUserSession(params);
             storeSessionTicket(token);
             storeSessionUsername(username);
             return token;
@@ -116,6 +110,9 @@ public class DbSecurityProvider implements SecurityProvider {
         if (ticket == null) {
             ticket = getCurrentToken();
         }
+        boolean valid = false;
+        if (StringUtils.isNotEmpty(ticket)) valid = true;
+        /*
         UserSession us = securityMapper.getUserSession(ticket);
         boolean valid = us != null && us.getExpires().after(new Date());
         if (valid) {
@@ -128,6 +125,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 securityMapper.deactivateSession(ticket);
             }
         }
+        */
         return valid;
     }
 
@@ -183,10 +181,6 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean logout() {
-        String token = getCurrentToken();
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("token", token);
-        securityMapper.destroySession(params);
         storeSessionTicket(null);
         storeSessionUsername(null);
         return true;

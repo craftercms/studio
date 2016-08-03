@@ -34,45 +34,4 @@
         WHERE cstudio_user.username = #{username}
     </select>
 
-    <select id="getUserRoles" resultType="Role">
-        SELECT cstudio_role.* FROM
-        (((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username)
-        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id)
-        INNER JOIN cstudio_role ON cstudio_group.roleid = cstudio_role.id)
-        WHERE cstudio_user.username = #{username}
-    </select>
-
-    <select id="getUserPermissions" resultType="Permission">
-        SELECT cstudio_permission.* FROM
-        ((((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username)
-        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id)
-        INNER JOIN cstudio_role ON cstudio_group.roleid = cstudio_role.id)
-        INNER JOIN cstudio_rolepermission ON cstudio_role.id = cstudio_rolepermission.roleid)
-        INNER JOIN cstudio_permission ON cstudio_rolepermission.permissionid = cstudio_permission.id)
-        WHERE cstudio_user.username = #{username}
-    </select>
-    
-    <select id="getUserSession" resultType="UserSession">
-        SELECT * FROM cstudio_usersession
-        WHERE token = #{token}
-    </select>
-
-    <insert id="createUserSession" parameterType="java.util.Map">
-        INSERT INTO cstudio_usersession (token, username, active, expires)
-        VALUES (#{token}, #{username}, 1, #{expires})
-    </insert>
-    
-    <update id="extendSession" parameterType="UserSession">
-        UPDATE cstudio_usersession SET expires = #{expires}
-        WHERE token = #{token}
-    </update>
-
-    <delete id="destroySession" parameterType="java.util.Map">
-        DELETE FROM cstudio_usersession WHERE token = #{token}
-    </delete>
-
-    <update id="deactivateSession" parameterType="java.lang.String">
-        UPDATE cstudio_usersession SET active = 0
-        WHERE token = #{token}
-    </update>
 </mapper>
