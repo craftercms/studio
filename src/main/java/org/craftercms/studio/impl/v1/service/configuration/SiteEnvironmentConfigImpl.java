@@ -249,6 +249,12 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                         }
                     }
                 }
+                List<Element> roles = element.selectNodes("roles/role");
+                Set<String> rolesStr = new HashSet<String>();
+                for (Element role : roles) {
+                    rolesStr.add(role.getTextTrim());
+                }
+                pcgConfigTo.setRoles(rolesStr);
                 config.getPublishingChannelGroupConfigs().put(pcgConfigTo.getName(), pcgConfigTo);
             }
 

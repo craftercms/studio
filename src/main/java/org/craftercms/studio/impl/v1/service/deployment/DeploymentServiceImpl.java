@@ -18,9 +18,9 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
-import javax.servlet.http.HttpSession;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -609,8 +608,19 @@ public class DeploymentServiceImpl implements DeploymentService {
                 return o1.getOrder() - o2.getOrder();
             }
         });
+        String user = securityService.getCurrentUser();
+        Set<String> userRoles = new HashSet<>();
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(user)) {
+            userRoles = securityService.getUserRoles(site, user);
+        }
         for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
-            channels.add(configTO.getName());
+            if (CollectionUtils.isEmpty(configTO.getRoles())) {
+                channels.add(configTO.getName());
+            } else {
+                if (CollectionUtils.containsAny(configTO.getRoles(), userRoles)) {
+                    channels.add(configTO.getName());
+                }
+            }
         }
         return channels;
     }
