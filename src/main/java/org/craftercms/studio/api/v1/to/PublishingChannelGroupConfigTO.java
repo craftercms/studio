@@ -17,10 +17,11 @@
  */
 package org.craftercms.studio.api.v1.to;
 
-import javolution.util.FastList;
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PublishingChannelGroupConfigTO implements Serializable {
 
@@ -41,7 +42,7 @@ public class PublishingChannelGroupConfigTO implements Serializable {
         this.liveEnvironment = liveEnvironment;
     }
 
-    private List<PublishingChannelConfigTO> channels = new FastList<PublishingChannelConfigTO>();
+    private List<PublishingChannelConfigTO> channels = new ArrayList<PublishingChannelConfigTO>();
     public List<PublishingChannelConfigTO> getChannels() {
         return channels;
     }
@@ -52,4 +53,8 @@ public class PublishingChannelGroupConfigTO implements Serializable {
     private int order = Integer.MAX_VALUE;
     public int getOrder() { return order; }
     public void setOrder(int order) { this.order = order; }
+
+    private Set<String> roles = new HashSet<String>();
+    public Set<String> getRoles() { return roles; }
+    public void setRoles(Set<String> roles) { this.roles = roles; }
 }
