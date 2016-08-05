@@ -133,7 +133,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             return cmisObject != null;
         } catch (CmisBaseException e) {
-            logger.info("Content not found exception for path: " + path, e);
+            logger.debug("Content not found exception for path: " + path, e);
             return false;
         }
     }
@@ -142,13 +142,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     @Override
     public boolean writeContent(String path, InputStream content) throws ServiceException {
         logger.debug("writing content to " + path);
-        //addDebugStack();
         return writeContentCMIS(path, content);
     }
 
     @Override
     public boolean createFolder(String path, String name) {
-        //addDebugStack();
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
@@ -156,13 +154,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     @Override
     public boolean deleteContent(String path) {
         logger.debug("deleting content at " + path);
-        //addDebugStack();
         return deleteContentCMIS(path);
     }
 
     @Override
     public boolean copyContent(String fromPath, String toPath) {
-        //addDebugStack();
         return this.copyContentInternal(fromPath, toPath, null, false);
     }
 
