@@ -672,6 +672,7 @@
     <bean id="cstudioDemoSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DemoSecurityProvider"
           init-method="init">
         <property name="configLocation" value="${crafter.studio.security.demo.configLocation}"/>
+        <property name="configuredProviderType" value="${securityType}"/>
     </bean>
 
     <bean id="cstudioDemoSecurityProviderRegistration"
