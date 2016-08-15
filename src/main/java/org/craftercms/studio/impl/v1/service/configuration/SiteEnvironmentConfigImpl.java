@@ -219,7 +219,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                     PublishingChannelConfigTO pcConfigTO = new PublishingChannelConfigTO();
                     pcConfigTO.setName(channel.getText());
                     if (!checkEndpointConfigured(key, pcConfigTO.getName())) {
-                        logger.warn("Deployment endpoint \"" + pcConfigTO.getName() + "\" is not configured for site " + key);
+                        logger.error("Deployment endpoint \"" + pcConfigTO.getName() + "\" is not configured for site " + key);
                     }
                     pcgConfigTo.getChannels().add(pcConfigTO);
                 }
