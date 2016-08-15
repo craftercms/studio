@@ -222,6 +222,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">

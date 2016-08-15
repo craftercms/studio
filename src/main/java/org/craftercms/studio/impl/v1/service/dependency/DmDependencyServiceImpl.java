@@ -244,9 +244,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }*/
                 }
 
+                String cleanPath = getCleanPath(path);
                 Map<String, Object> params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_ASSET);
                 List<DependencyEntity> assetsList = dependencyMapper.getDependenciesByType(params);
                 List<String> assetPaths = new ArrayList<String>();
@@ -258,7 +259,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_COMPONENT);
                 List<DependencyEntity> componentsList = dependencyMapper.getDependenciesByType(params);
                 List<String> componentsPaths = new ArrayList<String>();
@@ -270,7 +271,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_DOCUMENT);
                 List<DependencyEntity> documentsList = dependencyMapper.getDependenciesByType(params);
                 List<String> documentsPaths = new ArrayList<String>();
@@ -282,7 +283,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_RENDERING_TEMPLATE);
                 List<DependencyEntity> templatesList = dependencyMapper.getDependenciesByType(params);
                 List<String> templatesPaths = new ArrayList<String>();
@@ -297,7 +298,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                  */
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_PAGE);
                 List<DependencyEntity> pagesList = dependencyMapper.getDependenciesByType(params);
                 List<String> pagesPaths = new ArrayList<String>();
@@ -805,7 +806,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected void populatePageDependencies(String site, ContentItemTO item, boolean populateUpdatedDependecinesOnly) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
-        params.put("sourcePath", item.getUri());
+        params.put("sourcePath", getCleanPath(item.getUri()));
         params.put("type", DEPENDENCY_NAME_PAGE);
         List<DependencyEntity> pages = dependencyMapper.getDependenciesByType(params);
         List<ContentItemTO> pageItems = getDependentItems(site, item.getUri(), pages, populateUpdatedDependecinesOnly);
@@ -1163,8 +1164,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         for (String file : files) {
                             DependencyEntity dependencyObj = new DependencyEntity();
                             dependencyObj.setSite(site);
-                            dependencyObj.setSourcePath(path);
-                            dependencyObj.setTargetPath(file);
+                            dependencyObj.setSourcePath(getCleanPath(path));
+                            dependencyObj.setTargetPath(getCleanPath(file));
                             dependencyObj.setType(type);
                             deps.add(dependencyObj);
                         }
@@ -1179,6 +1180,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
     }
 
+    private String getCleanPath(String path) {
+        String cleanPath = path.replaceAll("//", "/");
+        return cleanPath;
+    }
 
     private List<String> applyIgnoreDependenciesRules(String site, List<String> dependencies) {
         List<String> filteredDependencies = new ArrayList<>();
@@ -1486,7 +1491,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        params.put("sourcePath", path);
+        params.put("sourcePath", getCleanPath(path));
         List<DependencyEntity> deps = dependencyMapper.getDependencies(params);
         for (DependencyEntity dep : deps) {
             toRet.add(dep.getTargetPath());
