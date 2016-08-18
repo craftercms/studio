@@ -272,6 +272,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -648,6 +649,7 @@
         <property name="urlsToInclude" value="${crafter.studio.security.urlsToInclude}"/>
         <property name="urlsToExclude" value="${crafter.studio.security.urlsToExclude}"/>
         <property name="exceptionUrls" value="${crafter.studio.security.exceptionUrls}"/>
+        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}"/>
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
