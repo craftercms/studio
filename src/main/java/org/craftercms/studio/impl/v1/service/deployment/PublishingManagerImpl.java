@@ -413,7 +413,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
 
-            if (isLive) {
+            if (contentService.contentExists(site, path)) {
                 contentService.deleteContent(site, path, user);
                 
                 if (!haschildren) {
