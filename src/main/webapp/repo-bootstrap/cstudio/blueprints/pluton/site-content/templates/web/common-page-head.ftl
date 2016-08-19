@@ -3,7 +3,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Pluton Theme by BraphBerry.com</title>
         <!-- Load Roboto font -->
-        <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <link href='//fonts.googleapis.com/css?family=Roboto:400,300,700&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <!-- Load css styles -->
         <link rel="stylesheet" type="text/css" href="/static-assets/css/bootstrap.css" />
         <link rel="stylesheet" type="text/css" href="/static-assets/css/bootstrap-responsive.css" />
