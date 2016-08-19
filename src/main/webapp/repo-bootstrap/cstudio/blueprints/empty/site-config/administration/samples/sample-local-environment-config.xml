@@ -1,8 +1,8 @@
 <environment-config>
-	<preview-server-url>http://localhost:8080</preview-server-url>
-	<authoring-server-url>http://localhost:8080/studio</authoring-server-url>
-	<form-server-url>http://localhost:8080/form-server</form-server-url>
-	<live-server-url>http://SITENAME</live-server-url>
+    <preview-server-url>http://localhost:8080</preview-server-url>
+    <authoring-server-url>http://localhost:8080/studio</authoring-server-url>
+    <form-server-url>http://localhost:8080/form-server</form-server-url>
+    <live-server-url>http://SITENAME</live-server-url>
     <publishing-channels>
         <channel-group>
             <label>Production</label>
@@ -21,6 +21,6 @@
         </channel-group>
         -->
     </publishing-channels>
-	<cookie-domain>localhost</cookie-domain>
-	<open-site-dropdown>false</open-site-dropdown>
+    <cookie-domain>localhost</cookie-domain>
+    <open-site-dropdown>false</open-site-dropdown>
 </environment-config>

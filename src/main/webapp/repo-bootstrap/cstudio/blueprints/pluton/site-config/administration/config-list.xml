@@ -49,10 +49,10 @@
             <samplePath>/administration/samples/sample-endpoints-config.xml</samplePath>
         </file>
         <file>
-            <path>/environment-overrides/dev/environment-config.xml</path>
-            <title>confTabDevEnvironmentConf</title>
-            <description>confTabDevEnvironmentConfDesc</description>
-            <samplePath>/administration/samples/sample-dev-environment-config.xml</samplePath>
+            <path>/environment-overrides/local/environment-config.xml</path>
+            <title>confTabLocalEnvironmentConf</title>
+            <description>confTabLocalEnvironmentConfDesc</description>
+            <samplePath>/administration/samples/sample-local-environment-config.xml</samplePath>
         </file>
         <file>
             <path>/form-control-config/configured-lists/targets.xml</path>
