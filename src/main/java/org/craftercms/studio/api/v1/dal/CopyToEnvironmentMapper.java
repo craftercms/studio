@@ -41,4 +41,8 @@ public interface CopyToEnvironmentMapper {
     List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
 
     void cancelDeployment(Map params);
+
+    int checkIfItemWasPublished(Map params);
+
+    int checkIfItemWasPublishedForEnvironment(Map params);
 }
