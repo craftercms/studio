@@ -10,10 +10,6 @@
     <css-group xsi:nil="true">
       <css>/static-assets/css/style.css</css>
     </css-group>
-    <!--script-group xsi:nil="true">
-      <script>/static-assets/scripts/prototype.js</script>
-      <script>/static-assets/scripts/crafter-scripts.js</script>
-    </script-group-->
   <descriptor-mapper>hierarchical-mapper</descriptor-mapper>
   <content-type>/component/level-descriptor</content-type>
  </levelDescriptor>
