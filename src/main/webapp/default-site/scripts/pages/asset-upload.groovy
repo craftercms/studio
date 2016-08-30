@@ -64,6 +64,7 @@ if(ServletFileUpload.isMultipartContent(request)) {
         } 
         else {
             fileName = item.getName()
+            fileName = fileName.toLowerCase()
             contentType = item.getContentType()
             content = item.getInputStream()
         }
