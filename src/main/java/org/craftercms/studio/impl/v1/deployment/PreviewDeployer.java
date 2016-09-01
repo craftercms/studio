@@ -24,12 +24,7 @@ import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.ebus.annotations.EListener;
-import org.craftercms.commons.ebus.annotations.EventHandler;
-import org.craftercms.commons.ebus.annotations.EventSelectorType;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -39,16 +34,13 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import reactor.event.Event;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-@EListener
 public class PreviewDeployer implements Deployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployer.class);
@@ -137,7 +129,7 @@ public class PreviewDeployer implements Deployer {
 
             StringBuilder sbDeletedFiles = new StringBuilder(path);
             if (path.endsWith("/index.xml")) {
-                RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path.replace("/index.xml", "")));
+                RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/index.xml", ""));
                 if (!(children != null && children.length > 1)) {
                     sbDeletedFiles.append(FILES_SEPARATOR).append(path.replace("/index.xml", ""));
 
@@ -167,24 +159,15 @@ public class PreviewDeployer implements Deployer {
 
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_CREATE_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX)
-    public void onCreateContent(final Event<RepositoryEventMessage> event) {
+    public void onCreateContent() {
 
-        RepositoryEventMessage message = event.getData();
+        RepositoryEventMessage message = new RepositoryEventMessage();
         String site = message.getSite();
         String path = message.getPath();
         deployFile(site, path);
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_UPDATE_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX)
-    public void onUpdateContent(final Event<RepositoryEventMessage> event) {
-        RepositoryEventMessage message = event.getData();
+    public void onUpdateContent(RepositoryEventMessage message) {
         try {
             String site = message.getSite();
             String path = message.getPath();
@@ -202,13 +185,8 @@ public class PreviewDeployer implements Deployer {
 
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX)
-    public void syncAllContentToPreview(final Event<RepositoryEventMessage> event) throws ServiceException {
+    public void syncAllContentToPreview(RepositoryEventMessage message) throws ServiceException {
 
-        RepositoryEventMessage message = event.getData();
         String site = message.getSite();
         logger.info("Received preview sync event for site: " + site);
         RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
@@ -227,7 +205,7 @@ public class PreviewDeployer implements Deployer {
     }
 
     protected void syncFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(path, true);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path, true);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {
@@ -238,13 +216,7 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_MOVE_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX
-    )
-    public void onMoveContent(final Event<RepositoryEventMessage> event) throws ServiceException {
-        RepositoryEventMessage message = event.getData();
+    public void onMoveContent(RepositoryEventMessage message) throws ServiceException {
         try {
             String site = message.getSite();
             String path = message.getPath();
@@ -259,13 +231,7 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_DELETE_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX
-    )
-    public void onDeleteContent(final Event<RepositoryEventMessage> event) throws ServiceException {
-        RepositoryEventMessage message = event.getData();
+    public void onDeleteContent(RepositoryEventMessage message) throws ServiceException {
         try {
             String site = message.getSite();
             String path = message.getPath();
@@ -278,13 +244,8 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
-    @EventHandler(
-            event = EBusConstants.REPOSITORY_DELETE_SITE_EVENT,
-            ebus = EBusConstants.REPOSITORY_REACTOR,
-            type = EventSelectorType.REGEX
-    )
-    public void onDeleteSite(final Event<RepositoryEventMessage> event) throws ServiceException {
-        RepositoryEventMessage message = event.getData();
+    public void onDeleteSite() throws ServiceException {
+        RepositoryEventMessage message = new RepositoryEventMessage();
         try {
             String site = message.getSite();
             RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
@@ -363,4 +324,6 @@ public class PreviewDeployer implements Deployer {
     protected SiteService siteService;
     protected ContentService contentService;
     protected ContentRepository contentRepository;
+
+
 }

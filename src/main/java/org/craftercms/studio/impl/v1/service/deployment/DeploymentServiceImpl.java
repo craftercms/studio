@@ -25,9 +25,6 @@ import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -51,14 +48,12 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.Reactor;
-import reactor.event.Event;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -238,9 +233,9 @@ public class DeploymentServiceImpl implements DeploymentService {
                 if (numDeployments < 1) {
                     boolean haschildren = false;
                     if (path.endsWith("/" + DmConstants.INDEX_FILE)) {
-                        String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
-                        if (contentService.contentExists(fullPath)) {
-                            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                        String folderPath = path.replace("/" + DmConstants.INDEX_FILE, "");
+                        if (contentService.contentExists(site, folderPath)) {
+                            RepositoryItem[] children = contentRepository.getContentChildren(site, folderPath);
 
                             if (children.length > 1) {
                                 haschildren = true;
@@ -262,9 +257,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private void deleteFolder(String site, String path, String user) {
-        String fullPath = contentService.expandRelativeSitePath(site, path);
-        if (contentService.contentExists(fullPath)) {
-            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+        if (contentService.contentExists(site, path)) {
+            RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 contentService.deleteContent(site, path, false, user);
@@ -748,17 +742,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-
-        String sessionTicket = securityService.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT, Event.wrap(message));
+        previewSync.syncAllContentToPreview(site);
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {
-        RepositoryItem[] children = contentRepository.getContentChildren(path);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {
@@ -903,9 +891,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeployerFactory getDeployerFactory() { return deployerFactory; }
     public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
-
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -926,6 +911,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.notificationService = notificationService;
     }
 
+    public PreviewSync getPreviewSync() { return previewSync; }
+    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -936,7 +924,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected DeployerFactory deployerFactory;
-    protected Reactor repositoryReactor;
+    protected PreviewSync previewSync;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;

@@ -584,7 +584,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         //dependencies also has to be moved post rename
         try{
             if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
-                Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+                Document document = contentService.getContentAsDocument(site, relativePath);
                 Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
                 dmDependencyService.extractDependencies(site, relativePath, document, globalDeps);
             }

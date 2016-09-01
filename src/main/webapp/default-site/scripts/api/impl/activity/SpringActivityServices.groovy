@@ -46,4 +46,9 @@ class SpringActivityServices {
         def springBackedService = this.context.applicationContext.get("cstudioActivityService");
         return springBackedService.postActivity(site, user, path, activityType, extraInfo);
     }
+
+    def getAuditLog(site, startPos, num) {
+        def springBackedService = this.context.applicationContext.get("cstudioActivityService");
+        return springBackedService.getAuditLogForSite(site, startPos, num);
+    }
 }

@@ -63,7 +63,6 @@
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
@@ -105,13 +104,14 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="distributedPeerEBusFacade" ref="studioDistributedEBusFacade"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
+        <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
+        <property name="createSiteV2" value="${siteService.createSite.v2.enable}"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -162,13 +162,13 @@
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
          <property name="contentRepository" ref="cstudioContentRepository"/>
          <property name="deployerFactory" ref="cstudioDeployerFactory"/>
-         <property name="repositoryReactor" ref="repositoryReactor"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
+         <property name="previewSync" ref="previewSync"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
@@ -530,6 +530,8 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="password" value="${repositoryJob.password}"/>
+        <property name="userName" value="${repositoryJob.username}"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -540,6 +542,8 @@
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="password" value="${repositoryJob.password}"/>
+        <property name="userName" value="${repositoryJob.username}"/>
     </bean>
 
     <!-- scheduled actions -->
@@ -629,15 +633,25 @@
     <bean id="cstudioDiskContentRepository" 
         class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
         init-method="bootstrap">
-        <property name="repositoryReactor" ref="repositoryReactor"/>
         <property name="rootPath" value="${repository.diskImplementation.path}" />
         <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
     </bean>
 
-    <bean id="cstudioDiskContentRepositoryRegistration" 
+    <bean id="cstudioDiskContentRepositoryRegistration"
           parent="cstudioContentRepositoryRegistration">
         <property name="contentRepository" ref="cstudioDiskContentRepository"/>
         <property name="repositoryType" value="default"/>
+    </bean>
+
+    <bean id="cstudioGitContentRepository"
+          class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" >
+        <property name="rootPath" value="${repository.gitImplementation.path}" />
+    </bean>
+
+    <bean id="cstudioGitContentRepositoryRegistration"
+          parent="cstudioContentRepositoryRegistration">
+        <property name="contentRepository" ref="cstudioGitContentRepository"/>
+        <property name="repositoryType" value="git"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -684,7 +698,17 @@
         <property name="providerType" value="demo"/>
     </bean>
 
-    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
+    <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbSecurityProvider">
+        <property name="sessionTimeout" value="${crafter.studio.security.db.sessionTimeout}"/>
+    </bean>
+
+    <bean id="cstudioDbSecurityProviderRegistration"
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioDbSecurityProvider"/>
+        <property name="providerType" value="db"/>
+    </bean>
+
+    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively
          do anything.  Remember another repostory may be configured for use and Alfresco 
          may not exist on the server. I.e. evaluation
      -->
@@ -1006,5 +1030,6 @@
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
+    <import resource="classpath:crafter/studio/studio-ebus-config.xml"/>
+    <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

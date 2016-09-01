@@ -43,7 +43,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
-import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -162,13 +162,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         writeContent(site, destination, fileName, user, content, contentType, false, writeOperation);
 
         removeItemFromCache(site, destination + "/" + fileName);
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(destination + "/" + fileName);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        previewSync.syncPath(site, destination + "/" + fileName, repositoryEventContext);
+        previewSync.syncPath(site, destination + "/" + fileName);
 
         return destination + "/" + fileName;
     }
@@ -304,7 +298,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         if (path.endsWith(DmConstants.XML_PATTERN)) {
             Document document = null;
             try {
-                document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, path));
+                document = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
                 logger.error("Error getting xml document for following path: " + contentService.expandRelativeSitePath(site, path));
             }
@@ -420,7 +414,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         try {
             if (contentService.contentExists(site, path)) {
                 if (path.endsWith(DmConstants.XML_PATTERN)) {
-                    Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, path));
+                    Document document = contentService.getContentAsDocument(site, path);
                     DmPageNavigationOrderService dmPageNavigationOrderService = getService(DmPageNavigationOrderService.class);
                     dmPageNavigationOrderService.addNavOrder(site, path, document);
                     InputStream content = ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);

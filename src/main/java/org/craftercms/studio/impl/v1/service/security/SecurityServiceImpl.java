@@ -392,7 +392,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(siteConfigFullPath);
+            document = contentService.getContentAsDocument(site, siteConfigFullPath);
         } catch (DocumentException e) {
             logger.error("Permission mapping not found for " + site + ":" + filename);
         }
@@ -490,7 +490,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(globalPermissionsConfigPath);
+            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalPermissionsConfigPath);
         } catch (DocumentException e) {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
         }
@@ -517,7 +517,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(globalRolesConfigPath);
+            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalRolesConfigPath);
         } catch (DocumentException e) {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
         }

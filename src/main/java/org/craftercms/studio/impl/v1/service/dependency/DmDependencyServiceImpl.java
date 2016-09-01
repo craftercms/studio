@@ -888,8 +888,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     continue;
                 }
                 if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    String content = contentService.getContentAsString(fullPath);
+                    String content = contentService.getContentAsString(site, assetPath);
                     if (StringUtils.isNotEmpty(content)) {
                         StringBuffer sb = new StringBuffer(content);
                         try {
@@ -900,8 +899,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
 
                 } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    String content = contentService.getContentAsString(fullPath);
+                    String content = contentService.getContentAsString(site, assetPath);
                     if (StringUtils.isNotEmpty(content)) {
                         StringBuffer sb = new StringBuffer(content);
                         try {
@@ -920,8 +918,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (parsedTemplates.contains(templatePath)) {
                     continue;
                 }
-                String fullPath = contentService.expandRelativeSitePath(site, templatePath);
-                String content = contentService.getContentAsString(fullPath);
+                String content = contentService.getContentAsString(site, templatePath);
                 if (StringUtils.isNotEmpty(content)) {
                     StringBuffer sb = new StringBuffer(content);
                     try {
@@ -969,14 +966,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }
@@ -988,8 +983,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 continue;
             }
             if (contentService.contentExists(site, templatePath)) {
-                String templateFullPath = contentService.expandRelativeSitePath(site, templatePath);
-                StringBuffer sb = new StringBuffer(contentService.getContentAsString(templateFullPath));
+                StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, templatePath));
                 extractDependenciesTemplate(site, templatePath, sb, globalDeps);
             }
 
@@ -1022,8 +1016,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             }
@@ -1055,8 +1048,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }

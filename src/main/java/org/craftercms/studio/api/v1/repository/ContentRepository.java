@@ -20,16 +20,10 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
-import javax.transaction.UserTransaction;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -41,136 +35,164 @@ public interface ContentRepository {
     /**
      * Determine if content exists in the repository at a given path
      *
+     * @param site site id where the operation will be executed
      * @param path
      * @return true if site has content object at path
      */
-    boolean contentExists(String path);
+    boolean contentExists(String site, String path);
 
     /**
      * get document from wcm content
      *
+     * @param site site id where the operation will be executed
      * @param path
      * @return document
      */
-    InputStream getContent(String path) throws ContentNotFoundException;
+    InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
      * write content
+     *
+     * @param site site id where the operation will be executed
      * @param path path to content
      * @param content stream of content to write
      * @return true if successful
      */
-    boolean writeContent(String path, InputStream content) throws ServiceException;
+    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
 
     /**
      * create a folder
      *
+     * @param site site id where the operation will be executed
      * @param path path to create a folder in
      * @param name a folder name to create
      * @return true if successful
      */
-    boolean createFolder(String path, String name);
+    boolean createFolder(String site, String path, String name);
 
     /**
      * delete content
+     *
+     * @param site site id where the operation will be executed
      * @param path path to content
      */
-    boolean deleteContent(String path);
+    boolean deleteContent(String site, String path);
 
     /**
      * move content from PathA to pathB
      *
+     * @param site site id where the operation will be executed
      * @param fromPath source content
      * @param toPath target path
      * @return true if successful
      */
-    boolean moveContent(String fromPath, String toPath);
+    boolean moveContent(String site, String fromPath, String toPath);
 
     /**
      * move content from PathA to pathB
      *
+     * @param site site id where the operation will be executed
      * @param fromPath source content
      * @param toPath target path
      * @param newName new file name for rename
      * @return true if successful
      */
-    boolean moveContent(String fromPath, String toPath, String newName);
+    boolean moveContent(String site, String fromPath, String toPath, String newName);
 
     /**
      * copy content from PathA to pathB
      *
+     * @param site site id where the operation will be executed
      * @param fromPath paths to content
      * @param toPath target path
      * @return true if successful
      */
-    boolean copyContent(String fromPath, String toPath);
+    boolean copyContent(String site, String fromPath, String toPath);
 
     /**
      * get immediate children for path
+     *
+     * @param site site id where the operation will be executed
      * @param path path to content
      * @return a list of children
      */
-    RepositoryItem[] getContentChildren(String path);
+    RepositoryItem[] getContentChildren(String site, String path);
 
     /**
      * get immediate children for path
+     *
+     * @param site site id where the operation will be executed
      * @param path path to content
-     * @param ignoreCache ignore repository cache
+     * @param ignoreCache flag to ignore cache for getting children
      * @return a list of children
      */
-    RepositoryItem[] getContentChildren(String path, boolean ignoreCache);
+    RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache);
 
     /**
      * get the version history for an item
+     *
+     * @param site site id where the operation will be executed
      * @param site - the project ID
      * @param path - the path of the item
      * @return a list of versions
      */
-    VersionTO[] getContentVersionHistory(String path);
+    VersionTO[] getContentVersionHistory(String site, String path);
 
     /**
      * create a version
+     *
+     * @param site site id where the operation will be executed
      * @param path location of content
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    String createVersion(String path, boolean majorVersion);
+    String createVersion(String site, String path, boolean majorVersion);
 
     /**
      * create a version
+     *
+     * @param site site id where the operation will be executed
      * @param path location of content
      * @param comment version history comment
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    String createVersion(String path, String comment, boolean majorVersion);
+    String createVersion(String site, String path, String comment, boolean majorVersion);
 
     /**
      * revert a version (create a new version based on an old version)
+     *
+     * @param site site id where the operation will be executed
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      * @return true if successful
      */
-    boolean revertContent(String path, String version, boolean major, String comment);
+    boolean revertContent(String site, String path, String version, boolean major, String comment);
 
     /**
      * return a specific version of the content
+     *
+     * @param site site id where the operation will be executed
      * @param path path of the content
      * @param version version to return
      * @return input stream
      */
-    InputStream getContentVersion(String path, String version) throws ContentNotFoundException;
+    InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
     /**
      * get the modified date for an oject at path
      * NOTE: THis should be move to a get metadata of some sort that returns a structure with additional data
+     *
+     * @param site site id where the operation will be executed
      * @param path
      * @return document
      */
-    Date getModifiedDate(String path);
+    Date getModifiedDate(String site, String path);
 
     /**
      * lock an item
      * NOTE: site will be removed from this interface
+     *
+     * @param site site id where the operation will be executed
      * @param path
      */
     void lockItem(String site, String path);
@@ -178,7 +200,12 @@ public interface ContentRepository {
     /**
      * unlock an item
      * NOTE: site will be removed from this interface
+     *
+     * @param site site id where the operation will be executed
      * @param path
      */
     void unLockItem(String site, String path);
+
+
+    boolean createSiteFromBlueprint(String blueprintName, String siteId);
 }

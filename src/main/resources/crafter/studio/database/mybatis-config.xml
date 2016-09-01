@@ -23,4 +23,12 @@
         <setting name="cacheEnabled" value="false"/>
         <setting name="jdbcTypeForNull" value="VARCHAR"/>
     </settings>
+
+    <typeAliases>
+        <typeAlias type="org.craftercms.studio.api.v1.dal.User" alias="User"/>
+        <typeAlias type="org.craftercms.studio.api.v1.dal.Group" alias="Group"/>
+        <typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
+        <typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
+        <typeAlias type="org.craftercms.studio.api.v1.dal.UserSession" alias="UserSession"/>
+    </typeAliases>
 </configuration>
