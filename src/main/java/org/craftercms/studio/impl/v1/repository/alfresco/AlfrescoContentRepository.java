@@ -59,10 +59,7 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -133,7 +130,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             return cmisObject != null;
         } catch (CmisBaseException e) {
-            logger.info("Content not found exception for path: " + path, e);
+            logger.debug("Content not found exception for path: " + path, e);
             return false;
         }
     }
@@ -895,9 +892,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     Map<String, String> newFolderProps = new HashMap<String, String>();
                     newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
                     newFolderProps.put(PropertyIds.NAME, name);
-                    Folder newFolder = folder.createFolder(newFolderProps);
-                    Property property = newFolder.getProperty("alfcmis:nodeRef");
-                    newFolderRef = property.getValueAsString();
+                    try {
+                        Folder newFolder = folder.createFolder(newFolderProps);
+                        Property property = newFolder.getProperty("alfcmis:nodeRef");
+                        newFolderRef = property.getValueAsString();
+                    } catch (CmisContentAlreadyExistsException exc) {
+                        logger.info("Folder " + cleanPath + " already exists");
+                    }
                 }
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
@@ -1100,6 +1101,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
+        lockItemCMIS(fullPath);
     }
 
     protected void lockItemCMIS(String fullPath) {

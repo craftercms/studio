@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -34,6 +36,8 @@ import java.util.*;
  */
 public class DemoSecurityProvider implements SecurityProvider {
 
+    private final static Logger logger = LoggerFactory.getLogger(DemoSecurityProvider.class);
+
     private final static String DOCUMENT_USER_ROOT = "user";
     private final static String DOCUMENT_ELM_USERNAME = "username";
     private final static String DOCUMENT_ELM_PASSWORD = "password";
@@ -44,8 +48,13 @@ public class DemoSecurityProvider implements SecurityProvider {
     private final static String DOCUMENT_ELM_GROUP = "group";
     private final static String CONST_FAKETICKET = "_FAKETICKET";
 
+    private final static String PROVIDER_TYPE = "demo";
+
     public void init() {
-        loadConfiguration();
+        if (configuredProviderType.equals(PROVIDER_TYPE)) {
+            logger.debug("Demo security provider is configured for use. Loading configuration from " + configLocation);
+            loadConfiguration();
+        }
     }
 
     protected void loadConfiguration() {
@@ -253,7 +262,11 @@ public class DemoSecurityProvider implements SecurityProvider {
     public String getConfigLocation() { return configLocation; }
     public void setConfigLocation(String configLocation) { this.configLocation = configLocation; }
 
+    public String getConfiguredProviderType() { return configuredProviderType; }
+    public void setConfiguredProviderType(String configuredProviderType) { this.configuredProviderType = configuredProviderType; }
+
     protected String configLocation;
+    protected String configuredProviderType;
 
     protected Map<String, User> userMap;
     protected Date configLastUpdate;

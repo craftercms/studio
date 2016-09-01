@@ -10,6 +10,9 @@
                 <channel>sample</channel>
             </channels>
             <live-environment>true</live-environment>
+            <roles>
+                <role>admin</role>
+            </roles>
         </channel-group>
         <!--
         <channel-group>

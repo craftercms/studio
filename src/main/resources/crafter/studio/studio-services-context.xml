@@ -222,6 +222,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
@@ -271,6 +272,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -661,6 +663,7 @@
         <property name="urlsToInclude" value="${crafter.studio.security.urlsToInclude}"/>
         <property name="urlsToExclude" value="${crafter.studio.security.urlsToExclude}"/>
         <property name="exceptionUrls" value="${crafter.studio.security.exceptionUrls}"/>
+        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}"/>
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
@@ -686,6 +689,7 @@
     <bean id="cstudioDemoSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DemoSecurityProvider"
           init-method="init">
         <property name="configLocation" value="${crafter.studio.security.demo.configLocation}"/>
+        <property name="configuredProviderType" value="${securityType}"/>
     </bean>
 
     <bean id="cstudioDemoSecurityProviderRegistration"

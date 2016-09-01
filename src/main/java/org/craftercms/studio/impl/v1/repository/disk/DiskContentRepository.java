@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -98,7 +98,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     public boolean createFolder(String site, String path, String name) {
         
         boolean success = true;
-        
+
         try {
             Files.createDirectories(constructRepoPath(path, name));
         }
@@ -114,7 +114,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     public boolean deleteContent(String site, String path) {
         
         boolean success = true;
-        
+
         try {
             File file = constructRepoPath(path).toFile();
             FileUtils.deleteQuietly(file);
@@ -174,6 +174,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             File dest = destDir;
             if (StringUtils.isNotEmpty(newName)) {
                 dest = new File(destDir, newName);
+                if (!dest.exists()) {
+                    dest.mkdirs();
+                }
             }
             if (source.isDirectory()) {
                 File[] dirList = source.listFiles();
@@ -271,15 +274,15 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         try {
             final String pathToContent = path.substring(0, path.lastIndexOf(File.separator));
             final String filename = path.substring(path.lastIndexOf(File.separator) + 1);
- 
+
             Path versionPath = constructVersionRepoPath(pathToContent);
 
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
-            Files.walkFileTree(versionPath, opts, 1, new SimpleFileVisitor<Path>() { 
+            Files.walkFileTree(versionPath, opts, 1, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
-                throws IOException {
+                        throws IOException {
                     String versionFilename = visitPath.toString();
 
                     if(versionFilename.contains(filename)) {
@@ -290,7 +293,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                         version.setVersionNumber(label);
                         version.setLastModifier("ADMIN");
-                        version.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));  
+                        version.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));
                         version.setComment("");
 
                         versionList.add(version);
@@ -306,7 +309,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         final List<VersionTO> finalVersionList = new ArrayList<VersionTO>();
         if (versionList.size() > 0) {
             Collections.sort(versionList);
-            VersionTO latest = versionList.get(versionList.size() - 1);
+            VersionTO latest = versionList.get(versionList.size()-1);
             String latestVersionLabel = latest.getVersionNumber();
             int temp = latestVersionLabel.indexOf(".");
             String currentMajorVersion = latestVersionLabel.substring(0, temp);
@@ -380,7 +383,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             String versionId = determineNextVersionLabel(site, path, major);
             InputStream versionContent = null;
             InputStream wipContent = null;
-            
+
             try {
                 versionContent = getVersionedContent(path, label);
                 String versionPath = path+"--"+versionId;
@@ -407,10 +410,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         return success;
     }
-    
-    public InputStream getContentVersion(String path, String version) 
-	throws ContentNotFoundException { 
-		return getVersionedContent(path, version);
+
+    public InputStream getContentVersion(String path, String version)
+            throws ContentNotFoundException {
+        return getVersionedContent(path, version);
     }
 
 
@@ -421,8 +424,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
 
-    protected InputStream getVersionedContent(String path, String label) 
-    throws ContentNotFoundException {
+    protected InputStream getVersionedContent(String path, String label)
+            throws ContentNotFoundException {
         InputStream retStream = null;
 
         try {
@@ -449,7 +452,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         VersionTO[] versions = getContentVersionHistory(site, path);
 
         if(versions.length != 0) {
-            VersionTO latestVersion = versions[versions.length - 1];
+            VersionTO latestVersion = versions[0];
 
             String label = latestVersion.getVersionNumber();
             String[] labelParts = label.split("\\.");
@@ -461,7 +464,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             else {
                 versionId = major + "." + (minor + 1);
-            }                
+            }
         }
         else {
             if(majorVersion) {
@@ -511,8 +514,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     private ServletContext ctx;
 
     public void setServletContext(ServletContext ctx) {
-    logger.debug("ServletContext: {0} ", ctx);
-    this.ctx = ctx;
+        logger.debug("ServletContext: {0} ", ctx);
+        this.ctx = ctx;
     }
 
     /**
@@ -536,21 +539,21 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     protected boolean closeInputStreamQuietly(InputStream is) {
         boolean success = true;
 
-        if(is != null) { 
-            try { 
-                is.close(); 
-            } 
-            catch(Exception ioErr) { 
+        if(is != null) {
+            try {
+                is.close();
+            }
+            catch(Exception ioErr) {
                 success = false;
 
                 /* eat error */
                 if(Logger.LEVEL_DEBUG.equals(logger.getLevel())) {
                     logger.error("Error while closing InputStream quietly", ioErr);
-                } 
-            } 
-        } 
+                }
+            }
+        }
 
-        return success;     
+        return success;
     }
 
     @Override
@@ -585,31 +588,31 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         static void copyFile(Path source, Path target, boolean prompt, boolean preserve) {
             CopyOption[] options = (preserve) ?
-                new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING } :
-                new CopyOption[] { REPLACE_EXISTING };
-            
-                try {
-                    Files.copy(source, target, options);
-                } catch (IOException x) {
-                    logger.error("Unable to copy: %s: %s%n", source, x);
-                }
-            
+                    new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING } :
+                    new CopyOption[] { REPLACE_EXISTING };
+
+            try {
+                Files.copy(source, target, options);
+            } catch (IOException x) {
+                logger.error("Unable to copy: %s: %s%n", source, x);
+            }
+
         }
-     
+
         TreeCopier(Path source, Path target, boolean prompt, boolean preserve) {
             this.source = source;
             this.target = target;
             this.prompt = prompt;
             this.preserve = preserve;
         }
- 
+
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             // before visiting entries in a directory we copy the directory
             // (okay if directory already exists).
             CopyOption[] options = (preserve) ?
-                new CopyOption[] { COPY_ATTRIBUTES } : new CopyOption[0];
- 
+                    new CopyOption[] { COPY_ATTRIBUTES } : new CopyOption[0];
+
             Path newdir = target.resolve(source.relativize(dir));
             try {
                 Files.copy(dir, newdir, options);
@@ -621,14 +624,14 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             TreeCopier.copyFile(file, target.resolve(source.relativize(file)),
-                     prompt, preserve);
+                    prompt, preserve);
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
             // fix up modification time of directory when done
@@ -643,7 +646,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             if (exc instanceof FileSystemLoopException) {

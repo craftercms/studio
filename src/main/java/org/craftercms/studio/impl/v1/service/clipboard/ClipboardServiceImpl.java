@@ -411,15 +411,15 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         if(!path.endsWith(DmConstants.XML_PATTERN)) {
             path = path + "/" + DmConstants.INDEX_FILE;
         }
-        String user = securityService.getCurrentUser();
-        try{
-            ContentItemTO item = contentService.getContentItem(site, path);
-            if (item != null) {
-                Document document = contentService.getContentAsDocument(site, path);
-                DmPageNavigationOrderService dmPageNavigationOrderService = getService(DmPageNavigationOrderService.class);
-                dmPageNavigationOrderService.addNavOrder(site, path, document);
-                InputStream content = ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
-                updateFileDirect(site, path, content);
+        try {
+            if (contentService.contentExists(site, path)) {
+                if (path.endsWith(DmConstants.XML_PATTERN)) {
+                    Document document = contentService.getContentAsDocument(site, path);
+                    DmPageNavigationOrderService dmPageNavigationOrderService = getService(DmPageNavigationOrderService.class);
+                    dmPageNavigationOrderService.addNavOrder(site, path, document);
+                    InputStream content = ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
+                    updateFileDirect(site, path, content);
+                }
             }
         }catch(Exception e){
             logger.warn("Error while update file with new Nav order "+ path,e);

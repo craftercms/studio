@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -200,24 +201,72 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
         List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
         for (String path : paths) {
-            CopyToEnvironment item = new CopyToEnvironment();
-            item.setId(++CTED_AUTOINCREMENT);
-            item.setSite(site);
-            item.setEnvironment(environment);
-            item.setPath(path);
-            item.setScheduledDate(scheduledDate);
-            item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-            item.setAction(CopyToEnvironment.Action.DELETE);
-            if (objectMetadataManager.isRenamed(site, path)) {
-                String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
-                item.setOldPath(oldPath);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("environment", environment);
+            params.put("path", path);
+            params.put("state", CopyToEnvironment.State.COMPLETED);
+            int numDeployments = copyToEnvironmentMapper.checkIfItemWasPublishedForEnvironment(params);
+            if (numDeployments > 0) {
+                CopyToEnvironment item = new CopyToEnvironment();
+                item.setId(++CTED_AUTOINCREMENT);
+                item.setSite(site);
+                item.setEnvironment(environment);
+                item.setPath(path);
+                item.setScheduledDate(scheduledDate);
+                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+                item.setAction(CopyToEnvironment.Action.DELETE);
+                if (objectMetadataManager.isRenamed(site, path)) {
+                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
+                    item.setOldPath(oldPath);
+                }
+                String contentTypeClass = contentService.getContentTypeClass(site, path);
+                item.setContentTypeClass(contentTypeClass);
+                item.setUser(approver);
+                newItems.add(item);
+            } else {
+                params = new HashMap<String, String>();
+                params.put("site", site);
+                params.put("path", path);
+                params.put("state", CopyToEnvironment.State.COMPLETED);
+                numDeployments = copyToEnvironmentMapper.checkIfItemWasPublishedForEnvironment(params);
+                if (numDeployments < 1) {
+                    boolean haschildren = false;
+                    if (path.endsWith("/" + DmConstants.INDEX_FILE)) {
+                        String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
+                        if (contentService.contentExists(fullPath)) {
+                            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+
+                            if (children.length > 1) {
+                                haschildren = true;
+                            }
+                        }
+                    }
+
+                    if (contentService.contentExists(site, path)) {
+                        contentService.deleteContent(site, path, approver);
+
+                        if (!haschildren) {
+                            deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), approver);
+                        }
+                    }
+                }
             }
-            String contentTypeClass = contentService.getContentTypeClass(site, path);
-            item.setContentTypeClass(contentTypeClass);
-            item.setUser(approver);
-            newItems.add(item);
         }
         return newItems;
+    }
+
+    private void deleteFolder(String site, String path, String user) {
+        String fullPath = contentService.expandRelativeSitePath(site, path);
+        if (contentService.contentExists(fullPath)) {
+            RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+
+            if (children.length < 1) {
+                contentService.deleteContent(site, path, false, user);
+                String parentPath = ContentUtils.getParentUrl(path);
+                deleteFolder(site, parentPath, user);
+            }
+        }
     }
 
     @Override
@@ -602,8 +651,19 @@ public class DeploymentServiceImpl implements DeploymentService {
                 return o1.getOrder() - o2.getOrder();
             }
         });
+        String user = securityService.getCurrentUser();
+        Set<String> userRoles = new HashSet<>();
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(user)) {
+            userRoles = securityService.getUserRoles(site, user);
+        }
         for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
-            channels.add(configTO.getName());
+            if (CollectionUtils.isEmpty(configTO.getRoles())) {
+                channels.add(configTO.getName());
+            } else {
+                if (CollectionUtils.containsAny(configTO.getRoles(), userRoles)) {
+                    channels.add(configTO.getName());
+                }
+            }
         }
         return channels;
     }
@@ -683,11 +743,17 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
-        previewSync.syncAllContentToPreview(site);
+        RepositoryEventMessage message = new RepositoryEventMessage();
+        message.setSite(site);
+
+        String sessionTicket = securityService.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        message.setRepositoryEventContext(repositoryEventContext);
+        repositoryReactor.notify(EBusConstants.REPOSITORY_PREVIEW_SYNC_EVENT, Event.wrap(message));
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
+        RepositoryItem[] children = contentRepository.getContentChildren(path);
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {
@@ -832,6 +898,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeployerFactory getDeployerFactory() { return deployerFactory; }
     public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
 
+    public Reactor getRepositoryReactor() { return repositoryReactor; }
+    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
+
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -852,9 +921,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.notificationService = notificationService;
     }
 
-    public PreviewSync getPreviewSync() { return previewSync; }
-    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
-
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -865,7 +931,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected DeployerFactory deployerFactory;
-    protected PreviewSync previewSync;
+    protected Reactor repositoryReactor;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;
