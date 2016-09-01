@@ -82,12 +82,12 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
         // find the script ref based on content type
         String scriptPath = getScriptPath(site, contentType);
-        if (!contentService.contentExists(scriptPath)) {
+        if (!contentService.contentExists(site, scriptPath)) {
             logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
 
             return;
         }
-        String script = contentService.getContentAsString(scriptPath);
+        String script = contentService.getContentAsString(site, scriptPath);
 
         Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
         try {

@@ -208,7 +208,7 @@ public class RebuildRepositoryMetadata {
                 if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
                     logger.debug("Calculate dependencies");
                     try {
-                        Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+                        Document document = contentService.getContentAsDocument(site, relativePath);
                         dmDependencyService.extractDependencies(site, relativePath, document, null);
                     } catch (DocumentException | ServiceException err) {
                         logger.debug("Error while calculating dependencies for " + relativePath, err);

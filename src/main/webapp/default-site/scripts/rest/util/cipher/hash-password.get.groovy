@@ -14,11 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.api.v1.ebus;
+import scripts.api.ServiceFactory;
 
-public interface DistributedPeerEBusFacade {
-
-    void notifyCluster(DistributedEventMessage message);
-}
+def pass = params.pass;
+def context = ServiceFactory.createContext(applicationContext, request);
+def springBackedService = context.applicationContext.get("cstudioDbSecurityProvider");
+def ret = [:];
+ret.hash = springBackedService.getPasswordHash(pass);
+return ret;

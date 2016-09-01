@@ -14,9 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.impl.v1.ebus;
+package org.craftercms.studio.api.v1.service.security;
 
-public class DistributedEBusPeer {
+import org.springframework.security.core.userdetails.UserDetails;
+
+public interface UserDetailsManager {
+
+    UserDetails loadUserByUsername(String userName);
 }

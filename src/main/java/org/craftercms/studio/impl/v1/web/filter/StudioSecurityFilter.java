@@ -22,6 +22,8 @@ package org.craftercms.studio.impl.v1.web.filter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.util.AntPathMatcher;
@@ -37,6 +39,8 @@ import java.io.IOException;
 public class StudioSecurityFilter extends GenericFilterBean {
 
     private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
+
+    private final static Logger logger = LoggerFactory.getLogger(StudioSecurityFilter.class);
 
     public StudioSecurityFilter() {
         pathMatcher = new AntPathMatcher();

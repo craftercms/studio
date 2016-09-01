@@ -108,12 +108,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-ebus</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
-        </dependency>
-
 
         <!-- GOOGLE ANALYTICS -->
         <dependency>
@@ -169,6 +163,16 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
+            <version>4.0.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>4.0.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
             <version>4.0.3.RELEASE</version>
         </dependency>
         <dependency>
@@ -245,18 +249,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectreactor</groupId>
-            <artifactId>reactor-tcp</artifactId>
-            <version>1.0.0.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
             <version>3.6.6.Final</version>
@@ -266,6 +258,13 @@
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache-jgroupsreplication</artifactId>
             <version>1.7</version>
+        </dependency>
+
+        <!-- JGit -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.2.0.201601211800-r</version>
         </dependency>
 
         <!-- testing -->

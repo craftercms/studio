@@ -86,94 +86,94 @@ public class MappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.getContent(path);
+        return repo.getContent(site, path);
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.contentExists(path);
+        return repo.contentExists(site, path);
      }
 
     @Override
-    public boolean writeContent(String path, InputStream content) throws ServiceException {
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.writeContent(path, content);
+        return repo.writeContent(site, path, content);
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
+    public boolean createFolder(String site, String path, String name) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.createFolder(path, name);
+        return repo.createFolder(site, path, name);
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.deleteContent(path);
+        return repo.deleteContent(site, path);
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
+    public boolean copyContent(String site, String fromPath, String toPath) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.copyContent(fromPath, toPath);
+        return repo.copyContent(site, fromPath, toPath);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
+    public boolean moveContent(String site, String fromPath, String toPath) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.moveContent(fromPath, toPath);
+        return repo.moveContent(site, fromPath, toPath);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.moveContent(fromPath, toPath, newName);
+        return repo.moveContent(site, fromPath, toPath, newName);
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path) {
+    public RepositoryItem[] getContentChildren(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.getContentChildren(path);
+        return repo.getContentChildren(site, path);
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.getContentChildren(path, ignoreCache);
+        return repo.getContentChildren(site, path, ignoreCache);
     }
 
     @Override
-    public VersionTO[] getContentVersionHistory(String path) {
+    public VersionTO[] getContentVersionHistory(String site, String path) {
        ContentRepository repo = lookupRepo(repositoryType);
-        return repo.getContentVersionHistory(path);
+        return repo.getContentVersionHistory(site, path);
     }
 
     @Override
-    public String createVersion(String path, boolean majorVersion) {
+    public String createVersion(String site, String path, boolean majorVersion) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.createVersion(path, majorVersion);
+        return repo.createVersion(site, path, majorVersion);
     }
 
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.createVersion(path, comment, majorVersion);
+        return repo.createVersion(site, path, comment, majorVersion);
     }
 
     @Override
-    public boolean revertContent(String path, String label, boolean major, String comment) {
+    public boolean revertContent(String site, String path, String label, boolean major, String comment) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.revertContent(path, label, major, comment);
+        return repo.revertContent(site, path, label, major, comment);
     }
 
     @Override
-    public InputStream getContentVersion(String path, String version) 
+    public InputStream getContentVersion(String site, String path, String version)
 	throws ContentNotFoundException {    
     	ContentRepository repo = lookupRepo(repositoryType);
-       	return repo.getContentVersion(path, version);
+       	return repo.getContentVersion(site, path, version);
     }
     
     @Override
@@ -189,8 +189,14 @@ public class MappedContentRepository extends AbstractContentRepository {
     }
 
     @Override
-    public Date getModifiedDate(String path) {
+    public Date getModifiedDate(String site, String path) {
         ContentRepository repo = lookupRepo(repositoryType);
-        return repo.getModifiedDate(path);
+        return repo.getModifiedDate(site, path);
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        ContentRepository repo = lookupRepo(repositoryType);
+        return repo.createSiteFromBlueprint(blueprintName, siteId);
     }
 }

@@ -115,12 +115,12 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
-        return getContentStreamCMIS(path);
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        return getContentStreamCMIS(site, path);
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
@@ -137,50 +137,50 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) throws ServiceException {
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
         logger.debug("writing content to " + path);
-        return writeContentCMIS(path, content);
+        return writeContentCMIS(site, path, content);
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
+    public boolean createFolder(String site, String path, String name) {
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
         logger.debug("deleting content at " + path);
-        return deleteContentCMIS(path);
+        return deleteContentCMIS(site, path);
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
-        return this.copyContentInternal(fromPath, toPath, null, false);
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        return this.copyContentInternal(site, fromPath, toPath, null, false);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
-        return this.copyContentInternal(fromPath, toPath, newName, true);
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
+        return this.copyContentInternal(site, fromPath, toPath, newName, true);
     }
 
     /**
      * get immediate children for path
      * @param path path to content
      */
-    public RepositoryItem[] getContentChildren(String path) {
-        RepositoryItem[] items = getContentChildrenCMIS(path);
+    public RepositoryItem[] getContentChildren(String site, String path) {
+        RepositoryItem[] items = getContentChildrenCMIS(site, path);
         return items;
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return getContentChildren(site, path);
     }
 
     /**
@@ -190,8 +190,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, boolean majorVersion) {
-        return createVersion(path, null, majorVersion);
+    public String createVersion(String site, String path, boolean majorVersion) {
+        return createVersion(site, path, null, majorVersion);
     }
 
     /**
@@ -201,7 +201,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -250,8 +250,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * get the version history for an item
      * @param path - the path of the item
      */
-    public VersionTO[] getContentVersionHistory(String path) {
-        return getContentVersionHistoryCMIS(path);
+    public VersionTO[] getContentVersionHistory(String site, String path) {
+        return getContentVersionHistoryCMIS(site, path);
     }
 
     /** 
@@ -259,8 +259,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String version, boolean major, String comment) {
-        return revertContentCMIS(path, version, major, comment);
+    public boolean revertContent(String site, String path, String version, boolean major, String comment) {
+        return revertContentCMIS(site, path, version, major, comment);
     }
 
     /**
@@ -295,9 +295,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      *@param isCut
      *              true for move  @return  true if successful
      */
-    protected boolean copyContentInternal(String fromPath, String toPath, String newName, boolean isCut) {
+    protected boolean copyContentInternal(String site, String fromPath, String toPath, String newName, boolean isCut) {
         logger.debug((isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
-        return copyContentInternalCMIS(fromPath, toPath, newName, isCut);
+        return copyContentInternalCMIS(site, fromPath, toPath, newName, isCut);
     }
 
     /**
@@ -562,7 +562,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return nodeRef;
     }
 
-    protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+    protected InputStream getContentStreamCMIS(String site, String fullPath) throws ContentNotFoundException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -592,7 +592,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return inputStream;
     }
 
-    protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+    protected RepositoryItem[] getContentChildrenCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -649,7 +649,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return items;
     }
 
-    protected boolean writeContentCMIS(String fullPath, InputStream content) throws ServiceException {
+    protected boolean writeContentCMIS(String site, String fullPath, InputStream content) throws ServiceException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -664,7 +664,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         try {
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
             CmisObject cmisObject = null;
-            if (contentExists(cleanPath)) {
+            if (contentExists(site, cleanPath)) {
                 cmisObject = session.getObjectByPath(cleanPath);
             }
             if (cmisObject != null) {
@@ -689,7 +689,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     folderPath = "/";
                 }
                 CmisObject folderCmisObject = null;
-                if (contentExists(folderPath)) {
+                if (contentExists(site, folderPath)) {
                     folderCmisObject = session.getObjectByPath(folderPath);
                 }
                 Folder folder = null;
@@ -731,7 +731,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return false;
     }
 
-    protected boolean deleteContentCMIS(String fullPath) {
+    protected boolean deleteContentCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -766,7 +766,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return result;
     }
 
-    protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+    protected VersionTO[] getContentVersionHistoryCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         VersionTO[] versions = new VersionTO[0];
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -814,7 +814,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return versions;
     }
 
-    protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+    protected boolean revertContentCMIS(String site, String fullPath, String version, boolean major, String comment) {
         long startTime = System.currentTimeMillis();
         boolean success = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -965,7 +965,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return newFolderRef;
     }
 
-    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, String newName, boolean isCut) {
+    protected boolean copyContentInternalCMIS(String site, String fromFullPath, String toFullPath, String newName, boolean isCut) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -1002,7 +1002,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         }
                     }
                     if (isCut) {
-                        deleteContentCMIS(cleanFromPath);
+                        deleteContentCMIS(site, cleanFromPath);
                     }
                     session.clear();
                     long duration = System.currentTimeMillis() - startTime;
@@ -1143,7 +1143,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists(site, cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
                 ObjectType type = cmisObject.getBaseType();
@@ -1318,7 +1318,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     @Override
-    public Date getModifiedDate(String fullPath) {
+    public Date getModifiedDate(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1407,6 +1407,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     private void bootstrapDir(File dir, String rootPath) {
+        String site = "";
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
             String childPath = child.getAbsolutePath();
@@ -1423,7 +1424,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     createFolderInternalCMIS(parentPath, child.getName());
                 } else if (child.isFile()) {
                     try {
-                        writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                        writeContentCMIS(site, relativePath, FileUtils.openInputStream(child));
                     } catch (IOException | ServiceException e) {
                         logger.error("Error while bootstrapping file: " + relativePath, e);
                     }
@@ -1433,9 +1434,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     private boolean bootstrapCheck() {
-        boolean contentSpace = contentExists("/wem-projects");
-        boolean blueprintsSpace = contentExists("/cstudio/blueprints");
-        boolean configSpace = contentExists("/cstudio/config");
+        boolean contentSpace = contentExists("", "/wem-projects");
+        boolean blueprintsSpace = contentExists("", "/cstudio/blueprints");
+        boolean configSpace = contentExists("", "/cstudio/config");
         return contentSpace && blueprintsSpace && configSpace;
     }
 
@@ -1466,7 +1467,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists("", cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
 
@@ -1482,6 +1483,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 logger.error("Error while setting permissions for content at path " + cleanPath, err);
             }
         }
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        return false;
     }
 
     @Override

@@ -14,18 +14,26 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.impl.v1.ebus;
+package org.craftercms.studio.impl.v1.service.security;
 
-import org.craftercms.studio.api.v1.ebus.DistributedEventMessage;
-import reactor.function.Consumer;
-import reactor.tcp.TcpConnection;
+import org.craftercms.studio.api.v1.dal.SecurityMapper;
+import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 
-public class DistributedEBussConnectionConsumer implements Consumer<TcpConnection<DistributedEventMessage, String>> {
+public class UserDetailsManagerImpl implements UserDetailsManager {
+
+
     @Override
-    public void accept(TcpConnection<DistributedEventMessage, String> distributedEventMessageStringTcpConnection) {
-        distributedEventMessageStringTcpConnection.in()
-                .consume(new DistributedEBusConsumer());
+    public UserDetails loadUserByUsername(String userName) {
+        User user = securityMapper.getUser(userName);
+        return user;
     }
+
+    @Autowired
+    private SecurityMapper securityMapper;
 }
