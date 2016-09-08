@@ -98,6 +98,12 @@
             <artifactId>crafter-engine</artifactId>
             <version>2.6.0-SNAPSHOT</version>
             <type>war</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -169,11 +175,54 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
             <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
             <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.transaction</groupId>
@@ -415,6 +464,9 @@
                                 <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
+                                <exclude>WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
+                                <exclude>WEB-INF/lib/spring-security-web-3.2.3.RELEASE.jar</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
