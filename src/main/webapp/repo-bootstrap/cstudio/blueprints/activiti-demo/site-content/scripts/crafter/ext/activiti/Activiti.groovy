@@ -12,6 +12,7 @@ import groovyx.net.http.RESTClient
 public class Activiti {
 
 	public logger = null
+	public siteConfig = null
 
 	public String REST_ENT_GET_PROCESSES = getActivitiAppName() + "UNKOWN"
 	public String REST_COM_GET_PROCESSES = "UNKOWN"
@@ -34,8 +35,9 @@ public class Activiti {
 	/**
 	 * create a activiti connection
 	 */
-	public Activiti(logger) {
+	public Activiti(logger, siteConfig) {
 		this.logger = logger
+		this.siteConfig = siteConfig
 	}
 
 	public getProcesses() {
@@ -77,7 +79,7 @@ public class Activiti {
 	 * Make the actual REST call
 	 */
 	public doRequest(serviceUrl, methodType, reqBody) {
-		logInfo("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
+		logDebug("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
 
 		def ret = null
 		def http = new HTTPBuilder(getHostBaseUrl())
@@ -114,22 +116,32 @@ public class Activiti {
 	}
 
 	public getHostBaseUrl() {
-		return "http://localhost:8080"
+		return getConfigValue("activiti.hostBaseUrl", "http://localhost:8080")
 	}
 
 	public getUserName() {
-		return "russ.danner@craftersoftware.com"
+		return getConfigValue("activiti.username", "admin@app.activiti.com")
 	}
 
 	public getPassword() {
-		return "crafter"
+		return getConfigValue("activiti.password", "admin")
 	}
 
 	public getActivitiAppName() {
-		return "/activiti-app"
+		return getConfigValue("activiti.appName", "/activiti-app")
+	}
+
+	public getConfigValue(key, defaultValue) {
+		return (siteConfig) ? siteConfig.getString(key, defaultValue) : defaultValue
+	}
+
+	public logDebug(message) {
+		if(logger) logger.debug(""+message)
+
 	}
 
 	public logInfo(message) {
 		if(logger) logger.info(""+message)
+
 	}
 }
