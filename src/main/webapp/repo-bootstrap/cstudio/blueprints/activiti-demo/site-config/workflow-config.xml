@@ -1,0 +1,9 @@
+<!--  workflow configuration to decide which workflow to submit content to and who to assign the task based on sub -->
+<workflow-config>
+	<workflows>
+		<workflow default="true">
+			<name>jbpm$wcmwf:cstudio-wcm-submit</name>
+			<assignee>admin</assignee>
+		</workflow>
+	</workflows>
+</workflow-config>
