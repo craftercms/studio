@@ -85,7 +85,7 @@ public class Activiti {
 	 * Make the actual REST call
 	 */
 	public doRequest(serviceUrl, methodType, reqBody) {
-		logInfo("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
+		logDebug("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
 
 		def ret = null
 		def http = new HTTPBuilder(getHostBaseUrl())
