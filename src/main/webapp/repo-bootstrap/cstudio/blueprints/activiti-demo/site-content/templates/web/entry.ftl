@@ -74,10 +74,12 @@
 							labelEl.id = field.id+"Label";
 							var inputEl = document.createElement("input");
 							inputEl.id = field.id;
+							inputEl.value = field.value;
 							formEl.append(fieldContainerEl);
 							fieldContainerEl.appendChild(labelEl);
 							fieldContainerEl.appendChild(inputEl);
-							formFields[formFields.length] = field.id;	 				
+							formFields[formFields.length] = field.id;
+
 						}
 						else if(field.type = "multi-line-text") {
 							var fieldContainerEl = document.createElement("div");
@@ -87,6 +89,7 @@
 							labelEl.id = field.id+"Label";
 							var inputEl = document.createElement("textarea");
 							inputEl.id = field.id;
+							inputEl.value = field.value;
 							formEl.append(fieldContainerEl);
 							fieldContainerEl.appendChild(labelEl);
 							fieldContainerEl.appendChild(inputEl);
@@ -135,7 +138,10 @@
   					 
 					});
   				});
-			}
+			};
+
+
+
 
 			$( "#startProcessBtn" ).click(function() {
   				$.get( "/api/1/services/start-process.json", function( data ) {

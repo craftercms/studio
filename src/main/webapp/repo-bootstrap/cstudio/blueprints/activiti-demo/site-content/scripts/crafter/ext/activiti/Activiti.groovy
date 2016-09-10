@@ -16,23 +16,24 @@ public class Activiti {
 	public username = null
 	public password = null
 
+	public String REST_UNKNOWN = "UNKOWN"
 	public String REST_ENT_GET_PROCESSES = getActivitiAppName() + "UNKOWN"
-	public String REST_COM_GET_PROCESSES = "UNKOWN"
+	public String REST_COM_GET_PROCESSES = REST_UNKNOWN
 	
 	public String REST_ENT_GET_TASKS = getActivitiAppName() + "/api/enterprise/tasks/query"
-	public String REST_COM_GET_TASKS = "/activiti-app/api/enterprise/tasks/query"
+	public String REST_COM_GET_TASKS = REST_UNKNOWN
 	
 	public String REST_ENT_GET_TASK_FORM = getActivitiAppName() + "/api/enterprise/task-forms/"
-	public String REST_COM_GET_TASK_FORM = "/activiti-app/api/enterprise/task-forms/"
+	public String REST_COM_GET_TASK_FORM = REST_UNKNOWN                           
 	
-	public String REST_ENT_SUBMIT_TASK = getActivitiAppName() + "/api/enterprise/task-forms/"
-	public String REST_COM_SUBMIT_TASK = "/activiti-app/api/enterprise/task-forms/"
+	public String REST_ENT_SUBMIT_TASK = REST_ENT_GET_TASK_FORM 
+	public String REST_COM_SUBMIT_TASK = REST_UNKNOWN
 	
 	public String REST_ENT_GET_PROC_DEFS = getActivitiAppName() + "/api/enterprise/process-definitions"
-	public String REST_COM_GET_PROC_DEFS = "/activiti-app/api/enterprise/process-definitions"
+	public String REST_COM_GET_PROC_DEFS = REST_UNKNOWN
 	
 	public String REST_ENT_START_PROC = getActivitiAppName() + "/api/enterprise/process-instances"
-	public String REST_COM_START_PROC = "/activiti-app/api/enterprise/process-instances"
+	public String REST_COM_START_PROC = REST_UNKNOWN
 
 	/**
 	 * create a activiti connection
@@ -83,7 +84,7 @@ public class Activiti {
 	 * Make the actual REST call
 	 */
 	public doRequest(serviceUrl, methodType, reqBody) {
-		logDebug("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
+		logInfo("calling [${methodType}] for url [${serviceUrl}] with body [$reqBody]")
 
 		def ret = null
 		def http = new HTTPBuilder(getHostBaseUrl())
@@ -116,7 +117,7 @@ public class Activiti {
 	}
 
 	public isEnterprise() {
-		return true
+		return (getConfigValue("activiti.hostBaseUrl", "true") == "true")
 	}
 
 	public getHostBaseUrl() {
