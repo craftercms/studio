@@ -102,10 +102,24 @@
 
 					$("#formSubmit").click(function() {
 					    var taskId = document.getElementById("formSubmit").taskId;
-						$.get( "/api/1/services/submit-form.json?taskId="+taskId, function( data ) {
-  							updateTaskList();
-  							formEl.html("");
-  						});
+					    var formData = {taskId: taskId, data: { firstName: "R", lastName: "D", request: "DO STUFF" } }
+
+						$.ajax({
+						    type: "POST",
+						    url: "/api/1/services/submit-form.json",
+						    data: JSON.stringify(formData),
+						    contentType: "application/json; charset=utf-8",
+						    dataType: "json",
+						    success: function(data) {
+								updateTaskList();
+  								formEl.html("");
+						    },
+						    failure: function(errMsg) {
+						        alert(errMsg);
+						    }
+						});
+  							
+  					 
 					});
   				});
 			}
