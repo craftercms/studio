@@ -25,8 +25,17 @@
 	    <div id="form"></div>
 
 		<script>
+			var crafterActiviti = {
+				urls: {
+					GET_PROC_DEFS:  "/api/1/services/activiti/1/get-process-defs.json",
+					GET_START_PROC: "/api/1/services/activiti/1/start-process.json",
+					GET_TASKS:      "/api/1/services/activiti/1/get-tasks.json",
+					GET_TASK_FORM:  "/api/1/services/activiti/1/get-form-def.json",
+					POST_TASK_FORM: "/api/1/services/activiti/1/submit-form.json"
+				}
+			}
 			function initProcDefList() {
-				$.get( "/api/1/services/get-process-defs.json", function( data ) {
+				$.get(crafterActiviti.urls.GET_PROC_DEFS, function( data ) {
 					var dropdownEl = document.getElementById('procDefs');
 
 					for(var i=0; i<data.data.length; i++) {
@@ -42,7 +51,7 @@
 			function initTaskList() {
 				var table = $('#tasks').DataTable({ 
 					ajax: {
-					url: '/api/1/services/get-tasks.json', 
+					url: crafterActiviti.urls.GET_TASKS, 
 					dataSrc: function ( json ) {
 						var dataArray = [];
 						for ( var i=0, ien=json.data.length ; i<ien ; i++ ) {
@@ -79,7 +88,7 @@
 
 				var formContent = document.createElement("div");
 
-				$.get( "/api/1/services/get-form-def.json?taskId="+taskId, function( data ) {
+				$.get(crafterActiviti.urls.GET_TASK_FORM + "?taskId="+taskId, function( data ) {
 					var fields = data.fields[0].fields[1];
 					var len = fields.length;
 
@@ -142,7 +151,7 @@
 
 						$.ajax({
 						    type: "POST",
-						    url: "/api/1/services/submit-form.json",
+						    url: crafterActiviti.urls.POST_TASK_FORM,
 						    data: JSON.stringify(formData),
 						    contentType: "application/json; charset=utf-8",
 						    dataType: "json",
@@ -164,7 +173,7 @@
 			$( "#startProcessBtn" ).click(function() {
 				var dropdownEl = document.getElementById('procDefs');
 
-  				$.get( "/api/1/services/start-process.json?processDef="+dropdownEl.value, function( data ) {
+  				$.get(crafterActiviti.urls.GET_START_PROC + "?processDef="+dropdownEl.value, function( data ) {
   					alert("process started");
   					updateTaskList();
   				});

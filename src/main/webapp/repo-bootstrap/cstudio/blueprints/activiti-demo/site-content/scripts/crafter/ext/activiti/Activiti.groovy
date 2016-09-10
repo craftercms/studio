@@ -140,11 +140,9 @@ public class Activiti {
 
 	public logDebug(message) {
 		if(logger) logger.debug(""+message)
-
 	}
 
 	public logInfo(message) {
 		if(logger) logger.info(""+message)
-
 	}
 }
