@@ -1,5 +1,13 @@
 import scripts.crafter.ext.activiti.Activiti
 
-def activitiAPI = new Activiti(logger, siteConfig)
+def activitiUserName = null
+def activitiPassword = null
+
+if(profile) {
+	activitiUserName = profile.activitiUserName
+	activitiPassword = profile.activitiPassword
+}
+
+def activitiAPI = new Activiti(activitiUserName, activitiPassword, logger, siteConfig)
 
 return activitiAPI.getFormDefForTask(params.taskId)

@@ -13,6 +13,8 @@ public class Activiti {
 
 	public logger = null
 	public siteConfig = null
+	public username = null
+	public password = null
 
 	public String REST_ENT_GET_PROCESSES = getActivitiAppName() + "UNKOWN"
 	public String REST_COM_GET_PROCESSES = "UNKOWN"
@@ -35,9 +37,11 @@ public class Activiti {
 	/**
 	 * create a activiti connection
 	 */
-	public Activiti(logger, siteConfig) {
+	public Activiti(username, password, logger, siteConfig) {
 		this.logger = logger
 		this.siteConfig = siteConfig
+		this.username = username
+		this.password = password
 	}
 
 	public getProcesses() {
@@ -120,11 +124,11 @@ public class Activiti {
 	}
 
 	public getUserName() {
-		return getConfigValue("activiti.username", "admin@app.activiti.com")
+		return (this.username!=null) ? this.username : "admin@app.activiti.com"
 	}
 
 	public getPassword() {
-		return getConfigValue("activiti.password", "admin")
+		return (this.password!=null) ? this.password : "admin"
 	}
 
 	public getActivitiAppName() {
