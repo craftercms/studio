@@ -16,6 +16,7 @@ public class Activiti {
 	public username = null
 	public password = null
 
+	// https://docs.alfresco.com/activiti/docs/dev-guide/1.4.0/#_rest_api
 	public String REST_UNKNOWN = "UNKOWN"
 	public String REST_ENT_GET_PROCESSES = getActivitiAppName() + "UNKOWN"
 	public String REST_COM_GET_PROCESSES = REST_UNKNOWN
