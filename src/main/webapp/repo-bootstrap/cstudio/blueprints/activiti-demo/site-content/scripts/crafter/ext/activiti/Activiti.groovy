@@ -46,18 +46,15 @@ public class Activiti {
 		this.password = password
 	}
 
-	public getProcesses() {
-		return []
+	public getProcessDefs() {
+		def url = (isEnterprise()) ? REST_ENT_GET_PROC_DEFS  : REST_COM_GET_PROC_DEFS 
+
+		return doRequest(url, Method.GET, null)
 	}
 
-	public startProcess(processKey, name) {
-		def url = (isEnterprise()) ? REST_ENT_GET_PROC_DEFS : REST_ENT_GET_PROC_DEFS 
-		def procDefs = doRequest(url, Method.GET, null)
-        def procDef = procDefs.data[0]
-        def procId = procDef.id
-
-        url = (isEnterprise()) ? REST_ENT_START_PROC : REST_ENT_START_PROC
-        def body =  [ processDefinitionId:procId, name:name]
+	public startProcess(processId, name) {
+        def url = (isEnterprise()) ? REST_ENT_START_PROC : REST_ENT_START_PROC
+        def body =  [ processDefinitionId:processId, name:name]
 
 		return doRequest(url, Method.POST, body)
     }

@@ -10,5 +10,4 @@ if(profile) {
 
 def activitiAPI = new Activiti(activitiUserName, activitiPassword, logger, siteConfig)
 
-
-return [] //activitiyAPI.startProcess("doesntmatteryet", "My Process")
+return activitiAPI.getProcessDefs()

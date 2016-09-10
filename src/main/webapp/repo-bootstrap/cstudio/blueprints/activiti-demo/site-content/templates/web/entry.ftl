@@ -11,7 +11,12 @@
 	</head>
 
 	<body>
+		<h1>Pick a Process and Start It</h1>
+		<select id="procDefs"></select>
+
 		<button id='startProcessBtn'>Start Process</button>
+
+		<h1>Select a Task</h1>
 		<table id="tasks" class="display" cellspacing="0" width="100%">
 	        <thead>
 	            <tr> <th>ID</th> <th>Task Name</th> <th>Assignee</th> <th>Created</th> </tr>
@@ -20,6 +25,20 @@
 	    <div id="form"></div>
 
 		<script>
+			function initProcDefList() {
+				$.get( "/api/1/services/get-process-defs.json", function( data ) {
+					var dropdownEl = document.getElementById('procDefs');
+
+					for(var i=0; i<data.data.length; i++) {
+						var proc = data.data[i];
+						var option = document.createElement("option");
+						option.text = proc.name;
+						option.value = proc.id
+						dropdownEl.add(option);
+					}
+				});
+			}
+
 			function initTaskList() {
 				var table = $('#tasks').DataTable({ 
 					ajax: {
@@ -54,8 +73,9 @@
 			var formFields = [];
 			function renderForm(taskId) {
 				var formEl = $("#form");
-				formEl.html("");
+				formEl.html("<h1>Complete Task</h1>");
 				formFields = [];
+
 
 				var formContent = document.createElement("div");
 
@@ -141,16 +161,17 @@
 			};
 
 
-
-
 			$( "#startProcessBtn" ).click(function() {
-  				$.get( "/api/1/services/start-process.json", function( data ) {
+				var dropdownEl = document.getElementById('procDefs');
+
+  				$.get( "/api/1/services/start-process.json?processDef="+dropdownEl.value, function( data ) {
   					alert("process started");
   					updateTaskList();
   				});
 			});
 
 			$(document).ready(function() {
+				initProcDefList();
 				initTaskList();    
 			});
 		</script>

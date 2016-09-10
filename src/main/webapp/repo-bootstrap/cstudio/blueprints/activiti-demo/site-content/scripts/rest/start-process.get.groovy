@@ -2,6 +2,7 @@ import scripts.crafter.ext.activiti.Activiti
 
 def activitiUserName = null
 def activitiPassword = null
+def processKey = params.processDef
 
 if(profile) {
     activitiUserName = profile.activitiUserName
@@ -10,4 +11,4 @@ if(profile) {
 
 def activitiAPI = new Activiti(activitiUserName, activitiPassword, logger, siteConfig)
 
-return activitiAPI.startProcess("doesntmatteryet", "My Process")
+return activitiAPI.startProcess(processKey, processKey + " : " + new Date())
