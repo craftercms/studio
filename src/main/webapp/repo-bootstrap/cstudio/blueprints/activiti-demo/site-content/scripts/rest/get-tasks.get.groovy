@@ -10,4 +10,4 @@ if(profile) {
 
 def activitiAPI = new Activiti(activitiUserName, activitiPassword, logger, siteConfig)
 
-return activitiAPI.getTasksForUser("russ.danner@craftersoftware.comd")
+return activitiAPI.getTasksForUser(activitiUserName)

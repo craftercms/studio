@@ -51,10 +51,11 @@
 			}
 
 
-
+			var formFields = [];
 			function renderForm(taskId) {
 				var formEl = $("#form");
 				formEl.html("");
+				formFields = [];
 
 				var formContent = document.createElement("div");
 
@@ -75,7 +76,8 @@
 							inputEl.id = field.id;
 							formEl.append(fieldContainerEl);
 							fieldContainerEl.appendChild(labelEl);
-							fieldContainerEl.appendChild(inputEl);	 				
+							fieldContainerEl.appendChild(inputEl);
+							formFields[formFields.length] = field.id;	 				
 						}
 						else if(field.type = "multi-line-text") {
 							var fieldContainerEl = document.createElement("div");
@@ -87,7 +89,8 @@
 							inputEl.id = field.id;
 							formEl.append(fieldContainerEl);
 							fieldContainerEl.appendChild(labelEl);
-							fieldContainerEl.appendChild(inputEl);	 						
+							fieldContainerEl.appendChild(inputEl);
+							formFields[formFields.length] = field.id;	 						
 						}
 					}
 
@@ -102,7 +105,17 @@
 
 					$("#formSubmit").click(function() {
 					    var taskId = document.getElementById("formSubmit").taskId;
-					    var formData = {taskId: taskId, data: { firstName: "R", lastName: "D", request: "DO STUFF" } }
+					    var formData = {taskId: taskId, data: {  } }
+
+						var len = formFields.length;
+
+						for ( var i=0 ; i<len ; i++ ) {
+							var elId = formFields[i]
+							var el = document.getElementById(elId);
+							var value = el.value;
+
+							formData.data[elId] = value;
+						}
 
 						$.ajax({
 						    type: "POST",
