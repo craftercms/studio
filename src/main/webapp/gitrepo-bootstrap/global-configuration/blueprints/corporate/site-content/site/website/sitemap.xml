@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/sitemap</content-type>	<display-template>/templates/web/sitemap.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>3121</objectGroupId>
+	<objectId>3121945d-1309-d31b-adb1-48b744f4ca9a</objectId>
+	<file-name>sitemap.xml</file-name>
+	<folder-name/>
+	<internal-name>Sitemap</internal-name>
+	<title>Site Map</title>
+	<scripts>	<item>	<key>/scripts/pages/site-map.groovy</key>
+	<value>/scripts/pages/site-map.groovy</value>
+	<fileType_s>groovy</fileType_s>
+	</item></scripts>
+	<body/>
+	<createdDate>2/3/2014 14:39:52</createdDate>
+	<lastModifiedDate>2/3/2014 14:39:52</lastModifiedDate>
+</page>

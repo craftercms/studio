@@ -1,0 +1,21 @@
+<config>
+   <category>
+      <label>General</label>
+      <component>
+                <label>Twitter Feed</label>
+                <type>/component/twitter</type>
+                <path>/site/components</path>
+      </component>
+      <component>
+                <label>Image</label>
+                <type>/component/image</type>
+                <path>/site/components/page</path>
+      </component>
+     <component>
+                <label>Videos</label>
+                <type>/component/videos</type>
+                <path>/site/components/page</path>
+      </component>
+
+   </category>
+</config>

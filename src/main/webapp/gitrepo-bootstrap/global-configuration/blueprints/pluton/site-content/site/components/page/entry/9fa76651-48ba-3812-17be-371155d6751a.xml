@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>9fa7</objectGroupId>
+	<objectId>9fa76651-48ba-3812-17be-371155d6751a</objectId>
+	<file-name>9fa76651-48ba-3812-17be-371155d6751a.xml</file-name>
+	<internal-name>test</internal-name>
+	<content_html>&lt;p&gt;test&lt;/p&gt;</content_html>
+	<createdDate>6/29/2015 4:28:1</createdDate>
+	<lastModifiedDate>6/29/2015 4:28:1</lastModifiedDate>
+</component>
