@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+  <content-type>/page/entry</content-type>
+  <file-name valid="true">index.xml</file-name>
+  <internal-name>Home</internal-name>
+  <title>A Page</title>
+  <meta-description>example</meta-description>
+  <corporateKeywords/>
+  <meta-keywords>example</meta-keywords>
+  <display-template>/templates/web/entry.ftl</display-template>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <placeInNav>false</placeInNav>
+<orderDefault_f>-1</orderDefault_f>
+   <body>Hello World!</body>
+</page>
