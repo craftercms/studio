@@ -746,19 +746,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (IOException err) {
             logger.error("Error copping files from blueprint", err);
         }
-        /*
-        File blueprintFolder = blueprintPath.toAbsolutePath().toFile();
-        File[] blueprintContents = blueprintFolder.listFiles();
-        for (File blueprintContent : blueprintContents) {
-            Path source = Paths.get(blueprintContent.getAbsolutePath());
-            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            TreeCopier tc = new TreeCopier(source, siteRepoPath);
-            try {
-                Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
-            } catch (IOException err) {
-                logger.error("Error copping files from blueprint", err);
-            }
-        }*/
     }
 
     class TreeCopier implements FileVisitor<Path> {
