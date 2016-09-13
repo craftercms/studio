@@ -124,7 +124,7 @@ CREATE TABLE CSTUDIO_USER
 ) ;
 
 INSERT INTO CSTUDIO_USER (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL)
-    VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'dbrkic@rivetlogic.com') ;
+    VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com') ;
 
 
 CREATE TABLE CSTUDIO_GROUP
