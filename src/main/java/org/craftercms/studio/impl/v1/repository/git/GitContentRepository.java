@@ -50,7 +50,9 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
+import org.springframework.web.context.ServletContextAware;
 
+import javax.servlet.ServletContext;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -60,7 +62,7 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-public class GitContentRepository implements ContentRepository {
+public class GitContentRepository implements ContentRepository, ServletContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
@@ -744,19 +746,6 @@ public class GitContentRepository implements ContentRepository {
         } catch (IOException err) {
             logger.error("Error copping files from blueprint", err);
         }
-        /*
-        File blueprintFolder = blueprintPath.toAbsolutePath().toFile();
-        File[] blueprintContents = blueprintFolder.listFiles();
-        for (File blueprintContent : blueprintContents) {
-            Path source = Paths.get(blueprintContent.getAbsolutePath());
-            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            TreeCopier tc = new TreeCopier(source, siteRepoPath);
-            try {
-                Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
-            } catch (IOException err) {
-                logger.error("Error copping files from blueprint", err);
-            }
-        }*/
     }
 
     class TreeCopier implements FileVisitor<Path> {
@@ -832,8 +821,69 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
+    /**
+     * bootstrap the repository
+     */
+    public void bootstrap() throws Exception {
+        Path globalConfigFolder = Paths.get(rootPath, "global-configuration");
+        boolean bootstrapCheck = Files.exists(globalConfigFolder);
+
+        if(bootstrapEnabled && !bootstrapCheck) {
+            try{
+                logger.error("Bootstrapping repository for Crafter CMS");
+                Files.createDirectories(globalConfigFolder);
+            }
+            catch(Exception alreadyExistsErr){
+                // do nothing.
+            }
+            try {
+                Path globalConfigRepoPath = Paths.get(globalConfigFolder.toAbsolutePath().toString(), ".git");
+                Repository repository = FileRepositoryBuilder.create(globalConfigRepoPath.toFile());
+                repository.create();
+            } catch (IOException e) {
+                logger.error("Error while creating global configuration repository", e);
+            }
+
+            String bootstrapFolderPath = this.ctx.getRealPath(File.separator + "gitrepo-bootstrap");
+            Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+
+            logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
+
+            Path target = Paths.get(rootPath);
+
+            TreeCopier tc = new TreeCopier(source, target);
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+
+            try {
+                Repository globalConfigRepo = getGlobalConfigurationRepositoryInstance();
+
+                Git git = new Git(globalConfigRepo);
+
+                Status status = git.status().call();
+
+                if (status.hasUncommittedChanges() || !status.isClean()) {
+                    DirCache dirCache = git.add().addFilepattern(".").call();
+                    RevCommit commit = git.commit()
+                            .setMessage("initial content")
+                            .call();
+                    String tmp = commit.getId().toString();
+                }
+            } catch (IOException | GitAPIException err) {
+                logger.error("error creating initial commit for global configuration", err);
+            }
+        }
+    }
+
     public String getRootPath() { return rootPath; }
     public void setRootPath(String path) { rootPath = path; }
 
+    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
+    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
+
+    public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
+
     String rootPath;
+    boolean bootstrapEnabled;
+    ServletContext ctx;
 }

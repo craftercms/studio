@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/global-header</content-type>	<display-template>/templates/web/component-global-header.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>4140</objectGroupId>
+	<objectId>4140b29d-bf69-2641-6a97-2168e8038c7a</objectId>
+	<file-name>global-header.xml</file-name>
+	<folder-name/>
+	<internal-name>Global Header</internal-name>
+	<createdDate>6/5/2015 19:28:19</createdDate>
+	<lastModifiedDate>6/5/2015 19:28:19</lastModifiedDate>
+</component>
