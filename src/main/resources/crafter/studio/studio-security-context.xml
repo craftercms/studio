@@ -35,7 +35,7 @@
             <security:content-type-options disabled="true"/>
             <security:xss-protection disabled="true"/>
         </security:headers>
-        <!--security:csrf disabled="true"/-->
+        <security:csrf disabled="true"/>
         <security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" />
         <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="permitAll" />
         <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll" />
