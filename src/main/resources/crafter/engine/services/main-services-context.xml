@@ -51,6 +51,16 @@
         </constructor-arg>
     </bean>
 
+    <bean id="crafter.servletContextAttributesInitializer"
+          class="org.craftercms.engine.util.servlet.ServletContextAttributesInitializer">
+        <property name="attributes">
+            <map>
+                <entry key="modePreview" value="${crafter.engine.preview}"/>
+                <entry key="environment" value="${crafter.engine.environment}"/>
+            </map>
+        </property>
+    </bean>
+
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--			 Scheduling				-->
@@ -59,6 +69,39 @@
 
     <task:annotation-driven scheduler="crafter.scheduler"/>
     <task:scheduler id="crafter.scheduler" pool-size="${crafter.engine.scheduler.threads.pool.size}"/>
+
+    <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--		      Merging 			    -->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
+
+    <bean id="crafter.targetedContentMergeStrategy"
+          class="org.craftercms.engine.targeting.impl.merge.TargetedContentDescriptorMergeStrategy">
+        <property name="mergeStrategyResolver" ref="crafter.mergeStrategyResolverChain"/>
+        <property name="candidateTargetedUrlsResolver" ref="crafter.candidateTargetedUrlsResolver"/>
+        <property name="levelDescriptorFileName"
+                  value="${crafter.core.merger.strategy.inheritLevels.levelDescriptor.name}"/>
+    </bean>
+
+    <bean id="crafter.metaDataMergeStrategyResolver"
+          class="org.craftercms.core.xml.mergers.impl.resolvers.MetaDataMergeStrategyResolver">
+        <property name="mergeStrategyElementXPathQuery" value="${crafter.core.merger.strategy.element.xpathQuery}"/>
+        <property name="elementValueToStrategyMappings">
+            <map>
+                <entry key="${crafter.core.merger.strategy.element.value.singleFile}"
+                       value-ref="crafter.singleFileMergeStrategy"/>
+                <entry key="${crafter.core.merger.strategy.element.value.inheritLevels}"
+                       value-ref="crafter.inheritLevelsMergeStrategy"/>
+                <entry key="${crafter.core.merger.strategy.element.value.contentBundle}"
+                       value-ref="crafter.contentBundleMergeStrategy"/>
+                <entry key="${crafter.core.merger.strategy.element.value.explicitParent}"
+                       value-ref="crafter.explicitParentMergeStrategy"/>
+                <entry key="${crafter.engine.merger.strategy.element.value.targetedContent}"
+                       value-ref="crafter.targetedContentMergeStrategy"/>
+            </map>
+        </property>
+    </bean>
 
     <!-- ////////////////////////////////// -->
     <!--								 	-->
@@ -96,7 +139,7 @@
         <constructor-arg value="${crafter.core.merger.strategy.inheritLevels.levelDescriptor.name}"/>
     </bean>
 
-    <bean id="crafter.siteItemService" class="org.craftercms.engine.service.SiteItemService">
+    <bean id="crafter.siteItemService" class="org.craftercms.engine.service.impl.SiteItemServiceImpl">
         <property name="storeService" ref="crafter.contentStoreService"/>
         <property name="modelValueConverters">
             <map>
@@ -141,7 +184,17 @@
 
     <bean id="crafter.siteNameRequestAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
         <property name="attributeName" value="siteName"/>
-        <property name="requestScope" value="true"/>
+        <property name="scope" value="REQUEST"/>
+    </bean>
+
+    <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
+        <property name="attributeName" value="modePreview"/>
+        <property name="scope" value="SERVLET_CONTEXT"/>
+    </bean>
+
+    <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
+        <property name="attributeName" value="environment"/>
+        <property name="scope" value="SERVLET_CONTEXT"/>
     </bean>
 
     <bean id="crafter.macroResolver" class="org.craftercms.engine.macro.impl.MacroResolverImpl">
@@ -150,6 +203,8 @@
                 <ref bean="crafter.webAppPathMacro"/>
                 <ref bean="crafter.webAppContextPathMacro"/>
                 <ref bean="crafter.requestUriMacro"/>
+                <ref bean="crafter.modePreviewContextAttributeMacro"/>
+                <ref bean="crafter.environmentContextAttributeMacro"/>
                 <ref bean="crafter.siteNameRequestAttributeMacro"/>
             </list>
         </property>
