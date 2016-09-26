@@ -376,13 +376,30 @@ public class SiteServiceImpl implements SiteService {
 	 	return success;
     }
 
-    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc) {
+    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc) throws Exception {
         boolean success = true;
 
         // create site with git repo
         contentRepository.createSiteFromBlueprint(blueprintName, siteId);
 
+        String siteConfigFolder = "/config/studio";
+        replaceFileContentGit(siteId, siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
+        replaceFileContentGit(siteId, siteConfigFolder + "/role-mappings-config.xml", "SITENAME", siteId);
+        replaceFileContentGit(siteId, siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
+
         return success;
+    }
+
+    protected void replaceFileContentGit(String site, String path, String find, String replace) throws Exception {
+        InputStream content = contentRepository.getContent(site, path);
+        String contentAsString = IOUtils.toString(content);
+
+        contentAsString = contentAsString.replaceAll(find, replace);
+
+        InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
+
+        contentRepository.writeContent(site, path, contentToWrite);
+        contentRepository.createVersion(site, path, "create site from blueprint", false);
     }
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
