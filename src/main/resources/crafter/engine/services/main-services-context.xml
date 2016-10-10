@@ -345,7 +345,8 @@
 
     <bean name="crafter.iphoneUserAgent" class="org.craftercms.engine.mobile.UserAgent">
         <property name="detectionRegex" value="${crafter.engine.mobile.userAgent.iphone.detectionRegex}"/>
-        <property name="queryStringParamValue" value="${crafter.engine.mobile.userAgent.iphone.queryStringParam.value}"/>
+        <property name="queryStringParamValue"
+                  value="${crafter.engine.mobile.userAgent.iphone.queryStringParam.value}"/>
         <property name="templatePrefix" value="${crafter.engine.mobile.userAgent.iphone.templatePrefix}"/>
     </bean>
 
@@ -417,6 +418,7 @@
     <util:map id="crafter.freemarkerVariables">
         <entry key="siteItemService" value-ref="crafter.siteItemService"/>
         <entry key="urlTransformationService" value-ref="crafter.urlTransformationService"/>
+        <entry key="navTreeBuilder" value-ref="crafter.navTreeBuilder"/>
         <entry key="searchService" value-ref="crafter.searchService"/>
         <entry key="breadcrumbBuilder" value-ref="crafter.breadcrumbBuilder"/>
         <entry key="globalProperties" value-ref="crafter.propertyResolver"/>
@@ -428,28 +430,28 @@
         <property name="targetBeanName" value="crafter.freeMarkerConfig"/>
     </bean>
 
-<!-- STUDIO CHANGES -->
+    <!-- STUDIO CHANGES -->
     <bean name="studio.crafter.properties" class="java.util.HashMap">
-         <constructor-arg>
+        <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="cookieDomain" value="${cookieDomain}" />
-                <entry key="alfrescoUrl" value="${alfrescoUrl}" />
-                <entry key="environment" value="${environment}" />
-                <entry key="previewUrl" value="${previewUrl}" />
+                <entry key="cookieDomain" value="${cookieDomain}"/>
+                <entry key="alfrescoUrl" value="${alfrescoUrl}"/>
+                <entry key="environment" value="${environment}"/>
+                <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>
         </constructor-arg>
     </bean>
 
-    <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry" />
+    <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
 
     <bean id="crafter.proxy.alfresco" class="org.craftercms.engine.http.impl.AlfrescoHttpProxy">
         <property name="alfrescoTicketCookieName" value="alf_ticket"/>
         <property name="baseServiceUrl" value="${alfrescoUrl}/service"/>
     </bean>
 
-  <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
-  </bean>
+    <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
+    </bean>
 
     <!-- ////////////////////////////////// -->
     <!--								 	-->
@@ -476,11 +478,72 @@
     </bean>
 
     <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--		     Navigation 			-->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
+
+    <bean id="crafter.navItemConverter" class="org.craftercms.engine.navigation.impl.DefaultItemConverter">
+        <property name="navLabelXPath" value="${crafter.engine.page.navLabel.xpathQuery}"/>
+        <property name="internalNameXPath" value="${crafter.engine.page.internalName.xpathQuery}"/>
+        <property name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl"/>
+        <property name="urlTransformationService" ref="crafter.urlTransformationService"/>
+    </bean>
+
+    <bean id="crafter.folderToIndexItemProcessor"
+          class="org.craftercms.engine.navigation.impl.FolderToIndexItemProcessor">
+        <property name="folderToIndexUrlTransformerName" value="folderToIndexUrl"/>
+        <property name="urlTransformationEngine" ref="crafter.urlTransformationEngine"/>
+        <property name="storeService" ref="crafter.contentStoreService"/>
+        <property name="targetIdManager" ref="crafter.proxyTargetIdManager"/>
+    </bean>
+
+    <bean id="crafter.currentTargetedVersionItemProcessor"
+          class="org.craftercms.engine.navigation.impl.ToCurrentTargetedVersionItemProcessor">
+        <property name="toCurrentTargetedUrlTransformerName" value="toCurrentTargetedUrl"/>
+        <property name="urlTransformationEngine" ref="crafter.urlTransformationEngine"/>
+        <property name="storeService" ref="crafter.contentStoreService"/>
+        <property name="targetIdManager" ref="crafter.proxyTargetIdManager"/>
+    </bean>
+
+    <bean id="crafter.rejectIndexFilesItemFilter"
+          class="org.craftercms.engine.navigation.impl.RejectIndexFilesItemFilter">
+        <property name="targetedUrlStrategy" ref="crafter.proxyTargetedUrlStrategy"/>
+    </bean>
+
+    <bean id="crafter.rejectDuplicatesItemFilter"
+          class="org.craftercms.engine.navigation.impl.RejectDuplicatesItemFilter"/>
+
+    <bean id="crafter.acceptPlaceInNavItemFilter"
+          class="org.craftercms.engine.service.filter.ExpectedNodeValueItemFilter">
+        <constructor-arg value="${crafter.engine.page.placeInNav.xpathQuery}"/>
+        <constructor-arg value="true"/>
+    </bean>
+
+    <util:list id="crafter.navTreeProcessors">
+        <ref bean="crafter.folderToIndexItemProcessor"/>
+        <ref bean="crafter.currentTargetedVersionItemProcessor"/>
+    </util:list>
+
+    <util:list id="crafter.navTreeFilters">
+        <ref bean="crafter.rejectIndexFilesItemFilter"/>
+        <ref bean="crafter.rejectDuplicatesItemFilter"/>
+        <ref bean="crafter.acceptPlaceInNavItemFilter"/>
+    </util:list>
+
+    <bean id="crafter.navTreeBuilder" class="org.craftercms.engine.navigation.impl.NavTreeBuilderImpl">
+        <property name="siteItemService" ref="crafter.siteItemService"/>
+        <property name="itemConverter" ref="crafter.navItemConverter"/>
+        <property name="processors" ref="crafter.navTreeProcessors"/>
+        <property name="filters" ref="crafter.navTreeFilters"/>
+    </bean>
+
+    <!-- ////////////////////////////////// -->
     <!--                                    -->
     <!--            STUDIO                  -->
     <!--                                    -->
     <!-- ////////////////////////////////// -->
 
     <import resource="classpath:crafter/studio/studio-services-context.xml"/>
-    <import resource="classpath*:crafter/cstudio/extension/services-context.xml" />
+    <import resource="classpath*:crafter/cstudio/extension/services-context.xml"/>
 </beans>
