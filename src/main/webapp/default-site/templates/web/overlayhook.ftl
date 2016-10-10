@@ -26,7 +26,7 @@ require(['guest'], function () {
         formServerUri: "${envConfig.formServerUrl!'UNSET5'}",
         previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET6'}",
         contextMenuOffsetPage: true,
-        brandedLogoUri: "/proxy/authoring/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
+        brandedLogoUri: "/proxy/authoring/api/1/services/api/1/content/get-content-at-path.bin?path=/configuration/app-logo.png",
         homeUri: "/site-dashboard?site=${envConfig.site!'UNSET7'}",
         navContext: "default",
         cookieDomain: "${envConfig.cookieDomain!'UNSET8'}",

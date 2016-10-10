@@ -22,15 +22,12 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.ebus.annotations.EventHandler;
-import org.craftercms.commons.ebus.annotations.EventSelectorType;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -51,6 +48,7 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
+import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
@@ -59,8 +57,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import reactor.core.Reactor;
-import reactor.event.Event;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -82,14 +78,20 @@ public class SiteServiceImpl implements SiteService {
 	
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
-		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
+		boolean toRet = contentRepository.writeContent(site, path, content);
+        contentRepository.createVersion(site, path, false);
+        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
+            contentTypeUpdated.contentTypeUpdated(site, path.replace(contentTypeService.getConfigPath(), ""));
+        }
         clearConfigurationCache.clearConfigurationCache(site);
+
         return toRet;
 	}
 
 	@Override	
 	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
-		boolean toReturn = contentRepository.writeContent(path, content);
+		boolean toReturn = contentRepository.writeContent("", path, content);
+        contentRepository.createVersion("", path, false);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
         return toReturn;
@@ -131,11 +133,10 @@ public class SiteServiceImpl implements SiteService {
 						CStudioConstants.PATTERN_ENVIRONMENT, environment)
 						+ path;
 			} else {
-				configPath = this.sitesConfigPath + "/" + site + path;
+				configPath = this.sitesConfigPath + path;
 			}
 		}
-		logger.debug("[SITESERVICE] loading configuration at " + configPath);
-		String configContent = contentService.getContentAsString(configPath);
+		String configContent = contentService.getContentAsString(site, configPath);
 
 		JSON response = null;
 		Map<String, Object> toRet = null;
@@ -304,33 +305,37 @@ public class SiteServiceImpl implements SiteService {
 
    	@Override
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
- 		boolean success = true;
+        boolean success = true;
+
  		try {
-			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
-			contentRepository.copyContent("/cstudio/blueprints/"+blueprintName+"/site-content",
-				"/wem-projects/"+siteId+"/"+siteId+"/work-area");
+            if (createSiteV2) {
+                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
+            } else {
+                contentRepository.createFolder(siteId, "/wem-projects/" + siteId + "/" + siteId, "work-area");
+                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-content",
+                        "/wem-projects/" + siteId + "/" + siteId + "/work-area");
 
-	 		String siteConfigFolder = "/cstudio/config/sites/"+siteId;
- 			contentRepository.createFolder("/cstudio/config/sites/", siteId);
-	 		contentRepository.copyContent("/cstudio/blueprints/" + blueprintName + "/site-config",
-					siteConfigFolder);
+                String siteConfigFolder = "/cstudio/config/sites/" + siteId;
+                contentRepository.createFolder(siteId, "/cstudio/config/sites/", siteId);
+                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-config",
+                        siteConfigFolder);
 
-			replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
-	 		replaceFileContent(siteConfigFolder+"/role-mappings-config.xml", "SITENAME", siteId);
-	 		replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
+                replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
+                replaceFileContent(siteConfigFolder + "/role-mappings-config.xml", "SITENAME", siteId);
+                replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
 
-			// Add user groups
-			securityService.addUserGroup("crafter_" + siteId);
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
-			securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
-			securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
+                // Add user groups
+                securityService.addUserGroup("crafter_" + siteId);
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
+                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
+                securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
 
-            // set permissions for groups
-            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_admin");
-            securityProvider.addConfigWritePermission("/cstudio/config/sites/"+siteId, "crafter_" + siteId + "_admin");
-            securityProvider.addContentWritePermission("/wem-projects/"+siteId, "crafter_" + siteId + "_author");
-
+                // set permissions for groups
+                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_admin");
+                securityProvider.addConfigWritePermission("/cstudio/config/sites/" + siteId, "crafter_" + siteId + "_admin");
+                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_author");
+            }
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
@@ -371,15 +376,24 @@ public class SiteServiceImpl implements SiteService {
 	 	return success;
     }
 
+    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc) {
+        boolean success = true;
+
+        // create site with git repo
+        contentRepository.createSiteFromBlueprint(blueprintName, siteId);
+
+        return success;
+    }
+
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
-    	InputStream content = contentRepository.getContent(path);
+    	InputStream content = contentRepository.getContent("", path);
     	String contentAsString = IOUtils.toString(content);
 
     	contentAsString = contentAsString.replaceAll(find, replace);
 
     	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
-		contentRepository.writeContent(path, contentToWrite);    	
+		contentRepository.writeContent("", path, contentToWrite);
     }
 
 	protected void createObjectStatesforNewSite(String site) {
@@ -387,7 +401,7 @@ public class SiteServiceImpl implements SiteService {
 	}
 
 	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
-		RepositoryItem[] children = contentRepository.getContentChildren(path);
+		RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 		for (RepositoryItem child : children) {
 			if (child.isFolder) {
 				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
@@ -403,7 +417,7 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
-        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
         for (RepositoryItem child : children) {
             if (child.isFolder) {
                 extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
@@ -414,7 +428,7 @@ public class SiteServiceImpl implements SiteService {
 
                 if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(childFullPath);
+                        Document doc = contentService.getContentAsDocument(site, childFullPath);
                         dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
                     } catch (ContentNotFoundException e) {
                         logger.error("Failed to extract dependencies for document: " + childFullPath, e);
@@ -439,7 +453,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(childFullPath));
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childFullPath));
                             if (isCss) {
                                 dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
                             } else if (isJs) {
@@ -460,8 +474,8 @@ public class SiteServiceImpl implements SiteService {
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
  		try {
- 			contentRepository.deleteContent("/wem-projects/"+siteId);
- 			contentRepository.deleteContent("/cstudio/config/sites/" + siteId);
+ 			contentRepository.deleteContent(siteId, "/wem-projects/"+siteId);
+ 			contentRepository.deleteContent(siteId, "/cstudio/config/sites/" + siteId);
 
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
@@ -490,7 +504,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("/cstudio/blueprints");
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", "/blueprints");
 		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
 		int idx = 0;
 		for (RepositoryItem folder : blueprintsFolders) {
@@ -545,17 +559,6 @@ public class SiteServiceImpl implements SiteService {
         reloadSiteConfiguration(site, true);
     }
 
-    @EventHandler(
-            event = EBusConstants.CLUSTER_CLEAR_CACHE_EVENT,
-            ebus = EBusConstants.DISTRIBUTED_REACTOR,
-            type = EventSelectorType.REGEX
-    )
-    public void onClearCacheEvent(final Event<ClearCacheEventMessage> event) {
-        logger.debug("On clear cache event");
-        ClearCacheEventMessage message = event.getData();
-        reloadSiteConfiguration(message.getSite(), false);
-    }
-
     @Override
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         CacheService cacheService = cacheTemplate.getCacheService();
@@ -586,12 +589,7 @@ public class SiteServiceImpl implements SiteService {
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
         if (triggerEvent) {
-            ClearCacheEventMessage message = new ClearCacheEventMessage(site);
-            DistributedEventMessage distributedEventMessage = new DistributedEventMessage();
-            distributedEventMessage.setEventKey(EBusConstants.CLUSTER_CLEAR_CACHE_EVENT);
-            distributedEventMessage.setMessageClass(ClearCacheEventMessage.class);
-            distributedEventMessage.setMessage(message);
-            distributedPeerEBusFacade.notifyCluster(distributedEventMessage);
+            clearConfigurationCache.clearConfigurationCache(site);
         }
         cacheService.put(cacheContext, cacheKey, siteConfig);
     }
@@ -664,17 +662,11 @@ public class SiteServiceImpl implements SiteService {
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
-    public Reactor getRepositoryRector() { return repositoryRector; }
-    public void setRepositoryRector(Reactor repositoryRector) { this.repositoryRector = repositoryRector; }
-
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
 
     public ContentTypeService getContentTypeService() { return contentTypeService; }
     public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
-
-    public DistributedPeerEBusFacade getDistributedPeerEBusFacade() { return distributedPeerEBusFacade; }
-    public void setDistributedPeerEBusFacade(DistributedPeerEBusFacade distributedPeerEBusFacade) { this.distributedPeerEBusFacade = distributedPeerEBusFacade; }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
@@ -684,6 +676,9 @@ public class SiteServiceImpl implements SiteService {
 
     public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
     public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
+
+    public ContentTypeUpdated getContentTypeUpdated() { return contentTypeUpdated; }
+    public void setContentTypeUpdated(ContentTypeUpdated contentTypeUpdated) { this.contentTypeUpdated = contentTypeUpdated; }
 
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
@@ -698,6 +693,9 @@ public class SiteServiceImpl implements SiteService {
 
     public RebuildRepositoryMetadata getRebuildRepositoryMetadata() { return rebuildRepositoryMetadata; }
     public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) { this.rebuildRepositoryMetadata = rebuildRepositoryMetadata; }
+
+    public boolean isCreateSiteV2() { return createSiteV2; }
+    public void setCreateSiteV2(boolean createSiteV2) { this.createSiteV2 = createSiteV2; }
 
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
@@ -716,17 +714,18 @@ public class SiteServiceImpl implements SiteService {
 	protected DeploymentService deploymentService;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected Reactor repositoryRector;
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
-    protected DistributedPeerEBusFacade distributedPeerEBusFacade;
     protected SecurityProvider securityProvider;
     protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
+    protected ContentTypeUpdated contentTypeUpdated;
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
+
+    protected boolean createSiteV2;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;

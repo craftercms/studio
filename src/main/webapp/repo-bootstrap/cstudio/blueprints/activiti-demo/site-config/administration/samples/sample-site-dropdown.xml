@@ -1,0 +1,92 @@
+<contextNav>
+	<contexts>
+		<context>
+			<groups>
+				<group>
+					<menuItems>
+						<menuItem>
+							<modulehooks>
+								<!-- site selector -->
+								<modulehook>
+									<name>site-selector</name>
+								</modulehook>
+								<!-- Site IA PAGES -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Pages</label>
+										<path>/site/website</path>
+										<showRootItem>true</showRootItem>
+										<onClick>preview</onClick>
+									</params>
+								</modulehook>
+								<!-- COMPONENTS -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Components</label>
+										<path>/site/components</path>
+										<showRootItem>true</showRootItem>
+										<!--cannedSearches> <cannedSearch> <label>All Shout Boxes</label> 
+											<path>/site/components/shout-box</path> <insertAs>replace</insertAs> <newPath>/site/components/shout-box</newPath> 
+											<queryParams> <queryParam> <name>context</name> <value>/demo/component/shoutbox</value> 
+											</queryParam> <queryParam> <name>mode</name> <value>act</value> </queryParam> 
+											<queryParam> <name>selection</name> <value>-1</value> </queryParam> <queryParam> 
+											<name>presearch</name> <value>true</value> </queryParam> </queryParams> </cannedSearch> 
+											</cannedSearches -->
+
+									</params>
+								</modulehook>
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Static Assets</label>
+										<path>/static-assets</path>
+										<!-- showRootItem>false</showRootItem -->
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Templates</label>
+										<path>/templates</path>
+										<!-- showRootItem>false</showRootItem -->
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
+
+								<modulehook>
+									<name>analytics-dashboard</name>
+									<showDivider>true</showDivider>
+								</modulehook>
+								<modulehook>
+									<name>admin-console</name>
+									<showDivider>true</showDivider>
+									<params>
+										<roles>
+											<role>admin</role>
+										</roles>
+									</params>
+								</modulehook>
+								<modulehook>
+									<name>previewsync</name>
+									<params>
+										<roles>
+											<role>admin</role>
+										</roles>
+									</params>
+								</modulehook>
+							</modulehooks>
+
+						</menuItem>
+					</menuItems>
+				</group>
+			</groups>
+		</context>
+	</contexts>
+</contextNav>

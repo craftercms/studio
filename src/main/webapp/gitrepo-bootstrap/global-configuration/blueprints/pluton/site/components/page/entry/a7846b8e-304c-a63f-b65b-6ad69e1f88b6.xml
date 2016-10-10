@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>8784</objectGroupId>
+	<objectId>a7846b8e-304c-a63f-b65b-6ad69e1f88b6</objectId>
+	<file-name>a7846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</file-name>
+	<internal-name>What We Do</internal-name>
+	<content_html>&lt;div id="service" class="section primary-section"&gt;
+&lt;div class="container"&gt;&lt;!-- Start title section --&gt;
+&lt;div class="title"&gt;
+&lt;h1&gt;What We Do?&lt;/h1&gt;
+&lt;!-- Section&amp;#39;s title goes here --&gt;
+&lt;p&gt;Duis mollis placerat quam, eget laoreet tellus tempor eu. Quisque dapibus in purus in dignissim.&lt;/p&gt;
+&lt;!--Simple description for section goes here. --&gt;&lt;/div&gt;
+&lt;div class="row-fluid"&gt;
+&lt;div class="span4"&gt;
+&lt;div class="centered service"&gt;
+&lt;div class="circle-border zoom-in"&gt;&lt;img class="img-circle" src="/static-assets/images/Service1.png" alt="service 1" /&gt;&lt;/div&gt;
+&lt;h3&gt;Modern Design&lt;/h3&gt;
+&lt;p&gt;We Create Modern And Clean Theme For Your Business Company.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="span4"&gt;
+&lt;div class="centered service"&gt;
+&lt;div class="circle-border zoom-in"&gt;&lt;img class="img-circle" src="/static-assets/images/Service2.png" alt="service 2" /&gt;&lt;/div&gt;
+&lt;h3&gt;Powerfull Theme&lt;/h3&gt;
+&lt;p&gt;We Create Modern And Powerful Theme With Lots Animation And Features&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="span4"&gt;
+&lt;div class="centered service"&gt;
+&lt;div class="circle-border zoom-in"&gt;&lt;img class="img-circle" src="/static-assets/images/Service3.png" alt="service 3" /&gt;&lt;/div&gt;
+&lt;h3&gt;Clean Code&lt;/h3&gt;
+&lt;p&gt;We Create Modern And Powerful Html5 And CSS3 Code Easy For Read And Customize.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content_html>
+	<createdDate>6/5/2015 19:2:53</createdDate>
+	<lastModifiedDate>10/26/2015 16:22:0</lastModifiedDate>
+	<lastModifiedDate_dt>10/26/2015 16:22:0</lastModifiedDate_dt>
+</component>

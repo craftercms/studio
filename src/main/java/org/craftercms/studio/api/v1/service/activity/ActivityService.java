@@ -51,22 +51,9 @@ public interface ActivityService {
 	 * 			identifies the content that this activity is related to
 	 * @param activity
 	 */
-	public void postActivity(String site, String user, String key, ActivityType activity, Map<String, String> extraInfo);
-	
-	/**
-	 * get the last user worked on the given content 
-	 * 
-	 * @param site
-	 * @param relativePath
-	 * @param activity
-	 * 			activity type filter
-	 * @return
-	 */
-	//public String getLastActor(String site, String key, ActivityType activity);
+	void postActivity(String site, String user, String key, ActivityType activity, Map<String, String> extraInfo);
 
-	public void renameContentId(String site, String oldUrl, String newUrl);
-	
-	//public void updateContentSummary(String site, String url, String summary);
+	void renameContentId(String site, String oldUrl, String newUrl);
 
 	/**
 	 * get a list of activities by the given user
@@ -81,7 +68,7 @@ public interface ActivityService {
 	 * @return a list of activities
 	 * @throws org.craftercms.studio.api.v1.exception.ServiceException
 	 */
-	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException;
+	List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException;
 
 	/**
 	 * Retrieve user feed
@@ -92,7 +79,9 @@ public interface ActivityService {
 	 * @return list of JSON feed entries
 	 */
 
-	public ActivityFeed getDeletedActivity(String site, String path);
+	ActivityFeed getDeletedActivity(String site, String path);
 
 	void deleteActivitiesForSite(String site);
+
+    List<ActivityFeed> getAuditLogForSite(String site, int startPos, int feedSize);
 }

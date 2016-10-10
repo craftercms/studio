@@ -1,0 +1,1 @@
+This location is used to store all WEM Project content.  Studio configuration for sites is maintained at /REPOSITORY-ROOT/global-configuration

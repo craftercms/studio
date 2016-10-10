@@ -151,7 +151,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             if (parentContentItem != null /*&& persistenceManagerService.getFileInfo(parentContent).isFolder()*/) {
                 ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + assetName, 0);
                 if (contentItem != null) {
-                    updateFile(site, contentItem, contentPath, in, user, isPreview, unlock);
+                    updateFile(site, contentItem, path + "/" + assetName, in, user, isPreview, unlock);
                 } else {
                     // TODO: define content type
                     //String contentType = namespaceService.getPrefixedTypeName(ContentModel.TYPE_CONTENT);

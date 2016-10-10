@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 public class DeployerFactory {
 
-    public Deployer createPreviewDeployer() {
+    public PreviewDeployer createPreviewDeployer() {
         PreviewDeployer previewDeployer = new PreviewDeployer();
         previewDeployer.setContentService(contentService);
         previewDeployer.setContentRepository(contentRepository);
@@ -40,6 +40,14 @@ public class DeployerFactory {
 
     public Deployer createEnvironmentStoreDeployer(String environment) {
         EnvironmentStoreDeployer deployer = new EnvironmentStoreDeployer();
+        deployer.setContentService(contentService);
+        deployer.setEnvironmentsStoreRootPath(environmentsStoreRootPath);
+        deployer.setEnvironment(environment);
+        return deployer;
+    }
+
+    public Deployer createEnvironmentStoreGitDeployer(String environment) {
+        EnvironmentStoreGitDeployer deployer = new EnvironmentStoreGitDeployer();
         deployer.setContentService(contentService);
         deployer.setEnvironmentsStoreRootPath(environmentsStoreRootPath);
         deployer.setEnvironment(environment);

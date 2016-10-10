@@ -31,9 +31,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
@@ -52,7 +49,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
-import org.craftercms.studio.impl.v1.deployment.PreviewSync;
+import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
@@ -64,8 +61,6 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
-import reactor.core.Reactor;
-import reactor.event.Event;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -96,30 +91,30 @@ public class ContentServiceImpl implements ContentService {
                 return cached;
             }
         }
-        return this._contentRepository.contentExists(expandRelativeSitePath(site, path));
+        return this._contentRepository.contentExists(site, path);
     }
 
     @Override
     public boolean contentExists(String fullPath) {
-        return this._contentRepository.contentExists(fullPath);
+        return this._contentRepository.contentExists("", fullPath);
     }
 
     @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
-       return this._contentRepository.getContent(path);
+       return this._contentRepository.getContent("", path);
     }
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
-       return this._contentRepository.getContent(expandRelativeSitePath(site, path));
+       return this._contentRepository.getContent(site, path);
     }
 
     @Override
-    public String getContentAsString(String path)  {
+    public String getContentAsString(String site, String path)  {
         String content = null;
 
         try {
-            content = IOUtils.toString(_contentRepository.getContent(path));
+            content = IOUtils.toString(_contentRepository.getContent(site, path));
         }
         catch(Exception err) {
             logger.error("Failed to get content as string for path {0}", path);
@@ -130,12 +125,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public Document getContentAsDocument(String path)
+    public Document getContentAsDocument(String site, String path)
     throws DocumentException {
         Document retDocument = null;
         InputStream is = null;
         try {
-            is = this.getContent(path);
+            is = this.getContent(site, path);
         } catch (ContentNotFoundException e) {
             logger.error("Content not found for path {0}", e, path);
         }
@@ -158,25 +153,6 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return retDocument;
-    }
-
-
-    @Override
-    public boolean writeContent(String path, InputStream content) throws ServiceException {
-
-       boolean writeSuccess = false;
-
-        writeSuccess = _contentRepository.writeContent(path, content);
-
-        try {
-            _contentRepository.createVersion(path, false);
-        }
-        catch(Exception err) {
-            // configurable weather or not to blow up the entire write?
-            logger.error("Failed to create version for object at path: " + path, err);
-        }
-        removeItemFromCache(getSiteFromFullPath(path),getRelativeSitePath(path));
-       return writeSuccess;
     }
 
     @Override
@@ -261,14 +237,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             removeItemFromCache(site, relativePath);
-
-            RepositoryEventMessage message = new RepositoryEventMessage();
-            message.setSite(site);
-            message.setPath(relativePath);
-            String sessionTicket = securityProvider.getCurrentToken();
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            message.setRepositoryEventContext(repositoryEventContext);
-            previewSync.syncPath(site, relativePath, repositoryEventContext);
+            previewSync.syncPath(site, relativePath);
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
             objectStateService.setSystemProcessing(site, relativePath, false);
@@ -369,13 +338,7 @@ public class ContentServiceImpl implements ContentService {
 
             String relativePath = getRelativeSitePath(site, fullPath);
             removeItemFromCache(site, relativePath);
-            RepositoryEventMessage message = new RepositoryEventMessage();
-            message.setSite(site);
-            message.setPath(relativePath);
-            String sessionTicket = securityProvider.getCurrentToken();
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            message.setRepositoryEventContext(repositoryEventContext);
-            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            previewSync.notifyUpdateContent(site, relativePath);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -397,12 +360,22 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
-        return writeContent(expandRelativeSitePath(site, path), content);
+        boolean writeSuccess = _contentRepository.writeContent(site, path, content);
+
+        try {
+            _contentRepository.createVersion(site, path, false);
+        }
+        catch(Exception err) {
+            // configurable weather or not to blow up the entire write?
+            logger.error("Failed to create version for object at path: " + path, err);
+        }
+        removeItemFromCache(site, path);
+        return writeSuccess;
     }
 
     @Override
     public boolean createFolder(String site, String path, String name) {
-        boolean toRet = _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
+        boolean toRet = _contentRepository.createFolder(site, path, name);
         removeItemFromCache(site, path + "/" + name);
         return toRet;
     }
@@ -417,20 +390,13 @@ public class ContentServiceImpl implements ContentService {
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
         }
-        boolean toRet = _contentRepository.deleteContent(expandRelativeSitePath(site, path));
+        boolean toRet = _contentRepository.deleteContent(site, path);
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
         removeItemFromCache(site, path);
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(path);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_DELETE_EVENT, Event.wrap(message));
+        previewSync.notifyDeleteContent(site, path);
         return toRet;
     }
 
@@ -462,39 +428,21 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
-        return _contentRepository.copyContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
+        return _contentRepository.copyContent(site, fromPath, toPath);
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath);
-        message.setOldPath(fromPath);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath);
+        previewSync.notifyMoveContent(site, toPath, fromPath);
         return toRet;
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath), newName);
+        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath, newName);
 
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath + "/" + newName);
-        message.setOldPath(fromPath);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        previewSync.notifyMoveContent(site, toPath, fromPath);
         return toRet;
     }
 
@@ -564,7 +512,7 @@ public class ContentServiceImpl implements ContentService {
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
 
-        Document contentDoc = this.getContentAsDocument(fullContentPath);
+        Document contentDoc = this.getContentAsDocument(site, contentPath);
         if(contentDoc != null) {
             Element rootElement = contentDoc.getRootElement();
             
@@ -647,7 +595,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
-        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
         item.children = new ArrayList<ContentItemTO>();
@@ -657,11 +604,11 @@ public class ContentServiceImpl implements ContentService {
         || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
-                fullContentPath = fullContentPath.replace("/index.xml", "");
+                contentPath = contentPath.replace("/index.xml", "");
             }
 
 
-            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(fullContentPath);
+            RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, contentPath);
             boolean indexFound = false;
                 
             if(childRepoItems != null) {
@@ -989,29 +936,17 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
-        return _contentRepository.getContentVersionHistory(expandRelativeSitePath(site, path));
+        return _contentRepository.getContentVersionHistory(site, path);
     }
 
     @Override
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean success = false;
 
-        success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
-
-        removeItemFromCache(site, path);
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(path);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
-
+        success = _contentRepository.revertContent(site, path, version, major, comment);
         if(success) {
-            // publish item udated event or push to preview
+            previewSync.notifyUpdateContent(site, path);
         }
-
         return success;
     }
 
@@ -1026,7 +961,7 @@ public class ContentServiceImpl implements ContentService {
  	throws ContentNotFoundException {
  		String repositoryPath = expandRelativeSitePath(site, path);
  		
- 		return _contentRepository.getContentVersion(repositoryPath, version);
+ 		return _contentRepository.getContentVersion(site, path, version);
  	}
 
 	/**
@@ -1228,19 +1163,22 @@ public class ContentServiceImpl implements ContentService {
                 if (parentItem != null) {
                     int lastIndex = name.lastIndexOf(".");
                     String ext = (item.isFolder()) ? "" : name.substring(lastIndex);
-                    String originalName = (item.isFolder()) ? name : name.substring(0, lastIndex);
+                    String originalName = (item.isFolder() || item.isContainer()) ? name : name.substring(0, lastIndex);
                     List<ContentItemTO> children = parentItem.getChildren();
                     // pattern matching doesn't work here
                     // String childNamePattern = originalName + "%" + ext;
                     int lastNumber = 0;
-                    String namePattern = originalName + "\\-[0-9]+" + ext;
+                    String namePattern = originalName + "-[0-9]+" + ext;
                     if (children != null && children.size() > 0) {
                         // since it is already sorted, we only care about the last matching item
                         for (ContentItemTO child : children) {
-                            if ((item.isFolder() == child.isFolder())) {
+                            if (((item.isFolder() || item.isContainer()) == (child.isFolder() || child.isContainer()))) {
                                 String childName = child.getName();
+                                if ((child.isFolder() || child.isContainer())) {
+                                    childName = ContentUtils.getPageName(child.getBrowserUri());
+                                }
                                 if (childName.matches(namePattern)) {
-                                    Pattern pattern = (item.isFolder()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
+                                    Pattern pattern = (item.isFolder() || item.isContainer()) ? COPY_FOLDER_PATTERN : COPY_FILE_PATTERN;
                                     Matcher matcher = pattern.matcher(childName);
                                     if (matcher.matches()) {
                                         int helper = ContentFormatUtils.getIntValue(matcher.group(2));
@@ -1458,7 +1396,6 @@ public class ContentServiceImpl implements ContentService {
     protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
-    protected Reactor repositoryReactor;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;
@@ -1492,9 +1429,6 @@ public class ContentServiceImpl implements ContentService {
 
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
-
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
 
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }

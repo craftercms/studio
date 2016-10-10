@@ -45,9 +45,17 @@ class SolrSearch {
 		if(searchParams.sortBy != "") {
 			def order = (searchParams.sortAscending == "true") ? "asc" : "desc"
 
-			if(searchParams.sortBy == "cstudio-core:internalName,cstudio-core:title"
-			|| searchParams.sortBy == "cm:created") {
-				sort = "id"// bug with title, internal name, filename, last modified as arrays so cant sort on them
+			if("cstudio-core:internalName".equals(searchParams.sortBy)) {
+				sort = "internal-name"
+			}
+			else if("cstudio-core:title".equals(searchParams.sortBy)) {
+				sort = "title"
+			}	
+			else if("cm:created".equals(searchParams.sortBy)) {
+				sort = "createdDate_dt"
+			}
+			else {
+				sort = searchParams.sortBy	
 			}
 
 			query = query.addParam("sort", sort + " " + order)

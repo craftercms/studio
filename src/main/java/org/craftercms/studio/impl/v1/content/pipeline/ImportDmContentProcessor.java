@@ -107,8 +107,6 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
      */
     protected ActivityService.ActivityType writeContent(String site, String user, String path, String fileName, String contentType, InputStream input,
                                                         boolean createFolders, boolean overwrite, boolean isPreview, boolean unlock) throws ServiceException {
-        String contentPath = contentService.expandRelativeSitePath(site, path);
-
         try {
             // look up the path content first
             boolean contentExists = contentService.contentExists(site, path);
@@ -121,15 +119,15 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                 // update the content
                 // look up the path content first
                 if (parentContent.getName().equals(fileName)) {
-                    updateFile(site, parentContent, contentPath, input, user, unlock);
+                    updateFile(site, parentContent, path, input, user, unlock);
                     return ActivityService.ActivityType.UPDATED;
                 } else {
                     // otherwise, create new one
-                    //contentPath = contentPath.replaceFirst(WcmConstants.INDEX_FILE, "");
-                    String fileFullPath =  contentService.expandRelativeSitePath(site, path + "/" + fileName);
-                    ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + fileName, 0);
-                    if (contentItem != null && overwrite) {
-                        updateFile(site, contentItem, fileFullPath, input, user, unlock);
+                    String filePath =  path + "/" + fileName;
+                    ContentItemTO contentItem = contentService.getContentItem(site, filePath, 0);
+                    boolean exists = contentService.contentExists(site, filePath);
+                    if (exists && overwrite) {
+                        updateFile(site, contentItem, filePath, input, user, unlock);
                         return ActivityService.ActivityType.UPDATED;
                     } else {
                         createNewFile(site, parentContent, fileName, contentType, input, user);
@@ -163,8 +161,6 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
         boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
         boolean overwrite = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_OVERWRITE));
 
-        String contentPath = contentService.expandRelativeSitePath(site, path);
-        //contentPath = (isPreview) ? DmUtils.getPreviewPath(contentPath) : contentPath;
         try {
             // look up the path content first
             ContentItemTO parentContent = contentService.getContentItem(site, path, 0);
@@ -180,13 +176,12 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
                     String newMd5 = ContentUtils.getMd5ForFile(input);
                     if (!existingMd5.equals(newMd5)) {
-                        updateFile(site, parentContent, contentPath, input, user, unlock);
+                        updateFile(site, parentContent, path, input, user, unlock);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                     } else {
                         if (!isPreview) {
                             if (cancelWorkflow(site, path)) {
                                 workflowService.removeFromWorkflow(site, path, true);
-                                //dmDependencyService.updateDependencies(site,path, DmConstants.DM_STATUS_IN_PROGRESS);
                             } else {
                                 if(updateWorkFlow(site, path)) {
                                     workflowService.updateWorkflowSandboxes(site, path);
@@ -196,44 +191,41 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     }
                     if (unlock) {
                         //TODO: unlock content
-                        //persistenceManagerService.unlock(parentContent);
-                        logger.debug("Unlocked the content " + contentPath);
+                        contentService.unLockContent(site, path);
+                        logger.debug("Unlocked the content " + path);
                     }
                     return;
                 } else {
                     // otherwise, create new one
-                    //contentPath = contentPath.replaceFirst(WcmConstants.INDEX_FILE, "");
-                    String parentContentPath = contentService.expandRelativeSitePath(site, path);
+                    String parentContentPath = path;
                     if (parentContentPath.endsWith(DmConstants.XML_PATTERN) && !parentContentPath.endsWith(DmConstants.INDEX_FILE)){
                         parentContentPath = parentContentPath.substring(0, parentContentPath.lastIndexOf("/"));
-                        String partentRelativePath = contentService.getRelativeSitePath(site, parentContentPath);
-                        parentContent = contentService.getContentItem(site, partentRelativePath, 0);
+                        parentContent = contentService.getContentItem(site, parentContentPath, 0);
                     }
-                    String fileFullPath =  parentContentPath + "/" + fileName;
-                    String relativePath = contentService.getRelativeSitePath(site, fileFullPath);
-                    ContentItemTO fileItem = contentService.getContentItem(site, relativePath, 0);
-                    if (fileItem != null && overwrite) {
-                        InputStream existingContent = contentService.getContent(site, relativePath);
+                    String filePath =  parentContentPath + "/" + fileName;
+                    ContentItemTO fileItem = contentService.getContentItem(site, filePath, 0);
+                    boolean exists = contentService.contentExists(site, filePath);
+                    if (exists && overwrite) {
+                        InputStream existingContent = contentService.getContent(site, filePath);
                         String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
                         String newMd5 = ContentUtils.getMd5ForFile(input);
                         if (!existingMd5.equals(newMd5)) {
-                            updateFile(site, fileItem, fileFullPath, input, user, unlock);
+                            updateFile(site, fileItem, filePath, input, user, unlock);
                             content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                         } else {
-                                if (cancelWorkflow(site, relativePath)) {
-                                    workflowService.removeFromWorkflow(site, relativePath, true);
-                                    //dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
+                                if (cancelWorkflow(site, filePath)) {
+                                    workflowService.removeFromWorkflow(site, filePath, true);
                                 } else {
-                                    if(updateWorkFlow(site, relativePath)) {
-                                        workflowService.updateWorkflowSandboxes(site, relativePath);
+                                    if(updateWorkFlow(site, filePath)) {
+                                        workflowService.updateWorkflowSandboxes(site, filePath);
                                     }
                                 }
 
                         }
                         if (unlock) {
                             //TODO: unlock content
-                            //persistenceManagerService.unlock(fileNode);
-                            logger.debug("Unlocked the content " + fileFullPath);
+                            contentService.unLockContent(site, filePath);
+                            logger.debug("Unlocked the content " + filePath);
                         }
                         return;
                     } else {
@@ -283,52 +275,24 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
     		String user, boolean unlock)
             throws ContentNotFoundException {
-        // if the given path is a file, create a folder as the same name
-        // and move the file under the folder and change the name to be
-        // index.xml
-        //String folderPath = fullPath;
 
         if (parentItem != null) {
             // convert file to folder if target path is a file
             String folderPath = fileToFolder(site, parentItem.getPath());
-            // create new content, apply group sandbox aspect, and apply new
-            // aspect
-            // input stream is closed by AvmService
             try {
-                /*
-                Map<QName, Serializable> nodeProperties = new FastMap<QName, Serializable>();
-                nodeProperties.put(CStudioContentModel.PROP_CONTENT_TYPE, contentType);
-                nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-                nodeProperties.put(CStudioContentModel.PROP_CREATED_BY, user);
-                nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-                nodeProperties.put(CStudioContentModel.PROP_STATUS, DmConstants.DM_STATUS_IN_PROGRESS);
-                nodeProperties.put(CStudioContentModel.PROP_WEB_LAST_EDIT_DATE, new Date());
-//                nodeProperties.put(ContentModel.PROP_AUTO_VERSION, false);
-*/
+
                 contentService.writeContent(site, parentItem.getPath() + "/" + fileName, input);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
                 IOUtils.closeQuietly(input);
             }
-            // TODO: lock content
-            /*
-            persistenceManagerService.addAspect(fileNode, ContentModel.ASPECT_LOCKABLE, new HashMap<QName, Serializable>());
-            persistenceManagerService.lock(fileNode, LockType.WRITE_LOCK);
-*/
-            // TODO: make conent previewable
-            /*
-            if (!persistenceManagerService.hasAspect(fileNode, CStudioContentModel.ASPECT_PREVIEWABLE)) {
-                persistenceManagerService.addAspect(fileNode, CStudioContentModel.ASPECT_PREVIEWABLE, new HashMap<QName, Serializable>());
-                if (!persistenceManagerService.hasAspect(parentNode, CStudioContentModel.ASPECT_PREVIEWABLE)) {
-                    persistenceManagerService.addAspect(parentNode, CStudioContentModel.ASPECT_PREVIEWABLE, new HashMap<QName, Serializable>());
-                }
-            }*/
+            contentService.lockContent(site, parentItem.getPath() + "/" + fileName);
 
             // unlock the content upon save
             if (unlock) {
                 // TODO: unlock content
-                //persistenceManagerService.unlock(fileNode);
+                contentService.unLockContent(site, parentItem.getPath() + "/" + fileName);
             } else {
             }
 
@@ -352,63 +316,30 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String fullPath, InputStream input, String user, boolean unlock)
+    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean unlock)
             throws ServiceException {
 
-        // TODO: check lock status
-        /*
-    	LockStatus lockStatus = persistenceManagerService.getLockStatus(contentNode);
-        String nodeStatus = (String)persistenceManagerService.getProperty(contentNode, CStudioContentModel.PROP_STATUS);
-        /**
-         * added to handle issue with submitting locked content (Dejan 2012/04/12)
-         *//*
-        if (LockStatus.NO_LOCK.equals(lockStatus) || LockStatus.LOCK_OWNER.equals(lockStatus) ||
-                (nodeStatus.equalsIgnoreCase(DmConstants.DM_STATUS_SUBMITTED))
-        		)
-        /****** end ******/
-        //{
             try {
-                contentService.writeContent(fullPath, input);
+                contentService.writeContent(site, path, input);
             } finally {
                 ContentUtils.release(input);
             }
 
-        // TODO: make content lockable
-        /*    if (!persistenceManagerService.hasAspect(contentNode, ContentModel.ASPECT_LOCKABLE)) {
-                persistenceManagerService.addAspect(contentNode, ContentModel.ASPECT_LOCKABLE, null);
-            }
-*/
-        // TODO: update content properties
-        /*
-            Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(contentNode);
-            nodeProperties.put(ContentModel.PROP_MODIFIER, user);
-            nodeProperties.put(CStudioContentModel.PROP_LAST_MODIFIED_BY, user);
-            nodeProperties.put(CStudioContentModel.PROP_WEB_LAST_EDIT_DATE, new Date());
-            persistenceManagerService.setProperties(contentNode, nodeProperties);
-            */
             // unlock the content upon save if the flag is true
             if (unlock) {
-                //persistenceManagerService.unlock(contentNode);
-                logger.debug("Unlocked the content " + fullPath);
+                contentService.unLockContent(site, path);
+                logger.debug("Unlocked the content site: " + site + " path: " + path);
 
             } else {
-                // TODO: lock content
-                //persistenceManagerService.lock(contentNode, LockType.WRITE_LOCK);
+                contentService.lockContent(site, path);
             }
-                String relativePath = contentService.getRelativeSitePath(site, fullPath);
-                if (cancelWorkflow(site, relativePath)) {
-                    workflowService.removeFromWorkflow(site, relativePath, true);
-                    //dmDependencyService.updateDependencies(site, relativePath, DmConstants.DM_STATUS_IN_PROGRESS);
-                } else {
-                    if(updateWorkFlow(site, relativePath)) {
-                        workflowService.updateWorkflowSandboxes(site, relativePath);
-                    }
+            if (cancelWorkflow(site, path)) {
+                workflowService.removeFromWorkflow(site, path, true);
+            } else {
+                if(updateWorkFlow(site, path)) {
+                    workflowService.updateWorkflowSandboxes(site, path);
                 }
-
-        /*} else {
-            String owner = (String)persistenceManagerService.getProperty(contentNode, ContentModel.PROP_LOCK_OWNER);
-            throw new ServiceException("The content is locked by another user: " + owner);
-        }*/
+            }
     }
 
     /**
@@ -458,11 +389,8 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
         for (String level : levels) {
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
                 String currentPath = parentPath + "/" + level;
-                String fullPath = contentService.expandRelativeSitePath(site, currentPath);
                 lastItem = contentService.getContentItem(site, currentPath, 0);
                 if (lastItem == null) {
-                    String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
-                    ContentItemTO parentItem = contentService.getContentItem(site, parentPath, 0);
                     contentService.createFolder(site, parentPath, level);
                     lastItem = contentService.getContentItem(site, currentPath, 0);
                 }
@@ -475,20 +403,12 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
 
     @Override
     public String fileToFolder(String site, String path) {
-        // Check if it is already a folder
-        /*
-        if (fileInfo.isFolder()) {
-            return persistenceManagerService.getNodePath(fileNode);
-        }*/
         ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         int index = path.lastIndexOf("/");
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();
         String folderName = parentFileName.substring(0, parentFileName.indexOf("."));
 
-        //Map<QName, Serializable> nodeProperties = new FastMap<QName, Serializable>();
-        //nodeProperties.put(ContentModel.PROP_NAME, folderName);
-        //NodeRef newFolderNode = persistenceManagerService.createNewFolder(folderPath, folderName, nodeProperties);
         contentService.createFolder(site, folderPath, folderName);
         folderPath = folderPath + "/" + folderName;
         contentService.moveContent(site, path, folderPath + "/" + DmConstants.INDEX_FILE);

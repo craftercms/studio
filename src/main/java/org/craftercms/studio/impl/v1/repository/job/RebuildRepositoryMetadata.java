@@ -167,6 +167,7 @@ public class RebuildRepositoryMetadata {
         logger.debug("Retrieving files list for content repository");
         Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(previewRepoRootPath, contentService.expandRelativeSitePath(site, "")).toFile(), null, true);
         List<String> paths = new ArrayList<String>();
+        int id = 1;
         while (fileIterator.hasNext()) {
             File file = fileIterator.next();
             Path filePath = Paths.get(file.toURI());
@@ -176,15 +177,18 @@ public class RebuildRepositoryMetadata {
             if (paths.size() == batchSize) {
                 logger.debug("Insert batch of file paths into queue.");
                 Map<String, Object> params = new HashMap<String, Object>();
+                params.put("id", id);
                 params.put("site", site);
                 params.put("pathList", paths);
                 rebuildRepositoryMetadataMapper.insertRebuildRepoMetadataQueue(params);
+                id = id + paths.size();
                 paths = new ArrayList<String>();
             }
         }
         if (paths != null && paths.size() > 0) {
             logger.debug("Insert batch of file paths into queue.");
             Map<String, Object> params = new HashMap<String, Object>();
+            params.put("id", id);
             params.put("site", site);
             params.put("pathList", paths);
             rebuildRepositoryMetadataMapper.insertRebuildRepoMetadataQueue(params);
@@ -208,7 +212,7 @@ public class RebuildRepositoryMetadata {
                 if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
                     logger.debug("Calculate dependencies");
                     try {
-                        Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+                        Document document = contentService.getContentAsDocument(site, relativePath);
                         dmDependencyService.extractDependencies(site, relativePath, document, null);
                     } catch (DocumentException | ServiceException err) {
                         logger.debug("Error while calculating dependencies for " + relativePath, err);

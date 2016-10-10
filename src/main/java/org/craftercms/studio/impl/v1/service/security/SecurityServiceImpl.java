@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
@@ -43,10 +44,13 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
+import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * @author Dejan Brkic
@@ -55,9 +59,18 @@ public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
+    private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
+
     @Override
     public String authenticate(String username, String password) {
-        return securityProvider.authenticate(username, password);
+        String toRet = securityProvider.authenticate(username, password);
+        String sessionToken = SessionTokenUtils.createToken(username, sessionTimeout);
+        RequestContext context = RequestContext.getCurrent();
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
+        }
+        return toRet;
     }
 
     @Override
@@ -379,7 +392,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(siteConfigFullPath);
+            document = contentService.getContentAsDocument(site, siteConfigFullPath);
         } catch (DocumentException e) {
             logger.error("Permission mapping not found for " + site + ":" + filename);
         }
@@ -477,7 +490,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(globalPermissionsConfigPath);
+            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalPermissionsConfigPath);
         } catch (DocumentException e) {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
         }
@@ -504,7 +517,7 @@ public class SecurityServiceImpl implements SecurityService {
         Document document = null;
         PermissionsConfigTO config = null;
         try {
-            document = contentService.getContentAsDocument(globalRolesConfigPath);
+            document = contentService.getContentAsDocument(StringUtils.EMPTY, globalRolesConfigPath);
         } catch (DocumentException e) {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
         }
@@ -575,7 +588,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean logout() {
-        return securityProvider.logout();
+        boolean toRet = securityProvider.logout();
+        RequestContext context = RequestContext.getCurrent();
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        }
+        return toRet;
     }
 
     public String getRoleMappingsFileName() { return roleMappingsFileName; }
@@ -611,6 +630,9 @@ public class SecurityServiceImpl implements SecurityService {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public int getSessionTimeout() { return sessionTimeout; }
+    public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
+
     protected String roleMappingsFileName;
     protected String permissionsFileName;
     protected String globalConfigPath;
@@ -622,4 +644,5 @@ public class SecurityServiceImpl implements SecurityService {
     protected String configPath;
     protected CacheTemplate cacheTemplate;
     protected GeneralLockService generalLockService;
+    protected int sessionTimeout;
 }

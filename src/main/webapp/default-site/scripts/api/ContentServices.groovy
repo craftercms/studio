@@ -119,9 +119,9 @@ class ContentServices {
 	 * @param path - the path of the content to get
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentAtPath(context, path) {
+	static getContentAtPath(context, site, path) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentAtPath(path)
+		return contentServicesImpl.getContentAtPath(site, path)
 	}
   	/**
   	 * check if content at path exits

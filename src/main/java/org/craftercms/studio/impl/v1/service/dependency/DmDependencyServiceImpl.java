@@ -60,62 +60,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected static final String JSON_KEY_ITEMS = "items";
     protected static final String JSON_KEY_SUBMISSION_COMMENT = "submissionComment";
+    protected static final String JSON_KEY_DEPENDENCIES = "dependencies";
 
-    /**
-     * DependencyDaoService
-     *//*
-    protected DependencyDaoService _dependencyDaoService;
-    public DependencyDaoService getDependencyDaoService() {
-        return this._dependencyDaoService;
-    }
-    public void setDependencyDaoService(DependencyDaoService dependencyDaoService) {
-        this._dependencyDaoService = dependencyDaoService;
-    }
-
-    protected cstudioCacheManager _cacheManager;
-    public cstudioCacheManager getCacheManager() {
-        return this._cacheManager;
-    }
-    public void setCacheManager(cstudioCacheManager cacheManager) {
-        this._cacheManager = cacheManager;
-    }
-
-    */
 
     @Override
     public void register() {
         getServicesManager().registerService(DmDependencyService.class, this);
     }
-/*
-    @Override
-    public void populateDependencyContentItems(String site, ContentItemTO item, boolean populateUpdatedDependecinesOnly) {
-        try {
-            String path = item.getUri();
-            List<DependencyEntity> components = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_COMPONENT);
-            List<DmContentItemTO> compItems = getDependentItems(site, item.getUri(), components, populateUpdatedDependecinesOnly);
-            item.setComponents(compItems);
-            List<DependencyEntity> documents = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_DOCUMENT);
-            List<DmContentItemTO> docItems = getDependentItems(site, item.getUri(), documents, populateUpdatedDependecinesOnly);
-            item.setDocuments(docItems);
-            List<DependencyEntity> assets = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_ASSET);
-            List<DmContentItemTO> assetItems = getDependentItems(site, item.getUri(), assets, populateUpdatedDependecinesOnly);
-            item.setAssets(assetItems);
-            List<DependencyEntity> templates = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_RENDERING_TEMPLATE);
-            List<DmContentItemTO> templateItems = getDependentItems(site, item.getUri(), templates, populateUpdatedDependecinesOnly);
-            item.setRenderingTemplates(templateItems);
-            /*List<DependencyEntity> levelDescriptors = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_LEVEL_DESCRIPTOR);
-            List<DmContentItemTO> levelDescriptorItems = getDependentItems(site, item.getUri(), levelDescriptors, populateUpdatedDependecinesOnly);
-            item.setLevelDescriptors(levelDescriptorItems);*//*
-            List<DependencyEntity> deletes = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_DELETE);
-            List<DmContentItemTO> deletedItems = getDependentItems(site, item.getUri(), deletes, populateUpdatedDependecinesOnly);
-            item.setDeletedItems(deletedItems);
 
-
-        } catch (SQLException e) {
-            logger.error("Error while getting dependent file names for " + item.getUri() + " in " + site, e);
-        }
-    }
-*/
     /**
      * get dependent items from the given list of files
      *
@@ -173,6 +125,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             StringBuilder sb = new StringBuilder();
             Set<String> submissionComments = new HashSet<String>();
+            Set<String> dependenciesFiles = new HashSet<String>();
             for (ContentItemTO item : items) {
                 String comment = item.getSubmissionComment();
                 if (StringUtils.isNotEmpty(comment)) {
@@ -181,10 +134,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         submissionComments.add(comment);
                     }
                 }
+                dependenciesFiles.addAll(submitToApproveDependencyRule.applyRule(site, item.getUri()));
             }
             Map<String, Object> result = new HashMap<>();
             result.put(JSON_KEY_ITEMS, items);
             result.put(JSON_KEY_SUBMISSION_COMMENT, sb.toString());
+            result.put(JSON_KEY_DEPENDENCIES, dependenciesFiles);
             return result;
         } catch (RuntimeException e){
             logger.error("Error getting dependecies",e);
@@ -244,9 +199,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }*/
                 }
 
+                String cleanPath = getCleanPath(path);
                 Map<String, Object> params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_ASSET);
                 List<DependencyEntity> assetsList = dependencyMapper.getDependenciesByType(params);
                 List<String> assetPaths = new ArrayList<String>();
@@ -258,7 +214,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_COMPONENT);
                 List<DependencyEntity> componentsList = dependencyMapper.getDependenciesByType(params);
                 List<String> componentsPaths = new ArrayList<String>();
@@ -270,7 +226,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_DOCUMENT);
                 List<DependencyEntity> documentsList = dependencyMapper.getDependenciesByType(params);
                 List<String> documentsPaths = new ArrayList<String>();
@@ -282,7 +238,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_RENDERING_TEMPLATE);
                 List<DependencyEntity> templatesList = dependencyMapper.getDependenciesByType(params);
                 List<String> templatesPaths = new ArrayList<String>();
@@ -297,7 +253,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                  */
                 params = new HashMap<>();
                 params.put("site", site);
-                params.put("sourcePath", path);
+                params.put("sourcePath", cleanPath);
                 params.put("type", DEPENDENCY_NAME_PAGE);
                 List<DependencyEntity> pagesList = dependencyMapper.getDependenciesByType(params);
                 List<String> pagesPaths = new ArrayList<String>();
@@ -805,7 +761,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected void populatePageDependencies(String site, ContentItemTO item, boolean populateUpdatedDependecinesOnly) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
-        params.put("sourcePath", item.getUri());
+        params.put("sourcePath", getCleanPath(item.getUri()));
         params.put("type", DEPENDENCY_NAME_PAGE);
         List<DependencyEntity> pages = dependencyMapper.getDependenciesByType(params);
         List<ContentItemTO> pageItems = getDependentItems(site, item.getUri(), pages, populateUpdatedDependecinesOnly);
@@ -932,8 +888,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     continue;
                 }
                 if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    String content = contentService.getContentAsString(fullPath);
+                    String content = contentService.getContentAsString(site, assetPath);
                     if (StringUtils.isNotEmpty(content)) {
                         StringBuffer sb = new StringBuffer(content);
                         try {
@@ -944,8 +899,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     }
 
                 } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                    String fullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    String content = contentService.getContentAsString(fullPath);
+                    String content = contentService.getContentAsString(site, assetPath);
                     if (StringUtils.isNotEmpty(content)) {
                         StringBuffer sb = new StringBuffer(content);
                         try {
@@ -964,8 +918,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (parsedTemplates.contains(templatePath)) {
                     continue;
                 }
-                String fullPath = contentService.expandRelativeSitePath(site, templatePath);
-                String content = contentService.getContentAsString(fullPath);
+                String content = contentService.getContentAsString(site, templatePath);
                 if (StringUtils.isNotEmpty(content)) {
                     StringBuffer sb = new StringBuffer(content);
                     try {
@@ -1013,14 +966,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }
@@ -1032,8 +983,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 continue;
             }
             if (contentService.contentExists(site, templatePath)) {
-                String templateFullPath = contentService.expandRelativeSitePath(site, templatePath);
-                StringBuffer sb = new StringBuffer(contentService.getContentAsString(templateFullPath));
+                StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, templatePath));
                 extractDependenciesTemplate(site, templatePath, sb, globalDeps);
             }
 
@@ -1066,8 +1016,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesStyle(site, assetPath, sb, globalDeps);
                 }
             }
@@ -1099,8 +1048,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
                 if (contentService.contentExists(site, assetPath)) {
-                    String assetFullPath = contentService.expandRelativeSitePath(site, assetPath);
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(assetFullPath));
+                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
                     extractDependenciesJavascript(site, assetPath, sb, globalDeps);
                 }
             }
@@ -1163,8 +1111,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         for (String file : files) {
                             DependencyEntity dependencyObj = new DependencyEntity();
                             dependencyObj.setSite(site);
-                            dependencyObj.setSourcePath(path);
-                            dependencyObj.setTargetPath(file);
+                            dependencyObj.setSourcePath(getCleanPath(path));
+                            dependencyObj.setTargetPath(getCleanPath(file));
                             dependencyObj.setType(type);
                             deps.add(dependencyObj);
                         }
@@ -1179,6 +1127,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
     }
 
+    private String getCleanPath(String path) {
+        String cleanPath = path.replaceAll("//", "/");
+        return cleanPath;
+    }
 
     private List<String> applyIgnoreDependenciesRules(String site, List<String> dependencies) {
         List<String> filteredDependencies = new ArrayList<>();
@@ -1486,7 +1438,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        params.put("sourcePath", path);
+        params.put("sourcePath", getCleanPath(path));
         List<DependencyEntity> deps = dependencyMapper.getDependencies(params);
         for (DependencyEntity dep : deps) {
             toRet.add(dep.getTargetPath());

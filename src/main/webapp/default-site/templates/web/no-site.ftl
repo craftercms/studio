@@ -26,7 +26,7 @@
   <!-- CSS: implied media=all -->
   <!-- CSS concatenated and minified via ant build script-->
   <link href='${urlTransformationService.transform('toWebAppRelativeUrl', '/static-assets/css/default-style.css')}' rel='stylesheet' type='text/css'>
-  <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
   <!-- end CSS-->
 
   <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
@@ -44,16 +44,17 @@
 			<a class="logo" href="#"><img src="/static-assets/img/crafter-logo-transparent.png" alt="Crafter WEM by Crafter Software"   /></a>
 			<nav>
 				<ul>
-					<li class="active"><span>Crafter WEM</span></li>
-					<li><a href="http://http://www.craftersoftware.com/products"><span>Overview &amp; Features</span></a></li>
-					<li><a href="http://www.craftercms.org/downloads"><span>Download</span></a></li>
-					<li><a href="#"><span>Tutorials &amp; Screencasts</span></a></li>
-					
-					<li><a href="#"><span>Installation and Setup</span></a></li>
-					<li><a href="#"><span>Manuals and Documentation</span></a></li>
-					<li><a href="#"><span>Our Contributors</span></a></li>
-					<li><a href="#"><span>Professional Services</span></a></li>
-					<li><a href="http://www.alfresco.com"><span>Alfresco</span></a></li>
+           <li class="active"><span>Crafter CMS</span></li>
+          <li><a href="http://www.craftersoftware.com/products"><span>Overview &amp; Features</span></a></li>
+          <li><a href="http://www.craftercms.org/downloads"><span>Download</span></a></li>
+          <li><a href="http://wiki.craftersoftware.com/display/CRAFTER/Crafter+CMS+Tutorials"><span>Tutorials &amp; Screencasts</span></a></li>
+          
+          <li><a href="http://wiki.craftersoftware.com/display/CRAFTER/C2.5+Setup+Guide"><span>Installation and Setup</span></a></li>
+          <li><a href="http://wiki.craftersoftware.com"><span>Manuals and Documentation</span></a></li>
+          <li><a href="http://craftercms.org"><span>Our Contributors</span></a></li>
+          <li><a href="http://craftersoftware.com/about/partners"><span>Professional Services</span></a></li>
+          <li><a href="http://www.craftersoftware.com"><span>Crafter Software</span></a></li>
+          <li><a href="http://www.alfresco.com"><span>Alfresco</span></a></li>
 
 				</ul>
 			</nav>

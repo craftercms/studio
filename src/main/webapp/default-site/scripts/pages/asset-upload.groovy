@@ -64,10 +64,24 @@ if(ServletFileUpload.isMultipartContent(request)) {
         } 
         else {
             fileName = item.getName()
+            fileName = fileName.toLowerCase()
             contentType = item.getContentType()
             content = item.getInputStream()
         }
     }
+
+    def dotIdx = fileName.lastIndexOf(".")
+    def cleanFileName = fileName.substring(0, dotIdx)
+    def cleanFileExt = fileName.substring(dotIdx + 1)
+
+    cleanFileName = cleanFileName.replaceAll("[\\s]", "-")
+    cleanFileName = cleanFileName.replaceAll("[.]", "-")
+    cleanFileName = cleanFileName.replaceAll("[^\\w\\-]","")
+
+    cleanFileExt = cleanFileExt.replaceAll("[\\s]", "-")
+    cleanFileExt = cleanFileExt.replaceAll("[^\\w\\-]","")
+
+    fileName = cleanFileName + "." + cleanFileExt
 
     result = ContentServices.writeContentAsset(context, site, path, fileName, content,
             isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);

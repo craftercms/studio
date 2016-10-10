@@ -16,7 +16,7 @@
 		formServerUri: "${envConfig.formServerUrl!'UNSET'}",
 		previewAppBaseUri: "${envConfig.previewServerUrl!'UNSET'}", 
 		contextMenuOffsetPage: false,
-		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/cstudio/config/app-logo.png",
+		brandedLogoUri: "/api/1/services/api/1/content/get-content-at-path.bin?path=/configuration/app-logo.png",
 		homeUri: "/site-dashboard?site=${envConfig.site!'UNSET'}",
 		navContext: "default",
 		cookieDomain: "${cookieDomain!'UNSET'}",

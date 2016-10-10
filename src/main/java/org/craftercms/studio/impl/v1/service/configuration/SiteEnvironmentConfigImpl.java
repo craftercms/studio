@@ -27,13 +27,11 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
-import org.craftercms.studio.api.v1.to.TimeStamped;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -179,7 +177,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
-			document = contentService.getContentAsDocument(configLocation);
+			document = contentService.getContentAsDocument(key, configLocation);
 		} catch (DocumentException e) {
 			e.printStackTrace();
 		}
@@ -220,6 +218,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                 for (Element channel : channels) {
                     PublishingChannelConfigTO pcConfigTO = new PublishingChannelConfigTO();
                     pcConfigTO.setName(channel.getText());
+                    if (!checkEndpointConfigured(key, pcConfigTO.getName())) {
+                        logger.error("Deployment endpoint \"" + pcConfigTO.getName() + "\" is not configured for site " + key);
+                    }
                     pcgConfigTo.getChannels().add(pcConfigTO);
                 }
                 node = element.selectSingleNode("live-environment");
@@ -249,6 +250,12 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                         }
                     }
                 }
+                List<Element> roles = element.selectNodes("roles/role");
+                Set<String> rolesStr = new HashSet<String>();
+                for (Element role : roles) {
+                    rolesStr.add(role.getTextTrim());
+                }
+                pcgConfigTo.setRoles(rolesStr);
                 config.getPublishingChannelGroupConfigs().put(pcgConfigTo.getName(), pcgConfigTo);
             }
 
@@ -295,7 +302,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @Override
     public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
-        //checkForUpdate(site);
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPublishingChannelGroupConfigs();
@@ -305,7 +311,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @Override
     public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site) {
-        //checkForUpdate(site);
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getLiveEnvironmentPublishingGroup();
@@ -321,7 +326,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @Override
     public String getPreviewDeploymentEndpoint(String site) {
-        //checkForUpdate(site);
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPreviewDeploymentEndpoint();
@@ -329,8 +333,17 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         return null;
     }
 
+    protected boolean checkEndpointConfigured(String site, String endpointName) {
+        DeploymentEndpointConfigTO endpointConfigTO = deploymentEndpointConfig.getDeploymentConfig(site, endpointName);
+        return (endpointConfigTO != null);
+    }
+
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
+    public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
+
     protected GeneralLockService generalLockService;
+    protected DeploymentEndpointConfig deploymentEndpointConfig;
 }

@@ -9,8 +9,8 @@ class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
 
-	def context = null		
-	
+	def context = null
+
 	def SpringContentServices(context) {
 		this.context = context
 	}
@@ -87,10 +87,9 @@ class SpringContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
 	 */
-	def getContent(site, path) { 
-		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
+	def getContent(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentAsString(contentPath)
+        return springBackedService.getContentAsString(site, path)
 	}
 
 	/**
@@ -98,10 +97,9 @@ class SpringContentServices {
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
 	 */
-	def getContentAsStream(site, path) { 
-		def contentPath = "/wem-projects/" + site + "/" + site + "/work-area" + path
+	def getContentAsStream(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContent(contentPath)
+        return springBackedService.getContent(site, path)
 	}
 
   	/**
@@ -173,7 +171,7 @@ class SpringContentServices {
 
 	}
 
-	/** 
+	/**
 	 * unlock a given item
 	 * @param site - the project ID
 	 * @param path - the path of the item to unlock
@@ -183,17 +181,17 @@ class SpringContentServices {
 		return springBackedService.unLockContent(site, path)
 	}
 
-	/** 
+	/**
 	 * get the version history for an item
 	 * @param site - the project ID
-	 * @param path - the path of the item 
+	 * @param path - the path of the item
 	 */
 	def getContentItemVersionHistory(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentItemVersionHistory(site, path)		
+        return springBackedService.getContentItemVersionHistory(site, path)
 	}
 
-	/** 
+	/**
 	 *  Get the content for a specific version
 	 * @param site - the project ID
 	 * @param path - the path of the item to retrieve
@@ -201,10 +199,10 @@ class SpringContentServices {
 	 */
 	def getContentVersionAtPath(site, path, version) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContentVersionAsString(site, path, version)			
+        return springBackedService.getContentVersionAsString(site, path, version)
 	}
 
-	/** 
+	/**
 	 * revert a version (create a new version based on an old version)
 	 * @param site - the project ID
 	 * @param path - the path of the item to "revert"
@@ -212,12 +210,12 @@ class SpringContentServices {
 	 */
 	def revertContentItem(site, path, version, major, comment){
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.revertContentItem(site, path, version, major, comment)			
+        return springBackedService.revertContentItem(site, path, version, major, comment)
 	}
 
-	/** 
+	/**
 	 * search the repository
-	 * @param site - the project ID	  
+	 * @param site - the project ID
 	 * @param keywords - keywords
 	 * @param filters - Filters object (document based)
 	 * @param sort - sort object
@@ -238,9 +236,9 @@ class SpringContentServices {
         springBackedService.writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder);
     }
 
-	def getContentAtPath(path) {
+	def getContentAtPath(site, path) {
 		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContent(path)
+		return springBackedService.getContent(site, path)
 	}
 
 	def lockContent(site, path) {

@@ -1,0 +1,45 @@
+<config>
+	<reports>
+    <report>
+      <title>Visits for all visitors</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailySiteVisits</reportId>
+		</report>
+    <report>
+      <title>Pageviews for all visitors</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailyPageviews</reportId>
+		</report>
+    <report>
+      <title>Average Pageviews for all visitors</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailyPagesPerVisit</reportId>
+		</report>
+    <report>
+      <title>Bounce Rate for all visitors</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailyBounceRate</reportId>
+		</report>
+    <report>
+      <title>Shows daily percent of new visits</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailyNewVisitsPercent</reportId>
+		</report>
+
+    <report>
+      <title>Visitors Overview</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>dailyVisitors</reportId>
+		</report>
+    <report>
+      <title>Traffic Sources Overview</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>trafficSources</reportId>
+		</report>
+    <report>
+      <title>Map Overlay</title>
+			<webPropertyId>blogs.acme.com</webPropertyId>
+			<reportId>mapOverlay</reportId>
+		</report>
+	</reports>
+</config>

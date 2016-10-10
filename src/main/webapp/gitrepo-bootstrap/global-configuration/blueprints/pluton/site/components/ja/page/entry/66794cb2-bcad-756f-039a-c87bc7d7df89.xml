@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>6679</objectGroupId>
+	<objectId>66794cb2-bcad-756f-039a-c87bc7d7df89</objectId>
+	<file-name>66794cb2-bcad-756f-039a-c87bc7d7df89.xml</file-name>
+	<internal-name>Clients</internal-name>
+	<content_html>&lt;!-- Client section start --&gt;
+&lt;div id="clients"&gt;
+&lt;div class="section primary-section"&gt;
+&lt;div class="triangle"&gt;&lt;br /&gt;&lt;/div&gt;
+&lt;div class="container"&gt;
+&lt;div class="title"&gt;
+&lt;h1&gt;What Client Say?&lt;/h1&gt;
+&lt;p&gt;Duis mollis placerat quam, eget laoreet tellus tempor eu. Quisque dapibus in purus in dignissim.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt;
+&lt;div class="span4"&gt;
+&lt;div class="testimonial"&gt;
+&lt;p&gt;"I&amp;#39;ve worked too hard and too long to let anything stand in the way of my goals. I will not let my teammates down and I will not let myself down."&lt;/p&gt;
+&lt;div class="whopic"&gt;
+&lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client1.png" alt="client 1" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="span4"&gt;
+&lt;div class="testimonial"&gt;
+&lt;p&gt;"In motivating people, you&amp;#39;ve got to engage their minds and their hearts. I motivate people, I hope, by example - and perhaps by excitement, by having productive ideas to make others feel involved."&lt;/p&gt;
+&lt;div class="whopic"&gt;
+&lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client2.png" alt="client 2" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="span4"&gt;
+&lt;div class="testimonial"&gt;
+&lt;p&gt;"Determine never to be idle. No person will have occasion to complain of the want of time who never loses any. It is wonderful how much may be done if we are always doing."&lt;/p&gt;
+&lt;div class="whopic"&gt;
+&lt;div class="arrow"&gt;&lt;br /&gt;&lt;/div&gt;
+&lt;img class="centered" src="/static-assets/images/Client3.png" alt="client 3" /&gt; &lt;strong&gt;John Doe &lt;small&gt;Client&lt;/small&gt; &lt;/strong&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p class="testimonial-text"&gt;"Perfection is Achieved Not When There Is Nothing More to Add, But When There Is Nothing Left to Take Away"&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section third-section"&gt;
+&lt;div class="container centered"&gt;
+&lt;div class="sub-section"&gt;
+&lt;div class="title clearfix"&gt;
+&lt;div class="pull-left"&gt;
+&lt;h3&gt;Our Clients&lt;/h3&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul id="clint-slider" class="row client-slider"&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo01.png" alt="client logo 1" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo02.png" alt="client logo 2" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo03.png" alt="client logo 3" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo04.png" alt="client logo 4" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo05.png" alt="client logo 5" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo02.png" alt="client logo 6" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/studio/"&gt; &lt;img src="/static-assets/images/clients/ClientLogo04.png" alt="client logo 7" /&gt; &lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content_html>
+	<createdDate>6/5/2015 19:0:17</createdDate>
+	<lastModifiedDate>11/9/2015 22:34:28</lastModifiedDate>
+	<lastModifiedDate_dt>11/9/2015 22:34:28</lastModifiedDate_dt>
+</component>

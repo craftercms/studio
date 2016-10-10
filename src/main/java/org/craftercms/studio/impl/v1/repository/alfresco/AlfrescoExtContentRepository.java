@@ -36,9 +36,9 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
     private final static Logger logger = LoggerFactory.getLogger(AlfrescoExtContentRepository.class);
 
     @Override
-    public RepositoryItem[] getContentChildren(String path) {
+    public RepositoryItem[] getContentChildren(String site, String path) {
         if (path.startsWith("/cstudio")) {
-            return super.getContentChildren(path);
+            return super.getContentChildren(site, path);
         } else {
             final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
 
@@ -47,7 +47,7 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
                 final String finalPath = path;
                 Path pathObj = constructRepoPath(path);
                 if (!Files.exists(pathObj)) {
-                    return super.getContentChildren(path);
+                    return super.getContentChildren(site, path);
                 }
                 Files.walkFileTree(constructRepoPath(finalPath), opts, 1, new SimpleFileVisitor<Path>() {
                     @Override
@@ -93,8 +93,8 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return super.getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return super.getContentChildren(site, path);
     }
 
     /**
@@ -107,8 +107,8 @@ public class AlfrescoExtContentRepository extends AlfrescoContentRepository {
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
-        boolean toRet = super.createFolder(path, name);
+    public boolean createFolder(String site, String path, String name) {
+        boolean toRet = super.createFolder(site, path, name);
         if (toRet) {
             try {
                 Files.createDirectories(constructRepoPath(path, name));
