@@ -948,6 +948,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="repositoryRootPath" value="${repository.gitImplementation.path}"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 

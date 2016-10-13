@@ -19,6 +19,8 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
+import static org.eclipse.jgit.lib.Constants.OBJECT_ID_STRING_LENGTH;
+
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -52,7 +54,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class EnvironmentStoreGitDeployer implements Deployer {
 
@@ -61,7 +65,7 @@ public class EnvironmentStoreGitDeployer implements Deployer {
     @Override
     public void deployFile(String site, String path) {
         try (Repository envStoreRepo = getEnvironmentStoreRepositoryInstance(site)) {
-            fetchFromRemote(envStoreRepo);
+            fetchFromRemote(site, envStoreRepo);
             InputStream patch = createPatch(envStoreRepo, site, path);
             Git git = new Git(envStoreRepo);
             ApplyResult result = git.apply()
@@ -70,13 +74,19 @@ public class EnvironmentStoreGitDeployer implements Deployer {
             git.add().addFilepattern(".").call();
             git.commit().setMessage("deployment").call();
 
-        } catch (IOException | GitAPIException e) {
+        } catch (/*IOException | GitAPIException | */Exception e ) {
             logger.error("Error while deploying file for site: " + site + " path: " + path, e);
         }
     }
 
-    private void fetchFromRemote(Repository repository) {
+    private void fetchFromRemote(String site, Repository repository) {
         try (Git git = new Git(repository)) {
+            Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+            Collection<Ref> refs = Git.lsRemoteRepository()
+                    .setHeads(true)
+                    .setTags(true)
+                    .setRemote(siteRepoPath.toAbsolutePath().toString())
+                    .call();
             FetchResult result = git.fetch()
                     .setRemote("work-area")
                     .setCheckFetchedObjects(true)
@@ -92,7 +102,7 @@ public class EnvironmentStoreGitDeployer implements Deployer {
 
             // the diff works on TreeIterators, we prepare two for the two branches
             AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, "refs/heads/master");
-            AbstractTreeIterator newTreeParser = prepareTreeParser(repository, "refs/remotes/work-area/master");
+            AbstractTreeIterator newTreeParser = prepareTreeParser(repository, "FETCH_HEAD");//"refs/remotes/work-area/master");
 
             // then the procelain diff-command returns a list of diff entries
             List<DiffEntry> diff = git.diff()
@@ -104,11 +114,17 @@ public class EnvironmentStoreGitDeployer implements Deployer {
             //PipedInputStream pin = new PipedInputStream();
             OutputStream out = new ByteArrayOutputStream();
 
+            for (DiffEntry diffEntry : diff) {
+                DiffEntry.ChangeType ct = diffEntry.getChangeType();
+            }
+
 
             //OutputStream os = new FileOutputStream("/Users/dejanbrkic/gitpatchtest.diff");
             DiffFormatter df = new DiffFormatter(out);
             df.setRepository(repository);
+            df.setBinaryFileThreshold();
             df.setPathFilter(getTreeFilter(path));
+            df.setAbbreviationLength(OBJECT_ID_STRING_LENGTH);
             df.format(diff);
             df.flush();
             df.close();
@@ -151,14 +167,69 @@ public class EnvironmentStoreGitDeployer implements Deployer {
 
     private Repository getEnvironmentStoreRepositoryInstance(String site) throws IOException {
 
-        Path siteRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git");
-        if (Files.exists(siteRepoPath)) {
-            return openGitRepository(siteRepoPath);
-        } else {
-            Files.deleteIfExists(siteRepoPath);
-            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
+        Path siteRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git").toAbsolutePath();
+        if (!Files.exists(siteRepoPath)) {
+            createEnvironmentStoreRepository(site);
         }
-        return null;
+        Repository envStoreRepo = openGitRepository(siteRepoPath);
+        if (!checkIfWorkAreaAddedAsRemote(envStoreRepo)) {
+            addWorkAreaRemote(site, envStoreRepo);
+        }
+        return envStoreRepo;
+    }
+
+    private boolean createEnvironmentStoreRepository(String site) {
+        boolean success = true;
+        Path siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site, environment);
+        try {
+            Files.deleteIfExists(siteEnvironmentStoreRepoPath);
+            siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git");
+            Repository repository = FileRepositoryBuilder.create(siteEnvironmentStoreRepoPath.toFile());
+            repository.create();
+
+            Git git = new Git(repository);
+            git.add().addFilepattern(".").call();
+            RevCommit commit = git.commit()
+                    .setMessage("initial content")
+                    .setAllowEmpty(true)
+                    .call();
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while creating repository for site " + site, e);
+            success = false;
+        }
+        return success;
+    }
+
+    private void addWorkAreaRemote(String site, Repository envStoreRepo) {
+        envStoreRepo.getRemoteName("work-area");
+        Git git = new Git(envStoreRepo);
+        StoredConfig config = git.getRepository().getConfig();
+        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+        config.setString("remote", "work-area", "url", siteRepoPath.toAbsolutePath().toString());
+        try {
+            config.save();
+        } catch (IOException e) {
+            logger.error("Error adding work area as remote for environment store.", e);
+        }
+    }
+
+    private boolean checkIfWorkAreaAddedAsRemote(Repository repository) {
+        boolean exists = false;
+        try {
+            Config storedConfig = repository.getConfig();
+            Set<String> remotes = storedConfig.getSubsections("remote");
+
+            for (String remoteName : remotes) {
+                logger.debug("Remote: " + remoteName);
+                if (remoteName.equals("work-area")) {
+                    exists = true;
+                    break;
+                }
+            }
+        } catch (Exception err) {
+            logger.error("Error while reading remotes info.", err);
+        }
+        return exists;
     }
 
     private RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
