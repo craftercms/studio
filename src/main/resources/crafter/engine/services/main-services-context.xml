@@ -52,11 +52,34 @@
         </constructor-arg>
     </bean>
 
-    <bean id="crafter.servletContextAttributesInitializer"
-          class="org.craftercms.engine.util.servlet.ServletContextAttributesInitializer">
+    <!-- ////////////////////////////////// -->
+    <!--								 	-->
+    <!--		      Bootstrap 			-->
+    <!--									-->
+    <!-- ////////////////////////////////// -->
+
+    <bean id="crafter.systemPropertiesBootstrap"
+          class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+                <property name="targetClass" value="java.lang.System" />
+                <property name="targetMethod" value="getProperties" />
+            </bean>
+        </property>
+        <property name="targetMethod" value="putAll" />
+        <property name="arguments">
+            <map>
+                <entry key="crafter.modePreview" value="${crafter.engine.preview}"/>
+                <entry key="crafter.environment" value="${crafter.engine.environment}"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="crafter.servletContextAttributesBootstrap"
+          class="org.craftercms.engine.util.servlet.ServletContextAttributesBootstrap">
         <property name="attributes">
             <map>
-                <entry key="modePreview" value="${crafter.engine.preview}"/>
+                <entry key="modePreview" value="#{T(java.lang.Boolean).valueOf(${crafter.engine.preview})}"/>
                 <entry key="environment" value="${crafter.engine.environment}"/>
             </map>
         </property>
