@@ -4,6 +4,7 @@ import org.craftercms.engine.service.impl.SiteItemServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
@@ -11,6 +12,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 @Test
 @ContextConfiguration(locations = { "classpath:crafter/engine/rendering/main-rendering-context.xml","classpath:crafter/engine/services/main-services-context.xml" })
+@WebAppConfiguration
 public class SpringContextTest extends AbstractTestNGSpringContextTests{
 
     @Autowired
