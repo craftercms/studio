@@ -34,6 +34,10 @@
         <listener-class>org.craftercms.studio.impl.v1.db.EmbededDbContextListener</listener-class>
     </listener>
 
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
 
     <filter>
         <filter-name>crafter.requestContextBindingFilter</filter-name>
@@ -49,21 +53,24 @@
 		<filter-name>crafter.siteContextResolvingFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 	</filter>
-
+<!--
     <filter>
         <filter-name>crafter.securityFilter</filter-name>
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-    </filter>
-
+    </filter>-->
+<!--
     <filter>
         <filter-name>crafter.studioSecurityFilter</filter-name>
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
 
     <filter>
-        <filter-name>crafter.repoRequestCache</filter-name>
-        <filter-class>org.craftercms.studio.impl.v1.repository.cached.ResponseCacheFilter</filter-class>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
+-->
+    
+
 
     <filter-mapping>
     	<filter-name>crafter.requestContextBindingFilter</filter-name>
@@ -82,24 +89,29 @@
 		<url-pattern>/*</url-pattern>
 		<dispatcher>REQUEST</dispatcher>
 	</filter-mapping>
-
+<!--
     <filter-mapping>
       <filter-name>crafter.securityFilter</filter-name>
       <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
+    </filter-mapping>-->
+<!--
     <filter-mapping>
         <filter-name>crafter.studioSecurityFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <filter-mapping>
-        <filter-name>crafter.repoRequestCache</filter-name>
+        <filter-name>studioSecurityFilterChain</filter-name>
         <url-pattern>/*</url-pattern>
-        <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
-    
-	<servlet>
+    -->
+
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
 		<servlet-name>Spring MVC Dispatcher Servlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
 		<init-param>
@@ -115,7 +127,7 @@
 	</servlet-mapping>
 
 	<session-config>
-		<session-timeout>15</session-timeout>
+		<session-timeout>75</session-timeout>
 	</session-config>
 
     <error-page>

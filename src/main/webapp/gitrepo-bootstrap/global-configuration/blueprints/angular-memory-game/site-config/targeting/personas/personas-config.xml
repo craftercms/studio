@@ -1,0 +1,43 @@
+<personas>
+    <persona>
+        <name>Anonymous</name>
+        <description>User unknown</description>
+        <thumb>anon.jpg</thumb>
+        <settings>
+        </settings>
+   </persona>
+    <persona>
+        <name>Child</name>
+        <description>User is a child</description>
+        <thumb>child.jpg</thumb>
+        <settings>
+            <property>
+            	<name>age</name>
+            	<label>Age</label>
+            	<value>9</value>
+            </property>
+            <property>
+                <name>gender</name>
+                <label>Gender</label>
+                <value>female</value>
+            </property>
+        </settings>
+   </persona>
+    <persona>
+        <name>Adult</name>
+        <description>User is an Adult</description>
+        <thumb>adult.jpg</thumb>
+        <settings>
+            <property>
+            	<name>age</name>
+            	<label>Age</label>
+            	<value>25</value>
+            </property>
+            <property>
+                <name>gender</name>
+                <label>Gender</label>
+                <value>male</value>
+            </property>
+        </settings>
+   </persona>
+</personas>

@@ -23,19 +23,9 @@ public class ClearConfigurationCache {
     private final static Logger logger = LoggerFactory.getLogger(ClearConfigurationCache.class);
 
     public ClearConfigurationCache() throws Exception {
-        JChannel channel = new JChannel();
-        rpcDispatcher = new RpcDispatcher(channel, this);
-        channel.connect("StudioCluster");
+        super();
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        if (rpcDispatcher != null) {
-            rpcDispatcher.close();
-            rpcDispatcher = null;
-        }
-        super.finalize();
-    }
 
     public void onClearConfigurationCache(ClearCacheEventMessage message) {
         logger.info("ClearConfigurationCache event invoked for site" + message.getSite());

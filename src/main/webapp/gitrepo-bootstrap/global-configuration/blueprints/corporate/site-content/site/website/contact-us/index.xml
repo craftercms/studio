@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/contact-us</content-type>
+	<display-template>/templates/web/contact-us.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<content-type>/page/contact-us</content-type>
+	<display-template>/templates/web/contact-us.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>55d0</objectGroupId>
+	<objectId>55d0220a-39e5-de65-0808-fce3b665d751</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>contact-us1</folder-name>
+	<internal-name>Contact Us</internal-name>
+	<title>Strategy, technology and insight for improving Governance, Risk and Compliance in a changing global environment</title>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>6000</orderDefault_f>
+	<navLabel>Contact Us</navLabel>
+	<locations>	<item>	<title>Corporate Headquarters Europe</title>
+	<address>&lt;p&gt;75 Champs-Elysees&lt;/p&gt;
+&lt;p&gt;75008 Paris France&lt;/p&gt;</address>
+	<phone>+33.555.555.5555 </phone>
+	<email>fr.info@globalintegrity.com</email>
+	</item>	<item>	<title>Corporate Headquarters US</title>
+	<address>&lt;p&gt;1564 District Road&lt;/p&gt;
+&lt;p&gt;Washington, DC 20001&lt;/p&gt;</address>
+	<phone>+1.555.555.5555</phone>
+	<email>us.info@globalintegrity.com</email>
+	</item></locations>
+</page>

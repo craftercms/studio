@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+
+    <defaultLocale>en</defaultLocale>
+
+    <targeting>
+        <enabled>true</enabled>
+        <rootFolders>/site/website</rootFolders>
+        <fallbackTargetId>en</fallbackTargetId>
+        <mergeFolders>true</mergeFolders>
+    </targeting>
+
+</site>

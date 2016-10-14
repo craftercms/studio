@@ -41,7 +41,7 @@ class HTMLCompareTools {
   				"</xsl:template>" +
 			"</xsl:stylesheet>"
 
-	static String xmlToHtml(String xml) {
+	static String xmlAsStringToHtml(String xml) {
 		return xmlToHtml(IOUtils.toInputStream(xml))
 	}
 

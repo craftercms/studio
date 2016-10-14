@@ -1,0 +1,12 @@
+<!--    <config>
+       <onGoLive>
+          <assetGroups>
+              <assetGroup>
+                   <include>.*</include>
+                   <submitAsGroup>false</submitAsGroup>
+                   <process>submit-for-translate</process>
+              </assetGroup>
+          </assetGroups>
+       </onGoLive>
+    </config>
+-->

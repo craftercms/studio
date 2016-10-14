@@ -6,7 +6,7 @@
     <artifactId>crafter-studio-2</artifactId>
     <name>Crafter Studio</name>
     <packaging>war</packaging>
-    <version>2.5.1-SNAPSHOT</version>
+    <version>2.6.0-SNAPSHOT</version>
     <url>http://www.craftercms.org</url>
 
     <parent>
@@ -96,22 +96,22 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
+            <version>2.6.0-SNAPSHOT</version>
             <type>war</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
+            <version>2.6.0-SNAPSHOT</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>crafter-commons-ebus</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
         </dependency>
 
 
@@ -170,6 +170,59 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
             <version>4.0.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>4.0.3.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.transaction</groupId>
@@ -245,18 +298,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectreactor</groupId>
-            <artifactId>reactor-tcp</artifactId>
-            <version>1.0.0.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
             <version>3.6.6.Final</version>
@@ -266,6 +307,13 @@
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache-jgroupsreplication</artifactId>
             <version>1.7</version>
+        </dependency>
+
+        <!-- JGit -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.2.0.201601211800-r</version>
         </dependency>
 
         <!-- testing -->
@@ -311,12 +359,54 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
     </dependencies>
 
     <build>
         <finalName>studio</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <inherited>false</inherited> <!-- only execute these in the parent -->
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <id>git submodule update</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <executable>git</executable>
+                            <arguments>
+                                <argument>submodule</argument>
+                                <argument>update</argument>
+                                <argument>--init</argument>
+                                <argument>--recursive</argument>
+                            </arguments>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>git submodule pull changes</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <executable>git</executable>
+                            <arguments>
+                                <argument>submodule</argument>
+                                <argument>foreach</argument>
+                                <argument>git</argument>
+                                <argument>pull</argument>
+                                <argument>origin</argument>
+                                <argument>master</argument>
+                            </arguments>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
@@ -374,12 +464,15 @@
                                 <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
+                                <exclude>WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
+                                <exclude>WEB-INF/lib/spring-security-web-3.2.3.RELEASE.jar</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

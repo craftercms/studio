@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>9cb0</objectGroupId>
+	<objectId>9cb08bc1-fe09-c450-8043-a4ccbaf166e4</objectId>
+	<file-name>9cb08bc1-fe09-c450-8043-a4ccbaf166e4.xml</file-name>
+	<internal-name>Purchase Now</internal-name>
+	<content_html>&lt;div class="section secondary-section"&gt;
+&lt;div class="triangle"&gt;&lt;br /&gt;&lt;/div&gt;
+&lt;div class="container centered"&gt;
+&lt;p class="large-text"&gt;Elegance is not the abundance of simplicity. It is the absence of complexity.&lt;/p&gt;
+&lt;a class="button" href="#"&gt;Purshase now&lt;/a&gt;&lt;/div&gt;
+&lt;/div&gt;</content_html>
+	<createdDate>6/5/2015 18:47:42</createdDate>
+	<lastModifiedDate>6/5/2015 19:17:35</lastModifiedDate>
+</component>

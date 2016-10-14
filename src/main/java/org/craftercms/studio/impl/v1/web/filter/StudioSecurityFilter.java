@@ -22,7 +22,10 @@ package org.craftercms.studio.impl.v1.web.filter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.GenericFilterBean;
@@ -30,9 +33,14 @@ import org.springframework.web.filter.GenericFilterBean;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 public class StudioSecurityFilter extends GenericFilterBean {
+
+    private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
+
+    private final static Logger logger = LoggerFactory.getLogger(StudioSecurityFilter.class);
 
     public StudioSecurityFilter() {
         pathMatcher = new AntPathMatcher();
@@ -42,21 +50,46 @@ public class StudioSecurityFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
+        HttpServletResponse httpReponse = (HttpServletResponse) response;
 
         if (ArrayUtils.contains(exceptionUrls, HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
             chain.doFilter(request, response);
         } else {
-            if ((includeRequest(httpRequest) || !excludeRequest(httpRequest))) {
-                doFilterInternal((HttpServletRequest) request, (HttpServletResponse) response, chain);
+            if (!checkSessionTimeout(httpRequest, httpReponse)) {
+                if ((includeRequest(httpRequest) || !excludeRequest(httpRequest))) {
+                    doFilterInternal(httpRequest, httpReponse, chain);
+                } else {
+                    chain.doFilter(request, response);
+                }
             } else {
-                chain.doFilter(request, response);
+                securityProvider.logout();
+                httpReponse.sendRedirect(httpRequest.getContextPath() + "/");
             }
         }
+
     }
 
     @Override
     public void destroy() {
         // do nothing
+    }
+
+    protected boolean checkSessionTimeout(HttpServletRequest request, HttpServletResponse response) {
+        if (request.getRequestURI().contains("/validate-token.json")) return false;
+        HttpSession httpSession = request.getSession();
+        String sessionToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        String user = securityProvider.getCurrentUser();
+        if (StringUtils.isEmpty(sessionToken) || StringUtils.isEmpty(user)) {
+            return false;
+        }
+        if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
+            if (SessionTokenUtils.validateToken(sessionToken, user)) {
+                sessionToken = SessionTokenUtils.createToken(user, sessionTimeout);
+                httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
+                return false;
+            }
+        }
+        return true;
     }
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -119,10 +152,14 @@ public class StudioSecurityFilter extends GenericFilterBean {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
+    public int getSessionTimeout() { return sessionTimeout; }
+    public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
+
     protected String[] urlsToInclude;
     protected String[] urlsToExclude;
     protected String[] exceptionUrls;
     protected SecurityProvider securityProvider;
+    protected int sessionTimeout;
 
     protected PathMatcher pathMatcher;
 }

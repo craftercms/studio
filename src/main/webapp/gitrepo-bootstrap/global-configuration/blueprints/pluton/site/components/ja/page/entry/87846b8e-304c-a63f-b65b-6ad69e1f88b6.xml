@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/rich-text-section</content-type>	<display-template>/templates/web/component-richtext-section.ftl</display-template>
+	<objectGroupId>8784</objectGroupId>
+	<objectId>87846b8e-304c-a63f-b65b-6ad69e1f88b6</objectId>
+	<file-name>87846b8e-304c-a63f-b65b-6ad69e1f88b6.xml</file-name>
+	<internal-name>Pricing</internal-name>
+	<content_html>&lt;!-- Price section start --&gt;
+&lt;div id="price" class="section secondary-section"&gt;
+&lt;div class="container"&gt;
+&lt;div class="title"&gt;
+&lt;h1&gt;Price&lt;/h1&gt;
+&lt;p&gt;Duis mollis placerat quam, eget laoreet tellus tempor eu. Quisque dapibus in purus in dignissim.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="price-table row-fluid"&gt;
+&lt;div class="span4 price-column"&gt;
+&lt;h3&gt;Basic&lt;/h3&gt;
+&lt;ul class="list"&gt;
+&lt;li class="price"&gt;$19,99&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Free&lt;/strong&gt; Setup&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;24/7&lt;/strong&gt; Support&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;5 GB&lt;/strong&gt; File Storage&lt;/li&gt;
+&lt;/ul&gt;
+&lt;a class="button button-ps" href="#"&gt;BUY&lt;/a&gt;&lt;/div&gt;
+&lt;div class="span4 price-column"&gt;
+&lt;h3&gt;Pro&lt;/h3&gt;
+&lt;ul class="list"&gt;
+&lt;li class="price"&gt;$39,99&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Free&lt;/strong&gt; Setup&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;24/7&lt;/strong&gt; Support&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;25 GB&lt;/strong&gt; File Storage&lt;/li&gt;
+&lt;/ul&gt;
+&lt;a class="button button-ps" href="#"&gt;BUY&lt;/a&gt;&lt;/div&gt;
+&lt;div class="span4 price-column"&gt;
+&lt;h3&gt;Premium&lt;/h3&gt;
+&lt;ul class="list"&gt;
+&lt;li class="price"&gt;$79,99&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Free&lt;/strong&gt; Setup&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;24/7&lt;/strong&gt; Support&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;50 GB&lt;/strong&gt; File Storage&lt;/li&gt;
+&lt;/ul&gt;
+&lt;a class="button button-ps" href="#"&gt;BUY&lt;/a&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="centered"&gt;
+&lt;p class="price-text"&gt;We Offer Custom Plans. Contact Us For More Info.&lt;/p&gt;
+&lt;a class="button" href="#contact"&gt;Contact Us&lt;/a&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Price section end --&gt;</content_html>
+	<createdDate>6/5/2015 19:2:53</createdDate>
+	<lastModifiedDate>6/5/2015 19:2:53</lastModifiedDate>
+</component>

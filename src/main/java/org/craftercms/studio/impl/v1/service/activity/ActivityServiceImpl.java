@@ -226,29 +226,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ActivityService#getLastActor(java.lang.String, java.lang.String, org.craftercms.cstudio.alfresco.service.api.ActivityService.ActivityType)
-	 *//*
-	public String getLastActor(String site, String key, ActivityType activity) {
-		String activityType = (activity == null) ? null : ContentUtils.generateActivityValue(activity);
-        CStudioActivityService activityService = getService(CStudioActivityService.class);
-		return activityService.getLastActor(site, key, activityType);
-	}*/
-
-	/**
-	 * @param postLookup the postLookup to set
-	 *//*
-	public void setPostLookup(PostLookup postLookup) {
-		this._postLookup = postLookup;
-	}*/
-
-	/**
-	 * @param feedGenerator the feedGenerator to set
-	 *//*
-	public void setFeedGenerator(FeedGenerator feedGenerator) {
-		this._feedGenerator = feedGenerator;
-	}*/
 
 	@Override
 	public void renameContentId(String site, String oldUrl, String newUrl) {
@@ -260,14 +237,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		params.put("oldPath", oldUrl);
         activityFeedMapper.renameContent(params);
 	}
-/*
-	@Override
-	public void updateContentSummary(String site,String url,String summary) {
-        CStudioActivityService activityService = getService(CStudioActivityService.class);
-		activityService.updateSummary(site, url, summary);
-	}
-*/
-
 
 	@Override
 	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException {
@@ -415,7 +384,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		activityFeedMapper.deleteActivitiesForSite(params);
 	}
 
-	@Autowired
+    @Override
+    public List<ActivityFeed> getAuditLogForSite(String site, int startPos, int feedSize) {
+        Map<String, Object> params = new HashMap<String,Object>();
+        params.put("site", site);
+        params.put("startPos", startPos);
+        params.put("feedSize", feedSize);
+        return activityFeedMapper.getAuditLogForSite(params);
+    }
+
+    @Autowired
 	protected ActivityFeedMapper activityFeedMapper;
 	protected boolean userNamesAreCaseSensitive = false;
 	protected ContentService contentService;

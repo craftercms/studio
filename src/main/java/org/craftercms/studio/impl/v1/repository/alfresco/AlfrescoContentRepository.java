@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.alfresco;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.MimetypesFileTypeMap;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpSession;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -57,10 +59,8 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -99,13 +99,28 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     private static final Logger logger = LoggerFactory.getLogger(AlfrescoContentRepository.class);
 
-    @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
-        return getContentStreamCMIS(path);
+    private static final TypeReference ALFRESCO_RESPONSE_TYPE = new TypeReference<Map<String, Object>>() {};
+
+    protected HttpClient httpClient;
+    protected ObjectMapper objectMapper;
+
+    public AlfrescoContentRepository() {
+        httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+        objectMapper = new ObjectMapper();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        ((MultiThreadedHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        return getContentStreamCMIS(site, path);
+    }
+
+    @Override
+    public boolean contentExists(String site, String path) {
         String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
@@ -115,61 +130,57 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject cmisObject = session.getObjectByPath(cleanPath);
             return cmisObject != null;
         } catch (CmisBaseException e) {
-            logger.info("Content not found exception for path: " + path, e);
+            logger.debug("Content not found exception for path: " + path, e);
             return false;
         }
     }
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) throws ServiceException {
+    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
         logger.debug("writing content to " + path);
-        //addDebugStack();
-        return writeContentCMIS(path, content);
+        return writeContentCMIS(site, path, content);
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
-        //addDebugStack();
+    public boolean createFolder(String site, String path, String name) {
         String folderRef = this.createFolderInternal(path, name);
         return folderRef != null;
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
         logger.debug("deleting content at " + path);
-        //addDebugStack();
-        return deleteContentCMIS(path);
+        return deleteContentCMIS(site, path);
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
-        //addDebugStack();
-        return this.copyContentInternal(fromPath, toPath, null, false);
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        return this.copyContentInternal(site, fromPath, toPath, null, false);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
-        return this.copyContentInternal(fromPath, toPath, newName, true);
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
+        return this.copyContentInternal(site, fromPath, toPath, newName, true);
     }
 
     /**
      * get immediate children for path
      * @param path path to content
      */
-    public RepositoryItem[] getContentChildren(String path) {
-        RepositoryItem[] items = getContentChildrenCMIS(path);
+    public RepositoryItem[] getContentChildren(String site, String path) {
+        RepositoryItem[] items = getContentChildrenCMIS(site, path);
         return items;
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return getContentChildren(site, path);
     }
 
     /**
@@ -179,8 +190,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, boolean majorVersion) {
-        return createVersion(path, null, majorVersion);
+    public String createVersion(String site, String path, boolean majorVersion) {
+        return createVersion(site, path, null, majorVersion);
     }
 
     /**
@@ -190,7 +201,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @return the created version ID or null on failure
      */
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
         if (majorVersion) {
@@ -239,8 +250,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * get the version history for an item
      * @param path - the path of the item
      */
-    public VersionTO[] getContentVersionHistory(String path) {
-        return getContentVersionHistoryCMIS(path);
+    public VersionTO[] getContentVersionHistory(String site, String path) {
+        return getContentVersionHistoryCMIS(site, path);
     }
 
     /** 
@@ -248,8 +259,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String version, boolean major, String comment) {
-        return revertContentCMIS(path, version, major, comment);
+    public boolean revertContent(String site, String path, String version, boolean major, String comment) {
+        return revertContentCMIS(site, path, version, major, comment);
     }
 
     /**
@@ -284,62 +295,71 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      *@param isCut
      *              true for move  @return  true if successful
      */
-    protected boolean copyContentInternal(String fromPath, String toPath, String newName, boolean isCut) {
+    protected boolean copyContentInternal(String site, String fromPath, String toPath, String newName, boolean isCut) {
         logger.debug((isCut ? "Move" : "Copy") + " content from " + fromPath + " to " + toPath);
-        return copyContentInternalCMIS(fromPath, toPath, newName, isCut);
+        return copyContentInternalCMIS(site, fromPath, toPath, newName, isCut);
     }
 
     /**
      * fire GET request to Alfresco with proper security
      */
-    protected InputStream alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
+    protected Map<String, Object> alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
-        GetMethod getMethod = new GetMethod(serviceURL);
+        GetMethod method = new GetMethod(serviceURL);
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            getMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         logger.debug("Executing get to {0}", serviceURL);
-        int status = httpClient.executeMethod(getMethod);
-        logger.debug("Response status back from the server: {0}", status);
 
-        InputStream response = getMethod.getResponseBodyAsStream();
+        try {
+            int status = httpClient.executeMethod(method);
 
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoGetRequest(uri = {0}, params = {1}) ({2} ms)", uri, params, duration);
-        return response;
+            logger.debug("Response status back from the server: {0}", status);
+
+            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("alfrescoGetRequest(uri = {0}, params = {1}) ({2} ms)", uri, params, duration);
+
+            method.releaseConnection();
+        }
     }
 
     /**
-     * fire POST request to Alfresco with propert security
+     * fire POST request to Alfresco with proper security
      */
-    protected String alfrescoPostRequest(String uri, Map<String, String> params, InputStream body,
-                                         String bodyMimeType) throws Exception {
+    protected Map<String, Object> alfrescoPostRequest(String uri, Map<String, String> params, InputStream body,
+                                                      String bodyMimeType) throws Exception {
         long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
-        PostMethod postMethod = new PostMethod(serviceURL);
-        postMethod.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+
+        PostMethod method = new PostMethod(serviceURL);
+        method.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            postMethod.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
-        HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         logger.debug("Executing post to {0}", serviceURL);
-        int status = httpClient.executeMethod(postMethod);
-        logger.debug("Response status back from the server: {0}", status);
 
-        long duration = System.currentTimeMillis() - startTime;
-        logger.debug("alfrescoPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}) ({4} ms)", uri,
-                     params, "stream", bodyMimeType, duration);
-        InputStream responseStream = postMethod.getResponseBodyAsStream();
-        String response = IOUtils.toString(responseStream);
-        return response;
+        try {
+            int status = httpClient.executeMethod(method);
+
+            logger.debug("Response status back from the server: {0}", status);
+
+            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("alfrescoPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}) ({4} ms)",
+                         uri, params, "stream", bodyMimeType, duration);
+
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -394,10 +414,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
-            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
- 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+            Map<String, Object> result = alfrescoGetRequest(downloadURI, lookupContentParams);
 
             toRet.put("userName", (String)result.get("userName"));
             toRet.put("firstName", (String)result.get("firstName"));
@@ -422,10 +439,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> lookupContentParams = new HashMap<String, String>();
             lookupContentParams.put("username", username);
 
-            retStream = this.alfrescoGetRequest(downloadURI, lookupContentParams);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> result = objectMapper.readValue(retStream, HashMap.class);
+            Map<String, Object> result = alfrescoGetRequest(downloadURI, lookupContentParams);
 
             List<Map<String, String>> groups = (List<Map<String, String>>)result.get("groups");
             for (Map<String, String> group : groups) {
@@ -459,12 +473,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             String loginRequestBody = "{ \"username\" : \"" + username + "\", \"password\" : \"" + password + "\" }";
             InputStream bodyStream = IOUtils.toInputStream(loginRequestBody, "UTF-8");
 
-            String responseStr = this.alfrescoPostRequest(downloadURI, null, bodyStream, MediaType.APPLICATION_JSON_VALUE);
-
-            if (StringUtils.isNotEmpty(responseStr)) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> result = objectMapper.readValue(responseStr, HashMap.class);
-
+            Map<String, Object> result = alfrescoPostRequest(downloadURI, null, bodyStream,
+                                                             MediaType.APPLICATION_JSON_VALUE);
+            if (MapUtils.isNotEmpty(result)) {
                 Map<String, String> data = (Map<String, String>)result.get("data");
                 toRet = data.get("ticket");
 
@@ -494,12 +505,12 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 Map<String, String> params = new HashMap<>();
                 params.put("ticket", ticket);
 
+                GetMethod method = null;
                 String serviceURL;
                 try {
                     serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                    GetMethod method = new GetMethod(serviceURL);
+                    method = new GetMethod(serviceURL);
 
-                    HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
                     int status = httpClient.executeMethod(method);
                     if (status == HttpStatus.SC_OK) {
                         long duration = System.currentTimeMillis() - startTime;
@@ -510,6 +521,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     }
                 } catch (Exception e) {
                     logger.error("Error while validating authentication token", e);
+                } finally {
+                    if (method != null) {
+                        method.releaseConnection();
+                    }
                 }
 
                 long duration = System.currentTimeMillis() - startTime;
@@ -547,7 +562,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return nodeRef;
     }
 
-    protected InputStream getContentStreamCMIS(String fullPath) throws ContentNotFoundException {
+    protected InputStream getContentStreamCMIS(String site, String fullPath) throws ContentNotFoundException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -577,7 +592,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return inputStream;
     }
 
-    protected RepositoryItem[] getContentChildrenCMIS(String fullPath) {
+    protected RepositoryItem[] getContentChildrenCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -634,7 +649,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return items;
     }
 
-    protected boolean writeContentCMIS(String fullPath, InputStream content) throws ServiceException {
+    protected boolean writeContentCMIS(String site, String fullPath, InputStream content) throws ServiceException {
         long startTime = System.currentTimeMillis();
         Map<String, String> params = new HashMap<String, String>();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -649,7 +664,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         try {
             ContentStream contentStream = session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
             CmisObject cmisObject = null;
-            if (contentExists(cleanPath)) {
+            if (contentExists(site, cleanPath)) {
                 cmisObject = session.getObjectByPath(cleanPath);
             }
             if (cmisObject != null) {
@@ -674,7 +689,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     folderPath = "/";
                 }
                 CmisObject folderCmisObject = null;
-                if (contentExists(folderPath)) {
+                if (contentExists(site, folderPath)) {
                     folderCmisObject = session.getObjectByPath(folderPath);
                 }
                 Folder folder = null;
@@ -716,7 +731,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return false;
     }
 
-    protected boolean deleteContentCMIS(String fullPath) {
+    protected boolean deleteContentCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -751,7 +766,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return result;
     }
 
-    protected VersionTO[] getContentVersionHistoryCMIS(String fullPath) {
+    protected VersionTO[] getContentVersionHistoryCMIS(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         VersionTO[] versions = new VersionTO[0];
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -799,7 +814,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return versions;
     }
 
-    protected boolean revertContentCMIS(String fullPath, String version, boolean major, String comment) {
+    protected boolean revertContentCMIS(String site, String fullPath, String version, boolean major, String comment) {
         long startTime = System.currentTimeMillis();
         boolean success = false;
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -877,9 +892,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     Map<String, String> newFolderProps = new HashMap<String, String>();
                     newFolderProps.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
                     newFolderProps.put(PropertyIds.NAME, name);
-                    Folder newFolder = folder.createFolder(newFolderProps);
-                    Property property = newFolder.getProperty("alfcmis:nodeRef");
-                    newFolderRef = property.getValueAsString();
+                    try {
+                        Folder newFolder = folder.createFolder(newFolderProps);
+                        Property property = newFolder.getProperty("alfcmis:nodeRef");
+                        newFolderRef = property.getValueAsString();
+                    } catch (CmisContentAlreadyExistsException exc) {
+                        logger.info("Folder " + cleanPath + " already exists");
+                    }
                 }
             } else {
                 logger.error("Failed to create " + name + " folder since " + fullPath + " does not exist.");
@@ -946,7 +965,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return newFolderRef;
     }
 
-    protected boolean copyContentInternalCMIS(String fromFullPath, String toFullPath, String newName, boolean isCut) {
+    protected boolean copyContentInternalCMIS(String site, String fromFullPath, String toFullPath, String newName, boolean isCut) {
         long startTime = System.currentTimeMillis();
         boolean result = false;
         String cleanFromPath = fromFullPath.replaceAll("//", "/"); // sometimes sent bad paths
@@ -983,7 +1002,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         }
                     }
                     if (isCut) {
-                        deleteContentCMIS(cleanFromPath);
+                        deleteContentCMIS(site, cleanFromPath);
                     }
                     session.clear();
                     long duration = System.currentTimeMillis() - startTime;
@@ -1124,7 +1143,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists(site, cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
                 ObjectType type = cmisObject.getBaseType();
@@ -1299,7 +1318,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     @Override
-    public Date getModifiedDate(String fullPath) {
+    public Date getModifiedDate(String site, String fullPath) {
         long startTime = System.currentTimeMillis();
         String cleanPath = fullPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanPath.endsWith("/")) {
@@ -1332,12 +1351,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> params = new HashMap<>();
             params.put("ticket", ticket);
 
+            DeleteMethod method = null;
             String serviceURL;
+
             try {
                 serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                DeleteMethod method = new DeleteMethod(serviceURL);
+                method = new DeleteMethod(serviceURL);
 
-                HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
                 int status = httpClient.executeMethod(method);
                 if (status == HttpStatus.SC_OK) {
                     long duration = System.currentTimeMillis() - startTime;
@@ -1347,6 +1367,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 }
             } catch (Exception e) {
                 logger.error("Error while invalidating authentication token", e);
+            } finally {
+                if (method != null) {
+                    method.releaseConnection();
+                }
             }
 
             long duration = System.currentTimeMillis() - startTime;
@@ -1383,6 +1407,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     private void bootstrapDir(File dir, String rootPath) {
+        String site = "";
         Collection<File> children = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File child : children) {
             String childPath = child.getAbsolutePath();
@@ -1399,7 +1424,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     createFolderInternalCMIS(parentPath, child.getName());
                 } else if (child.isFile()) {
                     try {
-                        writeContentCMIS(relativePath, FileUtils.openInputStream(child));
+                        writeContentCMIS(site, relativePath, FileUtils.openInputStream(child));
                     } catch (IOException | ServiceException e) {
                         logger.error("Error while bootstrapping file: " + relativePath, e);
                     }
@@ -1409,9 +1434,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     }
 
     private boolean bootstrapCheck() {
-        boolean contentSpace = contentExists("/wem-projects");
-        boolean blueprintsSpace = contentExists("/cstudio/blueprints");
-        boolean configSpace = contentExists("/cstudio/config");
+        boolean contentSpace = contentExists("", "/wem-projects");
+        boolean blueprintsSpace = contentExists("", "/cstudio/blueprints");
+        boolean configSpace = contentExists("", "/cstudio/config");
         return contentSpace && blueprintsSpace && configSpace;
     }
 
@@ -1442,7 +1467,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if (cleanPath.endsWith("/")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
         }
-        if (contentExists(cleanPath)) {
+        if (contentExists("", cleanPath)) {
             try {
                 CmisObject cmisObject = session.getObjectByPath(cleanPath);
 
@@ -1458,6 +1483,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 logger.error("Error while setting permissions for content at path " + cleanPath, err);
             }
         }
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        return false;
     }
 
     @Override

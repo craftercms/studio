@@ -33,6 +33,7 @@ public class RepositoryEventMessage implements Serializable {
     private String site;
     private String path;
     private String oldPath;
+    private String contentType;
     private RepositoryEventContext repositoryEventContext;
 
     public String getSite() { return site; }
@@ -43,6 +44,9 @@ public class RepositoryEventMessage implements Serializable {
 
     public String getOldPath() { return oldPath; }
     public void setOldPath(String oldPath) { this.oldPath = oldPath; }
+
+    public String getContentType() { return contentType; }
+    public void setContentType(String contentType) { this.contentType = contentType; }
 
     public RepositoryEventContext getRepositoryEventContext() { return repositoryEventContext; }
     public void setRepositoryEventContext(RepositoryEventContext repositoryEventContext) { this.repositoryEventContext = repositoryEventContext; }

@@ -20,10 +20,11 @@ import scripts.api.ContentServices;
 
 def result = [:];
 def path = params.path;
+def site = params.site;
 
 def context = ContentServices.createContext(applicationContext, request);
 
-result.contentStream = ContentServices.getContentAtPath(context, path);
+result.contentStream = ContentServices.getContentAtPath(context, site, path);
 result.contentPath = path;
 
 return result;

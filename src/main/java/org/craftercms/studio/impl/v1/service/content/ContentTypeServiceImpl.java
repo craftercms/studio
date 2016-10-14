@@ -116,6 +116,10 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
+        if (pathsConfig == null) {
+            reloadConfiguration(site);
+            pathsConfig = contentTypesConfig.getPathMapping(site);
+        }
         if (pathsConfig != null && pathsConfig.getConfigs() != null) {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
             for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {
@@ -216,29 +220,18 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             // Simple form engine is not using templates - skip copying template and merging content
             return true;
         }
-        String fullPath = contentService.expandRelativeSitePath(site, path);
         // get new template and the current data and merge data
         ContentItemTO item = contentService.getContentItem(site, path, 0);
         if (item != null) {
             contentService.lockContent(site, path);
             Document original = null;
             try {
-                original = contentService.getContentAsDocument(fullPath);
+                original = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
-                logger.error("Error while getting document for " + fullPath, e);
+                logger.error("Error while getting document for site: " + site + " path: " + path, e);
                 return false;
             }
             throw new RuntimeException("Is it getting here?");
-            /*
-            ModelService modelService = getService(ModelService.class);
-            Document template = modelService.getModelTemplate(site, contentType, false, false);
-            String templateVersion = modelService.getTemplateVersion(site, contentType);
-            copyContent(site, original, template, contentType, templateVersion);
-            //cleanAspects(node);
-            // write the content
-            // TODO fix this part as write content is hanging.
-            writeContent(site, path, contentType, node, template);
-            return true;*/
         } else {
             throw new ContentNotFoundException(path + " is not a valid content path.");
         }
@@ -247,7 +240,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Override
     public void reloadConfiguration(String site) {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
-        RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
+        RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
         if (folders != null) {
@@ -261,12 +254,12 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + "/" + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
-        RepositoryItem[] folders = contentRepository.getContentChildren(fullPath);
+        RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
                     String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
-                    if (contentService.contentExists(configPath)) {
+                    if (contentService.contentExists(site, configPath)) {
                         ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + configFileName, ""));
                         if (config != null) {
                             contentTypes.add(config);

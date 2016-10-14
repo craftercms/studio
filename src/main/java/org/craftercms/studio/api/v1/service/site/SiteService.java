@@ -133,4 +133,6 @@ public interface SiteService {
     void reloadGlobalConfiguration();
 
     void importSite(String config);
+
+    void rebuildRepositoryMetadata(String site);
 }

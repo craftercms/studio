@@ -1,23 +1,22 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.repository.disk;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,8 +37,6 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 
-import reactor.core.Reactor;
-
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import static java.nio.file.StandardCopyOption.*;
@@ -55,7 +52,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
+    public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream retStream = null;
 
         try {
@@ -71,13 +68,13 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean contentExists(String path) {
+    public boolean contentExists(String site, String path) {
         return Files.exists(constructRepoPath(path));
     }
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) {
+    public boolean writeContent(String site, String path, InputStream content) {
         
         boolean success = true;
 
@@ -98,10 +95,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean createFolder(String path, String name) {
+    public boolean createFolder(String site, String path, String name) {
         
         boolean success = true;
-        
+
         try {
             Files.createDirectories(constructRepoPath(path, name));
         }
@@ -114,10 +111,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean deleteContent(String path) {
+    public boolean deleteContent(String site, String path) {
         
         boolean success = true;
-        
+
         try {
             File file = constructRepoPath(path).toFile();
             FileUtils.deleteQuietly(file);
@@ -133,7 +130,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean copyContent(String fromPath, String toPath) {
+    public boolean copyContent(String site, String fromPath, String toPath) {
 
         boolean success = true;
 
@@ -157,12 +154,12 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
+    public boolean moveContent(String site, String fromPath, String toPath) {
+        return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
+    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
         
         boolean success = true;
 
@@ -177,6 +174,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             File dest = destDir;
             if (StringUtils.isNotEmpty(newName)) {
                 dest = new File(destDir, newName);
+                if (!dest.exists()) {
+                    dest.mkdirs();
+                }
             }
             if (source.isDirectory()) {
                 File[] dirList = source.listFiles();
@@ -209,7 +209,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * get immediate children for path
      * @param path path to content
      */
-    public RepositoryItem[] getContentChildren(String path) {
+    public RepositoryItem[] getContentChildren(String site, String path) {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
 
         try {
@@ -259,29 +259,30 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public RepositoryItem[] getContentChildren(String path, boolean ignoreCache) {
-        return getContentChildren(path);
+    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
+        return getContentChildren(site, path);
     }
 
     /**
      * get the version history for an item
      * @param path - the path of the item
      */
-    public VersionTO[] getContentVersionHistory(String path) {
+    @Override
+    public VersionTO[] getContentVersionHistory(String site, String path) {
         final List<VersionTO> versionList = new ArrayList<VersionTO>();
 
         try {
             final String pathToContent = path.substring(0, path.lastIndexOf(File.separator));
             final String filename = path.substring(path.lastIndexOf(File.separator) + 1);
- 
+
             Path versionPath = constructVersionRepoPath(pathToContent);
 
             EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
-            Files.walkFileTree(versionPath, opts, 1, new SimpleFileVisitor<Path>() { 
+            Files.walkFileTree(versionPath, opts, 1, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path visitPath, BasicFileAttributes attrs)
-                throws IOException {
+                        throws IOException {
                     String versionFilename = visitPath.toString();
 
                     if(versionFilename.contains(filename)) {
@@ -292,7 +293,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
                         version.setVersionNumber(label);
                         version.setLastModifier("ADMIN");
-                        version.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));  
+                        version.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));
                         version.setComment("");
 
                         versionList.add(version);
@@ -308,7 +309,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         final List<VersionTO> finalVersionList = new ArrayList<VersionTO>();
         if (versionList.size() > 0) {
             Collections.sort(versionList);
-            VersionTO latest = versionList.get(versionList.size() - 1);
+            VersionTO latest = versionList.get(versionList.size()-1);
             String latestVersionLabel = latest.getVersionNumber();
             int temp = latestVersionLabel.indexOf(".");
             String currentMajorVersion = latestVersionLabel.substring(0, temp);
@@ -333,15 +334,16 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
-    public String createVersion(String path, boolean majorVersion) {
+    @Override
+    public String createVersion(String site, String path, boolean majorVersion) {
         String versionId = null;
 
         synchronized(path) {
-            versionId = determineNextVersionLabel(path, majorVersion);
+            versionId = determineNextVersionLabel(site, path, majorVersion);
             InputStream content = null;
 
             try {
-                content = getContent(path);
+                content = getContent(site, path);
                 String versionPath = path+"--"+versionId;
 
                 CopyOption options[] = { StandardCopyOption.REPLACE_EXISTING };
@@ -364,8 +366,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
     @Override
-    public String createVersion(String path, String comment, boolean majorVersion) {
-        return createVersion(path, majorVersion);
+    public String createVersion(String site, String path, String comment, boolean majorVersion) {
+        return createVersion(site, path, majorVersion);
     }
 
     /**
@@ -373,14 +375,15 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
      */
-    public boolean revertContent(String path, String label, boolean major, String comment) {
+    @Override
+    public boolean revertContent(String site, String path, String label, boolean major, String comment) {
         boolean success = false;
 
         synchronized(path) {
-            String versionId = determineNextVersionLabel(path, major);
+            String versionId = determineNextVersionLabel(site, path, major);
             InputStream versionContent = null;
             InputStream wipContent = null;
-            
+
             try {
                 versionContent = getVersionedContent(path, label);
                 String versionPath = path+"--"+versionId;
@@ -407,10 +410,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         return success;
     }
-    
-    public InputStream getContentVersion(String path, String version) 
-	throws ContentNotFoundException { 
-		return getVersionedContent(path, version);
+
+    public InputStream getContentVersion(String path, String version)
+            throws ContentNotFoundException {
+        return getVersionedContent(path, version);
     }
 
 
@@ -421,8 +424,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     }
 
 
-    protected InputStream getVersionedContent(String path, String label) 
-    throws ContentNotFoundException {
+    protected InputStream getVersionedContent(String path, String label)
+            throws ContentNotFoundException {
         InputStream retStream = null;
 
         try {
@@ -443,13 +446,13 @@ public class DiskContentRepository extends AbstractContentRepository implements 
      * @param majorVersion true if version is major
      * @return next label
      */
-    protected String determineNextVersionLabel(String path, boolean majorVersion) {
+    protected String determineNextVersionLabel(String site, String path, boolean majorVersion) {
         String versionId = null;
 
-        VersionTO[] versions = getContentVersionHistory(path);
+        VersionTO[] versions = getContentVersionHistory(site, path);
 
         if(versions.length != 0) {
-            VersionTO latestVersion = versions[versions.length - 1];
+            VersionTO latestVersion = versions[0];
 
             String label = latestVersion.getVersionNumber();
             String[] labelParts = label.split("\\.");
@@ -461,7 +464,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             else {
                 versionId = major + "." + (minor + 1);
-            }                
+            }
         }
         else {
             if(majorVersion) {
@@ -511,8 +514,8 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     private ServletContext ctx;
 
     public void setServletContext(ServletContext ctx) {
-    logger.debug("ServletContext: {0} ", ctx);
-    this.ctx = ctx;
+        logger.debug("ServletContext: {0} ", ctx);
+        this.ctx = ctx;
     }
 
     /**
@@ -536,25 +539,25 @@ public class DiskContentRepository extends AbstractContentRepository implements 
     protected boolean closeInputStreamQuietly(InputStream is) {
         boolean success = true;
 
-        if(is != null) { 
-            try { 
-                is.close(); 
-            } 
-            catch(Exception ioErr) { 
+        if(is != null) {
+            try {
+                is.close();
+            }
+            catch(Exception ioErr) {
                 success = false;
 
                 /* eat error */
                 if(Logger.LEVEL_DEBUG.equals(logger.getLevel())) {
                     logger.error("Error while closing InputStream quietly", ioErr);
-                } 
-            } 
-        } 
+                }
+            }
+        }
 
-        return success;     
+        return success;
     }
 
     @Override
-    public Date getModifiedDate(String path) {
+    public Date getModifiedDate(String site, String path) {
         Date modifiedDate = null;
 
         try {
@@ -569,14 +572,10 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         return modifiedDate;
     }
 
-    public Reactor getRepositoryReactor() { return repositoryReactor; }
-    public void setRepositoryReactor(Reactor repositoryReactor) { this.repositoryReactor = repositoryReactor; }
-
     String rootPath;
     public String getRootPath() { return rootPath; }
     public void setRootPath(String path) { rootPath = path; }
 
-    protected Reactor repositoryReactor;
 
     /**
      * A {@code FileVisitor} that copies a file-tree ("cp -r")
@@ -589,31 +588,31 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
         static void copyFile(Path source, Path target, boolean prompt, boolean preserve) {
             CopyOption[] options = (preserve) ?
-                new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING } :
-                new CopyOption[] { REPLACE_EXISTING };
-            
-                try {
-                    Files.copy(source, target, options);
-                } catch (IOException x) {
-                    logger.error("Unable to copy: %s: %s%n", source, x);
-                }
-            
+                    new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING } :
+                    new CopyOption[] { REPLACE_EXISTING };
+
+            try {
+                Files.copy(source, target, options);
+            } catch (IOException x) {
+                logger.error("Unable to copy: %s: %s%n", source, x);
+            }
+
         }
-     
+
         TreeCopier(Path source, Path target, boolean prompt, boolean preserve) {
             this.source = source;
             this.target = target;
             this.prompt = prompt;
             this.preserve = preserve;
         }
- 
+
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             // before visiting entries in a directory we copy the directory
             // (okay if directory already exists).
             CopyOption[] options = (preserve) ?
-                new CopyOption[] { COPY_ATTRIBUTES } : new CopyOption[0];
- 
+                    new CopyOption[] { COPY_ATTRIBUTES } : new CopyOption[0];
+
             Path newdir = target.resolve(source.relativize(dir));
             try {
                 Files.copy(dir, newdir, options);
@@ -625,14 +624,14 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             TreeCopier.copyFile(file, target.resolve(source.relativize(file)),
-                     prompt, preserve);
+                    prompt, preserve);
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
             // fix up modification time of directory when done
@@ -647,7 +646,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             return FileVisitResult.CONTINUE;
         }
- 
+
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             if (exc instanceof FileSystemLoopException) {
@@ -657,6 +656,11 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             }
             return FileVisitResult.CONTINUE;
         }
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        return false;
     }
 
     public boolean isBootstrapEnabled() { return bootstrapEnabled; }

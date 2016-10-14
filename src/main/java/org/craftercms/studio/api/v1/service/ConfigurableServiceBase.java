@@ -72,8 +72,8 @@ public abstract class ConfigurableServiceBase extends AbstractRegistrableService
 		 	return true;
 		} else {
             String siteConfigFullPath =  getConfigFullPath(key);
-            if (contentRepository.contentExists(siteConfigFullPath)) {
-                Date modifiedDate = contentRepository.getModifiedDate(siteConfigFullPath);
+            if (contentRepository.contentExists("", siteConfigFullPath)) {
+                Date modifiedDate = contentRepository.getModifiedDate("", siteConfigFullPath);
                 if (modifiedDate == null) {
                     return false;
                 } else {

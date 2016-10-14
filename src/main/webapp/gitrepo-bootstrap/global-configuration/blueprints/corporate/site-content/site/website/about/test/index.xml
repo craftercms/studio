@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<display-template>/templates/web/article.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<display-template>/templates/web/article.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>565c</objectGroupId>
+	<objectId>565c784d-721e-c0ea-8ebf-768462febdaf</objectId>
+	<internal-name>test</internal-name>
+	<pageTitle/>
+	<description/>
+	<file-name>index.xml</file-name>
+	<folder-name>test</folder-name>
+	<keywords/>
+	<body>&lt;p&gt;test&lt;/p&gt;</body>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>2000</orderDefault_f>
+</page>
