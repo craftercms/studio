@@ -52,16 +52,6 @@
         </constructor-arg>
     </bean>
 
-    <bean id="crafter.servletContextAttributesInitializer"
-          class="org.craftercms.engine.util.servlet.ServletContextAttributesInitializer">
-        <property name="attributes">
-            <map>
-                <entry key="modePreview" value="${crafter.engine.preview}"/>
-                <entry key="environment" value="${crafter.engine.environment}"/>
-            </map>
-        </property>
-    </bean>
-
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--		      Bootstrap 			-->
@@ -81,16 +71,6 @@
             <map>
                 <entry key="crafter.modePreview" value="${crafter.engine.preview}"/>
                 <entry key="crafter.environment" value="${crafter.engine.environment}"/>
-            </map>
-        </property>
-    </bean>
-
-    <bean id="crafter.servletContextAttributesBootstrap"
-          class="org.craftercms.engine.util.servlet.ServletContextAttributesBootstrap">
-        <property name="attributes">
-            <map>
-                <entry key="modePreview" value="#{T(java.lang.Boolean).valueOf(${crafter.engine.preview})}"/>
-                <entry key="environment" value="${crafter.engine.environment}"/>
             </map>
         </property>
     </bean>
@@ -136,39 +116,6 @@
 
     <task:annotation-driven scheduler="crafter.scheduler"/>
     <task:scheduler id="crafter.scheduler" pool-size="${crafter.engine.scheduler.threads.pool.size}"/>
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--		      Merging 			    -->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-
-    <bean id="crafter.targetedContentMergeStrategy"
-          class="org.craftercms.engine.targeting.impl.merge.TargetedContentDescriptorMergeStrategy">
-        <property name="mergeStrategyResolver" ref="crafter.mergeStrategyResolverChain"/>
-        <property name="candidateTargetedUrlsResolver" ref="crafter.candidateTargetedUrlsResolver"/>
-        <property name="levelDescriptorFileName"
-                  value="${crafter.core.merger.strategy.inheritLevels.levelDescriptor.name}"/>
-    </bean>
-
-    <bean id="crafter.metaDataMergeStrategyResolver"
-          class="org.craftercms.core.xml.mergers.impl.resolvers.MetaDataMergeStrategyResolver">
-        <property name="mergeStrategyElementXPathQuery" value="${crafter.core.merger.strategy.element.xpathQuery}"/>
-        <property name="elementValueToStrategyMappings">
-            <map>
-                <entry key="${crafter.core.merger.strategy.element.value.singleFile}"
-                       value-ref="crafter.singleFileMergeStrategy"/>
-                <entry key="${crafter.core.merger.strategy.element.value.inheritLevels}"
-                       value-ref="crafter.inheritLevelsMergeStrategy"/>
-                <entry key="${crafter.core.merger.strategy.element.value.contentBundle}"
-                       value-ref="crafter.contentBundleMergeStrategy"/>
-                <entry key="${crafter.core.merger.strategy.element.value.explicitParent}"
-                       value-ref="crafter.explicitParentMergeStrategy"/>
-                <entry key="${crafter.engine.merger.strategy.element.value.targetedContent}"
-                       value-ref="crafter.targetedContentMergeStrategy"/>
-            </map>
-        </property>
-    </bean>
 
     <!-- ////////////////////////////////// -->
     <!--								 	-->
@@ -254,14 +201,14 @@
         <property name="scope" value="REQUEST"/>
     </bean>
 
-    <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="modePreview"/>
-        <property name="scope" value="SERVLET_CONTEXT"/>
+    <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.FixedValueMacro">
+        <property name="macroName" value="modePreview"/>
+        <property name="macroValue" value="${crafter.engine.preview}"/>
     </bean>
 
-    <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="environment"/>
-        <property name="scope" value="SERVLET_CONTEXT"/>
+    <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.FixedValueMacro">
+        <property name="macroName" value="crafterEnv"/>
+        <property name="macroValue" value="${crafter.engine.environment}"/>
     </bean>
 
     <bean id="crafter.macroResolver" class="org.craftercms.engine.macro.impl.MacroResolverImpl">
@@ -489,6 +436,8 @@
         <entry key="breadcrumbBuilder" value-ref="crafter.breadcrumbBuilder"/>
         <entry key="globalProperties" value-ref="crafter.propertyResolver"/>
         <entry key="tenantsResolver" value-ref="crafter.tenantsResolver"/>
+        <entry key="modePreview" value="#{T(java.lang.Boolean).valueOf(${crafter.engine.preview})}"/>
+        <entry key="crafterEnv" value="${crafter.engine.environment}"/>
     </util:map>
 
     <bean id="crafter.freeMarkerConfigFactory"
