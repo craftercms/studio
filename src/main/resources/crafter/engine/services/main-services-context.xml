@@ -533,7 +533,7 @@
 
     <bean id="crafter.navTreeBuilder" class="org.craftercms.engine.navigation.impl.NavTreeBuilderImpl">
         <property name="siteItemService" ref="crafter.siteItemService"/>
-        <property name="itemConverter" ref="crafter.navItemConverter"/>
+        <property name="defaultItemConverter" ref="crafter.navItemConverter"/>
         <property name="processors" ref="crafter.navTreeProcessors"/>
         <property name="filters" ref="crafter.navTreeFilters"/>
     </bean>
