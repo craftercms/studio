@@ -37,6 +37,7 @@ import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -116,13 +117,18 @@ public class EnvironmentStoreGitDeployer implements Deployer {
 
             for (DiffEntry diffEntry : diff) {
                 DiffEntry.ChangeType ct = diffEntry.getChangeType();
+                DiffFormatter df = new DiffFormatter(out);
+                FileHeader fh = df.toFileHeader(diffEntry);
+                if (fh.getPatchType().equals(FileHeader.PatchType.BINARY)) {
+                    logger.error("ERRRRRRRRRRROR");
+                }
             }
 
 
             //OutputStream os = new FileOutputStream("/Users/dejanbrkic/gitpatchtest.diff");
             DiffFormatter df = new DiffFormatter(out);
             df.setRepository(repository);
-            df.setBinaryFileThreshold();
+            //df.setBinaryFileThreshold();
             df.setPathFilter(getTreeFilter(path));
             df.setAbbreviationLength(OBJECT_ID_STRING_LENGTH);
             df.format(diff);
