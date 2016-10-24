@@ -478,11 +478,9 @@
     <profiles>
         <profile>
             <id>JDK8</id>
-            <activation>
-                <jdk>
-                    <jdk>[1.8,)</jdk>
-                </jdk>
-            </activation>
+              <activation>
+                  <jdk>[1.8,)</jdk>
+              </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -504,7 +502,7 @@
                 </plugins>
             </build>
         </profile>
-             
+
         <profile>
             <id>test</id>
             <build>
