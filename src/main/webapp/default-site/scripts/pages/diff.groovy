@@ -20,12 +20,15 @@ else {
 	revised = ContentServices.getContentVersionAtPath(site, path, version[1], context)
 }
 
+model.version = version
+
 model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
 
 model.variantA = HTMLCompareTools.xmlAsStringToHtml(revised)
 model.variantB = HTMLCompareTools.xmlAsStringToHtml(original)
 
 model.diff = HTMLCompareTools.diff(model.variantA, model.variantB)
+model.dir = path
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)  
 model.cookieDomain = request.getServerName()     
