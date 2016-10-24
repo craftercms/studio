@@ -33,8 +33,11 @@ class HTMLCompareTools {
   				"</xsl:template>" +
   				"<xsl:template match='*'>" +
 					"<xsl:for-each select='./*'>" +
-				     "<tr>" +
-				      "<td style='font-weight:bold;'><xsl:value-of select='local-name()'/></td>" +
+			     	"<tr>" +
+			    		"<td style='font-weight:bold;'>" +
+			    			"<xsl:attribute name='data-var'><xsl:value-of select='local-name()'/></xsl:attribute>"+
+				      		"<xsl:value-of select='local-name()'/>" +
+			      		"</td>" +				        
 				        "<td><xsl:value-of select='.'></xsl:value-of></td>" +
 				       "</tr>" +
 				  "</xsl:for-each>" +
