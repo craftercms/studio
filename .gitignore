@@ -18,3 +18,5 @@ crafter-studio-2.iml
 crafter/*
 data/*
 derby.log
+
+deploy/*
