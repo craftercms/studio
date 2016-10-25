@@ -129,12 +129,6 @@ public class EnvironmentStoreGitDeployer implements Deployer {
 
     private void fetchFromRemote_old(String site, Repository repository) {
         try (Git git = new Git(repository)) {
-            Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
-            Collection<Ref> refs = Git.lsRemoteRepository()
-                    .setHeads(true)
-                    .setTags(true)
-                    .setRemote(siteRepoPath.toAbsolutePath().toString())
-                    .call();
             FetchResult result = git.fetch()
                     .setRemote("work-area")
                     .setCheckFetchedObjects(true)
