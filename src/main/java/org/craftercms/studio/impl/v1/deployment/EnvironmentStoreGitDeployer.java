@@ -22,6 +22,7 @@ package org.craftercms.studio.impl.v1.deployment;
 import static org.eclipse.jgit.lib.Constants.OBJECT_ID_STRING_LENGTH;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -52,12 +53,16 @@ import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 
 import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class EnvironmentStoreGitDeployer implements Deployer {
 
@@ -69,9 +74,12 @@ public class EnvironmentStoreGitDeployer implements Deployer {
             fetchFromRemote(site, envStoreRepo);
             InputStream patch = createPatch(envStoreRepo, site, path);
             Git git = new Git(envStoreRepo);
+            applyPatch(envStoreRepo, site, path, patch);
+            /*
             ApplyResult result = git.apply()
                     .setPatch(patch)
                     .call();
+                    */
             git.add().addFilepattern(".").call();
             git.commit().setMessage("deployment").call();
 
@@ -80,14 +88,59 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         }
     }
 
+    private void applyPatch(Repository envStoreRepo, String site, String path, InputStream patch) {
+        String tempPath = System.getProperty("java.io.tmpdir");
+        if (tempPath == null) {
+            tempPath = "temp";
+        }
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
+        //Path patchPath = Paths.get(tempPath, "patch" + UUID.randomUUID().toString() +".bin");
+        /*logger.error("Patch path : " + patchPath.toAbsolutePath().normalize().toString());
+        try {
+            Files.deleteIfExists(patchPath);
+            Files.copy(patch, patchPath);
+        } catch (IOException e) {
+            logger.error("Error saving patch content to " + patchPath.toAbsolutePath().normalize().toString());
+        } finally {
+
+        }*/
+
+        String command = "git apply " + patchPath.toAbsolutePath().normalize().toString();
+        logger.error("GIT APPLY : " + command);
+        Process p;
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "apply", patchPath.toAbsolutePath().normalize().toString());
+            pb.directory(envStoreRepo.getDirectory());
+            p = pb.start();
+            //p = Runtime.getRuntime().exec(command, null, envStoreRepo.getDirectory());
+            p.waitFor();
+            p.exitValue();
+        } catch (Exception e) {
+            logger.error("Error applying patch for site: " + site, e);
+        }
+    }
+
     private void fetchFromRemote(String site, Repository repository) {
+        StringBuffer output = new StringBuffer();
+
+        String command = "git fetch work-area";
+        Process p;
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "fetch", "work-area");
+            pb.directory(repository.getDirectory());
+            p = pb.start();
+            //p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
+            p.waitFor();
+            p.exitValue();
+        } catch (Exception e) {
+            logger.error("Error while fetching from work-area  for site: " + site, e);
+        }
+    }
+
+    private void fetchFromRemote_old(String site, Repository repository) {
         try (Git git = new Git(repository)) {
-            Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
-            Collection<Ref> refs = Git.lsRemoteRepository()
-                    .setHeads(true)
-                    .setTags(true)
-                    .setRemote(siteRepoPath.toAbsolutePath().toString())
-                    .call();
             FetchResult result = git.fetch()
                     .setRemote("work-area")
                     .setCheckFetchedObjects(true)
@@ -99,6 +152,44 @@ public class EnvironmentStoreGitDeployer implements Deployer {
     }
 
     private InputStream createPatch(Repository repository, String site, String path) {
+        StringBuffer output = new StringBuffer();
+
+        String tempPath = System.getProperty("java.io.tmpdir");
+        if (tempPath == null) {
+            tempPath = "temp";
+        }
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
+
+        String gitPath = getGitPath(path);
+        String command = "/usr/bin/git diff --binary HEAD FETCH_HEAD -- " + gitPath + " > " + patchPath.toAbsolutePath().normalize().toString();
+        Process p;
+        try {
+            logger.error("Repo dir: " + repository.getDirectory().getAbsolutePath());
+            logger.error("Processing path : " + path);
+            logger.error("CREATE PATCH COMMAND : " + command);
+            //p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "diff", "--binary", "HEAD", "FETCH_HEAD", "--", gitPath);
+            //pb.command()
+            pb.redirectOutput(patchPath.toAbsolutePath().normalize().toFile());
+            pb.directory(repository.getDirectory());
+            logger.error("COMMAND : " + pb.toString());
+            p = pb.start();
+            logger.error("COMMAND : " + p.toString());
+
+            int code = p.waitFor();
+            int code2 = p.exitValue();
+            logger.error("EXIT WITH CODE: " + code + " " + code2);
+            //return p.getInputStream();
+
+        } catch (Exception e) {
+            logger.error("Error while creating patch for site: " + site + " path: " + path, e);
+        }
+
+        return null;
+    }
+
+    private InputStream createPatch_old(Repository repository, String site, String path) {
         try (Git git = new Git(repository)) {
 
             // the diff works on TreeIterators, we prepare two for the two branches
@@ -211,7 +302,7 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         Git git = new Git(envStoreRepo);
         StoredConfig config = git.getRepository().getConfig();
         Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
-        config.setString("remote", "work-area", "url", siteRepoPath.toAbsolutePath().toString());
+        config.setString("remote", "work-area", "url", siteRepoPath.normalize().toAbsolutePath().toString());
         try {
             config.save();
         } catch (IOException e) {
