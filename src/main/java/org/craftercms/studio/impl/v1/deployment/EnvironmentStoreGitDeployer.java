@@ -62,6 +62,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class EnvironmentStoreGitDeployer implements Deployer {
 
@@ -92,8 +93,9 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         if (tempPath == null) {
             tempPath = "temp";
         }
-        Path patchPath = Paths.get(tempPath, "patch" + System.currentTimeMillis() +".bin");
-        logger.error("Patch path : " + patchPath.toAbsolutePath().normalize().toString());
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
+        //Path patchPath = Paths.get(tempPath, "patch" + UUID.randomUUID().toString() +".bin");
+        /*logger.error("Patch path : " + patchPath.toAbsolutePath().normalize().toString());
         try {
             Files.deleteIfExists(patchPath);
             Files.copy(patch, patchPath);
@@ -101,13 +103,19 @@ public class EnvironmentStoreGitDeployer implements Deployer {
             logger.error("Error saving patch content to " + patchPath.toAbsolutePath().normalize().toString());
         } finally {
 
-        }
+        }*/
 
         String command = "git apply " + patchPath.toAbsolutePath().normalize().toString();
+        logger.error("GIT APPLY : " + command);
         Process p;
         try {
-            p = Runtime.getRuntime().exec(command, null, envStoreRepo.getDirectory());
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "apply", patchPath.toAbsolutePath().normalize().toString());
+            pb.directory(envStoreRepo.getDirectory());
+            p = pb.start();
+            //p = Runtime.getRuntime().exec(command, null, envStoreRepo.getDirectory());
             p.waitFor();
+            p.exitValue();
         } catch (Exception e) {
             logger.error("Error applying patch for site: " + site, e);
         }
@@ -119,9 +127,13 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         String command = "git fetch work-area";
         Process p;
         try {
-            p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "fetch", "work-area");
+            pb.directory(repository.getDirectory());
+            p = pb.start();
+            //p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
             p.waitFor();
-
+            p.exitValue();
         } catch (Exception e) {
             logger.error("Error while fetching from work-area  for site: " + site, e);
         }
@@ -142,15 +154,33 @@ public class EnvironmentStoreGitDeployer implements Deployer {
     private InputStream createPatch(Repository repository, String site, String path) {
         StringBuffer output = new StringBuffer();
 
+        String tempPath = System.getProperty("java.io.tmpdir");
+        if (tempPath == null) {
+            tempPath = "temp";
+        }
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
+
         String gitPath = getGitPath(path);
-        String command = "git diff --binary HEAD FETCH_HEAD -- " + gitPath;
+        String command = "/usr/bin/git diff --binary HEAD FETCH_HEAD -- " + gitPath + " > " + patchPath.toAbsolutePath().normalize().toString();
         Process p;
         try {
             logger.error("Repo dir: " + repository.getDirectory().getAbsolutePath());
             logger.error("Processing path : " + path);
-            p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
-            p.waitFor();
-            return p.getInputStream();
+            logger.error("CREATE PATCH COMMAND : " + command);
+            //p = Runtime.getRuntime().exec(command, null, repository.getDirectory());
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "diff", "--binary", "HEAD", "FETCH_HEAD", "--", gitPath);
+            //pb.command()
+            pb.redirectOutput(patchPath.toAbsolutePath().normalize().toFile());
+            pb.directory(repository.getDirectory());
+            logger.error("COMMAND : " + pb.toString());
+            p = pb.start();
+            logger.error("COMMAND : " + p.toString());
+
+            int code = p.waitFor();
+            int code2 = p.exitValue();
+            logger.error("EXIT WITH CODE: " + code + " " + code2);
+            //return p.getInputStream();
 
         } catch (Exception e) {
             logger.error("Error while creating patch for site: " + site + " path: " + path, e);
