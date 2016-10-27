@@ -29,6 +29,9 @@ import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.deployment.Deployer;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -179,8 +182,8 @@ public class PublishingManagerImpl implements PublishingManager {
         String environment = filteredItems.get(0).getEnvironment();
         Iterator<PublishToTarget> iter = filteredItems.iterator();
         LOGGER.debug("Divide all deployment items into {0} bucket(s) for  target {1}", numberOfBuckets , target.getName());
-        // TODO: implement reactor version of deployment events
-        //List<DeploymentEventItem> eventItems = new ArrayList<DeploymentEventItem>();
+
+        List<DeploymentEventItem> eventItems = new ArrayList<DeploymentEventItem>();
         for (int bucketIndex = 0; bucketIndex < numberOfBuckets; bucketIndex++) {
             int cntFiles = 0;
 
@@ -200,16 +203,11 @@ public class PublishingManagerImpl implements PublishingManager {
 
                     PublishToTarget item = iter.next();
                     LOGGER.debug("Parsing \"{0}\" , site \"{1}\"; for publishing on target \"{2}\"", item.getPath(), item.getSite(), target.getName());
-                    /*
-                    DeploymentEventItem eventItem = new DeploymentEventItem();
-                    eventItem.setSite(item.getSite());
-                    eventItem.setPath(item.getPath());
-                    eventItem.setUser(item.getUser());
-                    eventItem.setDateTime(new Date());
-                    */
+
+                    DeploymentEventItem eventItem = new DeploymentEventItem(item.getSite(), item.getPath(), null, item.getUsername(), new Date(), null);
 
                     if (StringUtils.equals(item.getAction(), PublishToTarget.Action.DELETE)) {
-                        //eventItem.setState(DeploymentEventItem.STATE_DELETED);
+                        eventItem.setState(DeploymentEventItem.STATE_DELETED);
                         deletedFiles.add(item.getPath());
                         if (item.getPath().endsWith("/" + indexFile)) {
                             String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
@@ -245,7 +243,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         }
                     }
                     cntFiles++;
-                    //eventItems.add(eventItem);
+                    eventItems.add(eventItem);
                 }
             }
             Deployer deployer = deployerFactory.createSyncTargetDeployer(environment, target);
@@ -262,8 +260,9 @@ public class PublishingManagerImpl implements PublishingManager {
                 throw e;
             }
         }
-        LOGGER.debug("Publishing deployment event for target \"{0}\" with \"{1}\" items.", target.getName(), 0/*eventItems.size()*/);
-        //contentRepository.publishDeployEvent(target.getName(), eventItems);
+        LOGGER.debug("Publishing deployment event for target \"{0}\" with \"{1}\" items.", target.getName(), eventItems.size());
+        DeploymentEventMessage message = new DeploymentEventMessage(site, target.getName(), eventItems);
+        deploymentEventService.deploymentEvent(message);
 
         LOGGER.info("Deployment successful on target {0}", target.getName());
         LOGGER.debug("Finished deploying items for site \"{0}\", target \"{1}\", number of items \"{2}\"", site, target.getName(), filteredItems.size());
@@ -691,6 +690,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public boolean isEnablePublishingWithoutDependencies() { return enablePublishingWithoutDependencies; }
     public void setEnablePublishingWithoutDependencies(boolean enablePublishingWithoutDependencies) { this.enablePublishingWithoutDependencies = enablePublishingWithoutDependencies; }
 
+    public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
+    public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -706,6 +708,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected boolean enablePublishingWithoutDependencies = false;
+    protected DeploymentEventService deploymentEventService;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
