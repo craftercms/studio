@@ -1,0 +1,70 @@
+/*
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.craftercms.studio.impl.v1.ebus;
+
+import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventListener;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+
+import java.util.List;
+
+public class DeploymentEventLoggerListener implements DeploymentEventListener{
+
+    private final static Logger logger = LoggerFactory.getLogger(DeploymentEventLoggerListener.class);
+
+    public final static String EVENT_DEPLOYMENT_ENGINE_DEPLOY = "Deployment Engine Deploy";
+
+    @Override
+    public void onDeploymentEvent(DeploymentEventMessage message) {
+        String endpoint = message.getEndpoint();
+        String site = message.getSite();
+        List<DeploymentEventItem> items = message.getItems();
+        StringBuilder sbItems = new StringBuilder();
+        sbItems.append("[ ");
+        for (DeploymentEventItem item : items) {
+            sbItems.append("{ ")
+                    .append("\"site\": ").append(item.getSite()).append(", ")
+                    .append("\"path\": ").append(item.getPath()).append(", ")
+                    .append("\"oldpath\": ").append(item.getOldPath()).append(", ")
+                    .append("\"datetime\": ").append(item.getDateTime()).append(", ")
+                    .append("\"state\": ").append(item.getState()).append(", ")
+                    .append("\"user\": ").append(item.getUser())
+                    .append(" } ");
+        }
+        sbItems.append("}");
+        logger.info(String.format("Event: %s", EVENT_DEPLOYMENT_ENGINE_DEPLOY));
+        logger.info(String.format("Site: %s", site));
+        logger.info(String.format("Endpoint: %s", endpoint));
+        logger.info(String.format("Items: %s", sbItems.toString()));
+    }
+
+    @Override
+    public void subscribe() {
+        deploymentEventService.subscribe(this);
+    }
+
+    protected DeploymentEventService deploymentEventService;
+
+    public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
+    public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
+}
