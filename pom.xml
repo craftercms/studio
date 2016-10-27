@@ -359,11 +359,9 @@
                             <executable>git</executable>
                             <arguments>
                                 <argument>submodule</argument>
-                                <argument>foreach</argument>
-                                <argument>git</argument>
-                                <argument>pull</argument>
-                                <argument>origin</argument>
-                                <argument>master</argument>
+                                <argument>update</argument>
+                                <argument>--remote</argument>
+                                <argument>-f</argument>
                             </arguments>
                         </configuration>
                         <goals>
