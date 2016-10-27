@@ -22,6 +22,8 @@
 
     <script src="/studio/static-assets/scripts/crafter.js"></script>
     <script src="/studio/static-assets/scripts/animator.js"></script>
+    <script src="/studio/static-assets/scripts/communicator.js" ></script>
+    <script src="/studio/static-assets/scripts/host.js" ></script>
 
     <script>
         CMgs = CStudioAuthoring.Messages;
