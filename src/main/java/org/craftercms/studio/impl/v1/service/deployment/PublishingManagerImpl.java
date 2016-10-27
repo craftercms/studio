@@ -222,6 +222,15 @@ public class PublishingManagerImpl implements PublishingManager {
                             }
                         }
                     } else {
+
+                        if (StringUtils.equals(item.getAction(), PublishToTarget.Action.NEW)) {
+                            eventItem.setState(DeploymentEventItem.STATE_NEW);
+                        } else if (StringUtils.equals(item.getAction(), PublishToTarget.Action.MOVE)) {
+                            eventItem.setState(DeploymentEventItem.STATE_MOVED);
+                        } else {
+                            eventItem.setState(DeploymentEventItem.STATE_UPDATED);
+                        }
+
                         filesToDeploy.add(item.getPath());
                         if (StringUtils.equals(item.getAction(), PublishToTarget.Action.MOVE)) {
                             if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
