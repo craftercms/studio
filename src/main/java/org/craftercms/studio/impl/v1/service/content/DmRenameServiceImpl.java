@@ -410,8 +410,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
         params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
 
-        String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
-        dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
+        ContentItemTO renamedItem = contentService.getContentItem(site, targetPath);
+        String contentType = renamedItem.getContentType();
+        dmContentLifeCycleService.process(site, user, targetPath, contentType,
                 DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
 
         objectStateService.setSystemProcessing(site, renamedUri, false);

@@ -451,8 +451,8 @@ public class ContentServiceImpl implements ContentService {
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
-
-                String contentType = getContentTypeClass(site, path);
+                ContentItemTO item = getContentItem(site, path, 0);
+                String contentType = item.getContentType();
                 dmContentLifeCycleService.process(site, user, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
             }
