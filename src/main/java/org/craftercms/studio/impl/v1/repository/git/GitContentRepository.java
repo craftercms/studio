@@ -67,30 +67,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
     private static String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
-/*
-    private void addDebugStack() {
-            Thread thread = Thread.currentThread();
-            String threadName = thread.getName();
-            logger.error("Thread: " + threadName);
-            StackTraceElement[] stackTraceElements = thread.getStackTrace();
-            StringBuilder sbStack = new StringBuilder();
-            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
-            for (int i = 2; i < stackSize+2; i++){
-                sbStack.append("\n\t").append(stackTraceElements[i].toString());
-            }
-            RequestContext context = RequestContext.getCurrent();
-            CronJobContext cronJobContext = CronJobContext.getCurrent();
-            if (context != null) {
-                HttpServletRequest request = context.getRequest();
-                String url = request.getRequestURI() + "?" + request.getQueryString();
-                logger.error("Http request: " + url);
-            } else if (cronJobContext != null) {
-                logger.error("Cron Job");
 
-            }
-            logger.error("TRACE: Stack trace (depth 10): " + sbStack.toString());
-    }
-*/
     @Override
     public boolean contentExists(String site, String path) {
         Repository repo = null;

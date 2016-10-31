@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -216,7 +217,21 @@ public class EnvironmentStoreGitDeployer implements Deployer {
 
     @Override
     public void deleteFile(String site, String path) {
+        try {
+            Repository repo = getEnvironmentStoreRepositoryInstance(site);
+            Git git = new Git(repo);
+            git.rm()
+                    .addFilepattern(getGitPath(path))
+                    .setCached(false)
+                    .call();
 
+            RevCommit commit = git.commit()
+                    .setOnly(getGitPath(path))
+                    .setMessage(StringUtils.EMPTY)
+                    .call();
+        } catch (GitAPIException | IOException | JGitInternalException e) {
+            logger.error("Error while deleting content from environment store for site: " + site + " path: " + path + " environment: " + environment, e);
+        }
     }
 
     @Override
