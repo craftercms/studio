@@ -89,6 +89,14 @@
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
         </repository>
+
+        <repository>
+            <id>jgit-snapshot-repository</id>
+            <url>https://repo.eclipse.org/content/groups/jgit/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <dependencies>
 
@@ -313,7 +321,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.2.0.201601211800-r</version>
+            <version>4.5.0.201609210915-r</version>
         </dependency>
 
         <!-- testing -->
@@ -571,6 +579,33 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>JDK8</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <additionalparam>-Xdoclint:none</additionalparam>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>test</id>
             <build>

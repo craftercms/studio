@@ -948,6 +948,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
+        <property name="repositoryRootPath" value="${repository.gitImplementation.path}"/>
         <property name="contentRepository" ref="cstudioContentRepository"/>
     </bean>
 
@@ -972,6 +973,17 @@
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="enablePublishingWithoutDependencies" value="${publishingManager.enablePublishingWithoutDependencies}"/>
+        <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
+    </bean>
+
+    <!-- //////////////// -->
+    <!-- Deployment Event -->
+    <!-- //////////////// -->
+    <bean id="cstudioDeploymentEventService" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventServiceImpl">
+    </bean>
+
+    <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribe">
+        <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
     </bean>
 
     <!-- Dependency Rules -->

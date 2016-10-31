@@ -50,7 +50,9 @@ public class DeployerFactory {
         EnvironmentStoreGitDeployer deployer = new EnvironmentStoreGitDeployer();
         deployer.setContentService(contentService);
         deployer.setEnvironmentsStoreRootPath(environmentsStoreRootPath);
+        deployer.setRootPath(repositoryRootPath);
         deployer.setEnvironment(environment);
+
         return deployer;
     }
 
@@ -83,10 +85,14 @@ public class DeployerFactory {
     public String getEnvironmentsStoreRootPath() { return environmentsStoreRootPath; }
     public void setEnvironmentsStoreRootPath(String environmentsStoreRootPath) { this.environmentsStoreRootPath = environmentsStoreRootPath; }
 
+    public String getRepositoryRootPath() { return repositoryRootPath; }
+    public void setRepositoryRootPath(String repositoryRootPath) { this.repositoryRootPath = repositoryRootPath; }
+
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
     protected String environmentsStoreRootPath;
+    protected String repositoryRootPath;
     protected String defaultServer;
     protected int defaultPort;
     protected String defaultPassword;

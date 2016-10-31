@@ -19,40 +19,24 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
-import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.ContentNotFoundForPublishingException;
 import org.craftercms.studio.api.v1.service.deployment.UploadFailedException;
-import org.eclipse.jgit.api.ApplyResult;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
-import org.eclipse.jgit.treewalk.filter.TreeFilter;
-import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 public class EnvironmentStoreGitDeployer implements Deployer {
 
@@ -61,137 +45,153 @@ public class EnvironmentStoreGitDeployer implements Deployer {
     @Override
     public void deployFile(String site, String path) {
         try (Repository envStoreRepo = getEnvironmentStoreRepositoryInstance(site)) {
-            fetchFromRemote(envStoreRepo);
-            InputStream patch = createPatch(envStoreRepo, site, path);
+            fetchFromRemote(site, envStoreRepo);
+            createPatch(envStoreRepo, site, path);
             Git git = new Git(envStoreRepo);
-            ApplyResult result = git.apply()
-                    .setPatch(patch)
-                    .call();
+            applyPatch(envStoreRepo, site);
             git.add().addFilepattern(".").call();
             git.commit().setMessage("deployment").call();
 
-        } catch (IOException | GitAPIException e) {
+        } catch (IOException | GitAPIException  e) {
             logger.error("Error while deploying file for site: " + site + " path: " + path, e);
         }
     }
 
-    private void fetchFromRemote(Repository repository) {
-        try (Git git = new Git(repository)) {
-            FetchResult result = git.fetch()
-                    .setRemote("work-area")
-                    .setCheckFetchedObjects(true)
-                    .call();
+    private void applyPatch(Repository envStoreRepo, String site) {
+        String tempPath = System.getProperty("java.io.tmpdir");
+        if (tempPath == null) {
+            tempPath = "temp";
+        }
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
+        Process p;
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "apply", patchPath.toAbsolutePath().normalize().toString());
+            pb.directory(envStoreRepo.getDirectory().getParentFile());
+            p = pb.start();
+            int code = p.waitFor();
+            int code2 = p.exitValue();
+            logger.debug("Apply patch exited with code: " + code + " " + code2);
+        } catch (Exception e) {
+            logger.error("Error applying patch for site: " + site, e);
+        }
+    }
 
-        } catch (GitAPIException e) {
-            logger.error("Error while fetching updates for repository: " + repository.getDirectory().getAbsolutePath(), e);
+    private void fetchFromRemote(String site, Repository repository) {
+        Process p;
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "fetch", "work-area");
+            pb.directory(repository.getDirectory().getParentFile());
+            p = pb.start();
+            int code = p.waitFor();
+            int code2 = p.exitValue();
+            logger.debug("Fetch exit with code: " + code + " " + code2);
+        } catch (Exception e) {
+            logger.error("Error while fetching from work-area  for site: " + site, e);
         }
     }
 
     private InputStream createPatch(Repository repository, String site, String path) {
-        try (Git git = new Git(repository)) {
+        StringBuffer output = new StringBuffer();
 
-            // the diff works on TreeIterators, we prepare two for the two branches
-            AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, "refs/heads/master");
-            AbstractTreeIterator newTreeParser = prepareTreeParser(repository, "refs/remotes/work-area/master");
+        String tempPath = System.getProperty("java.io.tmpdir");
+        if (tempPath == null) {
+            tempPath = "temp";
+        }
+        Path patchPath = Paths.get(tempPath, "patch" + site +".bin");
 
-            // then the procelain diff-command returns a list of diff entries
-            List<DiffEntry> diff = git.diff()
-                    .setOldTree(oldTreeParser)
-                    .setNewTree(newTreeParser)
-                    .setPathFilter(getTreeFilter(path))
-                    .call();
+        String gitPath = getGitPath(path);
+        Process p = null;
+        File file = patchPath.toAbsolutePath().normalize().toFile();
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            pb.command("git", "diff", "--binary", "HEAD", "FETCH_HEAD", "--", gitPath);
 
-            //PipedInputStream pin = new PipedInputStream();
-            OutputStream out = new ByteArrayOutputStream();
+            pb.redirectOutput(file);
+            pb.directory(repository.getDirectory().getParentFile());
+            p = pb.start();
 
-
-            //OutputStream os = new FileOutputStream("/Users/dejanbrkic/gitpatchtest.diff");
-            DiffFormatter df = new DiffFormatter(out);
-            df.setRepository(repository);
-            df.setPathFilter(getTreeFilter(path));
-            df.format(diff);
-            df.flush();
-            df.close();
-            String content = out.toString();
-            logger.error("++++++++++++++++");
-            logger.error(content);
-            logger.error("++++++++++++++++");
-            InputStream in = IOUtils.toInputStream(content);
-            return in;
-        } catch (GitAPIException | IOException e) {
+            int code = p.waitFor();
+            int code2 = p.exitValue();
+            logger.debug("Create patch exit with code: " + code + " " + code2);
+        } catch (Exception e) {
             logger.error("Error while creating patch for site: " + site + " path: " + path, e);
         }
         return null;
     }
 
-    private TreeFilter getTreeFilter(String path) {
-        TreeFilter tf = PathFilterGroup.createFromStrings(getGitPath(path));
-        return tf;
-    }
-
-    private AbstractTreeIterator prepareTreeParser(Repository repository, String ref) throws IOException,
-            MissingObjectException,
-            IncorrectObjectTypeException {
-        // from the commit we can build the tree which allows us to construct the TreeParser
-        Ref head = repository.exactRef(ref);
-        try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(head.getObjectId());
-            RevTree tree = walk.parseTree(commit.getTree().getId());
-
-            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
-            try (ObjectReader oldReader = repository.newObjectReader()) {
-                oldTreeParser.reset(oldReader, tree.getId());
-            }
-
-            walk.dispose();
-
-            return oldTreeParser;
-        }
-    }
-
     private Repository getEnvironmentStoreRepositoryInstance(String site) throws IOException {
 
-        Path siteRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git");
-        if (Files.exists(siteRepoPath)) {
-            return openGitRepository(siteRepoPath);
-        } else {
-            Files.deleteIfExists(siteRepoPath);
-            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
+        Path siteRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git").toAbsolutePath();
+        if (!Files.exists(siteRepoPath)) {
+            createEnvironmentStoreRepository(site);
         }
-        return null;
+        Repository envStoreRepo = openGitRepository(siteRepoPath);
+        if (!checkIfWorkAreaAddedAsRemote(envStoreRepo)) {
+            addWorkAreaRemote(site, envStoreRepo);
+        }
+        return envStoreRepo;
     }
 
-    private RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
-            IOException, MissingObjectException {
-        ObjectId lastCommitId = repository.resolve(Constants.HEAD);
+    private boolean createEnvironmentStoreRepository(String site) {
+        boolean success = true;
+        Path siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site, environment);
+        try {
+            Files.deleteIfExists(siteEnvironmentStoreRepoPath);
+            siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git");
+            Repository repository = FileRepositoryBuilder.create(siteEnvironmentStoreRepoPath.toFile());
+            repository.create();
 
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(lastCommitId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
+            Git git = new Git(repository);
+            git.add().addFilepattern(".").call();
+            RevCommit commit = git.commit()
+                    .setMessage("initial content")
+                    .setAllowEmpty(true)
+                    .call();
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while creating repository for site " + site, e);
+            success = false;
         }
+        return success;
+    }
+
+    private void addWorkAreaRemote(String site, Repository envStoreRepo) {
+        envStoreRepo.getRemoteName("work-area");
+        Git git = new Git(envStoreRepo);
+        StoredConfig config = git.getRepository().getConfig();
+        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+        config.setString("remote", "work-area", "url", siteRepoPath.normalize().toAbsolutePath().toString());
+        try {
+            config.save();
+        } catch (IOException e) {
+            logger.error("Error adding work area as remote for environment store.", e);
+        }
+    }
+
+    private boolean checkIfWorkAreaAddedAsRemote(Repository repository) {
+        boolean exists = false;
+        try {
+            Config storedConfig = repository.getConfig();
+            Set<String> remotes = storedConfig.getSubsections("remote");
+
+            for (String remoteName : remotes) {
+                logger.debug("Remote: " + remoteName);
+                if (remoteName.equals("work-area")) {
+                    exists = true;
+                    break;
+                }
+            }
+        } catch (Exception err) {
+            logger.error("Error while reading remotes info.", err);
+        }
+        return exists;
     }
 
     private String getGitPath(String path) {
         String gitPath = path.replaceAll("/+", "/");
         gitPath = gitPath.replaceAll("^/", "");
         return gitPath;
-    }
-
-    private Repository getSiteRepositoryInstance(String site) throws IOException {
-
-        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
-        if (Files.exists(siteRepoPath)) {
-            return openGitRepository(siteRepoPath);
-        } else {
-            Files.deleteIfExists(siteRepoPath);
-            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
-        }
-        return null;
     }
 
     private Repository openGitRepository(Path repositoryPath) throws IOException {
