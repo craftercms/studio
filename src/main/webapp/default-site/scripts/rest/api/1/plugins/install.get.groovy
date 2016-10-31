@@ -34,24 +34,24 @@ import scripts.api.SiteServices;
 def downloadUrl = params.pluginUrl
 def installToSite = params.site
 
-//downloadUrl = 'http://localhost:9090/static-assets/downloads/population.zip?crafterSite=marketplacecraftersoftwarecom'
+System.out.println("Installing PlugIn ${downloadUrl} to site ${installToSite}")
 
-def filename = "population-z.jar"
+def filename = downloadUrl.substring(downloadUrl.lastIndexOf("/")+1)
 
 download(downloadUrl, filename)
 
 props = readManifest(filename)
-props.name = "world-population"
-
 logManifestDetails(props)
 
-if(props.name) {
-	def unzipPath = "./plugin-install/"+props.id
-
-	unzip(unzipPath, filename)
-
-	importPlugin(unzipPath, props, installToSite, applicationContext, request)
+if(props.id == null) {
+	props.id = filename.substring(0,filename.lastIndexOf("."))
 }
+
+def unzipPath = "./plugin-install/"+props.id
+
+unzip(unzipPath, filename)
+
+importPlugin(unzipPath, props, installToSite, applicationContext, request)
 
 return true
 
