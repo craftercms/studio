@@ -376,20 +376,36 @@
                 <version>1.2</version>
                 <executions>
                     <execution>
+                        <id>Java Code </id>
                         <phase>validate</phase>
                         <goals>
                             <goal>create</goal>
                             <goal>create-timestamp</goal>
-
                         </goals>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <id>UI-Version</id>
+                        <goals>
+                            <goal>create</goal>
+                            <goal>create-timestamp</goal>
+                        </goals>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
+                            <scmDirectory>src/main/webapp/default-site/static-assets</scmDirectory>
+                            <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <doCheck>false</doCheck>
-                    <doUpdate>false</doUpdate>
-                    <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -427,9 +443,17 @@
                                 <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
+                                <exclude>>WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/generated-resources/</directory>
+                            <filtering>true</filtering>
+                            <targetPath>WEB-INF/templates/system/common</targetPath>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
 
