@@ -1,4 +1,4 @@
-
+<#include "/templates/system/common/versionInfo.ftl" />
  <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js ie6" lang="en"> <![endif]-->
@@ -92,12 +92,12 @@
   </footer>
 
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-  <script src="/static-assets/js/libs/jquery-1.6.2.min.js"></script>
+  <script src="/static-assets/js/libs/jquery-1.6.2.min.js?version=${UIBuildId!''}"></script>
 
 
   <!-- scripts concatenated and minified via ant build script-->
-  <script defer src="/static-assets/js/plugins.js"></script>
-  <script defer src="/static-assets/js/script1.js"></script>
+  <script defer src="/static-assets/js/plugins.js?version=${UIBuildId!''}"></script>
+  <script defer src="/static-assets/js/script1.js?version=${UIBuildId!''}"></script>
   <!-- end scripts-->
   
 </body>
