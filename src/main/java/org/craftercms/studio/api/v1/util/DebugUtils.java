@@ -33,7 +33,7 @@ public class DebugUtils {
             logger.debug("Thread: " + threadName);
             StackTraceElement[] stackTraceElements = thread.getStackTrace();
             StringBuilder sbStack = new StringBuilder();
-            int stackSize = (10 < stackTraceElements.length-2) ? 10 : stackTraceElements.length;
+            int stackSize = (20 < stackTraceElements.length-2) ? 20 : stackTraceElements.length;
             for (int i = 2; i < stackSize+2; i++){
                 sbStack.append("\n\t").append(stackTraceElements[i].toString());
             }
@@ -47,7 +47,7 @@ public class DebugUtils {
                 logger.debug("Cron Job");
 
             }
-            logger.debug("Stack trace (depth 10): " + sbStack.toString());
+            logger.debug("Stack trace (depth 20): " + sbStack.toString());
         }
     }
 }
