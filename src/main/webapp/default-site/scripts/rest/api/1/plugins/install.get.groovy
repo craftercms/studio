@@ -26,10 +26,12 @@ import java.util.jar.JarInputStream
 import java.util.jar.Manifest
 import java.util.jar.Attributes
 
+import org.apache.commons.io.FileUtils
+
 import groovy.io.FileType
 
 import scripts.api.ContentServices
-import scripts.api.SiteServices;
+import scripts.api.SiteServices
 
 def downloadUrl = params.pluginUrl
 def installToSite = params.site
@@ -67,8 +69,6 @@ def download(url, filename) {
 def readManifest(path) {
 	def props = [:]
 
-	System.out.println("reading manifest " + path)
-
 	JarInputStream jarStream = new JarInputStream(new FileInputStream(path))
 	Manifest mf = jarStream.getManifest()
 
@@ -86,9 +86,23 @@ def readManifest(path) {
 		props.cost = attrs.getValue("plugin-cost")
 		props.type = attrs.getValue("plugin-type")
 		props.compatibility = attrs.getValue("plugin-compatibility")
+		props.dependencies = attrs.getValue("plugin-dependencies")
+
+		if(props.id) { props.id = props.id.toLowerCase() }
+		if(props.type) { props.type = props.type.toLowerCase() }
+
+		if(props.dependencies) {
+			props.dependencies = props.dependencies.toLowerCase()
+			props.dependencies = props.dependencies.split(",")
+		}
+
 	}
 	else {
-		System.out.println("Unable to read manifest from file: ${path}")
+		throw new Exception("Unable to read manifest from file: ${path}")
+	}
+
+	if(props == null || props.id  == null || props.type == null) {
+		throw new Exception("Key manifest (${path}) properties id ${props.id} and type ${props.type} missing")
 	}
 
 	return props
@@ -165,8 +179,25 @@ def unzip(String unzipPath, String zipFile) {
 }
 
 def importPlugin(unzipPath, props, installToSite, applicationContext, request) {
+	def state = [:]
+	state.status = false
 
-	return importSitePlugin(unzipPath, props, installToSite, applicationContext, request)
+	if(props.type) {
+		if(props.type == "site-component") {
+			state = importSitePlugin(unzipPath, props, installToSite, applicationContext, request)
+		}
+		else if(props.type == "studio") {
+			state = importStudioPlugin(unzipPath, props, installToSite, applicationContext, request)
+		}
+		else {
+			throw new Exception("unknown plugin type ${props.type}")
+		}
+	}
+	else {
+		throw new Exception("missing manifest properties")
+	}
+
+	return state
 }
 
 def importSitePlugin(unzipPath, props, installToSite, applicationContext, request) {
@@ -197,7 +228,7 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 				ContentServices.writeContentAsset(context, installToSite, writePathOnly, writeFileName, content, "false", "", "", "", "false", "true", null)
 			}
 			catch(err) {
-				System.out.println("error writing template: ${writePathOnly}${writeFileName} :" + err)
+				System.out.println("error writing asset to site: ${relativePath} :" + err)
 			}
 		}
 		else if(relativePath.startsWith("/content-types")) {
@@ -206,11 +237,50 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
 			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
 
-			def content = new FileInputStream(file)
+			try {
+				def content = new FileInputStream(file)
 
-			def context = SiteServices.createContext(applicationContext, request)
-			SiteServices.writeConfiguration(context, writePathOnly+"/"+writeFileName, content)
+				def context = SiteServices.createContext(applicationContext, request)
+				SiteServices.writeConfiguration(context, writePathOnly+"/"+writeFileName, content)
+			}
+			catch(err) {
+				System.out.println("error writing config to site: ${relativePath} :" + err)
+			}
+		}
+	}
 
+	return state
+}
+
+def importStudioPlugin(unzipPath, props, installToSite, applicationContext, request) {
+
+	def state = [:]
+	state.status = false
+
+	def servletContext = request.getSession().getServletContext()
+	def studioInstallBasePath = servletContext.getRealPath(File.separator)
+
+	def dir = new File(unzipPath)
+	dir.eachFileRecurse (FileType.FILES) { file ->
+
+		def absolutePath = file.getAbsolutePath()
+		def relativePath = absolutePath.substring(absolutePath.indexOf(unzipPath)+unzipPath.length())
+
+		System.out.println("PROCESSING :" + relativePath)
+
+		if(relativePath.startsWith("/templates")
+				|| relativePath.startsWith("/scripts")
+				|| relativePath.startsWith("/static-assets")) {
+
+			def destPath = studioInstallBasePath + "default-site/" + relativePath
+
+			try {
+				File destFile = new File(destPath)
+				FileUtils.copyFile(file, destFile)
+			}
+			catch(err) {
+				System.out.println("error writing file to studio: ${destPath} :" + err)
+			}
 		}
 	}
 
