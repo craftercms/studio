@@ -11,34 +11,34 @@
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <#include "/templates/web/common/page-fragments/head.ftl" />
 
-     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
+     <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/en/base.js?version=${UIBuildId!''}"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/kr/base.js?version=${UIBuildId!''}"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-common/resources/es/base.js?version=${UIBuildId!''}"></script>
    
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/search.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>
-    <script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js"></script>
-    <script src="/studio/static-assets/scripts/crafter.js"></script>
-    <script src="/studio/static-assets/scripts/animator.js"></script>
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/yui/assets/skins/sam/calendar.css" />
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css" />
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/search.js?version=${UIBuildId!''}"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js?version=${UIBuildId!''}"></script>
+    <script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/crafter.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/animator.js?version=${UIBuildId!''}"></script>
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/yui/assets/skins/sam/calendar.css?version=${UIBuildId!''}" />
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css?version=${UIBuildId!''}" />
 
   <!-- filter templates -->
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/common.js"></script>
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/default.js"></script>
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/javascript.js"></script>  
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/css.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/image.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/xhtml.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/flash.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/content-type.js"></script>
+   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/common.js?version=${UIBuildId!''}"></script>
+   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/default.js?version=${UIBuildId!''}"></script>
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/javascript.js?version=${UIBuildId!''}"></script>  
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/css.js?version=${UIBuildId!''}"></script>   
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/image.js?version=${UIBuildId!''}"></script>   
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/xhtml.js?version=${UIBuildId!''}"></script>   
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/flash.js?version=${UIBuildId!''}"></script>   
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/filters/content-type.js?version=${UIBuildId!''}"></script>
 
   <!-- result templates -->
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js"></script>
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/image.js"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/flash.js"></script>   
-   <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css" type="text/css" rel="stylesheet">
-   <link href="/studio/static-assets/yui/container/assets/container.css" type="text/css" rel="stylesheet">
+   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js?version=${UIBuildId!''}"></script>
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/image.js?version=${UIBuildId!''}"></script>   
+       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/flash.js?version=${UIBuildId!''}"></script>   
+   <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
+   <link href="/studio/static-assets/yui/container/assets/container.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
 
 
     <#if mode == "act">

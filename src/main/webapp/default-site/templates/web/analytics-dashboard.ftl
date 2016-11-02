@@ -6,10 +6,10 @@
 
    <title>Crafter Studio</title>
 
-    <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/analytics-dashboard.js"></script>
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-dashboard-widgets/analytics-dashboard.js?version=${UIBuildId!''}"></script>
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-   <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/dashboard.css" />
-   <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/dashboard-presentation.css" />  
+   <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/dashboard.css?version=${UIBuildId!''}" />
+   <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/dashboard-presentation.css?version=${UIBuildId!''}" />  
 
     <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart", "geomap"]});

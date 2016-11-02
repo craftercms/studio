@@ -5,9 +5,9 @@
     <title>Crafter Studio</title>
 
     <#include "/templates/web/common/page-fragments/head.ftl" />
-    <script src="/studio/static-assets/components/cstudio-common/resources/en/base.js"></script>
-    <script src="/studio/static-assets/components/cstudio-common/resources/kr/base.js"></script>
-    <script src="/studio/static-assets/components/cstudio-common/resources/es/base.js"></script>
+    <script src="/studio/static-assets/components/cstudio-common/resources/en/base.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/components/cstudio-common/resources/kr/base.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/components/cstudio-common/resources/es/base.js?version=${UIBuildId!''}"></script>
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
     <script>CStudioAuthoringContext.isPreview = true</script>
     <#include "/templates/web/common/page-fragments/context-nav.ftl" />
@@ -20,11 +20,11 @@
         siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
-    <script src="/studio/static-assets/scripts/crafter.js"></script>
-    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
-    <script src="/studio/static-assets/scripts/communicator.js"></script>
-    <script src="/studio/static-assets/scripts/animator.js"></script>
-    <script src="/studio/static-assets/scripts/host.js"></script>
+    <script src="/studio/static-assets/scripts/crafter.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/communicator.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/animator.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/host.js?version=${UIBuildId!''}"></script>
 
 </head>
 <body>

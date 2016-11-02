@@ -2,15 +2,17 @@
 <html>
 <head>
 
+    <#include "/templates/system/common/versionInfo.ftl" />
+
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable = no">
 
     <title>Crafter Studio</title>
 
-    <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css">
-    <link rel="stylesheet" href="/studio/static-assets/styles/user-dashboard.css">
-    <script src="/studio/static-assets//libs/modernizr/modernizr.js"></script>
-    <link rel="shortcut icon" href="/studio/static-assets/img/favicon.png">
+    <link rel="stylesheet" href="/studio/static-assets/styles/cloud-site-main.css?version=${UIBuildId!''}">
+    <link rel="stylesheet" href="/studio/static-assets/styles/user-dashboard.css?version=${UIBuildId!''}">
+    <script src="/studio/static-assets//libs/modernizr/modernizr.js?version=${UIBuildId!''}"></script>
+    <link rel="shortcut icon" href="/studio/static-assets/img/favicon.png?version=${UIBuildId!''}">
 
     <script>
         CStudioAuthoring = {
@@ -389,16 +391,16 @@
 
 <!-- build:js static-assets/scripts/user-dashboard.js -->
 <!-- bower:js -->
-<script src="/studio/static-assets/libs/jquery/jquery.js"></script>
-<script src="/studio/static-assets/libs/jquery-cookie/jquery.cookie.js"></script>
-<script src="/studio/static-assets/libs/jquery.browser/dist/jquery.browser.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.topbar.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.reveal.js"></script>
-<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.equalizer.js"></script>
-<script src="/studio/static-assets/libs/handlebars/handlebars.js"></script>
-<script src="/studio/static-assets/libs/ember/ember.prod.js"></script>
-<script src="/studio/static-assets/scripts/user-dashboard.js"></script>
+<script src="/studio/static-assets/libs/jquery/jquery.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/jquery-cookie/jquery.cookie.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/jquery.browser/dist/jquery.browser.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.topbar.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.reveal.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/foundation/js/foundation/foundation.equalizer.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/handlebars/handlebars.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/libs/ember/ember.prod.js?version=${UIBuildId!''}"></script>
+<script src="/studio/static-assets/scripts/user-dashboard.js?version=${UIBuildId!''}"></script>
 <!-- endbuild -->
 
 </body>
