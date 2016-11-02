@@ -8,18 +8,18 @@
     <#include "/templates/web/common/page-fragments/head.ftl" />
 
     <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
-    <script src="${path}en/base.js"></script>
-    <script src="${path}kr/base.js"></script>
-    <script src="${path}es/base.js"></script>
+    <script src="${path}en/base.js?version=${UIBuildId!''}"></script>
+    <script src="${path}kr/base.js?version=${UIBuildId!''}"></script>
+    <script src="${path}es/base.js?version=${UIBuildId!''}"></script>
 
     <#assign path="/studio/static-assets/components/cstudio-dashboard-widgets/" />
-    <script src="${path}lib/wcm-dashboardwidget-common.js"></script>
-    <script src="${path}go-live-queue.js"></script>
-    <script src="${path}recently-made-live.js"></script>
-    <script src="${path}my-recent-activity.js"></script>
-    <script src="${path}my-notifications.js"></script>
-    <script src="${path}icon-guide.js"></script>
-    <script src="${path}approved-scheduled-items.js"></script>
+    <script src="${path}lib/wcm-dashboardwidget-common.js?version=${UIBuildId!''}"></script>
+    <script src="${path}go-live-queue.js?version=${UIBuildId!''}"></script>
+    <script src="${path}recently-made-live.js?version=${UIBuildId!''}"></script>
+    <script src="${path}my-recent-activity.js?version=${UIBuildId!''}"></script>
+    <script src="${path}my-notifications.js?version=${UIBuildId!''}"></script>
+    <script src="${path}icon-guide.js?version=${UIBuildId!''}"></script>
+    <script src="${path}approved-scheduled-items.js?version=${UIBuildId!''}"></script>
 
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
@@ -33,11 +33,11 @@
                 siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
     </script>
 
-    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js"></script>
-    <script src="/studio/static-assets/libs/jquery/dist/jquery.js"></script>
-    <script src="/studio/static-assets/libs/jquery-ui/jquery-ui.js"></script>
-    <script src="/studio/static-assets/scripts/crafter.js"></script>
-    <script src="/studio/static-assets/scripts/animator.js"></script>
+    <script src="/studio/static-assets/libs/amplify/lib/amplify.core.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/libs/jquery/dist/jquery.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/libs/jquery-ui/jquery-ui.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/crafter.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/scripts/animator.js?version=${UIBuildId!''}"></script>
 
 </head>
 
@@ -49,7 +49,7 @@
         <hgroup class="page-header">
             <h1></h1>
         </hgroup>
-
+        
         <div id="GoLiveQueue" class="panel panel-default">
             <div class="panel-heading">
                 <div id="section-widget-GoLiveQueue" class="studio-section-widget"
