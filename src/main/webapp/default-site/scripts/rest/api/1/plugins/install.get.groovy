@@ -1,3 +1,4 @@
+
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2016 Crafter Software Corporation.
@@ -27,11 +28,13 @@ import java.util.jar.Manifest
 import java.util.jar.Attributes
 
 import org.apache.commons.io.FileUtils
-
+import org.apache.commons.io.IOUtils
 import groovy.io.FileType
 
 import scripts.api.ContentServices
 import scripts.api.SiteServices
+
+import groovy.xml.XmlUtil
 
 def downloadUrl = params.pluginUrl
 def installToSite = params.site
@@ -242,6 +245,38 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 
 				def context = SiteServices.createContext(applicationContext, request)
 				SiteServices.writeConfiguration(context, writePathOnly+"/"+writeFileName, content)
+			}
+			catch(err) {
+				System.out.println("error writing config to site: ${relativePath} :" + err)
+			}
+		}
+		else if(relativePath.startsWith("/preview-tools/components-config.xml")) {
+
+			def writePath = relativePath
+			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
+			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
+
+			try {
+				def content = new FileInputStream(file)
+
+				def contextA = ContentServices.createContext(applicationContext, request)
+				def repoContent = ContentServices.getContentAtPath(contextA, writePathOnly+"/"+writeFileName)
+
+				String repoContentStr =  IOUtils.toString(repoContent, "UTF-8")
+				String componentConfigStr = IOUtils.toString(content, "UTF-8")
+				def fromxml = new XmlSlurper().parseText(componentConfigStr)
+				def toxml = new XmlSlurper().parseText(repoContentStr)
+
+				toxml[0].children() << fromxml.children()
+
+				java.io.StringWriter o = new java.io.StringWriter()
+				XmlUtil xmlUtil = new XmlUtil()
+				xmlUtil.serialize(toxml, o)​
+				String mergedXML = o.toString()
+				def mergedXMLStream = new ByteArrayInputStream(mergedXML.getBytes("UTF-8"))
+
+				def contextB = SiteServices.createContext(applicationContext, request)
+				SiteServices.writeConfiguration(contextB, writePathOnly+"/"+writeFileName, mergedXMLStream)
 			}
 			catch(err) {
 				System.out.println("error writing config to site: ${relativePath} :" + err)
