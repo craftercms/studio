@@ -22,23 +22,63 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.RebuildRepositoryMetadataMapper">
 
+    <update id="createRebuildRepoMetadataQueue" databaseId="derby">
+        CREATE TABLE cstudio_rebuildrepositorymetadata (
+          id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY ( START WITH 1, INCREMENT BY 1),
+          site VARCHAR(255) NOT NULL,
+          path VARCHAR(2000) NOT NULL,
+          processed INT NOT NULL DEFAULT 0
+        )
+    </update>
+
+    <update id="createRebuildRepoMetadataQueue" databaseId="oracle">
+        CREATE TABLE cs_rebuildrepometadata (
+        id NUMBER (19, 0) NOT NULL PRIMARY KEY,
+        site VARCHAR(255) NOT NULL,
+        path VARCHAR(2000) NOT NULL,
+        processed INT DEFAULT ON NULL 0
+        )
+    </update>
+
+    <update id="createRebuildRepoMetadataQueue" databaseId="postgres">
+        CREATE TABLE cstudio_rebuildrepositorymetadata (
+          id serial NOT NULL,
+          site character varying(255) not null,
+          path text not null,
+          processed int not null default 0,
+          CONSTRAINT cstudio_rebuildrepositorymetadata_pk PRIMARY KEY (id)
+        )
+    </update>
+
     <update id="createRebuildRepoMetadataQueue">
         create table if not exists cstudio_rebuildrepositorymetadata(
-          `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
-          `site` VARCHAR(255) NOT NULL,
-          `path` VARCHAR(2000) NOT NULL,
-          `processed` int not null default 0,
-          PRIMARY KEY (`id`),
-          KEY `cstudio_rebuildrepositorymetadata_site_idx` (`site`)
+        `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+        `site` VARCHAR(255) NOT NULL,
+        `path` VARCHAR(2000) NOT NULL,
+        `processed` int not null default 0,
+        PRIMARY KEY (`id`),
+        KEY `cstudio_rebuildrepositorymetadata_site_idx` (`site`)
         )
         ENGINE =InnoDB
         DEFAULT CHARSET =utf8
         ROW_FORMAT=DYNAMIC
     </update>
 
-    <delete id="deleteRebuildRepoMetadataQueue">
-        drop table cstudio_rebuildrepositorymetadata;
+    <delete id="deleteRebuildRepoMetadataQueue" databaseId="oracle">
+        drop table cs_rebuildrepometadata
     </delete>
+
+    <delete id="deleteRebuildRepoMetadataQueue">
+        drop table cstudio_rebuildrepositorymetadata
+    </delete>
+
+    <insert id="insertRebuildRepoMetadataQueue" parameterType="Map" databaseId="oracle">
+        insert all
+        <foreach collection="pathList" item="pathItem" separator=" " index="idx">
+            into cs_rebuildrepometadata (id, site, path, processed) values (#{id} + #{idx}, #{site}, #{pathItem}, 0)
+        </foreach>
+        select * from dual
+    </insert>
     
     <insert id="insertRebuildRepoMetadataQueue" parameterType="Map">
         insert into cstudio_rebuildrepositorymetadata (site, path, processed) values
@@ -52,7 +92,7 @@
     </select>
 
     <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="derby">
-        select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 rows fetch next #{batchSize} rows only
+        select id as "id", site as "site", path as "path", processed as "processed" from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 fetch next #{batchSize} rows only
     </select>
 
     <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="sqlserver">
@@ -60,12 +100,16 @@
     </select>
 
     <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="oracle">
-        select * from (
-          select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0
+        select id as "id", site as "site", path as "path", processed as "processed" from (
+          select * from cs_rebuildrepometadata where site = #{site} and processed = 0
         )
         where rownum between 0 and #{batchSize}
 
     </select>
+
+    <update id="markProcessed" databaseId="oracle">
+        update cs_rebuildrepometadata set processed = 1 where site = #{site} and path = #{path}
+    </update>
 
     <update id="markProcessed">
         update cstudio_rebuildrepositorymetadata set processed = 1 where site = #{site} and path = #{path}

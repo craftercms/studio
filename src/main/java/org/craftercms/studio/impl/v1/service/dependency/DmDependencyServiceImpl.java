@@ -60,62 +60,14 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected static final String JSON_KEY_ITEMS = "items";
     protected static final String JSON_KEY_SUBMISSION_COMMENT = "submissionComment";
+    protected static final String JSON_KEY_DEPENDENCIES = "dependencies";
 
-    /**
-     * DependencyDaoService
-     *//*
-    protected DependencyDaoService _dependencyDaoService;
-    public DependencyDaoService getDependencyDaoService() {
-        return this._dependencyDaoService;
-    }
-    public void setDependencyDaoService(DependencyDaoService dependencyDaoService) {
-        this._dependencyDaoService = dependencyDaoService;
-    }
-
-    protected cstudioCacheManager _cacheManager;
-    public cstudioCacheManager getCacheManager() {
-        return this._cacheManager;
-    }
-    public void setCacheManager(cstudioCacheManager cacheManager) {
-        this._cacheManager = cacheManager;
-    }
-
-    */
 
     @Override
     public void register() {
         getServicesManager().registerService(DmDependencyService.class, this);
     }
-/*
-    @Override
-    public void populateDependencyContentItems(String site, ContentItemTO item, boolean populateUpdatedDependecinesOnly) {
-        try {
-            String path = item.getUri();
-            List<DependencyEntity> components = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_COMPONENT);
-            List<DmContentItemTO> compItems = getDependentItems(site, item.getUri(), components, populateUpdatedDependecinesOnly);
-            item.setComponents(compItems);
-            List<DependencyEntity> documents = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_DOCUMENT);
-            List<DmContentItemTO> docItems = getDependentItems(site, item.getUri(), documents, populateUpdatedDependecinesOnly);
-            item.setDocuments(docItems);
-            List<DependencyEntity> assets = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_ASSET);
-            List<DmContentItemTO> assetItems = getDependentItems(site, item.getUri(), assets, populateUpdatedDependecinesOnly);
-            item.setAssets(assetItems);
-            List<DependencyEntity> templates = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_RENDERING_TEMPLATE);
-            List<DmContentItemTO> templateItems = getDependentItems(site, item.getUri(), templates, populateUpdatedDependecinesOnly);
-            item.setRenderingTemplates(templateItems);
-            /*List<DependencyEntity> levelDescriptors = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_LEVEL_DESCRIPTOR);
-            List<DmContentItemTO> levelDescriptorItems = getDependentItems(site, item.getUri(), levelDescriptors, populateUpdatedDependecinesOnly);
-            item.setLevelDescriptors(levelDescriptorItems);*//*
-            List<DependencyEntity> deletes = _dependencyDaoService.getDependenciesByType(site, path, DEPENDENCY_NAME_DELETE);
-            List<DmContentItemTO> deletedItems = getDependentItems(site, item.getUri(), deletes, populateUpdatedDependecinesOnly);
-            item.setDeletedItems(deletedItems);
 
-
-        } catch (SQLException e) {
-            logger.error("Error while getting dependent file names for " + item.getUri() + " in " + site, e);
-        }
-    }
-*/
     /**
      * get dependent items from the given list of files
      *
@@ -173,6 +125,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
             StringBuilder sb = new StringBuilder();
             Set<String> submissionComments = new HashSet<String>();
+            Set<String> dependenciesFiles = new HashSet<String>();
             for (ContentItemTO item : items) {
                 String comment = item.getSubmissionComment();
                 if (StringUtils.isNotEmpty(comment)) {
@@ -181,10 +134,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         submissionComments.add(comment);
                     }
                 }
+                dependenciesFiles.addAll(submitToApproveDependencyRule.applyRule(site, item.getUri()));
             }
             Map<String, Object> result = new HashMap<>();
             result.put(JSON_KEY_ITEMS, items);
             result.put(JSON_KEY_SUBMISSION_COMMENT, sb.toString());
+            result.put(JSON_KEY_DEPENDENCIES, dependenciesFiles);
             return result;
         } catch (RuntimeException e){
             logger.error("Error getting dependecies",e);

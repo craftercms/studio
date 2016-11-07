@@ -92,6 +92,21 @@
         ORDER BY scheduleddate ASC
     </select>
 
+    <select id="checkIfItemWasPublished" resultType="java.lang.Integer">
+        SELECT count(1) FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND path = #{path}
+        AND state = #{state}
+    </select>
+
+    <select id="checkIfItemWasPublishedForEnvironment" resultType="java.lang.Integer">
+        SELECT count(1) FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND environment = #{environment}
+        AND path = #{path}
+        AND state = #{state}
+    </select>
+
     <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
         UPDATE cstudio_copytoenvironment
         SET state = #{state}

@@ -177,6 +177,9 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             File dest = destDir;
             if (StringUtils.isNotEmpty(newName)) {
                 dest = new File(destDir, newName);
+                if (!dest.exists()) {
+                    dest.mkdirs();
+                }
             }
             if (source.isDirectory()) {
                 File[] dirList = source.listFiles();

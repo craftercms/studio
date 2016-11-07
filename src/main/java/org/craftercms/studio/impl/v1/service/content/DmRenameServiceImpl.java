@@ -401,7 +401,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
 
         //update cache and add node property to all children with oldurl if required
-        logger.error("Post rename update status: source - " + sourcePath + " ; target - " + targetPath);
         postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
 
         // run through the lifecycle service
@@ -411,8 +410,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
         params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
 
-        String contentTypeClass = contentService.getContentTypeClass(site, contentService.getRelativeSitePath(site, dstOrgFullPath));
-        dmContentLifeCycleService.process(site, user, targetPath, contentTypeClass,
+        ContentItemTO renamedItem = contentService.getContentItem(site, targetPath, 0);
+        String contentType = renamedItem.getContentType();
+        dmContentLifeCycleService.process(site, user, targetPath, contentType,
                 DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
 
         objectStateService.setSystemProcessing(site, renamedUri, false);
@@ -491,8 +491,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
         String srcFullPath = contentService.expandRelativeSitePath(site, path);
         ContentItemTO itemTO = contentService.getContentItem(site, path);
+        boolean contentExists = contentService.contentExists(site, path);
         List<String> transitionItems = new ArrayList<String>();
-        if (itemTO == null) {
+        if (!contentExists) {
             srcFullPath = srcFullPath.replace("/" + DmConstants.INDEX_FILE, "");
             oldPath = oldPath.replace("/" + DmConstants.INDEX_FILE, "");
             itemTO = contentService.getContentItem(srcFullPath);
@@ -583,9 +584,11 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
         //dependencies also has to be moved post rename
         try{
-            Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
-            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-            dmDependencyService.extractDependencies(site, relativePath, document, globalDeps);
+            if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
+                Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
+                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+                dmDependencyService.extractDependencies(site, relativePath, document, globalDeps);
+            }
         }catch(Exception e){
             logger.error("Error during extracting dependency of " + relativePath, e);
         }

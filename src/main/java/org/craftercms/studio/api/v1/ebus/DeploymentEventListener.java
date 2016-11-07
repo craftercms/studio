@@ -14,35 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.ebus;
 
-import java.util.List;
-import java.util.Map;
+public interface DeploymentEventListener {
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+    void onDeploymentEvent(DeploymentEventMessage message);
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
-
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
-
-    void cancelWorkflow(Map params);
-
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
-
-    void updateItemDeploymentState(CopyToEnvironment item);
-
-    void deleteDeploymentDataForSite(Map params);
-
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
-
-    void cancelDeployment(Map params);
-
-    int checkIfItemWasPublished(Map params);
-
-    int checkIfItemWasPublishedForEnvironment(Map params);
+    void subscribe();
 }

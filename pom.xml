@@ -27,7 +27,7 @@
         <mockito.version>1.9.5</mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.test.sourceEncoding>UTF-8</project.test.sourceEncoding>
-        <testng.version>6.9.4</testng.version>
+        <testng.version>6.9.10</testng.version>
         <selenium.version>2.45.0</selenium.version>
         <ghostdriver.version>1.2.0</ghostdriver.version>
         <phantomjs.version>1.9.8</phantomjs.version>
@@ -276,6 +276,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.detro</groupId>
             <artifactId>phantomjsdriver</artifactId>
             <version>${ghostdriver.version}</version>
@@ -296,6 +302,13 @@
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>2.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>4.0.3.RELEASE</version>
             <scope>test</scope>
         </dependency>
 
@@ -346,11 +359,9 @@
                             <executable>git</executable>
                             <arguments>
                                 <argument>submodule</argument>
-                                <argument>foreach</argument>
-                                <argument>git</argument>
-                                <argument>pull</argument>
-                                <argument>origin</argument>
-                                <argument>master</argument>
+                                <argument>update</argument>
+                                <argument>--remote</argument>
+                                <argument>-f</argument>
                             </arguments>
                         </configuration>
                         <goals>
@@ -365,20 +376,36 @@
                 <version>1.2</version>
                 <executions>
                     <execution>
+                        <id>Java Code </id>
                         <phase>validate</phase>
                         <goals>
                             <goal>create</goal>
                             <goal>create-timestamp</goal>
-
                         </goals>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <id>UI-Version</id>
+                        <goals>
+                            <goal>create</goal>
+                            <goal>create-timestamp</goal>
+                        </goals>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                            <revisionOnScmFailure>unknown</revisionOnScmFailure>
+                            <scmDirectory>src/main/webapp/default-site/static-assets</scmDirectory>
+                            <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <doCheck>false</doCheck>
-                    <doUpdate>false</doUpdate>
-                    <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -416,9 +443,17 @@
                                 <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
+                                <exclude>>WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                             </excludes>
                         </overlay>
                     </overlays>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/generated-resources/</directory>
+                            <filtering>true</filtering>
+                            <targetPath>WEB-INF/templates/system/common</targetPath>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
 
@@ -454,13 +489,42 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18</version>
                 <configuration>
-                    <skip>true</skip>
+                    <excludes>
+                        <exclude>org.craftercms.studio.testing.it.*</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <id>JDK8</id>
+              <activation>
+                  <jdk>[1.8,)</jdk>
+              </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <additionalparam>-Xdoclint:none</additionalparam>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>test</id>
             <build>
