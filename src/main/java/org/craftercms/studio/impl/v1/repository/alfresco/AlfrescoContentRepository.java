@@ -89,6 +89,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import org.springframework.http.MediaType;
 
+import org.apache.chemistry.opencmis.client.api.Document;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
@@ -255,6 +256,47 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      */
     public VersionTO[] getContentVersionHistory(String path) {
         return getContentVersionHistoryCMIS(path);
+    }
+
+
+
+    /**
+     * Get a specific content version
+     * @param path - the path of the item
+     * @param version - the path of the item
+     */
+    public InputStream getContentVersion(String path, String version)
+    throws ContentNotFoundException {
+
+        long startTime = System.currentTimeMillis();
+        InputStream versionedContentStream = null;
+        String cleanPath = cleanPath(path);
+
+        try {
+            Session session = getCMISSession();
+
+            session.getObject("<documentId>;<versionLabelId>");
+
+            CmisObject cmisObject = session.getObjectByPath(cleanPath+";"+version);
+
+            if(cmisObject != null) {
+                Document cmisDocument = (Document)cmisObject;
+
+                ContentStream contentStream = cmisDocument.getContentStream();
+
+                versionedContentStream = contentStream.getStream();
+            }
+            else {
+                logger.error("Unable to get content at version '{0};{1}'", path, version);
+            }
+
+        } catch (CmisBaseException err) {
+            logger.error("err reverting content content: ", err);
+        }
+        long duration = System.currentTimeMillis() - startTime;
+        logger.debug("getContentVersion(path = {0}, version = {1}) ({4} ms) ", path, version, duration);
+
+        return versionedContentStream;
     }
 
     /** 
@@ -1481,6 +1523,16 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 logger.error("Error while setting permissions for content at path " + cleanPath, err);
             }
         }
+    }
+
+    protected String cleanPath(String path) {
+        String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
+
+        if (cleanPath.endsWith("/")) {
+            cleanPath = cleanPath.substring(0, cleanPath.length() - 1);
+        }
+
+        return cleanPath;
     }
 
     @Override

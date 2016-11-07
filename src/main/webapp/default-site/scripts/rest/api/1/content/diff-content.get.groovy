@@ -1,21 +1,3 @@
-/*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-import scripts.api.ContentServices;
 import scripts.libs.EnvironmentOverrides
 import scripts.libs.HTMLCompareTools
 import scripts.api.ContentServices
@@ -26,21 +8,65 @@ def path = params.path
 def version = params.version
 
 def context = ContentServices.createContext(applicationContext, request)
-def original = "UNSET"
-def revised = "UNSET"
+String original = "UNSET"
+String revised = "UNSET"
+
+def compareType = ""
+def originalVersion = ""
+def revisedVersion = ""
 
 if([Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } == false) {
+	// COMPARE VERSION to HEAD
+	compareType = "COMPARE_TO_HEAD"
+	originalVersion = "HEAD"
+	revisedVersion = version
+
 	original = ContentServices.getContent(site, path, false, context)
 	revised = ContentServices.getContentVersionAtPath(site, path, version, context)
 }
 else {
-	original = ContentServices.getContentVersionAtPath(site, path, version[0], context)
-	revised = ContentServices.getContentVersionAtPath(site, path, version[1], context)
+	if(version[0] != version[1]) {
+
+		// COMPARE VERSION TO VERSION
+		compareType = "VERSION_VS_VERSION"
+		originalVersion = version[0]
+		revisedVersion = version[1]
+
+		original = ContentServices.getContentVersionAtPath(site, path, version[0], context)
+		revised = ContentServices.getContentVersionAtPath(site, path, version[1], context)
+	}
+	else{
+
+		// LOOK AT A VERSION
+		version = version[0]
+
+		compareType = "VERSION_CONTENT"
+		originalVersion = version
+		revisedVersion = version
+
+		original = ContentServices.getContentVersionAtPath(site, path, version[0], context)
+		revised = original
+	}
 }
 
-result.variantA = HTMLCompareTools.xmlToHtml(revised)
-result.variantB = HTMLCompareTools.xmlToHtml(original)
+if(revised == null || original == null) {
+	logger.error("${site} : ${path} : ${compareType}" )
+	logger.error("${originalVersion} =================================")
+	logger.error(""+original)
+	logger.error("${revisedVersion} =================================")
+	logger.error(""+revised)
+	throw new Exception("Cannot diff because one of the expected content versions is null")
+}
 
-result.diff = HTMLCompareTools.diff(result.variantA, result.variantB)
+model.version = version
 
-return result
+model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
+
+model.variantA = HTMLCompareTools.xmlAsStringToHtml(revised)
+model.variantB = HTMLCompareTools.xmlAsStringToHtml(original)
+
+model.diff = HTMLCompareTools.diff(model.variantA, model.variantB)
+model.dir = path
+
+model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
+model.cookieDomain = request.getServerName()
