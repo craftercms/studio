@@ -221,7 +221,7 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 				|| relativePath.startsWith("/static-assets")) {
 
 			try {
-				def writePath = relativePath //.replace("/templates/web", "/templates/web/p/"+props.id)
+				def writePath = relativePath
 				def writePathOnly = writePath.substring(0, writePath.lastIndexOf("/")+1)
 				def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
 
@@ -255,28 +255,48 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			def writePath = relativePath
 			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
 			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
+			def repoPath = joinPaths(writePathOnly, writeFileName)
 
 			try {
 				def content = new FileInputStream(file)
 
 				def contextA = ContentServices.createContext(applicationContext, request)
-				def repoContent = ContentServices.getContentAtPath(contextA, writePathOnly+"/"+writeFileName)
+				def repoContent = ContentServices.getContentAtPath(contextA, repoPath)
 
 				String repoContentStr =  IOUtils.toString(repoContent, "UTF-8")
 				String componentConfigStr = IOUtils.toString(content, "UTF-8")
+
 				def fromxml = new XmlSlurper().parseText(componentConfigStr)
 				def toxml = new XmlSlurper().parseText(repoContentStr)
 
-				toxml[0].children() << fromxml.children()
+				/* iterate over inbound items and add/merge them */
+				fromxml.children().each { child ->
+					def xpathResult = toxml.category.find { it.label == child.label }
+
+					if(xpathResult != null) {
+						// merge in to existing category
+						child.label[0].replaceNode { }
+						xpathResult << child.children()
+
+						// REALLY NEEDS LOGIC HERE THAT ITERATES COMPONENTS AND DOES SAME THING
+					}
+					else {
+						// add a new category
+						toxml[0].children() << child
+					}
+				}
 
 				java.io.StringWriter o = new java.io.StringWriter()
-				XmlUtil xmlUtil = new XmlUtil()
-				xmlUtil.serialize(toxml, o)​
+				println XmlUtil.serialize( toxml, o )
 				String mergedXML = o.toString()
+
+
 				def mergedXMLStream = new ByteArrayInputStream(mergedXML.getBytes("UTF-8"))
 
 				def contextB = SiteServices.createContext(applicationContext, request)
-				SiteServices.writeConfiguration(contextB, writePathOnly+"/"+writeFileName, mergedXMLStream)
+				// FOR DEBUGGING println groovy.xml.XmlUtil.serialize( toxml )
+				SiteServices.writeConfiguration(contextB, repoPath, mergedXMLStream)
+
 			}
 			catch(err) {
 				System.out.println("error writing config to site: ${relativePath} :" + err)
@@ -285,6 +305,12 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 	}
 
 	return state
+}
+
+def joinPaths(pathA, pathB) {
+	def joinedPath = (pathA + pathB).replace("//", "/")
+
+	return joinedPath
 }
 
 def importStudioPlugin(unzipPath, props, installToSite, applicationContext, request) {
