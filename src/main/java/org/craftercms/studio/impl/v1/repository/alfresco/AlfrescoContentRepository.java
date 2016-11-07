@@ -272,8 +272,6 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         try {
             Session session = getCMISSession();
 
-            session.getObject("<documentId>;<versionLabelId>");
-
             CmisObject cmisObject = session.getObjectByPath(cleanPath+";"+version);
 
             if(cmisObject != null) {
@@ -288,7 +286,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             }
 
         } catch (CmisBaseException err) {
-            logger.error("err reverting content content: ", err);
+            logger.error("err getting content version: ", err);
         }
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("getContentVersion(path = {0}, version = {1}) ({4} ms) ", path, version, duration);
