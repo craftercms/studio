@@ -272,17 +272,27 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         try {
             Session session = getCMISSession();
 
-            CmisObject cmisObject = session.getObjectByPath(cleanPath+";"+version);
+            CmisObject cmisObject = session.getObjectByPath(cleanPath);
 
             if(cmisObject != null) {
-                Document cmisDocument = (Document)cmisObject;
+                Document document = (Document)cmisObject;
+                List<Document> versions = document.getAllVersions();
 
-                ContentStream contentStream = cmisDocument.getContentStream();
-
-                versionedContentStream = contentStream.getStream();
+                if (versions != null && versions.size() > 0) {
+                    for (Document documentVersion : versions) {
+                        if (version.equals(documentVersion.getVersionLabel())) {
+                            ContentStream contentStream = documentVersion.getContentStream();
+                            versionedContentStream = contentStream.getStream();
+                            break;
+                        }
+                    }
+                }
+                else {
+                    logger.warn("no versions associated with '{0};{1}'", path, version);
+                }
             }
             else {
-                logger.error("Unable to get content at version '{0};{1}'", path, version);
+                logger.warn("Unable to get content at version '{0};{1}'", path, version);
             }
 
         } catch (CmisBaseException err) {
