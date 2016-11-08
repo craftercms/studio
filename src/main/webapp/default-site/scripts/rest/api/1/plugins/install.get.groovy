@@ -223,12 +223,13 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			try {
 				def writePath = relativePath
 				def writePathOnly = writePath.substring(0, writePath.lastIndexOf("/")+1)
-				def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
+				def writeFileName = cleanPath(writePath.substring(writePath.lastIndexOf("/")+1))
 
 				def content = new FileInputStream(file)
 
 				def context = ContentServices.createContext(applicationContext, request)
-				ContentServices.writeContentAsset(context, installToSite, writePathOnly, writeFileName, content, "false", "", "", "", "false", "true", null)
+
+				ContentServices.writeContentAsset(context, installToSite, cleanPath(writePathOnly), writeFileName, content, "false", "", "", "", "false", "true", null)
 			}
 			catch(err) {
 				System.out.println("error writing asset to site: ${relativePath} :" + err)
@@ -244,7 +245,7 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 				def content = new FileInputStream(file)
 
 				def context = SiteServices.createContext(applicationContext, request)
-				SiteServices.writeConfiguration(context, writePathOnly+"/"+writeFileName, content)
+				SiteServices.writeConfiguration(context, cleanPath(joinPaths(writePathOnly, writeFileName)), content)
 			}
 			catch(err) {
 				System.out.println("error writing config to site: ${relativePath} :" + err)
@@ -255,7 +256,7 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			def writePath = relativePath
 			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
 			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
-			def repoPath = joinPaths(writePathOnly, writeFileName)
+			def repoPath = cleanPath(joinPaths(writePathOnly, writeFileName))
 
 			try {
 				def content = new FileInputStream(file)
@@ -307,12 +308,6 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 	return state
 }
 
-def joinPaths(pathA, pathB) {
-	def joinedPath = (pathA + pathB).replace("//", "/")
-
-	return joinedPath
-}
-
 def importStudioPlugin(unzipPath, props, installToSite, applicationContext, request) {
 
 	def state = [:]
@@ -333,7 +328,7 @@ def importStudioPlugin(unzipPath, props, installToSite, applicationContext, requ
 				|| relativePath.startsWith("/scripts")
 				|| relativePath.startsWith("/static-assets")) {
 
-			def destPath = studioInstallBasePath + "default-site/" + relativePath
+			def destPath = cleanPath(studioInstallBasePath + "default-site/" + relativePath)
 
 			try {
 				File destFile = new File(destPath)
@@ -346,4 +341,20 @@ def importStudioPlugin(unzipPath, props, installToSite, applicationContext, requ
 	}
 
 	return state
+}
+
+
+def joinPaths(pathA, pathB) {
+	def joinedPath = (pathA + pathB).replace("//", "/")
+
+	return joinedPath
+}
+
+def cleanPath(path) {
+	def cleanPath = path.replaceAll("//", "/")
+	if(cleanPath.endsWith("/")) {
+		cleanPath = cleanPath.substring(0, cleanPath.length-1)
+	}
+
+	return cleanPath
 }
