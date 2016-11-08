@@ -56,6 +56,16 @@ public class DeployerFactory {
         return deployer;
     }
 
+    public Deployer createEnvironmentStoreGitBranchDeployer(String environment) {
+        EnvironmentStoreGitBranchDeployer deployer = new EnvironmentStoreGitBranchDeployer();
+        deployer.setContentService(contentService);
+        deployer.setEnvironmentsStoreRootPath(environmentsStoreRootPath);
+        deployer.setRootPath(repositoryRootPath);
+        deployer.setEnvironment(environment);
+
+        return deployer;
+    }
+
     public Deployer createSyncTargetDeployer(String environment, DeploymentEndpointConfigTO endpointConfigTO) {
         SyncTargetDeployer deployer = new SyncTargetDeployer();
         deployer.setEnvironmentsStoreRootPath(environmentsStoreRootPath);

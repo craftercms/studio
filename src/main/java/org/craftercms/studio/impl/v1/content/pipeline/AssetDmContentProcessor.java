@@ -145,55 +145,24 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         try {
             // look up the path content first
             ContentItemTO parentContentItem = contentService.getContentItem(site, path, 0);
-            if (parentContentItem == null && createFolders) {
+            boolean parentExists = contentService.contentExists(site, path);
+            if (!parentExists && createFolders) {
                 parentContentItem = createMissingFoldersInPath(site, path, isPreview);
+                parentExists = contentService.contentExists(site, path);
             }
-            if (parentContentItem != null /*&& persistenceManagerService.getFileInfo(parentContent).isFolder()*/) {
-                ContentItemTO contentItem = contentService.getContentItem(site, path + "/" + assetName, 0);
-                if (contentItem != null) {
-                    updateFile(site, contentItem, path + "/" + assetName, in, user, isPreview, unlock);
+            if (parentExists && parentContentItem.isFolder()) {
+                boolean exists = contentService.contentExists(site, path + "/" + assetName);
+                ContentItemTO contentItem = null;
+                if (exists) {
+                    contentItem = contentService.getContentItem(site, path + "/" + assetName, 0);
+                    updateFile(site, contentItem, contentPath, in, user, isPreview, unlock);
                 } else {
                     // TODO: define content type
-                    //String contentType = namespaceService.getPrefixedTypeName(ContentModel.TYPE_CONTENT);
-                    contentItem = createNewFile(site, parentContentItem, assetName, null /*contentType*/, in, user, unlock);
+                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user, unlock);
                     objectStateService.insertNewEntry(site, contentItem);
                 }
-                // TODO: make content locakable
-                /*
-                persistenceManagerService.addAspect(content, ContentModel.ASPECT_LOCKABLE, null);
-                */
-                // TODO: make content IMAGE
-                /*
-                if (!persistenceManagerService.hasAspect(content, CStudioContentModel.ASPECT_IMAGE_METADATA)) {
-                    // if no metadata found, add the metdata
-                    persistenceManagerService.addAspect(content, CStudioContentModel.ASPECT_IMAGE_METADATA, null);
-                }
-                // store the height and the width calculated
-                Map<QName, Serializable> nodeProperties = persistenceManagerService.getProperties(content);
-                nodeProperties.put(CStudioContentModel.PROP_IMAGE_WIDTH, width);
-                nodeProperties.put(CStudioContentModel.PROP_IMAGE_HEIGHT, height);
-                persistenceManagerService.setProperties(content, nodeProperties);
-*/
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
-                /*
-                ContentReader reader = persistenceManagerService.getReader(persistenceManagerService.getNodeRef(contentPath));
-                ContentData data = reader.getContentData();
-                long size = data.getSize();
-                double convertedSize = size / new Double(READ_BUFFER_LENGTH * 32) * 1024;
-                if(convertedSize >= 1024){
-                    assetInfo.setSizeUnit(FILE_SIZE_MB);
-                    assetInfo.setSize(convertedSize/1024);
-                }else{
-                    if(convertedSize > 0 && convertedSize < 1){
-                        assetInfo.setSize(1);
-                    }else{
-                        assetInfo.setSize(Math.round(convertedSize));
-                    }
-
-                    assetInfo.setSizeUnit(FILE_SIZE_KB);
-                }*/
-                //assetInfo.setSize(size / new Double(CStudioWebScriptConstants.READ_BUFFER_LENGTH * 32) * 1024);
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -240,10 +209,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
         objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 
-
-        // TODO" create new minor version
-        //dmVersionService.createNextMinorVersion(site, fullPath);
-
         if (unlock) {
             contentService.unLockContent(site, contentRelativePath);
             logger.debug("Unlocked the content " + fullPath);
@@ -256,7 +221,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             DmPathTO path = new DmPathTO(fullPath);
             if (cancelWorkflow(site, path.getRelativePath())) {
                 workflowService.removeFromWorkflow(site, path.getRelativePath(), true);
-                //dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
             } else {
                 if(updateWorkFlow(site,path.getRelativePath())) {
                     workflowService.updateWorkflowSandboxes(site,path.getRelativePath());

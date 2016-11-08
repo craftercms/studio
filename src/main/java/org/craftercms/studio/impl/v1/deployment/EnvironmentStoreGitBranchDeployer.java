@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -26,35 +27,96 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.ContentNotFoundForPublishingException;
 import org.craftercms.studio.api.v1.service.deployment.UploadFailedException;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
-public class EnvironmentStoreGitDeployer implements Deployer {
+public class EnvironmentStoreGitBranchDeployer implements Deployer {
 
-    private final static Logger logger = LoggerFactory.getLogger(EnvironmentStoreGitDeployer.class);
+    private final static Logger logger = LoggerFactory.getLogger(EnvironmentStoreGitBranchDeployer.class);
 
     @Override
     public void deployFile(String site, String path) {
-        try (Repository envStoreRepo = getEnvironmentStoreRepositoryInstance(site)) {
-            fetchFromRemote(site, envStoreRepo);
-            createPatch(envStoreRepo, site, path);
-            Git git = new Git(envStoreRepo);
-            applyPatch(envStoreRepo, site);
-            git.add().addFilepattern(".").call();
-            git.commit().setMessage("deployment").call();
+        Repository repository = cloneSiteRepository(site);
+        if (repository != null) {
+            checkoutEnvironment(repository, site);
+            createPatch(repository, site, path);
+            applyPatch(repository, site);
+            pushChanges(repository);
+            cleanup(site);
+        }
+    }
 
-        } catch (IOException | GitAPIException  e) {
-            logger.error("Error while deploying file for site: " + site + " path: " + path, e);
+    private Repository cloneSiteRepository(String site) {
+        Path siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site);
+        File localPath = siteEnvironmentStoreRepoPath.toFile();
+        try {
+            FileUtils.deleteDirectory(localPath);
+        } catch (IOException e) {
+            logger.error("Error deleting directory " + localPath.toString());
+        }
+
+        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+        try (Git result = Git.cloneRepository()
+                .setURI(siteRepoPath.toAbsolutePath().normalize().toString())
+                .setDirectory(localPath)
+                .call()) {
+            return result.getRepository();
+        } catch (GitAPIException e) {
+            logger.error("Error cloning repository for site " + site, e);
+            return null;
+        }
+    }
+
+    private void checkoutEnvironment(Repository repository, String site) {
+        Git git = null;
+        try {
+            Ref branchRef = repository.findRef(environment);
+            git = new Git(repository);
+            git.checkout().
+                    setCreateBranch(true).
+                    setName(environment).
+                    setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                    setStartPoint("origin/" + environment).
+                    call();
+            git.fetch().call();
+            git.pull().call();
+        } catch (RefNotFoundException e) {
+            try {
+                git.checkout()
+                        .setOrphan(true)
+                        .setName(environment)
+                        .call();
+                ProcessBuilder pb = new ProcessBuilder();
+                pb.command("git", "rm", "-rf", ".");
+                pb.directory(repository.getDirectory().getParentFile());
+                Process p = pb.start();
+                p.waitFor();
+
+                git.commit()
+                        .setMessage("initial content")
+                        .setAllowEmpty(true)
+                        .call();
+            } catch (GitAPIException | InterruptedException | IOException e1) {
+                logger.error("Error checking out environment store branch for site " + site + " environment " + environment, e1);
+            }
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error checking out environment store branch for site " + site + " environment " + environment, e);
         }
     }
 
@@ -70,30 +132,13 @@ public class EnvironmentStoreGitDeployer implements Deployer {
             pb.command("git", "apply", patchPath.toAbsolutePath().normalize().toString());
             pb.directory(envStoreRepo.getDirectory().getParentFile());
             p = pb.start();
-            int code = p.waitFor();
-            int code2 = p.exitValue();
-            logger.debug("Apply patch exited with code: " + code + " " + code2);
+            p.waitFor();
         } catch (Exception e) {
             logger.error("Error applying patch for site: " + site, e);
         }
     }
 
-    private void fetchFromRemote(String site, Repository repository) {
-        Process p;
-        try {
-            ProcessBuilder pb = new ProcessBuilder();
-            pb.command("git", "fetch", "work-area");
-            pb.directory(repository.getDirectory().getParentFile());
-            p = pb.start();
-            int code = p.waitFor();
-            int code2 = p.exitValue();
-            logger.debug("Fetch exit with code: " + code + " " + code2);
-        } catch (Exception e) {
-            logger.error("Error while fetching from work-area  for site: " + site, e);
-        }
-    }
-
-    private InputStream createPatch(Repository repository, String site, String path) {
+    private void createPatch(Repository repository, String site, String path) {
         StringBuffer output = new StringBuffer();
 
         String tempPath = System.getProperty("java.io.tmpdir");
@@ -107,19 +152,36 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         File file = patchPath.toAbsolutePath().normalize().toFile();
         try {
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command("git", "diff", "--binary", "HEAD", "FETCH_HEAD", "--", gitPath);
+            pb.command("git", "diff", "--binary", environment, "master", "--", gitPath);
 
             pb.redirectOutput(file);
             pb.directory(repository.getDirectory().getParentFile());
             p = pb.start();
-
-            int code = p.waitFor();
-            int code2 = p.exitValue();
-            logger.debug("Create patch exit with code: " + code + " " + code2);
+            p.waitFor();
         } catch (Exception e) {
             logger.error("Error while creating patch for site: " + site + " path: " + path, e);
         }
-        return null;
+    }
+
+    private void pushChanges(Repository repository) {
+        Git git = new Git(repository);
+        try {
+            git.add().addFilepattern(".").call();
+            git.commit().setMessage("deployment to environment store").call();
+            git.push().call();
+        } catch (GitAPIException e) {
+            logger.error("Error while pushing workflow changes.", e);
+        }
+    }
+
+    private void cleanup(String site) {
+        Path siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site);
+        File localPath = siteEnvironmentStoreRepoPath.toFile();
+        try {
+            FileUtils.deleteDirectory(localPath);
+        } catch (IOException e) {
+            logger.error("Error deleting directory " + localPath.toString());
+        }
     }
 
     private Repository getEnvironmentStoreRepositoryInstance(String site) throws IOException {
