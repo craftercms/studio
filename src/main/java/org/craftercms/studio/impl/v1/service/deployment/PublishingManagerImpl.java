@@ -526,6 +526,14 @@ public class PublishingManagerImpl implements PublishingManager {
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
                 objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
+                if (objectMetadata != null) {
+                    Map<String, Object> props = new HashMap<String, Object>();
+                    props.put(ObjectMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+                    props.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
+                    props.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+                    props.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+                    objectMetadataManager.setObjectMetadata(site, path, props);
+                }
             }
             
             LOGGER.debug("Resetting system processing for {0}:{1}", site, path);
