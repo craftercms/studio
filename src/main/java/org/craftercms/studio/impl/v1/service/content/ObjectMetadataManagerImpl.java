@@ -35,6 +35,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void insertNewObjectMetadata(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -43,6 +44,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void setObjectMetadata(String site, String path, Map<String, Object> properties) {
+        path = path.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -52,6 +54,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public ObjectMetadata getProperties(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -60,6 +63,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public boolean metadataExist(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -75,6 +79,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public boolean isRenamed(String site, String path) {
+        path = path.replace("//", "/");
         if (metadataExist(site, path)) {
             ObjectMetadata metadata = getProperties(site, path);
             return metadata.getRenamed() > 0;
@@ -85,6 +90,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public String getOldPath(String site, String path) {
+        path = path.replace("//", "/");
         if (metadataExist(site, path)) {
             ObjectMetadata metadata = getProperties(site, path);
             return metadata.getOldUrl();
@@ -95,6 +101,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void lockContent(String site, String path, String lockOwner) {
+        path = path.replace("//", "/");
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
         }
@@ -107,6 +114,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void unLockContent(String site, String path) {
+        path = path.replace("//", "/");
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
         }
@@ -126,6 +134,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void deleteObjectMetadata(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -134,6 +143,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void updateObjectPath(String site, String oldPath, String newPath) {
+        newPath = newPath.replace("//", "/");
+        oldPath = oldPath.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("oldPath", oldPath);
@@ -143,6 +154,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void clearRenamed(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("renamed", false);
         params.put(ObjectMetadata.PROP_OLD_URL, "");
