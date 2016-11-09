@@ -54,6 +54,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public ObjectState getObjectState(String site, String path, boolean insert) {
+        path = path.replace("//", "/");
         String lockId = site + ":" + path;
         ObjectState state = null;
         generalLockService.lock(lockId);
@@ -80,6 +81,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
+        path = path.replace("//", "/");
         String lockId = site + ":" + path;
         logger.debug("Locking with ID: {0}", lockId);
         generalLockService.lock(lockId);
@@ -127,12 +129,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
-        String lockId = site + ":" + item.getUri();
+        String path = item.getUri().replace("//", "/");
+        String lockId = site + ":" + path;
         generalLockService.lock(lockId);
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
-            params.put("path", item.getUri());
+            params.put("path", path);
             ObjectState currentState = objectStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
@@ -160,7 +163,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                     newEntry.setObjectId(item.getNodeRef());
                 }
                 newEntry.setSite(site);
-                newEntry.setPath(item.getUri());
+                newEntry.setPath(path);
                 newEntry.setSystemProcessing(0);
                 newEntry.setState(nextState.name());
                 objectStateMapper.insertEntry(newEntry);
@@ -180,6 +183,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void insertNewEntry(String site, ContentItemTO item) {
+        String path = item.getUri().replace("//", "/");
         ObjectState newEntry = new ObjectState();
         if (StringUtils.isEmpty(item.getNodeRef())) {
             newEntry.setObjectId(UUID.randomUUID().toString());
@@ -187,7 +191,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             newEntry.setObjectId(item.getNodeRef());
         }
         newEntry.setSite(site);
-        newEntry.setPath(item.getUri());
+        newEntry.setPath(path);
         newEntry.setSystemProcessing(0);
         newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
         objectStateMapper.insertEntry(newEntry);
@@ -195,6 +199,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void insertNewEntry(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState newEntry = new ObjectState();
         newEntry.setObjectId(UUID.randomUUID().toString());
 
@@ -220,6 +225,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void updateObjectPath(String site, String oldPath, String newPath) {
+        oldPath = oldPath.replace("//", "/");
+        newPath = newPath.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("oldPath", oldPath);
@@ -229,6 +236,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdated(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdated(State.valueOf(state.getState()));
@@ -239,6 +247,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdatedOrNew(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdateOrNew(State.valueOf(state.getState()));
@@ -249,6 +258,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdatedOrSubmitted(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdateOrSubmitted(State.valueOf(state.getState()));
@@ -259,6 +269,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isSubmitted(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isSubmitted(State.valueOf(state.getState()));
@@ -269,6 +280,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isNew(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isNew(State.valueOf(state.getState()));
@@ -279,6 +291,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isFolderLive(String site, String folderPath) {
+        folderPath = folderPath.replace("//", "");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("folderPath", folderPath + "%");
@@ -287,6 +300,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isScheduled(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isScheduled(State.valueOf(state.getState()));
@@ -297,6 +311,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isInWorkflow(String site, String path) {
+        path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
             return State.isInWorkflow(State.valueOf(state.getState()));
@@ -331,6 +346,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void deleteObjectStateForPath(String site, String path) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
@@ -392,6 +408,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     public String setObjectState(String site, String path, String state, boolean systemProcessing) {
+        path = path.replace("//", "/");
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
