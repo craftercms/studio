@@ -25,8 +25,17 @@ import scripts.api.ContentServices;
 def result = [:]
 def site = params.site;
 def path = params.path;
-def depth = params.depth.toInteger();
+def depth = params.depth ? params.depth.toInteger() : 666;
 def order = params.order;
+
+/**
+ * After 11/15/16 depth was ignore and internal was
+ * hardcoded to 2, this was fix ,but UI expect that min possible value is 2
+ * **/
+if(depth<=1){
+    depth=2
+}
+
 /*
 var valid = true;
 
