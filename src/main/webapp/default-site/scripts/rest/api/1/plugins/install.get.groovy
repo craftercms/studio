@@ -1,3 +1,4 @@
+
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2016 Crafter Software Corporation.
@@ -26,10 +27,14 @@ import java.util.jar.JarInputStream
 import java.util.jar.Manifest
 import java.util.jar.Attributes
 
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import groovy.io.FileType
 
 import scripts.api.ContentServices
-import scripts.api.SiteServices;
+import scripts.api.SiteServices
+
+import groovy.xml.XmlUtil
 
 def downloadUrl = params.pluginUrl
 def installToSite = params.site
@@ -67,8 +72,6 @@ def download(url, filename) {
 def readManifest(path) {
 	def props = [:]
 
-	System.out.println("reading manifest " + path)
-
 	JarInputStream jarStream = new JarInputStream(new FileInputStream(path))
 	Manifest mf = jarStream.getManifest()
 
@@ -86,9 +89,23 @@ def readManifest(path) {
 		props.cost = attrs.getValue("plugin-cost")
 		props.type = attrs.getValue("plugin-type")
 		props.compatibility = attrs.getValue("plugin-compatibility")
+		props.dependencies = attrs.getValue("plugin-dependencies")
+
+		if(props.id) { props.id = props.id.toLowerCase() }
+		if(props.type) { props.type = props.type.toLowerCase() }
+
+		if(props.dependencies) {
+			props.dependencies = props.dependencies.toLowerCase()
+			props.dependencies = props.dependencies.split(",")
+		}
+
 	}
 	else {
-		System.out.println("Unable to read manifest from file: ${path}")
+		throw new Exception("Unable to read manifest from file: ${path}")
+	}
+
+	if(props == null || props.id  == null || props.type == null) {
+		throw new Exception("Key manifest (${path}) properties id ${props.id} and type ${props.type} missing")
 	}
 
 	return props
@@ -165,8 +182,25 @@ def unzip(String unzipPath, String zipFile) {
 }
 
 def importPlugin(unzipPath, props, installToSite, applicationContext, request) {
+	def state = [:]
+	state.status = false
 
-	return importSitePlugin(unzipPath, props, installToSite, applicationContext, request)
+	if(props.type) {
+		if(props.type == "site-component") {
+			state = importSitePlugin(unzipPath, props, installToSite, applicationContext, request)
+		}
+		else if(props.type == "studio") {
+			state = importStudioPlugin(unzipPath, props, installToSite, applicationContext, request)
+		}
+		else {
+			throw new Exception("unknown plugin type ${props.type}")
+		}
+	}
+	else {
+		throw new Exception("missing manifest properties")
+	}
+
+	return state
 }
 
 def importSitePlugin(unzipPath, props, installToSite, applicationContext, request) {
@@ -187,17 +221,18 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 				|| relativePath.startsWith("/static-assets")) {
 
 			try {
-				def writePath = relativePath //.replace("/templates/web", "/templates/web/p/"+props.id)
+				def writePath = relativePath
 				def writePathOnly = writePath.substring(0, writePath.lastIndexOf("/")+1)
-				def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
+				def writeFileName = cleanPath(writePath.substring(writePath.lastIndexOf("/")+1))
 
 				def content = new FileInputStream(file)
 
 				def context = ContentServices.createContext(applicationContext, request)
-				ContentServices.writeContentAsset(context, installToSite, writePathOnly, writeFileName, content, "false", "", "", "", "false", "true", null)
+
+				ContentServices.writeContentAsset(context, installToSite, cleanPath(writePathOnly), writeFileName, content, "false", "", "", "", "false", "true", null)
 			}
 			catch(err) {
-				System.out.println("error writing template: ${writePathOnly}${writeFileName} :" + err)
+				System.out.println("error writing asset to site: ${relativePath} :" + err)
 			}
 		}
 		else if(relativePath.startsWith("/content-types")) {
@@ -206,13 +241,120 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
 			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
 
-			def content = new FileInputStream(file)
+			try {
+				def content = new FileInputStream(file)
 
-			def context = SiteServices.createContext(applicationContext, request)
-			SiteServices.writeConfiguration(context, writePathOnly+"/"+writeFileName, content)
+				def context = SiteServices.createContext(applicationContext, request)
+				SiteServices.writeConfiguration(context, cleanPath(joinPaths(writePathOnly, writeFileName)), content)
+			}
+			catch(err) {
+				System.out.println("error writing config to site: ${relativePath} :" + err)
+			}
+		}
+		else if(relativePath.startsWith("/preview-tools/components-config.xml")) {
 
+			def writePath = relativePath
+			def writePathOnly = "/cstudio/config/sites/"+installToSite+"/"+writePath.substring(0, writePath.lastIndexOf("/")+1)
+			def writeFileName = writePath.substring(writePath.lastIndexOf("/")+1)
+			def repoPath = cleanPath(joinPaths(writePathOnly, writeFileName))
+
+			try {
+				def content = new FileInputStream(file)
+
+				def contextA = ContentServices.createContext(applicationContext, request)
+				def repoContent = ContentServices.getContentAtPath(contextA, repoPath)
+
+				String repoContentStr =  IOUtils.toString(repoContent, "UTF-8")
+				String componentConfigStr = IOUtils.toString(content, "UTF-8")
+
+				def fromxml = new XmlSlurper().parseText(componentConfigStr)
+				def toxml = new XmlSlurper().parseText(repoContentStr)
+
+				/* iterate over inbound items and add/merge them */
+				fromxml.children().each { child ->
+					def xpathResult = toxml.category.find { it.label == child.label }
+
+					if(xpathResult != null) {
+						// merge in to existing category
+						child.label[0].replaceNode { }
+						xpathResult << child.children()
+
+						// REALLY NEEDS LOGIC HERE THAT ITERATES COMPONENTS AND DOES SAME THING
+					}
+					else {
+						// add a new category
+						toxml[0].children() << child
+					}
+				}
+
+				java.io.StringWriter o = new java.io.StringWriter()
+				println XmlUtil.serialize( toxml, o )
+				String mergedXML = o.toString()
+
+
+				def mergedXMLStream = new ByteArrayInputStream(mergedXML.getBytes("UTF-8"))
+
+				def contextB = SiteServices.createContext(applicationContext, request)
+				// FOR DEBUGGING println groovy.xml.XmlUtil.serialize( toxml )
+				SiteServices.writeConfiguration(contextB, repoPath, mergedXMLStream)
+
+			}
+			catch(err) {
+				System.out.println("error writing config to site: ${relativePath} :" + err)
+			}
 		}
 	}
 
 	return state
+}
+
+def importStudioPlugin(unzipPath, props, installToSite, applicationContext, request) {
+
+	def state = [:]
+	state.status = false
+
+	def servletContext = request.getSession().getServletContext()
+	def studioInstallBasePath = servletContext.getRealPath(File.separator)
+
+	def dir = new File(unzipPath)
+	dir.eachFileRecurse (FileType.FILES) { file ->
+
+		def absolutePath = file.getAbsolutePath()
+		def relativePath = absolutePath.substring(absolutePath.indexOf(unzipPath)+unzipPath.length())
+
+		System.out.println("PROCESSING :" + relativePath)
+
+		if(relativePath.startsWith("/templates")
+				|| relativePath.startsWith("/scripts")
+				|| relativePath.startsWith("/static-assets")) {
+
+			def destPath = cleanPath(studioInstallBasePath + "default-site/" + relativePath)
+
+			try {
+				File destFile = new File(destPath)
+				FileUtils.copyFile(file, destFile)
+			}
+			catch(err) {
+				System.out.println("error writing file to studio: ${destPath} :" + err)
+			}
+		}
+	}
+
+	return state
+}
+
+
+def joinPaths(pathA, pathB) {
+	def joinedPath = (pathA + pathB).replace("//", "/")
+
+	return joinedPath
+}
+
+def cleanPath(path) {
+	def cleanPath = path.replaceAll("//", "/")
+	if(cleanPath.endsWith("/")) {
+		cleanPath = cleanPath.substring(0, cleanPath.length-1)
+	}
+
+	return cleanPath
 }

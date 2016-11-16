@@ -6,17 +6,17 @@
     <#include "/templates/web/common/page-fragments/head.ftl" />
 
     <title>Crafter Studio</title>
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css" />
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/forms-default.css" />
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/styles/forms-engine.css" />
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css?version=${UIBuildId!''}" />
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/forms-default.css?version=${UIBuildId!''}" />
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/styles/forms-engine.css?version=${UIBuildId!''}" />
    
-   <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css" type="text/css" rel="stylesheet">
-   <link href="/studio/static-assets/yui/container/assets/container.css" type="text/css" rel="stylesheet">
+   <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
+   <link href="/studio/static-assets/yui/container/assets/container.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
 
     <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
-    <script src="${path}en/base.js"></script>
-    <script src="${path}kr/base.js"></script>
-    <script src="${path}es/base.js"></script>
+    <script src="${path}en/base.js?version=${UIBuildId!''}"></script>
+    <script src="${path}kr/base.js?version=${UIBuildId!''}"></script>
+    <script src="${path}es/base.js?version=${UIBuildId!''}"></script>
 
     <#include "/templates/web/common/page-fragments/studio-context.ftl" />
 
@@ -35,7 +35,7 @@
             }    
         }        
     </script>
-    <link rel="stylesheet" type="text/css" href="/studio/static-assets/css/diff.css" />
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/css/diff.css?version=${UIBuildId!''}" />
 </head>
 <body class="yui-skin-cstudioTheme skin-diff">
     <#if mode != "iframe">
