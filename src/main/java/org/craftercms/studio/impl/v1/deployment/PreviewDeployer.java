@@ -229,12 +229,16 @@ public class PreviewDeployer implements Deployer {
     protected void syncFolder(String site, String path) {
         RepositoryItem[] children = contentRepository.getContentChildren(path, true);
 
-        for (RepositoryItem item : children) {
-            if (item.isFolder) {
-                syncFolder(site, item.path + "/" + item.name);
-            } else {
-                deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+        if (children != null) {
+            for (RepositoryItem item : children) {
+                if (item.isFolder) {
+                    syncFolder(site, item.path + "/" + item.name);
+                } else {
+                    deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+                }
             }
+        } else {
+            deployFile(site, contentService.getRelativeSitePath(site, path));
         }
     }
 
