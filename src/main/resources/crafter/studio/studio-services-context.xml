@@ -674,14 +674,14 @@
 
     <bean id="cstudioDemoSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DemoSecurityProvider"
           init-method="init">
-        <property name="configLocation" value="${crafter.studio.security.demo.configLocation}"/>
+        <property name="configLocation" value="${crafter.studio.security.file.configLocation}"/>
         <property name="configuredProviderType" value="${securityType}"/>
     </bean>
 
     <bean id="cstudioDemoSecurityProviderRegistration"
           parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="cstudioDemoSecurityProvider"/>
-        <property name="providerType" value="demo"/>
+        <property name="providerType" value="file"/>
     </bean>
 
     <!-- support for alfresco.  This assumes the beans in this file do not pro-actively 
