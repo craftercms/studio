@@ -48,7 +48,7 @@ public class DemoSecurityProvider implements SecurityProvider {
     private final static String DOCUMENT_ELM_GROUP = "group";
     private final static String CONST_FAKETICKET = "_FAKETICKET";
 
-    private final static String PROVIDER_TYPE = "demo";
+    private final static String PROVIDER_TYPE = "file";
 
     public void init() {
         if (configuredProviderType.equals(PROVIDER_TYPE)) {
