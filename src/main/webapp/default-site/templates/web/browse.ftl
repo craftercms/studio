@@ -1,163 +1,164 @@
 <#assign mode = RequestParameters["mode"] />
+<#-- <#assign view = RequestParameters["view"] /> -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <#include "/templates/web/common/page-fragments/head.ftl" />
+  <head>
+    <title>Crafter Studio</title>
+    <#include "/templates/web/common/page-fragments/head.ftl" />
+    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
 
-   <title>Crafter Studio</title>
-<script type="text/javascript" src="/studio/static-assets/components/cstudio-browse/browse.js?version=${UIBuildId!''}"></script>
-<script type="text/javascript" src="/studio/static-assets/yui/calendar/calendar-min.js?version=${UIBuildId!''}"></script> 
-<link rel="stylesheet" type="text/css" href="/studio/static-assets/yui/assets/skins/sam/calendar.css?version=${UIBuildId!''}" />
-<link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/global.css?version=${UIBuildId!''}" />
-<link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/search.css?version=${UIBuildId!''}" />
-<link rel="stylesheet" type="text/css" href="/studio/static-assets/themes/cstudioTheme/css/forms-default.css?version=${UIBuildId!''}" />
-<link rel="stylesheet" type="text/css" href="/studio/static-assets/styles/forms-engine.css?version=${UIBuildId!''}" />
+    <link rel="stylesheet" href="/static-assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/styles/browse.css" />
 
-<!-- Template Assets -->
-   <script type="text/javascript" src="/studio/static-assets/yui/treeview/treeview-min.js?version=${UIBuildId!''}"></script> 
-   <script type="text/javascript" src="/studio/static-assets/yui/animation/animation-min.js?version=${UIBuildId!''}"></script>
-   <script type="text/javascript" src="/studio/static-assets/themes/cstudioTheme/js/global.js?version=${UIBuildId!''}"></script>
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-form/swfobject.js?version=${UIBuildId!''}"></script>
+    <link rel="stylesheet" href="/studio/static-assets/libs/jQuery-contextMenu-master/dist/jquery.contextMenu.min.css" type="text/css">
 
-  <!-- filter templates -->
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-browse/filters/common.js?version=${UIBuildId!''}"></script>
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-browse/filters/default.js?version=${UIBuildId!''}"></script>
+    <script src="/studio/static-assets/libs/jquery/dist/jquery.js"></script>
+    <script src="/studio/static-assets/libs/handlebars/handlebars.js"></script>
+    <script src="/studio/static-assets/libs/jstree/dist/jstree.min.js"></script>
 
-  <!-- result templates -->
-   <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/default.js?version=${UIBuildId!''}"></script>
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/image.js?version=${UIBuildId!''}"></script>   
-       <script type="text/javascript" src="/studio/static-assets/components/cstudio-search/results/flash.js?version=${UIBuildId!''}"></script>   
-   
-   <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
-   <link href="/studio/static-assets/yui/container/assets/container.css?version=${UIBuildId!''}" type="text/css" rel="stylesheet">
+  
+    <script src="/studio/static-assets/libs/jQuery-contextMenu-master/dist/jquery.contextMenu.js" type="text/javascript"></script>
+    <script src="/studio/static-assets/libs/jQuery-contextMenu-master/dist/jquery.ui.position.min.js" type="text/javascript"></script>
+
+
+    <script type="text/javascript" src="/studio/static-assets/components/cstudio-browse/browse.js"></script>
+    <link rel="stylesheet" type="text/css" href="/studio/static-assets/libs/jstree/dist/themes/default/style.min.css" />
+    <link href="/studio/static-assets/themes/cstudioTheme/css/icons.css" type="text/css" rel="stylesheet">
 
     <#assign path="/studio/static-assets/components/cstudio-common/resources/" />
     <script src="${path}en/base.js?version=${UIBuildId!''}"></script>
     <script src="${path}kr/base.js?version=${UIBuildId!''}"></script>
     <script src="${path}es/base.js?version=${UIBuildId!''}"></script>
 
-    <#include "/templates/web/common/page-fragments/studio-context.ftl" />
-
-    <#if mode == "act" >
-      <#include "/templates/web/common/page-fragments/context-nav.ftl" />
-    </#if>
-
     <script>
         var CMgs = CStudioAuthoring.Messages,
-                siteDropdownLangBundle = CMgs.getBundle("siteDropdown", CStudioAuthoringContext.lang);
+            browseLangBundle = CMgs.getBundle("browse", CStudioAuthoringContext.lang);
     </script>
 
-</head>
+  </head>
 
-<body class="yui-skin-cstudioTheme skin-browse">
-   <div class="sticky-wrapper">
-<div id="global_x002e_cstudio-browse">
-    <div id="global_x002e_cstudio-browse_x0023_default">
+  <body class="yui-skin-cstudioTheme skin-browse">
+    <div class="cstudio-browse-container">
 
-  <script>
-  YEvent.onAvailable("cstudio-command-controls", function() {
-    CStudioAuthoring.Utils.addCss('/overlay-css.css?baseUrl=' +
-                       CStudioAuthoringContext.baseUri);
-                       
-    var formControls = new CStudioAuthoring.CommandToolbar("cstudio-command-controls", true);
-    
-    formControls.addControl("formSaveButton", "Add Item", function() {
-
-      var searchId = CStudioAuthoring.Utils.getQueryVariable(document.location.search, "searchId");
-      var crossServerAccess = false;
-      
-        try {
-          // unfortunately we cannot signal a form close across servers
-          // our preview is in one server
-          // our authoring is in another
-          // in this case we just close the window, no way to pass back details which is ok in some cases
-          if(window.opener.CStudioAuthoring) { }
-        }
-        catch(crossServerAccessErr) {
-          crossServerAccess = true;
-        }
-  
-      if(window.opener && !crossServerAccess) {
-        
-            if(window.opener.CStudioAuthoring) {
-    
-              var openerChildSearchMgr = window.opener.CStudioAuthoring.ChildSearchManager;
-  
-              if(openerChildSearchMgr) {
-              
-                var searchConfig = openerChildSearchMgr.searches[searchId];
-                
-                if(searchConfig) {
-                  var callback = searchConfig.saveCallback;
-  
-                  if(callback) {
-                    var selectedContentTOs = CStudioAuthoring.SelectedContent.getSelectedContent();
-    
-                openerChildSearchMgr.signalSearchClose(searchId, selectedContentTOs); 
-                  }
-                  else {
-                //TODO PUT THIS BACK 
-                    //alert("no success callback provided for seach: " + searchId);
-                  }
-                }
-                else {
-                  alert("unable to lookup child form callback for search:" + searchId);
-                }
-              }
-              else {     
-            alert("unable to lookup parent context for search:" + searchId);
-              }             
-            }
-        
-        window.close();
-      }
-      else {
-        // no window opening context or cross server call
-        // the only thing we can do is close the window
-        window.close();
-      }
-    });
-  
-    formControls.addControl("formCancelButton", "Cancel", function() {
-      window.close();
-    });
-  });
-
-  </script>
-
-  <div id="cstudio-wcm-search-wrapper" style="min-width: 1130px;">
-
-    <div id="cstudio-wcm-search-main" class="cstudio-wcm-browse-main">
-      <h1 id="cstudio-wcm-search-search-title" class="cstudio-wcm-searchResult-header"></h1>
-      <div id="cstudio-wcm-search-filter-controls" style="overflow-x:scroll;width:430px; min-height:570px; background-color:white; float:left; padding: 10px 20px; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 25px;"></div>
-       
-        <div id="cstudio-wcm-search-result" style="min-width: 715px; min-height:570px; width:67%; border-radius: 5px; float: left; border: 1px #ccc solid; margin-bottom: 50px;  margin-left: 10px; overflow:hidden;">
-         <div id="cstudio-wcm-search-result-in-progress" class="cstudio-wcm-search-result-in-progress-img"></div>
-        &nbsp;  
+      <div id="cstudio-wcm-search-filter-controls">
+          <div id="data" class="demo"></div>
       </div>
-      <div style="clear:both"></div>
 
+      <div id="cstudio-wcm-search-result">
+
+          <div class="cstudio-results-actions"></div>
+          
+          <div class="results"></div>
+
+          <div id="cstudio-wcm-search-render-finish">
+          
+          </div>
+      </div>
+
+    </div>    
+
+    <div id="cstudio-command-controls">
+      <div id="submission-controls" class="cstudio-form-controls-button-container">
+        <#if mode == "select">
+        <input id="formSaveButton" type="button" class="cstudio-search-btn cstudio-button btn btn-primary" disabled value="Add Selection">
+        </#if>
+        <input id="formCancelButton" type="button" class="cstudio-search-btn cstudio-button btn btn-default" value="Cancel">
+      </div>
     </div>
-  </div>  
+
+    <div class="cstudio-browse-image-popup-overlay">
+      <div id="cstudio-browse-image-pop-up">
+          <div>
+              <input type="button" class="close btn btn-default" value="x">
+          </div>
+          <img src="">
+      </div>
     </div>
+  
+    <#-- <#if view == "window" >
+     <div id="studioBar" class="studio-view">
+         <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+             <div class="container-fluid">
+                     <a class="navbar-brand" href="/studio/site-dashboard">
+                         <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio">
+                     </a>
+                 </div>
+             </div>
+         </nav>
+     </div>
+     </#if> -->
 
-</div>  
+     <script id="hb-search-result" type="text/x-handlebars-template">
+        <div class="cstudio-search-result clearfix">
+            <div id="result-select-{{browserUri}}" class="cstudio-search-select-container">
+              <#-- none, many, one -->
 
-    <#if mode == "select" >
-      <div id="cstudio-command-controls"></div>
-    </#if>
-   </div>
+              {{#equal selectMode "many"}}
+                <input type="checkbox" name="result-select">
+              {{/equal}}
 
-   <div id="studioBar" class="studio-view">
-       <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-           <div class="container-fluid">
-                   <a class="navbar-brand" href="/studio/site-dashboard">
-                       <img src="/studio/static-assets/images/crafter_studio_360.png" alt="Crafter Studio">
-                   </a>
-               </div>
-           </div>
-       </nav>
-   </div>
+              {{#equal selectMode "one"}}
+                <input type="radio" name="result-select">
+              {{/equal}}
+
+            </div>
+            <div class="cstudio-result-body row" style="overflow: hidden;">
+              <div class="cstudio-search-result-description">
+                <span class="browse-icon {{status}}" id="result-status-static-assets-images-brand-bg-png"></span> 
+                <span class="cstudio-search-component cstudio-search-component-title-nopreview">
+                {{#if internalName}}
+                  {{internalName}}
+                {{else}}
+                  {{name}}
+                {{/if}}
+                </span>
+
+                {{#if showUrl}}
+                <span class="cstudio-search-component cstudio-search-component-url">
+                  <span class="component-title bold">{{labelUrl}}:</span>
+                  <a href="{{browserUri}}" target="_blank">{{browserUri}}</a>
+                </span>
+                {{/if}}
+
+
+                <span class="cstudio-search-component cstudio-search-component-type">
+                  <span class="component-title bold">{{labelType}}:</span>
+                  {{type}}
+                </span>
+                <span class="cstudio-search-component cstudio-search-component-button">
+                  <a class="btn btn-default cstudio-search-btn add-close-btn results-btn" href="#" role="button">{{labelAddClose}}</a>
+                </span>
+              </div>
+              <div class="cstudio-search-description-preview">
+                {{#equal type "image"}}
+                <img src="{{browserUri}}" alt="{{name}}" class="cstudio-search-banner-image"">
+                <img src="http://localhost:8080/studio/static-assets/themes/cstudioTheme/images/magnify.jpg" class="magnify-icon" style="position: absolute; right: 0; bottom: 0;" data-source="{{browserUri}}">
+                {{/equal}}
+              </div>
+            </div>
+          </div>
+    </script>
+
+    <script id="hb-search-results-actions-buttons" type="text/x-handlebars-template">
+      {{#if onlyClear}}
+      <a class="cstudio-search-btn btn btn-default cstudio-search-select-all results-btn" href="#" role="button" style="margin-right: 10px; margin-bottom: 20px">{{labelSelectAll}}</a>
+      {{/if}}
+      <a class="cstudio-search-btn btn btn-default cstudio-search-clear-selection results-btn" href="#" role="button" style="margin-bottom: 20px;">{{labelClearAll}}</a>
+    </script>
+    
+    <script type="text/javascript">
+      Handlebars.registerHelper('equal', function(lvalue, rvalue, options) {
+        if (arguments.length < 3)
+            throw new Error("Handlebars Helper equal needs 2 parameters");
+        if( lvalue!=rvalue ) {
+            return options.inverse(this);
+        } else {
+            return options.fn(this);
+        }
+      });
+    </script>
+  
+   </body>
 
 </html>
