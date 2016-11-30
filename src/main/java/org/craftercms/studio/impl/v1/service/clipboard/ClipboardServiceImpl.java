@@ -579,7 +579,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
      */
     protected boolean hasSameChild(String srcPath, ContentItemTO destination, String site) {
         String originalDirectory = ContentUtils.getParentUrl(srcPath);
-        ContentItemTO itemTree = contentService.getContentItemTree(site, destination.getUri(), 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, destination.getUri(), 2);
         String originalDirectoryFullPath = contentService.expandRelativeSitePath(site, originalDirectory);
         String srcFullPath = contentService.expandRelativeSitePath(site, srcPath);
         if (!srcPath.endsWith("/" + DmConstants.INDEX_FILE)) {
@@ -617,6 +617,9 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     }
 
     protected String getDestPath(String site, String destination, String pasteItem, ContentItemTO srcItem) {
+        if (destination.endsWith("/" + DmConstants.INDEX_FILE)) {
+            destination = destination.replace("/" + DmConstants.INDEX_FILE, "");
+        }
         String srcNodePath = contentService.expandRelativeSitePath(site, pasteItem);
 		String destRelLoc = destination + '/' + srcItem.getName();
         if (srcItem.getName().equals(DmConstants.INDEX_FILE)) {
