@@ -378,20 +378,7 @@
     <bean id="crafter.searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
         <property name="serverUrl" value="${crafter.engine.search.server.url}"/>
     </bean>
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Navigation    			-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-
-    <bean id="crafter.breadcrumbBuilder" class="org.craftercms.engine.util.breadcrumb.BreadcrumbBuilder">
-        <property name="storeService" ref="crafter.contentStoreService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
-        <property name="homePath" value="${crafter.engine.site.default.descriptors.pages.path}"/>
-        <property name="breadcrumbNameXPathQuery" value="${crafter.engine.page.breadcrumb.name.xpathQuery}"/>
-    </bean>
-
+	
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--		FreeMarker Config			-->
@@ -498,6 +485,14 @@
     <!--									-->
     <!-- ////////////////////////////////// -->
 
+    <!-- Deprecated -->
+    <bean id="crafter.breadcrumbBuilder" class="org.craftercms.engine.util.breadcrumb.BreadcrumbBuilder">
+        <property name="storeService" ref="crafter.contentStoreService"/>
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="homePath" value="${crafter.engine.site.default.descriptors.pages.path}"/>
+        <property name="breadcrumbNameXPathQuery" value="${crafter.engine.page.navLabel.xpathQuery}"/>
+    </bean>
+
     <bean id="crafter.navItemConverter" class="org.craftercms.engine.navigation.impl.DefaultItemConverter">
         <property name="navLabelXPath" value="${crafter.engine.page.navLabel.xpathQuery}"/>
         <property name="internalNameXPath" value="${crafter.engine.page.internalName.xpathQuery}"/>
@@ -551,6 +546,12 @@
         <property name="defaultItemConverter" ref="crafter.navItemConverter"/>
         <property name="processors" ref="crafter.navTreeProcessors"/>
         <property name="filters" ref="crafter.navTreeFilters"/>
+    </bean>
+
+    <bean id="crafter.navBreadcrumbBuilder" class="org.craftercms.engine.navigation.impl.NavBreadcrumbBuilderImpl">
+        <property name="siteItemService" ref="crafter.siteItemService"/>
+        <property name="defaultItemConverter" ref="crafter.navItemConverter"/>
+        <property name="processors" ref="crafter.navTreeProcessors"/>
     </bean>
 
     <!-- ////////////////////////////////// -->
