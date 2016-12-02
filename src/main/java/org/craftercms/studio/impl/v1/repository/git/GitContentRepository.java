@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2015 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,12 +66,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
+    // TODO: SJ: Pull these strings from properties
     private static String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
+
+    // TODO: SJ: Inject the security provider to get information needed for writing and version creation (like author)
 
     @Override
     public boolean contentExists(String site, String path) {
         Repository repo = null;
         try {
+
+            // Are we checking the global repository (Global Studio Configuration) or a specific site?
             if (StringUtils.isEmpty(site)) {
                 repo = getGlobalConfigurationRepositoryInstance();
             } else {
@@ -135,6 +140,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
             }
 
+            // TODO: SJ: Check this has to happen before file creation
+            File file = filePath.toFile();
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // TODO: SJ: I don't like the add before writing the bits (but it works)
             if (!Files.exists(filePath)) {
                 filePath = Files.createFile(filePath);
                 Git git = new Git(repo);
@@ -143,11 +156,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .call();
             }
 
-            File file = filePath.toFile();
-            File folder = file.getParentFile();
-            if (folder != null && !folder.exists()) {
-                folder.mkdirs();
-            }
             FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
         } catch (IOException | GitAPIException err) {
             logger.error("error writing file: site: " + site + " path: " + path, err);
@@ -572,7 +580,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
-
+        // TODO: SJ: Fix this: We must log and deal with failure here
         Path siteRepoPath = Paths.get(rootPath, "global-configuration", ".git");
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);

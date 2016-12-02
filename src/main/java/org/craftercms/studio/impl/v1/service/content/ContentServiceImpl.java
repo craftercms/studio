@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -75,7 +75,7 @@ public class ContentServiceImpl implements ContentService {
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     /**
-     * file and foler name patterns for copied files and folders *
+     * file and folder name patterns for copied files and folders
      */
     public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-([0-9]+)\\.(.+)");
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
@@ -137,19 +137,19 @@ public class ContentServiceImpl implements ContentService {
 
         if(is != null) {
             try {
-                SAXReader saxReader = new SAXReader();          
+                SAXReader saxReader = new SAXReader();
                 retDocument = saxReader.read(is);
-            } 
+            }
             finally {
                 try {
                     if (is != null) {
                         is.close();
                     }
-                } 
+                }
                 catch (IOException err) {
                     logger.error(MSG_ERROR_IO_CLOSE_FAILED, err, path);
                 }
-            }       
+            }
         }
 
         return retDocument;
@@ -176,7 +176,7 @@ public class ContentServiceImpl implements ContentService {
         }
         generalLockService.lock(lockKey);
         try {
-            boolean savaAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
+            boolean saveAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
             if (contentExists) {
                 ObjectState objectState = objectStateService.getObjectState(site, path);
                 if (objectState == null) {
@@ -185,7 +185,7 @@ public class ContentServiceImpl implements ContentService {
                     objectState = objectStateService.getObjectState(site, path);
                 }
 
-                if(objectState != null) {
+                if (objectState != null) {
 
                     if (objectState.getSystemProcessing() != 0){
                         logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
@@ -204,8 +204,8 @@ public class ContentServiceImpl implements ContentService {
 
             if(path.startsWith("/site")) {
                 // anything inside site is a form based XML
-                // example /site/website 
-                //         /site/components  
+                // example /site/website
+                //         /site/components
                 //         /site/books
                 chainID = DmConstants.CONTENT_CHAIN_FORM;
             }
@@ -226,7 +226,7 @@ public class ContentServiceImpl implements ContentService {
             relativePath = getRelativeSitePath(site, fullPath);
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
-                if (savaAndClose) {
+                if (saveAndClose) {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
                 } else {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
@@ -362,6 +362,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
         boolean writeSuccess = _contentRepository.writeContent(site, path, content);
 
+        // TODO: SJ: try to write, catch, done (no explicit version creation required)
         try {
             _contentRepository.createVersion(site, path, false);
         }
@@ -507,7 +508,7 @@ public class ContentServiceImpl implements ContentService {
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
         item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
         item.browserUri = contentPath;
-        
+
         if(item.page) {
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
@@ -515,7 +516,7 @@ public class ContentServiceImpl implements ContentService {
         Document contentDoc = this.getContentAsDocument(site, contentPath);
         if(contentDoc != null) {
             Element rootElement = contentDoc.getRootElement();
-            
+
             String internalName = rootElement.valueOf("internal-name");
             String contentType = rootElement.valueOf("content-type");
             String disabled = rootElement.valueOf("disabled");
@@ -600,7 +601,7 @@ public class ContentServiceImpl implements ContentService {
         item.children = new ArrayList<ContentItemTO>();
         item.numOfChildren = 0;
 
-        if(contentPath.indexOf("/index.xml") != -1 
+        if(contentPath.indexOf("/index.xml") != -1
         || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
@@ -610,7 +611,7 @@ public class ContentServiceImpl implements ContentService {
 
             RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, contentPath);
             boolean indexFound = false;
-                
+
             if(childRepoItems != null) {
                 item.numOfChildren = childRepoItems.length;
                 if (item.numOfChildren != 0) {
@@ -645,14 +646,14 @@ public class ContentServiceImpl implements ContentService {
                     // ITEM IS A FOLDER
                     item.folder = true;
                     item.isContainer = true;
-                    item.container = true; 
+                    item.container = true;
 
                     item.page = false;
                     item.asset = false;
                     item.component = false;
                     item.previewable = false;
                     item.isPreviewable = false;
-        
+
                     item.internalName = item.name;
                     item.contentType = "folder";
                     item.path = item.uri;
@@ -675,11 +676,11 @@ public class ContentServiceImpl implements ContentService {
         else {
             // ITEM IS A STAND-ALONE XML
             item.isContainer = false;
-            item.container = false;   
+            item.container = false;
         }
 
         if(item.internalName == null) item.internalName = item.name;
-        
+
         return item;
     }
 
@@ -726,7 +727,7 @@ public class ContentServiceImpl implements ContentService {
         catch(Exception err) {
             logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
         }
-        
+
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item [{0}] retrieved in {1} milis", fullContentPath, executionTime);
         return item;
@@ -957,10 +958,10 @@ public class ContentServiceImpl implements ContentService {
      * @param path    - the path item
      * @param version - version
      */
- 	public InputStream getContentVersion(String site, String path, String version) 	
+ 	public InputStream getContentVersion(String site, String path, String version)
  	throws ContentNotFoundException {
  		String repositoryPath = expandRelativeSitePath(site, path);
- 		
+
  		return _contentRepository.getContentVersion(site, path, version);
  	}
 
@@ -971,8 +972,8 @@ public class ContentServiceImpl implements ContentService {
      * @param path    - the path item
      * @param version - version
      */
- 	public String getContentVersionAsString(String site, String path, String version) 
-	throws ContentNotFoundException { 		
+ 	public String getContentVersionAsString(String site, String path, String version)
+	throws ContentNotFoundException {
  		String content = null;
 
         try {
@@ -985,8 +986,8 @@ public class ContentServiceImpl implements ContentService {
 
         return content;
  	}
- 
- 
+
+
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
         String absolutePath = expandRelativeSitePath(site, relativePath);
         DmPathTO path = new DmPathTO(absolutePath);
