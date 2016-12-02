@@ -41,6 +41,10 @@
   <body class="yui-skin-cstudioTheme skin-browse">
     <div class="cstudio-browse-container">
 
+      <p class="current-folder">
+        <span class="path"></span>
+      </p>
+
       <div id="cstudio-wcm-search-filter-controls">
           <div id="data" class="demo"></div>
       </div>
@@ -64,6 +68,8 @@
         <input id="formSaveButton" type="button" class="cstudio-search-btn cstudio-button btn btn-primary" disabled value="Add Selection">
         </#if>
         <input id="formCancelButton" type="button" class="cstudio-search-btn cstudio-button btn btn-default" value="Cancel">
+
+        
       </div>
     </div>
 
