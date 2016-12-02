@@ -40,7 +40,7 @@
         <property name="ignoreUnresolvablePlaceholders" value="true" />
     </bean>
 
-<!-- STUDIO CHANGES -->
+    <!-- STUDIO CHANGES -->
 
     <!--import resource="classpath*:crafter/engine/extension/rendering-context.xml"/-->
     <bean id="crafter.httpProxyRequestHandler" class="org.craftercms.engine.controller.HttpProxyRequestHandler">
@@ -48,7 +48,7 @@
     </bean>
 
 
-     <util:map id="crafter.urlMappings">
+    <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
         <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
@@ -95,7 +95,7 @@
                     <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
                     <property name="accessManager" ref="crafter.pageAccessManager"/>
                     <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
-                    
+
                 </bean>
             </list>
         </property>
