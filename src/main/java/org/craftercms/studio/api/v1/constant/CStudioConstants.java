@@ -42,6 +42,7 @@ public interface CStudioConstants {
 	public static final String PROPERTY_DOCUMENTS = "documents";
 	public static final String DM_GO_LIVE_CACHE_KEY = "goliveItems";
 	public static final String DATE_PATTERN_WORKFLOW = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String DATE_PATTERN_WORKFLOW_WITH_TZ = "yyyy-MM-dd'T'HH:mm:ssX";
 
 	// date format of form content
 	public static final String DATE_PATTERN_MODEL = "yyyy-MM-dd'T'HH:mm:ssZ";
