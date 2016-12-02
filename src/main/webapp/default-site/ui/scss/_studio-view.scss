@@ -177,6 +177,11 @@
 
 }
 
+.studio-view table.item-listing thead {
+  color: #fff;
+  background-color: #7e9dbb;
+}
+
 .studio-view,
 .studio-dialog {
 
@@ -377,6 +382,49 @@ table.scroll-body {
       border: none;
       outline: none;
       position: absolute;
+    }
+  }
+}
+
+.studio-iframe-view{
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    z-index: 3000;
+  }
+
+  .studio-ice-dialog {
+    display:none; 
+    overflow: hidden;
+
+    .collapseForm {
+      #colExpButton {
+        background-position: 0 -26px;
+      }      
+    }
+
+    #colExpButton {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      background-image: url(/studio/static-assets/themes/cstudioTheme/images/icons/arrows_up_down.png);
+      background-repeat: no-repeat;
+      border: none;
+      background-color: transparent;
+      text-indent: -9999px;
+      background-size: 26px;
+      padding: 0;
+      width: 26px;
+      height: 26px;
+      background-position: 0 0;z-index: 100000;
+    }
+
+    iframe {
+      transition: top .5s, transform .5s;
     }
   }
 }
