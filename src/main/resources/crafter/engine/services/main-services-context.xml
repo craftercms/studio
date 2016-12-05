@@ -378,7 +378,7 @@
     <bean id="crafter.searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
         <property name="serverUrl" value="${crafter.engine.search.server.url}"/>
     </bean>
-	
+
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--		FreeMarker Config			-->
@@ -437,7 +437,6 @@
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
                 <entry key="cookieDomain" value="${cookieDomain}"/>
-                <entry key="alfrescoUrl" value="${alfrescoUrl}"/>
                 <entry key="environment" value="${environment}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
@@ -446,11 +445,6 @@
     </bean>
 
     <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
-
-    <bean id="crafter.proxy.alfresco" class="org.craftercms.engine.http.impl.AlfrescoHttpProxy">
-        <property name="alfrescoTicketCookieName" value="alf_ticket"/>
-        <property name="baseServiceUrl" value="${alfrescoUrl}/service"/>
-    </bean>
 
     <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
     </bean>

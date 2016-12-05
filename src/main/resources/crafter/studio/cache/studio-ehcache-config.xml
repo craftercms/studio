@@ -20,11 +20,11 @@
          xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
          updateCheck="true"
          monitoring="autodetect"
-         dynamicConfig="true" name="alfrescoCache">
+         dynamicConfig="true" name="zalfrescoCache">
 
     <diskStore path="java.io.tmpdir" />
 
-    <cache name="alfrescoCache"
+    <cache name="zalfrescoCache"
            maxEntriesLocalHeap="10000"
            maxEntriesLocalDisk="1000"
            eternal="false"

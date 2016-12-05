@@ -14,7 +14,7 @@ createdFiles.lst
 inputFiles.lst
 .gitignore
 
-crafter-studio-2.iml
+*.iml
 crafter/*
 data/*
 derby.log

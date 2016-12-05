@@ -58,7 +58,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	// activity_data
 	protected static final int MAX_LEN_APP_TOOL_ID = 36; // needs to match
 	// schema: app_tool
-	
+
 	/** activity post properties **/
 	protected static final String ACTIVITY_PROP_ACTIVITY_SUMMARY = "activitySummary";
 	protected static final String ACTIVITY_PROP_ID = "id";
@@ -66,15 +66,15 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	protected static final String ACTIVITY_PROP_USER = "user";
 	protected static final String ACTIVITY_PROP_FEEDUSER = "feedUserId";
 	protected static final String ACTIVITY_PROP_CONTENTID = "contentId";
-	
+
 	/** activity feed format **/
 	protected static final String ACTIVITY_FEED_FORMAT = "json";
-		
+
 	/**
 	 * activity post lookup
 	 */
 	//protected PostLookup _postLookup;
-	
+
 	/**
 	 * activity feed generator
 	 */
@@ -85,12 +85,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         getServicesManager().registerService(ActivityService.class, this);
     }
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.AcitivityService#postActivity(java.lang.String, java.lang.String, java.lang.String, org.craftercms.cstudio.alfresco.service.api.AcitivityService.ActivityType)
-      */
 	public void postActivity(String site, String user, String contentId, ActivityType activity, Map<String,String> extraInfo) {
-		
+
 		JSONObject activityPost = new JSONObject();
 		activityPost.put(ACTIVITY_PROP_USER, user);
 		activityPost.put(ACTIVITY_PROP_ID, contentId);

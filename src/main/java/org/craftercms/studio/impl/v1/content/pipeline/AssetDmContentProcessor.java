@@ -46,7 +46,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AssetDmContentProcessor.class);
 
     public static final String NAME = "WriteAssetToDmProcessor";
-    
+
     protected String _assetsSystemPath;
     public String getAssetsSystemPath() {
         return _assetsSystemPath;
@@ -122,7 +122,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @param unlock
      * 			unlock the content upon update?
      * @return asset information
-     * @throws org.craftercms.cstudio.alfresco.service.exception.ContentNotAllowedException
      * @throws ServiceException
      */
     protected ContentAssetInfoTO writeContentAsset(String site, String user, String path, String assetName, InputStream in,

@@ -57,10 +57,6 @@ public class FileFolderPathProcessor extends BaseContentProcessor {
         super(name);
     }
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.content.pipeline.impl.BaseContentProcessor#process(org.craftercms.cstudio.alfresco.content.pipeline.api.PipelineContent, org.craftercms.cstudio.alfresco.to.ResultTO)
-      */
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         Map<String, String> params = content.getProperties();
         String path = params.get(DmConstants.KEY_PATH);

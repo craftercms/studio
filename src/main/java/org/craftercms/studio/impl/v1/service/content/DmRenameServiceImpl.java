@@ -179,7 +179,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      *
      * Compute the paths to be moved and paths to be deleted from Staging
      *
-     * @throws org.craftercms.cstudio.alfresco.service.exception.ContentNotFoundException
+     * @throws ContentNotFoundException
+     * @throws ServiceException
      */
     protected String getWorkflowPaths(final String site, DmDependencyTO submittedItem,
                                       final String pathPrefix, final List<String> paths, List<String> dependenices, boolean isScheduled, Set<String> rescheduledUris) throws ContentNotFoundException, ServiceException {
