@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-	<content-type>/page/logout</content-type>	
-	<display-template>/templates/web/logout.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<internal-name>Log Out</internal-name>
-</page>
