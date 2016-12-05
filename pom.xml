@@ -473,13 +473,7 @@
                     <targetPath>default-site/site</targetPath>
                 </resource>
 
-                <!-- UI -->
-                <resource>
-                    <directory>src/main/generated-resources/studio-ui/ui</directory>
-                    <filtering>true</filtering>
-                    <targetPath>default-site/ui</targetPath>
-                </resource>
-
+        
                     </webResources>
                 </configuration>
             </plugin>
