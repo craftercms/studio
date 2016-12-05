@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-  <internal-name>Site Dashboard</internal-name>
-  <content-type>/page/site-dashboard</content-type>	
-  <display-template>/templates/web/site-dashboard.ftl</display-template>
-  <merge-strategy>inherit-levels</merge-strategy>
-</page>

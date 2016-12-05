@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-  <internal-name>Overlay CSS</internal-name>
-  <display-template>/templates/web/overlay-css.ftl</display-template>
-  <content-type>/page/overlay-css</content-type>
-  <merge-strategy>inherit-levels</merge-strategy>
-</page>
