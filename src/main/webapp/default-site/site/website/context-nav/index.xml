@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-  <internal-name>Context Nav</internal-name>
-  <display-template>/templates/web/context-nav.ftl</display-template>
-  <content-type>/page/context-nav</content-type>
-  <merge-strategy>inherit-levels</merge-strategy>
-</page>
