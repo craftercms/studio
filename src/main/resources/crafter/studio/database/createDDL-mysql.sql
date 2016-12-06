@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_objectmetadata` (
   `sendemail` INT NULL,
   `submissioncomment` TEXT NULL,
   `launchdate` DATETIME NULL,
+  `commit_id` VARCHAR(50) NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__om_site_path` (`site`, `path`(900))
 )

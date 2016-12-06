@@ -38,4 +38,6 @@ public interface ObjectMetadataMapper {
 
     void updateObjectPath(Map params);
 
+    void updateCommitId(Map params);
+
 }

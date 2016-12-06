@@ -20,9 +20,9 @@ import java.util.regex.Pattern;
 
 /**
  * General constants for WCM
- * 
+ *
  * @author hyanghee
- * 
+ *
  */
 public class DmConstants {
 	public final static String CONTENT_CHAIN_FORM = "formContent";
@@ -43,8 +43,8 @@ public class DmConstants {
     public final static String CONTENT_TYPE_ALL= "all";
 
     public final static String CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE = "simple";
-	
-	
+
+
 	public final static String INDEX_FILE = "index.xml";
 	public final static String XML_PATTERN = ".xml";
     public final static String CSS_PATTERN = ".css";
@@ -95,7 +95,7 @@ public class DmConstants {
 	public static final String KEY_PAGE_GROUP_ID = "pageGroupId";
 	public final static String KEY_UNLOCK = "unlock";
     public final static String KEY_SYSTEM_ASSET = "systemAsset";
-	
+
 	/** rename keys **/
 	public final static String KEY_SOURCE_PATH = "sourcePath";
 	public final static String KEY_SOURCE_FULL_PATH = "sourceFullPath";
@@ -133,15 +133,9 @@ public class DmConstants {
     public final static Pattern DM_SITE_PATH_PATTERN = Pattern.compile("(/wem-projects/[-\\w]*/[-\\w]*)([-\\w\\s]*)(/.*)");
     public final static Pattern DM_SITE_LIVE_PATH_PATTERN = Pattern.compile("(/wem-projects/[-\\w]*/)([-\\w]*)/live(/.*)");
     public static final String CONTENT_LIFECYCLE_OPERATION ="contentLifecycleOperation" ;
-    
+
     /* Workflow queries */
-    /*public static final String SUBMITTED_ITEMS_QUERY = (new StringBuilder("PATH:\"/app:company_home{site_root}//*\" AND"))
-            .append(CStudioContentModel.PROP_STATUS.toString())
-            .append(":\"")
-            .append(DM_STATUS_SUBMITTED)
-            .append("\"")
-            .toString();
-*/
+
     public static final String DM_WEM_PROJECTS_FOLDER = "wem-projects";
     public static final String DM_WORK_AREA_REPO_FOLDER = "work-area";
     public static final String DM_LIVE_REPO_FOLDER = "live";
@@ -183,12 +177,4 @@ public class DmConstants {
 
     public static final Pattern PATTERN_ACTIVITY_FEED_INTERNAL_NAME = Pattern.compile("^.*\"internalName\":\"(.*?)\".*$");
     public static final String KEY_APPLICATION_CONTEXT = "applicationContext";
-/*
-    public static QName[] SUBMITTED_PROPERTIES = new QName[]{
-            CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY,
-            CStudioContentModel.PROP_WEB_WF_SEND_EMAIL,
-            CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION//,
-            //PORT Version2Model.PROP_QNAME_VERSION_DESCRIPTION,
-            //PORTWCMWorkflowModel.PROP_LAUNCH_DATE
-    };*/
 }

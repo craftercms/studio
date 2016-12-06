@@ -35,7 +35,7 @@ public interface ClipboardService {
      * 			the root folder of all items' destination
      * @param cut
      * @return a list of copied items
-     * @throws org.craftercms.cstudio.alfresco.service.exception.ServiceException
+     * @throws ServiceException
      */
     public List<String> paste(String site, List<Map<String, String>> pasteItems, String destination, boolean cut) throws ServiceException;
 /*

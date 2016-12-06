@@ -259,13 +259,6 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
-    /*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.craftercms.crafter.alfresco.service.api.PermissionService#getUserRoles
-	 * (java.lang.String, java.lang.String)
-	 */
     @Override
     public Set<String> getUserRoles(final String site, String user) {
 

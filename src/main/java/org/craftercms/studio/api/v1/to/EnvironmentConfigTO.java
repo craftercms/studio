@@ -50,7 +50,7 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 
     protected String _previewDeploymentEndpoint = null;
 
-	
+
 	public String getAdminEmailAddress() {
 		return _adminEmailAddress;
 	}
@@ -75,18 +75,10 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 		this._liveServerUrl = liveServerUrl;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#getLastUpdated()
-	 */
 	public Date getLastUpdated() {
 		return _lastUpdated;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#setLastUpdated(java.util.Date)
-	 */
 	public void setLastUpdated(Date lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}
@@ -118,14 +110,14 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 	public String getAuthoringServerUrl() {
 		return _authoringServerUrl;
 	}
-	
+
 	/**
 	 * @return the orbeonServerUrl
 	 */
 	public String getFormServerUrlPattern() {
 		return _formServerUrlPattern;
 	}
-	
+
 	/**
 	 * Sets the orbeonServerUrl
 	 */

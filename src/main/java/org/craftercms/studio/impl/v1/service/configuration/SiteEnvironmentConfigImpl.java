@@ -67,10 +67,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
-    /*
-              * (non-Javadoc)
-              * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getEnvironmentConfig(java.lang.String)
-              */
 	@Override
 	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
@@ -93,11 +89,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         return config;
 	}
 
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
-	 */
 	public String getPreviewServerUrl(String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
@@ -112,7 +103,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		}
 		return "";
 	}
-	
+
 	public String getLiveServerUrl(String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
@@ -121,7 +112,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		}
 		return "";
 	}
-	
+
 	public String getAdminEmailAddress(String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
@@ -131,11 +122,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
-	 */
 	public String getAuthoringServerUrl(String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
@@ -144,11 +130,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		}
 		return "";
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getFormServerUrl(java.lang.String)
-	 */
+
 	public String getFormServerUrl(String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
@@ -164,12 +146,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return null;
 	}
 
-
-
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.impl.ConfigurableServiceBase#loadConfiguration(java.lang.String)
-      */
 	protected EnvironmentConfigTO loadConfiguration(String key) {
 		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
 				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
@@ -186,24 +162,24 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 			config = new EnvironmentConfigTO();
 			String previewServerUrl = root.valueOf("preview-server-url");
 			config.setPreviewServerUrl(previewServerUrl);
-			
+
 			String openDropdown = root.valueOf("open-site-dropdown");
 			config.setOpenDropdown((openDropdown != null) ? Boolean.valueOf(openDropdown) : false);
-			
+
 			String previewServerUrlPattern = root.valueOf("preview-server-url-pattern");
 			config.setPreviewServerUrlPattern(previewServerUrlPattern);
-			
+
 			String orbeonServerUrlPattern = root.valueOf("form-server-url");
 			config.setFormServerUrlPattern(orbeonServerUrlPattern);
-			
+
 			String authoringServerUrl = root.valueOf("authoring-server-url");
 			config.setAuthoringServerUrl(authoringServerUrl);
 			String authoringServerUrlPattern = root.valueOf("authoring-server-url-pattern");
 			config.setAuthoringServerUrlPattern(authoringServerUrlPattern);
-			
+
 			String liveServerUrl = root.valueOf("live-server-url");
 			config.setLiveServerUrl(liveServerUrl);
-			
+
 			String adminEmailAddress = root.valueOf("admin-email-address");
 			config.setAdminEmailAddress(adminEmailAddress);
 			String cookieDomain = root.valueOf("cookie-domain");
@@ -261,7 +237,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
             String previewDeploymentEndpoint = root.valueOf("preview-deployment-endpoint");
             config.setPreviewDeploymentEndpoint(previewDeploymentEndpoint);
-            
+
 			config.setLastUpdated(new Date());
 		}
         return config;

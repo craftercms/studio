@@ -56,9 +56,9 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path path to content
      * @param content stream of content to write
-     * @return true if successful
+     * @return commitId if successful, null otherwise
      */
-    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
+    String writeContent(String site, String path, InputStream content) throws ServiceException;
 
     /**
      * create a folder

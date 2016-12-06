@@ -75,17 +75,6 @@
         </repository>
 
         <repository>
-            <id>alfresco</id>
-            <name>Alfresco Repository</name>
-            <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>
-
-        <repository>
             <id>jgit-snapshot-repository</id>
             <url>https://repo.eclipse.org/content/groups/jgit/</url>
             <snapshots>
@@ -270,18 +259,6 @@
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.2.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.chemistry.opencmis</groupId>
-            <artifactId>chemistry-opencmis-client-impl</artifactId>
-            <version>0.13.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -756,12 +733,6 @@
             <id>standalone</id>
             <properties>
                 <selenium.baseUrl>http://standalone.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
-            </properties>
-        </profile>
-        <profile>
-            <id>alfresco</id>
-            <properties>
-                <selenium.baseUrl>http://studio.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
             </properties>
         </profile>
         <profile>

@@ -360,18 +360,21 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
-        boolean writeSuccess = _contentRepository.writeContent(site, path, content);
+        boolean result;
 
-        // TODO: SJ: try to write, catch, done (no explicit version creation required)
-        try {
-            _contentRepository.createVersion(site, path, false);
+        String commitId = _contentRepository.writeContent(site, path, content);
+
+        result = StringUtils.isNotEmpty(commitId);
+
+        if (result) {
+            // Update database with commitId
+            objectMetadataManager.updateCommitId(site, path, commitId);
+
+            // Remove item from cache
+            removeItemFromCache(site, path);
         }
-        catch(Exception err) {
-            // configurable weather or not to blow up the entire write?
-            logger.error("Failed to create version for object at path: " + path, err);
-        }
-        removeItemFromCache(site, path);
-        return writeSuccess;
+
+        return result;
     }
 
     @Override

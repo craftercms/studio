@@ -47,6 +47,7 @@ public class ObjectMetadata implements Serializable {
     public static final String PROP_SEND_EMAIL = "sendEmail";
     public static final String PROP_SUBMISSION_COMMENT = "submissionComment";
     public static final String PROP_LAUNCH_DATE = "launchDate";
+    public static final String PROP_COMMIT_ID = "commitId";
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -117,6 +118,9 @@ public class ObjectMetadata implements Serializable {
     public Date getLaunchDate() { return launchDate; }
     public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
 
+    public String getCommitId() { return commitId; }
+    public void setCommitId(final String commitId) { this.commitId = commitId; }
+
     protected int id;
     protected String site;
     protected String path;
@@ -140,4 +144,5 @@ public class ObjectMetadata implements Serializable {
     protected int sendEmail;
     protected String submissionComment;
     protected Date launchDate;
+    protected String commitId;
 }

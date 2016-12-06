@@ -211,6 +211,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         deletedFiles.add(item.getPath());
                         if (item.getPath().endsWith("/" + indexFile)) {
                             String folderPath = item.getPath().replace("/" + indexFile, "");
+                            // TODO: SJ: This bypasses the Content Service, fix
                             if (contentRepository.contentExists(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""))) {
                                 RepositoryItem[] children = contentRepository.getContentChildren(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
                                 if (children.length < 2) {
@@ -237,6 +238,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                 deletedFiles.add(item.getOldPath());
                                 if (item.getOldPath().endsWith("/" + indexFile)) {
                                     String folderPath = item.getOldPath().replace("/" + indexFile, "");
+                                    // TODO: SJ: This bypasses the Content Service, fix
                                     if (contentRepository.contentExists(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""))) {
                                         RepositoryItem[] children = contentRepository.getContentChildren(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
                                         if (children.length < 2) {
@@ -351,7 +353,7 @@ public class PublishingManagerImpl implements PublishingManager {
         if(item == null) {
             throw new DeploymentException("Cannot processItem. Item is null");
         }
-        
+
         String site = item.getSite();
         String path = item.getPath();
         String oldPath = item.getOldPath();
@@ -359,7 +361,7 @@ public class PublishingManagerImpl implements PublishingManager {
         String action = item.getAction();
         String user = item.getUser();
         String submissionComment = item.getSubmissionComment();
-        
+
 
         String liveEnvironment = siteService.getLiveEnvironmentName(site);
         boolean isLive = false;
@@ -372,7 +374,7 @@ public class PublishingManagerImpl implements PublishingManager {
         else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
             isLive = true;
         }
-        
+
         if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
@@ -381,10 +383,11 @@ public class PublishingManagerImpl implements PublishingManager {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
                 deployer.deleteFile(site, path);
-                
+
                 if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                     String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                     if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
+                        // TODO: SJ: This bypasses the Content Service, fix
                         RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
 
                         if (children.length < 2) {
@@ -401,15 +404,16 @@ public class PublishingManagerImpl implements PublishingManager {
 
                 objectMetadataManager.clearRenamed(site, path);
             }
-            
-            
+
+
             boolean haschildren = false;
             deployer.deleteFile(site, path);
-            
-            
+
+
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
                 String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                 if (contentService.contentExists(site, path.replace("/" + DmConstants.INDEX_FILE, ""))) {
+                    // TODO: SJ: This bypasses the Content Service, fix
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
 
                     if (children.length < 2) {
@@ -422,7 +426,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
             if (contentService.contentExists(site, path)) {
                 contentService.deleteContent(site, path, user);
-                
+
                 if (!haschildren) {
                     deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
                 }
@@ -431,37 +435,39 @@ public class PublishingManagerImpl implements PublishingManager {
         else {
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
-            
-            
+
+
             if (isLive) {
                 if (!importModeEnabled) {
+                    // TODO: SJ: This bypasses the Content Service, fix
                     contentRepository.createVersion(site, path, submissionComment, true);
                 }
                 else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
                 }
             }
-            
-            
-            
+
+
+
             if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
-                
+
                 if (oldPath != null && oldPath.length() > 0) {
-                    
+
                     //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
                     //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
                     Deployer deployer = deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
                     deployer.deleteFile(site, oldPath);
-                    
-                    
+
+
                     if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                         boolean hasRenamedChildren = false;
                         String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
-                        
+
                         if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
                             try {
+                                // TODO: SJ: This bypasses the Content Service, fix
                                 RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
-                                
+
                                 if (children.length < 2) {
                                     deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                                 }
@@ -472,21 +478,21 @@ public class PublishingManagerImpl implements PublishingManager {
                                 LOGGER.info("Error while checking children for moved content site " + site + " old path " + oldPath);
                             }
                         }
-                        
-                        
+
+
                         if (!hasRenamedChildren) {
                             deleteFolder(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
                         }
                     }
-                    
-                    
+
+
                     if (isLive) {
                         objectMetadataManager.clearRenamed(site, path);
                     }
                 }
             }
-            
-            
+
+
             LOGGER.debug("Getting deployer for environment store.");
             //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
@@ -495,21 +501,21 @@ public class PublishingManagerImpl implements PublishingManager {
 
 
             ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
-            
-            
+
+
             if (objectMetadata == null) {
                 LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
                 objectMetadataManager.insertNewObjectMetadata(site, path);
                 objectMetadata = objectMetadataManager.getProperties(site, path);
             }
-            
-            
+
+
             if(objectMetadata != null) {
                 boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
-            
+
                 if (sendEmail) {
                     String submittedByValue = objectMetadata.getSubmittedBy();
-                
+
                     try {
                         LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
                         notificationService.sendApprovalNotification(site, submittedByValue, path, user);
@@ -538,7 +544,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     objectMetadataManager.setObjectMetadata(site, path, props);
                 }
             }
-            
+
             LOGGER.debug("Resetting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, false);
         }
@@ -546,6 +552,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
     private void deleteFolder(String site, String path, String user, Deployer deployer) {
         if (contentService.contentExists(site, path)) {
+            // TODO: SJ: This bypasses the Content Service, fix
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
@@ -618,6 +625,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (!enablePublishingWithoutDependencies) {
                 List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
                 for (String dependentPath : dependentPaths) {
+                    // TODO: SJ: This bypasses the Content Service, fix
                     if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
                         String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
                         if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {

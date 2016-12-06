@@ -4,7 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <import resource="classpath:crafter/studio/database-context.xml"/>
-    <import resource="classpath:crafter/studio/cstudio-dao-context.xml"/>
     <import resource="classpath:crafter/studio/studio-ebus-context.xml"/>
 
 
@@ -80,7 +79,7 @@
 
     <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
         <property name="siteServiceDAL">
-          <bean id="cstudioRepositorySiteServiceDAL" 
+          <bean id="cstudioRepositorySiteServiceDAL"
                 class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">
               <property name="contentService" ref="cstudioContentService" />
           </bean>
@@ -384,7 +383,7 @@
     <!-- ////////////////////// -->
     <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.api.v1.to.EmailMessageQueueTo">
     </bean>
-    
+
     <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSender" />
@@ -405,7 +404,7 @@
             <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
             <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
         </props>
-      </property>  
+      </property>
     </bean>
 
     <bean id="mailSenderNoAuth" class="org.springframework.mail.javamail.JavaMailSenderImpl">
@@ -554,8 +553,8 @@
                <property name="targetMethod" value="execute"/>
             </bean>
         </property>
-        <property name="repeatInterval" value="5000" />  
-        <property name="startDelay" value="1000" />  
+        <property name="repeatInterval" value="5000" />
+        <property name="startDelay" value="1000" />
     </bean>
 
     <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
@@ -622,15 +621,15 @@
         <property name="repositoryType" value="${repositoryType}"/>
     </bean>
 
-    <bean id="cstudioContentRepositoryRegistration" 
-          abstract="true" 
+    <bean id="cstudioContentRepositoryRegistration"
+          abstract="true"
           class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepositoryRegistration"
           init-method="registerRepository">
         <property name="mappedContentRepository" ref="cstudioContentRepository"/>
     </bean>
-    
+
     <!-- default option -->
-    <bean id="cstudioDiskContentRepository" 
+    <bean id="cstudioDiskContentRepository"
         class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
         init-method="bootstrap">
         <property name="rootPath" value="${repository.diskImplementation.path}" />
@@ -671,8 +670,8 @@
         <property name="providerType" value="${securityType}"/>
     </bean>
 
-    <bean id="cstudioSecurityProviderRegistration" 
-          abstract="true" 
+    <bean id="cstudioSecurityProviderRegistration"
+          abstract="true"
           class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProviderRegistration"
           init-method="registerProvider">
         <property name="mappedSecurityProvider" ref="securityProvider"/>
@@ -708,12 +707,6 @@
         <property name="securityProvider" ref="cstudioDbSecurityProvider"/>
         <property name="providerType" value="db"/>
     </bean>
-
-    <!-- support for alfresco.  This assumes the beans in this file do not pro-actively
-         do anything.  Remember another repostory may be configured for use and Alfresco 
-         may not exist on the server. I.e. evaluation
-     -->
-    <import resource="classpath*:crafter/studio/studio-alfresco-context.xml" />
 
     <!-- ////////////////////////////////////// -->
     <!--       Object type filters                   -->

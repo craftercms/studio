@@ -26,15 +26,15 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
- * A base class of content processor 
- * 
+ * A base class of content processor
+ *
  * @author hyanghee
  *
  */
 public class BaseContentProcessor implements ContentProcessor {
 
 	private static final Logger logger = LoggerFactory.getLogger(BaseContentProcessor.class);
-	
+
 	public static final String NAME = "BaseContentProcessor";
 
 	/** the default process name if not set **/
@@ -46,16 +46,16 @@ public class BaseContentProcessor implements ContentProcessor {
 	public BaseContentProcessor() {
 		this._name = NAME;
 	}
-	
+
 	/**
 	 * constructor that sets the process name
-	 * 
+	 *
 	 * @param name
 	 */
 	public BaseContentProcessor(String name) {
 		this._name = name;
 	}
-	
+
 	/**
 	 * @param name the name to set
 	 */
@@ -63,40 +63,28 @@ public class BaseContentProcessor implements ContentProcessor {
 		this._name = name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.wcm.util.ContentProcessor#getName()
-	 */
 	public String getName() {
 		return _name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.content.pipeline.api.ContentProcessor#isProcessable(org.craftercms.cstudio.alfresco.content.pipeline.api.PipelineContent)
-	 */
 	public boolean isProcessable(PipelineContent content) {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.content.pipeline.api.ContentProcessor#process(org.craftercms.cstudio.alfresco.content.pipeline.api.PipelineContent, org.craftercms.cstudio.alfresco.to.ResultTO)
-	 */
 	public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
 		logger.debug("Processing " + content.getId() + " through " + _name);
 	}
 
 	/**
 	 * check if the mandatory value provided is not empty
-	 * 
+	 *
 	 * @param key
 	 * @param value
 	 * @throws ContentProcessorException
 	 */
 	public void checkForMandatoryParam(String key, String value) throws ContentProcessException {
 		if (StringUtils.isEmpty(value)) {
-			throw new ContentProcessException(key + " is a mandatory parameter."); 
+			throw new ContentProcessException(key + " is a mandatory parameter.");
 		}
 	}
 }

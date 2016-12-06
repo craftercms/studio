@@ -244,6 +244,7 @@ CREATE TABLE cstudio_objectmetadata
   sendemail integer,
   submissioncomment text,
   launchdate timestamp without time zone,
+  commit_id character varying(50),
   CONSTRAINT cstudio_objectmetadata_pkey PRIMARY KEY (id),
   CONSTRAINT uq__om_site_path UNIQUE (site, path)
 ) ;

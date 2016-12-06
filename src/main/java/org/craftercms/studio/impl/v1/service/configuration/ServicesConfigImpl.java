@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -45,17 +45,17 @@ import java.util.*;
 /**
  * Implementation of ServicesConfigImpl. This class requires a configuration
  * file in the repository
- * 
- * 
+ *
+ *
  */
 public class ServicesConfigImpl implements ServicesConfig {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServicesConfigImpl.class);
-    
+
     protected static final String WEM_PROJECTS_PATH = "/wem-projects";
     protected static final String WORK_AREA_PATH = "/work-area";
     protected static final String LIVE_PATH = "/live";
-    
+
 	/** path keys **/
 	protected static final String PATH_CONTENT = "content";
 	protected static final String PATH_WCM_CONTENT = "wcm-content";
@@ -72,8 +72,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     protected static final String PATTERN_PREVIEWABLE_MIMETYPES = "previewable-mimetypes";
 
 	/** xml element names **/
-	protected static final String ELM_PATTERN = "pattern"; 
-	
+	protected static final String ELM_PATTERN = "pattern";
+
 	/** xml attribute names **/
 	protected static final String ATTR_DEPTH = "@depth";
 	protected static final String ATTR_DISPLAY_NAME = "@displayName";
@@ -95,7 +95,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * configuration file name
 	 */
 	protected String configFileName;
-	
+
 	/**
 	 * content types configuration
 	 */
@@ -131,10 +131,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return config;
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getWebProject(java.lang.String)
-	 */
 	public String getWemProject(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getWemProject() != null) {
@@ -152,10 +148,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.wcm.service.api.WcmServicesConfig#getRootPrefix(java.lang.String)
-      */
 	public String getRootPrefix(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -164,18 +156,10 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getContentType(java.lang.String, java.lang.String)
-	 */
 	public ContentTypeConfigTO getContentTypeConfig(String site, String name) {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getAssetPatterns(java.lang.String)
-	 */
 	public List<String> getAssetPatterns(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -183,7 +167,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 		}
 		return null;
 	}
-	
+
 
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site,String contentType) {
         if(contentType==null){
@@ -208,10 +192,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return Collections.emptyList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getComponentPatterns(java.lang.String)
-	 */
 	public List<String> getComponentPatterns(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -220,10 +200,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getPagePatterns(java.lang.String)
-	 */
 	public List<String> getPagePatterns(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -232,10 +208,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getRenderingTemplatePatterns(java.lang.String)
-      */
     public List<String> getRenderingTemplatePatterns(String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
@@ -244,10 +216,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorPatterns(java.lang.String)
-      */
     public List<String> getLevelDescriptorPatterns(String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
@@ -256,11 +224,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDocumentPatterns(java.lang.String)
-	 */
 	public List<String> getDocumentPatterns(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -269,10 +232,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorName(java.lang.String)
-	 */
 	public String getLevelDescriptorName(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -281,10 +240,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDisplayInWidgetPathPatterns(java.lang.String)
-	 */
 	public List<String> getDisplayInWidgetPathPatterns(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
@@ -293,10 +248,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDefaultTimezone(java.lang.String)
-	 */
 	public String getDefaultTimezone(String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null) {
@@ -309,7 +260,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	/**
 	 * load services configuration
-	 * 
+	 *
 	 */
 	 @SuppressWarnings("unchecked")
      protected SiteConfigTO loadConfiguration(String site) {
@@ -359,29 +310,17 @@ public class ServicesConfigImpl implements ServicesConfig {
         RepositoryConfigTO repoConfigTO = new RepositoryConfigTO();
         repoConfigTO.setRootPrefix(node.valueOf("@rootPrefix"));
         repoConfigTO.setLevelDescriptorName(node.valueOf("level-descriptor"));
-        //repoConfigTO.setIndexRepository(ContentFormatUtils.getBooleanValue(node.valueOf("index-repository")));
-        /*String timeValue = node.valueOf("index-time-to-live");
-        if (!StringUtils.isEmpty(timeValue)) {
-            long indexTimeToLive = ContentFormatUtils.getLongValue(timeValue);
-            if (indexTimeToLive > 0) {
-                repoConfigTO.setIndexTimeToLive(indexTimeToLive);
-            }
-        }*/
-        //repoConfigTO.setCheckForRenamed(org.craftercms.cstudio.alfresco.util.ContentFormatUtils.getBooleanValue(node.valueOf("check-for-renamed")));
         loadFolderConfiguration(siteConfig, repoConfigTO, node.selectNodes("folders/folder"));
         loadPatterns(siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
-        //List<String> excludePaths = getStringList(node.selectNodes("exclude-paths/exclude-path"));
-        //repoConfigTO.setExcludePaths(excludePaths);
         List<String> displayPatterns = getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
         repoConfigTO.setDisplayPatterns(displayPatterns);
-        //loadTemplateConfig(repoConfigTO, node.selectSingleNode("common-prototype-config"));
         siteConfig.setRepositoryConfig(repoConfigTO);
     }
 
 
 	/**
 	 * get a list of string values
-	 * 
+	 *
 	 * @param nodes
 	 * @return a list of string values
 	 */
