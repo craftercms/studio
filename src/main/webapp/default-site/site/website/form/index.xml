@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page>
-  <internal-name>Content Form</internal-name>
-  <content-type>/page/form</content-type>	
-  <display-template>/templates/web/form.ftl</display-template>
-  <merge-strategy>inherit-levels</merge-strategy>
-</page>

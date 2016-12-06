@@ -1035,6 +1035,10 @@
         <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
     </bean>
 
+    <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
+        <property name="configLocation" value="crafter/studio/configuration.yaml"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
     <import resource="classpath:crafter/studio/studio-ebus-config.xml"/>
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
