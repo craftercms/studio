@@ -20,8 +20,12 @@
 package org.craftercms.studio.api.v1.util;
 
 public interface StudioConfiguration {
-
-    // Add here constants for property key values
+    public static final String LOAD_ADDITIONAL_CONFIGURATION = "load-additional-configuration";
+    public static final String GIT_REPO_BASE = "git-repo-base";
+    public static final String GLOBAL_REPO_PATH = "global-repo-path";
+    public static final String SITES_REPO_PATH = "sites-repo-path";
+    public static final String SANDBOX_PATH = "sandbox-path";
+    public static final String PUBLISHED_PATH = "published-path";
 
     // Methods
     void loadConfiguration();

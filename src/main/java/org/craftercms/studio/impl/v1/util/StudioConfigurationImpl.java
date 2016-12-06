@@ -43,15 +43,37 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     @Override
     public void loadConfiguration() {
+        Map<String, String> baseProperties = new HashMap<String, String>();;
+        Map<String, String> additionalProperties = new HashMap<String, String>();
+
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
             Yaml yaml = new Yaml();
-            properties = yaml.loadAs(in, properties.getClass());
+            baseProperties = yaml.loadAs(in, baseProperties.getClass());
 
-            logger.debug("Loaded configuration:\n" + properties.toString());
+            logger.debug("Loaded configuration from location: " + configLocation + "\n" + baseProperties.toString());
         } catch (IOException e) {
             logger.error("Failed to load studio configuration from: " + configLocation);
         }
+
+        if (baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION) != null) {
+            resource = new ClassPathResource(baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION));
+
+            try (InputStream in = resource.getInputStream()) {
+                Yaml yaml = new Yaml();
+
+                additionalProperties = yaml.loadAs(in, additionalProperties.getClass());
+                logger.debug("Loaded additional configuration from location: " + baseProperties.get
+                    (LOAD_ADDITIONAL_CONFIGURATION) + "\n" +
+                    additionalProperties.toString());
+            } catch (IOException e) {
+                logger.error("Failed to load studio configuration from: " + baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION));
+            }
+        }
+
+        // Merge the base properties and additional properties
+        properties.putAll(baseProperties);
+        properties.putAll(additionalProperties);
     }
 
     @Override
