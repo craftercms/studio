@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TagCommand;
@@ -668,8 +669,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     private void copyContentFromBlueprint(String blueprint, String site) {
-        Path siteRepoPath = Paths.get(rootPath, "sites", site);
-        Path blueprintPath = Paths.get(rootPath, "global-configuration", "blueprints", blueprint);
+        Path siteRepoPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
+        Path blueprintPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), studioConfiguration.getProperty(StudioConfiguration.BLUE_PRINTS_PATH), blueprint);
         EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
         try {
@@ -953,9 +955,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void setSecurityProvider(final SecurityProvider securityProvider) {
         this.securityProvider = securityProvider;
     }
+    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
     String rootPath;
     boolean bootstrapEnabled;
     ServletContext ctx;
     SecurityProvider securityProvider;
+    StudioConfiguration studioConfiguration;
 }
