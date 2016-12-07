@@ -23,4 +23,3 @@ data/*
 derby.log
 
 deploy/*
-src/main/webapp/default-site/static-assets/
