@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
@@ -66,7 +66,7 @@ import java.util.regex.Pattern;
 
 /**
  * Note: consider renaming
- * A site in Crafter Studio is currently the name for a WEM project being managed.  
+ * A site in Crafter Studio is currently the name for a WEM project being managed.
  * This service provides access to site configuration
  * @author russdanner
  */
@@ -75,11 +75,12 @@ public class SiteServiceImpl implements SiteService {
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
     private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
-	
+
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
-		boolean toRet = contentRepository.writeContent(site, path, content);
-        contentRepository.createVersion(site, path, false);
+	    // Write site configuration
+		String commitId = contentRepository.writeContent(site, path, content);
+        boolean toRet = StringUtils.isEmpty(commitId);
         if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
             contentTypeUpdated.contentTypeUpdated(site, path.replace(contentTypeService.getConfigPath(), ""));
         }
@@ -88,10 +89,11 @@ public class SiteServiceImpl implements SiteService {
         return toRet;
 	}
 
-	@Override	
+	@Override
 	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
-		boolean toReturn = contentRepository.writeContent("", path, content);
-        contentRepository.createVersion("", path, false);
+	    // Write global configuration
+        String commitId = contentRepository.writeContent("", path, content);
+        boolean toReturn = StringUtils.isEmpty(commitId);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
         return toReturn;
@@ -117,7 +119,7 @@ public class SiteServiceImpl implements SiteService {
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
 	 */
-	public Document getSiteConfiguration(String site) 
+	public Document getSiteConfiguration(String site)
 	throws SiteConfigNotFoundException {
 		return _siteServiceDAL.getSiteConfiguration(site);
 	}
@@ -129,8 +131,8 @@ public class SiteServiceImpl implements SiteService {
 			configPath = this.configRoot + path;
 		} else {
 			if (applyEnv) {
-				configPath = this.environmentConfigPath.replaceAll(CStudioConstants.PATTERN_SITE, site).replaceAll(
-						CStudioConstants.PATTERN_ENVIRONMENT, environment)
+				configPath = this.environmentConfigPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
+						StudioConstants.PATTERN_ENVIRONMENT, environment)
 						+ path;
 			} else {
 				configPath = this.sitesConfigPath + path;
@@ -399,7 +401,6 @@ public class SiteServiceImpl implements SiteService {
         InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
         contentRepository.writeContent(site, path, contentToWrite);
-        contentRepository.createVersion(site, path, "create site from blueprint", false);
     }
 
     protected void replaceFileContent(String path, String find, String replace) throws Exception {
@@ -580,7 +581,7 @@ public class SiteServiceImpl implements SiteService {
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
+        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(StudioConstants.PATTERN_SITE, site), "SiteTO");
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

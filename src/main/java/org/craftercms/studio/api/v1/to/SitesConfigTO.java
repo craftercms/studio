@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * contains overall sites configuration 
- * 
+ * contains overall sites configuration
+ *
  * @author hyanghee
  *
  */
@@ -43,18 +43,10 @@ public class SitesConfigTO implements TimeStamped, Serializable {
 	/** last updated date **/
 	protected Date _lastUpdated;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#getLastUpdated()
-	 */
 	public Date getLastUpdated() {
 		return this._lastUpdated;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#setLastUpdated(java.util.Date)
-	 */
 	public void setLastUpdated(Date lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}
@@ -141,10 +133,10 @@ public class SitesConfigTO implements TimeStamped, Serializable {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * get the repository type of the give site
-	 * 
+	 *
 	 * @param site
 	 * @return the repository type
 	 */
@@ -155,20 +147,20 @@ public class SitesConfigTO implements TimeStamped, Serializable {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * get the site type of the given site instance
-	 * 
+	 *
 	 * @param site
 	 * @return site type
 	 */
 	public String getSiteInstanceType(String site) {
 		return _siteInstanceTypes.get(site);
 	}
-	
+
 	/**
 	 * add an entry of site instance and site type
-	 * 
+	 *
 	 * @param site
 	 * @param siteType
 	 */

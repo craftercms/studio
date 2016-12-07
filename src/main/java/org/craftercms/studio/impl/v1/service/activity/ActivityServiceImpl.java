@@ -23,7 +23,7 @@ import javolution.util.FastList;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
@@ -58,7 +57,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	// activity_data
 	protected static final int MAX_LEN_APP_TOOL_ID = 36; // needs to match
 	// schema: app_tool
-	
+
 	/** activity post properties **/
 	protected static final String ACTIVITY_PROP_ACTIVITY_SUMMARY = "activitySummary";
 	protected static final String ACTIVITY_PROP_ID = "id";
@@ -66,15 +65,15 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	protected static final String ACTIVITY_PROP_USER = "user";
 	protected static final String ACTIVITY_PROP_FEEDUSER = "feedUserId";
 	protected static final String ACTIVITY_PROP_CONTENTID = "contentId";
-	
+
 	/** activity feed format **/
 	protected static final String ACTIVITY_FEED_FORMAT = "json";
-		
+
 	/**
 	 * activity post lookup
 	 */
 	//protected PostLookup _postLookup;
-	
+
 	/**
 	 * activity feed generator
 	 */
@@ -85,12 +84,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         getServicesManager().registerService(ActivityService.class, this);
     }
 
-    /*
-      * (non-Javadoc)
-      * @see org.craftercms.cstudio.alfresco.service.api.AcitivityService#postActivity(java.lang.String, java.lang.String, java.lang.String, org.craftercms.cstudio.alfresco.service.api.AcitivityService.ActivityType)
-      */
 	public void postActivity(String site, String user, String contentId, ActivityType activity, Map<String,String> extraInfo) {
-		
+
 		JSONObject activityPost = new JSONObject();
 		activityPost.put(ACTIVITY_PROP_USER, user);
 		activityPost.put(ACTIVITY_PROP_ID, contentId);
@@ -320,16 +315,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 				String activitySummary = (feedObject.containsKey(ACTIVITY_PROP_ACTIVITY_SUMMARY)) ? feedObject.getString(ACTIVITY_PROP_ACTIVITY_SUMMARY) : "";
 				JSONObject summaryObject = JSONObject.fromObject(activitySummary);
-				if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
-					String contentType = (String)summaryObject.get(CStudioConstants.CONTENT_TYPE);
+				if (summaryObject.containsKey(StudioConstants.CONTENT_TYPE)) {
+					String contentType = (String)summaryObject.get(StudioConstants.CONTENT_TYPE);
 					item.contentType = contentType;
 				}
-				if(summaryObject.containsKey(CStudioConstants.INTERNAL_NAME)) {
-					String internalName = (String)summaryObject.get(CStudioConstants.INTERNAL_NAME);
+				if(summaryObject.containsKey(StudioConstants.INTERNAL_NAME)) {
+					String internalName = (String)summaryObject.get(StudioConstants.INTERNAL_NAME);
 					item.internalName = internalName;
 				}
-				if(summaryObject.containsKey(CStudioConstants.BROWSER_URI)) {
-					String browserUri = (String)summaryObject.get(CStudioConstants.BROWSER_URI);
+				if(summaryObject.containsKey(StudioConstants.BROWSER_URI)) {
+					String browserUri = (String)summaryObject.get(StudioConstants.BROWSER_URI);
 					item.browserUri = browserUri;
 				}
                 item.setLockOwner("");

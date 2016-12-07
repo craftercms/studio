@@ -75,17 +75,6 @@
         </repository>
 
         <repository>
-            <id>alfresco</id>
-            <name>Alfresco Repository</name>
-            <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-        </repository>
-
-        <repository>
             <id>jgit-snapshot-repository</id>
             <url>https://repo.eclipse.org/content/groups/jgit/</url>
             <snapshots>
@@ -270,18 +259,6 @@
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.2.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.chemistry.opencmis</groupId>
-            <artifactId>chemistry-opencmis-client-impl</artifactId>
-            <version>0.13.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -517,6 +494,28 @@
                             <filtering>true</filtering>
                             <targetPath>WEB-INF/templates/system/common</targetPath>
                         </resource>
+
+                                                            <!-- static-assets -->
+                                    <resource>
+                                    <directory>src/main/generated-resources/studio-ui/static-assets</directory>
+                                    <filtering>true</filtering>
+                                    <targetPath>default-site/static-assets</targetPath>
+                                    </resource>
+
+                                    <!-- templates -->
+                                    <resource>
+                                    <directory>src/main/generated-resources/studio-ui/templates</directory>
+                                    <filtering>true</filtering>
+                                    <targetPath>default-site/templates</targetPath>
+                                    </resource>
+
+                                    <!-- site -->
+                                    <resource>
+                                    <directory>src/main/generated-resources/studio-ui/site</directory>
+                                    <filtering>true</filtering>
+                                    <targetPath>default-site/site</targetPath>
+                                    </resource>
+
                     </webResources>
                 </configuration>
             </plugin>
@@ -734,12 +733,6 @@
             <id>standalone</id>
             <properties>
                 <selenium.baseUrl>http://standalone.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
-            </properties>
-        </profile>
-        <profile>
-            <id>alfresco</id>
-            <properties>
-                <selenium.baseUrl>http://studio.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
             </properties>
         </profile>
         <profile>

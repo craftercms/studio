@@ -20,10 +20,8 @@ package org.craftercms.studio.impl.v1.listener;
 
 import org.craftercms.studio.api.v1.cache.Scope;
 import org.craftercms.studio.api.v1.cache.ThreadSafeCacheManager;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -87,7 +85,7 @@ public class DmWorkflowListenerImpl implements DmWorkflowListener {
                 updatedTo.setScheduled(false);
             }
             cache.put(Scope.DM_CONTENT_ITEM, fullPath, updatedTo);
-            GoLiveQueue queue = (GoLiveQueue) cache.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY,site);
+            GoLiveQueue queue = (GoLiveQueue) cache.get(Scope.DM_SUBMITTED_ITEMS, StudioConstants.DM_GO_LIVE_CACHE_KEY,site);
             if (null != queue) {
                 queue.remove(to.getUri());
             }
@@ -104,7 +102,7 @@ public class DmWorkflowListenerImpl implements DmWorkflowListener {
     }
 
     protected void warmTheCache(String site, DmDependencyTO submitted, String fullPath, boolean add) {
-        GoLiveQueue queue = (GoLiveQueue) cache.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY,site);
+        GoLiveQueue queue = (GoLiveQueue) cache.get(Scope.DM_SUBMITTED_ITEMS, StudioConstants.DM_GO_LIVE_CACHE_KEY,site);
         if (queue != null) {
             if (null != fullPath) {
                 if (!submitted.isDeleted()) {

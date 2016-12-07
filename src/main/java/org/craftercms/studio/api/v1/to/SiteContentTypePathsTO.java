@@ -29,19 +29,11 @@ public class SiteContentTypePathsTO implements TimeStamped, Serializable {
 	protected List<ContentTypePathTO> _configs = null;
 	/** last updated date of this configuration **/
 	protected Date _lastUpdated = null;
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#getLastUpdated()
-	 */
+
 	public Date getLastUpdated() {
 		return _lastUpdated;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.craftercms.cstudio.alfresco.to.TimeStamped#setLastUpdated(java.util.Date)
-	 */
 	public void setLastUpdated(Date lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}

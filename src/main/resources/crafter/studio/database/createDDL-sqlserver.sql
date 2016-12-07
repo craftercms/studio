@@ -297,6 +297,7 @@ CREATE TABLE [dbo].[cstudio_objectmetadata](
   [sendemail] [int] NULL,
   [submissioncomment] [ntext] NULL,
   [launchdate] [datetime] NULL,
+  [commit_id] [nvarchar](50) NULL,
   CONSTRAINT [PK_cstudio_objectmetadata] PRIMARY KEY CLUSTERED
     (
       [id] ASC

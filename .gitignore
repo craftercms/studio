@@ -13,8 +13,11 @@ overlays
 createdFiles.lst
 inputFiles.lst
 .gitignore
+crafter/
+data/
+derby.log
 
-crafter-studio-2.iml
+*.iml
 crafter/*
 data/*
 derby.log

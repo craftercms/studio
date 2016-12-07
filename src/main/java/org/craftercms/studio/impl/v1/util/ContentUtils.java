@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -121,7 +121,7 @@ public class ContentUtils {
 
 	/**
 	 * check if two serializable values are the same
-	 * 
+	 *
 	 * @param value1
 	 * @param value2
 	 * @return true if they are equal
@@ -129,7 +129,7 @@ public class ContentUtils {
 	public static boolean areEqual(Serializable value1, Serializable value2) {
 		if (value1 == null && value2 == null) {
 			return true;
-		} else if (value1 == null || value2 == null) { 
+		} else if (value1 == null || value2 == null) {
 			return false;
 		} else {
 			return value1.equals(value2);
@@ -139,7 +139,7 @@ public class ContentUtils {
 
 	/**
 	 * convert InputStream to string
-	 * 
+	 *
 	 * @param is
 	 * @return string
 	 *//*
@@ -158,7 +158,7 @@ public class ContentUtils {
 		} catch (IOException e) {
 			if (LOGGER.isErrorEnabled()) {
 				LOGGER.error("Error while coverting stream to string", e);
-			}			
+			}
 			return null;
         } finally {
             ContentUtils.release(bufferedReader);
@@ -166,17 +166,17 @@ public class ContentUtils {
 			ContentUtils.release(is);
         }
 	}*/
-	
+
 	/**
 	 * convert InputStream to string
-	 * 
+	 *
 	 * @param is
 	 * @return string
 	 */
 	public static Document convertStreamToXml(InputStream is) throws DocumentException {
         InputStreamReader isReader = null;
 		try {
-            isReader = new InputStreamReader(is, CStudioConstants.CONTENT_ENCODING);
+            isReader = new InputStreamReader(is, StudioConstants.CONTENT_ENCODING);
 			SAXReader saxReader = new SAXReader();
 			return saxReader.read(isReader);
 		} catch (DocumentException e) {
@@ -190,7 +190,7 @@ public class ContentUtils {
             ContentUtils.release(isReader);
         }
 	}
-	
+
 	/*
 	 * Escape JSON characters
 	 *//*
@@ -244,8 +244,8 @@ public class ContentUtils {
 
 
 	/**
-	 * create a map from the given string 
-	 * 
+	 * create a map from the given string
+	 *
 	 * @param mappingString
 	 * 			string to create a map from
 	 * @param concatPattern
@@ -264,16 +264,16 @@ public class ContentUtils {
 					String[] pair = token.split(assignPattern);
 					if (pair.length == 2) {
 						mapping.put(pair[0], pair[1]);
-					} 
+					}
 				}
 			}
-		} 
+		}
 		return mapping;
 	}*/
 
 	/**
 	 * convert a content type to a key that is used to identify content type configuration location
-	 * 
+	 *
 	 * @param contentType
 	 * @return content type key
 	 *//*
@@ -293,7 +293,7 @@ public class ContentUtils {
 
 	/**
 	 * content the given document to stream
-	 * 
+	 *
 	 * @param document
 	 * @param encoding
 	 * @return XML as stream

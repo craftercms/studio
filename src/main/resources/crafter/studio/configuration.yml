@@ -1,0 +1,15 @@
+# Load additional configuration files (to override what's defined here)
+load-additional-configuration: shared/classes/crafter/studio/configuration.yml
+
+# Repository base path (all actual repositories will be under this)
+repo-base-path: repos
+# Global repository path (automatically goes under repo-base-path)
+global-repo-path: global
+# Sites repositories base path (automatically goes under repo-base-path)
+sites-repos-path: sites
+# Sandbox git repository name under every site
+sandbox-path: sandbox
+# Published git repository name under every site
+published-path: published
+# Blueprints folder name under global
+blue-prints-path: blue-prints

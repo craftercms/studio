@@ -21,12 +21,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -231,7 +229,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         //get the dependencies path that are not shared
         Map<String, String> copyDependencies = dmDependencyService.getCopyDependencies(site, sourcePageInfo.getPath(), dependencyPath);
         Map<String,String> copiedDependenices = new HashMap<String,String>();
-        
+
         for (String path: copyDependencies.keySet()) {
             String target = copyDependencies.get(path);
             String destinationPath = PathMacrosTransaltor.resolvePath(target, sourcePageInfo.getParams()); //get the new target  location
@@ -327,13 +325,13 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                     // set content history - modified date
                     Node modifiedDateNode = root.selectSingleNode("//" + DmXmlConstants.ELM_LAST_MODIFIED_DATE);
                     if (modifiedDateNode != null) {
-                        SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_MODEL);
+                        SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_MODEL);
                         String date = ContentFormatUtils.formatDate(format, new Date());
                         String formDate = ContentFormatUtils.convertToFormDate(date);
                         ((Element) modifiedDateNode).setText(formDate);
                     }
                 }
-                return ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
+                return ContentUtils.convertDocumentToStream(document, StudioConstants.CONTENT_ENCODING);
             } else {
                 return null;
             }
@@ -417,7 +415,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
                     Document document = contentService.getContentAsDocument(site, path);
                     DmPageNavigationOrderService dmPageNavigationOrderService = getService(DmPageNavigationOrderService.class);
                     dmPageNavigationOrderService.addNavOrder(site, path, document);
-                    InputStream content = ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
+                    InputStream content = ContentUtils.convertDocumentToStream(document, StudioConstants.CONTENT_ENCODING);
                     updateFileDirect(site, path, content);
                 }
             }
@@ -597,7 +595,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
 
     /**
      *
-     * If the pasted parent page already exist then duplicate the page and create copies of all the children 
+     * If the pasted parent page already exist then duplicate the page and create copies of all the children
      *
      * @param site
      * @param destination

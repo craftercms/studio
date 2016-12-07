@@ -161,6 +161,16 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         setObjectMetadata(site, path, params);
     }
 
+    @Override
+    public void updateCommitId(String site, String path, String commitId) {
+        path = path.replace("//", "/");
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("commitId", commitId);
+        objectMetadataMapper.updateCommitId(params);
+    }
+
     @Autowired
     protected ObjectMetadataMapper objectMetadataMapper;
 }

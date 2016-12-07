@@ -22,23 +22,20 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -67,8 +64,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         if (StringUtils.isNotEmpty(contentType)) {
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                    .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+            String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
+                    .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
             Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
             generalLockService.lock(cacheContext.getId());
             try {
@@ -83,7 +80,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 public ContentTypeConfigTO execute() {
                     return loadConfiguration(site, contentType);
                 }
-            }, site, configPath.replaceAll(CStudioConstants.PATTERN_SITE, site).replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType), configFileName);
+            }, site, configPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType), configFileName);
             return config;
         } else {
             return null;
@@ -91,8 +88,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     }
 
     public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
-        String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
+                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         String configFileFullPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         try {
@@ -354,8 +351,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public ContentTypeConfigTO reloadConfiguration(String site, String contentType) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
+                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
         generalLockService.lock(cacheContext.getId());
         try {

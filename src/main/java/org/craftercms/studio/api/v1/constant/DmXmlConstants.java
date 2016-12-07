@@ -27,13 +27,13 @@ package org.craftercms.studio.api.v1.constant;
  */
 public class DmXmlConstants {
     public static final String ELM_COMPONENT = "component";
-    public static final String ELM_FILE_NAME = CStudioXmlConstants.DOCUMENT_ELM_FILE_NAME;
+    public static final String ELM_FILE_NAME = StudioXmlConstants.DOCUMENT_ELM_FILE_NAME;
     public static final String ELM_FLOATING = "floating";
     public static final String ELM_PLACEINNAV = "placeInNav";
     public static final String ELM_DISABLED = "disabled";
-    public static final String ELM_INTERNAL_NAME = CStudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
-    public static final String ELM_CONTENT_TYPE = CStudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
-    public static final String ELM_DISPLAY_TEMPLATE = CStudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
+    public static final String ELM_INTERNAL_NAME = StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
+    public static final String ELM_CONTENT_TYPE = StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
+    public static final String ELM_DISPLAY_TEMPLATE = StudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
     public static final String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
     public static final String ELM_LAST_MODIFIED_BY = "lastModifiedBy";
     public static final String ELM_NAVIGATION = "navigation";

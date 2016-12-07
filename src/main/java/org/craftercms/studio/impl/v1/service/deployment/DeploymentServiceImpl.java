@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -21,7 +21,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
@@ -327,7 +327,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (deployReports != null) {
             int count = 0;
-            SimpleDateFormat deployedFormat = new SimpleDateFormat(CStudioConstants.DATE_FORMAT_DEPLOYED);
+            SimpleDateFormat deployedFormat = new SimpleDateFormat(StudioConstants.DATE_FORMAT_DEPLOYED);
             deployedFormat.setTimeZone(TimeZone.getTimeZone(servicesConfig.getDefaultTimezone(site)));
             String timezone = servicesConfig.getDefaultTimezone(site);
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
@@ -335,7 +335,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
                 if (deployedItem != null) {
                     Set<String> permissions = securityService.getUserPermissions(site, deployedItem.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
-                    if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                    if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                         deployedItem.eventDate = entry.getSyncDate();
                         deployedItem.endpoint = entry.getTarget();
                         String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
@@ -412,16 +412,16 @@ public class DeploymentServiceImpl implements DeploymentService {
             ActivityFeed activity = activityService.getDeletedActivity(site, path);
             if (activity != null) {
                 JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
-                if (summaryObject.containsKey(CStudioConstants.CONTENT_TYPE)) {
-                    String contentType = (String)summaryObject.get(CStudioConstants.CONTENT_TYPE);
+                if (summaryObject.containsKey(StudioConstants.CONTENT_TYPE)) {
+                    String contentType = (String)summaryObject.get(StudioConstants.CONTENT_TYPE);
                     item.contentType = contentType;
                 }
-                if(summaryObject.containsKey(CStudioConstants.INTERNAL_NAME)) {
-                    String internalName = (String)summaryObject.get(CStudioConstants.INTERNAL_NAME);
+                if(summaryObject.containsKey(StudioConstants.INTERNAL_NAME)) {
+                    String internalName = (String)summaryObject.get(StudioConstants.INTERNAL_NAME);
                     item.internalName = internalName;
                 }
-                if(summaryObject.containsKey(CStudioConstants.BROWSER_URI)) {
-                    String browserUri = (String)summaryObject.get(CStudioConstants.BROWSER_URI);
+                if(summaryObject.containsKey(StudioConstants.BROWSER_URI)) {
+                    String browserUri = (String)summaryObject.get(StudioConstants.BROWSER_URI);
                     item.browserUri = browserUri;
                 }
             }
@@ -449,12 +449,12 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<ContentItemTO> results = new FastArrayList();
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<CopyToEnvironment> deploying = getScheduledItems(site);
-        SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_FORMAT_SCHEDULED);
+        SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
         List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
         for (CopyToEnvironment deploymentItem : deploying) {
             String fullPath = contentService.expandRelativeSitePath(site, deploymentItem.getPath());
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(), securityService.getCurrentUser(), Collections.<String>emptyList());
-            if (permissions.contains(CStudioConstants.PERMISSION_VALUE_PUBLISH)) {
+            if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                 addScheduledItem(site, deploymentItem.getScheduledDate(), format, fullPath, results, comparator, subComparator, displayPatterns, filterType);
             }
         }
