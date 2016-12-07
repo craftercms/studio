@@ -3,6 +3,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
+    <env-entry>
+        <env-entry-name>crafter.engine.extension.base</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>classpath*:crafter/studio/extension</env-entry-value>
+    </env-entry>
+
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>classpath:crafter/engine/services/main-services-context.xml</param-value>

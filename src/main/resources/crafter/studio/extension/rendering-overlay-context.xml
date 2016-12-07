@@ -6,41 +6,25 @@
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <import resource="classpath:crafter/core/rest-context.xml"/>
-    <import resource="classpath:crafter/engine/rendering/controller-context.xml" />
-    <import resource="classpath:crafter/engine/rendering/view-context.xml" />
-
-    <!-- Used to overwrite certain <mvc:annotation-driven> configuration -->
-    <bean id="crafter.annotationDrivenConfigCustomizer" class="org.craftercms.engine.util.spring.mvc.AnnotationDrivenConfigCustomizer">
-        <property name="contentNegotiationManager" ref="crafter.contentNegotiationManager"/>
-        <property name="messageConverters" ref="crafter.messageConverters"/>
-    </bean>
-
-    <bean id="crafter.contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean"/>
-
-    <!-- Use the default message converters, overwrite if need to specify new message converters -->
-    <util:list id="crafter.messageConverters"/>
-
     <!-- ////////////////////////////////// -->
     <!--								 	-->
     <!--			Properties				-->
     <!--									-->
     <!-- ////////////////////////////////// -->
-
     <bean name="crafter.properties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="order" value="0"/>
         <property name="locations">
             <list>
                 <value>classpath:crafter/core/core.properties</value>
                 <value>classpath:crafter/engine/server-config.properties</value>
-                <value>classpath:crafter/engine/studio-server-config.properties</value>
+                <value>classpath:crafter/studio/studio-server-config.properties</value>
                 <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true" />
     </bean>
 
-<!-- STUDIO CHANGES -->
+    <!-- STUDIO CHANGES -->
 
     <!--import resource="classpath*:crafter/engine/extension/rendering-context.xml"/-->
     <bean id="crafter.httpProxyRequestHandler" class="org.craftercms.engine.controller.HttpProxyRequestHandler">
@@ -48,7 +32,7 @@
     </bean>
 
 
-     <util:map id="crafter.urlMappings">
+    <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
         <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
@@ -61,17 +45,21 @@
 
     <bean id="crafter.mainViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
         <property name="order" value="0" />
-        <property name="favorPathExtension" value="true" />
-        <!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
-        <property name="ignoreAcceptHeader" value="true" />
-        <property name="defaultContentType" value="text/html" />
-        <property name="mediaTypes">
-            <map>
-                <entry key="${crafter.engine.page.url.extension}" value="text/html" />
-                <entry key="xml" value="application/xml" />
-                <entry key="json" value="application/json" />
-                <entry key="bin" value="image/png" />
-            </map>
+        <property name="contentNegotiationManager">
+            <bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+                <property name="favorPathExtension" value="true"/>
+                <!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
+                <property name="ignoreAcceptHeader" value="true" />
+                <property name="defaultContentType" value="text/html" />
+                <property name="mediaTypes">
+                    <map>
+                        <entry key="${crafter.engine.page.url.extension}" value="text/html" />
+                        <entry key="xml" value="application/xml" />
+                        <entry key="json" value="application/json" />
+                        <entry key="bin" value="image/png" />
+                    </map>
+                </property>
+            </bean>
         </property>
         <property name="viewResolvers">
             <list>
@@ -95,7 +83,7 @@
                     <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
                     <property name="accessManager" ref="crafter.pageAccessManager"/>
                     <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
-                    
+
                 </bean>
             </list>
         </property>
