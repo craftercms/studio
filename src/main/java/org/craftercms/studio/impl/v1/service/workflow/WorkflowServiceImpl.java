@@ -162,7 +162,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
         try {
-
 			SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             JSONObject requestObject = JSONObject.fromObject(request);
             JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
