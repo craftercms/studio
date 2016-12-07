@@ -53,7 +53,7 @@
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
-          <property name="contentRepository" ref="cstudioContentRepository" />
+          <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
@@ -74,7 +74,7 @@
 
 
     <bean id="cstudioTransactionServiceSimple" class="org.craftercms.studio.impl.v1.service.transaction.TransactionServiceImpl">
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
@@ -86,7 +86,7 @@
         </property>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
         <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
@@ -116,7 +116,7 @@
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
@@ -159,7 +159,7 @@
          <property name="siteService" ref="cstudioSiteServiceSimple" />
          <property name="objectStateService" ref="cstudioObjectStateService" />
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-         <property name="contentRepository" ref="cstudioContentRepository"/>
+         <property name="contentRepository" ref="contentRepository"/>
          <property name="deployerFactory" ref="cstudioDeployerFactory"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
@@ -208,7 +208,7 @@
         <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
@@ -281,7 +281,7 @@
         <property name="configPath"><value>${contentTypeService.configPath}</value></property>
         <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl" >
@@ -298,7 +298,7 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="contentRepository" ref="contentRepository" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
@@ -519,7 +519,7 @@
           parent="cstudioRepositoryJob">
         <property name="transactionService" ref="cstudioTransactionServiceSimple" />
         <property name="publishingManager" ref="cstudioPublishingManager" />
-        <property name="contentRepository" ref="cstudioContentRepository" />
+        <property name="contentRepository" ref="contentRepository" />
         <property name="processingChunkSize" value="${deployContentToEnvironmentJob.processingChunkSize}" />
         <property name="masterPublishingNode" value="${deploymentWorkers.masterPublishingNode}" />
         <property name="mandatoryDependenciesCheckEnabled" value="${deployContentToEnvironmentJob.mandatoryDependenciesCheckEnabled}" />
@@ -617,42 +617,11 @@
     <!-- ////////////////////////////////////// -->
     <!--         repository layer               -->
     <!-- ////////////////////////////////////// -->
-    <bean id="cstudioContentRepository" class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepository">
-        <property name="repositoryType" value="${repositoryType}"/>
-    </bean>
-
-    <bean id="cstudioContentRepositoryRegistration"
-          abstract="true"
-          class="org.craftercms.studio.impl.v1.repository.mapped.MappedContentRepositoryRegistration"
-          init-method="registerRepository">
-        <property name="mappedContentRepository" ref="cstudioContentRepository"/>
-    </bean>
-
-    <!-- default option -->
-    <bean id="cstudioDiskContentRepository"
-        class="org.craftercms.studio.impl.v1.repository.disk.DiskContentRepository"
-        init-method="bootstrap">
-        <property name="rootPath" value="${repository.diskImplementation.path}" />
-        <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
-    </bean>
-
-    <bean id="cstudioDiskContentRepositoryRegistration"
-          parent="cstudioContentRepositoryRegistration">
-        <property name="contentRepository" ref="cstudioDiskContentRepository"/>
-        <property name="repositoryType" value="default"/>
-    </bean>
-
-    <bean id="cstudioGitContentRepository"
+    <bean id="contentRepository"
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="rootPath" value="${repository.gitImplementation.path}" />
         <property name="bootstrapEnabled" value="${crafter.repository.bootstrapEnabled}"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
-    </bean>
-
-    <bean id="cstudioGitContentRepositoryRegistration"
-          parent="cstudioContentRepositoryRegistration">
-        <property name="contentRepository" ref="cstudioGitContentRepository"/>
-        <property name="repositoryType" value="git"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -865,7 +834,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
     <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">
@@ -892,7 +861,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">
@@ -943,7 +912,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="repositoryRootPath" value="${repository.gitImplementation.path}"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
     <bean id="studioPreviewDeployer" factory-bean="cstudioDeployerFactory" factory-method="createPreviewDeployer"/>
@@ -961,7 +930,7 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
-        <property name="contentRepository" ref="cstudioContentRepository"/>
+        <property name="contentRepository" ref="contentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
