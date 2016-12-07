@@ -19,14 +19,12 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
-import com.google.gdata.data.Person;
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -75,6 +73,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public static final String GIT_ROOT = ".git";
     public static final String INITIAL_COMMIT = "Initial commit.";
+    public static final String GIT_COMMIT_ALL_ITEMS = ".";
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
@@ -645,33 +644,74 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
-        // create git repository for site content
-        createSiteRepository(siteId);
-        // copy files from blueprint
-        copyContentFromBlueprint(blueprintName, siteId);
-        // commit everything so it is visible
-        createInitialCommit(siteId);
+        boolean toReturn;
 
-        return true;
+        // create git repository for site content
+        toReturn = createSiteRepository(siteId);
+
+        if (toReturn) {
+            // copy files from blueprint
+            toReturn = copyContentFromBlueprint(blueprintName, siteId);
+        }
+
+        if (toReturn) {
+            // commit everything so it is visible
+            toReturn = performInitialCommit(siteId, INITIAL_COMMIT);
+        }
+
+        return toReturn;
+    }
+
+    private Repository createGitRepository(Path path) {
+        Repository toReturn;
+
+        try {
+            // TODO: SJ: This needs to be refactored to the following:
+            // TODO: SJ: If the site exists, return that information to the caller so they can decide what to do
+            // TODO: SJ: and don't take any action. If the site doesn't exist, go ahead and create
+            Files.deleteIfExists(path);
+            path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
+            toReturn = FileRepositoryBuilder.create(path.toFile());
+            toReturn.create();
+        } catch (IOException e) {
+            logger.error("Error while creating repository for site with path" + path.toString(), e);
+            toReturn = null;
+        }
+
+        return toReturn;
     }
 
     private boolean createSiteRepository(String site) {
-        boolean success = true;
-        Path siteRepoPath = Paths.get(rootPath, "sites", site);
-        try {
-            Files.deleteIfExists(siteRepoPath);
-            siteRepoPath = Paths.get(siteRepoPath.toAbsolutePath().toString(), GIT_ROOT);
-            Repository repository = FileRepositoryBuilder.create(siteRepoPath.toFile());
-            repository.create();
-            // TODO: SJ: We need to create two repositories: Sandbox and Published and put them in the Maps
-        } catch (IOException e) {
-            logger.error("Error while creating repository for site " + site, e);
-            success = false;
+        boolean toReturn;
+        Repository sandboxRepo = null;
+        Repository publishedRepo = null;
+
+        // Build a path for the site/sandbox
+        Path siteSandboxPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
+        // Built a path for the site/published
+        Path sitePublishedPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH), site);
+
+        // Create Sandbox
+        sandboxRepo = createGitRepository(siteSandboxPath);
+
+        // Create Published
+        if (sandboxRepo != null) {
+            publishedRepo = createGitRepository(sitePublishedPath);
         }
-        return success;
+
+        toReturn = (sandboxRepo != null) && (publishedRepo != null);
+
+        if (toReturn) {
+            sandboxes.put(site, sandboxRepo);
+            published.put(site, publishedRepo);
+        }
+
+        return toReturn;
     }
 
-    private void copyContentFromBlueprint(String blueprint, String site) {
+    private boolean copyContentFromBlueprint(String blueprint, String site) {
+        boolean toReturn = true;
+
         // Build a path to the Sandbox repo we'll be copying to
         Path siteRepoPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
         // Build a path to the blueprint
@@ -684,10 +724,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
         } catch (IOException err) {
             logger.error("Error copping files from blueprint", err);
+            toReturn = false;
         }
 
-        // TODO: SJ: This method fails with a log without reporting upwards for the UI to tell the user we failed
-        // FIXME: SJ: Fix this so it would report failure to caller in addition to logging
+        return toReturn;
     }
 
     class TreeCopier implements FileVisitor<Path> {
@@ -742,8 +782,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    private void createInitialCommit(String site) {
-        String toRet = StringUtils.EMPTY;
+    private boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {
+        // TODO: SJ: Define this further and build it along with API & Content Service equivalent with business logic
+        // write all files to disk
+        // commit all files
+        // return data structure of file name & commit id per file
+        // the caller will update the database
+        //
+        // considerations:
+        //   accept a zip file
+        //   accept a root folder or allow nesting
+        //   content service should call this and then update the database
+        //   find an efficient way to bulk write the files and then do a single commit across all
+        return false;
+    }
+
+    private boolean performInitialCommit(String site, String message) {
+        // FIXME: fix this
+        boolean toReturn = true;
+
         try {
             Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
                 site);
@@ -753,15 +810,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             Status status = git.status().call();
 
             if (status.hasUncommittedChanges() || !status.isClean()) {
-                DirCache dirCache = git.add().addFilepattern(".").call();
+                DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                 RevCommit commit = git.commit()
-                        .setMessage(INITIAL_COMMIT)
+                        .setMessage(message)
                         .call();
-                toRet = commit.getId().toString();
+                // TODO: SJ: Do we need the commit id?
+                // commitId = commit.getId().toString();
             }
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);
+            toReturn = false;
         }
+
+        return toReturn;
     }
 
     // SJ: Helper methods
