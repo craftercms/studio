@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -23,15 +23,15 @@ import java.util.Date;
 
 /**
  * This class stores Site Configuration
- * 
+ *
  * @author hyanghee
  * @autho Dejan Brkic
- * 
+ *
  */
 public class SiteConfigTO implements Serializable {
 
 	/**
-	 * 
+	 *
 	 */
 	protected static final long serialVersionUID = 3411780412457597813L;
 
@@ -65,16 +65,16 @@ public class SiteConfigTO implements Serializable {
 
 	/** a map of namespaces and types **/
 	//protected Map<String, QName> _namespaceToTypeMap = null;
-	
+
 	/** the last updated date of site configuration **/
 	protected Date lastUpdated = null;
 
     /** web project configuration if the site is dm-based **/
     protected RepositoryConfigTO repositoryConfig = null;
-	
+
 	/** default search configuration for all content type **/
 	//protected SearchConfigTO _defaultSearchConfig = null;
-	
+
 	/** default timezone **/
 	protected String timezone = null;
 
@@ -108,7 +108,7 @@ public class SiteConfigTO implements Serializable {
     public void setSiteName(String siteName) {
         this.siteName = siteName;
     }*/
-	
+
 	/**
 	 * @return the name
 	 */
@@ -205,18 +205,18 @@ public class SiteConfigTO implements Serializable {
 
 	/**
 	 * get the content asset download URL template
-	 * 
+	 *
 	 * @param site
 	 * @param id
 	 * @param contentType
-	 * @return the content asset download URL 
+	 * @return the content asset download URL
 	 *//*
 	public String getAssetUrlTemplate(String site, Long id, String contentType) {
 		if (!StringUtils.isEmpty(_assetUrl)) {
-			return _assetUrl.replaceFirst(CStudioConstants.PATTERN_SITE, site)
-					.replaceFirst(CStudioConstants.PATTERN_ID, String.valueOf(id))
-					.replaceFirst(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
-		} 
+			return _assetUrl.replaceFirst(StudioConstants.PATTERN_SITE, site)
+					.replaceFirst(StudioConstants.PATTERN_ID, String.valueOf(id))
+					.replaceFirst(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
+		}
 		return null;
 	}*/
 

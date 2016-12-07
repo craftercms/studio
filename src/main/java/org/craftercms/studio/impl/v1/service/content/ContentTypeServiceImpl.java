@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -38,7 +37,6 @@ import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -239,7 +237,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     public void reloadConfiguration(String site) {
-        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+        String contentTypesRootPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site);
         RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
@@ -251,7 +249,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
-        String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
+        String contentTypesRootPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + "/" + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);

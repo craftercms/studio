@@ -18,12 +18,12 @@
 package org.craftercms.studio.api.v1.constant;
 
 /**
- * CStudio Xml constants 
- * 
+ * CStudio Xml constants
+ *
  * @author hyanghee
  *
  */
-public class CStudioXmlConstants {
+public class StudioXmlConstants {
 
 	/** xml document root names **/
 	public static final String DOCUMENT_MODEL_DATA = "model-data";
@@ -64,7 +64,7 @@ public class CStudioXmlConstants {
 	public static final String DOCUMENT_CATEGORY_PARENT_LANGUAGE_ID = "languageid";
 	public static final String DOCUMENT_CATEGORY_PARENT_BANNER_SECTION = "bannersection";
 	public static final String DOCUMENT_CATEGORY_PARENT_BANNER_SECTION_ID = "bannersectionid";
-	
+
 	/** xml document attribute names **/
 	public static final String DOCUMENT_ATTR_DESCRIPTION = "description";
 	public static final String DOCUMENT_ATTR_ID = "id";
@@ -82,7 +82,7 @@ public class CStudioXmlConstants {
 	public static final String DOCUMENT_ELM_GROUPS_NODE = "groups/group";
 	public static final String DOCUMENT_ELM_USER_NODE = "users/user";
 	public static final String DOCUMENT_ELM_PERMISSION_ROLE = "role";
-	public static final String DOCUMENT_ELM_PERMISSION_RULE = "rule";	
+	public static final String DOCUMENT_ELM_PERMISSION_RULE = "rule";
 	public static final String DOCUMENT_ELM_SITE = "site";
 	public static final String DOCUMENT_ATTR_REGEX= "@regex";
 	public static final String DOCUMENT_ATTR_PERMISSIONS_NAME= "@name";

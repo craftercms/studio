@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
@@ -131,8 +131,8 @@ public class SiteServiceImpl implements SiteService {
 			configPath = this.configRoot + path;
 		} else {
 			if (applyEnv) {
-				configPath = this.environmentConfigPath.replaceAll(CStudioConstants.PATTERN_SITE, site).replaceAll(
-						CStudioConstants.PATTERN_ENVIRONMENT, environment)
+				configPath = this.environmentConfigPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
+						StudioConstants.PATTERN_ENVIRONMENT, environment)
 						+ path;
 			} else {
 				configPath = this.sitesConfigPath + path;
@@ -581,7 +581,7 @@ public class SiteServiceImpl implements SiteService {
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
+        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(StudioConstants.PATTERN_SITE, site), "SiteTO");
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

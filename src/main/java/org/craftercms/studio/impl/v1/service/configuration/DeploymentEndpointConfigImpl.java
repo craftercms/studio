@@ -21,20 +21,16 @@ package org.craftercms.studio.impl.v1.service.configuration;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
-import org.craftercms.core.service.Context;
-import org.craftercms.core.store.ContentStoreAdapter;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.DeploymentConfigTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.api.v1.to.TimeStamped;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -48,7 +44,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
 
     protected DeploymentConfigTO loadConfiguration(String key) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key);
+        String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, key);
         siteConfigPath = siteConfigPath + "/" + configFileName;
         Document document = null;
         DeploymentConfigTO config = null;
@@ -60,50 +56,50 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
         if (document != null) {
             Element root = document.getRootElement();
             config = new DeploymentConfigTO();
-            List<Element> endpoints = root.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ROOT);
+            List<Element> endpoints = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ROOT);
             for (Element endpointElm : endpoints) {
                 DeploymentEndpointConfigTO endpointConfig = new DeploymentEndpointConfigTO();
 
-                String name = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_NAME);
+                String name = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_NAME);
                 endpointConfig.setName(name);
 
-                String type = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_TYPE);
+                String type = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_TYPE);
                 endpointConfig.setType(type);
 
-                String serverUrl = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SERVER_URL);
+                String serverUrl = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SERVER_URL);
                 endpointConfig.setServerUrl(serverUrl);
 
-                String versionUrl = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_VERSION_URL);
+                String versionUrl = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_VERSION_URL);
                 endpointConfig.setVersionUrl(versionUrl);
 
-                String password = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PASSWORD);
+                String password = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PASSWORD);
                 endpointConfig.setPassword(password);
 
-                String target = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_TARGET);
+                String target = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_TARGET);
                 endpointConfig.setTarget(target);
 
-                String siteId = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SITE_ID);
+                String siteId = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SITE_ID);
                 endpointConfig.setSiteId(siteId);
 
-                String sendMetadataStr = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SEND_METADATA);
+                String sendMetadataStr = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_SEND_METADATA);
                 boolean sendMetadataVal = (StringUtils.isNotEmpty(sendMetadataStr)) && Boolean.parseBoolean(sendMetadataStr);
                 endpointConfig.setSendMetadata(sendMetadataVal);
 
-                List<Element> excludePatternElms = endpointElm.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_EXCLUDE_PATTERN + "/" + CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PATTERN);
+                List<Element> excludePatternElms = endpointElm.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_EXCLUDE_PATTERN + "/" + StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PATTERN);
                 List<String> excludePatternStrs = new ArrayList<>();
                 for (Element patternElem : excludePatternElms) {
                     excludePatternStrs.add(patternElem.getText());
                 }
                 endpointConfig.setExcludePattern(excludePatternStrs);
 
-                List<Element> includePatternElms = endpointElm.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_INCLUDE_PATTERN + "/" + CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PATTERN);
+                List<Element> includePatternElms = endpointElm.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_INCLUDE_PATTERN + "/" + StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_PATTERN);
                 List<String> includePatternStrs = new ArrayList<>();
                 for (Element patternElem : includePatternElms) {
                     includePatternStrs.add(patternElem.getText());
                 }
                 endpointConfig.setIncludePattern(includePatternStrs);
 
-                String bucketSizeStr = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_BUCKET_SIZE);
+                String bucketSizeStr = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_BUCKET_SIZE);
                 if (StringUtils.isNotEmpty(bucketSizeStr)) {
                     try {
                         int bucketSizeVal = Integer.parseInt(bucketSizeStr);
@@ -118,10 +114,10 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
                     LOGGER.info(String.format("Default bucket size (%d) will be used for endpoint [%s]", endpointConfig.getBucketSize(), name));
                 }
 
-                String statusUrl = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_STATUS_URL);
+                String statusUrl = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_STATUS_URL);
                 endpointConfig.setStatusUrl(statusUrl);
 
-                String orderStr = endpointElm.valueOf(CStudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ORDER);
+                String orderStr = endpointElm.valueOf(StudioXmlConstants.DOCUMENT_ELM_ENDPOINT_ORDER);
                 if (StringUtils.isNotEmpty(orderStr)) {
                     try {
                         int orderVal = Integer.parseInt(orderStr);
@@ -158,7 +154,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
             public DeploymentConfigTO execute() {
                 return loadConfiguration(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         if (config != null) {
             return config.getEndpoint(endpoint);
         }
@@ -175,7 +171,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
             public DeploymentConfigTO execute() {
                 return loadConfiguration(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         return config;
     }
 
@@ -183,7 +179,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     public void reloadConfiguration(String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

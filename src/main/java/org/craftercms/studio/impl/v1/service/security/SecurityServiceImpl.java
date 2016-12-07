@@ -31,8 +31,8 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.constant.CStudioXmlConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -114,13 +114,13 @@ public class SecurityServiceImpl implements SecurityService {
                 public PermissionsConfigTO execute() {
                     return loadConfiguration(site, roleMappingsFileName);
                 }
-            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
+            }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), roleMappingsFileName);
             PermissionsConfigTO permissionsConfig = cacheTemplate.getObject(cacheContext, new Callback<PermissionsConfigTO>() {
                 @Override
                 public PermissionsConfigTO execute() {
                     return loadConfiguration(site, permissionsFileName);
                 }
-            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
+            }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), permissionsFileName);
             Set<String> roles = new HashSet<String>();
             addUserRoles(roles, site, user);
             addGroupRoles(roles, site, groups, rolesConfig);
@@ -133,9 +133,9 @@ public class SecurityServiceImpl implements SecurityService {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
                     boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
                     if (!isAllowed) {
-                        logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         // If no default role is set
-                        permissions.add(CStudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         return permissions;
                     }
                 } catch (ServiceException e) {
@@ -208,11 +208,11 @@ public class SecurityServiceImpl implements SecurityService {
                     }
                     if (ruleNodes != null && !ruleNodes.isEmpty()) {
                         for (Node ruleNode : ruleNodes) {
-                            String regex = ruleNode.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_REGEX);
+                            String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
                             if (path.matches(regex)) {
                                 logger.debug("Global permissions found by matching " + regex + " for " + role);
 
-                                List<Node> permissionNodes = ruleNode.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                                List<Node> permissionNodes = ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
                                     logger.debug("adding global permissions " + permission + " to " + path + " for " + role);
@@ -221,20 +221,20 @@ public class SecurityServiceImpl implements SecurityService {
                             }
                         }
                     } else {
-                        logger.debug("No default role is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                        logger.debug("No default role is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
                         // If no default role is set
-                        permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                        permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                     }
                 } else {
-                    logger.debug("No default site is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                    logger.debug("No default site is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
                     // If no default site is set
-                    permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                    permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                 }
             }
         } else {
-            logger.debug("No user or group matching found. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+            logger.debug("No user or group matching found. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
             // If user or group did not match the roles-mapping file
-            permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+            permissions.add(StudioConstants.PERMISSION_VALUE_READ);
         }
         return permissions;
     }
@@ -283,7 +283,7 @@ public class SecurityServiceImpl implements SecurityService {
                 public PermissionsConfigTO execute() {
                     return loadConfiguration(site, roleMappingsFileName);
                 }
-            }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
+            }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), roleMappingsFileName);
             Set<String> userRoles = new HashSet<String>();
             if (rolesConfig != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
@@ -348,11 +348,11 @@ public class SecurityServiceImpl implements SecurityService {
                     }
                     if (ruleNodes != null && !ruleNodes.isEmpty()) {
                         for (Node ruleNode : ruleNodes) {
-                            String regex = ruleNode.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_REGEX);
+                            String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
                             if (path.matches(regex)) {
                                 logger.debug("Permissions found by matching " + regex + " for " + role + " in " + site);
 
-                                List<Node> permissionNodes = ruleNode.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                                List<Node> permissionNodes = ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
                                     logger.debug("adding permissions " + permission + " to " + path + " for " + role + " in " + site);
@@ -361,26 +361,26 @@ public class SecurityServiceImpl implements SecurityService {
                             }
                         }
                     } else {
-                        logger.debug("No default role is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                        logger.debug("No default role is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
                         // If no default role is set
-                        permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                        permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                     }
                 } else {
-                    logger.debug("No default site is set. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+                    logger.debug("No default site is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
                     // If no default site is set
-                    permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+                    permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                 }
             }
         } else {
-            logger.debug("No user or group matching found. adding default permission: " + CStudioConstants.PERMISSION_VALUE_READ);
+            logger.debug("No user or group matching found. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
             // If user or group did not match the roles-mapping file
-            permissions.add(CStudioConstants.PERMISSION_VALUE_READ);
+            permissions.add(StudioConstants.PERMISSION_VALUE_READ);
         }
         return permissions;
     }
 
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
-        String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+        String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
         String siteConfigFullPath = siteConfigPath + "/" + filename;
         Document document = null;
         PermissionsConfigTO config = null;
@@ -411,13 +411,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     @SuppressWarnings("unchecked")
     protected void loadRoles(Element root, PermissionsConfigTO config) {
-        if (root.getName().equals(CStudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
+        if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
             Map<String, List<String>> rolesMap = new HashMap<String, List<String>>();
 
-            List<Node> userNodes = root.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_USER_NODE);
+            List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
             rolesMap = getRoles(userNodes, rolesMap);
 
-            List<Node> groupNodes = root.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
+            List<Node> groupNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
             rolesMap = getRoles(groupNodes, rolesMap);
 
             config.setRoles(rolesMap);
@@ -427,9 +427,9 @@ public class SecurityServiceImpl implements SecurityService {
     @SuppressWarnings("unchecked")
     protected Map<String, List<String>> getRoles(List<Node> nodes, Map<String, List<String>> rolesMap) {
         for (Node node : nodes) {
-            String name = node.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
             if (!StringUtils.isEmpty(name)) {
-                List<Node> roleNodes = node.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+                List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
                 List<String> roles = new ArrayList<String>();
                 for (Node roleNode : roleNodes) {
                     roles.add(roleNode.getText());
@@ -442,17 +442,17 @@ public class SecurityServiceImpl implements SecurityService {
 
     @SuppressWarnings("unchecked")
     protected void loadPermissions(Element root, PermissionsConfigTO config) {
-        if (root.getName().equals(CStudioXmlConstants.DOCUMENT_PERMISSIONS)) {
+        if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
             Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<String, Map<String, List<Node>>>();
-            List<Node> siteNodes = root.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_SITE);
+            List<Node> siteNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_SITE);
             for (Node siteNode : siteNodes) {
-                String siteId = siteNode.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_SITE_ID);
+                String siteId = siteNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_SITE_ID);
                 if (!StringUtils.isEmpty(siteId)) {
-                    List<Node> roleNodes = siteNode.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+                    List<Node> roleNodes = siteNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
                     Map<String, List<Node>> rules = new HashMap<String, List<Node>>();
                     for (Node roleNode : roleNodes) {
-                        String roleName = roleNode.valueOf(CStudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                        List<Node> ruleNodes = roleNode.selectNodes(CStudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
+                        String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                        List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
                         rules.put(roleName, ruleNodes);
                     }
                     permissionsMap.put(siteId, rules);
@@ -537,8 +537,8 @@ public class SecurityServiceImpl implements SecurityService {
     public void reloadConfiguration(String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
-        Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
+        Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), permissionsFileName);
+        Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), roleMappingsFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

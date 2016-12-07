@@ -33,7 +33,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -64,9 +64,9 @@ import org.dom4j.Node;
  */
 @Deprecated
 public class NotificationServiceImpl implements NotificationService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
-    
+
     /** message type key to match configuration **/
     protected static final String MESSAGE_MACRO_REJECT_MESSAGE = "$reject-message";
     protected static final String MESSAGE_REJECTION = "rejection";
@@ -92,49 +92,49 @@ public class NotificationServiceImpl implements NotificationService {
     protected String configFileName;
     protected CacheTemplate cacheTemplate;
     protected boolean isNewNotificationEnable;
-    
-    
+
+
     protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
     protected static final String VAR_REASON = "[REASON]";
     protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notification";
     protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notification template [NOTIFICATION_TEMPLATE] has not been not configured.";
-    
-    
-    
+
+
+
     public String getPreviewBaseUrl() {
         return previewBaseUrl;
     }
-    
+
     public void setPreviewBaseUrl(String previewBaseUrl) {
         this.previewBaseUrl = previewBaseUrl;
     }
-    
+
     public String getLiveBaseUrl() {
         return liveBaseUrl;
     }
-    
+
     public void setLiveBaseUrl(String liveBaseUrl) {
         this.liveBaseUrl = liveBaseUrl;
     }
-    
+
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
-    
+
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
-    
+
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
-    
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
-    
+
     public String getConfigPath() { return configPath; }
     public void setConfigPath(String configPath) { this.configPath = configPath; }
-    
+
     public String getConfigFileName() { return configFileName; }
     public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
-    
+
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
@@ -144,7 +144,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public boolean sendNotice(String site, String action) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Boolean sendNotice = config.getSendNoticeMapping().get(action);
@@ -152,10 +152,10 @@ public class NotificationServiceImpl implements NotificationService {
                 return sendNotice.booleanValue();
             }
         }
-        
+
         return true;
     }
-    
+
     protected NotificationConfigTO getNotificationConfig(final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
@@ -172,13 +172,13 @@ public class NotificationServiceImpl implements NotificationService {
             public NotificationConfigTO execute() {
                 return loadConfiguration(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         return config;
     }
-    
+
     @Override
     public String getGeneralMessage(String site, String key) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getMessages();
@@ -188,10 +188,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return "";
     }
-    
+
     @Override
     public List<MessageTO> getCannedRejectionReasons(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, List<MessageTO>> messages = config.getCannedMessages();
@@ -201,9 +201,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -213,9 +213,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -225,9 +225,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -237,9 +237,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -249,9 +249,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -261,9 +261,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -273,9 +273,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -285,9 +285,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -297,9 +297,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -309,10 +309,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     @Override
     public String getCompleteMessage(final String site, final String key) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getCompleteMessages();
@@ -322,10 +322,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return "";
     }
-    
+
     @Override
     public String getErrorMessage(String site, String key, Map<String, String> params) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, String> messages = config.getErrorMessages();
@@ -339,9 +339,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return "";
     }
-    
+
     public EmailMessageTemplateTO getDeploymentFailureMessage(final String site) {
-        
+
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
             Map<String, EmailMessageTemplateTO> messages = config.getEmailMessageTemplates();
@@ -351,14 +351,14 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
+
     @Override
     public void sendContentSubmissionNotification(String site,String to,String browserUrl,String from,Date scheduledDate,boolean isPreviewable,boolean isDelete) {
-        
+
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
         String templateType = MESSAGE_CONTENT_SUBMISSION;
-        
+
         try {
             EmailMessageTemplateTO template = null;
 
@@ -377,21 +377,21 @@ public class NotificationServiceImpl implements NotificationService {
                 template = getContentSubmissionEmailMessageTemplate(site);
                 templateType = MESSAGE_CONTENT_SUBMISSION;
             }
-            
+
             message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-            
+
             if (template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
             }
-            
+
             notifyUser(site, to, message, subject, from, browserUrl, "");
         }
         catch (Exception e) {
             logger.error("Could not queue the content submission notification:",e);
         }
     }
-    
+
     @Override
     public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
         if(!isNewNotificationEnable) {
@@ -528,18 +528,18 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
     }
-    
+
     @Override
     public void sendDeleteApprovalNotification(String site, String to, String browserUrl, String from) {
-        
+
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
         String templateType = MESSAGE_DELETE_APPROVAL;
         message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-        
+
         try {
             EmailMessageTemplateTO template = getDeleteApprovalEmailMessageTemplate(site);
-            
+
             if (template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
@@ -549,11 +549,11 @@ public class NotificationServiceImpl implements NotificationService {
             logger.error("Could not queue the content delete approval notification:", e);
         }
     }
-    
+
     public void setEmailMessages(EmailMessageQueueTo emailMessages) {
         this.emailMessages=emailMessages;
     }
-    
+
     @Override
     public void sendGenericNotification(String site, String path, String to, String from, String key, Map<String,String> params) {
         try {
@@ -581,7 +581,7 @@ public class NotificationServiceImpl implements NotificationService {
             logger.error("Could not queue the notification:", e);
         }
     }
-    
+
     @Override
     public void sendDeploymentFailureNotification(String site, Throwable error) {
         try {
@@ -591,11 +591,11 @@ public class NotificationServiceImpl implements NotificationService {
             } else {
                 String subject = template.getSubject();
                 String message = template.getMessage();
-                
+
                 StringBuilder sb = new StringBuilder(message);
                 sb.append("\n\n").append(ExceptionUtils.getFullStackTrace(error));
                 message = sb.toString();
-                
+
                 List<String> toAdrresses = getNotificationConfig(site).getDeploymentFailureNotifications();
                 if (CollectionUtils.isNotEmpty(toAdrresses)) {
                     for (String toAddress : toAdrresses) {
@@ -604,9 +604,9 @@ public class NotificationServiceImpl implements NotificationService {
                             logger.error("to User is empty or Null, not sending any email");
                             return;
                         }
-                        
+
                         EmailMessageTO emailMessage = new EmailMessageTO(subject, message, toAddress);
-                        
+
                         logger.debug("Queuing notification email to: " + toAddress);
                         emailMessages.addEmailMessage(emailMessage);
                     }
@@ -616,10 +616,10 @@ public class NotificationServiceImpl implements NotificationService {
             logger.error("Could not queue the notification:", e);
         }
     }
-    
-    
+
+
     protected NotificationConfigTO loadConfiguration(final String site) {
-        String configFullPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+        String configFullPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
         configFullPath = configFullPath + "/" + configFileName;
         NotificationConfigTO config = null;
         try {
@@ -654,20 +654,20 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return config;
     }
-    
+
     protected Map<String,String> loadSubmitNotificationRules(Node node) {
         Map<String, String> submitNotificationMapping = new HashMap<String, String>();
         if (node != null) {
             Element element = (Element) node;
             List<Element> childElements = element.elements();
-            
+
             if (childElements != null && childElements.size() > 0) {
                 for (Element childElement : childElements) {
                     String regex = childElement.attributeValue("regex");
                     Node addressNode = childElement.selectSingleNode("email");
                     String value = addressNode.getText();
                     // default to true
-                    
+
                     if (!StringUtils.isEmpty(regex) && !StringUtils.isEmpty(value)) {
                         submitNotificationMapping.put(regex, value);
                     }
@@ -676,13 +676,13 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return submitNotificationMapping;
     }
-    
+
     protected List<String> loadDeploymentFailureNotifications(Node node) {
         List<String> deploymentFailureNotifications = new ArrayList<String>();
         if (node != null) {
             Element element = (Element) node;
             List<Element> childElements = element.elements();
-            
+
             if (childElements != null && childElements.size() > 0) {
                 for (Element childElement : childElements) {
                     String value = childElement.getText();
@@ -694,7 +694,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return deploymentFailureNotifications;
     }
-    
+
     /**
      * load send notice mapping
      *
@@ -720,7 +720,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return noticeMapping;
     }
-    
+
     /**
      * load messages from the given nodes
      *
@@ -742,8 +742,8 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    
+
+
     /**
      * load canned messages from the configuration file
      *
@@ -777,7 +777,7 @@ public class NotificationServiceImpl implements NotificationService {
             config.setCannedMessages(messageMap);
         }
     }
-    
+
     protected void loadEmailMessageTemplates(final NotificationConfigTO config, final List<Node> nodes) {
         if (nodes != null) {
             Map<String, EmailMessageTemplateTO> messageMap = new HashMap<String, EmailMessageTemplateTO>();
@@ -793,15 +793,15 @@ public class NotificationServiceImpl implements NotificationService {
             config.setEmailMessageTemplates(messageMap);
         }
     }
-    
-    
+
+
     @Override
     public void sendRejectionNotification(String site,String to,String browserUrl,String reason,String from, boolean isPreviewable) {
-        
+
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
         String templateType = MESSAGE_REJECTION;
-        
+
         try {
             EmailMessageTemplateTO template = null;
             if (isPreviewable) {
@@ -810,9 +810,9 @@ public class NotificationServiceImpl implements NotificationService {
                 template = this.getRejectionNonPreviewableEmailMessageTemplate(site);
                 templateType = MESSAGE_REJECTION_NON_PREVIEWABLE;
             }
-            
+
             message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-            
+
             if(template != null)
             {
                 subject=template.getSubject();
@@ -822,22 +822,22 @@ public class NotificationServiceImpl implements NotificationService {
                 message = message.replace(VAR_REASON, reason);
                 message = message.replace(MESSAGE_MACRO_REJECT_MESSAGE, reason);
             }
-            
+
             notifyUser(site,to,message,subject,from,browserUrl, reason);
         } catch(Exception e) {
             logger.error("Could not queue the rejection notification:",e);
         }
     }
-    
-    
+
+
     @Override
     public void sendApprovalNotification(String site, String to, String browserUrl, String from) {
-        
+
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
         String templateType = MESSAGE_APPROVAL;
-        
-        
+
+
         try {
             logger.debug("Sending approval notification to:" + to);
             boolean isPreviewable = true;
@@ -847,7 +847,7 @@ public class NotificationServiceImpl implements NotificationService {
             } catch (Exception e) {
                 logger.error("during Notification send item name read failed",e);
             }
-            
+
             EmailMessageTemplateTO template = null;
             if (isPreviewable) {
                 template = getApprovalEmailMessageTemplate(site);
@@ -855,9 +855,9 @@ public class NotificationServiceImpl implements NotificationService {
                 template = getApprovalNonPreviewableEmailMessageTemplate(site);
                 templateType = MESSAGE_APPROVAL_NONPREVIEWABLE ;
             }
-            
+
             message = message.replace(VAR_NOTIFICATION_TEMPLATE_NAME, templateType);
-            
+
             if(template != null) {
                 subject = template.getSubject();
                 message = template.getMessage();
@@ -867,8 +867,8 @@ public class NotificationServiceImpl implements NotificationService {
             logger.error("Could not queue the approval notification:",e);
         }
     }
-    
-    
+
+
     protected void notifyUser(final String site, final String toUser,final String content, final String subject,final String fromUser,String relativeUrl, String rejectReason) {
         if(isNewNotificationEnable){
             return;
@@ -887,19 +887,19 @@ public class NotificationServiceImpl implements NotificationService {
         String authoringBaseUrl = siteService.getAuthoringServerUrl(site);
         String adminEmailAddress = siteService.getAdminEmailAddress(site);
         String userEmailAddress="";
-        
+
         if(StringUtils.isEmpty(userEmailAddress)) {
             Map<String, String> profile = securityService.getUserProfile(toUser);
             if (profile != null) {
                 userEmailAddress = profile.get("email");
             }
         }
-        
+
         if (StringUtils.isEmpty(userEmailAddress)) {
             logger.error("Not able to find valid email address for user " + toUser + ", not sending any email");
             return;
         }
-        
+
         Map<String, String> fromProfile = securityService.getUserProfile(fromUser);
         final String userFirstName = fromProfile.get("firstName");
         final String userLastName = fromProfile.get("lastName");
@@ -918,7 +918,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (StringUtils.isNotEmpty(rejectReason)) {
             emailMessage.setRejectReason(rejectReason);
         }
-        
+
         // reading item internal-name for email title
         String itemName = "";
         boolean isDocument = false;
@@ -929,17 +929,17 @@ public class NotificationServiceImpl implements NotificationService {
         if (contentItem != null) {
             itemName = contentItem.getInternalName();
             browserUri = contentItem.getBrowserUri();
-            
+
             if (contentItem.isPreviewable() && contentItem.isDocument()) {
                 isDocument = true;
                 String documentUrlProperty = "";
             }
         }
-        
+
         String absolutePath = contentService.expandRelativeSitePath(site, relativeUrl);
         DmPathTO path = new DmPathTO(absolutePath);
         String name = path.getName();
-        
+
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativeUrl.replace("/" + name, "") : relativeUrl;
         String internalName = folderPath;
         int index = folderPath.lastIndexOf('/');
@@ -960,14 +960,14 @@ public class NotificationServiceImpl implements NotificationService {
         } else {
             emailMessage.setBrowserUrl(browserUri);
         }
-        
+
         if(replyTo != null)
             emailMessage.setReplyTo(replyTo);
-        
+
         logger.debug("Queuing notification email request for user:" + userEmailAddress);
         emailMessages.addEmailMessage(emailMessage);
     }
-    
+
     protected String getDateInSpecificTimezone(Date dt, String site) {
         String ret = "";
         try {
@@ -977,15 +977,15 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             logger.error("Date cannot be converted", e);
         }
-        
+
         return ret;
     }
-    
+
     @Override
     public void reloadConfiguration(String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {
