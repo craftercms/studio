@@ -12,14 +12,7 @@ target/*
 overlays
 createdFiles.lst
 inputFiles.lst
-.gitignore
-crafter/
-data/
-derby.log
 
 *.iml
-crafter/*
-data/*
-derby.log
 
 deploy/*
