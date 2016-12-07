@@ -22,10 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.ConfigurableServiceBase;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -71,7 +70,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (!cacheService.hasScope(cacheContext)) {
@@ -85,7 +84,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
             public EnvironmentConfigTO execute() {
                 return loadConfiguration(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
         return config;
 	}
 
@@ -97,8 +96,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 			if (!StringUtils.isEmpty(previewServerUrl)) {
 				String sandbox = null;//_servicesConfig.getSandbox(site);
 				String webProject = servicesConfig.getWemProject(site);
-				return previewServerUrl.replaceAll(CStudioConstants.PATTERN_WEB_PROJECT, webProject)
-									.replaceAll(CStudioConstants.PATTERN_SANDBOX, sandbox);
+				return previewServerUrl.replaceAll(StudioConstants.PATTERN_WEB_PROJECT, webProject)
+									.replaceAll(StudioConstants.PATTERN_SANDBOX, sandbox);
 			}
 		}
 		return "";
@@ -147,8 +146,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	protected EnvironmentConfigTO loadConfiguration(String key) {
-		String configLocation = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, key)
-				.replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment);
+		String configLocation = configPath.replaceFirst(StudioConstants.PATTERN_SITE, key)
+				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment);
 		configLocation = configLocation + "/" + configFileName;
         EnvironmentConfigTO config = null;
 		Document document = null;
@@ -247,7 +246,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     public void reloadConfiguration(String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

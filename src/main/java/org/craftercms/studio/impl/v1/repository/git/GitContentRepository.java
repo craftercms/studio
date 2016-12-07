@@ -73,6 +73,9 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware {
 
+    public static final String GIT_ROOT = ".git";
+    public static final String INITIAL_COMMIT = "Initial commit.";
+
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
     Map<String, Repository> sandboxes = new HashMap<>();
@@ -527,7 +530,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
         // TODO: SJ: Fix this: We must log and deal with failure here
-        Path siteRepoPath = Paths.get(rootPath, "global-configuration", ".git");
+        Path siteRepoPath = Paths.get(rootPath, "global-configuration", GIT_ROOT);
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);
         } else {
@@ -539,7 +542,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private Repository getSiteRepositoryInstance(String site) throws IOException {
 
-        Path siteRepoPath = Paths.get(rootPath, "sites", site, ".git");
+        Path siteRepoPath = Paths.get(rootPath, "sites", site, GIT_ROOT);
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);
         } else {
@@ -657,7 +660,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Path siteRepoPath = Paths.get(rootPath, "sites", site);
         try {
             Files.deleteIfExists(siteRepoPath);
-            siteRepoPath = Paths.get(siteRepoPath.toAbsolutePath().toString(), ".git");
+            siteRepoPath = Paths.get(siteRepoPath.toAbsolutePath().toString(), GIT_ROOT);
             Repository repository = FileRepositoryBuilder.create(siteRepoPath.toFile());
             repository.create();
             // TODO: SJ: We need to create two repositories: Sandbox and Published and put them in the Maps
@@ -669,16 +672,22 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     private void copyContentFromBlueprint(String blueprint, String site) {
+        // Build a path to the Sandbox repo we'll be copying to
         Path siteRepoPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
+        // Build a path to the blueprint
         Path blueprintPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
             studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), studioConfiguration.getProperty(StudioConfiguration.BLUE_PRINTS_PATH), blueprint);
         EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        // Let's copy!
         TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
         try {
             Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
         } catch (IOException err) {
             logger.error("Error copping files from blueprint", err);
         }
+
+        // TODO: SJ: This method fails with a log without reporting upwards for the UI to tell the user we failed
+        // FIXME: SJ: Fix this so it would report failure to caller in addition to logging
     }
 
     class TreeCopier implements FileVisitor<Path> {
@@ -746,7 +755,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 DirCache dirCache = git.add().addFilepattern(".").call();
                 RevCommit commit = git.commit()
-                        .setMessage("initial content")
+                        .setMessage(INITIAL_COMMIT)
                         .call();
                 toRet = commit.getId().toString();
             }
@@ -847,7 +856,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String commitId = null;
         String comment = "Save file " + path;
 
-        // TODO: SJ: TODAY: Complete this
         String gitPath = getGitPath(path);
         Git git = new Git(repo);
 
@@ -858,6 +866,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("error adding file to git: site: " + site + " path: " + path, e);
         }
 
+        // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
         if (status.hasUncommittedChanges() || !status.isClean()) {
             RevCommit commit = null;
             try {
@@ -902,7 +911,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // do nothing.
             }
             try {
-                Path globalConfigRepoPath = Paths.get(globalConfigFolder.toAbsolutePath().toString(), ".git");
+                Path globalConfigRepoPath = Paths.get(globalConfigFolder.toAbsolutePath().toString(), GIT_ROOT);
                 Repository repository = FileRepositoryBuilder.create(globalConfigRepoPath.toFile());
                 repository.create();
             } catch (IOException e) {
@@ -930,7 +939,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (status.hasUncommittedChanges() || !status.isClean()) {
                     DirCache dirCache = git.add().addFilepattern(".").call();
                     RevCommit commit = git.commit()
-                            .setMessage("initial content")
+                            .setMessage(INITIAL_COMMIT)
                             .call();
                     String tmp = commit.getId().toString();
                 }

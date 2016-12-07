@@ -23,12 +23,11 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
@@ -113,7 +112,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     protected SiteConfigTO getSiteConfig(final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (!cacheService.hasScope(cacheContext)) {
@@ -127,7 +126,7 @@ public class ServicesConfigImpl implements ServicesConfig {
             public SiteConfigTO execute() {
                 return loadConfiguration(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         return config;
     }
 
@@ -264,7 +263,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 */
 	 @SuppressWarnings("unchecked")
      protected SiteConfigTO loadConfiguration(String site) {
-         String siteConfigPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+         String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
 
          Document document = null;
          SiteConfigTO siteConfig = null;
@@ -421,7 +420,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     public void reloadConfiguration(String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

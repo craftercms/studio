@@ -18,7 +18,7 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -104,8 +104,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @return path of the script
      */
     protected String getScriptPath(String site, String contentType) {
-        String location = scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        String location = scriptLocation.replaceAll(StudioConstants.PATTERN_SITE, site)
+                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         return location;
     }
 
@@ -128,7 +128,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         model.put(DmConstants.KEY_SITE, site);
         model.put(DmConstants.KEY_PATH, path);
         model.put(DmConstants.KEY_FULL_PATH, contentService.expandRelativeSitePath(site, path));
-        
+
         user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
         model.put(DmConstants.KEY_USER, user);
         model.put(DmConstants.KEY_CONTENT_TYPE, contentType);

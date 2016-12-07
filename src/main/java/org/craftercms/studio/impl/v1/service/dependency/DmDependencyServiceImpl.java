@@ -21,7 +21,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
@@ -1161,7 +1161,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         } catch (IOException e) {
             throw new ServiceException("Unable to replace dependencies " + e);
         }
-        return ContentUtils.convertDocumentToStream(document, CStudioConstants.CONTENT_ENCODING);
+        return ContentUtils.convertDocumentToStream(document, StudioConstants.CONTENT_ENCODING);
     }
 
     /**

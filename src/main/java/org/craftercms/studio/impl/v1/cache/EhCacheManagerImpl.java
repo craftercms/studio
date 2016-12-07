@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.cache;
 
 import org.craftercms.studio.api.v1.cache.Scope;
 import org.craftercms.studio.api.v1.cache.ThreadSafeCacheManager;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.GoLiveQueue;
 
@@ -129,10 +129,10 @@ public class EhCacheManagerImpl implements ThreadSafeCacheManager {
     public void invalidateAndRemoveFromQueue(String fullpath, String site) {
         DmPathTO pathTO = new DmPathTO(fullpath);
         String path = pathTO.getRelativePath();
-        GoLiveQueue queue = (GoLiveQueue) get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY,site);
+        GoLiveQueue queue = (GoLiveQueue) get(Scope.DM_SUBMITTED_ITEMS, StudioConstants.DM_GO_LIVE_CACHE_KEY,site);
         if (null != queue) {
             queue.remove(path);
-        }        
+        }
     }
 
     public EhCacheAdapter<CacheKey, Serializable> getEhCacheAdapter() {

@@ -27,7 +27,7 @@ import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.engine.exception.ConfigurationException;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -267,7 +267,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected Map<String, NotificationConfigTO> loadConfig(final String site) {
         notificationConfiguration = new HashMap<>();
         if (enable) {
-            String configFullPath = configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site);
+            String configFullPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
             configFullPath = configFullPath + "/" + configFileName;
             try {
                 Document document = contentService.getContentAsDocument(site, configFullPath);
@@ -401,7 +401,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (enable) {
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site)
+            Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site)
                 , configFileName);
             generalLockService.lock(cacheContext.getId());
             try {
@@ -440,7 +440,7 @@ public class NotificationServiceImpl implements NotificationService {
             public Map<String, NotificationConfigTO> execute() {
                 return loadConfig(site);
             }
-        }, site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
+        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
 
         Locale realLocale = locale;
         if (locale == null) {

@@ -17,9 +17,8 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -74,7 +73,7 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
         // Find js location
         String scriptPath = getScriptPath(site, contentType);
         if (contentService.contentExists(site, scriptPath)) {
-            
+
             Map<String, Object> model = new HashMap<String, Object>();
             // put any script object needed
             if (scriptObjects != null && scriptObjects.size() > 0) {
@@ -126,8 +125,8 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
      * @return path of the script
      */
     protected String getScriptPath(String site, String contentType) {
-        String location = scriptLocation.replaceAll(CStudioConstants.PATTERN_SITE, site)
-                .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
+        String location = scriptLocation.replaceAll(StudioConstants.PATTERN_SITE, site)
+                .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         return location;
     }
 

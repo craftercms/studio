@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.executor;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.CStudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -73,7 +73,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                 InputStream newByteArrayStream=null;
                 try {
                     newByteArrayStream = (inputBytesFinal != null) ? new ByteArrayInputStream(inputBytesFinal) : null;
-                    final PipelineContent content = new PipelineContentImpl(id, newByteArrayStream, isXml, null, CStudioConstants.CONTENT_ENCODING, params);
+                    final PipelineContent content = new PipelineContentImpl(id, newByteArrayStream, isXml, null, StudioConstants.CONTENT_ENCODING, params);
                     chain.processContent(content, result);
 
                 } catch (ContentProcessException e) {
