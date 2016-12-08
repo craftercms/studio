@@ -532,7 +532,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
         // TODO: SJ: Fix this: We must log and deal with failure here
-        Path siteRepoPath = Paths.get("global-configuration", GIT_ROOT);
+        Path siteRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), GIT_ROOT);
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);
         } else {
@@ -1006,7 +1007,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
                 try {
-                    Repository globalConfigRepo = getGlobalConfigurationRepositoryInstance();
+                    Repository globalConfigRepo = getRepository(GitRepositories.GLOBAL, null);
 
                     Git git = new Git(globalConfigRepo);
 
@@ -1018,7 +1019,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                         git.commit().setMessage(INITIAL_COMMIT).call();
                     }
-                } catch (IOException | GitAPIException err) {
+                } catch (GitAPIException err) {
                     logger.error("error creating initial commit for global configuration", err);
                 }
             }
