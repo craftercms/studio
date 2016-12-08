@@ -180,9 +180,14 @@ public class GitContentRepositoryHelper {
     }
 
     public String getGitPath(String path) {
-        String gitPath = path.replaceAll("/+", "/");
-        gitPath = gitPath.replaceAll("^/", "");
-        return gitPath;
+        Path gitPath = Paths.get(path);
+        gitPath = gitPath.normalize();
+        try {
+            gitPath = Paths.get("/").relativize(gitPath);
+        } catch (IllegalArgumentException e) {
+            logger.debug("Path: " + path + " is already relative path.");
+        }
+        return gitPath.toString();
     }
 
     public AbstractTreeIterator prepareTreeParser(Repository repository, String ref) throws IOException,
