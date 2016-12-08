@@ -1,7 +1,7 @@
 # Load additional configuration files (to override what's defined here)
 load-additional-configuration: shared/classes/crafter/studio/configuration.yml
 
-# Repository base path (all actual repositories will be under this)
+# Absolute or relative path to repository base (all actual repositories will be under this)
 repo-base-path: repos
 # Global repository path (automatically goes under repo-base-path)
 global-repo-path: global
@@ -13,3 +13,5 @@ sandbox-path: sandbox
 published-path: published
 # Blueprints folder name under global
 blue-prints-path: blue-prints
+# Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
+bootstrap-repo: true
