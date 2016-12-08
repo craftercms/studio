@@ -1,5 +1,6 @@
 /*
- * Crafter Studio Web-content authoring solution
+ * Crafter Studio
+ *
  * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,9 +20,25 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import javax.servlet.ServletContext;
+
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -36,66 +53,39 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TagCommand;
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.io.SafeBufferedOutputStream;
 import org.springframework.web.context.ServletContextAware;
 
-import javax.servlet.ServletContext;
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware {
 
-    public static final String GIT_ROOT = ".git";
-    public static final String INITIAL_COMMIT = "Initial commit.";
-    public static final String GIT_COMMIT_ALL_ITEMS = ".";
-
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
-
-    Map<String, Repository> sandboxes = new HashMap<>();
-    Map<String, Repository> published = new HashMap<>();
-    Repository global = null; // TODO: SJ: TODAY: Must get this initialized in an init or bootstrap
-
-    // TODO: SJ: Pull these strings from properties
-    private static String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
-
-    // TODO: SJ: Inject the security provider to get information needed for writing and version creation (like author)
+    private GitContentRepositoryHelper helper = null;
 
     @Override
     public boolean contentExists(String site, String path) {
-        Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-            site);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+            .SANDBOX);
         try {
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            RevTree tree = helper.getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
             if (tw != null && tw.getObjectId(0) != null) {
                 return true;
             }
@@ -107,13 +97,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        logger.debug("getContent invoked with site: " + site + " path: " + path);
         InputStream toRet = null;
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
 
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            RevTree tree = helper.getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
 
             ObjectId id = tw.getObjectId(0);
             ObjectLoader objectLoader = repo.open(id);
@@ -130,12 +121,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Write content to git and commit it
         String result = null;
 
-        Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX, site);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+            .SANDBOX);
 
         if (repo != null) {
             // TODO: SJ: TODAY: handle errors and exceptions
-            if (writeFile(repo, site, path, content))
-                result = commitFile(repo, site, path);
+            if (helper.writeFile(repo, site, path, content))
+                result = helper.commitFile(repo, site, path);
         }
 
         return result;
@@ -146,9 +138,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean success = true;
 
         try {
-            Repository repo = getRepository(GitRepositories.SANDBOX, site);
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+                .SANDBOX);
+            RevTree tree = helper.getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
 
             FS fs = FS.detect();
             File repoRoot = repo.getWorkTree();
@@ -162,10 +155,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     .addFilepattern(gitPath)
                     .call();
 
-            PersonIdent currentUserIdent = getCurrentUserIdent();
+            PersonIdent currentUserIdent = helper.getCurrentUserIdent();
 
             RevCommit commit = git.commit()
-                    .setOnly(getGitPath(gitPath))
+                    .setOnly(helper.getGitPath(gitPath))
                     .setMessage(StringUtils.EMPTY)
                     .setCommitter(currentUserIdent)
                     .call();
@@ -180,16 +173,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean deleteContent(String site, String path) {
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
             Git git = new Git(repo);
             git.rm()
-                    .addFilepattern(getGitPath(path))
+                    .addFilepattern(helper.getGitPath(path))
                     .setCached(false)
                     .call();
 
             RevCommit commit = git.commit()
-                    .setOnly(getGitPath(path))
+                    .setOnly(helper.getGitPath(path))
                     .setMessage(StringUtils.EMPTY)
                     .call();
             return true;
@@ -209,16 +202,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean success = true;
 
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            String gitFromPath = getGitPath(fromPath);
-            RevTree fromTree = getTree(repo);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
+            String gitFromPath = helper.getGitPath(fromPath);
+            RevTree fromTree = helper.getTree(repo);
             TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
 
-            String gitToPath = getGitPath(toPath);
-            RevTree toTree = getTree(repo);
+            String gitToPath = helper.getGitPath(toPath);
+            RevTree toTree = helper.getTree(repo);
             TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
 
+            // TODO: SJ: Look into the need (if any) for FS.detect()
             FS fs = FS.detect();
             File repoRoot = repo.getWorkTree();
             Path sourcePath = null;
@@ -283,14 +277,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean success = true;
 
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            String gitFromPath = getGitPath(fromPath);
-            RevTree fromTree = getTree(repo);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
+            String gitFromPath = helper.getGitPath(fromPath);
+            RevTree fromTree = helper.getTree(repo);
             TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
 
-            String gitToPath = getGitPath(toPath);
-            RevTree toTree = getTree(repo);
+            String gitToPath = helper.getGitPath(toPath);
+            RevTree toTree = helper.getTree(repo);
             TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
 
             FS fs = FS.detect();
@@ -330,10 +324,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public RepositoryItem[] getContentChildren(String site, String path) {
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
+            RevTree tree = helper.getTree(repo);
+            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
             if (tw != null) {
                 ObjectLoader loader = repo.open(tw.getObjectId(0));
                 if (loader.getType() == Constants.OBJ_TREE) {
@@ -378,10 +372,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public VersionTO[] getContentVersionHistory(String site, String path) {
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
             ObjectId head = repo.resolve(Constants.HEAD);
-            String gitPath = getGitPath(path);
+            String gitPath = helper.getGitPath(path);
             Git git = new Git(repo);
             Iterable<RevCommit> commits = git.log()
                     .add(head)
@@ -418,13 +412,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (majorVersion) {
             try {
                 // Tag the repository with a date-time based version label
-                Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-                        .PUBLISHED, site);
+                Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.PUBLISHED);
 
-                String gitPath = getGitPath(path);
+                String gitPath = helper.getGitPath(path);
                 Git git = new Git(repo);
 
-                PersonIdent currentUserIdent = getCurrentUserIdent();
+                PersonIdent currentUserIdent = helper.getCurrentUserIdent();
                 DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 Calendar cal = Calendar.getInstance();
                 String versionLabel = dateFormat.format(cal);
@@ -461,10 +455,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
         InputStream toRet = null;
         try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            RevTree tree = getTreeForCommit(repo, version);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                    .GLOBAL:GitRepositories.SANDBOX);
+            RevTree tree = helper.getTreeForCommit(repo, version);
+            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
 
             ObjectId id = tw.getObjectId(0);
             ObjectLoader objectLoader = repo.open(id);
@@ -477,17 +471,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public Date getModifiedDate(String site, String path) {
-        throw new RuntimeException("Not Implemented");
+    public Date getModifiedDate(String site, String path)
+    {
+        throw new RuntimeException("Method not implemented.");
     }
 
     @Override
     public void lockItem(String site, String path) {
-        try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            TreeWalk tw = new TreeWalk(repo);
-            RevTree tree = getTree(repo);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+            .SANDBOX);
+
+        try (TreeWalk tw = new TreeWalk(repo)) {
+            RevTree tree = helper.getTree(repo);
             tw.addTree(tree); // tree ‘0’
             tw.setRecursive(false);
             tw.setFilter(PathFilter.create(path));
@@ -496,11 +491,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 return;
             }
 
-            FS fs = FS.detect();
             File repoRoot = repo.getWorkTree();
-            Path path1 = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
+            Paths.get(repoRoot.getPath(), tw.getPathString());
             File file = new File(tw.getPathString());
-            LockFile lock = new LockFile(file, fs); // TODO: fix me: deprecated method
+            LockFile lock = new LockFile(file);
             lock.lock();
 
             tw.close();
@@ -512,487 +506,43 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void unLockItem(String site, String path) {
-        try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, getGitPath(path), tree);
-            if (tw != null) {
-                FS fs = FS.detect();
-                File file = new File(tw.getPathString());
-                LockFile lock = new LockFile(file, fs);
-                lock.unlock();
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+            .SANDBOX);
 
-                tw.close();
-            }
-        } catch (IOException e) {
-            logger.error("Error while locking file for site: " + site + " path: " + path, e);
-        }
-    }
+        try (TreeWalk tw = new TreeWalk(repo)) {
+            RevTree tree = helper.getTree(repo);
+            tw.addTree(tree); // tree ‘0’
+            tw.setRecursive(false);
+            tw.setFilter(PathFilter.create(path));
 
-    private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
-        // TODO: SJ: Fix this: We must log and deal with failure here
-        Path siteRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), GIT_ROOT);
-        if (Files.exists(siteRepoPath)) {
-            return openGitRepository(siteRepoPath);
-        } else {
-            Files.deleteIfExists(siteRepoPath);
-            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
-        }
-        return null;
-    }
-
-    private Repository getSiteRepositoryInstance(String site) throws IOException {
-
-        Path siteRepoPath = Paths.get("sites", site, GIT_ROOT);
-        if (Files.exists(siteRepoPath)) {
-            return openGitRepository(siteRepoPath);
-        } else {
-            Files.deleteIfExists(siteRepoPath);
-            //return cloneRemoteRepository(siteConfiguration.getGitRepositoryUrl(), siteConfiguration.getLocalRepositoryRoot());
-        }
-        return null;
-    }
-
-    private Repository openGitRepository(Path repositoryPath) throws IOException {
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repository = builder
-                .setGitDir(repositoryPath.toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        return repository;
-    }
-
-    private RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
-            IOException, MissingObjectException {
-        ObjectId lastCommitId = repository.resolve(Constants.HEAD);
-
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(lastCommitId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
-        }
-    }
-
-    private RevTree getTreeForCommit(Repository repository, String commitId) throws AmbiguousObjectException, IncorrectObjectTypeException,
-            IOException, MissingObjectException {
-        ObjectId commitObjectId = repository.resolve(commitId);
-
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(commitObjectId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
-        }
-    }
-
-    private String getGitPath(String path) {
-        String gitPath = path.replaceAll("/+", "/");
-        gitPath = gitPath.replaceAll("^/", "");
-        return gitPath;
-    }
-
-    public void createPatch() {
-        try (Repository repository = getSiteRepositoryInstance("gitreposite")) {
-            try (Git git = new Git(repository)) {
-
-                // the diff works on TreeIterators, we prepare two for the two branches
-                AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, "refs/remotes/origin/master");
-                AbstractTreeIterator newTreeParser = prepareTreeParser(repository, "refs/heads/master");
-
-                // then the procelain diff-command returns a list of diff entries
-                List<DiffEntry> diff = git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call();
-                OutputStream os = new FileOutputStream("/Users/dejanbrkic/gitpatchtest.diff");
-                DiffFormatter df = new DiffFormatter(new SafeBufferedOutputStream(os));
-                df.setRepository(repository);
-                df.format(diff);
-                df.flush();
-                df.close();
-                os.close();
-            } catch (GitAPIException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private AbstractTreeIterator prepareTreeParser(Repository repository, String ref) throws IOException,
-            MissingObjectException,
-            IncorrectObjectTypeException {
-        // from the commit we can build the tree which allows us to construct the TreeParser
-        Ref head = repository.exactRef(ref);
-        try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(head.getObjectId());
-            RevTree tree = walk.parseTree(commit.getTree().getId());
-
-            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
-            try (ObjectReader oldReader = repository.newObjectReader()) {
-                oldTreeParser.reset(oldReader, tree.getId());
+            if (!tw.next()) {
+                return;
             }
 
-            walk.dispose();
-
-            return oldTreeParser;
-        }
-    }
-
-    @Override
-    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
-        boolean toReturn;
-
-        // create git repository for site content
-        toReturn = createSiteRepository(siteId);
-
-        if (toReturn) {
-            // copy files from blueprint
-            toReturn = copyContentFromBlueprint(blueprintName, siteId);
-        }
-
-        if (toReturn) {
-            // commit everything so it is visible
-            toReturn = performInitialCommit(siteId, INITIAL_COMMIT);
-        }
-
-        return toReturn;
-    }
-
-    private Repository createGitRepository(Path path) {
-        Repository toReturn;
-
-        try {
-            // TODO: SJ: This needs to be refactored to the following:
-            // TODO: SJ: If the site exists, return that information to the caller so they can decide what to do
-            // TODO: SJ: and don't take any action. If the site doesn't exist, go ahead and create
-            Files.deleteIfExists(path);
-            path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
-            toReturn = FileRepositoryBuilder.create(path.toFile());
-            toReturn.create();
-        } catch (IOException e) {
-            logger.error("Error while creating repository for site with path" + path.toString(), e);
-            toReturn = null;
-        }
-
-        return toReturn;
-    }
-
-    private boolean createSiteRepository(String site) {
-        boolean toReturn;
-        Repository sandboxRepo = null;
-        Repository publishedRepo = null;
-
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
-        // Built a path for the site/published
-        Path sitePublishedPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH), site);
-
-        // Create Sandbox
-        sandboxRepo = createGitRepository(siteSandboxPath);
-
-        // Create Published
-        if (sandboxRepo != null) {
-            publishedRepo = createGitRepository(sitePublishedPath);
-        }
-
-        toReturn = (sandboxRepo != null) && (publishedRepo != null);
-
-        if (toReturn) {
-            sandboxes.put(site, sandboxRepo);
-            published.put(site, publishedRepo);
-        }
-
-        return toReturn;
-    }
-
-    private boolean copyContentFromBlueprint(String blueprint, String site) {
-        boolean toReturn = true;
-
-        // Build a path to the Sandbox repo we'll be copying to
-        Path siteRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
-        // Build a path to the blueprint
-        Path blueprintPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), studioConfiguration.getProperty(StudioConfiguration.BLUE_PRINTS_PATH), blueprint);
-        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-        // Let's copy!
-        TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
-        try {
-            Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
-        } catch (IOException err) {
-            logger.error("Error copping files from blueprint", err);
-            toReturn = false;
-        }
-
-        return toReturn;
-    }
-
-    class TreeCopier implements FileVisitor<Path> {
-        private final Path source;
-        private final Path target;
-
-        TreeCopier(Path source, Path target) {
-            this.source = source;
-            this.target = target;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            CopyOption[] options = new CopyOption[0];
-
-            Path newdir = target.resolve(source.relativize(dir));
-            try {
-                Files.copy(dir, newdir, options);
-            } catch (FileAlreadyExistsException x) {
-                // ignore
-            } catch (IOException err) {
-                logger.error("Unable to create: %s: %s%n", newdir, err);
-                return SKIP_SUBTREE;
-            }
-            return CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            CopyOption[] options = new CopyOption[] { REPLACE_EXISTING };
-            try {
-                Files.copy(file, target.resolve(source.relativize(file)), options);
-            } catch (IOException err) {
-                logger.error("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
-            }
-            return CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-            if (exc instanceof FileSystemLoopException) {
-                logger.error("cycle detected: " + file);
-            } else {
-                logger.error("Unable to copy: %s: %s%n", file, exc);
-            }
-            return CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-            return CONTINUE;
-        }
-    }
-
-    private boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {
-        // TODO: SJ: Define this further and build it along with API & Content Service equivalent with business logic
-        // write all files to disk
-        // commit all files
-        // return data structure of file name & commit id per file
-        // the caller will update the database
-        //
-        // considerations:
-        //   accept a zip file
-        //   accept a root folder or allow nesting
-        //   content service should call this and then update the database
-        //   find an efficient way to bulk write the files and then do a single commit across all
-        return false;
-    }
-
-    private boolean performInitialCommit(String site, String message) {
-        // FIXME: fix this
-        boolean toReturn = true;
-
-        try {
-            Repository repo = getRepository(StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories.SANDBOX,
-                site);
-
-            Git git = new Git(repo);
-
-            Status status = git.status().call();
-
-            if (status.hasUncommittedChanges() || !status.isClean()) {
-                DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                RevCommit commit = git.commit()
-                        .setMessage(message)
-                        .call();
-                // TODO: SJ: Do we need the commit id?
-                // commitId = commit.getId().toString();
-            }
-        } catch (GitAPIException err) {
-            logger.error("error creating initial commit for site:  " + site, err);
-            toReturn = false;
-        }
-
-        return toReturn;
-    }
-
-    // SJ: Helper methods
-    private Repository getRepository(GitRepositories gitRepository, String site) {
-        Repository repo = null;
-
-        try {
-            switch (gitRepository) {
-                case SANDBOX:
-                    repo = sandboxes.get(site);
-                    if (repo == null) {
-                        repo = getSiteRepositoryInstance(site);
-                        if (repo != null) {
-                            sandboxes.put(site, repo);
-                        }
-                    }
-                    break;
-                case PUBLISHED:
-                    repo = published.get(site);
-                    if (repo == null) {
-                        repo = getSiteRepositoryInstance(site);
-                        if (repo != null) {
-                            published.put(site, repo);
-                        }
-                    }
-                    break;
-                case GLOBAL:
-                    repo = getGlobalConfigurationRepositoryInstance();
-                    break;
-                default:
-                    repo = null;
-            }
-        } catch (IOException e) {
-            logger.error("error writing file: site: " + site, e);
-        }
-
-        return repo;
-    }
-    private boolean writeFile(Repository repo, String site, String path, InputStream content) {
-        // Create folder structure, create file, and write the bits
-
-        boolean result;
-        try {
-            String gitPath = getGitPath(path);
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, gitPath, tree);
-
-            FS fs = FS.detect();
             File repoRoot = repo.getWorkTree();
-            Path filePath;
-            if (tw == null) {
-                filePath = Paths.get(fs.normalize(repoRoot.getPath()), gitPath);
-            } else {
-                filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
-            }
+            Paths.get(repoRoot.getPath(), tw.getPathString());
+            File file = new File(tw.getPathString());
+            LockFile lock = new LockFile(file);
+            lock.unlock();
 
-            File file = filePath.toFile();
+            tw.close();
 
-            // Create parent folders
-            File folder = file.getParentFile();
-            if (folder != null) {
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                }
-            }
-
-            // Add the file to the index
-            if (!Files.exists(filePath)) {
-                filePath = Files.createFile(filePath);
-            }
-
-            // Write the bits
-            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
-
-            // Add the file to git
-            // TODO: SJ: See if this is the fastest way to do this or if keeping a repo + git around would be faster
-            Git git = new Git(repo);
-            git.add()
-                .addFilepattern(gitPath)
-                .call();
-
-            result = true;
-        } catch (IOException | GitAPIException err) {
-            logger.error("error writing file: site: " + site + " path: " + path, err);
-            result = false;
+        } catch (IOException e) {
+            logger.error("Error while unlocking file for site: " + site + " path: " + path, e);
         }
-
-        return result;
-    }
-
-    private String commitFile(Repository repo, String site, String path) {
-        String commitId = null;
-        String comment = "Save file " + path;
-
-        String gitPath = getGitPath(path);
-        Git git = new Git(repo);
-
-        Status status = null;
-        try {
-            status = git.status().addPath(gitPath).call();
-        } catch (GitAPIException e) {
-            logger.error("error adding file to git: site: " + site + " path: " + path, e);
-        }
-
-        // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
-        if (status.hasUncommittedChanges() || !status.isClean()) {
-            RevCommit commit = null;
-            try {
-                commit = git.commit().setOnly(gitPath).setMessage(comment).call();
-            } catch (GitAPIException e) {
-                logger.error("error committing file to git: site: " + site + " path: " + path, e);
-            }
-            commitId = commit.getId().toString();
-        }
-
-        return commitId;
-    }
-
-    /**
-     * Return the current user identity as a jgit PersonIdent
-     *
-     * @return current user as a PersonIdent
-     */
-    PersonIdent getCurrentUserIdent() {
-        String userName = securityProvider.getCurrentUser();
-        Map<String, String> currentUserProfile = securityProvider.getUserProfile(userName);
-        PersonIdent currentUserIdent = new PersonIdent
-            (currentUserProfile.get("firstName") + " " + currentUserProfile.get("lastName"),
-                currentUserProfile.get("email"));
-
-        return currentUserIdent;
     }
 
     /**
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
+        // Initialize the helper
+        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider);
+
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
-            // Check if repository exists
-            // Build path to global repo
-            Path globalConfigRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), GIT_ROOT);
-
-            if (!Files.exists(globalConfigRepoPath)) {
-                // Git repository doesn't exist for global, but the folder might be present, let's delete if exists
-                Path globalConfigPath = globalConfigRepoPath.getParent();
-                Files.deleteIfExists(globalConfigPath);
-
-                // Create the global repository folder
-                try {
-                    logger.info("Bootstrapping repository...");
-                    Files.createDirectories(globalConfigPath);
-                } catch (IOException e) {
-                    // Something very wrong has happened
-                    logger.error("Bootstrapping repository failed", e);
-                }
-
-                // Create git repository
-                try {
-                    Repository repository = FileRepositoryBuilder.create(globalConfigRepoPath.toFile());
-                    repository.create();
-                } catch (IOException e) {
-                    logger.error("Error while creating global configuration repository", e);
-                }
-
-                // Now build a path to the boostrap repo (the repo that ships with Studio)
+            if (helper.createGlobalRepo()) {
+                // Copy the global config defaults to the global site
+                // Build a path to the bootstrap repo (the repo that ships with Studio)
                 String bootstrapFolderPath = this.ctx.getRealPath(File.separator + BOOTSTRAP_REPO_PATH + File
                         .separator + BOOTSTRAP_REPO_GLOBAL_PATH);
                 Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
@@ -1000,12 +550,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
 
                 // Copy the bootstrap repo to the global repo
-                TreeCopier tc = new TreeCopier(source, globalConfigPath);
+                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+                TreeCopier tc = new TreeCopier(source,
+                    globalConfigPath);
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
                 try {
-                    Repository globalConfigRepo = getRepository(GitRepositories.GLOBAL, null);
+                    Repository globalConfigRepo = helper.getRepository(StringUtil.EMPTY_STRING, GitRepositories.GLOBAL);
 
                     Git git = new Git(globalConfigRepo);
 
@@ -1022,6 +574,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         }
+
+        // Create global repository object
+        if (!helper.buildGlobalRepo()) {
+            logger.error("Failed to create global repository!");
+        }
+    }
+
+    @Override
+    public boolean createSiteFromBlueprint(String blueprintName, String siteId) {
+        boolean toReturn;
+
+        // create git repository for site content
+        toReturn = helper.createSiteGitRepo(siteId);
+
+        if (toReturn) {
+            // copy files from blueprint
+            toReturn = helper.copyContentFromBlueprint(blueprintName, siteId);
+        }
+
+        if (toReturn) {
+            // commit everything so it is visible
+            toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
+        }
+
+        return toReturn;
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }

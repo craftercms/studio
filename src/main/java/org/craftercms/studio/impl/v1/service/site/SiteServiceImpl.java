@@ -313,34 +313,8 @@ public class SiteServiceImpl implements SiteService {
         boolean success = true;
 
  		try {
-            if (createSiteV2) {
-                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
-            } else {
-                contentRepository.createFolder(siteId, "/wem-projects/" + siteId + "/" + siteId, "work-area");
-                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-content",
-                        "/wem-projects/" + siteId + "/" + siteId + "/work-area");
+            success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
 
-                String siteConfigFolder = "/cstudio/config/sites/" + siteId;
-                contentRepository.createFolder(siteId, "/cstudio/config/sites/", siteId);
-                contentRepository.copyContent(siteId, "/cstudio/blueprints/" + blueprintName + "/site-config",
-                        siteConfigFolder);
-
-                replaceFileContent(siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
-                replaceFileContent(siteConfigFolder + "/role-mappings-config.xml", "SITENAME", siteId);
-                replaceFileContent(siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
-
-                // Add user groups
-                securityService.addUserGroup("crafter_" + siteId);
-                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_admin");
-                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_author");
-                securityService.addUserGroup("crafter_" + siteId, "crafter_" + siteId + "_viewer");
-                securityService.addUserToGroup("crafter_" + siteId + "_admin", securityService.getCurrentUser());
-
-                // set permissions for groups
-                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_admin");
-                securityProvider.addConfigWritePermission("/cstudio/config/sites/" + siteId, "crafter_" + siteId + "_admin");
-                securityProvider.addContentWritePermission("/wem-projects/" + siteId, "crafter_" + siteId + "_author");
-            }
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
@@ -373,9 +347,11 @@ public class SiteServiceImpl implements SiteService {
             clearConfigurationCache.clearConfigurationCache(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
-	 	catch(Exception err) {
+	 	catch(Exception e) {
+ 		    // TODO: SJ: We need better exception handling here
             success = false;
-            logger.error("Error while creating site", err);
+            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+                    blueprintName, e);
 	 	}
 
 	 	return success;
@@ -715,9 +691,6 @@ public class SiteServiceImpl implements SiteService {
     public RebuildRepositoryMetadata getRebuildRepositoryMetadata() { return rebuildRepositoryMetadata; }
     public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) { this.rebuildRepositoryMetadata = rebuildRepositoryMetadata; }
 
-    public boolean isCreateSiteV2() { return createSiteV2; }
-    public void setCreateSiteV2(boolean createSiteV2) { this.createSiteV2 = createSiteV2; }
-
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
@@ -749,7 +722,6 @@ public class SiteServiceImpl implements SiteService {
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
 
-    protected boolean createSiteV2;
     protected StudioConfiguration studioConfiguration;
 
 	@Autowired
