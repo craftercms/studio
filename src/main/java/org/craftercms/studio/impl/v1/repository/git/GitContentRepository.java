@@ -964,8 +964,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
-        logger.error("!!!!!!!!!!!!!!!!!!!!! BOOTSTRAP_REPO = " + studioConfiguration.getProperty
-            (BOOTSTRAP_REPO));
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
             // Check if repository exists
             // Build path to global repo

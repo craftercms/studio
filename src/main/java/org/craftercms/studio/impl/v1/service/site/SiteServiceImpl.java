@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
 import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
@@ -63,6 +64,8 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 
 /**
  * Note: consider renaming
@@ -522,7 +525,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
 	public SiteBlueprintTO[] getAvailableBlueprints() {
-		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", "/blueprints");
+		RepositoryItem[] blueprintsFolders = contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
 		int idx = 0;
 		for (RepositoryItem folder : blueprintsFolders) {
@@ -715,6 +718,9 @@ public class SiteServiceImpl implements SiteService {
     public boolean isCreateSiteV2() { return createSiteV2; }
     public void setCreateSiteV2(boolean createSiteV2) { this.createSiteV2 = createSiteV2; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -744,6 +750,7 @@ public class SiteServiceImpl implements SiteService {
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
 
     protected boolean createSiteV2;
+    protected StudioConfiguration studioConfiguration;
 
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
