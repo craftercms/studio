@@ -195,7 +195,7 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path
      */
-    void lockItem(String site, String path);
+    void lockItem(String site, String path); // TODO: SJ: Change to have a return
 
     /**
      * unlock an item
@@ -204,8 +204,14 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path
      */
-    void unLockItem(String site, String path);
+    void unLockItem(String site, String path); // TODO: SJ: Change to have a return
 
-
+    /**
+     * Create a new site based on a blueprint
+     *
+     * @param blueprintName
+     * @param siteId
+     * @return true if successful, false otherwise
+     */
     boolean createSiteFromBlueprint(String blueprintName, String siteId);
 }

@@ -110,7 +110,6 @@
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
-        <property name="createSiteV2" value="${siteService.createSite.v2.enable}"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
@@ -1005,7 +1004,7 @@
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
-        <property name="configLocation" value="crafter/studio/configuration.yml"/>
+        <property name="configLocation" value="crafter/studio/studio-config.yml"/>
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
