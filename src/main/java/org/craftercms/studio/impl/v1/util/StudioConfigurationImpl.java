@@ -43,8 +43,8 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     @Override
     public void loadConfiguration() {
-        Map<String, String> baseProperties = new HashMap<String, String>();;
-        Map<String, String> additionalProperties = new HashMap<String, String>();
+        Map<String, Object> baseProperties = new HashMap<String, Object>();;
+        Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
@@ -57,7 +57,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         }
 
         if (baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION) != null) {
-            resource = new ClassPathResource(baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION));
+            resource = new ClassPathResource(baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION).toString());
 
             try (InputStream in = resource.getInputStream()) {
                 Yaml yaml = new Yaml();
@@ -72,8 +72,12 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         }
 
         // Merge the base properties and additional properties
-        properties.putAll(baseProperties);
-        properties.putAll(additionalProperties);
+        for (String key: baseProperties.keySet()) {
+            properties.put(key, baseProperties.get(key).toString());
+        }
+        for (String key: additionalProperties.keySet()) {
+            properties.put(key, additionalProperties.get(key).toString());
+        }
     }
 
     @Override

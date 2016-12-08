@@ -963,6 +963,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
+        logger.error("!!!!!!!!!!!!!!!!!!!!! BOOTSTRAP_REPO = " + studioConfiguration.getProperty
+            (BOOTSTRAP_REPO));
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
             // Check if repository exists
             // Build path to global repo
@@ -992,8 +994,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
 
                 // Now build a path to the boostrap repo (the repo that ships with Studio)
-                String bootstrapFolderPath = this.ctx.getRealPath(File.separator + BOOTSTRAP_REPO_PATH +
-                    BOOTSTRAP_REPO_GLOBAL_PATH);
+                String bootstrapFolderPath = this.ctx.getRealPath(File.separator + BOOTSTRAP_REPO_PATH + File
+                        .separator + BOOTSTRAP_REPO_GLOBAL_PATH);
                 Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
                 logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
