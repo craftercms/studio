@@ -68,6 +68,9 @@ import java.util.*;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware {
 
@@ -529,7 +532,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private Repository getGlobalConfigurationRepositoryInstance() throws IOException {
         // TODO: SJ: Fix this: We must log and deal with failure here
-        Path siteRepoPath = Paths.get(rootPath, "global-configuration", GIT_ROOT);
+        Path siteRepoPath = Paths.get("global-configuration", GIT_ROOT);
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);
         } else {
@@ -541,7 +544,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private Repository getSiteRepositoryInstance(String site) throws IOException {
 
-        Path siteRepoPath = Paths.get(rootPath, "sites", site, GIT_ROOT);
+        Path siteRepoPath = Paths.get("sites", site, GIT_ROOT);
         if (Files.exists(siteRepoPath)) {
             return openGitRepository(siteRepoPath);
         } else {
@@ -687,9 +690,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository publishedRepo = null;
 
         // Build a path for the site/sandbox
-        Path siteSandboxPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
+        Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
         // Built a path for the site/published
-        Path sitePublishedPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH), site);
+        Path sitePublishedPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH), site);
 
         // Create Sandbox
         sandboxRepo = createGitRepository(siteSandboxPath);
@@ -713,9 +716,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toReturn = true;
 
         // Build a path to the Sandbox repo we'll be copying to
-        Path siteRepoPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
+        Path siteRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), site);
         // Build a path to the blueprint
-        Path blueprintPath = Paths.get(rootPath, studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+        Path blueprintPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
             studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), studioConfiguration.getProperty(StudioConfiguration.BLUE_PRINTS_PATH), blueprint);
         EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         // Let's copy!
@@ -960,61 +963,65 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
-        Path globalConfigFolder = Paths.get(rootPath, "global-configuration");
-        boolean bootstrapCheck = Files.exists(globalConfigFolder);
+        if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
+            // Check if repository exists
+            // Build path to global repo
+            Path globalConfigRepoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), GIT_ROOT);
 
-        if(bootstrapEnabled && !bootstrapCheck) {
-            try{
-                logger.error("Bootstrapping repository for Crafter CMS");
-                Files.createDirectories(globalConfigFolder);
-            }
-            catch(Exception alreadyExistsErr){
-                // do nothing.
-            }
-            try {
-                Path globalConfigRepoPath = Paths.get(globalConfigFolder.toAbsolutePath().toString(), GIT_ROOT);
-                Repository repository = FileRepositoryBuilder.create(globalConfigRepoPath.toFile());
-                repository.create();
-            } catch (IOException e) {
-                logger.error("Error while creating global configuration repository", e);
-            }
+            if (!Files.exists(globalConfigRepoPath)) {
+                // Git repository doesn't exist for global, but the folder might be present, let's delete if exists
+                Path globalConfigPath = globalConfigRepoPath.getParent();
+                Files.deleteIfExists(globalConfigPath);
 
-            String bootstrapFolderPath = this.ctx.getRealPath(File.separator + "gitrepo-bootstrap");
-            Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
-
-            logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
-
-            Path target = Paths.get(rootPath);
-
-            TreeCopier tc = new TreeCopier(source, target);
-            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
-
-            try {
-                Repository globalConfigRepo = getGlobalConfigurationRepositoryInstance();
-
-                Git git = new Git(globalConfigRepo);
-
-                Status status = git.status().call();
-
-                if (status.hasUncommittedChanges() || !status.isClean()) {
-                    DirCache dirCache = git.add().addFilepattern(".").call();
-                    RevCommit commit = git.commit()
-                            .setMessage(INITIAL_COMMIT)
-                            .call();
-                    String tmp = commit.getId().toString();
+                // Create the global repository folder
+                try {
+                    logger.info("Bootstrapping repository...");
+                    Files.createDirectories(globalConfigPath);
+                } catch (IOException e) {
+                    // Something very wrong has happened
+                    logger.error("Bootstrapping repository failed", e);
                 }
-            } catch (IOException | GitAPIException err) {
-                logger.error("error creating initial commit for global configuration", err);
+
+                // Create git repository
+                try {
+                    Repository repository = FileRepositoryBuilder.create(globalConfigRepoPath.toFile());
+                    repository.create();
+                } catch (IOException e) {
+                    logger.error("Error while creating global configuration repository", e);
+                }
+
+                // Now build a path to the boostrap repo (the repo that ships with Studio)
+                String bootstrapFolderPath = this.ctx.getRealPath(File.separator + BOOTSTRAP_REPO_PATH +
+                    BOOTSTRAP_REPO_GLOBAL_PATH);
+                Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+
+                logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
+
+                // Copy the bootstrap repo to the global repo
+                TreeCopier tc = new TreeCopier(source, globalConfigPath);
+                EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+
+                try {
+                    Repository globalConfigRepo = getGlobalConfigurationRepositoryInstance();
+
+                    Git git = new Git(globalConfigRepo);
+
+                    Status status = git.status().call();
+
+                    if (status.hasUncommittedChanges() || !status.isClean()) {
+                        // Commit everything
+                        // TODO: Consider what to do with the commitId in the future
+                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                        git.commit().setMessage(INITIAL_COMMIT).call();
+                    }
+                } catch (IOException | GitAPIException err) {
+                    logger.error("error creating initial commit for global configuration", err);
+                }
             }
         }
     }
-
-    public String getRootPath() { return rootPath; }
-    public void setRootPath(String path) { rootPath = path; }
-
-    public boolean isBootstrapEnabled() { return bootstrapEnabled; }
-    public void setBootstrapEnabled(boolean bootstrapEnabled) { this.bootstrapEnabled = bootstrapEnabled; }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
 
@@ -1029,8 +1036,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.studioConfiguration = studioConfiguration;
     }
 
-    String rootPath;
-    boolean bootstrapEnabled;
     ServletContext ctx;
     SecurityProvider securityProvider;
     StudioConfiguration studioConfiguration;
