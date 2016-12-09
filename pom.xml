@@ -377,7 +377,7 @@
                 <executions>
                     <execution>
                         <id>git get ui</id>
-                        <phase>initialize</phase>
+                        <phase>process-resources</phase>
                         <configuration>
                             <executable>git</executable>
                             <arguments>
