@@ -57,22 +57,22 @@ studio.db.pool.maxWaitTime: 10000
 # Turn database initializer on (value true) or off (value false).
 # When initializer is turned off, system will not try to initialize database on startup.
 # When system is starting for the first time initializer must be turned on. When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped for any reason, initializer needs to be turned on.
-studio.db.initializer.enabled=false
+studio.db.initializer.enabled: false
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.
-studio.db.testOnBorrow=true
+studio.db.testOnBorrow: true
 # The SQL query to validate the connection for MS SQL Server.
-studio.db.validationQuery.sqlserver=SELECT 1
+studio.db.validationQuery.sqlserver: SELECT 1
 # The SQL query to validate the connection for Postgres.
-studio.db.validationQuery.postgres=SELECT 1
+studio.db.validationQuery.postgres: SELECT 1
 # The SQL query to validate the connection for MySQL.
-studio.db.validationQuery.mysql=SELECT 1
+studio.db.validationQuery.mysql: SELECT 1
 # The SQL query to validate the connection for Oracle
-studio.db.validationQuery.oracle=SELECT 1 FROM DUAL
+studio.db.validationQuery.oracle: SELECT 1 FROM DUAL
 # The SQL query to validate the connection for Derby
-studio.db.validationQuery.derby=SELECT 1 FROM SYSIBM.SYSDUMMY1
+studio.db.validationQuery.derby: SELECT 1 FROM SYSIBM.SYSDUMMY1
 # The SQL query to validate the connection for DB2
-studio.db.validationQuery.db2=SELECT 1 FROM SYSIBM.SYSDUMMY1
+studio.db.validationQuery.db2: SELECT 1 FROM SYSIBM.SYSDUMMY1
 # Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
 # Use a value less than or equal to 0 for no timeout.
-studio.db.validationInterval=34000
+studio.db.validationInterval: 34000

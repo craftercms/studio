@@ -20,7 +20,11 @@
 package org.craftercms.studio.api.v1.util;
 
 public interface StudioConfiguration {
+
+    /** Override Configuration */
     String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.override.config";
+
+    /** Content Repository */
     String REPO_BASE_PATH = "studio.repo.basePath";
     String GLOBAL_REPO_PATH = "studio.repo.globalRepoPath";
     String SITES_REPOS_PATH = "studio.repo.sitesRepoBasePath";
@@ -28,6 +32,24 @@ public interface StudioConfiguration {
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
+
+    /** Database */
+    String DB_DRIVER = "studio.db.driver";
+    String DB_URL = "studio.db.url";
+    String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
+    String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
+    String DB_POOL_MAX_IDLE_CONNECTIONS = "studio.db.pool.maxIdleConnections";
+    String DB_POOL_MIN_IDLE_CONNECTIONS = "studio.db.pool.minIdleConnections";
+    String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
+    String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
+    String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
+    String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
+    String DB_VALIDATION_QUERY_POSTGRES = "studio.db.validationQuery.postgres";
+    String DB_VALIDATION_QUERY_MYSQL = "studio.db.validationQuery.mysql";
+    String DB_VALIDATION_QUERY_ORACLE = "studio.db.validationQuery.oracle";
+    String DB_VALIDATION_QUERY_DERBY = "studio.db.validationQuery.derby";
+    String DB_VALIDATION_QUERY_DB2 = "studio.db.validationQuery.db2";
+    String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
 
     void loadConfig();
 
