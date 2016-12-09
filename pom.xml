@@ -377,7 +377,7 @@
                 <executions>
                     <execution>
                         <id>git get ui</id>
-                        <phase>process-resources</phase>
+                        <phase>generate-resources</phase>
                         <configuration>
                             <executable>git</executable>
                             <arguments>
@@ -401,7 +401,7 @@
                 <executions>
                     <execution>
                         <id>Java Code </id>
-                        <phase>validate</phase>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>create</goal>
                             <goal>create-timestamp</goal>
@@ -413,7 +413,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <phase>process-resources</phase>
                         <id>UI-Version</id>
                         <goals>
                             <goal>create</goal>
@@ -423,7 +423,7 @@
                             <doCheck>false</doCheck>
                             <doUpdate>false</doUpdate>
                             <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                            <scmDirectory>src/main/webapp/default-site/static-assets</scmDirectory>
+                            <scmDirectory>target/ui</scmDirectory>
                             <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
                         </configuration>
                     </execution>
