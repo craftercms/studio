@@ -21,5 +21,5 @@ env:
 before_install: "git clone -b travis `git config --get remote.origin.url` target/travis"
 script:
   # other script steps might be done before running the actual SonarQube analysis
-    - mvn deploy --settings target/travis/settings.xml
+    - mvn clean deploy --settings target/travis/settings.xml
     - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN
