@@ -205,7 +205,7 @@ public class PreviewDeployer implements Deployer {
     }
 
     protected void syncFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path, true);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
         if (children != null) {
             for (RepositoryItem item : children) {
