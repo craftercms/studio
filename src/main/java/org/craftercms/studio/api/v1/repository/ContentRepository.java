@@ -56,7 +56,7 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path path to content
      * @param content stream of content to write
-     * @return commitId if successful, null otherwise
+     * @return Commit Id if successful, null otherwise
      */
     String writeContent(String site, String path, InputStream content) throws ServiceException;
 
@@ -75,8 +75,9 @@ public interface ContentRepository {
      *
      * @param site site id where the operation will be executed
      * @param path path to content
+     * @return Commit ID if successful, null otherwise
      */
-    boolean deleteContent(String site, String path);
+    String deleteContent(String site, String path);
 
     /**
      * move content from PathA to pathB
@@ -84,9 +85,9 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param fromPath source content
      * @param toPath target path
-     * @return true if successful
+     * @return Commit ID if successful, null otherwise
      */
-    boolean moveContent(String site, String fromPath, String toPath);
+    String moveContent(String site, String fromPath, String toPath);
 
     /**
      * move content from PathA to pathB
@@ -95,9 +96,10 @@ public interface ContentRepository {
      * @param fromPath source content
      * @param toPath target path
      * @param newName new file name for rename
-     * @return true if successful
+     * @return Commit ID if successful, empty string otherwise
      */
-    boolean moveContent(String site, String fromPath, String toPath, String newName);
+    // TODO: SJ: Should refactor to be from path to path without the newName param
+    String moveContent(String site, String fromPath, String toPath, String newName);
 
     /**
      * copy content from PathA to pathB
@@ -105,9 +107,9 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param fromPath paths to content
      * @param toPath target path
-     * @return true if successful
+     * @return Commit ID if successful, empty string otherwise
      */
-    boolean copyContent(String site, String fromPath, String toPath);
+    String copyContent(String site, String fromPath, String toPath);
 
     /**
      * get immediate children for path

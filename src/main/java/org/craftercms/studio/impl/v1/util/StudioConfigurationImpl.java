@@ -38,13 +38,13 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     private Map<String, String> properties = new HashMap<String, String>();
 
     public void init() {
-        loadConfiguration();
+        loadConfig();
     }
 
     @Override
-    public void loadConfiguration() {
+    public void loadConfig() {
         Map<String, Object> baseProperties = new HashMap<String, Object>();;
-        Map<String, Object> additionalProperties = new HashMap<String, Object>();
+        Map<String, Object> overrideProperties = new HashMap<String, Object>();
 
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
@@ -56,18 +56,18 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             logger.error("Failed to load studio configuration from: " + configLocation);
         }
 
-        if (baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION) != null) {
-            resource = new ClassPathResource(baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION).toString());
+        if (baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG) != null) {
+            resource = new ClassPathResource(baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG).toString());
 
             try (InputStream in = resource.getInputStream()) {
                 Yaml yaml = new Yaml();
 
-                additionalProperties = yaml.loadAs(in, additionalProperties.getClass());
+                overrideProperties = yaml.loadAs(in, overrideProperties.getClass());
                 logger.debug("Loaded additional configuration from location: " + baseProperties.get
-                    (LOAD_ADDITIONAL_CONFIGURATION) + "\n" +
-                    additionalProperties.toString());
+                    (STUDIO_CONFIG_OVERRIDE_CONFIG) + "\n" +
+                    overrideProperties.toString());
             } catch (IOException e) {
-                logger.error("Failed to load studio configuration from: " + baseProperties.get(LOAD_ADDITIONAL_CONFIGURATION));
+                logger.error("Failed to load studio configuration from: " + baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG));
             }
         }
 
@@ -75,8 +75,8 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         for (String key: baseProperties.keySet()) {
             properties.put(key, baseProperties.get(key).toString());
         }
-        for (String key: additionalProperties.keySet()) {
-            properties.put(key, additionalProperties.get(key).toString());
+        for (String key: overrideProperties.keySet()) {
+            properties.put(key, overrideProperties.get(key).toString());
         }
     }
 
