@@ -391,17 +391,28 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
+        String commitId = null;
+        boolean toReturn = false;
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
         }
-        boolean toRet = _contentRepository.deleteContent(site, path);
+
+        commitId = _contentRepository.deleteContent(site, path);
+
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
         removeItemFromCache(site, path);
         previewSync.notifyDeleteContent(site, path);
-        return toRet;
+
+        // TODO: SJ: Add commitId to database for this item in version 2.7.x
+
+        if (commitId != null) {
+            toReturn = true;
+        }
+
+        return toReturn;
     }
 
     protected void generateDeleteActivity(String site, String path, String approver) {
@@ -432,22 +443,45 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
-        return _contentRepository.copyContent(site, fromPath, toPath);
+        boolean toReturn = false;
+
+        String commitId = _contentRepository.copyContent(site, fromPath, toPath);
+        // TODO: SJ: Add commitId to database for this item
+        if (commitId != null) {
+            toReturn = true;
+        }
+
+        return toReturn;
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
-        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath);
+        boolean toReturn = false;
+
+        String commitId = _contentRepository.moveContent(site, fromPath, toPath);
         previewSync.notifyMoveContent(site, toPath, fromPath);
-        return toRet;
+
+        // TODO: SJ: Add commitId to database for this item
+        if (commitId != null) {
+            toReturn = true;
+        }
+
+        return toReturn;
     }
 
     @Override
     public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean toRet = _contentRepository.moveContent(site, fromPath, toPath, newName);
+        boolean toReturn = false;
 
+        String commitId = _contentRepository.moveContent(site, fromPath, toPath, newName);
         previewSync.notifyMoveContent(site, toPath, fromPath);
-        return toRet;
+
+        // TODO: SJ: Add commitId to database for this item
+        if (commitId != null) {
+            toReturn = true;
+        }
+
+        return toReturn;
     }
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
@@ -945,13 +979,19 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
-        boolean success = false;
+        boolean toReturn = false;
 
-        success = _contentRepository.revertContent(site, path, version, major, comment);
-        if(success) {
+        String commitId = _contentRepository.revertContent(site, path, version, major, comment);
+        // TODO: SJ: Add commitId to database for this item
+        if (commitId != null) {
+            toReturn = true;
+        }
+
+        if (toReturn) {
             previewSync.notifyUpdateContent(site, path);
         }
-        return success;
+
+        return toReturn;
     }
 
 	/**
