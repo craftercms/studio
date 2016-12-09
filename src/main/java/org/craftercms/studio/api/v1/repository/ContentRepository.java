@@ -121,16 +121,6 @@ public interface ContentRepository {
     RepositoryItem[] getContentChildren(String site, String path);
 
     /**
-     * get immediate children for path
-     *
-     * @param site site id where the operation will be executed
-     * @param path path to content
-     * @param ignoreCache flag to ignore cache for getting children
-     * @return a list of children
-     */
-    RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache);
-
-    /**
      * get the version history for an item
      *
      * @param site site id where the operation will be executed
@@ -167,9 +157,9 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
-     * @return true if successful
+     * @return Commit ID if successful, empty string otherwise
      */
-    boolean revertContent(String site, String path, String version, boolean major, String comment);
+    String revertContent(String site, String path, String version, boolean major, String comment);
 
     /**
      * return a specific version of the content

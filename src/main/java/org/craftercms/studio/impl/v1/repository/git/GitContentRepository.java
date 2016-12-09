@@ -62,18 +62,16 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.IO;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware {
 
@@ -95,6 +93,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (tw != null && tw.getObjectId(0) != null) {
                     toReturn = true;
                 }
+                tw.close();
             } catch (IOException e) {
                 logger.info("Content not found for site: " + site + " path: " + path, e);
             }
@@ -121,6 +120,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     ObjectLoader objectLoader = repo.open(id);
                     toReturn = objectLoader.openStream();
                 }
+                tw.close();
             } catch (IOException e) {
                 logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
             }
@@ -183,6 +183,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             RevCommit commit = git.commit()
                     .setOnly(helper.getGitPath(gitPath))
                     .setMessage(StringUtils.EMPTY)
+                    .setAuthor(currentUserIdent)
                     .setCommitter(currentUserIdent)
                     .call();
         } catch (IOException | GitAPIException e) {
@@ -208,6 +209,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             // TODO: SJ: we need to define messages in a string table of sorts
             commitId = helper.commitFile(repo, site, path, "Delete file " + path,
                 helper.getCurrentUserIdent());
+
+            git.close();
         } catch (GitAPIException e) {
             logger.error("Error while deleting content for site: " + site + " path: " + path, e);
         }
@@ -263,10 +266,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RevCommit commit = git.commit()
                     .setOnly(gitFromPath)
                     .setOnly(gitToPath)
+                    .setAuthor(helper.getCurrentUserIdent())
                     .setCommitter(helper.getCurrentUserIdent())
                     .setMessage("Moving " + fromPath + " to " + toPath + newName)
                     .call();
                 commitId = commit.getId().toString();
+
+                git.close();
+                fromTw.close();
+                toTw.close();
             } catch (IOException | GitAPIException e){
                 logger.error("Error while moving content for site: " +
                     site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
@@ -311,10 +319,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RevCommit commit = git.commit()
                     .setOnly(gitFromPath)
                     .setOnly(gitToPath)
+                    .setAuthor(helper.getCurrentUserIdent())
                     .setCommitter(helper.getCurrentUserIdent())
                     .setMessage("Copying " + fromPath + " to " + toPath)
                     .call();
                 commitId = commit.getId().toString();
+
+                git.close();
+                fromTw.close();
+                toTw.close();
             } catch (IOException | GitAPIException e){
                 logger.error("Error while copying content for site: " +
                     site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
@@ -334,13 +347,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
         // TODO: SJ: Rethink this API call for 2.7.x
-/*        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
+
         try {
             RevTree tree = helper.getTree(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                 if (tw != null) {
+                    // Loop for all children and gather path of item excluding the item, file/folder name, and
+                    // whether or not it's a folder
                     ObjectLoader loader = repo.open(tw.getObjectId(0));
                     if (loader.getType() == Constants.OBJ_TREE) {
                         int depth = tw.getDepth();
@@ -364,53 +380,54 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 }
                             }
                         }
+                    } else {
+                        logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
                     }
                 }
+
+                tw.close();
             } catch (IOException e) {
                 logger.error("Error while getting children for site: " + site + " path: " + path, e);
-            } catch (IOException e) {
-
             }
+        } catch (IOException e) {
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
         items = retItems.toArray(items);
         return items;
-        */
-        return null;
-    }
-
-    @Override
-    public RepositoryItem[] getContentChildren(String site, String path, boolean ignoreCache) {
-        return getContentChildren(site, path);
     }
 
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
             ObjectId head = repo.resolve(Constants.HEAD);
             String gitPath = helper.getGitPath(path);
-            Git git = new Git(repo);
-            Iterable<RevCommit> commits = git.log()
-                    .add(head)
-                    .addPath(gitPath)
-                    .call();
-            Iterator<RevCommit> iterator = commits.iterator();
-            while (iterator.hasNext()) {
-                RevCommit revCommit = iterator.next();
-                VersionTO versionTO = new VersionTO();
-                versionTO.setVersionNumber(revCommit.getId().toString());
-                versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
-                versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime()*1000));
-                versionTO.setComment(revCommit.getShortMessage());
-                versionHistory.add(versionTO);
+            try (Git git = new Git(repo)) {
+                Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                Iterator<RevCommit> iterator = commits.iterator();
+                while (iterator.hasNext()) {
+                    RevCommit revCommit = iterator.next();
+                    VersionTO versionTO = new VersionTO();
+                    versionTO.setVersionNumber(revCommit.getId().toString());
+                    versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
+                    versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000));
+                    versionTO.setComment(revCommit.getFullMessage());
+                    versionHistory.add(versionTO);
+                }
+
+                git.close();
+            } catch (IOException e) {
+                logger.error("error while getting history for content item " + path);
             }
-        } catch (IOException | GitAPIException err) {
-            logger.error("error while getting history for content item " + path);
+        } catch (IOException | GitAPIException e) {
+            logger.error("Failed to create Git repo for site: " + site + " path: " + path, e);
         }
+
         VersionTO[] toRet = new VersionTO[versionHistory.size()];
         return versionHistory.toArray(toRet);
     }
@@ -424,67 +441,79 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String createVersion(String site, String path, String comment, boolean majorVersion) {
         // SJ: Will ignore minor revisions since git handles that via write/commit
         // SJ: Major revisions become git tags
-        String toRet = StringUtils.EMPTY;
+        // TODO: SJ: Redesign/refactor the whole approach in 2.7.x
+        String toReturn = StringUtils.EMPTY;
 
         if (majorVersion) {
-            try {
+            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+                .GLOBAL:GitRepositories.PUBLISHED);
                 // Tag the repository with a date-time based version label
-                Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.PUBLISHED);
-
                 String gitPath = helper.getGitPath(path);
-                Git git = new Git(repo);
 
+            try (Git git = new Git(repo)) {
                 PersonIdent currentUserIdent = helper.getCurrentUserIdent();
                 DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 Calendar cal = Calendar.getInstance();
                 String versionLabel = dateFormat.format(cal);
 
-                TagCommand tagCommand = git.tag().setName(versionLabel).setMessage(comment).setTagger(currentUserIdent);
+                TagCommand tagCommand = git.tag()
+                    .setName(versionLabel)
+                    .setMessage(comment)
+                    .setTagger(currentUserIdent);
                 tagCommand.call();
 
-                toRet = versionLabel;
+                toReturn = versionLabel;
+
+                git.close();
             } catch (GitAPIException err) {
                 logger.error("error creating new version for site:  " + site + " path: " + path, err);
             }
         } else {
-            logger.error("request to create minor revision ignored for site: " + site + " path: " + path);
+            logger.info("request to create minor revision ignored for site: " + site + " path: " + path);
         }
-        return toRet;
 
+        return toReturn;
     }
 
     @Override
-    public boolean revertContent(String site, String path, String version, boolean major, String comment) {
-        boolean success = false;
+    public String revertContent(String site, String path, String version, boolean major, String comment) {
+        // TODO: SJ: refactor to remove the notion of a major/minor for 2.7.x
+        String commitId = null;
+
         try {
             InputStream versionContent = getContentVersion(site, path, version);
-            writeContent(site, path, versionContent);
+            commitId = writeContent(site, path, versionContent);
             createVersion(site, path, major);
-            success = true;
         } catch (ContentNotFoundException err) {
             logger.error("error reverting content for site:  " + site + " path: " + path, err);
         }
-        return success;
+
+        return commitId;
     }
 
     @Override
     public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
-        InputStream toRet = null;
+        InputStream toReturn = null;
+
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
             RevTree tree = helper.getTreeForCommit(repo, version);
-            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
-
-            ObjectId id = tw.getObjectId(0);
-            ObjectLoader objectLoader = repo.open(id);
-            toRet = objectLoader.openStream();
-
-        } catch (IOException err) {
-            logger.error("Error while getting content for file at site: " + site + " path: " + path, err);
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                ObjectId id = tw.getObjectId(0);
+                ObjectLoader objectLoader = repo.open(id);
+                toReturn = objectLoader.openStream();
+                tw.close();
+            } catch (IOException e) {
+                logger.error("Error while getting content for file at site: " + site + " path: " + path + " version:"
+                    + " " + version, e);
+            }
+        } catch (IOException e) {
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " + version, e);
         }
-        return toRet;
+
+        return toReturn;
     }
 
     @Override
@@ -573,10 +602,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
-                try {
-                    Repository globalConfigRepo = helper.getRepository(StringUtil.EMPTY_STRING, GitRepositories.GLOBAL);
-
-                    Git git = new Git(globalConfigRepo);
+                Repository globalConfigRepo = helper.getRepository(StringUtil.EMPTY_STRING, GitRepositories.GLOBAL);
+                try (Git git = new Git(globalConfigRepo)) {
 
                     Status status = git.status().call();
 
@@ -586,6 +613,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                         git.commit().setMessage(INITIAL_COMMIT).call();
                     }
+
+                    git.close();
                 } catch (GitAPIException err) {
                     logger.error("error creating initial commit for global configuration", err);
                 }

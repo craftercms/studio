@@ -56,7 +56,9 @@ studio.db.pool.minIdleConnections: 10
 studio.db.pool.maxWaitTime: 10000
 # Turn database initializer on (value true) or off (value false).
 # When initializer is turned off, system will not try to initialize database on startup.
-# When system is starting for the first time initializer must be turned on. When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped for any reason, initializer needs to be turned on.
+# When system is starting for the first time initializer must be turned on.
+# When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
+# for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: false
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.

@@ -493,7 +493,7 @@ public class GitContentRepositoryHelper {
         if (status.hasUncommittedChanges() || !status.isClean()) {
             RevCommit commit = null;
             try {
-                commit = git.commit().setOnly(gitPath).setCommitter(user).setMessage(comment).call();
+                commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
             } catch (GitAPIException e) {
                 logger.error("error committing file to git: site: " + site + " path: " + path, e);
             }
