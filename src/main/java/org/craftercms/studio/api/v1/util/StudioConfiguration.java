@@ -20,17 +20,16 @@
 package org.craftercms.studio.api.v1.util;
 
 public interface StudioConfiguration {
-    String LOAD_ADDITIONAL_CONFIGURATION = "load-additional-configuration";
-    String REPO_BASE_PATH = "repo-base-path";
-    String GLOBAL_REPO_PATH = "global-repo-path";
-    String SITES_REPOS_PATH = "sites-repos-path";
-    String SANDBOX_PATH = "sandbox-path";
-    String PUBLISHED_PATH = "published-path";
-    String BLUE_PRINTS_PATH = "blue-prints-path";
-    String BOOTSTRAP_REPO = "bootstrap-repo";
+    String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.override.config";
+    String REPO_BASE_PATH = "studio.repo.basePath";
+    String GLOBAL_REPO_PATH = "studio.repo.globalRepoPath";
+    String SITES_REPOS_PATH = "studio.repo.sitesRepoBasePath";
+    String SANDBOX_PATH = "studio.repo.siteSandboxPath";
+    String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
+    String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
+    String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
 
-    // Methods
-    void loadConfiguration();
+    void loadConfig();
 
     String getProperty(String key);
 }

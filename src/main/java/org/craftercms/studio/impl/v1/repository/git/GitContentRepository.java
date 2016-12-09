@@ -66,6 +66,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.util.IO;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
@@ -78,65 +79,87 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
+    private volatile String lastCommit;
 
     @Override
     public boolean contentExists(String site, String path) {
+        boolean toReturn = false;
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
+
         try {
             RevTree tree = helper.getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
-            if (tw != null && tw.getObjectId(0) != null) {
-                return true;
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                // Check if the array of items is not null, and since we have an absolute path to the item,
+                // pick the first item in the list
+                if (tw != null && tw.getObjectId(0) != null) {
+                    toReturn = true;
+                }
+            } catch (IOException e) {
+                logger.info("Content not found for site: " + site + " path: " + path, e);
             }
         } catch (IOException e) {
-            logger.info("Content not found for site: " + site + " path: " + path, e);
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
         }
-        return false;
+
+        return toReturn;
     }
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
-        logger.debug("getContent invoked with site: " + site + " path: " + path);
-        InputStream toRet = null;
+        InputStream toReturn = null;
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
-
             RevTree tree = helper.getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
-
-            ObjectId id = tw.getObjectId(0);
-            ObjectLoader objectLoader = repo.open(id);
-            toRet = objectLoader.openStream();
-
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                // Check if the array of items is not null, and since we have an absolute path to the item,
+                // pick the first item in the list
+                if (tw != null && tw.getObjectId(0) != null) {
+                    ObjectId id = tw.getObjectId(0);
+                    ObjectLoader objectLoader = repo.open(id);
+                    toReturn = objectLoader.openStream();
+                }
+            } catch (IOException e) {
+                logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+            }
         } catch (IOException e) {
-            logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
         }
-        return toRet;
+
+        return toReturn;
     }
 
     @Override
     public String writeContent(String site, String path, InputStream content) {
         // Write content to git and commit it
-        String result = null;
+        String commitId = null;
 
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
 
         if (repo != null) {
-            // TODO: SJ: TODAY: handle errors and exceptions
             if (helper.writeFile(repo, site, path, content))
-                result = helper.commitFile(repo, site, path);
+                commitId = helper.commitFile(repo, site, path, "Wrote content " + path, helper.getCurrentUserIdent());
+            else
+                logger.error("Failed to write content site: " + site + " path: " + path);
+        } else {
+            logger.error("Missing repository during write for site: " + site + " path: " + path);
         }
 
-        return result;
+        if (commitId != null) {
+            lastCommit = commitId;
+        }
+
+        return commitId;
     }
 
     @Override
     public boolean createFolder(String site, String path, String name) {
         boolean success = true;
-
+        // TODO: SJ: Git doesn't care about empty folders and therefore this might not be needed
+/*
         try {
             Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
                 .SANDBOX);
@@ -166,201 +189,195 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Error creating folder " + name + " for site " + site + " at path " + path, e);
             success = false;
         }
+*/
 
         return success;
     }
 
     @Override
-    public boolean deleteContent(String site, String path) {
-        try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
-            Git git = new Git(repo);
-            git.rm()
-                    .addFilepattern(helper.getGitPath(path))
+    public String deleteContent(String site, String path) {
+        String commitId = null;
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+
+        try (Git git = new Git(repo)) {
+            git.rm().addFilepattern(helper.getGitPath(path))
                     .setCached(false)
                     .call();
 
-            RevCommit commit = git.commit()
-                    .setOnly(helper.getGitPath(path))
-                    .setMessage(StringUtils.EMPTY)
-                    .call();
-            return true;
+            // TODO: SJ: we need to define messages in a string table of sorts
+            commitId = helper.commitFile(repo, site, path, "Delete file " + path,
+                helper.getCurrentUserIdent());
         } catch (GitAPIException e) {
             logger.error("Error while deleting content for site: " + site + " path: " + path, e);
         }
-        return false;
+
+        if (commitId != null) {
+            lastCommit = commitId;
+        }
+
+        return commitId;
     }
 
     @Override
-    public boolean moveContent(String site, String fromPath, String toPath) {
+    public String moveContent(String site, String fromPath, String toPath) {
         return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean success = true;
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
+        String commitId = null;
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+        String gitFromPath = helper.getGitPath(fromPath);
+        String gitToPath = helper.getGitPath(toPath + newName);
 
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
-            String gitFromPath = helper.getGitPath(fromPath);
             RevTree fromTree = helper.getTree(repo);
-            TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
-
-            String gitToPath = helper.getGitPath(toPath);
             RevTree toTree = helper.getTree(repo);
-            TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
+            try (TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree); TreeWalk toTw=TreeWalk.forPath
+                (repo, gitToPath, toTree); Git git = new Git(repo)) {
 
-            // TODO: SJ: Look into the need (if any) for FS.detect()
-            FS fs = FS.detect();
-            File repoRoot = repo.getWorkTree();
-            Path sourcePath = null;
-            if (fromTw == null) {
-                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), gitFromPath);
-            } else {
-                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), fromTw.getPathString());
-            }
-            Path targetPath = null;
-            if (toTw == null) {
-                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), gitToPath);
-            } else {
-                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), toTw.getPathString());
-            }
-
-            File source = sourcePath.toFile();
-            File destDir = targetPath.toFile();
-            File dest = destDir;
-            if (StringUtils.isNotEmpty(newName)) {
-                dest = new File(destDir, newName);
-            }
-            if (source.isDirectory()) {
-                File[] dirList = source.listFiles();
-                for (File file : dirList) {
-                    if (file.isDirectory()) {
-                        FileUtils.moveDirectoryToDirectory(file, dest, true);
+                // Check if destination is a file, then this is a rename operation
+                // Perform rename and exit
+                Path sourcePath = Paths.get(fromTw.getPathString());
+                File sourceFile = sourcePath.toFile();
+                Path targetPath = Paths.get(toTw.getPathString());
+                File targetFile = targetPath.toFile();
+                if (targetFile.isFile()) {
+                    if (sourceFile.isFile()) {
+                        sourceFile.renameTo(targetFile);
                     } else {
-                        FileUtils.moveFileToDirectory(file, dest, true);
+                        // This is not a valid operation
+                        logger.error("Invalid move operation: Trying to rename a directory to a file for site: " +
+                            site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
                     }
+                } else if (sourceFile.isDirectory()){
+                    // Check if we're moving a single file or whole subtree
+                    FileUtils.moveToDirectory(sourceFile, targetFile, true);
                 }
-                source.delete();
-            } else {
-                if (dest.isDirectory()) {
-                    FileUtils.moveFileToDirectory(source, dest, true);
-                } else {
-                    source.renameTo(dest);
-                }
-            }
-            Git git = new Git(repo);
-            git.add()
-                    .addFilepattern(gitToPath)
-                    .call();
-            git.rm()
-                    .addFilepattern(gitFromPath)
-                    .call();
-            RevCommit commit = git.commit()
+
+                // The operation is done on disk, now it's time to commit
+                git.add().addFilepattern(gitToPath).call();
+                // git.rm().addFilepattern(gitFromPath).call();     // TODO: SJ: Delete this line after testing
+                RevCommit commit = git.commit()
                     .setOnly(gitFromPath)
                     .setOnly(gitToPath)
-                    .setMessage(StringUtils.EMPTY)
+                    .setCommitter(helper.getCurrentUserIdent())
+                    .setMessage("Moving " + fromPath + " to " + toPath + newName)
                     .call();
-        } catch (IOException | GitAPIException err) {
-            // log this error
-            logger.error("Error while moving content from {0} to {1}", err, fromPath, toPath);
-            success = false;
+                commitId = commit.getId().toString();
+            } catch (IOException | GitAPIException e){
+                logger.error("Error while moving content for site: " +
+                    site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+            }
+        } catch (IOException e) {
+            logger.error("Failed to create RevTree for site: " +
+                site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
         }
 
-        return success;
+        if (commitId != null) {
+            lastCommit = commitId;
+        }
+
+        return commitId;
     }
 
     @Override
-    public boolean copyContent(String site, String fromPath, String toPath) {
-        boolean success = true;
+    public String copyContent(String site, String fromPath, String toPath) {
+        String commitId = null;
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
+        String gitFromPath = helper.getGitPath(fromPath);
+        String gitToPath = helper.getGitPath(toPath);
 
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
-            String gitFromPath = helper.getGitPath(fromPath);
             RevTree fromTree = helper.getTree(repo);
-            TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree);
-
-            String gitToPath = helper.getGitPath(toPath);
             RevTree toTree = helper.getTree(repo);
-            TreeWalk toTw = TreeWalk.forPath(repo, gitToPath, toTree);
+            try (TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree); TreeWalk toTw=TreeWalk.forPath
+                (repo, gitToPath, toTree); Git git = new Git(repo)) {
 
-            FS fs = FS.detect();
-            File repoRoot = repo.getWorkTree();
-            Path sourcePath = null;
-            if (fromTw == null) {
-                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), gitFromPath);
-            } else {
-                sourcePath = Paths.get(fs.normalize(repoRoot.getPath()), fromTw.getPathString());
-            }
-            Path targetPath = null;
-            if (toTw == null) {
-                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), gitToPath);
-            } else {
-                targetPath = Paths.get(fs.normalize(repoRoot.getPath()), toTw.getPathString());
-            }
-            File sourceFile = sourcePath.toFile();
-            if (sourceFile.isDirectory()) {
-                FileUtils.copyDirectory(sourceFile, targetPath.toFile());
-            } else {
-                FileUtils.copyFileToDirectory(sourceFile, targetPath.toFile());
-            }
-            Git git = new Git(repo);
-            git.add()
-                    .addFilepattern(gitToPath)
+                Path sourcePath = Paths.get(fromTw.getPathString());
+                File sourceFile = sourcePath.toFile();
+                Path targetPath = Paths.get(toTw.getPathString());
+                File targetFile = targetPath.toFile();
+
+                // Check if we're moving a single file or whole subtree
+                // TODO: SJ: This might not work, test and remove this comment after final code
+                FileUtils.copyDirectory(sourceFile, targetFile);
+
+                // The operation is done on disk, now it's time to commit
+                git.add().addFilepattern(gitToPath).call();
+                RevCommit commit = git.commit()
+                    .setOnly(gitFromPath)
+                    .setOnly(gitToPath)
+                    .setCommitter(helper.getCurrentUserIdent())
+                    .setMessage("Copying " + fromPath + " to " + toPath)
                     .call();
-        } catch (IOException | GitAPIException err) {
-            // log this error
-            logger.error("Error while copping content from {0} to {1}", err, fromPath, toPath);
-            success = false;
+                commitId = commit.getId().toString();
+            } catch (IOException | GitAPIException e){
+                logger.error("Error while copying content for site: " +
+                    site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
+            }
+        } catch (IOException e) {
+            logger.error("Failed to create RevTree for site: " +
+                site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
         }
 
-        return success;
+        if (commitId != null) {
+            lastCommit = commitId;
+        }
+
+        return commitId;
     }
 
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
-        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        // TODO: SJ: Rethink this API call for 2.7.x
+/*        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            .GLOBAL:GitRepositories.SANDBOX);
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-                    .GLOBAL:GitRepositories.SANDBOX);
             RevTree tree = helper.getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
-            if (tw != null) {
-                ObjectLoader loader = repo.open(tw.getObjectId(0));
-                if (loader.getType() == Constants.OBJ_TREE) {
-                    int depth = tw.getDepth();
-                    tw.enterSubtree();
-                    while (tw.next()) {
-                        if (tw.getDepth() == depth + 1) {
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                if (tw != null) {
+                    ObjectLoader loader = repo.open(tw.getObjectId(0));
+                    if (loader.getType() == Constants.OBJ_TREE) {
+                        int depth = tw.getDepth();
+                        tw.enterSubtree();
+                        while (tw.next()) {
+                            if (tw.getDepth() == depth + 1) {
 
-                            RepositoryItem item = new RepositoryItem();
-                            item.name = tw.getNameString();
+                                RepositoryItem item = new RepositoryItem();
+                                item.name = tw.getNameString();
 
-                            String visitFolderPath = "/" + tw.getPathString();
-                            loader = repo.open(tw.getObjectId(0));
-                            item.isFolder = loader.getType() == Constants.OBJ_TREE;
-                            int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
-                            if (lastIdx > 0) {
-                                item.path = visitFolderPath.substring(0, lastIdx);
-                            }
+                                String visitFolderPath = File.separator + tw.getPathString();
+                                loader = repo.open(tw.getObjectId(0));
+                                item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                                int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                if (lastIdx > 0) {
+                                    item.path = visitFolderPath.substring(0, lastIdx);
+                                }
 
-                            if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
-                                retItems.add(item);
+                                if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                    retItems.add(item);
+                                }
                             }
                         }
                     }
                 }
+            } catch (IOException e) {
+                logger.error("Error while getting children for site: " + site + " path: " + path, e);
+            } catch (IOException e) {
+
             }
-        } catch (IOException e) {
-            logger.error("Error while getting children for site: " + site + " path: " + path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
         items = retItems.toArray(items);
         return items;
+        */
+        return null;
     }
 
     @Override

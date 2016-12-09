@@ -149,6 +149,7 @@ public class GitContentRepositoryHelper {
         return repository;
     }
 
+    // TODO: SJ: Fix the exception handling in this method
     public RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
         IOException, MissingObjectException {
         ObjectId lastCommitId = repository.resolve(Constants.HEAD);
@@ -164,6 +165,7 @@ public class GitContentRepositoryHelper {
         }
     }
 
+    // TODO: SJ: Fix the exception handling in this method
     public RevTree getTreeForCommit(Repository repository, String commitId) throws AmbiguousObjectException, IncorrectObjectTypeException,
         IOException, MissingObjectException {
         ObjectId commitObjectId = repository.resolve(commitId);
@@ -183,7 +185,7 @@ public class GitContentRepositoryHelper {
         Path gitPath = Paths.get(path);
         gitPath = gitPath.normalize();
         try {
-            gitPath = Paths.get("/").relativize(gitPath);
+            gitPath = Paths.get(File.separator).relativize(gitPath);
         } catch (IllegalArgumentException e) {
             logger.debug("Path: " + path + " is already relative path.");
         }
@@ -474,9 +476,8 @@ public class GitContentRepositoryHelper {
         return result;
     }
 
-    public String commitFile(Repository repo, String site, String path) {
+    public String commitFile(Repository repo, String site, String path, String comment, PersonIdent user) {
         String commitId = null;
-        String comment = "Save file " + path;
 
         String gitPath = getGitPath(path);
         Git git = new Git(repo);
@@ -492,7 +493,7 @@ public class GitContentRepositoryHelper {
         if (status.hasUncommittedChanges() || !status.isClean()) {
             RevCommit commit = null;
             try {
-                commit = git.commit().setOnly(gitPath).setMessage(comment).call();
+                commit = git.commit().setOnly(gitPath).setCommitter(user).setMessage(comment).call();
             } catch (GitAPIException e) {
                 logger.error("error committing file to git: site: " + site + " path: " + path, e);
             }
