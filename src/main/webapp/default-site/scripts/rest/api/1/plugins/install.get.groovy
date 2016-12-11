@@ -206,9 +206,10 @@ def importPlugin(unzipPath, props, installToSite, applicationContext, request) {
 def importSitePlugin(unzipPath, props, installToSite, applicationContext, request) {
 
 	def state = [:]
-	state.status = false
+	state.status = true
 
 	def dir = new File(unzipPath)
+	
 	dir.eachFileRecurse (FileType.FILES) { file ->
 
 		def absolutePath = file.getAbsolutePath()
@@ -218,7 +219,8 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 
 		if(relativePath.startsWith("/templates")
 				|| relativePath.startsWith("/scripts")
-				|| relativePath.startsWith("/static-assets")) {
+				|| relativePath.startsWith("/static-assets")
+				|| relativePath.startsWith("/site")) {
 
 			try {
 				def writePath = relativePath
@@ -228,7 +230,6 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 				def content = new FileInputStream(file)
 
 				def context = ContentServices.createContext(applicationContext, request)
-
 				ContentServices.writeContentAsset(context, installToSite, cleanPath(writePathOnly), writeFileName, content, "false", "", "", "", "false", "true", null)
 			}
 			catch(err) {
@@ -302,6 +303,37 @@ def importSitePlugin(unzipPath, props, installToSite, applicationContext, reques
 			catch(err) {
 				System.out.println("error writing config to site: ${relativePath} :" + err)
 			}
+		}
+	}
+
+	// note the plugin in the plugin registry
+	def registryPluginDescriptorPath = "/site/plugins/"
+
+	if(state.status == true) {
+		String registryDecriptor = "" + \
+		 "<component>" + \
+			"<filename>" + props.id + ".xml</filename>" + \
+			"<internal-name>" + props.name + "</internal-name>" + \
+			"<iplugin-id>" + props.id + "</iplugin-id>" + \
+			"<plugin-name>" + props.name + "</plugin-name>" + \
+			"<plugin-version>" + props.version + "</plugin-version>" + \
+			"<plugin-developer>" + props.developer + "</plugin-developer>" + \
+			"<plugin-url>" + props.url + "</plugin-url>" + \
+			"<plugin-license>" + props.license + "</plugin-license>" + \
+			"<plugin-license-url>" + props.license + "</plugin-license-url>" + \
+			"<plugin-cost>" + props.cost + "</plugin-cost>" + \
+			"<plugin-type>" + props.type + "</plugin-type>" + \
+			"<plugin-compatibility>" + props.compatibility + "</plugin-compatibility>" + \
+			"<plugin-dependencies>" + props.dependencies + "</plugin-dependencies>" + \
+		"</component>"
+
+		try {
+			def context = ContentServices.createContext(applicationContext, request)
+			def registryDecriptorStream = new ByteArrayInputStream(registryDecriptor.getBytes("UTF-8"))
+			ContentServices.writeContentAsset(context, installToSite, registryPluginDescriptorPath, (props.id+".xml"), registryDecriptorStream,  "false", "", "", "", "false", "true", null)
+		}
+		catch(err) {
+			System.out.println("error writing plugin registry item  "+ registryPluginDescriptorPath +" :" + err)
 		}
 	}
 
