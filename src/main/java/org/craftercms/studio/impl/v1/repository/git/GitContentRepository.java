@@ -39,6 +39,7 @@ import javax.servlet.ServletContext;
 
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -69,6 +70,7 @@ import org.springframework.web.context.ServletContextAware;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
@@ -156,43 +158,54 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createFolder(String site, String path, String name) {
-        boolean success = true;
-        // TODO: SJ: Git doesn't care about empty folders and therefore this might not be needed
-/*
+    public String createFolder(String site, String path, String name) {
+        // TODO: SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
+        String commitId = null;
+        boolean result;
+        Path emptyFilePath = Paths.get(path + name + EMPTY_FILE);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+            .SANDBOX);
+
         try {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-                .SANDBOX);
-            RevTree tree = helper.getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree);
+            // Create basic file
+            File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
 
-            FS fs = FS.detect();
-            File repoRoot = repo.getWorkTree();
-            Path folderPath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString(), name);
-            Path keepPath = Paths.get(folderPath.toString(), ".keep");
-            Files.createDirectories(folderPath);
-            File keep = Files.createFile(keepPath).toFile();
-            String gitPath = Paths.get(tw.getPathString(), name, ".keep").toString();
-            Git git = new Git(repo);
-            git.add()
-                    .addFilepattern(gitPath)
-                    .call();
+            // Create parent folders
+            File folder = file.getParentFile();
+            if (folder != null) {
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                }
+            }
 
-            PersonIdent currentUserIdent = helper.getCurrentUserIdent();
+            // Create the file
+            if (!file.createNewFile()) {
+                logger.error("error writing file: site: " + site + " path: " + emptyFilePath);
+                result = false;
+            } else {
+                // Add the file to git
+                try (Git git = new Git(repo)) {
+                    git.add().addFilepattern(helper.getGitPath(emptyFilePath.toString())).call();
 
-            RevCommit commit = git.commit()
-                    .setOnly(helper.getGitPath(gitPath))
-                    .setMessage(StringUtils.EMPTY)
-                    .setAuthor(currentUserIdent)
-                    .setCommitter(currentUserIdent)
-                    .call();
-        } catch (IOException | GitAPIException e) {
-            logger.error("Error creating folder " + name + " for site " + site + " at path " + path, e);
-            success = false;
+                    git.close();
+                    result = true;
+                } catch (GitAPIException e) {
+                    logger.error("error adding file to git: site: " + site + " path: " + emptyFilePath, e);
+                    result = false;
+                }
+            }
+        } catch (IOException e) {
+            logger.error("error writing file: site: " + site + " path: " + emptyFilePath, e);
+            result = false;
         }
-*/
 
-        return success;
+        if (result) {
+            commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " + site + " "
+                + "path: " +
+                path, helper.getCurrentUserIdent());
+        }
+
+        return commitId;
     }
 
     @Override
