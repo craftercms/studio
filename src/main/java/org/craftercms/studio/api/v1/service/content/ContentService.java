@@ -41,11 +41,6 @@ public interface ContentService {
     boolean contentExists(String site, String path);
 
     /**
-     * @return true if site has content object at path
-     */
-    boolean contentExists(String fullPath);
-
-    /**
      * get document from wcm content
      *
      * @param path
@@ -139,13 +134,6 @@ public interface ContentService {
      */
     ContentItemTO getContentItemTree(String site, String path, int depth);
 
-    /**
-     * get the tree of content items (metadata) beginning at a root
-     *
-     * @param fullPath - the full path to root at
-     */
-    ContentItemTO getContentItemTree(String fullPath, int depth);
-
     boolean moveContent(String site, String fromPath, String toPath, String newName);
 
     /**
@@ -164,13 +152,6 @@ public interface ContentService {
      * @param depth - depth to get desendents
      */
     ContentItemTO getContentItem(String site, String path, int depth);
-
-    /**
-     * get the content item (metadata) at a specific path
-     *
-     * @param fullPath - the path of the content item
-     */
-    ContentItemTO getContentItem(String fullPath);
 
     /**
      * get the version history for an item
@@ -206,7 +187,7 @@ public interface ContentService {
      * @param version - version
      */
  	String getContentVersionAsString(String site, String path, String version)	throws ContentNotFoundException;
- 	
+
     /**
      * write content
      *
@@ -240,17 +221,10 @@ public interface ContentService {
      */
     String getNextAvailableName(String site, String path);
 
-
-
-
 /* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
 /* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
 
     ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath);
-
-    String expandRelativeSitePath(String site, String relativePath);
-
-    String getRelativeSitePath(String site, String fullPath);
 
     String getContentTypeClass(String site, String uri);
 
