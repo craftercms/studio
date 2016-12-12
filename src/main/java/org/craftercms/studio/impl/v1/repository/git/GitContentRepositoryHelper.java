@@ -91,6 +91,12 @@ public class GitContentRepositoryHelper {
         this.securityProvider = securityProvider;
     }
 
+    /**
+     * Build the global repository as part of system startup and caches it
+     * @return true if successful, false otherwise
+     * @throws IOException
+     */
+    // TODO: SJ: This should be redesigned to return the repository instead of setting it as a "side effect"
     public boolean buildGlobalRepo() throws IOException {
         boolean toReturn = false;
         Path siteRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
@@ -103,6 +109,11 @@ public class GitContentRepositoryHelper {
         return toReturn;
     }
 
+    /**
+     * Builds a site's repository objects and caches them (Sandbox and Published)
+     * @param site path to repository
+     * @return true if successful, false otherwise
+     */
     public boolean buildSiteRepo(String site) {
         boolean toReturn = false;
         Repository sandboxRepo;
@@ -127,7 +138,7 @@ public class GitContentRepositoryHelper {
             if (toReturn && Files.exists(sitePublishedRepoPath)) {
                 // Build and put in cache
                 publishedRepo = openRepository(sitePublishedRepoPath);
-                sandboxes.put(site, publishedRepo);
+                published.put(site, publishedRepo);
 
                 toReturn = true;
             }
@@ -139,6 +150,13 @@ public class GitContentRepositoryHelper {
         return toReturn;
     }
 
+    /**
+     * Opens a git repository
+     *
+     * @param repositoryPath path to repository to open (including .git)
+     * @return repository object if successful
+     * @throws IOException
+     */
     public Repository openRepository(Path repositoryPath) throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repository = builder
@@ -147,38 +165,6 @@ public class GitContentRepositoryHelper {
             .findGitDir()
             .build();
         return repository;
-    }
-
-    // TODO: SJ: Fix the exception handling in this method
-    public RevTree getTree(Repository repository) throws AmbiguousObjectException, IncorrectObjectTypeException,
-        IOException, MissingObjectException {
-        ObjectId lastCommitId = repository.resolve(Constants.HEAD);
-
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(lastCommitId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
-        }
-    }
-
-    // TODO: SJ: Fix the exception handling in this method
-    public RevTree getTreeForCommit(Repository repository, String commitId) throws AmbiguousObjectException, IncorrectObjectTypeException,
-        IOException, MissingObjectException {
-        ObjectId commitObjectId = repository.resolve(commitId);
-
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(commitObjectId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
-        }
     }
 
     public String getGitPath(String path) {
@@ -192,34 +178,10 @@ public class GitContentRepositoryHelper {
         return gitPath.toString();
     }
 
-    public AbstractTreeIterator prepareTreeParser(Repository repository, String ref) throws IOException,
-        MissingObjectException,
-        IncorrectObjectTypeException {
-        // from the commit we can build the tree which allows us to construct the TreeParser
-        Ref head = repository.exactRef(ref);
-        try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(head.getObjectId());
-            RevTree tree = walk.parseTree(commit.getTree().getId());
-
-            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
-            try (ObjectReader oldReader = repository.newObjectReader()) {
-                oldTreeParser.reset(oldReader, tree.getId());
-            }
-
-            walk.dispose();
-
-            return oldTreeParser;
-        }
-    }
-
     public Repository createGitRepository(Path path) {
         Repository toReturn;
 
         try {
-            // TODO: SJ: This needs to be refactored to the following:
-            // TODO: SJ: If the site exists, return that information to the caller so they can decide what to do
-            // TODO: SJ: and don't take any action. If the site doesn't exist, go ahead and create
-            Files.deleteIfExists(path);
             path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
@@ -254,7 +216,7 @@ public class GitContentRepositoryHelper {
     }
 
     /**
-     * Create a site git repository from scratch
+     * Create a site git repository from scratch (Sandbox and Published)
      * @param site
      * @return true if successful, false otherwise
      */
@@ -336,6 +298,7 @@ public class GitContentRepositoryHelper {
 
     public boolean bulkImport(String site /* , Map<String, String> filesCommitIds */) {
         // TODO: SJ: Define this further and build it along with API & Content Service equivalent with business logic
+        // TODO: SJ: This could be in 2.6.1+ or 2.7.x
         // write all files to disk
         // commit all files
         // return data structure of file name & commit id per file
@@ -424,25 +387,42 @@ public class GitContentRepositoryHelper {
         return repo;
     }
 
+    // TODO: SJ: Fix the exception handling in this method
+    public RevTree getTreeForLastCommit(Repository repository) throws AmbiguousObjectException,
+        IncorrectObjectTypeException,
+        IOException, MissingObjectException {
+        ObjectId lastCommitId = repository.resolve(Constants.HEAD);
+
+
+        // a RevWalk allows to walk over commits based on some filtering
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(lastCommitId);
+
+            // and using commit's tree find the path
+            RevTree tree = commit.getTree();
+            return tree;
+        }
+    }
+
+    // TODO: SJ: Fix the exception handling in this method
+    public RevTree getTreeForCommit(Repository repository, String commitId) throws IOException {
+        ObjectId commitObjectId = repository.resolve(commitId);
+
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(commitObjectId);
+
+            // and using commit's tree find the path
+            RevTree tree = commit.getTree();
+            return tree;
+        }
+    }
+
     public boolean writeFile(Repository repo, String site, String path, InputStream content) {
-        // Create folder structure, create file, and write the bits
-
         boolean result;
+
         try {
-            String gitPath = getGitPath(path);
-            RevTree tree = getTree(repo);
-            TreeWalk tw = TreeWalk.forPath(repo, gitPath, tree);
-
-            FS fs = FS.detect();
-            File repoRoot = repo.getWorkTree();
-            Path filePath;
-            if (tw == null) {
-                filePath = Paths.get(fs.normalize(repoRoot.getPath()), gitPath);
-            } else {
-                filePath = Paths.get(fs.normalize(repoRoot.getPath()), tw.getPathString());
-            }
-
-            File file = filePath.toFile();
+            // Create basic file
+            File file = new File(repo.getDirectory().getParent(), path);
 
             // Create parent folders
             File folder = file.getParentFile();
@@ -452,24 +432,27 @@ public class GitContentRepositoryHelper {
                 }
             }
 
-            // Add the file to the index
-            if (!Files.exists(filePath)) {
-                filePath = Files.createFile(filePath);
+            // Create the file
+            if (!file.createNewFile()) {
+                logger.error("error writing file: site: " + site + " path: " + path);
+                result = false;
+            } else {
+                // Write the bits
+                FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
+
+                // Add the file to git
+                try (Git git = new Git(repo)) {
+                    git.add().addFilepattern(getGitPath(path)).call();
+
+                    git.close();
+                    result = true;
+                } catch (GitAPIException e) {
+                    logger.error("error adding file to git: site: " + site + " path: " + path, e);
+                    result = false;
+                }
             }
-
-            // Write the bits
-            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
-
-            // Add the file to git
-            // TODO: SJ: See if this is the fastest way to do this or if keeping a repo + git around would be faster
-            Git git = new Git(repo);
-            git.add()
-                .addFilepattern(gitPath)
-                .call();
-
-            result = true;
-        } catch (IOException | GitAPIException err) {
-            logger.error("error writing file: site: " + site + " path: " + path, err);
+        } catch (IOException e) {
+            logger.error("error writing file: site: " + site + " path: " + path, e);
             result = false;
         }
 
@@ -478,26 +461,22 @@ public class GitContentRepositoryHelper {
 
     public String commitFile(Repository repo, String site, String path, String comment, PersonIdent user) {
         String commitId = null;
-
         String gitPath = getGitPath(path);
-        Git git = new Git(repo);
+        Status status;
 
-        Status status = null;
-        try {
+        try (Git git = new Git(repo)) {
             status = git.status().addPath(gitPath).call();
-        } catch (GitAPIException e) {
-            logger.error("error adding file to git: site: " + site + " path: " + path, e);
-        }
 
-        // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
-        if (status.hasUncommittedChanges() || !status.isClean()) {
-            RevCommit commit = null;
-            try {
+            // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
+            if (status.hasUncommittedChanges() || !status.isClean()) {
+                RevCommit commit;
                 commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
-            } catch (GitAPIException e) {
-                logger.error("error committing file to git: site: " + site + " path: " + path, e);
+                commitId = commit.getId().toString();
             }
-            commitId = commit.getId().toString();
+
+            git.close();
+        } catch (GitAPIException e) {
+            logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
         }
 
         return commitId;

@@ -86,14 +86,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             .SANDBOX);
 
         try {
-            RevTree tree = helper.getTree(repo);
+            RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                 // Check if the array of items is not null, and since we have an absolute path to the item,
                 // pick the first item in the list
                 if (tw != null && tw.getObjectId(0) != null) {
                     toReturn = true;
+                    tw.close();
                 }
-                tw.close();
             } catch (IOException e) {
                 logger.info("Content not found for site: " + site + " path: " + path, e);
             }
@@ -111,7 +111,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             .GLOBAL:GitRepositories.SANDBOX);
 
         try {
-            RevTree tree = helper.getTree(repo);
+            RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                 // Check if the array of items is not null, and since we have an absolute path to the item,
                 // pick the first item in the list
@@ -119,8 +119,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     ObjectId id = tw.getObjectId(0);
                     ObjectLoader objectLoader = repo.open(id);
                     toReturn = objectLoader.openStream();
+                    tw.close();
                 }
-                tw.close();
             } catch (IOException e) {
                 logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
             }
@@ -235,53 +235,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath + newName);
 
-        try {
-            RevTree fromTree = helper.getTree(repo);
-            RevTree toTree = helper.getTree(repo);
-            try (TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree); TreeWalk toTw=TreeWalk.forPath
-                (repo, gitToPath, toTree); Git git = new Git(repo)) {
-
-                // Check if destination is a file, then this is a rename operation
-                // Perform rename and exit
-                Path sourcePath = Paths.get(fromTw.getPathString());
-                File sourceFile = sourcePath.toFile();
-                Path targetPath = Paths.get(toTw.getPathString());
-                File targetFile = targetPath.toFile();
-                if (targetFile.isFile()) {
-                    if (sourceFile.isFile()) {
-                        sourceFile.renameTo(targetFile);
-                    } else {
-                        // This is not a valid operation
-                        logger.error("Invalid move operation: Trying to rename a directory to a file for site: " +
-                            site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
-                    }
-                } else if (sourceFile.isDirectory()){
-                    // Check if we're moving a single file or whole subtree
-                    FileUtils.moveToDirectory(sourceFile, targetFile, true);
+        try (Git git = new Git(repo)) {
+            // Check if destination is a file, then this is a rename operation
+            // Perform rename and exit
+            Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
+            File sourceFile = sourcePath.toFile();
+            Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
+            File targetFile = targetPath.toFile();
+            if (targetFile.isFile()) {
+                if (sourceFile.isFile()) {
+                    sourceFile.renameTo(targetFile);
+                } else {
+                    // This is not a valid operation
+                    logger.error("Invalid move operation: Trying to rename a directory to a file for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
                 }
-
-                // The operation is done on disk, now it's time to commit
-                git.add().addFilepattern(gitToPath).call();
-                // git.rm().addFilepattern(gitFromPath).call();     // TODO: SJ: Delete this line after testing
-                RevCommit commit = git.commit()
-                    .setOnly(gitFromPath)
-                    .setOnly(gitToPath)
-                    .setAuthor(helper.getCurrentUserIdent())
-                    .setCommitter(helper.getCurrentUserIdent())
-                    .setMessage("Moving " + fromPath + " to " + toPath + newName)
-                    .call();
-                commitId = commit.getId().toString();
-
-                git.close();
-                fromTw.close();
-                toTw.close();
-            } catch (IOException | GitAPIException e){
-                logger.error("Error while moving content for site: " +
-                    site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+            } else if (sourceFile.isDirectory()) {
+                // Check if we're moving a single file or whole subtree
+                FileUtils.moveToDirectory(sourceFile, targetFile, true);
             }
-        } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " +
-                site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+
+            // The operation is done on disk, now it's time to commit
+            git.add().addFilepattern(gitToPath).call();
+            // git.rm().addFilepattern(gitFromPath).call();     // TODO: SJ: Delete this line after testing
+            RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
+            commitId = commit.getId().toString();
+
+            git.close();
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
         }
 
         if (commitId != null) {
@@ -299,41 +280,30 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath);
 
-        try {
-            RevTree fromTree = helper.getTree(repo);
-            RevTree toTree = helper.getTree(repo);
-            try (TreeWalk fromTw = TreeWalk.forPath(repo, gitFromPath, fromTree); TreeWalk toTw=TreeWalk.forPath
-                (repo, gitToPath, toTree); Git git = new Git(repo)) {
+        try (Git git = new Git(repo)) {
+            Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
+            File sourceFile = sourcePath.toFile();
+            Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
+            File targetFile = targetPath.toFile();
 
-                Path sourcePath = Paths.get(fromTw.getPathString());
-                File sourceFile = sourcePath.toFile();
-                Path targetPath = Paths.get(toTw.getPathString());
-                File targetFile = targetPath.toFile();
+            // Check if we're copying a single file or whole subtree
+            // TODO: SJ: This might not work, test and remove this comment after final code
+            FileUtils.copyDirectory(sourceFile, targetFile);
 
-                // Check if we're moving a single file or whole subtree
-                // TODO: SJ: This might not work, test and remove this comment after final code
-                FileUtils.copyDirectory(sourceFile, targetFile);
+            // The operation is done on disk, now it's time to commit
+            git.add().addFilepattern(gitToPath).call();
+            RevCommit commit = git.commit()
+                .setOnly(gitFromPath)
+                .setOnly(gitToPath)
+                .setAuthor(helper.getCurrentUserIdent())
+                .setCommitter(helper.getCurrentUserIdent())
+                .setMessage("Copying " + fromPath + " to " + toPath)
+                .call();
+            commitId = commit.getId().toString();
 
-                // The operation is done on disk, now it's time to commit
-                git.add().addFilepattern(gitToPath).call();
-                RevCommit commit = git.commit()
-                    .setOnly(gitFromPath)
-                    .setOnly(gitToPath)
-                    .setAuthor(helper.getCurrentUserIdent())
-                    .setCommitter(helper.getCurrentUserIdent())
-                    .setMessage("Copying " + fromPath + " to " + toPath)
-                    .call();
-                commitId = commit.getId().toString();
-
-                git.close();
-                fromTw.close();
-                toTw.close();
-            } catch (IOException | GitAPIException e){
-                logger.error("Error while copying content for site: " +
-                    site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
-            }
-        } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " +
+            git.close();
+        } catch (IOException | GitAPIException e){
+            logger.error("Error while copying content for site: " +
                 site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
         }
 
@@ -352,7 +322,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             .GLOBAL:GitRepositories.SANDBOX);
 
         try {
-            RevTree tree = helper.getTree(repo);
+            RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                 if (tw != null) {
                     // Loop for all children and gather path of item excluding the item, file/folder name, and
@@ -380,12 +350,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 }
                             }
                         }
+                        tw.close();
                     } else {
                         logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
                     }
                 }
-
-                tw.close();
             } catch (IOException e) {
                 logger.error("Error while getting children for site: " + site + " path: " + path, e);
             }
@@ -501,10 +470,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             RevTree tree = helper.getTreeForCommit(repo, version);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-                ObjectId id = tw.getObjectId(0);
-                ObjectLoader objectLoader = repo.open(id);
-                toReturn = objectLoader.openStream();
-                tw.close();
+                if (tw != null) {
+                    ObjectId id = tw.getObjectId(0);
+                    ObjectLoader objectLoader = repo.open(id);
+                    toReturn = objectLoader.openStream();
+                    tw.close();
+                }
             } catch (IOException e) {
                 logger.error("Error while getting content for file at site: " + site + " path: " + path + " version:"
                     + " " + version, e);
@@ -528,7 +499,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             .SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
-            RevTree tree = helper.getTree(repo);
+            RevTree tree = helper.getTreeForLastCommit(repo);
             tw.addTree(tree); // tree ‘0’
             tw.setRecursive(false);
             tw.setFilter(PathFilter.create(path));
@@ -556,7 +527,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             .SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
-            RevTree tree = helper.getTree(repo);
+            RevTree tree = helper.getTreeForLastCommit(repo);
             tw.addTree(tree); // tree ‘0’
             tw.setRecursive(false);
             tw.setFilter(PathFilter.create(path));
