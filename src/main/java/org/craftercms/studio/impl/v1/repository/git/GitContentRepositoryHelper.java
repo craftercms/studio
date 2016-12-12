@@ -23,6 +23,8 @@ package org.craftercms.studio.impl.v1.repository.git;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemLoopException;
@@ -41,6 +43,7 @@ import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -293,6 +296,41 @@ public class GitContentRepositoryHelper {
             toReturn = false;
         }
 
+        return toReturn;
+    }
+
+    public boolean updateSitenameConfigVar(String site) {
+        boolean toReturn = true;
+        String siteConfigFolder = "/config/studio";
+        if (!replaceSitenameVariable(site,
+                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(), studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                        studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
+            toReturn = false;
+        } else if (!replaceSitenameVariable(site,
+                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(), studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
+            toReturn = false;
+        } else if (!replaceSitenameVariable(site,
+                Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(), studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
+            toReturn = false;
+        }
+        return toReturn;
+    }
+
+    protected boolean replaceSitenameVariable(String site, Path path) {
+        boolean toReturn = false;
+        Charset charset = StandardCharsets.UTF_8;
+        String content = null;
+        try {
+            content = new String(Files.readAllBytes(path), charset);
+            content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+            Files.write(path, content.getBytes(charset));
+            toReturn = true;
+        } catch (IOException e) {
+            logger.error("Error replacing sitename variable inside configuration file " + path.toString() + " for site " + site);
+            toReturn = false;
+        }
         return toReturn;
     }
 
