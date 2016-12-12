@@ -78,3 +78,12 @@ studio.db.validationQuery.db2: SELECT 1 FROM SYSIBM.SYSDUMMY1
 # Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
 # Use a value less than or equal to 0 for no timeout.
 studio.db.validationInterval: 34000
+
+
+############################################################
+##                   Site Configuration                   ##
+############################################################
+studio.configuration.site.configBasePath: /config/studio
+studio.configuration.site.generalConfigFileName: site-config.xml
+studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
+studio.configuration.site.roleMappingsFileName: role-mappings-config.xml

@@ -162,7 +162,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // TODO: SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
         String commitId = null;
         boolean result;
-        Path emptyFilePath = Paths.get(path + name + EMPTY_FILE);
+        Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
 
@@ -621,6 +621,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (toReturn) {
             // copy files from blueprint
             toReturn = helper.copyContentFromBlueprint(blueprintName, siteId);
+        }
+
+        if (toReturn) {
+            // update site name variable inside config files
+            toReturn = helper.updateSitenameConfigVar(siteId);
         }
 
         if (toReturn) {

@@ -51,6 +51,12 @@ public interface StudioConfiguration {
     String DB_VALIDATION_QUERY_DB2 = "studio.db.validationQuery.db2";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
 
+    /** Configuration */
+    String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
+    String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
+    String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
+    String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
+
     void loadConfig();
 
     String getProperty(String key);
