@@ -95,11 +95,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean contentExists(String fullPath) {
-        return this._contentRepository.contentExists("", fullPath);
-    }
-
-    @Override
     public InputStream getContent(String path) throws ContentNotFoundException {
        return this._contentRepository.getContent("", path);
     }
@@ -167,7 +162,6 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_EDIT, edit);
         params.put(DmConstants.KEY_UNLOCK, unlock);
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
-        String fullPath = expandRelativeSitePath(site, path);
         String relativePath = path;
         boolean contentExists = contentExists(site, path);
         String lockKey = id;
@@ -218,12 +212,10 @@ public class ContentServiceImpl implements ContentService {
             }
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
-            fullPath = expandRelativeSitePath(site, savedPath);
+            relativePath = savedPath;
             if (!savedPath.endsWith(savedFileName)) {
-                fullPath = fullPath + "/" + savedFileName;
+                relativePath = savedPath + "/" + savedFileName;
             }
-            fullPath = fullPath.replace("//", "/");
-            relativePath = getRelativeSitePath(site, fullPath);
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
                 if (saveAndClose) {
@@ -310,35 +302,33 @@ public class ContentServiceImpl implements ContentService {
 
         String id = site + ":" + path + ":" + assetName + ":" + "";
         // processContent will close the input stream
-        String fullPath = null;
         ContentItemTO item = null;
         try {
-            fullPath = expandRelativeSitePath(site, path + "/" + assetName);
-            item = getContentItem(site, path + "/" + assetName);
+            path = path + "/" + assetName;
+            item = getContentItem(site, path);
 
             if (item != null) {
-                ObjectState itemState = objectStateService.getObjectState(site, path + "/" + assetName);
+                ObjectState itemState = objectStateService.getObjectState(site, path);
                 if (itemState != null) {
                     if (itemState.getSystemProcessing() != 0) {
                         logger.error(String.format("Error Content %s is being processed (Object State is SYSTEM_PROCESSING);", assetName));
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", assetName));
                     }
-                    objectStateService.setSystemProcessing(site, path + "/" + assetName, true);
+                    objectStateService.setSystemProcessing(site, path, true);
                 }
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             if (isSystemAsset) {
                 ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
-                fullPath = fullPath.replace(assetName, assetInfoTO.getFileName());
+                path = path.replace(assetName, assetInfoTO.getFileName());
             }
-            item = getContentItem(site, getRelativeSitePath(site, fullPath));
+            item = getContentItem(site, path);
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
-            String relativePath = getRelativeSitePath(site, fullPath);
-            removeItemFromCache(site, relativePath);
-            previewSync.notifyUpdateContent(site, relativePath);
+            removeItemFromCache(site, path);
+            previewSync.notifyUpdateContent(site, path);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -353,7 +343,7 @@ public class ContentServiceImpl implements ContentService {
             return toRet;
         } finally {
             if (item != null) {
-                objectStateService.setSystemProcessing(site, getRelativeSitePath(site, fullPath), false);
+                objectStateService.setSystemProcessing(site, path, false);
             }
         }
     }
@@ -528,10 +518,8 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    protected ContentItemTO populateContentDrivenProperties(String site,ContentItemTO item)
+    protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
     throws Exception {
-
-        String fullContentPath = expandRelativeSitePath(item.site, item.uri);
         String contentPath = item.uri;
 
         logger.debug("Pupulating page props {0}", contentPath);
@@ -589,7 +577,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         else {
-             logger.error("no xml document could be loaded for path {0}", fullContentPath);
+             logger.error("no xml document could be loaded for site {0} path {1}", site, contentPath);
         }
 
         return item;
@@ -675,7 +663,7 @@ public class ContentServiceImpl implements ContentService {
                     }
                     else {
                         if (depth > 1) {
-                            String childPath = getRelativeSitePath(item.site, childRepoItems[j].path + "/" + childRepoItems[j].name);
+                            String childPath = childRepoItems[j].path + "/" + childRepoItems[j].name;
                             if (childPath.startsWith("/site/website/") && childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
                                 children.add(getContentItem(item.site, childPath + "/index.xml", depth - 1));
                             } else {
@@ -737,9 +725,7 @@ public class ContentServiceImpl implements ContentService {
     public ContentItemTO getContentItem(String site, String path, int depth) {
         logger.debug("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
         ContentItemTO item = null;
-        String fullContentPath = expandRelativeSitePath(site, path);
-        String contentPath = path;
-        logger.debug("Getting content item for {0}", contentPath);
+        logger.debug("Getting content item for site {0} path {1}", site, path);
 
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
@@ -768,11 +754,11 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         catch(Exception err) {
-            logger.error("error constructing item for object at path '{0}'", err, fullContentPath);
+            logger.error("error constructing item for object at site {0} path {1}", err, site, path);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item [{0}] retrieved in {1} milis", fullContentPath, executionTime);
+        logger.debug("Content item from site {0} path {1} retrieved in {2} milli-seconds", site, path, executionTime);
         return item;
     }
 
@@ -820,7 +806,7 @@ public class ContentServiceImpl implements ContentService {
             try {
                 item = populateContentDrivenProperties(site, item);
             } catch (Exception err) {
-                logger.error("error constructing item for object at path '{0}'", err, expandRelativeSitePath(site, path));
+                logger.error("error constructing item for object at site {0} path {1}", err, site, path);
             }
         } else {
             item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
@@ -839,14 +825,6 @@ public class ContentServiceImpl implements ContentService {
 
         loadContentTypeProperties(site, item, item.contentType);
         return item;
-    }
-
-    @Override
-    public ContentItemTO getContentItem(String fullPath) {
-        String site = getSiteFromFullPath(fullPath);
-        String relativePath = getRelativeSitePath(site, fullPath);
-
-        return getContentItem(site, fullPath);
     }
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
@@ -971,14 +949,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItemTree(String fullPath, int depth) {
-        String site = getSiteFromFullPath(fullPath);
-        String relativePath = getRelativeSitePath(site, fullPath);
-
-        return getContentItemTree(site, relativePath, depth);
-    }
-
-    @Override
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
         return _contentRepository.getContentVersionHistory(site, path);
     }
@@ -1009,8 +979,6 @@ public class ContentServiceImpl implements ContentService {
      */
  	public InputStream getContentVersion(String site, String path, String version)
  	throws ContentNotFoundException {
- 		String repositoryPath = expandRelativeSitePath(site, path);
-
  		return _contentRepository.getContentVersion(site, path, version);
  	}
 
@@ -1036,15 +1004,12 @@ public class ContentServiceImpl implements ContentService {
         return content;
  	}
 
-
-    public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
-        String absolutePath = expandRelativeSitePath(site, relativePath);
-        DmPathTO path = new DmPathTO(absolutePath);
+    public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
+        DmPathTO path = new DmPathTO(relativePath);
         ContentItemTO item = new ContentItemTO();
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
         String name = path.getName();
-        String fullPath = path.toString();
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
         item.path = folderPath;
         /**
@@ -1081,44 +1046,6 @@ public class ContentServiceImpl implements ContentService {
         item.browserUri = getBrowserUri(item);
 
         return item;
-    }
-
-
-    /**
-     * take a path like /sites/website/index.xml and root it properly with a fully expanded repo path
-     *
-     * @param site
-     * @param relativePath
-     * @return
-     */
-    @Override
-    public String expandRelativeSitePath(String site, String relativePath) {
-        return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
-    }
-
-    /**
-     * take a path like /wem-projects/SITE/SITE/work-area/sites/website/index.xml and
-     * and return the releative path to the project
-     *
-     * @param site
-     * @param fullPath
-     * @return
-     */
-    @Override
-    public String getRelativeSitePath(String site, String fullPath) {
-        return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
-    }
-
-    protected String getRelativeSitePath(String fullPath) {
-        String path = fullPath.replace("/wem-projects/", "");
-        String site = path.substring(0, path.indexOf("/"));
-        return getRelativeSitePath(site, fullPath);
-    }
-
-    protected String getSiteFromFullPath(String fullPath) {
-        String path = fullPath.replace("/wem-projects/", "");
-        String site = path.substring(0, path.indexOf("/"));
-        return site;
     }
 
     protected String getBrowserUri(ContentItemTO item) {
@@ -1363,7 +1290,6 @@ public class ContentServiceImpl implements ContentService {
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
         DmOrderTO afterOrderTO = null;
-        String fullPath = expandRelativeSitePath(site, relativePath);
         // get the order of the content before
         // if the path is not provided, the order is 0
         if (!StringUtils.isEmpty(before)) {
