@@ -379,8 +379,14 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean createFolder(String site, String path, String name) {
-        boolean toRet = _contentRepository.createFolder(site, path, name);
-        removeItemFromCache(site, path + "/" + name);
+        boolean toRet = false;
+        String commitId = _contentRepository.createFolder(site, path, name);
+        if (commitId != null) {
+            // TODO: SJ: update database
+            removeItemFromCache(site, path + "/" + name);
+            toRet = true;
+        }
+
         return toRet;
     }
 

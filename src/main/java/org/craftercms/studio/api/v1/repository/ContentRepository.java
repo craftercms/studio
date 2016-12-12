@@ -66,9 +66,9 @@ public interface ContentRepository {
      * @param site site id where the operation will be executed
      * @param path path to create a folder in
      * @param name a folder name to create
-     * @return true if successful
+     * @return Commit Id if successful, null otherwise
      */
-    boolean createFolder(String site, String path, String name);
+    String createFolder(String site, String path, String name);
 
     /**
      * delete content
