@@ -20,9 +20,6 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -107,27 +104,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	protected ContentRepository contentRepository;
 
-    protected CacheTemplate cacheTemplate;
-
     protected SiteConfigTO getSiteConfig(final String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        SiteConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<SiteConfigTO>() {
-            @Override
-            public SiteConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        return config;
+        return loadConfiguration(site);
     }
 
 	public String getWemProject(String site) {
@@ -418,21 +396,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     @Override
     public void reloadConfiguration(String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         SiteConfigTO config = loadConfiguration(site);
-        cacheService.put(cacheContext, cacheKey, config);
     }
 
     public void setContentService(ContentService contentService) {
@@ -457,9 +421,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	public ContentRepository getContentRepository() { return contentRepository; }
 	public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
-
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }

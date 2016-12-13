@@ -67,7 +67,6 @@
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="previewSync" ref="previewSync"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -104,7 +103,6 @@
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="securityProvider" ref="securityProvider" />
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
         <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
@@ -178,7 +176,6 @@
          <property name="siteService" ref="cstudioSiteServiceSimple"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
-         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
          <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
          <property name="generalLockService" ref="cstudioGeneralLockService"/>
      </bean>
@@ -192,7 +189,6 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="enable" value="${notificationService.v2.enable}"/>
         <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
@@ -209,7 +205,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
@@ -219,7 +214,6 @@
         <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
     </bean>
@@ -228,7 +222,6 @@
         <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
         <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
@@ -269,7 +262,6 @@
         <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
         <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
     </bean>
@@ -288,7 +280,6 @@
         <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
         <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
@@ -345,7 +336,6 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="previewSync" ref="previewSync"/>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -361,7 +351,6 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 

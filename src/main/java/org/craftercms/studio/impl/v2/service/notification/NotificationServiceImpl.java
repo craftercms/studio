@@ -24,8 +24,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.commons.mail.EmailUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -57,7 +55,6 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFY_CONTENT_REJECTED = "contentRejected";
 
     protected Map<String, NotificationConfigTO> notificationConfiguration;
-    protected CacheTemplate cacheTemplate;
     protected String configPath;
     protected String configFileName;
     protected ContentService contentService;
@@ -399,22 +396,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void reloadConfiguration(final String site) {
         if (enable) {
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site)
-                , configFileName);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (cacheService.hasScope(cacheContext)) {
-                    cacheService.remove(cacheContext, cacheKey);
-                } else {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
             Map<String, NotificationConfigTO> config = loadConfig(site);
-            cacheService.put(cacheContext, cacheKey, config);
         }
     }
 
@@ -424,24 +406,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        Map<String, NotificationConfigTO> config = cacheTemplate.getObject(cacheContext, new Callback<Map<String,
-            NotificationConfigTO>>() {
-            @Override
-            public Map<String, NotificationConfigTO> execute() {
-                return loadConfig(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-
+        Map<String, NotificationConfigTO> config = loadConfig(site);
         Locale realLocale = locale;
         if (locale == null) {
             realLocale = Locale.ENGLISH;
@@ -474,10 +439,6 @@ public class NotificationServiceImpl implements NotificationService {
             files.add(contentService.getContentItem(site, path));
         }
         return files;
-    }
-
-    public void setCacheTemplate(final CacheTemplate cacheTemplate) {
-        this.cacheTemplate = cacheTemplate;
     }
 
     public void setConfigPath(final String configPath) {

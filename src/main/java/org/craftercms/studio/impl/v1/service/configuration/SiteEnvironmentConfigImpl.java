@@ -19,9 +19,6 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -49,7 +46,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	protected ContentService contentService;
     protected String configPath;
     protected String configFileName;
-    protected CacheTemplate cacheTemplate;
 
 	public ServicesConfig getServicesConfig() { return servicesConfig; }
 	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
@@ -63,29 +59,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     public String getConfigFileName() { return configFileName; }
     public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
 	@Override
 	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        EnvironmentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<EnvironmentConfigTO>() {
-            @Override
-            public EnvironmentConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        return config;
+        return loadConfiguration(site);
 	}
 
 	public String getPreviewServerUrl(String site) {
@@ -244,21 +220,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @Override
     public void reloadConfiguration(String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         EnvironmentConfigTO config = loadConfiguration(site);
-        cacheService.put(cacheContext, cacheKey, config);
     }
 
     /**

@@ -19,9 +19,6 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -62,26 +59,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     @Override
     public ContentTypeConfigTO getContentTypeConfig(final String site, final String contentType) {
         if (StringUtils.isNotEmpty(contentType)) {
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
-                    .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-            Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (!cacheService.hasScope(cacheContext)) {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
-            ContentTypeConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<ContentTypeConfigTO>() {
-                @Override
-                public ContentTypeConfigTO execute() {
-                    return loadConfiguration(site, contentType);
-                }
-            }, site, configPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType), configFileName);
-            return config;
+            return loadConfiguration(site, contentType);
         } else {
             return null;
         }
@@ -349,24 +327,11 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 
     @Override
     public ContentTypeConfigTO reloadConfiguration(String site, String contentType) {
-        CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
-        cacheService.put(cacheContext, cacheKey, config);
         this.addContentType(site, contentType, config);
         return config;
     }
@@ -388,9 +353,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public String getConfigFileName() { return configFileName; }
     public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
@@ -398,6 +360,5 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     protected ContentService contentService;
     protected String configPath;
     protected String configFileName;
-    protected CacheTemplate cacheTemplate;
     protected GeneralLockService generalLockService;
 }

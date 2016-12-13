@@ -19,8 +19,6 @@ package org.craftercms.studio.impl.v1.service.clipboard;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
@@ -42,7 +40,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
 import org.craftercms.studio.impl.v1.ebus.PreviewSync;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.PathMacrosTransaltor;
@@ -156,25 +153,9 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         String fileName = (StringUtils.isEmpty(destinationFileName)) ? ContentUtils.getPageName(path) : destinationFileName;
         writeContent(site, destination, fileName, user, content, contentType, false, writeOperation);
 
-        removeItemFromCache(site, destination + "/" + fileName);
         previewSync.syncPath(site, destination + "/" + fileName);
 
         return destination + "/" + fileName;
-    }
-
-    protected void removeItemFromCache(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        cacheService.remove(cacheContext, cacheKey);
     }
 
     /**
@@ -676,9 +657,6 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     public PreviewSync getPreviewSync() { return previewSync; }
     public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     protected DmContentProcessor writeProcessor;
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -691,5 +669,4 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     protected GeneralLockService generalLockService;
     protected SecurityProvider securityProvider;
     protected PreviewSync previewSync;
-    protected CacheTemplate cacheTemplate;
 }

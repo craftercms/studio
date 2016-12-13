@@ -30,9 +30,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -91,7 +88,6 @@ public class NotificationServiceImpl implements NotificationService {
     protected ContentService contentService;
     protected String configPath;
     protected String configFileName;
-    protected CacheTemplate cacheTemplate;
     protected boolean isNewNotificationEnable;
 
 
@@ -136,9 +132,6 @@ public class NotificationServiceImpl implements NotificationService {
     public String getConfigFileName() { return configFileName; }
     public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public void setNewNotificationEnable(final boolean newNotificationEnable) {
         isNewNotificationEnable = newNotificationEnable;
     }
@@ -158,23 +151,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     protected NotificationConfigTO getNotificationConfig(final String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        NotificationConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<NotificationConfigTO>() {
-            @Override
-            public NotificationConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        return config;
+        return loadConfiguration(site);
     }
 
     @Override
@@ -980,21 +957,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void reloadConfiguration(String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         NotificationConfigTO config = loadConfiguration(site);
-        cacheService.put(cacheContext, cacheKey, config);
     }
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }

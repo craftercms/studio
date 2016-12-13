@@ -22,8 +22,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -334,16 +332,6 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
 
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (!cacheService.hasScope(cacheContext)) {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
             clearConfigurationCache.clearConfigurationCache(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
@@ -481,16 +469,6 @@ public class SiteServiceImpl implements SiteService {
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
-            }
-            cacheContext = new StudioCacheContext(siteId, false);
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
-            }
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -558,19 +536,6 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(StudioConstants.PATTERN_SITE, site), "SiteTO");
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         SiteTO siteConfig = new SiteTO();
         siteConfig.setSite(site);
         siteConfig.setEnvironment(this.environment);
@@ -580,7 +545,6 @@ public class SiteServiceImpl implements SiteService {
         loadSiteEnvironmentConfig(site, siteConfig);
         deploymentEndpointConfig.reloadConfiguration(site);
         loadSiteDeploymentConfig(site, siteConfig);
-        cacheService.put(cacheContext, cacheKey, siteConfig);
         notificationService.reloadConfiguration(site);
 		notificationService2.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
@@ -588,7 +552,6 @@ public class SiteServiceImpl implements SiteService {
         if (triggerEvent) {
             clearConfigurationCache.clearConfigurationCache(site);
         }
-        cacheService.put(cacheContext, cacheKey, siteConfig);
     }
 
     @Override
@@ -668,9 +631,6 @@ public class SiteServiceImpl implements SiteService {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
     public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
 
@@ -714,7 +674,6 @@ public class SiteServiceImpl implements SiteService {
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected SecurityProvider securityProvider;
-    protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
     protected ContentTypeUpdated contentTypeUpdated;
     protected ImportService importService;

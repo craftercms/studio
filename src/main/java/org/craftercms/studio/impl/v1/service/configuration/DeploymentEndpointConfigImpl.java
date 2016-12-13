@@ -19,9 +19,6 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -138,23 +135,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
     @Override
     public DeploymentEndpointConfigTO getDeploymentConfig(final String site, final String endpoint) {
-        //checkForUpdate(site);
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        CacheService cacheService = cacheTemplate.getCacheService();
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
-            @Override
-            public DeploymentConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
+        DeploymentConfigTO config = loadConfiguration(site);
         if (config != null) {
             return config.getEndpoint(endpoint);
         }
@@ -164,41 +145,17 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
     @Override
     public DeploymentConfigTO getSiteDeploymentConfig(final String site) {
-        //checkForUpdate(site);
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
-            @Override
-            public DeploymentConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
+        DeploymentConfigTO config = loadConfiguration(site);
         return config;
     }
 
     @Override
     public void reloadConfiguration(String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         DeploymentConfigTO config = loadConfiguration(site);
-        cacheService.put(cacheContext, cacheKey, config);
     }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
-
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 
     public String getConfigPath() { return configPath; }
     public void setConfigPath(String configPath) { this.configPath = configPath; }
@@ -210,7 +167,6 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
     protected ContentService contentService;
-    protected CacheTemplate cacheTemplate;
     protected String configPath;
     protected String configFileName;
     protected GeneralLockService generalLockService;

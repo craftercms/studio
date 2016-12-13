@@ -1,8 +1,5 @@
 package org.craftercms.studio.impl.v1.ebus;
 
-
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.ebus.ClearCacheEventMessage;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -10,7 +7,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
@@ -27,17 +23,6 @@ public class ClearConfigurationCache {
     public void onClearConfigurationCache(ClearCacheEventMessage message) {
         logger.info("ClearConfigurationCache event invoked for site" + message.getSite());
         String site = message.getSite();
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
-            }
-            cacheService.addScope(cacheContext);
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         String ticket = securityProvider.authenticate(adminUser, adminPassword);
         RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
         RepositoryEventContext.setCurrent(repositoryEventContext);
@@ -66,9 +51,6 @@ public class ClearConfigurationCache {
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
@@ -84,7 +66,6 @@ public class ClearConfigurationCache {
     protected SecurityProvider securityProvider;
     protected RpcDispatcher rpcDispatcher;
     protected SiteService siteService;
-    protected CacheTemplate cacheTemplate;
     protected String adminUser;
     protected String adminPassword;
     protected GeneralLockService generalLockService;
