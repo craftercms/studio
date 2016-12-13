@@ -372,7 +372,7 @@ public class GitContentRepositoryHelper {
                     .setMessage(message)
                     .call();
                 // TODO: SJ: Do we need the commit id?
-                // commitId = commit.getId().toString();
+                // commitId = commit.getName();
             }
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);
@@ -508,7 +508,7 @@ public class GitContentRepositoryHelper {
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 RevCommit commit;
                 commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
-                commitId = commit.getId().toString();
+                commitId = commit.getName();
             }
 
             git.close();
