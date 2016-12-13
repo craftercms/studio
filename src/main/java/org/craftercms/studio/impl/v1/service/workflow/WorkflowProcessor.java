@@ -100,14 +100,13 @@ public class WorkflowProcessor {
     
 	private void rollbackOnError(String site, Set<String> allPaths) {
 
-		for (String fullPath : allPaths) {
+		for (String relativePath : allPaths) {
 			try {
-                String relativePath = contentService.getRelativeSitePath(site, fullPath);
 				if (contentService.contentExists(site, relativePath)) {
 				  objectStateService.setSystemProcessing(site, relativePath, false);
 				}
 			} catch (Exception ex) {
-				logger.error("Unable to rollback " + fullPath, ex);
+				logger.error("Unable to rollback site " + site + " path " + relativePath, ex);
 			}
 		}
 	}

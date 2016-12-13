@@ -385,7 +385,6 @@ public class PublishingManagerImpl implements PublishingManager {
                 deployer.deleteFile(site, path);
 
                 if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                    String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                     if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
                         // TODO: SJ: This bypasses the Content Service, fix
                         RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
@@ -411,7 +410,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
 
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
-                String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                 if (contentService.contentExists(site, path.replace("/" + DmConstants.INDEX_FILE, ""))) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
@@ -461,7 +459,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
                     if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                         boolean hasRenamedChildren = false;
-                        String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
 
                         if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
                             try {
@@ -610,10 +607,9 @@ public class PublishingManagerImpl implements PublishingManager {
                 int idx = helpPath.lastIndexOf("/");
                 String parentPath = helpPath.substring(0, idx) + "/" + indexFile;
                 if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
-                    String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
-                    if (!missingDependenciesPaths.contains(parentFullPath) && !pathsToDeploy.contains(parentFullPath)) {
+                    if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
-                        missingDependenciesPaths.add(parentFullPath);
+                        missingDependenciesPaths.add(parentPath);
                         CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
                         processItem(parentItem);
                         mandatoryDependencies.add(parentItem);
@@ -627,10 +623,9 @@ public class PublishingManagerImpl implements PublishingManager {
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
-                        String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
-                        if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {
+                        if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
-                            missingDependenciesPaths.add(dependentFullPath);
+                            missingDependenciesPaths.add(dependentPath);
                             CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
                             processItem(dependentItem);
                             mandatoryDependencies.add(dependentItem);

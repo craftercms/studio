@@ -163,9 +163,9 @@ public class RebuildRepositoryMetadata {
 
     protected boolean populateRebuildRepositoryMetadataQueue(String site) {
         logger.debug("Populating Rebuild Repository Metadata queue for site " + site);
-        Path siteContentRootPath = Paths.get(previewRepoRootPath, contentService.expandRelativeSitePath(site, ""));
+        Path siteContentRootPath = Paths.get(previewRepoRootPath,  "");
         logger.debug("Retrieving files list for content repository");
-        Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(previewRepoRootPath, contentService.expandRelativeSitePath(site, "")).toFile(), null, true);
+        Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(previewRepoRootPath, "").toFile(), null, true);
         List<String> paths = new ArrayList<String>();
         int id = 1;
         while (fileIterator.hasNext()) {

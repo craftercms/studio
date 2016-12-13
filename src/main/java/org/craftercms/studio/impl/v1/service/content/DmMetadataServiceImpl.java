@@ -68,8 +68,6 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
         }
         contentType = (StringUtils.isEmpty(contentType)) ? getContentType(content) : contentType;
 
-        String actionedUponPath = contentService.expandRelativeSitePath(site, path);
-
         // Find js location
         String scriptPath = getScriptPath(site, contentType);
         if (contentService.contentExists(site, scriptPath)) {
@@ -81,8 +79,8 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
                     model.put(scriptObjectName, scriptObjects.get(scriptObjectName));
                 }
             }
-            if (!StringUtils.isEmpty(actionedUponPath)) {
-                model.put(DmConstants.KEY_NODE_REF, actionedUponPath);
+            if (!StringUtils.isEmpty(path)) {
+                model.put(DmConstants.KEY_NODE_REF, path);
             }
             model.put(DmConstants.KEY_SCRIPT_DOCUMENT, content.getDocument());
             model.put(DmConstants.KEY_SITE, site);
@@ -90,8 +88,6 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
             model.put(DmConstants.KEY_USER, user);
             model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
             model.put(DmConstants.KEY_APPLICATION_CONTEXT, ApplicationContextProvider.getApplicationContext());
-            //model.put(DmConstants.KEY_SCRIPT_NODE, createScriptNode(actionedUponNodeRef));
-            //model.put(DmConstants.KEY_SCRIPT_CONVERTER, _converter);
             try {
                 String script = contentService.getContentAsString(site, scriptPath);
                 scriptExecutor.executeScriptString(script, model);

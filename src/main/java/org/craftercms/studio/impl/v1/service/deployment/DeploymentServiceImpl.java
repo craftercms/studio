@@ -452,10 +452,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
         List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
         for (CopyToEnvironment deploymentItem : deploying) {
-            String fullPath = contentService.expandRelativeSitePath(site, deploymentItem.getPath());
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(), securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                addScheduledItem(site, deploymentItem.getScheduledDate(), format, fullPath, results, comparator, subComparator, displayPatterns, filterType);
+                addScheduledItem(site, deploymentItem.getScheduledDate(), format, deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
             }
         }
         return results;
@@ -472,20 +471,18 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param comparator
      * @param displayPatterns
      */
-    protected void addScheduledItem(String site, Date launchDate, SimpleDateFormat format, String fullPath,
+    protected void addScheduledItem(String site, Date launchDate, SimpleDateFormat format, String path,
                                     List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                     DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) {
         try {
-            DmPathTO path = new DmPathTO(fullPath);
-            addToScheduledDateList(site, launchDate, format, fullPath,
+            addToScheduledDateList(site, launchDate, format, path,
                 scheduledItems, comparator, subComparator, displayPatterns, filterType);
-            String relativePath = contentService.getRelativeSitePath(site, fullPath);
-            if(!(relativePath.endsWith("/" + DmConstants.INDEX_FILE) || relativePath.endsWith(DmConstants.XML_PATTERN))) {
-                relativePath = relativePath + "/" + DmConstants.INDEX_FILE;
+            if(!(path.endsWith("/" + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
+                path = path + "/" + DmConstants.INDEX_FILE;
             }
-            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,relativePath);
+            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,path);
         } catch (ServiceException e) {
-            logger.error("failed to read " + fullPath + ". " + e.getMessage());
+            logger.error("failed to read site " + site + " path " + path + ". " + e.getMessage());
         }
     }
 
@@ -503,17 +500,16 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      * @throws ServiceException
      */
-    protected void addToScheduledDateList(String site, Date launchDate, SimpleDateFormat format, String fullPath,
+    protected void addToScheduledDateList(String site, Date launchDate, SimpleDateFormat format, String path,
                                           List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                           DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = ContentFormatUtils.formatDate(format, launchDate, timeZone);
-        DmPathTO path = new DmPathTO(fullPath);
         // add only if the current node is a file (directories are
         // deployed with index.xml)
         // display only if the path matches one of display patterns
-        if (ContentUtils.matchesPatterns(path.getRelativePath(), displayPatterns)) {
-            ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath(), 0);
+        if (ContentUtils.matchesPatterns(path, displayPatterns)) {
+            ContentItemTO itemToAdd = contentService.getContentItem(site, path, 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
                 //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
@@ -596,9 +592,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             for(DmDependencyTO dependencyTo:dependencies) {
                 if (objectStateService.isNew(site, dependencyTo.getUri())) {
                     String uri = dependencyTo.getUri();
-                    String fullPath = contentService.expandRelativeSitePath(site, uri);
                     if(objectStateService.isScheduled(site, uri)) {
-                        addScheduledItem(site,launchDate,format,fullPath,scheduledItems,comparator,subComparator,displayPatterns,filterType);
+                        addScheduledItem(site,launchDate,format,uri,scheduledItems,comparator,subComparator,displayPatterns,filterType);
                         if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
                             addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,uri);
                         }
@@ -752,7 +747,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             if (item.isFolder) {
                 syncFolder(site, item.path + "/" + item.name, deployer);
             } else {
-                deployer.deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+                deployer.deployFile(site, item.path + "/" + item.name);
             }
         }
     }

@@ -66,7 +66,6 @@ public class ImportServiceImpl implements ImportService {
             if (siteNodes != null) {
                 for (Node siteNode : siteNodes) {
                     String name = siteNode.valueOf("name");
-                    String targetRoot = contentService.expandRelativeSitePath(name, "");
                     String buildDataLocation = siteNode.valueOf("build-data-location");
                     String publishingChannelGroup = siteNode.valueOf("publish-channel-group");
                     String publishStr = siteNode.valueOf("publish");
@@ -83,7 +82,7 @@ public class ImportServiceImpl implements ImportService {
                     int delayLength = (!StringUtils.isEmpty(delayLengthStr) && StringUtils.isNumeric(delayLengthStr))
                             ? Integer.valueOf(delayLengthStr) : -1;
 
-                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, targetRoot, publish, chunkSize, delayInterval, delayLength);
+                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, "/", publish, chunkSize, delayInterval, delayLength);
                 }
             }
         }

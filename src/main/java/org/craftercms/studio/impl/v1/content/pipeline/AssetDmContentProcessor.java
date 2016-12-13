@@ -134,12 +134,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         if (index > 0 && (index + 1) < assetName.length()) {
             ext = assetName.substring(index + 1).toUpperCase();
         }
-        String folderPath = contentService.expandRelativeSitePath(site, path);
 
         if (isSystemAsset) {
             assetName = ContentUtils.getMd5ForFile(in) + "." + ext;
         }
-        String contentPath = folderPath + "/" + assetName;
+        String contentPath = path + "/" + assetName;
 
         try {
             // look up the path content first
@@ -184,12 +183,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String fullPath, InputStream input, String user, boolean isPreview, boolean unlock)
+    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input, String user, boolean isPreview, boolean unlock)
             throws ServiceException {
-        String contentRelativePath = contentService.getRelativeSitePath(site, fullPath);
 
         try {
-            contentService.writeContent(site, contentRelativePath, input);
+            contentService.writeContent(site, relativePath, input);
         } finally {
             ContentUtils.release(input);
         }
@@ -202,27 +200,25 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         } else {
             properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
         }
-        String relativePath = contentService.getRelativeSitePath(site, fullPath);
         if (!objectMetadataManager.metadataExist(site, relativePath)) {
             objectMetadataManager.insertNewObjectMetadata(site, relativePath);
         }
         objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 
         if (unlock) {
-            contentService.unLockContent(site, contentRelativePath);
-            logger.debug("Unlocked the content " + fullPath);
+            contentService.unLockContent(site, relativePath);
+            logger.debug("Unlocked the content site " + site + " path " + relativePath);
         } else {
-            contentService.lockContent(site, contentRelativePath);
+            contentService.lockContent(site, relativePath);
         }
 
         // if there is anything pending and this is not a preview update, cancel workflow
         if (!isPreview) {
-            DmPathTO path = new DmPathTO(fullPath);
-            if (cancelWorkflow(site, path.getRelativePath())) {
-                workflowService.removeFromWorkflow(site, path.getRelativePath(), true);
+            if (cancelWorkflow(site, relativePath)) {
+                workflowService.removeFromWorkflow(site, relativePath, true);
             } else {
-                if(updateWorkFlow(site,path.getRelativePath())) {
-                    workflowService.updateWorkflowSandboxes(site,path.getRelativePath());
+                if(updateWorkFlow(site,relativePath)) {
+                    workflowService.updateWorkflowSandboxes(site,relativePath);
                 }
             }
         }

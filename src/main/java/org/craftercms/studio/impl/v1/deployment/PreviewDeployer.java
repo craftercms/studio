@@ -190,10 +190,9 @@ public class PreviewDeployer implements Deployer {
         String site = message.getSite();
         logger.info("Received preview sync event for site: " + site);
         RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-        String siteRootPath = contentService.expandRelativeSitePath(site, "/");
-        if (StringUtils.isNotEmpty(siteRootPath)) {
+        if (StringUtils.isNotEmpty("/")) {
             try {
-                syncFolder(site, siteRootPath);
+                syncFolder(site, "/");
             } catch (Exception e) {
                 logger.error("Site '" + site + "' synchronization failed", e);
                 throw new ServiceException("Unable to execute sync for " + site, e);
@@ -212,11 +211,11 @@ public class PreviewDeployer implements Deployer {
                 if (item.isFolder) {
                     syncFolder(site, item.path + "/" + item.name);
                 } else {
-                    deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+                    deployFile(site, item.path + "/" + item.name);
                 }
             }
         } else {
-            deployFile(site, contentService.getRelativeSitePath(site, path));
+            deployFile(site, path);
         }
     }
 
@@ -227,7 +226,7 @@ public class PreviewDeployer implements Deployer {
             String oldPath = message.getOldPath();
             RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
             deleteFile(site, oldPath);
-            syncFolder(site, contentService.expandRelativeSitePath(site, path));
+            syncFolder(site, path);
         } catch (Exception t) {
             logger.error("Error while deploying moving content from: " + message.getSite() + " - " + message.getOldPath() + " to: " + message.getSite() + " - " + message.getPath(), t);
         } finally {

@@ -316,40 +316,37 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         String user = securityService.getCurrentUser();
 
         //source paths
-        String srcOrgFullPath = contentService.expandRelativeSitePath(site, sourcePath);
-        String dstOrgFullPath = contentService.expandRelativeSitePath(site, targetPath);
-        String srcFullPath = srcOrgFullPath;
-        if(srcFullPath.endsWith(DmConstants.INDEX_FILE)){
-            srcFullPath = ContentUtils.getParentUrl(srcFullPath);
+        String dstOrgPath = targetPath;
+        if(sourcePath.endsWith(DmConstants.INDEX_FILE)){
+            sourcePath = ContentUtils.getParentUrl(sourcePath);
         }
-        String srcNodeName = ContentUtils.getPageName(srcFullPath);
-        String srcNodeParentUrl= ContentUtils.getParentUrl(srcFullPath);
+        String srcNodeName = ContentUtils.getPageName(sourcePath);
+        String srcNodeParentUrl= ContentUtils.getParentUrl(sourcePath);
         //destination paths
-        String dstFullPath = dstOrgFullPath;
-        if(dstFullPath.endsWith("/" + DmConstants.INDEX_FILE)){
-            dstFullPath = ContentUtils.getParentUrl(dstFullPath);
+        if(dstOrgPath.endsWith("/" + DmConstants.INDEX_FILE)){
+            dstOrgPath = ContentUtils.getParentUrl(dstOrgPath);
         }
-        if (dstFullPath == null) {
+        if (dstOrgPath == null) {
             throw new ServiceException("Error while moving content. " + targetPath + " is not valid.");
         }
-        String dstNodeName = ContentUtils.getPageName(dstFullPath);
-        String dstNodeParentUrl = ContentUtils.getParentUrl(dstFullPath);
+        String dstNodeName = ContentUtils.getPageName(dstOrgPath);
+        String dstNodeParentUrl = ContentUtils.getParentUrl(dstOrgPath);
 
         preRenameCleanWorkFlow(site, sourcePath);
 
-        String dstNodeParentPath = contentService.getRelativeSitePath(site, dstNodeParentUrl);
-        String dstPath = contentService.getRelativeSitePath(site, dstFullPath);
+        String dstNodeParentPath = dstNodeParentUrl;
+        String dstPath = dstOrgPath;
 
         if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
-            ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
-            if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), targetPath);
+            ContentItemTO srcItem = contentService.getContentItem(site, sourcePath);
+            if (srcItem != null && srcItem.isFolder() && dstOrgPath.endsWith(DmConstants.XML_PATTERN)) {
+                contentService.moveContent(site, sourcePath, targetPath);
             } else if (srcItem != null && !srcItem.isFolder()
-                            && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                            && !dstOrgPath.endsWith(DmConstants.XML_PATTERN)) {
                 contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
+                contentService.moveContent(site, sourcePath, dstPath);
             } else {
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
+                contentService.moveContent(site, sourcePath, ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
             }
         } else {
             if (dstPath.endsWith("/" + DmConstants.INDEX_FILE)) {
@@ -359,14 +356,14 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 if (!contentService.contentExists(site, dstPath)) {
                     contentService.createFolder(site, dstNodeParentPath, dstNodeName);
                 }
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath, DmConstants.INDEX_FILE);
+                contentService.moveContent(site, sourcePath, dstPath, DmConstants.INDEX_FILE);
             } else {
                 dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
                 dstNodeName = ContentUtils.getPageName(dstPath);
                 if (!contentService.contentExists(site, dstNodeParentPath)) {
                     contentService.createFolder(site, ContentUtils.getParentUrl(dstNodeParentPath), ContentUtils.getPageName(dstNodeParentPath));
                 }
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
+                contentService.moveContent(site, sourcePath, dstNodeParentPath, dstNodeName);
             }
         }
         removeItemFromCache(site, sourcePath);
@@ -375,9 +372,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
         }
 
-        ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
+        ContentItemTO item = contentService.getContentItem(site, dstOrgPath);
         if (item == null) {
-            throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
+            throw new ContentNotFoundException("Error while moving content " + dstOrgPath + " does not exist.");
         }
 
         String renamedUri = targetPath;
@@ -408,8 +405,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SOURCE_PATH, sourcePath);
         params.put(DmConstants.KEY_TARGET_PATH, targetPath);
-        params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
-        params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
 
         ContentItemTO renamedItem = contentService.getContentItem(site, targetPath, 0);
         String contentType = renamedItem.getContentType();
@@ -490,26 +485,24 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         path = getIndexFilePath(path);
         oldPath = getIndexFilePath(oldPath);
 
-        String srcFullPath = contentService.expandRelativeSitePath(site, path);
         ContentItemTO itemTO = contentService.getContentItem(site, path);
         boolean contentExists = contentService.contentExists(site, path);
         List<String> transitionItems = new ArrayList<String>();
         if (!contentExists) {
-            srcFullPath = srcFullPath.replace("/" + DmConstants.INDEX_FILE, "");
+            path = path.replace("/" + DmConstants.INDEX_FILE, "");
             oldPath = oldPath.replace("/" + DmConstants.INDEX_FILE, "");
-            itemTO = contentService.getContentItem(srcFullPath);
+            itemTO = contentService.getContentItem(site, path);
         }
         //change last modified property to the current user
-        if (srcFullPath.endsWith(DmConstants.INDEX_FILE)) {
+        if (path.endsWith(DmConstants.INDEX_FILE)) {
             // if the file is index.xml, update child contnets
 
-            String parentNodePath = ContentUtils.getParentUrl(srcFullPath);
-            String parentRelativePath = contentService.getRelativeSitePath(site, parentNodePath);
-            ContentItemTO parentItem = contentService.getContentItem(site, parentRelativePath);
+            String parentNodePath = ContentUtils.getParentUrl(path);
+            ContentItemTO parentItem = contentService.getContentItem(site, parentNodePath);
             updateChildItems(site, parentItem, oldPath, path, addNodeProperty, user, false);
         } else {
             // for the file content, update the file itself
-            ContentItemTO parentItem = contentService.getContentItem(srcFullPath);
+            ContentItemTO parentItem = contentService.getContentItem(site, path);
             updateChildItems(site, parentItem, oldPath, path, addNodeProperty, user, true);
         }
         List<String> childUris = new ArrayList<>();
@@ -544,7 +537,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             }
         } else {
             Map<String,String> extraInfo = new HashMap<String,String>();
-            String relativePath = contentService.getRelativeSitePath(site, node.getUri());
+            String relativePath = node.getUri();
             addItemPropertyToChildren(site, relativePath, parentNewPath, parentOldPath, addNodeProperty, user,
                     fileContent);
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, getIndexFilePath(relativePath)));
