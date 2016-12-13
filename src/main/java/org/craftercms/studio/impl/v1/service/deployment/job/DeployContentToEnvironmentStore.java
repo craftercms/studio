@@ -203,7 +203,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         List<String> paths = new ArrayList<String>(itemsToDeploy.size());
         if (mandatoryDependenciesCheckEnabled) {
             for (CopyToEnvironment item : itemsToDeploy) {
-                paths.add(contentService.expandRelativeSitePath(item.getSite(), item.getPath()));
+                paths.add(item.getPath());
             }
         }
         return paths;

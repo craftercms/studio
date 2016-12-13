@@ -299,8 +299,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
             ContentItemTO fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName, 0);
             return fileItem;
         } else {
-            String parentPath = contentService.expandRelativeSitePath(site, parentItem.getPath());
-            throw new ContentNotFoundException(parentPath + " does not exist in site: " + site);
+            throw new ContentNotFoundException(parentItem.getPath() + " does not exist in site: " + site);
         }
     }
 

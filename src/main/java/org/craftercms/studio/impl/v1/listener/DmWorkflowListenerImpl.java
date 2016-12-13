@@ -58,12 +58,10 @@ public class DmWorkflowListenerImpl implements DmWorkflowListener {
 
     protected ContentItemTO updateCache(String site, DmDependencyTO to) {
 
-        String fullPath = contentService.expandRelativeSitePath(site, to.getUri());
-
-        ContentItemTO thisItem = updateCacheToGoliveState(fullPath, to.getScheduledDate(), site);
-        logger.debug("update cache for url [" + fullPath + "]");
-        if (fullPath.endsWith(DmConstants.INDEX_FILE)) {
-            String parentFolder = getParent(fullPath);
+        ContentItemTO thisItem = updateCacheToGoliveState(to.getUri(), to.getScheduledDate(), site);
+        logger.debug("update cache for url [" + to.getUri() + "]");
+        if (to.getUri().endsWith(DmConstants.INDEX_FILE)) {
+            String parentFolder = getParent(to.getUri());
             updateCacheToGoliveState(parentFolder, to.getScheduledDate(), site);
             logger.debug("update cache for url [" + parentFolder + "]");
         }
@@ -101,13 +99,12 @@ public class DmWorkflowListenerImpl implements DmWorkflowListener {
         return parentFolder;
     }
 
-    protected void warmTheCache(String site, DmDependencyTO submitted, String fullPath, boolean add) {
+    protected void warmTheCache(String site, DmDependencyTO submitted, String path, boolean add) {
         GoLiveQueue queue = (GoLiveQueue) cache.get(Scope.DM_SUBMITTED_ITEMS, StudioConstants.DM_GO_LIVE_CACHE_KEY,site);
         if (queue != null) {
-            if (null != fullPath) {
+            if (null != path) {
                 if (!submitted.isDeleted()) {
-                    String relativePath = contentService.getRelativeSitePath(site, fullPath);
-                    ContentItemTO to = contentService.getContentItem(site, relativePath);
+                    ContentItemTO to = contentService.getContentItem(site, path);
                     if (add) {
                         queue.add(to);
                     }

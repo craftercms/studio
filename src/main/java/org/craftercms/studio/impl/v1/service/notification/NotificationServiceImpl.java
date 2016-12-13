@@ -51,6 +51,7 @@ import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -482,9 +483,7 @@ public class NotificationServiceImpl implements NotificationService {
                             }
                         }
 
-                        String absolutePath = contentService.expandRelativeSitePath(site, browserUrl);
-                        DmPathTO path = new DmPathTO(absolutePath);
-                        String name = path.getName();
+                        String name = ContentUtils.getPageName(browserUrl);
 
                         String folderPath = (name.equals(DmConstants.INDEX_FILE))? browserUrl.replace("/" + name, ""): browserUrl;
 
@@ -936,9 +935,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        String absolutePath = contentService.expandRelativeSitePath(site, relativeUrl);
-        DmPathTO path = new DmPathTO(absolutePath);
-        String name = path.getName();
+        String name = ContentUtils.getPageName(relativeUrl);
 
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativeUrl.replace("/" + name, "") : relativeUrl;
         String internalName = folderPath;

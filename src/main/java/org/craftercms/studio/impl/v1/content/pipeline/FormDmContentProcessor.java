@@ -330,8 +330,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, parentItem.getUri() + "/" + fileName, 0);
             return fileItem;
         } else {
-            String parentPath = contentService.expandRelativeSitePath(site, parentItem.getUri());
-            throw new ContentNotFoundException(parentPath + " does not exist in site: " + site);
+            throw new ContentNotFoundException(parentItem.getUri() + " does not exist in site: " + site);
         }
     }
 
@@ -461,7 +460,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         if (contentService.contentExists(site, path)) {
             ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
             if (itemTO.isFolder() || itemTO.isDeleted()) {
-                return contentService.expandRelativeSitePath(site, path);
+                return  path;
             }
             int index = path.lastIndexOf("/");
             String folderPath = path.substring(0, index);
@@ -475,7 +474,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             return folderPath;
         } else {
-            return contentService.expandRelativeSitePath(site, path);
+            return path;
         }
     }
 

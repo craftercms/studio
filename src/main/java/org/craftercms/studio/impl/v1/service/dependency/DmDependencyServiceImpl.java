@@ -508,7 +508,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (!StringUtils.isEmpty(submittedItem) && !includedItems.contains(submittedItem)) {
                     try {
                         ContentItemTO item = null;
-                        String fullPath = contentService.expandRelativeSitePath(site, submittedItem);
                         item = contentService.getContentItem(site, submittedItem);
                         if(item.isSubmittedForDeletion()) {
                             deleteDependencies = true;
@@ -625,7 +624,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected void addDependencyItem(String site, List<ContentItemTO> items, Set<String> includedItems, Set<String> includedDependencies,
                                      ContentItemTO item, DmContentItemComparator comparator,boolean deleteDependencies) throws ServiceException {
         // if this item is a new file, check if the parent is new
-        String itemFullPath = contentService.expandRelativeSitePath(site, item.getUri());
         if (!deleteDependencies && (item.isNewFile() /* TODO: check renamed */)) {
             String parentUri = "";
             if (item.getName().equals(DmConstants.INDEX_FILE)) {
@@ -646,7 +644,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             if (!includedItems.contains(parentUri) && parentUri.startsWith(DmConstants.ROOT_PATTERN_PAGES)) {
                 try {
                     // add only if the parent item is new and not submitted to workflow
-                    String fullPath = contentService.expandRelativeSitePath(site, parentUri);
                     ContentItemTO parentItem = contentService.getContentItem(site, parentUri);
                     if (parentItem != null ) {
                         retrieveDependencyItems(parentItem, includedDependencies,deleteDependencies, site);
@@ -1172,7 +1169,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public Map<String, String> getCopyDependencies(String site, String sourceContentPath, String dependencyPath) throws ServiceException {
         Map<String,String> copyDependency = new HashMap<String,String>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
-            String fullPath = contentService.expandRelativeSitePath(site, sourceContentPath);
             ContentItemTO dependencyItem = contentService.getContentItem(site, sourceContentPath);
             if (dependencyItem != null) {
                 String contentType = dependencyItem.getContentType();
@@ -1200,7 +1196,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     logger.debug("Copy Pattern is not provided for contentType" + contentType);
                 }
             } else {
-                logger.debug("Not found dependency item at {0}", fullPath);
+                logger.debug("Not found dependency item at site {0} path {!}", site, sourceContentPath);
             }
         }
         return copyDependency;

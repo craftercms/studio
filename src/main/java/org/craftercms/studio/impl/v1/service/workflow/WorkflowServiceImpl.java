@@ -202,16 +202,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                 submittedItems.addAll(addDependenciesForSubmitForApproval(site, submittedItems, format, schDate));
                 List<String> submittedPaths = new ArrayList<String>();
                 for (DmDependencyTO goLiveItem : submittedItems) {
-                    String fullPath = contentService.expandRelativeSitePath(site, goLiveItem.getUri());
-                    submittedPaths.add(fullPath);
+                    submittedPaths.add(goLiveItem.getUri());
                     objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
                     DependencyRules rule = new DependencyRules(site);
 					rule.setObjectStateService(objectStateService);
 					rule.setContentService(contentService);
                     Set<DmDependencyTO> depSet = rule.applySubmitRule(goLiveItem);
                     for (DmDependencyTO dep : depSet) {
-                        String depPath = contentService.expandRelativeSitePath(site, dep.getUri());
-                        submittedPaths.add(depPath);
+                        submittedPaths.add(dep.getUri());
                         objectStateService.setSystemProcessing(site, dep.getUri(), true);
                     }
                 }
@@ -224,8 +222,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 				}else {
 					result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
 				}
-                for (String fullPath : submittedPaths) {
-                    objectStateService.setSystemProcessing(site, contentService.getRelativeSitePath(site, fullPath), false);
+                for (String relativePath : submittedPaths) {
+                    objectStateService.setSystemProcessing(site, relativePath, false);
                 }
             }
         } catch (Exception e) {
@@ -282,7 +280,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             stringSet = rule.applySubmitRule(submittedItem);
         }
         for (DmDependencyTO s : stringSet) {
-            String fullPath = contentService.expandRelativeSitePath(site, s.getUri());
             ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
             boolean lsendEmail = true;
             boolean lnotifyAdmin = true;
@@ -296,7 +293,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final Date scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
-        String fullPath = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
 
 		Map<String, Object> properties = new HashMap<>();
@@ -385,8 +381,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 		List<ContentItemTO> categoryItems = getCategoryItems(site);
 		GoLiveQueue queue = new GoLiveQueue();
 		fillQueue(site, queue, null);
-
-		//}
 
 		Set<ContentItemTO> queueItems = queue.getQueue();
 		ContentItemTO.ChildFilter childFilter = new GoLiveQueueChildFilter(queue);
@@ -901,8 +895,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             resolveSubmittedPaths(site, goLiveItem, goLivePaths);
                         }
                         List<String> nodeRefs = new ArrayList<>();
-                        for (String fullPath : goLivePaths) {
-                            String path = contentService.getRelativeSitePath(site, fullPath);
+                        for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
                             generalLockService.lock(lockId);
 
@@ -910,8 +903,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         try {
                             goLive(site, goLiveItems, approver, mcpContext);
                         } finally {
-                            for (String fullPath : goLivePaths) {
-                                String path = contentService.getRelativeSitePath(site, fullPath);
+                            for (String path : goLivePaths) {
                                 String lockId = site + ":" + path;
                                 generalLockService.unlock(lockId);
                             }
@@ -923,13 +915,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                         List<DmDependencyTO> renamedChildren = new ArrayList<>();
                         for (DmDependencyTO renameItem : renameItems) {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
-                            String fullPath = contentService.expandRelativeSitePath(site, renameItem.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
-                            String fullPath = contentService.expandRelativeSitePath(site, renamedChild.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
@@ -953,9 +943,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
                     for (DmDependencyTO deletedItem : submittedItems) {
-                        String fullPath = contentService.expandRelativeSitePath(site, deletedItem.getUri());
-                        //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
-                        deletePaths.add(fullPath);
+                        deletePaths.add(deletedItem.getUri());
                         ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
                         if (contentItem != null) {
                             //nodeRefs.add(nodeRef.getId());
@@ -1079,8 +1067,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             resolveSubmittedPaths(site, goLiveItem, goLivePaths);
                         }
-                        for (String fullPath : goLivePaths) {
-                            String path = contentService.getRelativeSitePath(site, fullPath);
+                        for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
                             generalLockService.lock(lockId);
 
@@ -1088,8 +1075,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         try {
                             goLive(site, goLiveItems, approver, mcpContext);
                         } finally {
-                            for (String fullPath : goLivePaths) {
-                                String path = contentService.getRelativeSitePath(site, fullPath);
+                            for (String path : goLivePaths) {
                                 String lockId = site + ":" + path;
                                 generalLockService.unlock(lockId);
                             }
@@ -1101,13 +1087,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                         List<DmDependencyTO> renamedChildren = new ArrayList<>();
                         for (DmDependencyTO renameItem : renameItems) {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
-                            String fullPath = contentService.expandRelativeSitePath(site, renameItem.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
-                            String fullPath = contentService.expandRelativeSitePath(site, renamedChild.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
@@ -1131,9 +1115,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
                     for (DmDependencyTO deletedItem : submittedItems) {
-                        String fullPath = contentService.expandRelativeSitePath(site, deletedItem.getUri());
                         //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
-                        deletePaths.add(fullPath);
+                        deletePaths.add(deletedItem.getUri());
                         ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
                         if (contentItem != null) {
                             //nodeRefs.add(nodeRef.getId());
@@ -1258,8 +1241,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             resolveSubmittedPaths(site, goLiveItem, goLivePaths);
                         }
-                        for (String fullPath : goLivePaths) {
-                            String path = contentService.getRelativeSitePath(site, fullPath);
+                        for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
                             generalLockService.lock(lockId);
 
@@ -1267,8 +1249,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         try {
                             goLive(site, goLiveItems, approver, mcpContext);
                         } finally {
-                            for (String fullPath : goLivePaths) {
-                                String path = contentService.getRelativeSitePath(site, fullPath);
+                            for (String path : goLivePaths) {
                                 String lockId = site + ":" + path;
                                 generalLockService.unlock(lockId);
                             }
@@ -1280,13 +1261,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                         List<DmDependencyTO> renamedChildren = new ArrayList<>();
                         for (DmDependencyTO renameItem : renameItems) {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
-                            String fullPath = contentService.expandRelativeSitePath(site, renameItem.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
                         }
                         for (DmDependencyTO renamedChild : renamedChildren) {
-                            String fullPath = contentService.expandRelativeSitePath(site, renamedChild.getUri());
-                            renamePaths.add(fullPath);
+                            renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
@@ -1310,9 +1289,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     List<String> deletePaths = new ArrayList<>();
                     List<String> nodeRefs = new ArrayList<String>();
                     for (DmDependencyTO deletedItem : submittedItems) {
-                        String fullPath = contentService.expandRelativeSitePath(site, deletedItem.getUri());
-                        //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
-                        deletePaths.add(fullPath);
+                        deletePaths.add(deletedItem.getUri());
                         ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
                         if (contentItem != null) {
                             //nodeRefs.add(nodeRef.getId());
@@ -1756,7 +1733,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
-        String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
 		ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
 		Date scheduledDate = null;
         if (properties != null) {
@@ -2002,17 +1978,15 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths) {
-        String fullPath = contentService.expandRelativeSitePath(site, item.getUri());
-        if (!submittedPaths.contains(fullPath)) {
-            submittedPaths.add(fullPath);
+        if (!submittedPaths.contains(item.getUri())) {
+            submittedPaths.add(item.getUri());
         }
         List<DmDependencyTO> children = item.getChildren();
         if (children != null) {
             for (DmDependencyTO child : children) {
-                String childPath = contentService.expandRelativeSitePath(site, child.getUri());
                 if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
-                    if (!submittedPaths.contains(childPath)) {
-                        submittedPaths.add(childPath);
+                    if (!submittedPaths.contains(child.getUri())) {
+                        submittedPaths.add(child.getUri());
                     }
                     resolveSubmittedPaths(site, child, submittedPaths);
                 }
@@ -2025,10 +1999,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         Set<DmDependencyTO> deps = rule.applySubmitRule(item);
         if (deps != null) {
             for (DmDependencyTO dep : deps) {
-                String depPath = contentService.expandRelativeSitePath(site, dep.getUri());
                 if (objectStateService.isUpdatedOrNew(site, dep.getUri())) {
-                    if (!submittedPaths.contains(depPath)) {
-                        submittedPaths.add(depPath);
+                    if (!submittedPaths.contains(dep.getUri())) {
+                        submittedPaths.add(dep.getUri());
                     }
                 }
                 resolveSubmittedPaths(site, dep, submittedPaths);
@@ -2320,7 +2293,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<String> prepareWorkflowSubmission(String site, String user, DmDependencyTO submittedItem,
                                                      Date launchDate, boolean sendEmail, boolean submittedForDeletion) throws ServiceException {
         List<String> paths = new ArrayList<>();
-        String fullPath = contentService.expandRelativeSitePath(site, submittedItem.getUri());
         ContentItemTO contentItem = contentService.getContentItem(site, submittedItem.getUri());
 
         if (contentItem != null) {
@@ -2338,7 +2310,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             } else {
                 // do nothing if deleted
-                String topLevelItem = contentService.getRelativeSitePath(site, fullPath);
+                String topLevelItem = submittedItem.getUri();
                 paths.add(topLevelItem);
             }
         } else {
@@ -2362,9 +2334,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     @SuppressWarnings("unchecked")
     protected void addSubmittedAspect(String site, String user, String parentUri, DmDependencyTO submittedItem,
                                       Date scheduledDate, List<String> includedItems) throws ServiceException {
-        String fullPath = contentService.expandRelativeSitePath(site, submittedItem.getUri());
-
-
             ContentItemTO node = contentService.getContentItem(site, submittedItem.getUri());
             if (node != null) {
                 // add submitted aspect
@@ -2466,7 +2435,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site) {
         if ((dependencyTO.isDeleted() || (!dependencyTO.isSubmitted() && !dependencyTO.isInProgress()))) {
-            String path = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
             ContentItemTO to = contentService.getContentItem(site, dependencyTO.getUri());
             Date newDate = dependencyTO.getScheduledDate();
             Date oldDate = to.getScheduledDate();
@@ -2611,7 +2579,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         for (DmDependencyTO dependencyTO : dependencyTOSet) {
             boolean lsendEmail = true;
             try {
-                String fullPath = contentService.expandRelativeSitePath(site, dependencyTO.getUri());
                 ContentItemTO contentItem = contentService.getContentItem(site, dependencyTO.getUri());
                 lsendEmail = !contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset();
             } catch (Exception e) {
@@ -2623,7 +2590,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void _reject(String site, DmDependencyTO dmDependencyTO, String approver, boolean sendEmail, String reason) {
-        String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
         boolean contentExists = contentService.contentExists(site, dmDependencyTO.getUri());
         if (contentExists) {
             ObjectMetadata properties = null;
@@ -2639,7 +2605,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     ContentItemTO contentItem = contentService.getContentItem(site, dmDependencyTO.getUri());
                     isPreviewable = contentItem.isPreviewable();
                 } catch (Exception e) {
-                    logger.error("Item cannot be retrieved during rejection notification" + path);
+                    logger.error("Item cannot be retrieved during rejection notification for site " + site + " path " + dmDependencyTO.getUri());
 
                 }
                 notificationService.sendRejectionNotification(site, submittedBy, dmDependencyTO.getUri(), reason, approver, isPreviewable);
@@ -2659,7 +2625,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
-//	public void setDmWorkflowService(DmWorkflowService service) { _dmSimpleWfService = service; }
 
 	// // @Override
 	public NotificationService getNotificationService() { return notificationService; }

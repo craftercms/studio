@@ -394,7 +394,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	protected void createObjectStatesforNewSite(String site) {
-		createObjectStateNewSiteObjectFolder(site, contentService.expandRelativeSitePath(site, "/"));
+		createObjectStateNewSiteObjectFolder(site, "/");
 	}
 
 	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
@@ -403,14 +403,14 @@ public class SiteServiceImpl implements SiteService {
 			if (child.isFolder) {
 				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
 			} else {
-				objectStateService.insertNewEntry(site, contentService.getRelativeSitePath(site, child.path) + "/" + child.name);
+				objectStateService.insertNewEntry(site, child.path + "/" + child.name);
 			}
 		}
 	}
 
 	protected void extractDependenciesForNewSite(String site) {
         Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-        extractDependenciesItemForNewSite(site, contentService.expandRelativeSitePath(site, "/"), globalDeps);
+        extractDependenciesItemForNewSite(site, "/", globalDeps);
 	}
 
     private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {

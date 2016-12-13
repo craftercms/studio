@@ -127,7 +127,6 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
         model.put(DmConstants.KEY_SITE, site);
         model.put(DmConstants.KEY_PATH, path);
-        model.put(DmConstants.KEY_FULL_PATH, contentService.expandRelativeSitePath(site, path));
 
         user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
         model.put(DmConstants.KEY_USER, user);
