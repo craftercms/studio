@@ -50,14 +50,6 @@ public interface ContentService {
     InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
-     * get document from wcm content
-     *
-     * @param path
-     * @return document
-     */
-    InputStream getContent(String path) throws ContentNotFoundException;
-
-    /**
      * get from wcm content
      *
      * @param path
