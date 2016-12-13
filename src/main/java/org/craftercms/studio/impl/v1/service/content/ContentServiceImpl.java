@@ -69,9 +69,6 @@ import javax.activation.MimetypesFileTypeMap;
  * @author russdanner
  */
 public class ContentServiceImpl implements ContentService {
-
-    protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
-
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     /**
@@ -82,21 +79,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean contentExists(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        if (cacheService.hasScope(cacheContext)) {
-            Object cacheKey = cacheTemplate.getKey(site, path);
-            boolean cached = cacheService.hasKey(cacheContext, cacheKey);
-            if (cached) {
-                return cached;
-            }
-        }
         return this._contentRepository.contentExists(site, path);
-    }
-
-    @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
-       return this._contentRepository.getContent("", path);
     }
 
     @Override
@@ -112,8 +95,7 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(_contentRepository.getContent(site, path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path {0}", path);
-            logger.debug("Failed to get content as string for path {0}", err, path);
+            logger.error("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
@@ -142,7 +124,7 @@ public class ContentServiceImpl implements ContentService {
                     }
                 }
                 catch (IOException err) {
-                    logger.error(MSG_ERROR_IO_CLOSE_FAILED, err, path);
+                    logger.error("Error closing stream for path {0}", err, path);
                 }
             }
         }
@@ -153,6 +135,8 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                              String createFolders, String edit, String unlock) throws ServiceException {
+        // TODO: SJ: refactor for 2.7.x
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
         params.put(DmConstants.KEY_PATH, path);
@@ -181,7 +165,8 @@ public class ContentServiceImpl implements ContentService {
 
                 if (objectState != null) {
 
-                    if (objectState.getSystemProcessing() != 0){
+                    if (objectState.getSystemProcessing() != 0) {
+                        // TODO: SJ: Review and refactor/redo
                         logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
                         throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
                     }
@@ -204,6 +189,7 @@ public class ContentServiceImpl implements ContentService {
                 chainID = DmConstants.CONTENT_CHAIN_FORM;
             }
 
+            // TODO: SJ: Content is being written here, refactor and review
             processContent(id, input, true, params, chainID);
             if (contentExists) {
                 objectStateService.setSystemProcessing(site, path, false);
@@ -228,7 +214,6 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.insertNewEntry(site, itemTo);
             }
 
-            removeItemFromCache(site, relativePath);
             previewSync.syncPath(site, relativePath);
         }  catch (RuntimeException e) {
             logger.error("error writing content",e);
@@ -327,7 +312,6 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
-            removeItemFromCache(site, path);
             previewSync.notifyUpdateContent(site, path);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
@@ -359,9 +343,6 @@ public class ContentServiceImpl implements ContentService {
         if (result) {
             // Update database with commitId
             objectMetadataManager.updateCommitId(site, path, commitId);
-
-            // Remove item from cache
-            removeItemFromCache(site, path);
         }
 
         return result;
@@ -373,7 +354,6 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
             // TODO: SJ: update database
-            removeItemFromCache(site, path + "/" + name);
             toRet = true;
         }
 
@@ -399,7 +379,6 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
-        removeItemFromCache(site, path);
         previewSync.notifyDeleteContent(site, path);
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
@@ -723,9 +702,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
-        logger.debug("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
         ContentItemTO item = null;
-        logger.debug("Getting content item for site {0} path {1}", site, path);
+        logger.debug("Getting content item for site {0} path {1} depth {2}", site, path, depth);
 
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
@@ -733,7 +711,7 @@ public class ContentServiceImpl implements ContentService {
         try {
             if (contentExists(site, path)) {
                 // get item from cache
-                item = getCachedContentItem(site, path);
+                item = loadContentItem(site, path);
 
                 if (depth != 0) {
                     item = populateItemChildren(item, depth);
@@ -760,42 +738,6 @@ public class ContentServiceImpl implements ContentService {
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item from site {0} path {1} retrieved in {2} milli-seconds", site, path, executionTime);
         return item;
-    }
-
-    protected ContentItemTO getCachedContentItem(final String site, final String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        ContentItemTO item = cacheTemplate.getObject(cacheContext, new Callback<ContentItemTO>() {
-            @Override
-            public ContentItemTO execute() {
-                return loadContentItem(site, path);
-            }
-        }, site, path);
-        ContentItemTO toRet = new ContentItemTO(item);
-        return toRet;
-    }
-
-    protected void removeItemFromCache(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        cacheService.remove(cacheContext, cacheKey);
     }
 
     protected ContentItemTO loadContentItem(String site, String path) {
@@ -1377,7 +1319,6 @@ public class ContentServiceImpl implements ContentService {
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected PreviewSync previewSync;
-    protected CacheTemplate cacheTemplate;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1420,7 +1361,4 @@ public class ContentServiceImpl implements ContentService {
 
     public PreviewSync getPreviewSync() { return previewSync; }
     public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
-
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
 }
