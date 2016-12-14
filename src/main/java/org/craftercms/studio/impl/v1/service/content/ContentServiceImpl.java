@@ -64,8 +64,11 @@ import javax.activation.MimetypesFileTypeMap;
 /**
  * Content Services that other services may use
  * @author russdanner
+ * @author Sumer Jabri
  */
 public class ContentServiceImpl implements ContentService {
+    // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
+    // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     /**
@@ -76,16 +79,19 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean contentExists(String site, String path) {
+        // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
     }
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
+        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
        return this._contentRepository.getContent(site, path);
     }
 
     @Override
     public String getContentAsString(String site, String path)  {
+        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
         try {
@@ -101,6 +107,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Document getContentAsDocument(String site, String path)
     throws DocumentException {
+        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
         InputStream is = null;
         try {
@@ -151,10 +158,16 @@ public class ContentServiceImpl implements ContentService {
         }
         generalLockService.lock(lockKey);
         try {
-            boolean saveAndClose = (!StringUtils.isEmpty(unlock) && unlock.equalsIgnoreCase("false")) ? false : true;
+            // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
+            // If "unlock" is empty, it means it's a save and close operation
+            // if "unlock" is set to "false", it also means it's a save and continue operation
+            boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
+
             if (contentExists) {
                 ObjectState objectState = objectStateService.getObjectState(site, path);
                 if (objectState == null) {
+                    // This file is either new or someone created it outside of our system, we must create a state
+                    // for it
                     ContentItemTO item = getContentItem(site, path, 0);
                     objectStateService.insertNewEntry(site, item);
                     objectState = objectStateService.getObjectState(site, path);
@@ -164,14 +177,18 @@ public class ContentServiceImpl implements ContentService {
 
                     if (objectState.getSystemProcessing() != 0) {
                         // TODO: SJ: Review and refactor/redo
-                        logger.error(String.format("Error Content %s is being processed (Object State is system processing);", fileName));
-                        throw new RuntimeException(String.format("Content \"%s\" is being processed", fileName));
+                        logger.error("Error Content {0} is being processed (Object State is system "
+                            + "processing);", fileName);
+                        throw new ServiceException("Content " + fileName + " is in system processing, we can't write "
+                            + "it");
                     }
 
                     objectStateService.setSystemProcessing(site, path, true);
                 }
                 else {
-                    logger.error("the object state is still null.");
+                    logger.error("the object state is still null even after attempting to create it for site {0} "
+                        + "path {1} fileName {2} contentType {3}"
+                        + ".", site, path, fileName, contentType);
                 }
             }
 
@@ -201,7 +218,7 @@ public class ContentServiceImpl implements ContentService {
             }
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
-                if (saveAndClose) {
+                if (isSaveAndClose) {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
                 } else {
                     objectStateService.transition(site, itemTo, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW);
@@ -1048,6 +1065,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+ 	    // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 2.7.x
+        // TODO: SJ: Pipeline should take input, and give you back output
+        // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
+        // TODO: SJ: Furthermore, we have redundancy in the code of the processors
         // get sandbox if not provided
         long start = System.currentTimeMillis();
         try {
