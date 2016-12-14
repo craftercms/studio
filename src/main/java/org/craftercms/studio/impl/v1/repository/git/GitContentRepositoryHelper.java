@@ -473,10 +473,8 @@ public class GitContentRepositoryHelper {
                 }
             }
 
-            // Create the file
-            if (!file.createNewFile()) {
-                logger.error("File already exists, overwriting content for site: " + site + " path: " + path);
-            }
+            // Create the file if it doesn't exist already
+            file.createNewFile();
 
             // Write the bits
             FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
