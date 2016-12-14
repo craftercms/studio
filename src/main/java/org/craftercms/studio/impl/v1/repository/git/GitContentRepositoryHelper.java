@@ -55,12 +55,7 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -183,11 +178,19 @@ public class GitContentRepositoryHelper {
 
     public Repository createGitRepository(Path path) {
         Repository toReturn;
-
+        path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
         try {
-            path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
+
+            // Get git configuration
+            StoredConfig config = toReturn.getConfig();
+            // Set compression level (core.compression)
+            config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
+            // Set big file threshold (core.bigFileThreshold)
+            config.setString(CONFIG_SECTION_CORE,null,CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+            // Save configuration changes
+            config.save();
         } catch (IOException e) {
             logger.error("Error while creating repository for site with path" + path.toString(), e);
             toReturn = null;
