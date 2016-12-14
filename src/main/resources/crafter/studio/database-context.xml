@@ -26,19 +26,19 @@
         <property name="properties" ref="vendorProperties"/>
     </bean>
 
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
-        <property name="driverClassName" value="${studio.db.driver}" />
-        <property name="url" value="${studio.db.url}" />
-        <property name="username" value="${studio.db.username}" />
-        <property name="password" value="${studio.db.password}" />
-        <property name="initialSize" value="${studio.db.pool.initialConnections}" />
-        <property name="maxTotal" value="${studio.db.pool.maxActiveConnections}" />
-        <property name="maxIdle" value="${studio.db.pool.maxIdleConnections}" />
-        <property name="minIdle" value="${studio.db.pool.minIdleConnections}" />
-        <property name="maxWaitMillis" value="${studio.db.pool.maxWaitTime}" />
-        <property name="testOnBorrow" value="${studio.db.testOnBorrow}" />
-        <property name="validationQuery" value="${studio.db.validationQuery.${studio.db.platform}}" />
-        <property name="validationQueryTimeout" value="${studio.db.validationInterval}"/>
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration">
+        <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
+        <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
+        <!--property name="username" value="${studio.db.username}" /-->
+        <!-- property name="password" value="${studio.db.password}" /-->
+        <property name="initialSize" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_INITIAL_CONNECTIONS)}" />
+        <property name="maxTotal" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_ACTIVE_CONNECTIONS)}" />
+        <property name="maxIdle" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_IDLE_CONNECTIONS)}" />
+        <property name="minIdle" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MIN_IDLE_CONNECTIONS)}" />
+        <property name="maxWaitMillis" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_WAIT_TIME)}" />
+        <property name="testOnBorrow" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_TEST_ON_BORROW)}" />
+        <property name="validationQuery" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY + '.' + T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PLATFORM)}" />
+        <property name="validationQueryTimeout" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
     </bean>
 
     <!-- define the SqlSessionFactory -->

@@ -168,21 +168,21 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
          * @param fullPath
          * @return
          */
-        public Document getContent(String fullPath) {
+        public Document getContent(String site, String path) {
             InputStream is = null;
             try {
-                is = contentService.getContent(fullPath);
+                is = contentService.getContent(site, path);
                 SAXReader saxReader = new SAXReader();
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
-                logger.error("Error while reading content from " + fullPath, e);
+                logger.error("Error while reading content from site " + site + " path " + path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
                 return null;
             } catch (ContentNotFoundException e) {
-                logger.error("Error while reading content from " + fullPath, e);
+                logger.error("Error while reading content from site " + site + " path " + path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }

@@ -18,8 +18,6 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -366,11 +364,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 contentService.moveContent(site, sourcePath, dstNodeParentPath, dstNodeName);
             }
         }
-        removeItemFromCache(site, sourcePath);
-        removeItemFromCache(site, targetPath);
-        if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
 
         ContentItemTO item = contentService.getContentItem(site, dstOrgPath);
         if (item == null) {
@@ -415,22 +408,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         long end = System.currentTimeMillis();
         logger.debug("Total time to rename = " + (end - start));
     }
-
-    protected void removeItemFromCache(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        cacheService.remove(cacheContext, cacheKey);
-    }
-
 
     /**
      * Remove any old uri from the workflow and puts it them to in progress
@@ -587,10 +564,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             logger.error("Error during extracting dependency of " + relativePath, e);
         }
         updateActivity(site, oldUri, relativePath);
-        removeItemFromCache(site, oldUri);
-        if (oldUri.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, oldUri.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
     }
 
     protected void updateActivity(String site, String oldUrl, String newUrl){
@@ -632,9 +605,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmDependencyService getDmDependencyService() { return dmDependencyService; }
     public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
@@ -649,6 +619,5 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmDependencyService dmDependencyService;
-    protected CacheTemplate cacheTemplate;
     protected GeneralLockService generalLockService;
 }

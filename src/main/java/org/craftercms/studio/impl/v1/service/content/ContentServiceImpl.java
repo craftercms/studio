@@ -24,9 +24,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;

@@ -34,6 +34,7 @@ public interface StudioConfiguration {
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
 
     /** Database */
+    String DB_PLATFORM = "studio.db.platform";
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
@@ -43,6 +44,7 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
+    String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
     String DB_VALIDATION_QUERY_POSTGRES = "studio.db.validationQuery.postgres";
     String DB_VALIDATION_QUERY_MYSQL = "studio.db.validationQuery.mysql";
