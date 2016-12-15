@@ -109,5 +109,5 @@ public interface NotificationService {
      * Checks if Notification Services 2 is enable for the given site
      * @return True if is enable, false otherwise.
      */
-    boolean isEnable();
+    boolean isEnabled();
 }

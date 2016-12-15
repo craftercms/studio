@@ -49,7 +49,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
 import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -578,7 +577,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     public String getEnvironmentConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_PATH);
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
     }
 
     /** getter site service dal */
