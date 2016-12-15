@@ -47,6 +47,10 @@ studio.db.platform: derby
 #   sqlserver
 # JDBC driver and Java class used for accessing crafter database
 studio.db.driver: org.apache.derby.jdbc.EmbeddedDriver
+# Username used for authentication to access crafter database.
+studio.db.username: crafter
+# Password used for authentication to access crafter database.
+studio.db.password: crafter
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
@@ -91,7 +95,14 @@ studio.db.validationInterval: 34000
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
+# Location where global configuration files are stored.
+studio.configuration.global.configBasePath: /configuration
+# Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
 studio.configuration.site.generalConfigFileName: site-config.xml
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
+# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
+studio.configuration.site.environment: local
+# Location pattern where environment specific configuration for a site is stored
+studio.configuration.site.environment.configPath: /config/studio/environment-overrides/{environment}

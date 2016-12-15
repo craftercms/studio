@@ -37,6 +37,8 @@ public interface StudioConfiguration {
     String DB_PLATFORM = "studio.db.platform";
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
+    String DB_USERNAME = "studio.db.username";
+    String DB_PASSWORD = "studio.db.password";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
     String DB_POOL_MAX_IDLE_CONNECTIONS = "studio.db.pool.maxIdleConnections";
@@ -54,10 +56,13 @@ public interface StudioConfiguration {
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
 
     /** Configuration */
+    String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
+    String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_PATH = "studio.configuration.site.environment.configPath";
 
     void loadConfig();
 

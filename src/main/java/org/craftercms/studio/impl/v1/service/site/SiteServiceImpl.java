@@ -63,7 +63,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
  * Note: consider renaming
@@ -74,8 +74,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_
 public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-
-    private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
 
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
@@ -129,14 +127,14 @@ public class SiteServiceImpl implements SiteService {
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
-			configPath = this.configRoot + path;
+			configPath = getGlobalConfigRoot() + path;
 		} else {
 			if (applyEnv) {
-				configPath = this.environmentConfigPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
-						StudioConstants.PATTERN_ENVIRONMENT, environment)
+				configPath = getEnvironmentConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
+						StudioConstants.PATTERN_ENVIRONMENT, getEnvironment())
 						+ path;
 			} else {
-				configPath = this.sitesConfigPath + path;
+				configPath = getSitesConfigPath() + path;
 			}
 		}
 		String configContent = contentService.getContentAsString(site, configPath);
@@ -217,7 +215,7 @@ public class SiteServiceImpl implements SiteService {
 	 */
 	protected void loadSiteEnvironmentConfig(String site, SiteTO siteConfig) {
 		// get environment specific configuration
-		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + environment);
+		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + getEnvironment());
 		EnvironmentConfigTO environmentConfigTO = environmentConfig.getEnvironmentConfig(site);
 		if (environmentConfigTO == null) {
 			logger.error("Environment configuration for site " + site + " does not exist.");
@@ -243,7 +241,7 @@ public class SiteServiceImpl implements SiteService {
 	 */
 	protected void loadSiteDeploymentConfig(String site, SiteTO siteConfig) {
 		// get environment specific configuration
-		logger.debug("Loading deployment configuration for " + site + "; Environment: " + environment);
+		logger.debug("Loading deployment configuration for " + site + "; Environment: " + getEnvironment());
 		DeploymentConfigTO deploymentConfig = deploymentEndpointConfig.getSiteDeploymentConfig(site);
 		if (deploymentConfig == null) {
 			logger.error("Deployment configuration for site " + site + " does not exist.");
@@ -538,7 +536,7 @@ public class SiteServiceImpl implements SiteService {
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
         SiteTO siteConfig = new SiteTO();
         siteConfig.setSite(site);
-        siteConfig.setEnvironment(this.environment);
+        siteConfig.setEnvironment(getEnvironment());
         servicesConfig.reloadConfiguration(site);
         loadSiteConfig(site, siteConfig);
         environmentConfig.reloadConfiguration(site);
@@ -569,6 +567,22 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
+    public String getGlobalConfigRoot() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+    }
+
+    public String getSitesConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getEnvironment() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
+    }
+
+    public String getEnvironmentConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_PATH);
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -580,23 +594,11 @@ public class SiteServiceImpl implements SiteService {
 	public ContentService getContentService() { return contentService; }
 	public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-	public String getSitesConfigPath() { return sitesConfigPath; }
-	public void setSitesConfigPath(String sitesConfigPath) { this.sitesConfigPath = sitesConfigPath; }
-
-	public String getEnvironment() { return environment; }
-	public void setEnvironment(String environment) { this.environment = environment; }
-
 	public SiteEnvironmentConfig getEnvironmentConfig() { return environmentConfig; }
 	public void setEnvironmentConfig(SiteEnvironmentConfig environmentConfig) { this.environmentConfig = environmentConfig; }
 
 	public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
 	public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
-
-	public String getConfigRoot() { return configRoot; }
-	public void setConfigRoot(String configRoot) { this.configRoot = configRoot; }
-
-	public String getEnvironmentConfigPath() { return environmentConfigPath; }
-	public void setEnvironmentConfigPath(String environmentConfigPath) { this.environmentConfigPath = environmentConfigPath; }
 
 	public ContentRepository getContenetRepository() { return contentRepository; }
 	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
@@ -657,12 +659,8 @@ public class SiteServiceImpl implements SiteService {
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
-	protected String sitesConfigPath;
-	protected String environment;
 	protected SiteEnvironmentConfig environmentConfig;
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
-	protected String configRoot = null;
-	protected String environmentConfigPath = null;
 	protected ContentRepository contentRepository;
 	protected ObjectStateService objectStateService;
 	protected DmDependencyService dmDependencyService;

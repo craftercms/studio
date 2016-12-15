@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -315,7 +314,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         } else {
 			objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
         }
-        dmWorkflowListener.postSubmitToGolive(site, dependencyTO);
         if (notifyAdmin) {
             boolean isPreviewable = item.isPreviewable();
 
@@ -2178,14 +2176,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
 
                     }
-                    Set<DmDependencyTO> dependencyTOSet = submitpackage.getItems();
-                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
-                        dmWorkflowListener.postGolive(site, dmDependencyTO);
-                    }
-                    dependencyTOSet = dependencyPackage.getItems();
-                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
-                        dmWorkflowListener.postGolive(site, dmDependencyTO);
-                    }
                 }
             }
         }
@@ -2411,27 +2401,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     }
 
-    protected void invokeListeners(List<DmDependencyTO> submittedItems, String site, Operation operation) {
-        for (DmDependencyTO submittedItem : submittedItems) {
-            List<DmDependencyTO> children = submittedItem.getChildren();
-            switch (operation) {
-                case GO_LIVE:
-                    dmWorkflowListener.postGolive(site, submittedItem);
-                    break;
-                case SUBMIT_TO_GO_LIVE:
-                    dmWorkflowListener.postSubmitToGolive(site, submittedItem);
-                    break;
-                case REJECT:
-                    dmWorkflowListener.postReject(site, submittedItem);
-                    break;
-            }
-            if (null != children && !children.isEmpty()) {
-                invokeListeners(children, site, operation);
-            }
-
-        }
-    }
-
     @Override
     public boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site) {
         if ((dependencyTO.isDeleted() || (!dependencyTO.isSubmitted() && !dependencyTO.isInProgress()))) {
@@ -2620,7 +2589,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);
         }
-        dmWorkflowListener.postReject(site, dmDependencyTO);
     }
 
     public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
@@ -2661,9 +2629,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
 
-    public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
-    public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
-
     public String getCustomContentTypeNotificationPattern() { return customContentTypeNotificationPattern; }
     public void setCustomContentTypeNotificationPattern(String customContentTypeNotificationPattern) { this.customContentTypeNotificationPattern = customContentTypeNotificationPattern; }
 
@@ -2699,7 +2664,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected SiteService siteService;
     protected DmRenameService dmRenameService;
     protected WorkflowProcessor workflowProcessor;
-    protected DmWorkflowListener dmWorkflowListener;
     protected String customContentTypeNotificationPattern;
     protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;

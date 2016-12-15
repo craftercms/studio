@@ -22,33 +22,6 @@
               <property name="servicesManager" ref="cstudioServicesManager" />
        </bean>
 
-    <!--/////////////////////////// -->
-    <!-- Cache  -->
-    <!--/////////////////////////// -->
-
-    <bean id="cstudioCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerImpl">
-        <property name="ehCacheAdapter" ref="cstudioEhCache"/>
-    </bean>
-
-    <bean id="cstudioEHCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerFactoryBean">
-        <property name="configLocation">
-            <value>classpath:crafter/studio/cstudio-cache-config.xml</value>
-        </property>
-    </bean>
-
-    <bean id="cstudioEhCache" class="org.craftercms.studio.impl.v1.cache.EhCacheAdapter">
-        <property name="cache">
-            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-                <property name="cacheManager">
-                    <ref bean="cstudioEHCacheManager"/>
-                </property>
-                <property name="cacheName">
-                    <value>CStudioCache</value>
-                </property>
-            </bean>
-        </property>
-    </bean>
-
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
@@ -86,12 +59,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
-        <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
-        <property name="configRoot"><value>${siteService.configPath}</value></property>
-        <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
@@ -139,7 +108,6 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
-        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
         <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
@@ -346,7 +314,6 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
-        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="dmPublishService" ref="cstudioDmPublishService" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
@@ -596,11 +563,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-    </bean>
-
-    <bean id="cstudioWorkflowListener" class="org.craftercms.studio.impl.v1.listener.DmWorkflowListenerImpl">
-        <property name="cache" ref="cstudioCacheManager"/>
-        <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
