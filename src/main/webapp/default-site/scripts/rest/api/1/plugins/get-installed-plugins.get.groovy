@@ -1,5 +1,5 @@
 
-/*
+/*   
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
@@ -16,23 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import scripts.api.ContentServices
-import scripts.api.SiteServices
+import scripts.api.PluginServices
+      
+def result = null
+def siteId = params.site
 
-def site = params.site
-def context = ContentServices.createContext(applicationContext, request)
-def plugins = [:]
+def context = PluginServices.createContext(applicationContext, request)
+   
+result = PluginServices.getInstalledPlugins(context, siteId)
 
-pluginItems = ContentServices.getContentItemTree(site, "/site/plugins", 2, context).children
-
-pluginItems.each {  pluginItem ->
-	def plugin = [:] 
-	plugin.descriptorId = pluginItem.uri
-	plugin.id = pluginItem.name.replace(".xml", "")
-	plugin.name = pluginItem.internalName
-
-	plugins.put(plugin.id, plugin)
-}
-
-
-return plugins
+return result 
