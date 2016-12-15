@@ -106,3 +106,13 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 studio.configuration.site.environment: local
 # Location pattern where environment specific configuration for a site is stored
 studio.configuration.site.environment.configPath: /config/studio/environment-overrides/{environment}
+
+########################################################
+##                   Import Service                   ##
+########################################################
+# Defines content processor workflow assignee for import process.
+studio.import.assignee: admin
+# Defines content processor chain name used for processing xml content.
+studio.import.xmlChainName: importContent
+# Defines content processor chain name used for processing assets.
+studio.import.assetChainName: assetContent

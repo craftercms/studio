@@ -64,6 +64,11 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_PATH = "studio.configuration.site.environment.configPath";
 
+    /** Import Service */
+    String IMPORT_ASSIGNEE = "studio.import.assignee";
+    String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";
+    String IMPORT_ASSET_CHAIN_NAME = "studio.import.assetChainName";
+
     void loadConfig();
 
     String getProperty(String key);

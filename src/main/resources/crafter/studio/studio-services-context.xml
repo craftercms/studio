@@ -87,9 +87,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="xmlChainName"><value>${importService.xmlChainName}</value></property>
-        <property name="assetChainName"><value>${importService.assetChainName}</value></property>
-        <property name="assignee"><value>${importService.assignee}</value></property>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">

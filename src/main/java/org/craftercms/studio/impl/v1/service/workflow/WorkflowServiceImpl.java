@@ -1685,8 +1685,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 } else {
                     //add dependencies to submitPackage
                     for (String liveDependency : liveDependencyItems) {
-                        DmPathTO pathTO = new DmPathTO(liveDependency);
-                        submitpackage.addToPackage(pathTO.getRelativePath());
+                        submitpackage.addToPackage(liveDependency);
                     }
                     submitPackPaths = submitpackage.getPaths();
 

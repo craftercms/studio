@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
@@ -52,6 +53,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSIGNEE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
 
 public class ImportServiceImpl implements ImportService {
 
@@ -401,10 +406,10 @@ public class ImportServiceImpl implements ImportService {
     protected void writeContent(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                 String fileRoot, String targetRoot, String parentPath, String name, boolean overWrite) {
         boolean isXml = true;
-        String processChain = this.xmlChainName;
+        String processChain = getXmlChainName();
         if (!name.endsWith(".xml")) {
             isXml = false;
-            processChain = this.assetChainName;
+            processChain = getAssetChainName();
         }
         InputStream in = null;
         String filePath = parentPath + "/" + name;
@@ -481,7 +486,7 @@ public class ImportServiceImpl implements ImportService {
         params.put(DmConstants.KEY_PATH, path);
         params.put(DmConstants.KEY_FULL_PATH, fullPath);
         params.put(DmConstants.KEY_FILE_NAME, name);
-        params.put(DmConstants.KEY_USER, this.assignee);
+        params.put(DmConstants.KEY_USER, getAssignee());
         params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
         params.put(DmConstants.KEY_UNLOCK, "true");
         logger.debug("[IMPORT] creating/updating " + filePath);
@@ -620,14 +625,20 @@ public class ImportServiceImpl implements ImportService {
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
-    public String getXmlChainName() { return xmlChainName; }
-    public void setXmlChainName(String xmlChainName) { this.xmlChainName = xmlChainName; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    public String getAssetChainName() { return assetChainName; }
-    public void setAssetChainName(String assetChainName) { this.assetChainName = assetChainName; }
+    public String getAssignee() {
+        return studioConfiguration.getProperty(IMPORT_ASSIGNEE);
+    }
 
-    public String getAssignee() { return assignee; }
-    public void setAssignee(String assignee) { this.assignee = assignee; }
+    public String getXmlChainName() {
+        return studioConfiguration.getProperty(IMPORT_XML_CHAIN_NAME);
+    }
+
+    public String getAssetChainName() {
+        return studioConfiguration.getProperty(IMPORT_ASSET_CHAIN_NAME);
+    }
 
     protected SiteService siteService;
     protected SecurityService securityService;
@@ -635,11 +646,7 @@ public class ImportServiceImpl implements ImportService {
     protected ContentService contentService;
     protected ObjectStateService objectStateService;
     protected DmPublishService dmPublishService;
-
-    protected String xmlChainName;
-    protected String assetChainName;
-    protected String assignee;
-
+    protected StudioConfiguration studioConfiguration;
 
     /**
      * is import in progress?

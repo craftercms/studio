@@ -405,30 +405,28 @@ public class SiteServiceImpl implements SiteService {
             if (child.isFolder) {
                 extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
             } else {
-                String childFullPath = child.path + "/" + child.name;
-                DmPathTO dmPathTO = new DmPathTO(childFullPath);
-                String relativePath = dmPathTO.getRelativePath();
+                String childPath = child.path + "/" + child.name;
 
-                if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                if (childPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(site, childFullPath);
-                        dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
+                        Document doc = contentService.getContentAsDocument(site, childPath);
+                        dmDependencyService.extractDependencies(site, childPath, doc, globalDeps);
                     } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     } catch (DocumentException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     }
                 } else {
 
-                    boolean isCss = childFullPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childFullPath.endsWith(DmConstants.JS_PATTERN);
+                    boolean isCss = childPath.endsWith(DmConstants.CSS_PATTERN);
+                    boolean isJs = childPath.endsWith(DmConstants.JS_PATTERN);
                     List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
                     boolean isTemplate = false;
                     for (String templatePattern : templatePatterns) {
                         Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(relativePath);
+                        Matcher matcher = pattern.matcher(childPath);
                         if (matcher.matches()) {
                             isTemplate = true;
                             break;
@@ -436,17 +434,17 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childFullPath));
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childPath));
                             if (isCss) {
-                                dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
                             } else if (isJs) {
-                                dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
                             } else if (isTemplate) {
-                                dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
                             }
                         }
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
                     }
                 }
             }
