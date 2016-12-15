@@ -33,13 +33,15 @@ public class DeploymentEventMessage implements Serializable {
     private String site;
     private String endpoint;
     private List<DeploymentEventItem> items;
+    private RepositoryEventContext repositoryEventContext;
 
     @JsonCreator
-    public DeploymentEventMessage(@JsonProperty String site, @JsonProperty String endpoint, @JsonProperty List<DeploymentEventItem> items) {
+    public DeploymentEventMessage(@JsonProperty String site, @JsonProperty String endpoint, @JsonProperty List<DeploymentEventItem> items, @JsonProperty RepositoryEventContext repositoryEventContext) {
         super();
         this.site = site;
         this.endpoint = endpoint;
         this.items = items;
+        this.repositoryEventContext = repositoryEventContext;
     }
 
     public String getSite() { return site; }
@@ -50,4 +52,7 @@ public class DeploymentEventMessage implements Serializable {
 
     public List<DeploymentEventItem> getItems() { return items; }
     public void setItems(List<DeploymentEventItem> items) { this.items = items; }
+
+    public RepositoryEventContext getRepositoryEventContext() { return repositoryEventContext; }
+    public void setRepositoryEventContext(RepositoryEventContext repositoryEventContext) { this.repositoryEventContext = repositoryEventContext; }
 }

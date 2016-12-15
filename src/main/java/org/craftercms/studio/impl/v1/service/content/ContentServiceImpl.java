@@ -961,11 +961,10 @@ public class ContentServiceImpl implements ContentService {
  	}
 
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
-        DmPathTO path = new DmPathTO(relativePath);
         ContentItemTO item = new ContentItemTO();
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
-        String name = path.getName();
+        String name = ContentUtils.getPageName(relativePath);
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
         item.path = folderPath;
         /**

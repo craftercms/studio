@@ -42,20 +42,12 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmPathTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
-
-    //protected DmFilterWrapper dmFilterWrapper;
-
-
-    //public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-//		this.dmFilterWrapper = dmFilterWrapper;
-//	}
 
 
     @Override
@@ -66,11 +58,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     @Override
     public void publish(final String site, List<String> paths, Date launchDate,
                         final MultiChannelPublishingContext mcpContext) {
-        final List<String> pathsToPublish = new ArrayList<>();
-        for (String p : paths) {
-            DmPathTO dmPathTO = new DmPathTO(p);
-            pathsToPublish.add(dmPathTO.getRelativePath());
-        }
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
             scheduledDateIsNow=true;
@@ -81,7 +68,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
 
         try {
-            deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), pathsToPublish, ld, approver,
+            deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), paths, ld, approver,
                         mcpContext.getSubmissionComment(),scheduledDateIsNow );
         } catch (DeploymentException e) {
             logger.error("Error while submitting paths to publish");
