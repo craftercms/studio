@@ -948,6 +948,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="enablePublishingWithoutDependencies" value="${publishingManager.enablePublishingWithoutDependencies}"/>
         <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
+        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <!-- //////////////// -->

@@ -22,6 +22,7 @@ package org.craftercms.studio.impl.v1.ebus;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventListener;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.jgroups.JChannel;
@@ -58,10 +59,13 @@ public class DeploymentEventServiceImpl implements DeploymentEventService {
 
     @Override
     public void onDeploymentEvent(DeploymentEventMessage message) {
+        RepositoryEventContext context = message.getRepositoryEventContext();
+        RepositoryEventContext.setCurrent(context);
         for (DeploymentEventListener listener :
                 listeners) {
             listener.onDeploymentEvent(message);
         }
+        RepositoryEventContext.setCurrent(null);
     }
 
     @Override
