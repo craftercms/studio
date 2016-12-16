@@ -106,12 +106,10 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
-        <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
-        <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
         <property name="submitForApprovalDependencyRule" ref="studioSubmitToApproveDependencyRule" />
-        <property name="enablePublishingWithoutDependencies" value="${workflowService.enablePublishingWithoutDependencies}"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -136,28 +134,23 @@
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="configPath"><value>${notificationService.configPath}</value></property>
-        <property name="configFileName"><value>${notificationService.configFileName}</value></property>
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="siteService" ref="cstudioSiteServiceSimple"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
-         <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
          <property name="generalLockService" ref="cstudioGeneralLockService"/>
+         <property name="studioConfiguration" ref="studioConfiguration" />
      </bean>
 
     <bean id="cstudioNotificationServicev2"
           class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="configPath"><value>${notificationService.configPath}</value></property>
-        <property name="configFileName"><value>${notificationService.v2.configFileName}</value></property>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="enable" value="${notificationService.v2.enable}"/>
-        <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -166,18 +159,14 @@
         </bean>
 
     <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
-        <property name="configPath"><value>${serviceConfig.configPath}</value></property>
-        <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
-        <property name="configPath"><value>${environmentConfig.configPath}</value></property>
-        <property name="configFileName"><value>${environmentConfig.configFileName}</value></property>
-        <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
@@ -185,10 +174,9 @@
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
-        <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
-        <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"

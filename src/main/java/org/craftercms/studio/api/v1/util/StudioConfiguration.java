@@ -58,16 +58,30 @@ public interface StudioConfiguration {
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
+    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_BASE_PATH = "studio.configuration.site.deployment.configBasePath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
     String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_PATH = "studio.configuration.site.environment.configPath";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
+    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME = "studio.configuration.site.notificationsConfigFileName";
+    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2 = "studio.configuration.site.notificationsConfigFileName.v2";
+    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
     String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";
     String IMPORT_ASSET_CHAIN_NAME = "studio.import.assetChainName";
+
+    /** Notification Service */
+    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED = "studio.notification.customContentPathNotification.enabled";
+    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN = "studio.notification.customContentPathNotificationPattern";
+    String NOTIFICATION_V2_ENABLED = "studio.notification.v2.enabled";
+    String NOTIFICATION_V2_TIMEZONE = "studio.notification.v2.timezone";
+
+    /** Workflow Service */
+    String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
 
     void loadConfig();
 

@@ -46,10 +46,15 @@ import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_V2_ENABLED;
 
 
 /**
@@ -76,7 +81,6 @@ public class NotificationServiceImpl implements NotificationService {
     protected static final String MESSAGE_CONTENT_NOPREVIEWABLE_SUBMISSION_FOR_DELETE = "contentNoPreviewableSubmissionForDelete";
     protected static final String MESSAGE_DEPLOYMENT_FAILURE = "deploymentFailure";
     protected static final String MESSAGE_CONTENT_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss z";
-    protected static final String DOCUMENT_EXTERNAL_URL_PROPERTY = "cstudio-core:documentExternalUrl";
     protected EmailMessageQueueTo emailMessages;
     protected String previewBaseUrl=null;
     protected String liveBaseUrl=null;
@@ -84,9 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected SiteService siteService;
     protected SecurityService securityService;
     protected ContentService contentService;
-    protected String configPath;
-    protected String configFileName;
-    protected boolean isNewNotificationEnable;
+    protected StudioConfiguration studioConfiguration;
 
 
     protected static final String VAR_NOTIFICATION_TEMPLATE_NAME = "[NOTIFICATION_TEMPLATE]";
@@ -94,7 +96,21 @@ public class NotificationServiceImpl implements NotificationService {
     protected static final String DEFAULT_CONTENT_SUBJECT = "Content workflow notification";
     protected static final String DEFAULT_CONTENT_BODY = "This is a content workflow notification. \n Notification template [NOTIFICATION_TEMPLATE] has not been not configured.";
 
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
 
+    public String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME);
+    }
+
+    public boolean isNewNotificationEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_V2_ENABLED));
+        return toReturn;
+    }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     public String getPreviewBaseUrl() {
         return previewBaseUrl;
@@ -123,16 +139,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
-
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
-
-    public String getConfigFileName() { return configFileName; }
-    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
-
-    public void setNewNotificationEnable(final boolean newNotificationEnable) {
-        isNewNotificationEnable = newNotificationEnable;
-    }
 
     @Override
     public boolean sendNotice(String site, String action) {
@@ -370,7 +376,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
-        if(!isNewNotificationEnable) {
+        if(isNewNotificationEnabled()) {
             String subject = DEFAULT_CONTENT_SUBJECT;
             String message = DEFAULT_CONTENT_BODY;
             String templateType = MESSAGE_CONTENT_SUBMISSION;
@@ -593,8 +599,8 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     protected NotificationConfigTO loadConfiguration(final String site) {
-        String configFullPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configFullPath = configFullPath + "/" + configFileName;
+        String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+        configFullPath = configFullPath + "/" + getConfigFileName();
         NotificationConfigTO config = null;
         try {
             Document document = contentService.getContentAsDocument(site, configFullPath);
@@ -844,7 +850,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     protected void notifyUser(final String site, final String toUser,final String content, final String subject,final String fromUser,String relativeUrl, String rejectReason) {
-        if(isNewNotificationEnable){
+        if(isNewNotificationEnabled()){
             return;
         }
         logger.debug("Notifying user:" + toUser);

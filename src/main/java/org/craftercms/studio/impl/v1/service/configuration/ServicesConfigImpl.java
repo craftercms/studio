@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -37,6 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 
 /**
  * Implementation of ServicesConfigImpl. This class requires a configuration
@@ -48,15 +51,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServicesConfigImpl.class);
 
-    protected static final String WEM_PROJECTS_PATH = "/wem-projects";
-    protected static final String WORK_AREA_PATH = "/work-area";
-    protected static final String LIVE_PATH = "/live";
-
-	/** path keys **/
-	protected static final String PATH_CONTENT = "content";
-	protected static final String PATH_WCM_CONTENT = "wcm-content";
-	protected static final String PATH_PROTOTYPE = "prototype";
-	protected static final String PATH_TEMPLATE = "template";
 
 	/** pattern keys **/
 	protected static final String PATTERN_PAGE = "page";
@@ -82,15 +76,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     protected static final String LIVE_REPOSITORY_PATH_SUFFIX = "-live";
 
-	/**
-	 * the location where to find the configuration file
-	 */
-	protected String configPath;
-
-	/**
-	 * configuration file name
-	 */
-	protected String configFileName;
 
 	/**
 	 * content types configuration
@@ -241,12 +226,12 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 */
 	 @SuppressWarnings("unchecked")
      protected SiteConfigTO loadConfiguration(String site) {
-         String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
+         String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
 
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = contentService.getContentAsDocument(site, siteConfigPath + "/" + configFileName);
+             document = contentService.getContentAsDocument(site, siteConfigPath + "/" + getConfigFileName());
          } catch (DocumentException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
          }
@@ -394,6 +379,14 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME);
+    }
+
     @Override
     public void reloadConfiguration(String site) {
         SiteConfigTO config = loadConfiguration(site);
@@ -403,13 +396,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 		this.contentService = contentService;
 	}
 
-	public void setConfigPath(String configPath) {
-		this.configPath = configPath;
-	}
 
-	public void setConfigFileName(String configFileName) {
-		this.configFileName = configFileName;
-	}
 
 	public ContentTypesConfig getContentTypesConfig() {
 		return contentTypesConfig;
@@ -425,5 +412,9 @@ public class ServicesConfigImpl implements ServicesConfig {
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
 }

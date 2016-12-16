@@ -99,13 +99,26 @@ studio.db.validationInterval: 34000
 studio.configuration.global.configBasePath: /configuration
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
+# Location pattern where environment specific configuration for a site is stored
+studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides/{environment}
+# Location where deployment configuration is stored for a site.
+studio.configuration.site.deployment.configBasePath: /config/studio/deployment
+# File name where site configuration is stored.
 studio.configuration.site.generalConfigFileName: site-config.xml
+# File name where configuration of user permissions mappings is stored for a site.
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
+# File name where configuration of user role mappings is stored for a site.
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 # Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
 studio.configuration.site.environment: local
-# Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configPath: /config/studio/environment-overrides/{environment}
+# File name where environment specific configuration is stored
+studio.configuration.site.environment.configFileName: environment-config.xml
+# File name where simple notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName: notification-config.xml
+# File name where custom notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
+# File name where deployment endpoints configuration is stored.
+studio.configuration.site.deployment.configFileName: endpoints-config.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -116,3 +129,22 @@ studio.import.assignee: admin
 studio.import.xmlChainName: importContent
 # Defines content processor chain name used for processing assets.
 studio.import.assetChainName: assetContent
+
+##############################################################
+##                   Notification Service                   ##
+##############################################################
+# Turn on/off (value true/false) notifications for custom content path patterns.
+studio.notification.customContentPathNotification.enabled: false
+# Defines regular expression to enable notifications for custom content paths.
+studio.notification.customContentPathNotificationPattern:
+# Turn on/off (value true/false) custom notification service.
+studio.notification.v2.enabled: false
+# Set timezone used for custom notification service.
+studio.notification.v2.timezone: UTC
+
+##########################################################
+##                   Workflow Service                   ##
+##########################################################
+# Turn on/off (value true/false) publishing without dependencies.
+# When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.workflow.publishingWithoutDependencies.enabled: false

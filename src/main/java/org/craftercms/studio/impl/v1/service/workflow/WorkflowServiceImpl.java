@@ -58,6 +58,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.RequestContext;
 import org.craftercms.studio.api.v1.service.workflow.context.RequestContextBuilder;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
@@ -65,6 +66,10 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
  * workflow service implementation
@@ -215,7 +220,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
                 result.setSuccess(true);
 				result.setStatus(200);
-				if(notificationService2.isEnable()){
+				if(notificationService2.isEnabled()){
 					result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
 						.CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
 				}else {
@@ -282,7 +287,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
             boolean lsendEmail = true;
             boolean lnotifyAdmin = true;
-            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || customContentTypeNotification);
+            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || isCustomContentTypeNotification());
             lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
             // notify admin will always be true, unless for dependent document/banner/other-files
             doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin, submissionComment);
@@ -951,7 +956,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnable()){
+			if(notificationService2.isEnabled()){
 				result.setMessage(notificationService2.getNotificationMessage(site,
 					NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
 			}else{
@@ -1124,7 +1129,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnable()) {
+			if(notificationService2.isEnabled()) {
 				result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
 					.CompleteMessages,responseMessageKey,Locale.ENGLISH));
 			}else {
@@ -1297,7 +1302,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            if(notificationService2.isEnable()) {
+            if(notificationService2.isEnabled()) {
                 result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
                         .CompleteMessages,responseMessageKey,Locale.ENGLISH));
             }else {
@@ -2087,7 +2092,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         generalLockService.lock(lockKey);
         try {
             try {
-                if (enablePublishingWithoutDependencies) {
+                if (isEnablePublishingWithoutDependencies()) {
                     return approveWithoutDependencies(site, request, Operation.GO_LIVE);
                 } else {
                     return approve_new(site, request, Operation.GO_LIVE);
@@ -2628,12 +2633,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
 
-    public String getCustomContentTypeNotificationPattern() { return customContentTypeNotificationPattern; }
-    public void setCustomContentTypeNotificationPattern(String customContentTypeNotificationPattern) { this.customContentTypeNotificationPattern = customContentTypeNotificationPattern; }
-
-    public boolean isCustomContentTypeNotification() { return customContentTypeNotification; }
-    public void setCustomContentTypeNotification(boolean customContentTypeNotification) { this.customContentTypeNotification = customContentTypeNotification; }
-
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
@@ -2646,8 +2645,22 @@ public class WorkflowServiceImpl implements WorkflowService {
     public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
     public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
 
-    public boolean isEnablePublishingWithoutDependencies() { return enablePublishingWithoutDependencies; }
-    public void setEnablePublishingWithoutDependencies(boolean enablePublishingWithoutDependencies) { this.enablePublishingWithoutDependencies = enablePublishingWithoutDependencies; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    public boolean isCustomContentTypeNotification() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED));
+        return toReturn;
+    }
+
+    public String getCustomContentTypeNotificationPattern() {
+        return studioConfiguration.getProperty(NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN);
+    }
+
+    public boolean isEnablePublishingWithoutDependencies() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        return toReturn;
+    }
 
     private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
@@ -2663,13 +2676,11 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected SiteService siteService;
     protected DmRenameService dmRenameService;
     protected WorkflowProcessor workflowProcessor;
-    protected String customContentTypeNotificationPattern;
-    protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
     protected DependencyRule submitForApprovalDependencyRule;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
-    protected boolean enablePublishingWithoutDependencies = false;
+    protected StudioConfiguration studioConfiguration;
 
     public static class SubmitPackage {
         protected String pathPrefix;
