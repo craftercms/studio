@@ -148,3 +148,24 @@ studio.notification.v2.timezone: UTC
 # Turn on/off (value true/false) publishing without dependencies.
 # When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
 studio.workflow.publishingWithoutDependencies.enabled: false
+
+##########################################################
+##                   Activity Service                   ##
+##########################################################
+studio.activity.user.name.caseSensitive: false
+
+##############################################################
+##                   Dependencies Service                   ##
+##############################################################
+# Defines paths that will be excluded from dependency rules. Common usage is for files that are not site content themselves, but are system or files packaged with engine.
+# Valid values are regular expressions and for multiple regular expressions, they are separated by comma (,).
+studio.dependencies.ignoreDependenciesRules: /templates/system/common/cstudio-support.*\\.ftl,/templates/web/navigation/.*\\.ftl
+# Turn on (value true) or off (value false) manual approving for dependencies when publishing content.
+# When turned on, dependencies service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.dependencies.manualDependencyApproving.enabled: false
+
+##############################################################
+##                   Object State Service                   ##
+##############################################################
+# Defines size of a batch when executing object state operation on big path packages (bulk operations). Limitation on bulk operations is imposed by jdbc drivers and limits on number of parameters for sql statements.
+studio.objectState.bulkOperationsBatchSize: 500

@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.dom4j.Document;
@@ -48,6 +49,10 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import javax.servlet.http.HttpSession;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 
 /**
  * @author Dejan Brkic
@@ -94,7 +99,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserPermissions(final String site, String path, String user, List<String> groups) {
         Set<String> permissions = new HashSet<String>();
         if (StringUtils.isNotEmpty(site)) {
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, roleMappingsFileName);
+            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             PermissionsConfigTO permissionsConfig = loadConfiguration(site, permissionsFileName);
             Set<String> roles = new HashSet<String>();
             addUserRoles(roles, site, user);
@@ -230,7 +235,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, roleMappingsFileName);
+            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             Set<String> userRoles = new HashSet<String>();
             if (rolesConfig != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
@@ -327,7 +332,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
-        String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
+        String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
         String siteConfigFullPath = siteConfigPath + "/" + filename;
         Document document = null;
         PermissionsConfigTO config = null;
@@ -483,7 +488,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public void reloadConfiguration(String site) {
         PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, permissionsFileName);
-        PermissionsConfigTO rolesConfigTO = loadConfiguration(site, roleMappingsFileName);
+        PermissionsConfigTO rolesConfigTO = loadConfiguration(site, getRoleMappingsFileName());
     }
 
     @Override
@@ -503,8 +508,13 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
-    public String getRoleMappingsFileName() { return roleMappingsFileName; }
-    public void setRoleMappingsFileName(String roleMappingsFileName) { this.roleMappingsFileName = roleMappingsFileName; }
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getRoleMappingsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
+    }
 
     public String getPermissionsFileName() { return permissionsFileName; }
     public void setPermissionsFileName(String permissionsFileName) { this.permissionsFileName = permissionsFileName; }
@@ -527,16 +537,15 @@ public class SecurityServiceImpl implements SecurityService {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
     public int getSessionTimeout() { return sessionTimeout; }
     public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
 
-    protected String roleMappingsFileName;
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected String permissionsFileName;
     protected String globalConfigPath;
     protected String globalRoleMappingsFileName;
@@ -544,7 +553,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
-    protected String configPath;
     protected GeneralLockService generalLockService;
     protected int sessionTimeout;
+    protected StudioConfiguration studioConfiguration;
 }

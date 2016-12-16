@@ -181,9 +181,9 @@
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
           parent="cstudioRegistrableService">
-        <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
         <property name="contentService" ref="cstudioContentService" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
@@ -191,16 +191,15 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
-        <property name="enableManualDependencyApproving" value="${dmDependenciesService.enableManualDependencyApproving}"/>
         <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
           parent="cstudioRegistrableService">
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="bulkOperationBatchSize" value="${objectStateService.bulkOperationsBatchSize}"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
@@ -209,8 +208,6 @@
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="configPath"><value>${permissionService.configPath}</value></property>
-        <property name="roleMappingsFileName"><value>${permissionService.roleMappingFileName}</value></property>
         <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
         <property name="globalConfigPath"><value>${permissionService.globalConfigPath}</value></property>
         <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
@@ -218,6 +215,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >

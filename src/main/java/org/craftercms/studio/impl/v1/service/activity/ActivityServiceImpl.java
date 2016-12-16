@@ -36,9 +36,12 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.ACTIVITY_USERNAME_CASE_SENSITIVE;
 
 public class ActivityServiceImpl extends AbstractRegistrableService implements ActivityService {
 
@@ -257,7 +260,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	protected boolean getActivityFeeds(String user, String site,int startPos, int size, String filterType,boolean hideLiveItems,List<ContentItemTO> contentItems,int remainingItem){
 		List<String> activityFeedEntries = new ArrayList<String>();
 
-		if (!userNamesAreCaseSensitive) {
+		if (!getUserNamesAreCaseSensitive()) {
 			user = user.toLowerCase();
 		}
 
@@ -388,14 +391,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         return activityFeedMapper.getAuditLogForSite(params);
     }
 
+    public boolean getUserNamesAreCaseSensitive() {
+	    boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(ACTIVITY_USERNAME_CASE_SENSITIVE));
+	    return toReturn;
+    }
+
     @Autowired
 	protected ActivityFeedMapper activityFeedMapper;
-	protected boolean userNamesAreCaseSensitive = false;
 	protected ContentService contentService;
-
-	public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive) {
-		this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
-	}
 
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
@@ -404,4 +407,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     protected SecurityService securityService;
     public SecurityService getSecurityService() {return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    protected StudioConfiguration studioConfiguration;
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }
