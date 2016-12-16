@@ -22,7 +22,7 @@ package org.craftercms.studio.api.v1.util;
 public interface StudioConfiguration {
 
     /** Override Configuration */
-    String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.override.config";
+    String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.overrideConfig";
 
     /** Content Repository */
     String REPO_BASE_PATH = "studio.repo.basePath";

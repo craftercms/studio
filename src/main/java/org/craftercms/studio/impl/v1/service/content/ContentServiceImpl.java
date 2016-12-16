@@ -192,6 +192,11 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
+            // TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
+            // TODO: SJ: We need to consider various mechanics for pipeline choice other than path
+            // TODO: SJ: Furthermore, we already have similar machinery in Crafter Core that might be a fit for some
+            // TODO: SJ: of this work
+
             // default chain is asset type
             String chainID = DmConstants.CONTENT_CHAIN_ASSET;
 
@@ -203,19 +208,22 @@ public class ContentServiceImpl implements ContentService {
                 chainID = DmConstants.CONTENT_CHAIN_FORM;
             }
 
-            // TODO: SJ: Content is being written here, refactor and review
+            // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
+            // TODO: SJ: refactored in 2.7.x
             processContent(id, input, true, params, chainID);
-            if (contentExists) {
-                objectStateService.setSystemProcessing(site, path, false);
-            } else {
-                objectStateService.setSystemProcessing(site, path, false);
-            }
+
+            // Item has been processed and persisted, set system processing state to off
+            objectStateService.setSystemProcessing(site, path, false);
+
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
             relativePath = savedPath;
             if (!savedPath.endsWith(savedFileName)) {
                 relativePath = savedPath + "/" + savedFileName;
             }
+
+            // TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
+            // TODO: SJ: again? Why would we insert the item into objectStateService again?
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
                 if (isSaveAndClose) {
@@ -228,9 +236,12 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.insertNewEntry(site, itemTo);
             }
 
+            // Sync preview
             previewSync.syncPath(site, relativePath);
         }  catch (RuntimeException e) {
-            logger.error("error writing content",e);
+            logger.error("error writing content", e);
+
+            // TODO: SJ: Why setting two things? Are we guessing?
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
             throw e;
@@ -251,7 +262,7 @@ public class ContentServiceImpl implements ContentService {
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             rename(site, path, targetPath, createFolder);
-        } catch (Throwable t) {
+        } catch (Throwable t) {     // TODO: SJ: Why throwable here? Are we guessing?
             logger.error("Error while executing write and rename: ", t);
         } finally {
             generalLockService.unlock(id);
@@ -1170,6 +1181,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public void lockContent(String site, String path) {
+        // TODO: SJ: Where is the object state update to indicate item is now locked?
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
     }
@@ -1180,15 +1192,6 @@ public class ContentServiceImpl implements ContentService {
         objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
-    }
-
-    @Override
-    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
-        List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
-        for (DmOrderTO dmOrderTO : dmOrderTOs) {
-            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
-        }
-        return dmOrderTOs;
     }
 
     private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
@@ -1244,50 +1247,6 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
-    @Override
-    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
-        Double beforeOrder = null;
-        Double afterOrder = null;
-        DmOrderTO beforeOrderTO = null;
-        DmOrderTO afterOrderTO = null;
-        // get the order of the content before
-        // if the path is not provided, the order is 0
-        if (!StringUtils.isEmpty(before)) {
-            ContentItemTO beforeItem = getContentItem(site, before, 0);
-            beforeOrder = beforeItem.getOrder(orderName);
-            beforeOrderTO = new DmOrderTO();
-            beforeOrderTO.setId(before);
-            if (beforeOrder != null && beforeOrder > 0) {
-                beforeOrderTO.setOrder(beforeOrder);
-            }
-        }
-        // get the order of the content after
-        // if the path is not provided, the order is the order of before +
-        // ORDER_INCREMENT
-        if (!StringUtils.isEmpty(after)) {
-            ContentItemTO afterItem = getContentItem(site, after, 0);
-            afterOrder = afterItem.getOrder(orderName);
-            afterOrderTO = new DmOrderTO();
-            afterOrderTO.setId(after);
-            if (afterOrder != null && afterOrder > 0) {
-                afterOrderTO.setOrder(afterOrder);
-            }
-        }
-
-        // if no after and before provided, the initial value is ORDER_INCREMENT
-        if (afterOrder == null && beforeOrder == null) {
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
-        } else if (beforeOrder == null) {
-            return (0 + afterOrder) / 2;
-        } else if (afterOrder == null) {
-            logger.info("afterOrder == null");
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
-        } else {
-            //return (beforeOrder + afterOrder) / 2;
-            return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
-        }
-    }
-
     /**
      * Will need to include the floating pages as well for orderValue computation
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
@@ -1304,23 +1263,6 @@ public class ContentServiceImpl implements ContentService {
             beforeOrderTO = orderTO.get(afterIndex - 1);
         }
         return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
-    }
-
-    @Override
-    public boolean renameBulk(String site, String path, String targetPath, boolean createFolder) {
-        generalLockService.lock(site + ":" + path);
-        try {
-            dmRenameService.rename(site, path, targetPath, createFolder);
-            return true;
-        } catch (ContentNotFoundException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } catch (ServiceException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } finally {
-            generalLockService.unlock(site + ":" + path);
-        }
     }
 
     private ContentRepository _contentRepository;
