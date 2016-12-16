@@ -32,21 +32,6 @@ import java.util.List;
  *
  */
 public interface DmRenameService {
-
-    /*
-    protected NodeRef getIndexNode(final String site, String uri) {
-        return getNode(site, getIndexFilePath(uri));
-    }
-
-
-    /**
-     * GoLive on the renamed node
-     *//*
-    @Override
-    public void goLive(String site, String sub, List<DmDependencyTO> submittedItems, String approver) throws ServiceException {
-                goLive(site, sub, submittedItems, approver, null);
-    }
-
     /**
      * GoLive on the renamed node
      */
@@ -56,16 +41,7 @@ public interface DmRenameService {
      * Does the rename operation of moving the node and its contents from the source to destination
      *
      */
-    public void rename(String site, String path, String targetPath, boolean createFolder) throws ServiceException, ContentNotFoundException;
-
-    /**
-     *
-     * @param site
-     * @param cutPath
-     * @param pastePath
-     * @return
-     */
-    //public boolean isRevertRename(String site, String cutPath, String pastePath);
+    void rename(String site, String path, String targetPath, boolean createFolder) throws ServiceException, ContentNotFoundException;
 
     /**
      *
@@ -80,26 +56,4 @@ public interface DmRenameService {
      *
      */
     boolean isItemRenamed(String site, String uri);
-
-    /**
-     *
-     * Go live operation on the renamed node
-     * @param approver TODO
-     *
-     */
-    //public void goLive(final String site, final String sub, List<DmDependencyTO> submittedItem, String approver) throws ServiceException;
-
-    /**
-     * Operation to be during pre submission
-     *
-     */
-
-
-    //public void updateWorkflow(String site, String workFlowDescription);
-
-    /**
-     * Operation to be done post submission
-     *
-     */
-    //public void postSubmission(String site, String workFlowDescription);
 }

@@ -192,6 +192,11 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
+            // TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
+            // TODO: SJ: We need to consider various mechanics for pipeline choice other than path
+            // TODO: SJ: Furthermore, we already have similar machinery in Crafter Core that might be a fit for some
+            // TODO: SJ: of this work
+
             // default chain is asset type
             String chainID = DmConstants.CONTENT_CHAIN_ASSET;
 
@@ -203,19 +208,24 @@ public class ContentServiceImpl implements ContentService {
                 chainID = DmConstants.CONTENT_CHAIN_FORM;
             }
 
-            // TODO: SJ: Content is being written here, refactor and review
+            // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
+            // TODO: SJ: refactored in 2.7.x
             processContent(id, input, true, params, chainID);
-            if (contentExists) {
-                objectStateService.setSystemProcessing(site, path, false);
-            } else {
-                objectStateService.setSystemProcessing(site, path, false);
-            }
+
+            // Item has been processed and persisted, set system processing state to off
+            objectStateService.setSystemProcessing(site, path, false);
+
+            // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
             relativePath = savedPath;
             if (!savedPath.endsWith(savedFileName)) {
                 relativePath = savedPath + "/" + savedFileName;
             }
+
+            // TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
+            // TODO: SJ: again? Why would we insert the item into objectStateService again?
+            // TODO: SJ: Refactor for 2.7.x
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
                 if (isSaveAndClose) {
@@ -225,12 +235,17 @@ public class ContentServiceImpl implements ContentService {
                 }
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
+                // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
+                // TODO: SJ: 2.7.x
                 objectStateService.insertNewEntry(site, itemTo);
             }
 
+            // Sync preview
             previewSync.syncPath(site, relativePath);
         }  catch (RuntimeException e) {
-            logger.error("error writing content",e);
+            logger.error("error writing content", e);
+
+            // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
             throw e;
@@ -242,17 +257,27 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
                                       final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
+        // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
+        // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
+
+        // TODO: SJ: FIXME: Remove the log below after testing
+        logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
+            + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+
+        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
         if (!generalLockService.tryLock(id)) {
             generalLockService.lock(id);
             generalLockService.unlock(id);
             return;
         }
+
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             rename(site, path, targetPath, createFolder);
-        } catch (Throwable t) {
-            logger.error("Error while executing write and rename: ", t);
+        } catch (ServiceException | RuntimeException e) {
+            logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
+                + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         } finally {
             generalLockService.unlock(id);
         }
@@ -367,7 +392,8 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
-            // TODO: SJ: update database
+            // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
+            // TODO: SJ: rethink this for 2.7.x
             toRet = true;
         }
 
@@ -381,7 +407,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
-        String commitId = null;
+        String commitId;
         boolean toReturn = false;
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
@@ -405,6 +431,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void generateDeleteActivity(String site, String path, String approver) {
+        // This method creates a database record to show the activity of deleting a file
+        // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
+        // TODO: SJ: activities. Fix in 2.7.x by introducing the audit service and refactoring accordingly
         if (StringUtils.isEmpty(approver)) {
             approver = securityService.getCurrentUser();
         }
@@ -433,10 +462,11 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
         boolean toReturn = false;
-
         String commitId = _contentRepository.copyContent(site, fromPath, toPath);
-        // TODO: SJ: Add commitId to database for this item
+
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -446,12 +476,12 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
         boolean toReturn = false;
-
         String commitId = _contentRepository.moveContent(site, fromPath, toPath);
         previewSync.notifyMoveContent(site, toPath, fromPath);
 
-        // TODO: SJ: Add commitId to database for this item
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -465,8 +495,9 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.moveContent(site, fromPath, toPath, newName);
         previewSync.notifyMoveContent(site, toPath, fromPath);
 
-        // TODO: SJ: Add commitId to database for this item
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -506,16 +537,16 @@ public class ContentServiceImpl implements ContentService {
         item.submittedForDeletion = false;
         item.inProgress = true;
         item.live = false;
-        item.folder = (item.name.contains(".")==false);
+        item.folder = (item.name.contains(".")==false); // TODO: SJ: This seems hokey, fix in 2.7.x
 
         return item;
     }
-
+// FIXME: HERE!!!!!!!!!!!!!!!!!!!
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
     throws Exception {
         String contentPath = item.uri;
 
-        logger.debug("Pupulating page props {0}", contentPath);
+        logger.debug("Populating page props '{}'", contentPath);
         item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
         item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
         item.isPage = item.page;
@@ -1169,6 +1200,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public void lockContent(String site, String path) {
+        // TODO: SJ: Where is the object state update to indicate item is now locked?
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
     }
@@ -1179,15 +1211,6 @@ public class ContentServiceImpl implements ContentService {
         objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
-    }
-
-    @Override
-    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
-        List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
-        for (DmOrderTO dmOrderTO : dmOrderTOs) {
-            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
-        }
-        return dmOrderTOs;
     }
 
     private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
@@ -1243,50 +1266,6 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
-    @Override
-    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
-        Double beforeOrder = null;
-        Double afterOrder = null;
-        DmOrderTO beforeOrderTO = null;
-        DmOrderTO afterOrderTO = null;
-        // get the order of the content before
-        // if the path is not provided, the order is 0
-        if (!StringUtils.isEmpty(before)) {
-            ContentItemTO beforeItem = getContentItem(site, before, 0);
-            beforeOrder = beforeItem.getOrder(orderName);
-            beforeOrderTO = new DmOrderTO();
-            beforeOrderTO.setId(before);
-            if (beforeOrder != null && beforeOrder > 0) {
-                beforeOrderTO.setOrder(beforeOrder);
-            }
-        }
-        // get the order of the content after
-        // if the path is not provided, the order is the order of before +
-        // ORDER_INCREMENT
-        if (!StringUtils.isEmpty(after)) {
-            ContentItemTO afterItem = getContentItem(site, after, 0);
-            afterOrder = afterItem.getOrder(orderName);
-            afterOrderTO = new DmOrderTO();
-            afterOrderTO.setId(after);
-            if (afterOrder != null && afterOrder > 0) {
-                afterOrderTO.setOrder(afterOrder);
-            }
-        }
-
-        // if no after and before provided, the initial value is ORDER_INCREMENT
-        if (afterOrder == null && beforeOrder == null) {
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
-        } else if (beforeOrder == null) {
-            return (0 + afterOrder) / 2;
-        } else if (afterOrder == null) {
-            logger.info("afterOrder == null");
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
-        } else {
-            //return (beforeOrder + afterOrder) / 2;
-            return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
-        }
-    }
-
     /**
      * Will need to include the floating pages as well for orderValue computation
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
@@ -1303,23 +1282,6 @@ public class ContentServiceImpl implements ContentService {
             beforeOrderTO = orderTO.get(afterIndex - 1);
         }
         return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
-    }
-
-    @Override
-    public boolean renameBulk(String site, String path, String targetPath, boolean createFolder) {
-        generalLockService.lock(site + ":" + path);
-        try {
-            dmRenameService.rename(site, path, targetPath, createFolder);
-            return true;
-        } catch (ContentNotFoundException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } catch (ServiceException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } finally {
-            generalLockService.unlock(site + ":" + path);
-        }
     }
 
     private ContentRepository _contentRepository;
