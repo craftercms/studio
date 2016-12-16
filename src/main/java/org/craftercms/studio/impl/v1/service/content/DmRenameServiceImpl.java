@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -42,7 +41,6 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperation;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleOperation;
@@ -271,7 +269,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             rescheduledUris.add(to.getUri());
         }
 
-        dmWorkflowListener.postGolive(site, to);
         DependencyRules rule = new DependencyRules(site);
         rule.setContentService(contentService);
         rule.setObjectStateService(objectStateService);
@@ -279,7 +276,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         dependencyTOSet = rule.applySubmitRule(to);
         for (DmDependencyTO dependencyTO : dependencyTOSet) {
             depedencyPaths.add(pathPrefix+dependencyTO.getUri());
-            dmWorkflowListener.postGolive(site, dependencyTO);
         }
 
         return depedencyPaths;
@@ -590,9 +586,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
 
-    public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
-    public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
-
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -614,7 +607,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected WorkflowService workflowService;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected DmWorkflowListener dmWorkflowListener;
     protected DmPublishService dmPublishService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
