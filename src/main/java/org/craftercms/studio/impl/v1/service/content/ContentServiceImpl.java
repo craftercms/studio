@@ -215,6 +215,7 @@ public class ContentServiceImpl implements ContentService {
             // Item has been processed and persisted, set system processing state to off
             objectStateService.setSystemProcessing(site, path, false);
 
+            // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
             String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
             String savedPath = params.get(DmConstants.KEY_PATH);
             relativePath = savedPath;
@@ -224,6 +225,7 @@ public class ContentServiceImpl implements ContentService {
 
             // TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
             // TODO: SJ: again? Why would we insert the item into objectStateService again?
+            // TODO: SJ: Refactor for 2.7.x
             ContentItemTO itemTo = getContentItem(site, relativePath, 0);
             if (itemTo != null) {
                 if (isSaveAndClose) {
@@ -233,6 +235,8 @@ public class ContentServiceImpl implements ContentService {
                 }
                 objectStateService.setSystemProcessing(site, itemTo.getUri(), false);
             } else {
+                // TODO: SJ: the line below doesn't make any sense, itemTo == null => insert? Investigate and fix in
+                // TODO: SJ: 2.7.x
                 objectStateService.insertNewEntry(site, itemTo);
             }
 
@@ -241,7 +245,7 @@ public class ContentServiceImpl implements ContentService {
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
-            // TODO: SJ: Why setting two things? Are we guessing?
+            // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
             throw e;
@@ -253,17 +257,27 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
                                       final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
+        // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
+        // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
+
+        // TODO: SJ: FIXME: Remove the log below after testing
+        logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
+            + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+
+        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
         if (!generalLockService.tryLock(id)) {
             generalLockService.lock(id);
             generalLockService.unlock(id);
             return;
         }
+
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             rename(site, path, targetPath, createFolder);
-        } catch (Throwable t) {     // TODO: SJ: Why throwable here? Are we guessing?
-            logger.error("Error while executing write and rename: ", t);
+        } catch (ServiceException | RuntimeException e) {
+            logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
+                + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         } finally {
             generalLockService.unlock(id);
         }
@@ -378,7 +392,8 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
-            // TODO: SJ: update database
+            // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
+            // TODO: SJ: rethink this for 2.7.x
             toRet = true;
         }
 
@@ -392,7 +407,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
-        String commitId = null;
+        String commitId;
         boolean toReturn = false;
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
@@ -416,6 +431,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void generateDeleteActivity(String site, String path, String approver) {
+        // This method creates a database record to show the activity of deleting a file
+        // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
+        // TODO: SJ: activities. Fix in 2.7.x by introducing the audit service and refactoring accordingly
         if (StringUtils.isEmpty(approver)) {
             approver = securityService.getCurrentUser();
         }
@@ -444,10 +462,11 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean copyContent(String site, String fromPath, String toPath) {
         boolean toReturn = false;
-
         String commitId = _contentRepository.copyContent(site, fromPath, toPath);
-        // TODO: SJ: Add commitId to database for this item
+
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -457,12 +476,12 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean moveContent(String site, String fromPath, String toPath) {
         boolean toReturn = false;
-
         String commitId = _contentRepository.moveContent(site, fromPath, toPath);
         previewSync.notifyMoveContent(site, toPath, fromPath);
 
-        // TODO: SJ: Add commitId to database for this item
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -476,8 +495,9 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.moveContent(site, fromPath, toPath, newName);
         previewSync.notifyMoveContent(site, toPath, fromPath);
 
-        // TODO: SJ: Add commitId to database for this item
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
             toReturn = true;
         }
 
@@ -517,16 +537,16 @@ public class ContentServiceImpl implements ContentService {
         item.submittedForDeletion = false;
         item.inProgress = true;
         item.live = false;
-        item.folder = (item.name.contains(".")==false);
+        item.folder = (item.name.contains(".")==false); // TODO: SJ: This seems hokey, fix in 2.7.x
 
         return item;
     }
-
+// FIXME: HERE!!!!!!!!!!!!!!!!!!!
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
     throws Exception {
         String contentPath = item.uri;
 
-        logger.debug("Pupulating page props {0}", contentPath);
+        logger.debug("Populating page props '{}'", contentPath);
         item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
         item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
         item.isPage = item.page;
