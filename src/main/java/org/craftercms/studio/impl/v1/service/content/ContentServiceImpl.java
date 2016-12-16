@@ -274,7 +274,7 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            rename(site, path, targetPath, createFolder);
+            dmRenameService.rename(site, path, targetPath, createFolder);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
@@ -506,7 +506,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
-        contentPath = contentPath.replace("//", "/");
+        contentPath = contentPath.replace("//", "/");   // FIXME: SJ: This is another workaround for UI issues
 
         item.uri = contentPath;
         item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
@@ -541,17 +541,21 @@ public class ContentServiceImpl implements ContentService {
 
         return item;
     }
-// FIXME: HERE!!!!!!!!!!!!!!!!!!!
+
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
     throws Exception {
+        // This method load an XML content item and populates properties in the TO from the XML
+        // TODO: SJ: Two problems here that need to be fixed in 2.7.x
+        // TODO: SJ: Use Crafter Core for some/all of this work
+        // TODO: SJ: Much of this seems hardcoded and must be extensible/configurable via key:xpath in config
         String contentPath = item.uri;
 
         logger.debug("Populating page props '{}'", contentPath);
         item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
         item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
         item.isPage = item.page;
-        item.previewable = item.page;
-        item.isPreviewable = item.previewable;
+        item.previewable = item.page;               // TODO: SJ: This and item below are duplicated due to UI issues
+        item.isPreviewable = item.previewable;      // TODO: SJ: Fix this in 2.7.x
         item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor();
         item.isComponent = item.component;
         item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site));
@@ -560,11 +564,12 @@ public class ContentServiceImpl implements ContentService {
         item.isDocument = item.document;
 
         item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-        item.name = contentPath.substring(contentPath.lastIndexOf("/")+1);
+        item.path = contentPath.substring(0, contentPath.lastIndexOf("/")); // TODO: SJ: This is hokey, fix in 2.7.x
+        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);// TODO: SJ: This is hokey, fix in 2.7.x
         item.browserUri = contentPath;
 
         if(item.page) {
+            // TODO: SJ: This is hokey, fix in 2.7.x
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
 
@@ -576,7 +581,6 @@ public class ContentServiceImpl implements ContentService {
             String contentType = rootElement.valueOf("content-type");
             String disabled = rootElement.valueOf("disabled");
             String savedAsDraft = rootElement.valueOf("savedAsDraft");
-            String floating = rootElement.valueOf("placeInNav");
             String navigation = rootElement.valueOf("placeInNav");
             String hideInAuthoring = rootElement.valueOf("hideInAuthoring");
             String displayTemplate = rootElement.valueOf("display-template");
@@ -595,13 +599,13 @@ public class ContentServiceImpl implements ContentService {
             if(displayTemplate != null) {
                 RenderingTemplateTO template = new RenderingTemplateTO();
                 template.uri = displayTemplate;
-                template.name = "DEFAULT";
+                template.name = "DEFAULT";      // FIXME: SJ: 2.7.x
 
                 item.renderingTemplates.add(template);
             }
         }
         else {
-             logger.error("no xml document could be loaded for site {0} path {1}", site, contentPath);
+             logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
         }
 
         return item;
@@ -636,6 +640,7 @@ public class ContentServiceImpl implements ContentService {
      * @return
      */
     protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
+        // TODO: SJ: Rewrite this and the whole order/sort system; 2.7.x
         if (nodes != null) {
             List<DmOrderTO> orders = new ArrayList<DmOrderTO>(nodes.size());
             for (Node node : nodes) {
@@ -651,6 +656,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
+        // TODO: SJ: Refactor  in 2.7.x
         String contentPath = item.uri;
 
         item.children = new ArrayList<ContentItemTO>();
@@ -748,7 +754,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public ContentItemTO getContentItem(String site, String path, int depth) {
         ContentItemTO item = null;
-        logger.debug("Getting content item for site {0} path {1} depth {2}", site, path, depth);
+        logger.debug("Getting content item for site '{}' path '{}' depth '{}'", site, path, depth);
 
         DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
@@ -777,15 +783,16 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         catch(Exception err) {
-            logger.error("error constructing item for object at site {0} path {1}", err, site, path);
+            logger.error("error constructing item for object at site '{}' path '{}'", err, site, path);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item from site {0} path {1} retrieved in {2} milli-seconds", site, path, executionTime);
+        logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milli-seconds", site, path, executionTime);
         return item;
     }
 
     protected ContentItemTO loadContentItem(String site, String path) {
+        // TODO: SJ: Refactor such that the populate of non-XML is also a method in 2.7.x
         ContentItemTO item = createNewContentItemTO(site, path);
 
         if (item.uri.endsWith(".xml")) {
@@ -793,7 +800,7 @@ public class ContentServiceImpl implements ContentService {
             try {
                 item = populateContentDrivenProperties(site, item);
             } catch (Exception err) {
-                logger.error("error constructing item for object at site {0} path {1}", err, site, path);
+                logger.error("error constructing item for object at site '{}' path '{}'", err, site, path);
             }
         } else {
             item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
@@ -815,6 +822,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
+        // TODO: SJ: Refactor in 2.7.x
         if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset")) {
             ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
             if (config != null) {
@@ -827,7 +835,8 @@ public class ContentServiceImpl implements ContentService {
             MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
             String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
-                item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig.getPreviewableMimetypesPaterns(site)));
+                item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
+                    .getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
             }
         }
@@ -867,17 +876,29 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateMetadata(String site, ContentItemTO item) {
+        // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
+        // TODO: SJ: Change method name to be getContentItemMetadata or similar
+        // TODO: SJ: 2.7.x
+
+        // TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
+        // TODO: SJ: Use that method to reduce redundant code here. 2.7.x
         ObjectMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
         if (metadata != null) {
+            // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
+            // database if it's not null
             if (StringUtils.isEmpty(metadata.getLockOwner())) {
                 item.setLockOwner("");
             } else {
                 item.setLockOwner(metadata.getLockOwner());
             }
+
+            // Set the scheduled date
             if (metadata.getLaunchDate() != null) {
                 item.scheduledDate = metadata.getLaunchDate();
                 item.setScheduledDate(metadata.getLaunchDate());
             }
+
+            // Set the modifier (user) if known
             if (StringUtils.isEmpty(metadata.getModifier())) {
                 item.setUser("");
                 item.setUserLastName("");
@@ -900,6 +921,7 @@ public class ContentServiceImpl implements ContentService {
                     item.setUserLastName(metadata.getLastName());
                 }
             }
+
             if (metadata.getModified() != null) {
                 item.lastEditDate = metadata.getModified();
                 item.eventDate = metadata.getModified();
@@ -916,37 +938,41 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ContentItemTO getContentItemTree(String site, String path, int depth) {
-        logger.debug("Getting content item  tree for {0}:{1} depth {2}", site, path, depth);
+        logger.debug("Getting content item  tree for '{}':'{}' depth '{}'", site, path, depth);
         DebugUtils.addDebugStack(logger);
+
         long startTime = System.currentTimeMillis();
         boolean isPages = (path.contains("/site/website"));
         ContentItemTO root = null;
 
         if (isPages && contentExists(site, path + "/index.xml")) {
-            root = getContentItem(site, path+"/index.xml");
+            root = getContentItem(site, path + "/index.xml");
         }
         else {
             root = getContentItem(site, path);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milis", site, path, depth, executionTime);
+        logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milli-seconds", site, path, depth,
+            executionTime);
 
         return root;
     }
 
     @Override
     public VersionTO[] getContentItemVersionHistory(String site, String path) {
+        // TODO: SJ: Switch this to return a collection and rely on Groovy to change it up for the UI
         return _contentRepository.getContentVersionHistory(site, path);
     }
 
     @Override
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean toReturn = false;
-
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
-        // TODO: SJ: Add commitId to database for this item
+
         if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, path, commitId);
             toReturn = true;
         }
 
@@ -957,25 +983,13 @@ public class ContentServiceImpl implements ContentService {
         return toReturn;
     }
 
-	/**
-     * return the content for a given version
-     *
-     * @param site    - the project ID
-     * @param path    - the path item
-     * @param version - version
-     */
+    @Override
  	public InputStream getContentVersion(String site, String path, String version)
  	throws ContentNotFoundException {
  		return _contentRepository.getContentVersion(site, path, version);
  	}
 
-	/**
-     * return the content for a given version
-     *
-     * @param site    - the project ID
-     * @param path    - the path item
-     * @param version - version
-     */
+ 	@Override
  	public String getContentVersionAsString(String site, String path, String version)
 	throws ContentNotFoundException {
  		String content = null;
@@ -991,7 +1005,10 @@ public class ContentServiceImpl implements ContentService {
         return content;
  	}
 
+ 	@Override
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
+        // TODO: SJ: Think of another way to do this in 2.7.x
+
         ContentItemTO item = new ContentItemTO();
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
@@ -1035,7 +1052,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected String getBrowserUri(ContentItemTO item) {
-        String replacePattern = "";
+        String replacePattern;
+
         if (item.isComponent) {
             replacePattern = DmConstants.ROOT_PATTERN_COMPONENTS;
         } else if (item.isAsset) {
@@ -1045,7 +1063,9 @@ public class ContentServiceImpl implements ContentService {
         } else {
             replacePattern = DmConstants.ROOT_PATTERN_PAGES;
         }
+
         boolean isPage = !(item.isComponent || item.isAsset || item.isDocument);
+
         return getBrowserUri(item.uri, replacePattern, isPage);
     }
 
@@ -1064,13 +1084,13 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public String getContentTypeClass(String site, String uri) {
+        // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 2.7.x
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return DmConstants.CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
             return DmConstants.CONTENT_TYPE_DOCUMENT;
         } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
             return DmConstants.CONTENT_TYPE_ASSET;
-
         } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
             return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
         }
@@ -1088,11 +1108,6 @@ public class ContentServiceImpl implements ContentService {
         return false;
     }
 
-
-    protected void rename(final String site, final String path, final String targetPath,final boolean createFolder) throws ServiceException {
-        dmRenameService.rename(site, path,targetPath,createFolder);
-    }
-
     @Override
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
  	    // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 2.7.x
@@ -1104,12 +1119,10 @@ public class ContentServiceImpl implements ContentService {
         try {
 
             String[] strings = id.split(":");
-            final String path = strings[1];
-            final String site = strings[0];
             long startTime = System.currentTimeMillis();
             ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
             long duration = System.currentTimeMillis() - startTime;
-            logger.debug("Write Duration: {0}", duration);
+            logger.debug("Write Duration: '{}'", duration);
             return to;
         } finally {
             long end = System.currentTimeMillis();
@@ -1119,6 +1132,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public String getNextAvailableName(String site, String path) {
+        // TODO: SJ: Refactor to be faster, and make it work regardless (seems to fail above 10) in 2.7.x
         String[] levels = path.split("/");
         int length = levels.length;
         if (length > 0) {
@@ -1171,7 +1185,6 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public GoLiveDeleteCandidates getDeleteCandidates(String site, String relativePath) throws ServiceException {
-        List<String> items = new ArrayList<>();
         ContentItemTO contentItem = getContentItem(site, relativePath);
         GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this);
         if (contentItem != null) {
@@ -1185,6 +1198,9 @@ public class ContentServiceImpl implements ContentService {
      * Iterate over all paths inside the folder
      */
     protected void childDeleteItems(String site, ContentItemTO contentItem, GoLiveDeleteCandidates items) throws ServiceException {
+        // TODO: SJ: Reconsider to be iterative instead of recursive in 2.7.x
+        // TODO: SJ: Reconsider having bulk operations in the underlying repository to speed things up and result
+        // TODO: SJ: in less database writes and repo commits
 
         if (contentItem.isFolder()) {
             contentItem = getContentItemTree(site, contentItem.getUri(), 1);
@@ -1201,6 +1217,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void lockContent(String site, String path) {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
+        // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
     }
@@ -1208,12 +1225,14 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void unLockContent(String site, String path) {
         ContentItemTO item = getContentItem(site, path, 0);
-        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
+        objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT); // this unlocks too
         _contentRepository.unLockItem(site, path);
         objectMetadataManager.unLockContent(site, path);
     }
 
     private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
+        // TODO: SJ: Refactor this in 2.7.x
+        // TODO: SJ: Crafter Core already does some of this, refactor/redo
         // if the path ends with index.xml, remove index.xml and also remove the last folder
         // otherwise remove the file name only
         if (!StringUtils.isEmpty(relativePath)) {
@@ -1271,6 +1290,7 @@ public class ContentServiceImpl implements ContentService {
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
      */
     protected double computeReorder(String site, String relativePath, DmOrderTO beforeOrderTO, DmOrderTO afterOrderTO, String orderName) throws ContentNotFoundException {
+        // TODO: SJ: This seems excessive, all we need is: double result = (getBefore + getAfter) / 2; return result;
 
         List<DmOrderTO> orderTO = getOrders(site, relativePath, orderName, true);
         Collections.sort(orderTO);
