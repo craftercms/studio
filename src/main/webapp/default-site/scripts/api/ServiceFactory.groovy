@@ -1,20 +1,22 @@
 package scripts.api
 
 import scripts.libs.Cookies
-import scripts.api.impl.content.SpringContentServices;
-import scripts.api.impl.content.SpringContentTypeServices;
-import scripts.api.impl.content.SpringPageNavigationOrderServices;
-import scripts.api.impl.clipboard.SpringClipboardServices;
-import scripts.api.impl.deployment.SpringDeploymentServices;
-import scripts.api.impl.activity.SpringActivityServices;
-import scripts.api.impl.workflow.SpringWorkflowServices;
-import scripts.api.impl.security.SpringSecurityServices;
-import scripts.api.impl.site.SpringSiteServices;
-import scripts.api.impl.dependency.SpringDependencyServices;
-import scripts.api.impl.objectstate.SpringObjectStateServices;
+import scripts.api.impl.content.SpringContentServices
+import scripts.api.impl.content.SpringContentTypeServices
+import scripts.api.impl.content.SpringPageNavigationOrderServices
+import scripts.api.impl.clipboard.SpringClipboardServices
+import scripts.api.impl.deployment.SpringDeploymentServices
+import scripts.api.impl.activity.SpringActivityServices
+import scripts.api.impl.workflow.SpringWorkflowServices
+import scripts.api.impl.security.SpringSecurityServices
+import scripts.api.impl.site.SpringSiteServices
+import scripts.api.impl.dependency.SpringDependencyServices
+import scripts.api.impl.objectstate.SpringObjectStateServices
+
+import scripts.api.impl.plugins.PluginServicesImpl
 
 /**
- * workflow services
+ * Class is a factory used by the API wrappers to find their implementation
  */
 class ServiceFactory {
 	
@@ -108,15 +110,44 @@ class ServiceFactory {
 		return new SpringSiteServices(context)
 	}
 
+
+	/**
+	 * return the implementation for deps services
+	 *
+	 * @param context site context
+	 * @return Deps Services
+	 */
     static getDependencyServices(context) {
-        return new SpringDependencyServices(context);
+        return new SpringDependencyServices(context)
     }
 
+	/**
+	 * return the implementation for object state services
+	 *
+	 * @param context site context
+	 * @return Object State Services
+	 */
     static getObjectStateServices(context) {
-        return new SpringObjectStateServices(context);
+        return new SpringObjectStateServices(context)
     }
 
+	/**
+	 * return the implementation for nav services
+	 *
+	 * @param context site context
+	 * @return Nav Services
+	 */
 	static getPageNavigationOrderServices(context) {
-		return new SpringPageNavigationOrderServices(context);
+		return new SpringPageNavigationOrderServices(context)
+	}
+
+	/**
+	 * return the implementation for plugin services
+	 *
+	 * @param context site context
+	 * @return Plugin Services
+	 */
+	static getPluginServices(context) {
+		return new PluginServicesImpl(context)
 	}
 }
