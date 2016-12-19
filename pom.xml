@@ -477,7 +477,7 @@
                         <!-- static-assets -->
                         <resource>
                         	<directory>target/ui/static-assets</directory>
-                        	<filtering>true</filtering>
+                        	<filtering>false</filtering>
                         	<targetPath>default-site/static-assets</targetPath>
                         </resource>
 
@@ -491,7 +491,7 @@
                         <!-- site -->
                         <resource>
                         	<directory>target/ui/site</directory>
-                        	<filtering>true</filtering>
+                        	<filtering>false</filtering>
                         	<targetPath>default-site/site</targetPath>
                         </resource>
 
