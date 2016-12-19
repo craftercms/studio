@@ -437,21 +437,21 @@
                             <!-- static-assets -->
                             <resource>
                             	<directory>target/ui/static-assets</directory>
-                            	<filtering>true</filtering>
+                                	<filtering>false</filtering>
                             	<targetPath>default-site/static-assets</targetPath>
                             </resource>
 
                             <!-- templates -->
                             <resource>
                             	<directory>target/ui/templates</directory>
-                            	<filtering>true</filtering>
+                                	<filtering>true</filtering>
                             	<targetPath>default-site/templates</targetPath>
                             </resource>
 
                             <!-- site -->
                             <resource>
                             	<directory>target/ui/site</directory>
-                            	<filtering>true</filtering>
+                            	<filtering>false</filtering>
                             	<targetPath>default-site/site</targetPath>
                             </resource>
 
