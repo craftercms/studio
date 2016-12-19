@@ -491,7 +491,7 @@
                         <!-- site -->
                         <resource>
                         	<directory>target/ui/site</directory>
-                        	<filtering>true</filtering>
+                        	<filtering>false</filtering>
                         	<targetPath>default-site/site</targetPath>
                         </resource>
 
