@@ -22,8 +22,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -51,7 +49,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
 import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -65,7 +62,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
  * Note: consider renaming
@@ -76,8 +73,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_
 public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-
-    private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
 
 	@Override
 	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
@@ -131,14 +126,14 @@ public class SiteServiceImpl implements SiteService {
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
-			configPath = this.configRoot + path;
+			configPath = getGlobalConfigRoot() + path;
 		} else {
 			if (applyEnv) {
-				configPath = this.environmentConfigPath.replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
-						StudioConstants.PATTERN_ENVIRONMENT, environment)
+				configPath = getEnvironmentConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
+						StudioConstants.PATTERN_ENVIRONMENT, getEnvironment())
 						+ path;
 			} else {
-				configPath = this.sitesConfigPath + path;
+				configPath = getSitesConfigPath() + path;
 			}
 		}
 		String configContent = contentService.getContentAsString(site, configPath);
@@ -219,7 +214,7 @@ public class SiteServiceImpl implements SiteService {
 	 */
 	protected void loadSiteEnvironmentConfig(String site, SiteTO siteConfig) {
 		// get environment specific configuration
-		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + environment);
+		logger.debug("Loading site environment configuration for " + site + "; Environemnt: " + getEnvironment());
 		EnvironmentConfigTO environmentConfigTO = environmentConfig.getEnvironmentConfig(site);
 		if (environmentConfigTO == null) {
 			logger.error("Environment configuration for site " + site + " does not exist.");
@@ -245,7 +240,7 @@ public class SiteServiceImpl implements SiteService {
 	 */
 	protected void loadSiteDeploymentConfig(String site, SiteTO siteConfig) {
 		// get environment specific configuration
-		logger.debug("Loading deployment configuration for " + site + "; Environment: " + environment);
+		logger.debug("Loading deployment configuration for " + site + "; Environment: " + getEnvironment());
 		DeploymentConfigTO deploymentConfig = deploymentEndpointConfig.getSiteDeploymentConfig(site);
 		if (deploymentConfig == null) {
 			logger.error("Deployment configuration for site " + site + " does not exist.");
@@ -334,16 +329,6 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
 
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (!cacheService.hasScope(cacheContext)) {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
             clearConfigurationCache.clearConfigurationCache(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
@@ -419,30 +404,28 @@ public class SiteServiceImpl implements SiteService {
             if (child.isFolder) {
                 extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
             } else {
-                String childFullPath = child.path + "/" + child.name;
-                DmPathTO dmPathTO = new DmPathTO(childFullPath);
-                String relativePath = dmPathTO.getRelativePath();
+                String childPath = child.path + "/" + child.name;
 
-                if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
+                if (childPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(site, childFullPath);
-                        dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
+                        Document doc = contentService.getContentAsDocument(site, childPath);
+                        dmDependencyService.extractDependencies(site, childPath, doc, globalDeps);
                     } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     } catch (DocumentException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     }
                 } else {
 
-                    boolean isCss = childFullPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childFullPath.endsWith(DmConstants.JS_PATTERN);
+                    boolean isCss = childPath.endsWith(DmConstants.CSS_PATTERN);
+                    boolean isJs = childPath.endsWith(DmConstants.JS_PATTERN);
                     List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
                     boolean isTemplate = false;
                     for (String templatePattern : templatePatterns) {
                         Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(relativePath);
+                        Matcher matcher = pattern.matcher(childPath);
                         if (matcher.matches()) {
                             isTemplate = true;
                             break;
@@ -450,17 +433,17 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childFullPath));
+                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childPath));
                             if (isCss) {
-                                dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
                             } else if (isJs) {
-                                dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
                             } else if (isTemplate) {
-                                dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
+                                dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
                             }
                         }
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for: " + childFullPath, e);
+                        logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
                     }
                 }
             }
@@ -481,16 +464,6 @@ public class SiteServiceImpl implements SiteService {
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
-            }
-            cacheContext = new StudioCacheContext(siteId, false);
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
-            }
 	 	}
 	 	catch(Exception err) {
 	 		success = false;
@@ -558,29 +531,15 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void reloadSiteConfiguration(String site, boolean triggerEvent) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(StudioConstants.PATTERN_SITE, site), "SiteTO");
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         SiteTO siteConfig = new SiteTO();
         siteConfig.setSite(site);
-        siteConfig.setEnvironment(this.environment);
+        siteConfig.setEnvironment(getEnvironment());
         servicesConfig.reloadConfiguration(site);
         loadSiteConfig(site, siteConfig);
         environmentConfig.reloadConfiguration(site);
         loadSiteEnvironmentConfig(site, siteConfig);
         deploymentEndpointConfig.reloadConfiguration(site);
         loadSiteDeploymentConfig(site, siteConfig);
-        cacheService.put(cacheContext, cacheKey, siteConfig);
         notificationService.reloadConfiguration(site);
 		notificationService2.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
@@ -588,7 +547,6 @@ public class SiteServiceImpl implements SiteService {
         if (triggerEvent) {
             clearConfigurationCache.clearConfigurationCache(site);
         }
-        cacheService.put(cacheContext, cacheKey, siteConfig);
     }
 
     @Override
@@ -606,6 +564,22 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
+    public String getGlobalConfigRoot() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+    }
+
+    public String getSitesConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getEnvironment() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
+    }
+
+    public String getEnvironmentConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
+    }
+
     /** getter site service dal */
 	public SiteServiceDAL getSiteService() { return _siteServiceDAL; }
 	/** setter site service dal */
@@ -617,23 +591,11 @@ public class SiteServiceImpl implements SiteService {
 	public ContentService getContentService() { return contentService; }
 	public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-	public String getSitesConfigPath() { return sitesConfigPath; }
-	public void setSitesConfigPath(String sitesConfigPath) { this.sitesConfigPath = sitesConfigPath; }
-
-	public String getEnvironment() { return environment; }
-	public void setEnvironment(String environment) { this.environment = environment; }
-
 	public SiteEnvironmentConfig getEnvironmentConfig() { return environmentConfig; }
 	public void setEnvironmentConfig(SiteEnvironmentConfig environmentConfig) { this.environmentConfig = environmentConfig; }
 
 	public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
 	public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
-
-	public String getConfigRoot() { return configRoot; }
-	public void setConfigRoot(String configRoot) { this.configRoot = configRoot; }
-
-	public String getEnvironmentConfigPath() { return environmentConfigPath; }
-	public void setEnvironmentConfigPath(String environmentConfigPath) { this.environmentConfigPath = environmentConfigPath; }
 
 	public ContentRepository getContenetRepository() { return contentRepository; }
 	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
@@ -668,9 +630,6 @@ public class SiteServiceImpl implements SiteService {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
     public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
 
@@ -697,12 +656,8 @@ public class SiteServiceImpl implements SiteService {
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
-	protected String sitesConfigPath;
-	protected String environment;
 	protected SiteEnvironmentConfig environmentConfig;
 	protected DeploymentEndpointConfig deploymentEndpointConfig;
-	protected String configRoot = null;
-	protected String environmentConfigPath = null;
 	protected ContentRepository contentRepository;
 	protected ObjectStateService objectStateService;
 	protected DmDependencyService dmDependencyService;
@@ -714,7 +669,6 @@ public class SiteServiceImpl implements SiteService {
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected SecurityProvider securityProvider;
-    protected CacheTemplate cacheTemplate;
     protected ClearConfigurationCache clearConfigurationCache;
     protected ContentTypeUpdated contentTypeUpdated;
     protected ImportService importService;

@@ -19,9 +19,6 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.commons.lang.Callback;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -31,7 +28,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -39,17 +36,17 @@ import org.dom4j.Node;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
+
 public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SiteEnvironmentConfigImpl.class);
 
 	/** environment key (e.g. dev, qa, staging..) **/
-	protected String environment;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
-    protected String configPath;
-    protected String configFileName;
-    protected CacheTemplate cacheTemplate;
 
 	public ServicesConfig getServicesConfig() { return servicesConfig; }
 	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
@@ -57,35 +54,17 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	public ContentService getContentService() { return contentService; }
 	public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
+    public String getConfigPath() {
+	    return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
+	}
 
-    public String getConfigFileName() { return configFileName; }
-    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
-
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+    public String getConfigFileName() {
+	    return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
+	}
 
 	@Override
 	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        EnvironmentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<EnvironmentConfigTO>() {
-            @Override
-            public EnvironmentConfigTO execute() {
-                return loadConfiguration(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        return config;
+        return loadConfiguration(site);
 	}
 
 	public String getPreviewServerUrl(String site) {
@@ -146,9 +125,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	protected EnvironmentConfigTO loadConfiguration(String key) {
-		String configLocation = configPath.replaceFirst(StudioConstants.PATTERN_SITE, key)
-				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment);
-		configLocation = configLocation + "/" + configFileName;
+		String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
+				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
+		configLocation = configLocation + "/" + getConfigFileName();
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {
@@ -244,35 +223,14 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     @Override
     public void reloadConfiguration(String site) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site).replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         EnvironmentConfigTO config = loadConfiguration(site);
-        cacheService.put(cacheContext, cacheKey, config);
     }
-
-    /**
-	 * @param environment the environment to set
-	 */
-	public void setEnvironment(String environment) {
-		this.environment = environment;
-	}
 
 	/**
 	 * @return the environment
 	 */
 	public String getEnvironment() {
-		return environment;
+		return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT);
 	}
 
     @Override
@@ -319,6 +277,10 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
     public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected GeneralLockService generalLockService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
+    protected StudioConfiguration studioConfiguration;
 }

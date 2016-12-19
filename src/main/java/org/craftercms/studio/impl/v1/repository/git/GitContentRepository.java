@@ -271,7 +271,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             git.add().addFilepattern(gitToPath).call();
             // git.rm().addFilepattern(gitFromPath).call();     // TODO: SJ: Delete this line after testing
             RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
-            commitId = commit.getId().toString();
+            commitId = commit.getName();
 
             git.close();
         } catch (IOException | GitAPIException e) {
@@ -312,7 +312,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 .setCommitter(helper.getCurrentUserIdent())
                 .setMessage("Copying " + fromPath + " to " + toPath)
                 .call();
-            commitId = commit.getId().toString();
+            commitId = commit.getName();
 
             git.close();
         } catch (IOException | GitAPIException e){
@@ -395,7 +395,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 while (iterator.hasNext()) {
                     RevCommit revCommit = iterator.next();
                     VersionTO versionTO = new VersionTO();
-                    versionTO.setVersionNumber(revCommit.getId().toString());
+                    versionTO.setVersionNumber(revCommit.getName());
                     versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
                     versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000));
                     versionTO.setComment(revCommit.getFullMessage());

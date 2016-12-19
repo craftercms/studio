@@ -55,12 +55,7 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -183,11 +178,19 @@ public class GitContentRepositoryHelper {
 
     public Repository createGitRepository(Path path) {
         Repository toReturn;
-
+        path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
         try {
-            path = Paths.get(path.toAbsolutePath().toString(), GIT_ROOT);
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
+
+            // Get git configuration
+            StoredConfig config = toReturn.getConfig();
+            // Set compression level (core.compression)
+            config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
+            // Set big file threshold (core.bigFileThreshold)
+            config.setString(CONFIG_SECTION_CORE,null,CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+            // Save configuration changes
+            config.save();
         } catch (IOException e) {
             logger.error("Error while creating repository for site with path" + path.toString(), e);
             toReturn = null;
@@ -372,7 +375,7 @@ public class GitContentRepositoryHelper {
                     .setMessage(message)
                     .call();
                 // TODO: SJ: Do we need the commit id?
-                // commitId = commit.getId().toString();
+                // commitId = commit.getName();
             }
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);
@@ -470,10 +473,8 @@ public class GitContentRepositoryHelper {
                 }
             }
 
-            // Create the file
-            if (!file.createNewFile()) {
-                logger.error("File already exists, overwriting content for site: " + site + " path: " + path);
-            }
+            // Create the file if it doesn't exist already
+            file.createNewFile();
 
             // Write the bits
             FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
@@ -508,7 +509,7 @@ public class GitContentRepositoryHelper {
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 RevCommit commit;
                 commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
-                commitId = commit.getId().toString();
+                commitId = commit.getName();
             }
 
             git.close();

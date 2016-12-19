@@ -29,4 +29,11 @@ public interface GitContentRepositoryConstants {
     String GIT_COMMIT_ALL_ITEMS = ".";
     String EMPTY_FILE = ".keep";
     String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
+
+    /** Configuration */
+    String CONFIG_SECTION_CORE = "core";
+    String CONFIG_PARAMETER_COMPRESSION = "compression";
+    int CONFIG_PARAMETER_COMPRESSION_DEFAULT = 0;
+    String CONFIG_PARAMETER_BIG_FILE_THRESHOLD = "bigFileThreshold";
+    String CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT = "20m";
 }

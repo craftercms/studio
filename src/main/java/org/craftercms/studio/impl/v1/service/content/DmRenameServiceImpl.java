@@ -18,13 +18,10 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -44,7 +41,6 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreGoLiveOperation;
 import org.craftercms.studio.impl.v1.service.workflow.operation.PreScheduleOperation;
@@ -273,7 +269,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             rescheduledUris.add(to.getUri());
         }
 
-        dmWorkflowListener.postGolive(site, to);
         DependencyRules rule = new DependencyRules(site);
         rule.setContentService(contentService);
         rule.setObjectStateService(objectStateService);
@@ -281,7 +276,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         dependencyTOSet = rule.applySubmitRule(to);
         for (DmDependencyTO dependencyTO : dependencyTOSet) {
             depedencyPaths.add(pathPrefix+dependencyTO.getUri());
-            dmWorkflowListener.postGolive(site, dependencyTO);
         }
 
         return depedencyPaths;
@@ -366,11 +360,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
                 contentService.moveContent(site, sourcePath, dstNodeParentPath, dstNodeName);
             }
         }
-        removeItemFromCache(site, sourcePath);
-        removeItemFromCache(site, targetPath);
-        if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
 
         ContentItemTO item = contentService.getContentItem(site, dstOrgPath);
         if (item == null) {
@@ -415,22 +404,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         long end = System.currentTimeMillis();
         logger.debug("Total time to rename = " + (end - start));
     }
-
-    protected void removeItemFromCache(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        cacheService.remove(cacheContext, cacheKey);
-    }
-
 
     /**
      * Remove any old uri from the workflow and puts it them to in progress
@@ -587,10 +560,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             logger.error("Error during extracting dependency of " + relativePath, e);
         }
         updateActivity(site, oldUri, relativePath);
-        removeItemFromCache(site, oldUri);
-        if (oldUri.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, oldUri.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
     }
 
     protected void updateActivity(String site, String oldUrl, String newUrl){
@@ -617,9 +586,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
 
-    public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
-    public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
-
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -632,9 +598,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public DmDependencyService getDmDependencyService() { return dmDependencyService; }
     public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
@@ -644,11 +607,9 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected WorkflowService workflowService;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected DmWorkflowListener dmWorkflowListener;
     protected DmPublishService dmPublishService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmDependencyService dmDependencyService;
-    protected CacheTemplate cacheTemplate;
     protected GeneralLockService generalLockService;
 }

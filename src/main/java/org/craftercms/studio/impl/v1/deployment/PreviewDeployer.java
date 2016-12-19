@@ -45,7 +45,6 @@ public class PreviewDeployer implements Deployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployer.class);
 
-    public static final String METADATA_EXTENSION = ".depmeta";
     public static final String DEPLOYER_SERVLET_URL = "/publish";
     public static final String DEPLOYER_PASSWORD_PARAM = "password";
     public static final String DEPLOYER_TARGET_PARAM = "target";
@@ -53,8 +52,40 @@ public class PreviewDeployer implements Deployer {
     public static final String DEPLOYER_DELETED_FILES_PARAM = "deletedFiles";
     public static final String DEPLOYER_CONTENT_LOCATION_PARAM = "contentLocation";
     public static final String DEPLOYER_CONTENT_FILE_PARAM = "contentFile";
-    public static final String DEPLOYER_METADATA_FILE_PARAM = "metadataFile";
     public static final String FILES_SEPARATOR = ",";
+
+    /*
+
+        Preview:
+            onEvent(EventContext eventContext) {
+                trigger preview deployer to pull all; // preview deployer will take care of pull, solr, cache
+            }
+
+        Regular Deployer:
+            onEvent(String site, List<Items> items, String envName, String author, String comment) {
+                List<String> commitIds = new List<String>(items.size());
+                for (Item item : items) {
+                    commitIds.add(item.getCommitId();
+                }
+
+                repo.publish(commitIds, envName, author, comment):
+            }
+
+        in Git Repo
+            publish(String site, List<String> commitIds, String envName, String author, String comment) {
+                repo = published.get(site);
+                LockTheWorld(repo);
+                repo.fetch(origin/master);
+                repo.checkout(envName);
+                repo.cherryPick(commitIds); // iterate?
+                repo.tag(author, message);
+                repo.checkout(master);
+                UnlockTheWorld(repo);
+            }
+
+     */
+
+    // TODO: SJ: Rewrite below to match above pseudo code. 2.6.x
 
     @Override
     public void deployFile(String site, String path) {
@@ -247,79 +278,6 @@ public class PreviewDeployer implements Deployer {
         }
     }
 
-    public void onDeleteSite() throws ServiceException {
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        try {
-            String site = message.getSite();
-            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-            deleteSite(site);
-        } catch (Exception t) {
-            logger.error("Error while deleting site content from preview: " + message.getSite(), t);
-        } finally {
-            RepositoryEventContext.setCurrent(null);
-        }
-    }
-
-    protected void deleteSite(String site) {
-
-        DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-        URL requestUrl = null;
-
-        try {
-            String url = DEPLOYER_SERVLET_URL;
-            List<Part> formParts = new ArrayList<>();
-            if (deploymentEndpointConfigTO != null) {
-                requestUrl = new URL(deploymentEndpointConfigTO.getServerUrl());
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, deploymentEndpointConfigTO.getPassword()));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, deploymentEndpointConfigTO.getTarget()));
-            } else {
-                requestUrl = new URL("http", defaultServer, defaultPort, url);
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, defaultPassword));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
-            }
-
-            StringBuilder sbDeletedFiles = new StringBuilder("/");
-
-            formParts.add(new StringPart(DEPLOYER_DELETED_FILES_PARAM, sbDeletedFiles.toString()));
-            formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
-
-            PostMethod postMethod = new PostMethod(requestUrl.toString());
-            postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-
-            Part[] parts = new Part[formParts.size()];
-
-            for (int i = 0; i < formParts.size(); i++) parts[i] = formParts.get(i);
-            postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
-            HttpClient client = new HttpClient();
-            int status = client.executeMethod(postMethod);
-            postMethod.releaseConnection();
-        }
-        catch(Exception err) {
-            logger.error("error while deleting site from preview: '" + site + "'", err);
-        }
-    }
-
-    public String getDefaultServer() { return defaultServer; }
-    public void setDefaultServer(String defaultServer) { this.defaultServer = defaultServer; }
-
-    public int getDefaultPort() { return defaultPort; }
-    public void setDefaultPort(int defaultPort) { this.defaultPort = defaultPort; }
-
-    public String getDefaultPassword() { return defaultPassword; }
-    public void setDefaultPassword(String defaultPassword) { this.defaultPassword = defaultPassword; }
-
-    public String getDefaultTarget() { return defaultTarget; }
-    public void setDefaultTarget(String defaultTarget) { this.defaultTarget = defaultTarget; }
-
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
-
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
-
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
-
     protected String defaultServer;
     protected int defaultPort;
     protected String defaultPassword;
@@ -327,6 +285,4 @@ public class PreviewDeployer implements Deployer {
     protected SiteService siteService;
     protected ContentService contentService;
     protected ContentRepository contentRepository;
-
-
 }

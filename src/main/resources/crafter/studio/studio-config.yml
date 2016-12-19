@@ -8,7 +8,7 @@
 ##     Location of Override Config File         ##
 ##################################################
 # Load override configuration files (to override what's defined here)
-studio.config.override.config: shared/classes/crafter/studio/studio-config.yml
+studio.config.overrideConfig: crafter/studio/extension/studio-config.yml
 
 ##################################################
 ##              Content Repository              ##
@@ -31,6 +31,14 @@ studio.repo.bootstrapRepo: true
 ##################################################
 ##                   Database                   ##
 ##################################################
+# Defines database DBMS platform used for crafter database. Supported values:
+#   derby
+#   mysql
+#   postgres
+#   oracle
+#   sqlserver
+# If value is not specified application will not startup.
+studio.db.platform: derby
 # Crafter CMS supports the follow databases
 #   derby
 #   mysql
@@ -39,6 +47,10 @@ studio.repo.bootstrapRepo: true
 #   sqlserver
 # JDBC driver and Java class used for accessing crafter database
 studio.db.driver: org.apache.derby.jdbc.EmbeddedDriver
+# Username used for authentication to access crafter database.
+studio.db.username: crafter
+# Password used for authentication to access crafter database.
+studio.db.password: crafter
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
@@ -83,7 +95,56 @@ studio.db.validationInterval: 34000
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
+# Location where global configuration files are stored.
+studio.configuration.global.configBasePath: /configuration
+# Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
+# Location pattern where environment specific configuration for a site is stored
+studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides/{environment}
+# Location where deployment configuration is stored for a site.
+studio.configuration.site.deployment.configBasePath: /config/studio/deployment
+# File name where site configuration is stored.
 studio.configuration.site.generalConfigFileName: site-config.xml
+# File name where configuration of user permissions mappings is stored for a site.
 studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
+# File name where configuration of user role mappings is stored for a site.
 studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
+# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
+studio.configuration.site.environment: local
+# File name where environment specific configuration is stored
+studio.configuration.site.environment.configFileName: environment-config.xml
+# File name where simple notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName: notification-config.xml
+# File name where custom notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
+# File name where deployment endpoints configuration is stored.
+studio.configuration.site.deployment.configFileName: endpoints-config.xml
+
+########################################################
+##                   Import Service                   ##
+########################################################
+# Defines content processor workflow assignee for import process.
+studio.import.assignee: admin
+# Defines content processor chain name used for processing xml content.
+studio.import.xmlChainName: importContent
+# Defines content processor chain name used for processing assets.
+studio.import.assetChainName: assetContent
+
+##############################################################
+##                   Notification Service                   ##
+##############################################################
+# Turn on/off (value true/false) notifications for custom content path patterns.
+studio.notification.customContentPathNotification.enabled: false
+# Defines regular expression to enable notifications for custom content paths.
+studio.notification.customContentPathNotificationPattern:
+# Turn on/off (value true/false) custom notification service.
+studio.notification.v2.enabled: false
+# Set timezone used for custom notification service.
+studio.notification.v2.timezone: UTC
+
+##########################################################
+##                   Workflow Service                   ##
+##########################################################
+# Turn on/off (value true/false) publishing without dependencies.
+# When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.workflow.publishingWithoutDependencies.enabled: false

@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -44,6 +45,7 @@ import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -270,7 +272,9 @@ public class PublishingManagerImpl implements PublishingManager {
             }
         }
         LOGGER.debug("Publishing deployment event for target \"{0}\" with \"{1}\" items.", target.getName(), eventItems.size());
-        DeploymentEventMessage message = new DeploymentEventMessage(site, target.getName(), eventItems);
+        String sessionTicket = securityProvider.getCurrentToken();
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        DeploymentEventMessage message = new DeploymentEventMessage(site, target.getName(), eventItems, repositoryEventContext);
         deploymentEventService.deploymentEvent(message);
 
         LOGGER.info("Deployment successful on target {0}", target.getName());
@@ -715,6 +719,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
     public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
 
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
@@ -731,6 +738,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected boolean enablePublishingWithoutDependencies = false;
     protected DeploymentEventService deploymentEventService;
+    protected SecurityProvider securityProvider;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

@@ -22,10 +22,7 @@ import freemarker.template.TemplateException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.craftercms.commons.lang.Callback;
 import org.craftercms.commons.mail.EmailUtils;
-import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -41,12 +38,14 @@ import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -57,17 +56,13 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFY_CONTENT_REJECTED = "contentRejected";
 
     protected Map<String, NotificationConfigTO> notificationConfiguration;
-    protected CacheTemplate cacheTemplate;
-    protected String configPath;
-    protected String configFileName;
     protected ContentService contentService;
     protected EmailMessageQueueTo emailMessages;
     protected ServicesConfig servicesConfig;
     protected SiteService siteService;
     protected SecurityService securityService;
-    protected boolean enable;
-    private String templateTimezone;
     private Configuration configuration;
+    protected StudioConfiguration studioConfiguration;
 
     public NotificationServiceImpl() {
         notificationConfiguration = new HashMap<>();
@@ -76,7 +71,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     public void init() {
         configuration = new Configuration(Configuration.VERSION_2_3_23);
-        configuration.setTimeZone(TimeZone.getTimeZone(templateTimezone));
+        configuration.setTimeZone(TimeZone.getTimeZone(getTemplateTimezone()));
         configuration.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23).build());
     }
 
@@ -84,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyDeploymentError(final String site, final Throwable throwable, final List<String>
         filesUnableToPublish, final Locale locale) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
                 final Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("deploymentError", throwable);
@@ -113,7 +108,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted,
                                       final String approver, final Date scheduleDate, final Locale locale) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
@@ -132,7 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
     public String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
                 String message = null;
                 switch (type) {
@@ -182,7 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
     List<String> itemsSubmitted, final String submitter, final Date scheduleDate, final boolean isADelete, final
     String submissionComments, final Locale locale) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
                 final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
                 Map<String, Object> templateModel = new HashMap<>();
@@ -208,7 +203,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
     Pair<String, Object>... params) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
                 final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
                 if (emailTemplate != null) {
@@ -250,7 +245,7 @@ public class NotificationServiceImpl implements NotificationService {
                                        final String rejectionReason, final String userThatRejects, final Locale
                                                locale) {
         try {
-            if (enable) {
+            if (isEnabled()) {
                 final Map<String, String> submitterUser = securityService.getUserProfile(submittedBy);
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, rejectedItems));
@@ -266,9 +261,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     protected Map<String, NotificationConfigTO> loadConfig(final String site) {
         notificationConfiguration = new HashMap<>();
-        if (enable) {
-            String configFullPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
-            configFullPath = configFullPath + "/" + configFileName;
+        if (isEnabled()) {
+            String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+            configFullPath = configFullPath + "/" + getConfigFileName();
             try {
                 Document document = contentService.getContentAsDocument(site, configFullPath);
                 if (document != null) {
@@ -398,50 +393,19 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void reloadConfiguration(final String site) {
-        if (enable) {
-            CacheService cacheService = cacheTemplate.getCacheService();
-            StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site)
-                , configFileName);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (cacheService.hasScope(cacheContext)) {
-                    cacheService.remove(cacheContext, cacheKey);
-                } else {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
+        if (isEnabled()) {
             Map<String, NotificationConfigTO> config = loadConfig(site);
-            cacheService.put(cacheContext, cacheKey, config);
         }
     }
 
     @Override
-    public boolean isEnable() {
-        return enable;
+    public boolean isEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_V2_ENABLED));
+        return toReturn;
     }
 
     protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        Map<String, NotificationConfigTO> config = cacheTemplate.getObject(cacheContext, new Callback<Map<String,
-            NotificationConfigTO>>() {
-            @Override
-            public Map<String, NotificationConfigTO> execute() {
-                return loadConfig(site);
-            }
-        }, site, configPath.replaceFirst(StudioConstants.PATTERN_SITE, site), configFileName);
-
+        Map<String, NotificationConfigTO> config = loadConfig(site);
         Locale realLocale = locale;
         if (locale == null) {
             realLocale = Locale.ENGLISH;
@@ -476,16 +440,16 @@ public class NotificationServiceImpl implements NotificationService {
         return files;
     }
 
-    public void setCacheTemplate(final CacheTemplate cacheTemplate) {
-        this.cacheTemplate = cacheTemplate;
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
 
-    public void setConfigPath(final String configPath) {
-        this.configPath = configPath;
+    public String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2);
     }
 
-    public void setConfigFileName(final String configFileName) {
-        this.configFileName = configFileName;
+    public String getTemplateTimezone() {
+        return studioConfiguration.getProperty(NOTIFICATION_V2_TIMEZONE);
     }
 
     public void setContentService(final ContentService contentService) {
@@ -508,16 +472,11 @@ public class NotificationServiceImpl implements NotificationService {
         this.securityService = securityService;
     }
 
-    public void setEnable(final boolean enable) {
-        this.enable = enable;
-    }
-
-    public void setTemplateTimezone(final String templateTimezone) {
-        this.templateTimezone = templateTimezone;
-    }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected GeneralLockService generalLockService;
 }

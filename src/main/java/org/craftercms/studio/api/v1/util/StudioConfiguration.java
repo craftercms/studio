@@ -22,7 +22,7 @@ package org.craftercms.studio.api.v1.util;
 public interface StudioConfiguration {
 
     /** Override Configuration */
-    String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.override.config";
+    String STUDIO_CONFIG_OVERRIDE_CONFIG = "studio.config.overrideConfig";
 
     /** Content Repository */
     String REPO_BASE_PATH = "studio.repo.basePath";
@@ -34,8 +34,11 @@ public interface StudioConfiguration {
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
 
     /** Database */
+    String DB_PLATFORM = "studio.db.platform";
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
+    String DB_USERNAME = "studio.db.username";
+    String DB_PASSWORD = "studio.db.password";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
     String DB_POOL_MAX_IDLE_CONNECTIONS = "studio.db.pool.maxIdleConnections";
@@ -43,6 +46,7 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
+    String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
     String DB_VALIDATION_QUERY_POSTGRES = "studio.db.validationQuery.postgres";
     String DB_VALIDATION_QUERY_MYSQL = "studio.db.validationQuery.mysql";
@@ -52,10 +56,32 @@ public interface StudioConfiguration {
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
 
     /** Configuration */
+    String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
+    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_BASE_PATH = "studio.configuration.site.deployment.configBasePath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
+    String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
+    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME = "studio.configuration.site.notificationsConfigFileName";
+    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2 = "studio.configuration.site.notificationsConfigFileName.v2";
+    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
+
+    /** Import Service */
+    String IMPORT_ASSIGNEE = "studio.import.assignee";
+    String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";
+    String IMPORT_ASSET_CHAIN_NAME = "studio.import.assetChainName";
+
+    /** Notification Service */
+    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED = "studio.notification.customContentPathNotification.enabled";
+    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN = "studio.notification.customContentPathNotificationPattern";
+    String NOTIFICATION_V2_ENABLED = "studio.notification.v2.enabled";
+    String NOTIFICATION_V2_TIMEZONE = "studio.notification.v2.timezone";
+
+    /** Workflow Service */
+    String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
 
     void loadConfig();
 

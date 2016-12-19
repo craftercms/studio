@@ -113,7 +113,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 }
 
     protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList,boolean scheduleDateNow) {
-        if(notificationService.isEnable()) {
+        if(notificationService.isEnabled()) {
             for (CopyToEnvironment listItem : itemList) {
                 ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
                 if (objectMetadata != null) {

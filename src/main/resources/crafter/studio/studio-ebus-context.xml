@@ -24,7 +24,6 @@
 
     <bean id="clearConfigurationCache" class="org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
         <property name="securityProvider" ref="securityProvider" />
         <property name="adminUser" value="${repositoryJob.username}"/>
         <property name="adminPassword" value="${repositoryJob.password}"/>

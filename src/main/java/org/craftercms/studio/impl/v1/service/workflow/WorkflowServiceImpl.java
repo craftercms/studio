@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -59,6 +58,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.RequestContext;
 import org.craftercms.studio.api.v1.service.workflow.context.RequestContextBuilder;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
@@ -66,6 +66,10 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
  * workflow service implementation
@@ -216,7 +220,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
                 result.setSuccess(true);
 				result.setStatus(200);
-				if(notificationService2.isEnable()){
+				if(notificationService2.isEnabled()){
 					result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
 						.CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
 				}else {
@@ -283,7 +287,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
             boolean lsendEmail = true;
             boolean lnotifyAdmin = true;
-            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || customContentTypeNotification);
+            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || isCustomContentTypeNotification());
             lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
             // notify admin will always be true, unless for dependent document/banner/other-files
             doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin, submissionComment);
@@ -315,7 +319,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         } else {
 			objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
         }
-        dmWorkflowListener.postSubmitToGolive(site, dependencyTO);
         if (notifyAdmin) {
             boolean isPreviewable = item.isPreviewable();
 
@@ -953,7 +956,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnable()){
+			if(notificationService2.isEnabled()){
 				result.setMessage(notificationService2.getNotificationMessage(site,
 					NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
 			}else{
@@ -1126,7 +1129,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnable()) {
+			if(notificationService2.isEnabled()) {
 				result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
 					.CompleteMessages,responseMessageKey,Locale.ENGLISH));
 			}else {
@@ -1299,7 +1302,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            if(notificationService2.isEnable()) {
+            if(notificationService2.isEnabled()) {
                 result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
                         .CompleteMessages,responseMessageKey,Locale.ENGLISH));
             }else {
@@ -1687,8 +1690,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 } else {
                     //add dependencies to submitPackage
                     for (String liveDependency : liveDependencyItems) {
-                        DmPathTO pathTO = new DmPathTO(liveDependency);
-                        submitpackage.addToPackage(pathTO.getRelativePath());
+                        submitpackage.addToPackage(liveDependency);
                     }
                     submitPackPaths = submitpackage.getPaths();
 
@@ -2090,7 +2092,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         generalLockService.lock(lockKey);
         try {
             try {
-                if (enablePublishingWithoutDependencies) {
+                if (isEnablePublishingWithoutDependencies()) {
                     return approveWithoutDependencies(site, request, Operation.GO_LIVE);
                 } else {
                     return approve_new(site, request, Operation.GO_LIVE);
@@ -2177,14 +2179,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                         }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
 
-                    }
-                    Set<DmDependencyTO> dependencyTOSet = submitpackage.getItems();
-                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
-                        dmWorkflowListener.postGolive(site, dmDependencyTO);
-                    }
-                    dependencyTOSet = dependencyPackage.getItems();
-                    for (DmDependencyTO dmDependencyTO : dependencyTOSet) {
-                        dmWorkflowListener.postGolive(site, dmDependencyTO);
                     }
                 }
             }
@@ -2411,27 +2405,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     }
 
-    protected void invokeListeners(List<DmDependencyTO> submittedItems, String site, Operation operation) {
-        for (DmDependencyTO submittedItem : submittedItems) {
-            List<DmDependencyTO> children = submittedItem.getChildren();
-            switch (operation) {
-                case GO_LIVE:
-                    dmWorkflowListener.postGolive(site, submittedItem);
-                    break;
-                case SUBMIT_TO_GO_LIVE:
-                    dmWorkflowListener.postSubmitToGolive(site, submittedItem);
-                    break;
-                case REJECT:
-                    dmWorkflowListener.postReject(site, submittedItem);
-                    break;
-            }
-            if (null != children && !children.isEmpty()) {
-                invokeListeners(children, site, operation);
-            }
-
-        }
-    }
-
     @Override
     public boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site) {
         if ((dependencyTO.isDeleted() || (!dependencyTO.isSubmitted() && !dependencyTO.isInProgress()))) {
@@ -2620,7 +2593,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);
         }
-        dmWorkflowListener.postReject(site, dmDependencyTO);
     }
 
     public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
@@ -2661,15 +2633,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
 
-    public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
-    public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
-
-    public String getCustomContentTypeNotificationPattern() { return customContentTypeNotificationPattern; }
-    public void setCustomContentTypeNotificationPattern(String customContentTypeNotificationPattern) { this.customContentTypeNotificationPattern = customContentTypeNotificationPattern; }
-
-    public boolean isCustomContentTypeNotification() { return customContentTypeNotification; }
-    public void setCustomContentTypeNotification(boolean customContentTypeNotification) { this.customContentTypeNotification = customContentTypeNotification; }
-
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
@@ -2682,8 +2645,22 @@ public class WorkflowServiceImpl implements WorkflowService {
     public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
     public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
 
-    public boolean isEnablePublishingWithoutDependencies() { return enablePublishingWithoutDependencies; }
-    public void setEnablePublishingWithoutDependencies(boolean enablePublishingWithoutDependencies) { this.enablePublishingWithoutDependencies = enablePublishingWithoutDependencies; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    public boolean isCustomContentTypeNotification() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED));
+        return toReturn;
+    }
+
+    public String getCustomContentTypeNotificationPattern() {
+        return studioConfiguration.getProperty(NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN);
+    }
+
+    public boolean isEnablePublishingWithoutDependencies() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        return toReturn;
+    }
 
     private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
@@ -2699,14 +2676,11 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected SiteService siteService;
     protected DmRenameService dmRenameService;
     protected WorkflowProcessor workflowProcessor;
-    protected DmWorkflowListener dmWorkflowListener;
-    protected String customContentTypeNotificationPattern;
-    protected boolean customContentTypeNotification;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
     protected DependencyRule submitForApprovalDependencyRule;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
-    protected boolean enablePublishingWithoutDependencies = false;
+    protected StudioConfiguration studioConfiguration;
 
     public static class SubmitPackage {
         protected String pathPrefix;

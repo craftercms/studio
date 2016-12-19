@@ -22,33 +22,6 @@
               <property name="servicesManager" ref="cstudioServicesManager" />
        </bean>
 
-    <!--/////////////////////////// -->
-    <!-- Cache  -->
-    <!--/////////////////////////// -->
-
-    <bean id="cstudioCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerImpl">
-        <property name="ehCacheAdapter" ref="cstudioEhCache"/>
-    </bean>
-
-    <bean id="cstudioEHCacheManager" class="org.craftercms.studio.impl.v1.cache.EhCacheManagerFactoryBean">
-        <property name="configLocation">
-            <value>classpath:crafter/studio/cstudio-cache-config.xml</value>
-        </property>
-    </bean>
-
-    <bean id="cstudioEhCache" class="org.craftercms.studio.impl.v1.cache.EhCacheAdapter">
-        <property name="cache">
-            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-                <property name="cacheManager">
-                    <ref bean="cstudioEHCacheManager"/>
-                </property>
-                <property name="cacheName">
-                    <value>CStudioCache</value>
-                </property>
-            </bean>
-        </property>
-    </bean>
-
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
@@ -67,7 +40,6 @@
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="previewSync" ref="previewSync"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -87,12 +59,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="sitesConfigPath" value="${siteService.sitesConfigPath}"/>
-        <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
-        <property name="configRoot"><value>${siteService.configPath}</value></property>
-        <property name="environmentConfigPath"><value>${environmentConfig.configPath}</value></property>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
@@ -104,7 +72,6 @@
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="securityProvider" ref="securityProvider" />
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
         <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
@@ -120,9 +87,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="xmlChainName"><value>${importService.xmlChainName}</value></property>
-        <property name="assetChainName"><value>${importService.assetChainName}</value></property>
-        <property name="assignee"><value>${importService.assignee}</value></property>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -141,13 +106,10 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
-        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
-        <property name="customContentTypeNotificationPattern" value="${notificationService.customContentPathNotificationPattern}" />
-        <property name="customContentTypeNotification" value="${notificationService.customContentPathNotification}" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
         <property name="submitForApprovalDependencyRule" ref="studioSubmitToApproveDependencyRule" />
-        <property name="enablePublishingWithoutDependencies" value="${workflowService.enablePublishingWithoutDependencies}"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -172,30 +134,23 @@
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="configPath"><value>${notificationService.configPath}</value></property>
-        <property name="configFileName"><value>${notificationService.configFileName}</value></property>
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
          <property name="siteService" ref="cstudioSiteServiceSimple"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="contentService" ref="cstudioContentService"/>
-         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
-         <property name="newNotificationEnable" value="${notificationService.v2.enable}"/>
          <property name="generalLockService" ref="cstudioGeneralLockService"/>
+         <property name="studioConfiguration" ref="studioConfiguration" />
      </bean>
 
     <bean id="cstudioNotificationServicev2"
           class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-        <property name="configPath"><value>${notificationService.configPath}</value></property>
-        <property name="configFileName"><value>${notificationService.v2.configFileName}</value></property>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
-        <property name="enable" value="${notificationService.v2.enable}"/>
-        <property name="templateTimezone" value="${notificationService.v2.timezone}"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
        <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
@@ -204,32 +159,24 @@
         </bean>
 
     <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
-        <property name="configPath"><value>${serviceConfig.configPath}</value></property>
-        <property name="configFileName"><value>${serviceConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioEnvironmentConfig" class="org.craftercms.studio.impl.v1.service.configuration.SiteEnvironmentConfigImpl" >
-        <property name="configPath"><value>${environmentConfig.configPath}</value></property>
-        <property name="configFileName"><value>${environmentConfig.configFileName}</value></property>
-        <property name="environment"><value>${environmentConfig.environment}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
-        <property name="configPath"><value>${deploymentConfig.configPath}</value></property>
-        <property name="configFileName"><value>${deploymentConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate" />
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"
@@ -269,7 +216,6 @@
         <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
         <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
     </bean>
@@ -288,7 +234,6 @@
         <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
         <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
@@ -345,7 +290,6 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="previewSync" ref="previewSync"/>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -356,12 +300,10 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
-        <property name="dmWorkflowListener" ref="cstudioWorkflowListener"/>
         <property name="dmPublishService" ref="cstudioDmPublishService" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
@@ -607,11 +549,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-    </bean>
-
-    <bean id="cstudioWorkflowListener" class="org.craftercms.studio.impl.v1.listener.DmWorkflowListenerImpl">
-        <property name="cache" ref="cstudioCacheManager"/>
-        <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -936,6 +873,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="enablePublishingWithoutDependencies" value="${publishingManager.enablePublishingWithoutDependencies}"/>
         <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
+        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <!-- //////////////// -->
