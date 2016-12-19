@@ -208,13 +208,8 @@
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="permissionsFileName"><value>${permissionService.permissionMappingFileName}</value></property>
-        <property name="globalConfigPath"><value>${permissionService.globalConfigPath}</value></property>
-        <property name="globalRoleMappingsFileName"><value>${permissionService.globalRoleMappingFileName}</value></property>
-        <property name="globalPermissionsFileName"><value>${permissionService.globalPermissionMappingFileName}</value></property>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -222,17 +217,15 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
-        <property name="configPath"><value>${contentTypeService.configPath}</value></property>
-        <property name="configFileName"><value>${contentTypeService.configFileName}</value></property>
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl" >
-        <property name="configPath"><value>${contentTypesConfig.configPath}</value></property>
-        <property name="configFileName"><value>${contentTypesConfig.configFileName}</value></property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
@@ -251,9 +244,10 @@
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="pageNavigationOrderIncrement" value="${PageNavigationOrderService.increment}" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <!-- continue refactoring -->
     <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
           parent="cstudioRegistrableService">
         <property name="scriptLocation"><value>${ExtractMetadataProcessor.scriptLocation}</value></property>

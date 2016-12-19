@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
@@ -35,6 +36,9 @@ import org.dom4j.Node;
 
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH;
 
 /**
  * @author Dejan Brkic
@@ -66,9 +70,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     }
 
     public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
-        String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
+        String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        String configFileFullPath = siteConfigPath + "/" + configFileName;
+        String configFileFullPath = siteConfigPath + "/" + getConfigFileName();
         Document document = null;
         try {
             if (contentService.contentExists(site, configFileFullPath)) {
@@ -328,7 +332,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     @Override
     public ContentTypeConfigTO reloadConfiguration(String site, String contentType) {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        String siteConfigPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site)
+        String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
@@ -341,24 +345,28 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         return pathMapping.get(site);
     }
 
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH);
+    }
+
+    public String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME);
+    }
+
     public Map<String, SiteContentTypePathsTO> getPathMapping() { return pathMapping; }
     public void setPathMapping(Map<String, SiteContentTypePathsTO> pathMapping) { this.pathMapping = pathMapping; }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
-
-    public String getConfigFileName() { return configFileName; }
-    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected Map<String, SiteContentTypePathsTO> pathMapping = new HashMap<String, SiteContentTypePathsTO>();
     protected ContentService contentService;
-    protected String configPath;
-    protected String configFileName;
     protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
 }

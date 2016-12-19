@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -36,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 
 
 public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService implements DmPageNavigationOrderService {
@@ -75,7 +78,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                 }
                 pageNavigationOrderMapper.insert(pageNavigationOrder);
             } else {
-                float newMaxCount = pageNavigationOrder.getMaxCount() + pageNavigationOrderIncrement;
+                float newMaxCount = pageNavigationOrder.getMaxCount() + getPageNavigationOrderIncrement();
                 pageNavigationOrder.setMaxCount(newMaxCount);
                 pageNavigationOrderMapper.update(pageNavigationOrder);
             }
@@ -135,18 +138,23 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         pageNavigationOrderMapper.deleteSequencesForSite(params);
     }
 
+    public int getPageNavigationOrderIncrement() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(PAGE_NAVIGATION_ORDER_INCREMENT));
+        return toReturn;
+    }
+
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public int getPageNavigationOrderIncrement() { return pageNavigationOrderIncrement; }
-    public void setPageNavigationOrderIncrement(int pageNavigationOrderIncrement) { this.pageNavigationOrderIncrement = pageNavigationOrderIncrement; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
-    protected int pageNavigationOrderIncrement = 1000;
+    protected StudioConfiguration studioConfiguration;
 
     @Autowired
     protected PageNavigationOrderMapper pageNavigationOrderMapper;

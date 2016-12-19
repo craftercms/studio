@@ -97,12 +97,20 @@ studio.db.validationInterval: 34000
 ############################################################
 # Location where global configuration files are stored.
 studio.configuration.global.configBasePath: /configuration
+# File name where global configuration of user role mappings is stored.
+studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
+# File name where global configuration of user permissions mappings is stored.
+studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
 # Location pattern where environment specific configuration for a site is stored
 studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides/{environment}
 # Location where deployment configuration is stored for a site.
 studio.configuration.site.deployment.configBasePath: /config/studio/deployment
+# Location where content types are stored for a site.
+studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
+# Location where content types configuration files are stored for a site.
+studio.configuration.site.contentTypes.configPath: /config/studio/content-types/{content-type}
 # File name where site configuration is stored.
 studio.configuration.site.generalConfigFileName: site-config.xml
 # File name where configuration of user permissions mappings is stored for a site.
@@ -119,6 +127,8 @@ studio.configuration.site.notificationsConfigFileName: notification-config.xml
 studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
 # File name where deployment endpoints configuration is stored.
 studio.configuration.site.deployment.configFileName: endpoints-config.xml
+# File name where configuration of content type is stored.
+studio.configuration.site.contentTypes.configFileName: =config.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -169,3 +179,15 @@ studio.dependencies.manualDependencyApproving.enabled: false
 ##############################################################
 # Defines size of a batch when executing object state operation on big path packages (bulk operations). Limitation on bulk operations is imposed by jdbc drivers and limits on number of parameters for sql statements.
 studio.objectState.bulkOperationsBatchSize: 500
+
+##########################################################
+##                   Security Service                   ##
+##########################################################
+# HTTP Session timeout for studio.
+studio.security.sessionTimeout: 60
+
+#######################################################################
+##                   Page Navigation Order Service                   ##
+#######################################################################
+# Defines base increment for page navigation order when new content is created.
+studio.pageNavigationOrder.increment: 1000
