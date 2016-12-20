@@ -191,3 +191,33 @@ studio.security.sessionTimeout: 60
 #######################################################################
 # Defines base increment for page navigation order when new content is created.
 studio.pageNavigationOrder.increment: 1000
+
+############################################################
+##                   Content Processors                   ##
+############################################################
+# Location where groovy script for metadata extraction processor is stored.
+studio.contentProcessor.extractMetadata.scriptLocation: /config/studio/content-types/{content-type}/extract.groovy
+# Location where groovy script for content lifecycle processor is stored.
+studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
+
+#######################################################
+##                   Email Service                   ##
+#######################################################
+# Default value for from header when sending emails.
+studio.mail.from.default: default@mail.com
+# SMTP server name to send emails.
+studio.mail.host: localhost
+# SMTP port number to send emails.
+studio.mail.port: 25
+# SMTP username for authenticated access when sending emails.
+studio.mail.username:
+# SMTP password for authenticated access when sending emails.
+studio.mail.password:
+# Turn on/off (value true/false) SMTP authenaticated access protocol.
+studio.mail.smtp.auth: false
+# Enable/disable (value true/false) SMTP TLS protocol when sending emails.
+studio.mail.smtp.starttls.enable: true
+# Enable/disable (value true/false) SMTP EHLO protocol when sending emails.
+studio.mail.smtp.ehlo: true
+# Enable/disable (value true/false) debug mode for email service. Enabling debug mode allows tracking/debugging communication between email service and SMTP server.
+studio.mail.debug: false

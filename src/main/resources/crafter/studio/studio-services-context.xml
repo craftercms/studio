@@ -247,25 +247,24 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-    <!-- continue refactoring -->
     <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
           parent="cstudioRegistrableService">
-        <property name="scriptLocation"><value>${ExtractMetadataProcessor.scriptLocation}</value></property>
          <property name="securityService" ref="cstudioSecurityService" />
         <property name="contentService" ref="cstudioContentService"/>
         <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="scriptLocation"><value>${ContentLifeCycleProcessor.scriptLocation}</value></property>
         <property name="scriptObjects">
             <map>
             </map>
         </property>
         <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
@@ -322,34 +321,33 @@
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSender" />
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth" />
-        <property name="authenticatedSMTP" value="${crafter.studio.mail.smtp.auth}"/>
-        <property name="defaultFromAddress"><value>${crafter.studio.mail.from.default}</value></property>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-      <property name="host" value="${crafter.studio.mail.host}" />
-      <property name="port" value="${crafter.studio.mail.port}" />
-      <property name="username" value="${crafter.studio.mail.username}" />
-      <property name="password" value="${crafter.studio.mail.password}" />
+      <property name="host" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_HOST)}" />
+      <property name="port" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PORT)}" />
+      <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_USERNAME)}" />
+      <property name="password" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PASSWORD)}" />
       <property name="javaMailProperties">
         <props>
-          <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
-          <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
-            <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
-            <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
+          <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
+          <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
+            <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
+            <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_DEBUG)}</prop>
         </props>
       </property>
     </bean>
 
     <bean id="mailSenderNoAuth" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="${crafter.studio.mail.host}" />
-        <property name="port" value="${crafter.studio.mail.port}" />
+        <property name="host" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_HOST)}" />
+        <property name="port" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_PORT)}" />
         <property name="javaMailProperties">
             <props>
-                <prop key="mail.smtp.auth">${crafter.studio.mail.smtp.auth}</prop>
-                <prop key="mail.smtp.starttls.enable">${crafter.studio.mail.smtp.starttls.enable}</prop>
-                <prop key="mail.smtp.ehlo">${crafter.studio.mail.smtp.ehlo}</prop>
-                <prop key="mail.debug">${crafter.studio.mail.debug}</prop>
+                <prop key="mail.smtp.auth">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_AUTH)}</prop>
+                <prop key="mail.smtp.starttls.enable">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_START_TLS_ENABLE)}</prop>
+                <prop key="mail.smtp.ehlo">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_SMTP_EHLO)}</prop>
+                <prop key="mail.debug">#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).MAIL_DEBUG)}</prop>
             </props>
         </property>
     </bean>
@@ -436,6 +434,7 @@
         </property>
     </bean>
 
+    <!-- continue refactoring -->
     <!-- Jobs -->
     <bean id="cstudioRepositoryJob" abstract="true" class="org.craftercms.studio.impl.v1.job.RepositoryJob">
         <property name="securityService" ref="cstudioSecurityService"/>

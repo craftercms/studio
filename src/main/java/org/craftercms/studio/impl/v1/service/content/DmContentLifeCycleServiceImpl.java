@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
@@ -39,19 +40,14 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
+
 public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmContentLifeCycleServiceImpl.class);
 
-    /**
-     * metadata extraction script location
-     */
-    protected String scriptLocation;
     public String getScriptLocation() {
-        return scriptLocation;
-    }
-    public void setScriptLocation(String scriptLocation) {
-        this.scriptLocation = scriptLocation;
+        return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION);
     }
 
     /**
@@ -104,7 +100,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @return path of the script
      */
     protected String getScriptPath(String site, String contentType) {
-        String location = scriptLocation.replaceAll(StudioConstants.PATTERN_SITE, site)
+        String location = getScriptLocation().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         return location;
     }
@@ -200,7 +196,11 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     public ScriptExecutor getScriptExecutor() { return scriptExecutor; }
     public void setScriptExecutor(ScriptExecutor scriptExecutor) { this.scriptExecutor = scriptExecutor; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected ContentService contentService;
     protected SecurityService securityService;
     protected ScriptExecutor scriptExecutor;
+    protected StudioConfiguration studioConfiguration;
 }

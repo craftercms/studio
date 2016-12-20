@@ -104,6 +104,21 @@ public interface StudioConfiguration {
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
 
+    /** Content Processors */
+    String CONTENT_PROCESSOR_EXTRACT_METADATA_SCRIPT_LOCATION = "studio.contentProcessor.extractMetadata.scriptLocation";
+    String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION = "studio.contentProcessor.contentLifeCycle.scriptLocation";
+
+    /** Email Service */
+    String MAIL_FROM_DEFAULT = "crafter.studio.mail.from.default";
+    String MAIL_HOST = "mail.host";
+    String MAIL_PORT = "mail.port";
+    String MAIL_USERNAME = "mail.username";
+    String MAIL_PASSWORD = "mail.password";
+    String MAIL_SMTP_AUTH = "mail.smtp.auth";
+    String MAIL_SMTP_START_TLS_ENABLE = "mail.smtp.starttls.enable";
+    String MAIL_SMTP_EHLO = "mail.smtp.ehlo";
+    String MAIL_DEBUG = "mail.debug";
+
     void loadConfig();
 
     String getProperty(String key);

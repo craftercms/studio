@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmMetadataService;
-import org.craftercms.studio.impl.v1.util.ValueConverter;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.dom4j.Document;
@@ -38,18 +38,11 @@ import org.dom4j.Element;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_EXTRACT_METADATA_SCRIPT_LOCATION;
+
 public class DmMetadataServiceImpl extends AbstractRegistrableService implements DmMetadataService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmMetadataServiceImpl.class);
-
-    public static final int VERSION_TO_LOOK_UP = -1;
-
-
-
-    /**
-     * value converter
-     */
-    protected ValueConverter converter = new ValueConverter();
 
     @Override
     public void register() {
@@ -121,21 +114,15 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
      * @return path of the script
      */
     protected String getScriptPath(String site, String contentType) {
-        String location = scriptLocation.replaceAll(StudioConstants.PATTERN_SITE, site)
+        String location = getScriptLocation().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         return location;
     }
 
-    /**
-     * metadata extraction script location
-     */
-    protected String scriptLocation = "";
     public String getScriptLocation() {
-        return scriptLocation;
+        return studioConfiguration.getProperty(CONTENT_PROCESSOR_EXTRACT_METADATA_SCRIPT_LOCATION);
     }
-    public void setScriptLocation(String scriptLocation) {
-        this.scriptLocation = scriptLocation;
-    }
+
 
     /**
      * mapping of beans and services to map in to the scripting environment during metadata extraction
@@ -159,4 +146,8 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
     protected ScriptExecutor scriptExecutor;
     public ScriptExecutor getScriptExecutor() { return scriptExecutor; }
     public void setScriptExecutor(ScriptExecutor scriptExecutor) { this.scriptExecutor = scriptExecutor; }
+
+    protected StudioConfiguration studioConfiguration;
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }
