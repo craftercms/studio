@@ -527,10 +527,20 @@ public class GitContentRepositoryHelper {
      */
     public PersonIdent getCurrentUserIdent() {
         String userName = securityProvider.getCurrentUser();
-        Map<String, String> currentUserProfile = securityProvider.getUserProfile(userName);
+        return getAuthorIdent(userName);
+    }
+
+    /**
+     * Return the author identity as a jgit PersonIdent
+     *
+     * @param author author
+     * @return author user as a PersonIdent
+     */
+    public PersonIdent getAuthorIdent(String author) {
+        Map<String, String> currentUserProfile = securityProvider.getUserProfile(author);
         PersonIdent currentUserIdent = new PersonIdent
-            (currentUserProfile.get("firstName") + " " + currentUserProfile.get("lastName"),
-                currentUserProfile.get("email"));
+                (currentUserProfile.get("firstName") + " " + currentUserProfile.get("lastName"),
+                        currentUserProfile.get("email"));
 
         return currentUserIdent;
     }

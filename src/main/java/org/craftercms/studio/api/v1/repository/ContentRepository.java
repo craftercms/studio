@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -206,4 +207,14 @@ public interface ContentRepository {
      * @return true if successful, false otherwise
      */
     boolean createSiteFromBlueprint(String blueprintName, String siteId);
+
+    /**
+     * Publish content to specified environment.
+     *
+     * @param commitIds
+     * @param environment
+     * @param author
+     * @param comment
+     */
+    void publish(String site, List<String> commitIds, String environment, String author, String comment);
 }

@@ -51,18 +51,16 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.TagCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.web.context.ServletContextAware;
@@ -634,6 +632,43 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return toReturn;
+    }
+
+    @Override
+    public void publish(String site, List<String> commitIds, String environment, String author, String comment) {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        lockTheWorld(repo);
+        try (Git git = new Git(repo)) {
+            // fetch "origin/master"
+            FetchResult fetchResult = git.fetch().setRemote(Constants.DEFAULT_REMOTE_NAME).call();
+
+            // checkout environment branch
+            Ref checkoutResult = git.checkout().setCreateBranch(true).setName(environment).call();
+
+            // cherry pick all commit ids
+            CherryPickCommand cherryPickCommand = git.cherryPick().setStrategy(MergeStrategy.THEIRS);
+            for (String commitId : commitIds) {
+                ObjectId objectId = ObjectId.fromString(commitId);
+                cherryPickCommand.include(objectId);
+            }
+            CherryPickResult cherryPickResult = cherryPickCommand.call();
+
+            // tag
+            PersonIdent authorIdent = helper.getAuthorIdent(author);
+            Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
+        } catch (GitAPIException e) {
+            logger.error("Error when publishing site " + site + " to environment " + environment, e);
+        }
+
+        unlockTheWorld(repo);
+    }
+
+    private void lockTheWorld(Repository repo) {
+        // TODO: DB: Implement lock the world
+    }
+
+    private void unlockTheWorld(Repository repo) {
+        // TODO: DB: Implement unlock the world
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
