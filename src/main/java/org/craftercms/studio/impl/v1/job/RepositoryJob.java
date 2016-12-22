@@ -19,11 +19,15 @@ package org.craftercms.studio.impl.v1.job;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_PASSWORD;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_USERNAME;
 
 public abstract class RepositoryJob implements Job {
 
@@ -34,7 +38,7 @@ public abstract class RepositoryJob implements Job {
 	 */
     public void execute() {
 
-    	String ticket = sercurityService.authenticate(username, password);
+    	String ticket = sercurityService.authenticate(getUserName(), getPassword());
         if (StringUtils.isNotEmpty(ticket)) {
             CronJobContext cronJobContext = new CronJobContext(ticket);
             CronJobContext.setCurrent(cronJobContext);
@@ -47,35 +51,24 @@ public abstract class RepositoryJob implements Job {
     }
 
     /**
-     * method is called after user is authenticated 
+     * method is called after user is authenticated
      */
     protected abstract void executeAsSignedInUser();
 
-	private String username;	
+
 	public String getUserName() {
-		return username;
+		return studioConfiguration.getProperty(JOB_USERNAME);
 	}
 
-	public void setUserName(String username) {
-		this.username = username;
-	}
-
-	private String password;	
 	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
+		return studioConfiguration.getProperty(JOB_PASSWORD);
 	}
 
 	private SecurityService sercurityService;
-	public SecurityService getSecurityService() {
-		return sercurityService;
-	}
+	public SecurityService getSecurityService() { return sercurityService; }
+	public void setSecurityService(SecurityService sercurityService) { this.sercurityService = sercurityService; }
 
-	public void setSecurityService(SecurityService sercurityService) {
-		this.sercurityService = sercurityService;
-	}	
-
+	protected StudioConfiguration studioConfiguration;
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

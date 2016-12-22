@@ -20,7 +20,14 @@ package org.craftercms.studio.api.v1.util.filter;
 
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN;
+
 public class PageFilter extends AbstractFilter {
+
+    @Override
+    public String getIncludePattern() {
+        return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN);
+    }
 
     @Override
     public boolean filter(ContentItemTO item) {

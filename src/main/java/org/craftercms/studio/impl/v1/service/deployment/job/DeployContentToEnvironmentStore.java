@@ -18,11 +18,8 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -39,6 +36,10 @@ import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE;
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 
@@ -64,7 +65,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     public void executeAsSignedInUser() {
-        if (masterPublishingNode && !stopSignaled) {
+        if (isMasterPublishingNode() && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
@@ -96,7 +97,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                             if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
                                 logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
                                 logger.debug("Splitting items into chunks for processing", site, itemsToDeploy.size());
-                                List<List<CopyToEnvironment>> chunks = ListUtils.partition(itemsToDeploy, processingChunkSize);
+                                List<List<CopyToEnvironment>> chunks = ListUtils.partition(itemsToDeploy, getProcessingChunkSize());
 
                                 for (int i = 0; i < chunks.size(); i++) {
 
@@ -122,7 +123,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 publishingManager.processItem(item);
                                                 logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                 
-                                                if (mandatoryDependenciesCheckEnabled) {
+                                                if (isMandatoryDependenciesCheckEnabled()) {
                                                     logger.debug("Processing Mandatory Deps [{0}] content item for site \"{1}\"", item.getPath(), site);
                                                     missingDependencies.addAll(publishingManager.processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
                                                     logger.debug("Processing Mandatory Deps COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
@@ -138,7 +139,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                        
 
                                         logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
-                                        if (mandatoryDependenciesCheckEnabled && missingDependencies.size() > 0) {
+                                        if (isMandatoryDependenciesCheckEnabled() && missingDependencies.size() > 0) {
                                             List<CopyToEnvironment> mergedList = new ArrayList<CopyToEnvironment>(itemList);
                                             mergedList.addAll(missingDependencies);
                                             publishingManager.setupItemsForPublishingSync(site, environment, mergedList);
@@ -152,13 +153,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                     
                                     }
                                     catch (DeploymentException err) {
-                                        logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
+                                        logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, getProcessingChunkSize());
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
                                     }
                                     catch (Exception err) {
                                         logger.error("Unexpected error while executing deployment to environment " +
-                                                "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, processingChunkSize);
+                                                "store for site \"{0}\", number of items \"{1}\", chunk number \"{2}\" (chunk size {3})", err, site, itemsToDeploy.size(), i, getProcessingChunkSize());
                                         publishingManager.markItemsReady(site, environment, itemList);
                                         throw err;
                                     }
@@ -201,7 +202,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private List<String> getPaths(List<CopyToEnvironment> itemsToDeploy) {
         List<String> paths = new ArrayList<String>(itemsToDeploy.size());
-        if (mandatoryDependenciesCheckEnabled) {
+        if (isMandatoryDependenciesCheckEnabled()) {
             for (CopyToEnvironment item : itemsToDeploy) {
                 paths.add(item.getPath());
             }
@@ -222,6 +223,20 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         return environments;
     }
 
+    public boolean isMasterPublishingNode() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE));
+        return toReturn;
+    }
+
+    public boolean isMandatoryDependenciesCheckEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
+        return toReturn;
+    }
+
+    public int getProcessingChunkSize() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE));
+        return toReturn;
+    }
 
     /** getter transaction service */
     public org.craftercms.studio.api.v1.service.transaction.TransactionService getTransactionService() { return transactionService; }
@@ -233,15 +248,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
-
-    public int getProcessingChunkSize() { return processingChunkSize; }
-    public void setProcessingChunkSize(int processingChunkSize) { this.processingChunkSize = processingChunkSize; }
-
-    public boolean isMasterPublishingNode() { return masterPublishingNode; }
-    public void setMasterPublishingNode(boolean masterPublishingNode) { this.masterPublishingNode = masterPublishingNode; }
-
-    public boolean isMandatoryDependenciesCheckEnabled() { return mandatoryDependenciesCheckEnabled; }
-    public void setMandatoryDependenciesCheckEnabled(boolean mandatoryDependenciesCheckEnabled) { this.mandatoryDependenciesCheckEnabled = mandatoryDependenciesCheckEnabled; }
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
@@ -268,9 +274,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected org.craftercms.studio.api.v1.service.transaction.TransactionService transactionService;
     protected PublishingManager publishingManager;
     protected ContentRepository contentRepository;
-    protected int processingChunkSize;
-    protected boolean masterPublishingNode;
-    protected boolean mandatoryDependenciesCheckEnabled;
     protected SiteService siteService;
     protected ContentService contentService;
     protected NotificationService notificationService;

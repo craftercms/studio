@@ -49,7 +49,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,6 +57,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_IMPORT_MODE_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -211,8 +215,8 @@ public class PublishingManagerImpl implements PublishingManager {
                     if (StringUtils.equals(item.getAction(), PublishToTarget.Action.DELETE)) {
                         eventItem.setState(DeploymentEventItem.STATE_DELETED);
                         deletedFiles.add(item.getPath());
-                        if (item.getPath().endsWith("/" + indexFile)) {
-                            String folderPath = item.getPath().replace("/" + indexFile, "");
+                        if (item.getPath().endsWith("/" + getIndexFile())) {
+                            String folderPath = item.getPath().replace("/" + getIndexFile(), "");
                             // TODO: SJ: This bypasses the Content Service, fix
                             if (contentRepository.contentExists(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""))) {
                                 RepositoryItem[] children = contentRepository.getContentChildren(item.getSite(), item.getPath().replace("/" + DmConstants.INDEX_FILE, ""));
@@ -238,8 +242,8 @@ public class PublishingManagerImpl implements PublishingManager {
                             if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
                                 LOGGER.debug("Add old path to be deleted for MOVE action (\"{0}\")", item.getOldPath());
                                 deletedFiles.add(item.getOldPath());
-                                if (item.getOldPath().endsWith("/" + indexFile)) {
-                                    String folderPath = item.getOldPath().replace("/" + indexFile, "");
+                                if (item.getOldPath().endsWith("/" + getIndexFile())) {
+                                    String folderPath = item.getOldPath().replace("/" + getIndexFile(), "");
                                     // TODO: SJ: This bypasses the Content Service, fix
                                     if (contentRepository.contentExists(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""))) {
                                         RepositoryItem[] children = contentRepository.getContentChildren(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
@@ -257,7 +261,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     eventItems.add(eventItem);
                 }
             }
-            Deployer deployer = deployerFactory.createSyncTargetDeployer(environment, target);
+            Deployer deployer = null; // deployerFactory.createSyncTargetDeployer(environment, target);
             try {
                 deployer.deployFiles(site, filesToDeploy, deletedFiles);
 
@@ -281,9 +285,6 @@ public class PublishingManagerImpl implements PublishingManager {
         LOGGER.debug("Finished deploying items for site \"{0}\", target \"{1}\", number of items \"{2}\"", site, target.getName(), filteredItems.size());
     }
 
-    private String getDestinationPath(String site, String path, String environment) {
-        return String.format("%s/%s/%s/%s", environmentsStoreRootPath, site, environment, path);
-    }
 
     @Override
     public long setTargetVersion(DeploymentEndpointConfigTO target, long newVersion, String site) {
@@ -382,7 +383,7 @@ public class PublishingManagerImpl implements PublishingManager {
         if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
-            Deployer deployer = deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
+            Deployer deployer = null;//deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
             if (oldPath != null && oldPath.length() > 0) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
@@ -440,7 +441,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
 
             if (isLive) {
-                if (!importModeEnabled) {
+                if (!isImportModeEnabled()) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     contentRepository.createVersion(site, path, submissionComment, true);
                 }
@@ -457,7 +458,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
                     //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
                     //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
-                    Deployer deployer = deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
+                    Deployer deployer = null; //deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
                     deployer.deleteFile(site, oldPath);
 
 
@@ -497,7 +498,7 @@ public class PublishingManagerImpl implements PublishingManager {
             LOGGER.debug("Getting deployer for environment store.");
             //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
-            Deployer deployer = deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
+            Deployer deployer = null;//deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
             deployer.deployFile(site, path);
 
 
@@ -607,9 +608,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
         if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.NEW) || StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
             if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
-                String helpPath = path.replace("/" + indexFile, "");
+                String helpPath = path.replace("/" + getIndexFile(), "");
                 int idx = helpPath.lastIndexOf("/");
-                String parentPath = helpPath.substring(0, idx) + "/" + indexFile;
+                String parentPath = helpPath.substring(0, idx) + "/" + getIndexFile();
                 if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
                     if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
@@ -622,7 +623,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
 
-            if (!enablePublishingWithoutDependencies) {
+            if (!isEnablePublishingWithoutDependencies()) {
                 List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
@@ -666,13 +667,18 @@ public class PublishingManagerImpl implements PublishingManager {
         return missingItem;
     }
 
-    public String getIndexFile() {  return indexFile; }
-    public void setIndexFile(String indexFile) { this.indexFile = indexFile; }
+    public String getIndexFile() {
+        return studioConfiguration.getProperty(PUBLISHING_MANAGER_INDEX_FILE);
+    }
 
-    public boolean isImportModeEnabled() { return importModeEnabled; }
-    public void setImportModeEnabled(boolean importModeEnabled) {
-        this.importModeEnabled = importModeEnabled;
-        LOGGER.info("Import mode is {0}. Creating new version when deploying content is {1}", importModeEnabled ? "ON" : "OFF", importModeEnabled ? "DISABLED" : "ENABLED");
+    public boolean isImportModeEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(PUBLISHING_MANAGER_IMPORT_MODE_ENABLED));
+        return toReturn;
+    }
+
+    public boolean isEnablePublishingWithoutDependencies() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        return toReturn;
     }
 
     public SiteService getSiteService() { return siteService; }
@@ -689,12 +695,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public DeploymentService getDeploymentService() { return deploymentService; }
     public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
-
-    public String getEnvironmentsStoreRootPath() { return environmentsStoreRootPath; }
-    public void setEnvironmentsStoreRootPath(String environmentsStoreRootPath) { this.environmentsStoreRootPath = environmentsStoreRootPath; }
-
-    public DeployerFactory getDeployerFactory() { return deployerFactory; }
-    public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
 
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
@@ -713,32 +713,28 @@ public class PublishingManagerImpl implements PublishingManager {
         this.notificationService2 = notificationService2;
     }
 
-    public boolean isEnablePublishingWithoutDependencies() { return enablePublishingWithoutDependencies; }
-    public void setEnablePublishingWithoutDependencies(boolean enablePublishingWithoutDependencies) { this.enablePublishingWithoutDependencies = enablePublishingWithoutDependencies; }
-
     public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
     public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    protected String indexFile;
-    protected boolean importModeEnabled;
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected SiteService siteService;
     protected ObjectStateService objectStateService;
     protected ContentService contentService;
     protected DmDependencyService dmDependencyService;
     protected DeploymentService deploymentService;
-    protected String environmentsStoreRootPath;
-    protected DeployerFactory deployerFactory;
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
     protected NotificationService notificationService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
-    protected boolean enablePublishingWithoutDependencies = false;
     protected DeploymentEventService deploymentEventService;
     protected SecurityProvider securityProvider;
+    protected StudioConfiguration studioConfiguration;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

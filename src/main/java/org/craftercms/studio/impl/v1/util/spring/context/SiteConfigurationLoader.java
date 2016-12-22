@@ -21,8 +21,12 @@ package org.craftercms.studio.impl.v1.util.spring.context;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_PASSWORD;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_USERNAME;
 
 /**
  * Created by dejanbrkic on 8/18/15.
@@ -30,7 +34,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 public class SiteConfigurationLoader implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        String ticket = securityProvider.authenticate(adminUser, adminPassword);
+        String ticket = securityProvider.authenticate(getAdminUser(), getAdminPassword());
         RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
         RepositoryEventContext.setCurrent(repositoryEventContext);
         siteService.reloadSiteConfigurations();
@@ -42,14 +46,18 @@ public class SiteConfigurationLoader implements ApplicationListener<ContextRefre
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public String getAdminUser() { return adminUser; }
-    public void setAdminUser(String adminUser) { this.adminUser = adminUser; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    public String getAdminPassword() { return adminPassword; }
-    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+    public String getAdminUser() {
+        return studioConfiguration.getProperty(JOB_USERNAME);
+    }
+
+    public String getAdminPassword() {
+        return studioConfiguration.getProperty(JOB_PASSWORD);
+    }
 
     protected SiteService siteService;
     protected SecurityProvider securityProvider;
-    protected String adminUser;
-    protected String adminPassword;
+    protected StudioConfiguration studioConfiguration;
 }

@@ -17,26 +17,24 @@
  */
 package org.craftercms.studio.api.v1.util.filter;
 
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 abstract public class AbstractFilter implements Filter {
 
-    protected Pattern pattern;
+    protected StudioConfiguration studioConfiguration;
 
-    protected String includePattern;
+    public abstract String getIncludePattern();
 
-    public String getIncludePattern() {
-        return includePattern;
-    }
-
-    public void setIncludePattern(String includePattern) {
-        this.includePattern = includePattern;
-        pattern = Pattern.compile(includePattern);
-    }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     public boolean match(String contentType) {
         if(contentType != null) {
+            String includePattern = getIncludePattern();
+            Pattern pattern = Pattern.compile(includePattern);
             Matcher matcher = pattern.matcher(contentType);
             return matcher.matches();
         }

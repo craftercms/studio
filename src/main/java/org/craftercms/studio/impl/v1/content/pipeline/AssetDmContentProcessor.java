@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
@@ -35,6 +36,8 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -46,12 +49,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
     public static final String NAME = "WriteAssetToDmProcessor";
 
-    protected String _assetsSystemPath;
     public String getAssetsSystemPath() {
-        return _assetsSystemPath;
-    }
-    public void setAssetsSystemPath(String assetsSystemPath) {
-        this._assetsSystemPath = assetsSystemPath;
+        return studioConfiguration.getProperty(CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH);
     }
 
     /**
@@ -224,7 +223,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     }
 
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected StudioConfiguration studioConfiguration;
 
     public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

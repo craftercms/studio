@@ -17,26 +17,24 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.Transformer;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
-import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.service.transaction.TransactionService;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES;
 
 public class PublishContentToDeploymentTarget extends RepositoryJob {
 
@@ -70,7 +68,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
     }
 
     public void executeAsSignedInUser() {
-        if (masterPublishingNode && !stopSignaled) {
+        if (isMasterPublishingNode() && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
                 try {
@@ -139,7 +137,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                                                 } else {
                                                     count++;
                                                 }
-                                                if (count > maxTolerableRetries) {
+                                                if (count > getMaxTolerableRetries()) {
                                                     // TODO: Send notification - big red alert!
                                                     logger.error("Uploading content failed for site \"{0}\", target \"{1}\", URL \"{2}\"", err, err.getSite(), err.getTarget(), err.getUrl());
                                                 } else {
@@ -180,7 +178,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
                             } else {
                                 count++;
                             }
-                            if (count > maxTolerableRetries) {
+                            if (count > getMaxTolerableRetries()) {
                                 // TODO: Send notification - big red alert!
                                 logger.error("Content not found for publishing site \"{0}\", target \"{1}\", path \"{2}\"", err, err.getSite(), err.getTarget(), err.getPath());
                             } else {
@@ -304,11 +302,15 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         return filteredItems;
     }
 
-    public Integer getMaxTolerableRetries() { return maxTolerableRetries; }
-    public void setMaxTolerableRetries(Integer maxTolerableRetries) { this.maxTolerableRetries = maxTolerableRetries; }
+    public boolean isMasterPublishingNode() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE));
+        return toReturn;
+    }
 
-    public boolean isMasterPublishingNode() { return masterPublishingNode; }
-    public void setMasterPublishingNode(boolean masterPublishingNode) { this.masterPublishingNode = masterPublishingNode; }
+    public Integer getMaxTolerableRetries() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES));
+        return toReturn;
+    }
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
@@ -325,8 +327,6 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         this.notificationService2 = notificationService2;
     }
 
-    protected Integer maxTolerableRetries;
-    protected boolean masterPublishingNode;
     protected SiteService siteService;
     protected PublishingManager publishingManager;
     protected NotificationService notificationService;
