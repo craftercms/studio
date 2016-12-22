@@ -342,6 +342,7 @@ public class PluginServicesImpl {
 			if(relativePath.startsWith("/templates")
 					|| relativePath.startsWith("/scripts")
 					|| relativePath.startsWith("/static-assets")
+          			        || relativePath.startsWith("/config")
 					|| relativePath.startsWith("/site")) {
 
 				try {
