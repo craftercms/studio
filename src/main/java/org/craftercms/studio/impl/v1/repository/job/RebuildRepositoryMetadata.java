@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PREVIEW_ROOT_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_REBUILD_METADATA_BATCH_SIZE;
 
 public class RebuildRepositoryMetadata {
 
@@ -101,10 +105,10 @@ public class RebuildRepositoryMetadata {
     }
 
     protected List<Map<String, Object>> getExistingQueue(String site) {
-        logger.debug("Get rebuild metadata queue for site " + site + " (batch size: " + batchSize + ").");
+        logger.debug("Get rebuild metadata queue for site " + site + " (batch size: " + getBatchSize() + ").");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("batchSize", batchSize);
+        params.put("batchSize", getBatchSize());
         List<Map<String, Object>> existingQueue = null;
         try {
             existingQueue = rebuildRepositoryMetadataMapper.getNextBatchFromQueue(params);
@@ -163,9 +167,9 @@ public class RebuildRepositoryMetadata {
 
     protected boolean populateRebuildRepositoryMetadataQueue(String site) {
         logger.debug("Populating Rebuild Repository Metadata queue for site " + site);
-        Path siteContentRootPath = Paths.get(previewRepoRootPath,  "");
+        Path siteContentRootPath = Paths.get(getPreviewRepoRootPath(),  "");
         logger.debug("Retrieving files list for content repository");
-        Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(previewRepoRootPath, "").toFile(), null, true);
+        Iterator<File> fileIterator = FileUtils.iterateFiles(Paths.get(getPreviewRepoRootPath(), "").toFile(), null, true);
         List<String> paths = new ArrayList<String>();
         int id = 1;
         while (fileIterator.hasNext()) {
@@ -174,7 +178,7 @@ public class RebuildRepositoryMetadata {
             String relativePath = "/" + filePath.subpath(siteContentRootPath.getNameCount(), filePath.getNameCount());
             logger.debug("Processing " + relativePath);
             paths.add(relativePath);
-            if (paths.size() == batchSize) {
+            if (paths.size() == getBatchSize()) {
                 logger.debug("Insert batch of file paths into queue.");
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("id", id);
@@ -230,6 +234,15 @@ public class RebuildRepositoryMetadata {
         return false;
     }
 
+    public String getPreviewRepoRootPath() {
+        return studioConfiguration.getProperty(REPO_PREVIEW_ROOT_PATH);
+    }
+
+    public int getBatchSize() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(REPO_REBUILD_METADATA_BATCH_SIZE));
+        return toReturn;
+    }
+
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 
@@ -244,9 +257,8 @@ public class RebuildRepositoryMetadata {
     protected DmDependencyService dmDependencyService;
     protected ContentService contentService;
     protected SecurityService securityService;
-    protected String previewRepoRootPath;
     protected TaskExecutor taskExecutor;
-    protected int batchSize;
+    protected StudioConfiguration studioConfiguration;
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
@@ -263,12 +275,9 @@ public class RebuildRepositoryMetadata {
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
-    public String getPreviewRepoRootPath() { return previewRepoRootPath; }
-    public void setPreviewRepoRootPath(String previewRepoRootPath) { this.previewRepoRootPath = previewRepoRootPath; }
-
     public TaskExecutor getTaskExecutor() { return taskExecutor; }
     public void setTaskExecutor(TaskExecutor taskExecutor) { this.taskExecutor = taskExecutor; }
 
-    public int getBatchSize() { return batchSize; }
-    public void setBatchSize(int batchSize) { this.batchSize = batchSize; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

@@ -23,6 +23,9 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 
 import java.util.*;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 
 /**
  */
@@ -31,7 +34,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     private static final Logger logger = LoggerFactory.getLogger(MappedSecurityProvider.class);
 
     private Map<String, SecurityProvider> providerMap;
-    private String providerType;
+    protected StudioConfiguration studioConfiguration;
 
     public Map<String, SecurityProvider> getProviderMap() {
         return providerMap;
@@ -41,12 +44,11 @@ public class MappedSecurityProvider implements SecurityProvider {
         providerMap = map;
     }
 
-    public String getProviderType() {
-        return providerType;
-    }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    public void setProviderType(String type) {
-        providerType = type;
+    public String getProviderType() {
+        return studioConfiguration.getProperty(SECURITY_TYPE);
     }
 
     public void registerSecurityProvider(String type, SecurityProvider provider) {
@@ -69,73 +71,72 @@ public class MappedSecurityProvider implements SecurityProvider {
      */
     public MappedSecurityProvider() {
         providerMap = new HashMap<String, SecurityProvider>();
-        providerType = "default";
     }
 
     public Set<String> getUserGroups(String user) {
-    	SecurityProvider provider = lookupProvider(providerType);
+    	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserGroups(user); 
     };
 
     public String getCurrentUser() {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getCurrentUser(); 
     };
 
     public Map<String, String> getUserProfile(String user) {
-    	SecurityProvider provider = lookupProvider(providerType);
+    	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserProfile(user); 
     }
 
     public String authenticate(String username, String password) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         return provider.authenticate(username, password); 
     }
 
     public boolean validateTicket(String ticket){
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         return provider.validateTicket(ticket); 
     }
 
     @Override
     public void addUserGroup(String groupName) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         provider.addUserGroup(groupName);
     }
 
     @Override
     public void addUserGroup(String parentGroup, String groupName) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         provider.addUserGroup(parentGroup, groupName);
     }
 
     @Override
     public String getCurrentToken() {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getCurrentToken();
     }
 
     @Override
     public void addUserToGroup(String groupName, String user) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         provider.addUserToGroup(groupName, user);
     }
 
     @Override
     public boolean logout() {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         return provider.logout();
     }
 
     @Override
     public void addContentWritePermission(String path, String group) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         provider.addContentWritePermission(path, group);
     }
 
     @Override
     public void addConfigWritePermission(String path, String group) {
-        SecurityProvider provider = lookupProvider(providerType);
+        SecurityProvider provider = lookupProvider(getProviderType());
         provider.addContentWritePermission(path, group);
     }
 }

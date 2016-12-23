@@ -14,24 +14,42 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package org.craftercms.studio.api.v1.util.filter;
 
+package org.craftercms.studio.api.v1.ebus;
 
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+import java.io.Serializable;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN;
+public class DeploymentItem implements Serializable {
 
-public class PageFilter extends AbstractFilter {
+    private static final long serialVersionUID = -7346034006994497132L;
 
-    @Override
-    public String getIncludePattern() {
-        return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN);
+    public String getSite() {
+        return site;
     }
 
-    @Override
-    public boolean filter(ContentItemTO item) {
-        boolean isMatched = match(item.contentType);
-        return (!item.component && !item.document && isMatched);
+    public void setSite(String site) {
+        this.site = site;
     }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getCommitId() {
+        return commitId;
+    }
+
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
+    }
+
+    protected String site;
+    protected String path;
+    protected String commitId;
 }

@@ -34,10 +34,14 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
 
 /**
  * @author Dejan Brkic
@@ -237,7 +241,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     public void reloadConfiguration(String site) {
-        String contentTypesRootPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site);
+        String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
@@ -249,16 +253,16 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
-        String contentTypesRootPath = configPath.replaceAll(StudioConstants.PATTERN_SITE, site);
+        String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + "/" + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
-                    String configPath = folders[i].path + "/" + folders[i].name + "/" + configFileName;
+                    String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
                     if (contentService.contentExists(site, configPath)) {
-                        ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + configFileName, ""));
+                        ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
                         if (config != null) {
                             contentTypes.add(config);
                         }
@@ -271,6 +275,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         }
     }
 
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
+    }
+
+    public String getConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME);
+    }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -287,17 +298,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
-
-    public String getConfigFileName() { return configFileName; }
-    public void setConfigFileName(String configFileName) { this.configFileName = configFileName; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected ContentTypesConfig contentTypesConfig;
     protected SecurityService securityService;
     protected ContentRepository contentRepository;
-    protected String configPath;
-    protected String configFileName;
+    protected StudioConfiguration studioConfiguration;
 }

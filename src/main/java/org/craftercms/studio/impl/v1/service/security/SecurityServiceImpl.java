@@ -40,7 +40,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
-import org.craftercms.studio.impl.v1.service.StudioCacheContext;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -48,6 +48,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import javax.servlet.http.HttpSession;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
  * @author Dejan Brkic
@@ -61,7 +63,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public String authenticate(String username, String password) {
         String toRet = securityProvider.authenticate(username, password);
-        String sessionToken = SessionTokenUtils.createToken(username, sessionTimeout);
+        String sessionToken = SessionTokenUtils.createToken(username, getSessionTimeout());
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
@@ -94,8 +96,8 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserPermissions(final String site, String path, String user, List<String> groups) {
         Set<String> permissions = new HashSet<String>();
         if (StringUtils.isNotEmpty(site)) {
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, roleMappingsFileName);
-            PermissionsConfigTO permissionsConfig = loadConfiguration(site, permissionsFileName);
+            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
+            PermissionsConfigTO permissionsConfig = loadConfiguration(site, getPermissionsFileName());
             Set<String> roles = new HashSet<String>();
             addUserRoles(roles, site, user);
             addGroupRoles(roles, site, groups, rolesConfig);
@@ -230,7 +232,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, roleMappingsFileName);
+            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             Set<String> userRoles = new HashSet<String>();
             if (rolesConfig != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
@@ -327,7 +329,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
-        String siteConfigPath = configPath.replaceFirst(StudioConstants.PATTERN_SITE, site);
+        String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
         String siteConfigFullPath = siteConfigPath + "/" + filename;
         Document document = null;
         PermissionsConfigTO config = null;
@@ -426,7 +428,7 @@ public class SecurityServiceImpl implements SecurityService {
 
 
     protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
-        String globalPermissionsConfigPath = globalConfigPath + "/" + globalPermissionsFileName;
+        String globalPermissionsConfigPath = getGlobalConfigPath() + "/" + getGlobalPermissionsFileName();
         Document document = null;
         PermissionsConfigTO config = null;
         try {
@@ -442,7 +444,7 @@ public class SecurityServiceImpl implements SecurityService {
             // permissions file
             loadPermissions(root, config);
 
-            String globalPermissionsKey = "###GLOBAL###:" + globalPermissionsFileName;
+            String globalPermissionsKey = "###GLOBAL###:" + getGlobalPermissionsFileName();
             config.setKey(globalPermissionsKey);
             config.setLastUpdated(new Date());
 
@@ -453,7 +455,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected PermissionsConfigTO loadGlobalRolesConfiguration() {
-        String globalRolesConfigPath = globalConfigPath + "/" + globalRoleMappingsFileName;
+        String globalRolesConfigPath = getGlobalConfigPath() + "/" + getGlobalRoleMappingsFileName();
         Document document = null;
         PermissionsConfigTO config = null;
         try {
@@ -469,7 +471,7 @@ public class SecurityServiceImpl implements SecurityService {
             // roles file
             loadRoles(root, config);
 
-            String globalRolesKey = "###GLOBAL###:" + globalRoleMappingsFileName;
+            String globalRolesKey = "###GLOBAL###:" + getGlobalRoleMappingsFileName();
             config.setKey(globalRolesKey);
             config.setLastUpdated(new Date());
 
@@ -482,8 +484,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public void reloadConfiguration(String site) {
-        PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, permissionsFileName);
-        PermissionsConfigTO rolesConfigTO = loadConfiguration(site, roleMappingsFileName);
+        PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, getPermissionsFileName());
+        PermissionsConfigTO rolesConfigTO = loadConfiguration(site, getRoleMappingsFileName());
     }
 
     @Override
@@ -503,20 +505,34 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
-    public String getRoleMappingsFileName() { return roleMappingsFileName; }
-    public void setRoleMappingsFileName(String roleMappingsFileName) { this.roleMappingsFileName = roleMappingsFileName; }
+    public String getConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
 
-    public String getPermissionsFileName() { return permissionsFileName; }
-    public void setPermissionsFileName(String permissionsFileName) { this.permissionsFileName = permissionsFileName; }
+    public String getRoleMappingsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
+    }
 
-    public String getGlobalConfigPath() { return globalConfigPath; }
-    public void setGlobalConfigPath(String globalConfigPath) { this.globalConfigPath = globalConfigPath; }
+    public String getPermissionsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
+    }
 
-    public String getGlobalRoleMappingsFileName() { return globalRoleMappingsFileName; }
-    public void setGlobalRoleMappingsFileName(String globalRoleMappingsFileName) { this.globalRoleMappingsFileName = globalRoleMappingsFileName; }
+    public String getGlobalConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+    }
 
-    public String getGlobalPermissionsFileName() {  return globalPermissionsFileName; }
-    public void setGlobalPermissionsFileName(String globalPermissionsFileName) { this.globalPermissionsFileName = globalPermissionsFileName; }
+    public String getGlobalRoleMappingsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
+    }
+
+    public String getGlobalPermissionsFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
+    }
+
+    public int getSessionTimeout() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+        return toReturn;
+    }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
@@ -527,24 +543,15 @@ public class SecurityServiceImpl implements SecurityService {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public String getConfigPath() { return configPath; }
-    public void setConfigPath(String configPath) { this.configPath = configPath; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
-    public int getSessionTimeout() { return sessionTimeout; }
-    public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected String roleMappingsFileName;
-    protected String permissionsFileName;
-    protected String globalConfigPath;
-    protected String globalRoleMappingsFileName;
-    protected String globalPermissionsFileName;
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
-    protected String configPath;
     protected GeneralLockService generalLockService;
-    protected int sessionTimeout;
+    protected StudioConfiguration studioConfiguration;
 }

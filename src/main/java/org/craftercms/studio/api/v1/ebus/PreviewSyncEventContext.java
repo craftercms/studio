@@ -14,24 +14,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package org.craftercms.studio.api.v1.util.filter;
 
+package org.craftercms.studio.api.v1.ebus;
 
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+public class PreviewSyncEventContext extends EventContext {
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN;
-
-public class PageFilter extends AbstractFilter {
-
-    @Override
-    public String getIncludePattern() {
-        return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN);
-    }
-
-    @Override
-    public boolean filter(ContentItemTO item) {
-        boolean isMatched = match(item.contentType);
-        return (!item.component && !item.document && isMatched);
-    }
 }

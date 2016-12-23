@@ -47,7 +47,6 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.impl.v1.deployment.DeployerFactory;
 import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
@@ -883,9 +882,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
-    public DeployerFactory getDeployerFactory() { return deployerFactory; }
-    public void setDeployerFactory(DeployerFactory deployerFactory) { this.deployerFactory = deployerFactory; }
-
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
@@ -918,7 +914,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectStateService objectStateService;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
-    protected DeployerFactory deployerFactory;
     protected PreviewSync previewSync;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;

@@ -30,10 +30,13 @@ import org.craftercms.studio.api.v1.dal.UserSession;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
 
 public class DbSecurityProvider implements SecurityProvider {
 
@@ -200,11 +203,16 @@ public class DbSecurityProvider implements SecurityProvider {
         return CipherUtils.hashPassword(password);
     }
 
+    protected StudioConfiguration studioConfiguration;
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     @Autowired
     protected SecurityMapper securityMapper;
 
-    protected int sessionTimeout = 15;
-
-    public int getSessionTimeout() { return sessionTimeout; }
-    public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
+    public int getSessionTimeout() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_DB_SESSION_TIMEOUT));
+        return toReturn;
+    }
 }

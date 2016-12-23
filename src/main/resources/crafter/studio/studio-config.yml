@@ -27,6 +27,10 @@ studio.repo.sitePublishedPath: published
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
+# Location where preview content is stored. It is used with alfrescoext repository type to improve performance.
+studio.repo.previewRootPath: ./crafter/data/repo
+# Defines size of a batch when rebuilding crafter repository metadata stored in database.
+studio.repo.rebuildMetadata.batchSize: 100
 
 ##################################################
 ##                   Database                   ##
@@ -91,18 +95,25 @@ studio.db.validationQuery.db2: SELECT 1 FROM SYSIBM.SYSDUMMY1
 # Use a value less than or equal to 0 for no timeout.
 studio.db.validationInterval: 34000
 
-
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################
 # Location where global configuration files are stored.
 studio.configuration.global.configBasePath: /configuration
+# File name where global configuration of user role mappings is stored.
+studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
+# File name where global configuration of user permissions mappings is stored.
+studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
 # Location pattern where environment specific configuration for a site is stored
 studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides/{environment}
 # Location where deployment configuration is stored for a site.
 studio.configuration.site.deployment.configBasePath: /config/studio/deployment
+# Location where content types are stored for a site.
+studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
+# Location where content types configuration files are stored for a site.
+studio.configuration.site.contentTypes.configPath: /config/studio/content-types/{content-type}
 # File name where site configuration is stored.
 studio.configuration.site.generalConfigFileName: site-config.xml
 # File name where configuration of user permissions mappings is stored for a site.
@@ -119,6 +130,8 @@ studio.configuration.site.notificationsConfigFileName: notification-config.xml
 studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
 # File name where deployment endpoints configuration is stored.
 studio.configuration.site.deployment.configFileName: endpoints-config.xml
+# File name where configuration of content type is stored.
+studio.configuration.site.contentTypes.configFileName: =config.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -148,3 +161,121 @@ studio.notification.v2.timezone: UTC
 # Turn on/off (value true/false) publishing without dependencies.
 # When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
 studio.workflow.publishingWithoutDependencies.enabled: false
+
+##########################################################
+##                   Activity Service                   ##
+##########################################################
+studio.activity.user.name.caseSensitive: false
+
+##############################################################
+##                   Dependencies Service                   ##
+##############################################################
+# Defines paths that will be excluded from dependency rules. Common usage is for files that are not site content themselves, but are system or files packaged with engine.
+# Valid values are regular expressions and for multiple regular expressions, they are separated by comma (,).
+studio.dependencies.ignoreDependenciesRules: /templates/system/common/cstudio-support.*\\.ftl,/templates/web/navigation/.*\\.ftl
+# Turn on (value true) or off (value false) manual approving for dependencies when publishing content.
+# When turned on, dependencies service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.dependencies.manualDependencyApproving.enabled: false
+
+##############################################################
+##                   Object State Service                   ##
+##############################################################
+# Defines size of a batch when executing object state operation on big path packages (bulk operations). Limitation on bulk operations is imposed by jdbc drivers and limits on number of parameters for sql statements.
+studio.objectState.bulkOperationsBatchSize: 500
+
+##########################################################
+##                   Security Service                   ##
+##########################################################
+# HTTP Session timeout for studio.
+studio.security.sessionTimeout: 60
+# Urls to include in restriction for authenticated user only.
+studio.security.urlsToInclude: /api/**
+# Urls to exclude from restriction for authenticated user only.
+studio.security.urlsToExclude: **,/**
+# Urls to be treated as exception to the rules.
+studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json
+# Defines security provider for accessing repository. Possible values:
+#   default (basic provider with 3 users - admin, author, approver)
+#   file (users are stored in XML file)
+#   alfrescoext (alfresco users and groups are used for authentication)
+#   db (users are stored in database)
+studio.security.type: db
+# Location of XML file that contains users for demo security provider.
+studio.security.file.configLocation: ${repository.diskImplementation.path}/security-config.xml
+# Session timeout for db security provider
+studio.security.db.sessionTimeout: 15
+
+#######################################################################
+##                   Page Navigation Order Service                   ##
+#######################################################################
+# Defines base increment for page navigation order when new content is created.
+studio.pageNavigationOrder.increment: 1000
+
+############################################################
+##                   Content Processors                   ##
+############################################################
+# Location where groovy script for metadata extraction processor is stored.
+studio.contentProcessor.extractMetadata.scriptLocation: /config/studio/content-types/{content-type}/extract.groovy
+# Location where groovy script for content lifecycle processor is stored.
+studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
+# Path pattern where system assets are stored.
+studio.contentProcessor.assetsSystemPath: /static-assets/system
+
+#######################################################
+##                   Email Service                   ##
+#######################################################
+# Default value for from header when sending emails.
+studio.mail.from.default: default@mail.com
+# SMTP server name to send emails.
+studio.mail.host: localhost
+# SMTP port number to send emails.
+studio.mail.port: 25
+# SMTP username for authenticated access when sending emails.
+studio.mail.username:
+# SMTP password for authenticated access when sending emails.
+studio.mail.password:
+# Turn on/off (value true/false) SMTP authenaticated access protocol.
+studio.mail.smtp.auth: false
+# Enable/disable (value true/false) SMTP TLS protocol when sending emails.
+studio.mail.smtp.starttls.enable: true
+# Enable/disable (value true/false) SMTP EHLO protocol when sending emails.
+studio.mail.smtp.ehlo: true
+# Enable/disable (value true/false) debug mode for email service. Enabling debug mode allows tracking/debugging communication between email service and SMTP server.
+studio.mail.debug: false
+
+#####################################################
+##                   Studio Jobs                   ##
+#####################################################
+# Password which repository job uses to authenticate against repository
+studio.job.password: admin
+# User name which repository job uses to authenticate against repository
+studio.job.username: admin
+# Defines chunk size for big deployment packages. Deployment package is divide and processed in chunks of specified size.
+studio.job.deployContentToEnvironment.processingChunkSize: 1000
+# Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
+studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
+# Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
+studio.job.deployment.masterPublishingNode: false
+# Defines maximum number of retries in case of failure when synchronizing deployment target with published content.
+studio.job.syncTargets.maxTolerableRetries: 30
+
+######################################################################
+##                   Content Type Filter Patterns                   ##
+######################################################################
+# Define dashboard filter pattern for pages. Value is regular expression executed against content path.
+studio.contentTypes.filter.pages.includePattern: ^/page/.*
+# Define dashboard filter pattern for components. Value is regular expression executed against content path.
+studio.contentTypes.filter.components.includePattern: ^/component/.*
+# # Define dashboard filter pattern for documents. Value is regular expression executed against content path.
+studio.contentTypes.filter.documents.includePattern: ^/document.*
+
+############################################################
+##                   Publishing Manager                   ##
+############################################################
+# Defines file name for index files (page containers). Default value is index.xml
+studio.publishingManager.indexFile: index.xml
+# Turn on/off (value true/false) import mode for deployment engine. When import mode enabled, deployment engine does not create versions for content files.
+studio.publishingManager.importModeEnabled: false
+# Turn on/off (value true/false) publishing without dependencies.
+# When turned on, deployment engine does not check for missing mandatory dependencies of published content.
+studio.publishingManager.publishingWithoutDependencies.enabled: false

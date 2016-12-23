@@ -31,9 +31,12 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
 
 public class ObjectStateServiceImpl extends AbstractRegistrableService implements ObjectStateService {
 
@@ -104,12 +107,12 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             return;
         }
 
-        if (paths.size() < bulkOperationBatchSize) {
+        if (paths.size() < getBulkOperationBatchSize()) {
             setSystemProcessingBulkPartial(site, paths, isSystemProcessing);
         } else {
             List<List<String>> partitions = new ArrayList<List<String>>();
-            for (int i = 0; i < paths.size();i = i +  bulkOperationBatchSize) {
-                partitions.add(paths.subList(i, Math.min(i + bulkOperationBatchSize, paths.size())));
+            for (int i = 0; i < paths.size();i = i +  getBulkOperationBatchSize()) {
+                partitions.add(paths.subList(i, Math.min(i + getBulkOperationBatchSize(), paths.size())));
             }
             for (List<String> part : partitions) {
                 setSystemProcessingBulkPartial(site, part, isSystemProcessing);
@@ -430,7 +433,10 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         objectStateMapper.deleteObjectStatesForSite(params);
     }
 
-
+    public int getBulkOperationBatchSize() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE));
+        return toReturn;
+    }
 
     private void initializeTransitionTable() {
         transitionTable = new State[][]{
@@ -466,7 +472,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
-    protected int bulkOperationBatchSize;
+    protected StudioConfiguration studioConfiguration;
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
@@ -474,6 +480,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public int getBulkOperationBatchSize() { return bulkOperationBatchSize; }
-    public void setBulkOperationBatchSize(int bulkOperationBatchSize) { this.bulkOperationBatchSize = bulkOperationBatchSize; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

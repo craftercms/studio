@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.job;
 
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.mail.javamail.JavaMailSender;
 import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
@@ -30,22 +31,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DEFAULT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AUTH;
+
 public class EmailMessageSender implements Runnable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageSender.class);
 	protected JavaMailSender emailService;
     protected JavaMailSender emailServiceNoAuth;
-    protected boolean authenticatedSMTP;
 	protected EmailMessageQueueTo emailMessages;
-	protected String defaultFromAddress;
+    protected StudioConfiguration studioConfiguration;
 
 
 	public String getDefaultFromAddress() {
-		return defaultFromAddress;
-	}
-
-	public void setDefaultFromAddress(String defaultFromAddress) {
-		this.defaultFromAddress = defaultFromAddress;
+		return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
 	}
 
 	public void initThread() {
@@ -110,7 +109,7 @@ public class EmailMessageSender implements Runnable {
 					replyTos[0]= new InternetAddress(replyTo);
 					mimeMessage.setReplyTo(replyTos);
 				}
-				InternetAddress fromAddress= new InternetAddress(defaultFromAddress);
+				InternetAddress fromAddress= new InternetAddress(getDefaultFromAddress());
 				if(personalFromName != null)
 					fromAddress.setPersonal(personalFromName);
 				mimeMessage.setFrom(fromAddress);
@@ -122,7 +121,7 @@ public class EmailMessageSender implements Runnable {
 			}
 		};
 		try {
-            if (authenticatedSMTP) {
+            if (isAuthenticatedSMTP()) {
                 emailService.send(preparator);
             } else {
                 emailServiceNoAuth.send(preparator);
@@ -138,10 +137,14 @@ public class EmailMessageSender implements Runnable {
 		return success;
 	}
 
+    public boolean isAuthenticatedSMTP() {
+	    boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
+	    return toReturn;
+	}
+
 	public JavaMailSender getEmailService() {
 		return emailService;
 	}
-
 	public void setEmailService(JavaMailSender emailService) {
 		this.emailService = emailService;
 	}
@@ -154,6 +157,6 @@ public class EmailMessageSender implements Runnable {
     public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
     public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
 
-    public boolean isAuthenticatedSMTP() { return authenticatedSMTP; }
-    public void setAuthenticatedSMTP(boolean authenticatedSMTP) { this.authenticatedSMTP = authenticatedSMTP; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

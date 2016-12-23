@@ -19,12 +19,14 @@
 
 package org.craftercms.studio.impl.v1.web.filter;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -35,6 +37,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class StudioSecurityFilter extends GenericFilterBean {
 
@@ -52,7 +58,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
         HttpServletResponse httpReponse = (HttpServletResponse) response;
 
-        if (ArrayUtils.contains(exceptionUrls, HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
+        if (getExceptionUrls().contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
             chain.doFilter(request, response);
         } else {
             if (!checkSessionTimeout(httpRequest, httpReponse)) {
@@ -84,7 +90,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
         }
         if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
             if (SessionTokenUtils.validateToken(sessionToken, user)) {
-                sessionToken = SessionTokenUtils.createToken(user, sessionTimeout);
+                sessionToken = SessionTokenUtils.createToken(user, getSessionTimeout());
                 httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
                 return false;
             }
@@ -114,8 +120,8 @@ public class StudioSecurityFilter extends GenericFilterBean {
      * Returns true if the request should be excluded from processing.
      */
     protected boolean excludeRequest(HttpServletRequest request) {
-        if (ArrayUtils.isNotEmpty(urlsToExclude)) {
-            for (String pathPattern : urlsToExclude) {
+        if (CollectionUtils.isNotEmpty(getUrlsToExclude())) {
+            for (String pathPattern : getUrlsToExclude()) {
                 if (pathMatcher.match(pathPattern, HttpUtils.getRequestUriWithoutContextPath(request))) {
                     return true;
                 }
@@ -129,8 +135,8 @@ public class StudioSecurityFilter extends GenericFilterBean {
      * Returns true if the request should be included for processing.
      */
     protected boolean includeRequest(HttpServletRequest request) {
-        if (ArrayUtils.isNotEmpty(urlsToInclude)) {
-            for (String pathPattern : urlsToInclude) {
+        if (CollectionUtils.isNotEmpty(getUrlsToInclude())) {
+            for (String pathPattern : getUrlsToInclude()) {
                 if (pathMatcher.match(pathPattern, HttpUtils.getRequestUriWithoutContextPath(request))) {
                     return true;
                 }
@@ -140,26 +146,31 @@ public class StudioSecurityFilter extends GenericFilterBean {
         return false;
     }
 
-    public String[] getUrlsToInclude() { return urlsToInclude; }
-    public void setUrlsToInclude(String[] urlsToInclude) { this.urlsToInclude = urlsToInclude; }
+    public int getSessionTimeout() {
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+        return toReturn;
+    }
 
-    public String[] getUrlsToExclude() { return urlsToExclude; }
-    public void setUrlsToExclude(String[] urlsToExclude) { this.urlsToExclude = urlsToExclude; }
+    public List<String> getUrlsToInclude() {
+        return Arrays.asList(studioConfiguration.getProperty(SECURITY_URLS_TO_INCLUDE).split(","));
+    }
 
-    public String[] getExceptionUrls() { return exceptionUrls; }
-    public void setExceptionUrls(String[] exceptionUrls) { this.exceptionUrls = exceptionUrls; }
+    public List<String> getUrlsToExclude() {
+        return Arrays.asList(studioConfiguration.getProperty(SECURITY_URLS_TO_EXCLUDE).split(","));
+    }
+
+    public List<String> getExceptionUrls() {
+        return Arrays.asList(studioConfiguration.getProperty(SECURITY_EXCEPTION_URLS).split(","));
+    }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public int getSessionTimeout() { return sessionTimeout; }
-    public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected String[] urlsToInclude;
-    protected String[] urlsToExclude;
-    protected String[] exceptionUrls;
     protected SecurityProvider securityProvider;
-    protected int sessionTimeout;
+    protected StudioConfiguration studioConfiguration;
 
     protected PathMatcher pathMatcher;
 }

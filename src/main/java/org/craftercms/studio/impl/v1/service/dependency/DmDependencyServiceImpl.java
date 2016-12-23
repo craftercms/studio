@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.XmlUtils;
@@ -53,6 +54,9 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DEPENDENCIES_IGNORE_DEPENDENCIES_RULES;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DEPENDENCIES_MANUAL_DEPENDENCY_APPROVING_ENABLED;
 
 public class DmDependencyServiceImpl extends AbstractRegistrableService implements DmDependencyService {
 
@@ -117,7 +121,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     submittedItems.add(uri);
                 }
                 DmContentItemComparator comparator = new DmContentItemComparator(DmContentItemComparator.SORT_BROWSER_URI, true, true, true);
-                if (enableManualDependencyApproving) {
+                if (isManualDependencyApprovingEnabled()) {
                     items = getDependenciesManualApproving(site, submittedItems, comparator, false, deleteDependencies);
                 } else {
                     items = getDependencies(site, submittedItems, comparator, false, deleteDependencies);
@@ -1099,7 +1103,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         for (String dependency : dependencies) {
             boolean ignore = false;
             if (!contentService.contentExists(site, dependency)) {
-                for (String rule : ignoreDependenciesRules) {
+                for (String rule : getIgnoreDependenciesRules()) {
                     if (dependency.matches(rule)) {
                         ignore = true;
                         break;
@@ -1257,6 +1261,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
     }
 
+    public List<String> getIgnoreDependenciesRules() {
+        return Arrays.asList(studioConfiguration.getProperty(DEPENDENCIES_IGNORE_DEPENDENCIES_RULES).split(","));
+    }
+
+    public boolean isManualDependencyApprovingEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(DEPENDENCIES_MANUAL_DEPENDENCY_APPROVING_ENABLED));
+        return toReturn;
+    }
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
@@ -1266,21 +1279,17 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public List<String> getIgnoreDependenciesRules() { return ignoreDependenciesRules; }
-    public void setIgnoreDependenciesRules(List<String> ignoreDependenciesRules) { this.ignoreDependenciesRules = ignoreDependenciesRules; }
-
-    public boolean isEnableManualDependencyApproving() { return enableManualDependencyApproving; }
-    public void setEnableManualDependencyApproving(boolean enableManualDependencyApproving) { this.enableManualDependencyApproving = enableManualDependencyApproving; }
-
     public SubmitToApproveDependencyRule getSubmitToApproveDependencyRule() { return submitToApproveDependencyRule; }
     public void setSubmitToApproveDependencyRule(SubmitToApproveDependencyRule submitToApproveDependencyRule) { this.submitToApproveDependencyRule = submitToApproveDependencyRule; }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
-    protected List<String> ignoreDependenciesRules = new ArrayList<>();
-    protected boolean enableManualDependencyApproving = false;
     protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
+    protected StudioConfiguration studioConfiguration;
 
     @Autowired
     protected DependencyMapper dependencyMapper;

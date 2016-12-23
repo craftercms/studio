@@ -20,39 +20,17 @@ package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
-public class PreviewDeployer implements Deployer {
+public class PreviewDeployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployer.class);
 
-    public static final String DEPLOYER_SERVLET_URL = "/publish";
-    public static final String DEPLOYER_PASSWORD_PARAM = "password";
-    public static final String DEPLOYER_TARGET_PARAM = "target";
-    public static final String DEPLOYER_SITE_PARAM = "siteId";
-    public static final String DEPLOYER_DELETED_FILES_PARAM = "deletedFiles";
-    public static final String DEPLOYER_CONTENT_LOCATION_PARAM = "contentLocation";
-    public static final String DEPLOYER_CONTENT_FILE_PARAM = "contentFile";
-    public static final String FILES_SEPARATOR = ",";
 
     /*
 
@@ -87,202 +65,26 @@ public class PreviewDeployer implements Deployer {
 
     // TODO: SJ: Rewrite below to match above pseudo code. 2.6.x
 
-    @Override
-    public void deployFile(String site, String path) {
-        DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-        URL requestUrl = null;
+    public void onPreviewSyncEvent(PreviewSyncEventContext context) {
+        String site = context.getSite();
+        String requestUrl = getDeployerPreviewSyncUrl(site);
+        PostMethod postMethod = new PostMethod(requestUrl.toString());
+        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
 
+        // TODO: DB: add all required params to post method
+
+        HttpClient client = new HttpClient();
         try {
-            String url = DEPLOYER_SERVLET_URL;
-            List<Part> formParts = new ArrayList<>();
-            if (deploymentEndpointConfigTO != null) {
-                requestUrl = new URL(deploymentEndpointConfigTO.getServerUrl());
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, deploymentEndpointConfigTO.getPassword()));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, deploymentEndpointConfigTO.getTarget()));
-            } else {
-                requestUrl = new URL("http", defaultServer, defaultPort, url);
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, defaultPassword));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
-            }
-
-            InputStream content = contentService.getContent(site, path);
-            if(content != null) {
-                ByteArrayPartSource baps = null;
-                byte[] byteArray = null;
-                byteArray = IOUtils.toByteArray(content);
-
-                baps = new ByteArrayPartSource(path, byteArray);
-                formParts.add(new FilePart(DEPLOYER_CONTENT_FILE_PARAM, baps));
-            }
-
-            formParts.add(new StringPart(DEPLOYER_CONTENT_LOCATION_PARAM, path));
-            formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
-
-            PostMethod postMethod = new PostMethod(requestUrl.toString());
-            postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-
-            Part[] parts = new Part[formParts.size()];
-
-            for (int i = 0; i < formParts.size(); i++) parts[i] = formParts.get(i);
-            postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
-            HttpClient client = new HttpClient();
             int status = client.executeMethod(postMethod);
+        } catch (IOException e) {
+            logger.error("Error while sending preview sync request for site " + site, e);
+        } finally {
             postMethod.releaseConnection();
         }
-        catch(Exception err) {
-            logger.error("error while preview deploying '" + site + ":" + path + "'", err);
-        }
     }
 
-    @Override
-    public void deployFiles(String site, List<String> paths) {
-
+    private String getDeployerPreviewSyncUrl(String site) {
+        // TODO: DB: implement deployer agent configuration for preview
+        return null;
     }
-
-    @Override
-    public void deleteFile(String site, String path) {
-
-        DeploymentEndpointConfigTO deploymentEndpointConfigTO = siteService.getPreviewDeploymentEndpoint(site);
-        URL requestUrl = null;
-
-        try {
-            String url = DEPLOYER_SERVLET_URL;
-            List<Part> formParts = new ArrayList<>();
-            if (deploymentEndpointConfigTO != null) {
-                requestUrl = new URL(deploymentEndpointConfigTO.getServerUrl());
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, deploymentEndpointConfigTO.getPassword()));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, deploymentEndpointConfigTO.getTarget()));
-            } else {
-                requestUrl = new URL("http", defaultServer, defaultPort, url);
-                formParts.add(new StringPart(DEPLOYER_PASSWORD_PARAM, defaultPassword));
-                formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
-            }
-
-            StringBuilder sbDeletedFiles = new StringBuilder(path);
-            if (path.endsWith("/index.xml")) {
-                RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/index.xml", ""));
-                if (!(children != null && children.length > 1)) {
-                    sbDeletedFiles.append(FILES_SEPARATOR).append(path.replace("/index.xml", ""));
-
-                }
-            }
-            formParts.add(new StringPart(DEPLOYER_DELETED_FILES_PARAM, sbDeletedFiles.toString()));
-            formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
-
-            PostMethod postMethod = new PostMethod(requestUrl.toString());
-            postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-
-            Part[] parts = new Part[formParts.size()];
-
-            for (int i = 0; i < formParts.size(); i++) parts[i] = formParts.get(i);
-            postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
-            HttpClient client = new HttpClient();
-            int status = client.executeMethod(postMethod);
-            postMethod.releaseConnection();
-        }
-        catch(Exception err) {
-            logger.error("error while preview deploying '" + site + ":" + path + "'", err);
-        }
-    }
-
-    @Override
-    public void deleteFiles(String site, List<String> paths) {
-
-    }
-
-    public void onCreateContent() {
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        String site = message.getSite();
-        String path = message.getPath();
-        deployFile(site, path);
-    }
-
-    public void onUpdateContent(RepositoryEventMessage message) {
-        try {
-            String site = message.getSite();
-            String path = message.getPath();
-            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-            deployFile(site, path);
-        } catch (Exception t) {
-            logger.error("Error while deploying preview content for: " + message.getSite() + " - " + message.getPath(), t);
-        } finally {
-            RepositoryEventContext.setCurrent(null);
-        }
-    }
-
-    @Override
-    public void deployFiles(String site, List<String> paths, List<String> deletedFiles) {
-
-    }
-
-    public void syncAllContentToPreview(RepositoryEventMessage message) throws ServiceException {
-
-        String site = message.getSite();
-        logger.info("Received preview sync event for site: " + site);
-        RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-        if (StringUtils.isNotEmpty("/")) {
-            try {
-                syncFolder(site, "/");
-            } catch (Exception e) {
-                logger.error("Site '" + site + "' synchronization failed", e);
-                throw new ServiceException("Unable to execute sync for " + site, e);
-            }
-            logger.info("Synchronization of site '" + site + "' completed successfully");
-        } else {
-            logger.error("Site '" + site + "' synchronization failed. Repository root path empty");
-        }
-    }
-
-    protected void syncFolder(String site, String path) {
-        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-
-        if (children != null) {
-            for (RepositoryItem item : children) {
-                if (item.isFolder) {
-                    syncFolder(site, item.path + "/" + item.name);
-                } else {
-                    deployFile(site, item.path + "/" + item.name);
-                }
-            }
-        } else {
-            deployFile(site, path);
-        }
-    }
-
-    public void onMoveContent(RepositoryEventMessage message) throws ServiceException {
-        try {
-            String site = message.getSite();
-            String path = message.getPath();
-            String oldPath = message.getOldPath();
-            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-            deleteFile(site, oldPath);
-            syncFolder(site, path);
-        } catch (Exception t) {
-            logger.error("Error while deploying moving content from: " + message.getSite() + " - " + message.getOldPath() + " to: " + message.getSite() + " - " + message.getPath(), t);
-        } finally {
-            RepositoryEventContext.setCurrent(null);
-        }
-    }
-
-    public void onDeleteContent(RepositoryEventMessage message) throws ServiceException {
-        try {
-            String site = message.getSite();
-            String path = message.getPath();
-            RepositoryEventContext.setCurrent(message.getRepositoryEventContext());
-            deleteFile(site, path);
-        } catch (Exception t) {
-            logger.error("Error while deleting content from: " + message.getSite() + " - " + message.getPath(), t);
-        } finally {
-            RepositoryEventContext.setCurrent(null);
-        }
-    }
-
-    protected String defaultServer;
-    protected int defaultPort;
-    protected String defaultPassword;
-    protected String defaultTarget;
-    protected SiteService siteService;
-    protected ContentService contentService;
-    protected ContentRepository contentRepository;
 }

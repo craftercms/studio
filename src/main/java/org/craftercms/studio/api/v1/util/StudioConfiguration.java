@@ -32,6 +32,8 @@ public interface StudioConfiguration {
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
+    String REPO_PREVIEW_ROOT_PATH = "studio.repo.previewRootPath";
+    String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
 
     /** Database */
     String DB_PLATFORM = "studio.db.platform";
@@ -57,9 +59,13 @@ public interface StudioConfiguration {
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
+    String CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.global.roleMappingFileName";
+    String CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.global.permissionMappingFileName";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_BASE_PATH = "studio.configuration.site.deployment.configBasePath";
+    String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
+    String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH = "studio.configuration.site.contentTypes.configPath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
     String CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.site.permissionMappingsFileName";
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
@@ -68,6 +74,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME = "studio.configuration.site.notificationsConfigFileName";
     String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2 = "studio.configuration.site.notificationsConfigFileName.v2";
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
+    String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
@@ -82,6 +89,62 @@ public interface StudioConfiguration {
 
     /** Workflow Service */
     String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
+
+    /** Activity Service */
+    String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
+
+    /** Dependencies Service */
+    String DEPENDENCIES_IGNORE_DEPENDENCIES_RULES = "studio.dependencies.ignoreDependenciesRules";
+    String DEPENDENCIES_MANUAL_DEPENDENCY_APPROVING_ENABLED = "studio.dependencies.manualDependencyApproving.enabled";
+
+    /** Object State Service */
+    String OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE = "studio.objectState.bulkOperationsBatchSize";
+
+    /** Security Service */
+    String SECURITY_SESSION_TIMEOUT = "studio.security.sessionTimeout";
+    String SECURITY_URLS_TO_INCLUDE = "security.urlsToInclude";
+    String SECURITY_URLS_TO_EXCLUDE = "studio.security.urlsToExclude";
+    String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
+    String SECURITY_TYPE = "studio.security.type";
+    String SECURITY_FILE_CONFIG_LOCATION = "studio.security.file.configLocation";
+    String SECURITY_DB_SESSION_TIMEOUT = "studio.security.db.sessionTimeout";
+
+    /** Page Navigation Order Service */
+    String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
+
+    /** Content Processors */
+    String CONTENT_PROCESSOR_EXTRACT_METADATA_SCRIPT_LOCATION = "studio.contentProcessor.extractMetadata.scriptLocation";
+    String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION = "studio.contentProcessor.contentLifeCycle.scriptLocation";
+    String CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH = "studio.contentProcessor.assetsSystemPath";
+
+    /** Email Service */
+    String MAIL_FROM_DEFAULT = "crafter.studio.mail.from.default";
+    String MAIL_HOST = "mail.host";
+    String MAIL_PORT = "mail.port";
+    String MAIL_USERNAME = "mail.username";
+    String MAIL_PASSWORD = "mail.password";
+    String MAIL_SMTP_AUTH = "mail.smtp.auth";
+    String MAIL_SMTP_START_TLS_ENABLE = "mail.smtp.starttls.enable";
+    String MAIL_SMTP_EHLO = "mail.smtp.ehlo";
+    String MAIL_DEBUG = "mail.debug";
+
+    /** Jobs */
+    String JOB_PASSWORD = "studio.job.password";
+    String JOB_USERNAME = "studio.job.username";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE = "studio.job.deployContentToEnvironment.processingChunkSize";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
+    String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
+    String JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES = "studio.job.syncTargets.maxTolerableRetries";
+
+    /** Content Types Filter Patterns */
+    String CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN  = "studio.contentTypes.filter.pages.includePattern";
+    String CONTENT_TYPES_FILTER_COMPONENTS_INCLUDE_PATTERN = "studio.contentTypes.filter.components.includePattern";
+    String CONTENT_TYPES_FILTER_DOCUMENTS_INCLUDE_PATTERN = "studio.contentTypes.filter.documents.includePattern";
+
+    /** Publishing Manager */
+    String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
+    String PUBLISHING_MANAGER_IMPORT_MODE_ENABLED  = "studio.publishingManager.importModeEnabled";
+    String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
 
     void loadConfig();
 

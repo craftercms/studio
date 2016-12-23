@@ -24,6 +24,7 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -31,6 +32,9 @@ import org.dom4j.io.SAXReader;
 
 import java.io.File;
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FILE_CONFIG_LOCATION;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 
 /**
  */
@@ -51,8 +55,8 @@ public class DemoSecurityProvider implements SecurityProvider {
     private final static String PROVIDER_TYPE = "file";
 
     public void init() {
-        if (configuredProviderType.equals(PROVIDER_TYPE)) {
-            logger.debug("Demo security provider is configured for use. Loading configuration from " + configLocation);
+        if (getConfiguredProviderType().equals(PROVIDER_TYPE)) {
+            logger.debug("Demo security provider is configured for use. Loading configuration from " + getConfigLocation());
             loadConfiguration();
         }
     }
@@ -61,7 +65,7 @@ public class DemoSecurityProvider implements SecurityProvider {
         Document document = null;
         userMap = new HashMap<String, User>();
         try {
-            File file = new File(configLocation);
+            File file = new File(getConfigLocation());
             SAXReader reader = new SAXReader();
             document = reader.read(file);
         } catch (DocumentException e) {
@@ -103,7 +107,7 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     protected void checkIfUpdated() {
-        File file = new File(configLocation);
+        File file = new File(getConfigLocation());
         if (file != null && file.lastModified() > configLastUpdate.getTime()) {
             loadConfiguration();
         }
@@ -259,14 +263,18 @@ public class DemoSecurityProvider implements SecurityProvider {
         protected List<String> groups;
     }
 
-    public String getConfigLocation() { return configLocation; }
-    public void setConfigLocation(String configLocation) { this.configLocation = configLocation; }
+    public String getConfigLocation() {
+        return studioConfiguration.getProperty(SECURITY_FILE_CONFIG_LOCATION);
+    }
 
-    public String getConfiguredProviderType() { return configuredProviderType; }
-    public void setConfiguredProviderType(String configuredProviderType) { this.configuredProviderType = configuredProviderType; }
+    public String getConfiguredProviderType() {
+        return studioConfiguration.getProperty(SECURITY_TYPE);
+    }
 
-    protected String configLocation;
-    protected String configuredProviderType;
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    protected StudioConfiguration studioConfiguration;
 
     protected Map<String, User> userMap;
     protected Date configLastUpdate;
