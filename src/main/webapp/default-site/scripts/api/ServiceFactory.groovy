@@ -24,6 +24,7 @@ class ServiceFactory {
 		def context = [:]
 		context.token = ""
 		context.applicationContext = applicationContext
+		context.request = request
 
 		if(request != null) {
 			context.token = Cookies.getCookieValue("ccticket", request) 
