@@ -67,21 +67,31 @@ public class PluginServicesImpl {
 		def downloadUrl = pluginDownloadUrl
 		def filename = downloadUrl.substring(downloadUrl.lastIndexOf("/")+1)
 
-		download(downloadUrl, filename)
+		try {
+			download(downloadUrl, filename)
 
-		def props = readManifest(filename)
+			def props = readManifest(filename)
 
-		logManifestDetails(props)
+			logManifestDetails(props)
 
-		if(props.id == null) {
-			props.id = filename.substring(0,filename.lastIndexOf("."))
+			if(props.id == null) {
+				props.id = filename.substring(0,filename.lastIndexOf("."))
+			}
+
+			def unzipPath = "./plugin-install/"+props.id
+
+			try {
+				unzip(unzipPath, filename)
+
+				importPlugin(unzipPath, props, siteId)
+			}
+			finally {
+				cleanupInstallFolder(unzipPath)
+			}
 		}
-
-		def unzipPath = "./plugin-install/"+props.id
-
-		unzip(unzipPath, filename)
-
-		importPlugin(unzipPath, props, siteId)
+		finally {
+			cleanupDownload(filename)			
+		}
 
 		return true
 	}
@@ -228,6 +238,13 @@ public class PluginServicesImpl {
 		file.close()
 	}
 
+	/** 
+	 * cleanup a downloaded file
+	 */
+	def cleanupDownload(path) {
+		return new File(path).delete()  
+	}
+
 	/**
 	 * unzip a plugin
 	 */
@@ -291,6 +308,13 @@ public class PluginServicesImpl {
 		catch(IOException ex){
 			ex.printStackTrace()
 		}
+	}
+
+	/**
+	 * clean up the install path
+	 */
+	def cleanupInstallFolder(path) {
+		return new File(path).deleteDir()  
 	}
 
 	/**
@@ -501,4 +525,4 @@ public class PluginServicesImpl {
 
 		return cleanPath
 	}
-}	
+}
