@@ -61,7 +61,6 @@
 
     <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl"
           init-method="initDataSource">
-        <property name="enabled" value="${studio.db.initializer.enabled}"/>
         <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         <property name="vendorScriptsMapping">
             <map>
@@ -72,7 +71,7 @@
                 <entry key="db2" value="crafter/studio/database/createDDL-db2.sql"/>
             </map>
         </property>
-        <property name="vendor" value="${studio.db.platform}"/>
         <property name="delimiter" value=" ;"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 </beans>

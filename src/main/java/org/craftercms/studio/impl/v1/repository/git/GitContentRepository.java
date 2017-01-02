@@ -29,12 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
 import com.google.gdata.util.common.base.StringUtil;
@@ -78,6 +74,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
     private volatile String lastCommit;
+
+    private final static Map<String, ReentrantLock> repositoryLocks = new HashMap<String, ReentrantLock>();
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -637,7 +635,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void publish(String site, List<String> commitIds, String environment, String author, String comment) {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
-        lockTheWorld(repo);
+        lockTheWorld(site);
         try (Git git = new Git(repo)) {
             // fetch "origin/master"
             FetchResult fetchResult = git.fetch().setRemote(Constants.DEFAULT_REMOTE_NAME).call();
@@ -658,17 +656,33 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
         } catch (GitAPIException e) {
             logger.error("Error when publishing site " + site + " to environment " + environment, e);
+        } finally {
+            unlockTheWorld(site);
         }
 
-        unlockTheWorld(repo);
     }
 
-    private void lockTheWorld(Repository repo) {
-        // TODO: DB: Implement lock the world
+    private void lockTheWorld(String site) {
+        ReentrantLock repositoryLock = null;
+        synchronized (repositoryLocks) {
+            if (repositoryLocks.containsKey(site)) {
+                repositoryLock = repositoryLocks.get(site);
+            } else {
+                repositoryLock = new ReentrantLock();
+                repositoryLocks.put(site, repositoryLock);
+            }
+            repositoryLock.lock();
+        }
     }
 
-    private void unlockTheWorld(Repository repo) {
-        // TODO: DB: Implement unlock the world
+    private void unlockTheWorld(String site) {
+        ReentrantLock repositoryLock = null;
+        synchronized (repositoryLocks) {
+            repositoryLock = repositoryLocks.get(site);
+            if (repositoryLock != null) {
+                repositoryLock.unlock();
+            }
+        }
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }

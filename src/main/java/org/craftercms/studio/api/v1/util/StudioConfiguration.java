@@ -118,15 +118,15 @@ public interface StudioConfiguration {
     String CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH = "studio.contentProcessor.assetsSystemPath";
 
     /** Email Service */
-    String MAIL_FROM_DEFAULT = "crafter.studio.mail.from.default";
-    String MAIL_HOST = "mail.host";
-    String MAIL_PORT = "mail.port";
-    String MAIL_USERNAME = "mail.username";
-    String MAIL_PASSWORD = "mail.password";
-    String MAIL_SMTP_AUTH = "mail.smtp.auth";
-    String MAIL_SMTP_START_TLS_ENABLE = "mail.smtp.starttls.enable";
-    String MAIL_SMTP_EHLO = "mail.smtp.ehlo";
-    String MAIL_DEBUG = "mail.debug";
+    String MAIL_FROM_DEFAULT = "studio.mail.from.default";
+    String MAIL_HOST = "studio.mail.host";
+    String MAIL_PORT = "studio.mail.port";
+    String MAIL_USERNAME = "studio.mail.username";
+    String MAIL_PASSWORD = "studio.mail.password";
+    String MAIL_SMTP_AUTH = "studio.mail.smtp.auth";
+    String MAIL_SMTP_START_TLS_ENABLE = "studio.mail.smtp.starttls.enable";
+    String MAIL_SMTP_EHLO = "studio.mail.smtp.ehlo";
+    String MAIL_DEBUG = "studio.mail.debug";
 
     /** Jobs */
     String JOB_PASSWORD = "studio.job.password";

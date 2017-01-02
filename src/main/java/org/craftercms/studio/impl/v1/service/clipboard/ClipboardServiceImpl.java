@@ -33,13 +33,13 @@ import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
-import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.PathMacrosTransaltor;
@@ -153,7 +153,7 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
         String fileName = (StringUtils.isEmpty(destinationFileName)) ? ContentUtils.getPageName(path) : destinationFileName;
         writeContent(site, destination, fileName, user, content, contentType, false, writeOperation);
 
-        previewSync.syncPath(site, destination + "/" + fileName);
+        eventService.firePreviewSyncEvent(site);
 
         return destination + "/" + fileName;
     }
@@ -654,8 +654,8 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public PreviewSync getPreviewSync() { return previewSync; }
-    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
 
     protected DmContentProcessor writeProcessor;
     protected ServicesConfig servicesConfig;
@@ -668,5 +668,5 @@ public class ClipboardServiceImpl extends AbstractRegistrableService implements 
     protected DmDependencyService dmDependencyService;
     protected GeneralLockService generalLockService;
     protected SecurityProvider securityProvider;
-    protected PreviewSync previewSync;
+    protected EventService eventService;
 }

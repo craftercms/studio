@@ -46,8 +46,6 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.ebus.ClearConfigurationCache;
-import org.craftercms.studio.impl.v1.ebus.ContentTypeUpdated;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.dom4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +77,6 @@ public class SiteServiceImpl implements SiteService {
 	    // Write site configuration
 		String commitId = contentRepository.writeContent(site, path, content);
         boolean toRet = StringUtils.isEmpty(commitId);
-        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
-            contentTypeUpdated.contentTypeUpdated(site, path.replace(contentTypeService.getConfigPath(), ""));
-        }
-        clearConfigurationCache.clearConfigurationCache(site);
 
         return toRet;
 	}
@@ -93,7 +87,6 @@ public class SiteServiceImpl implements SiteService {
         String commitId = contentRepository.writeContent("", path, content);
         boolean toReturn = StringUtils.isEmpty(commitId);
         String site = extractSiteFromConfigurationPath(path);
-        clearConfigurationCache.clearConfigurationCache(site);
         return toReturn;
 	}
 
@@ -329,7 +322,6 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
 
-            clearConfigurationCache.clearConfigurationCache(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
 	 	catch(Exception e) {
@@ -514,14 +506,6 @@ public class SiteServiceImpl implements SiteService {
     public void reloadSiteConfigurations() {
         reloadGlobalConfiguration();
         Set<String> sites = getAllAvailableSites();
-
-        if (sites != null && sites.size() > 0) {
-            for (String site : sites) {
-                clearConfigurationCache.clearConfigurationCache(site);
-            }
-        } else {
-            logger.error("[SITESERVICE] no sites found");
-        }
     }
 
     @Override
@@ -544,9 +528,6 @@ public class SiteServiceImpl implements SiteService {
 		notificationService2.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
-        if (triggerEvent) {
-            clearConfigurationCache.clearConfigurationCache(site);
-        }
     }
 
     @Override
@@ -630,12 +611,6 @@ public class SiteServiceImpl implements SiteService {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public ClearConfigurationCache getClearConfigurationCache() { return clearConfigurationCache; }
-    public void setClearConfigurationCache(ClearConfigurationCache clearConfigurationCache) { this.clearConfigurationCache = clearConfigurationCache; }
-
-    public ContentTypeUpdated getContentTypeUpdated() { return contentTypeUpdated; }
-    public void setContentTypeUpdated(ContentTypeUpdated contentTypeUpdated) { this.contentTypeUpdated = contentTypeUpdated; }
-
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
 
@@ -669,8 +644,6 @@ public class SiteServiceImpl implements SiteService {
     protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected SecurityProvider securityProvider;
-    protected ClearConfigurationCache clearConfigurationCache;
-    protected ContentTypeUpdated contentTypeUpdated;
     protected ImportService importService;
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;

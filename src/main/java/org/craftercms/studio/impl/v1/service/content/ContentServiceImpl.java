@@ -40,13 +40,13 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
-import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
@@ -241,7 +241,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             // Sync preview
-            previewSync.syncPath(site, relativePath);
+            eventService.firePreviewSyncEvent(site);
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
@@ -351,7 +351,7 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
-            previewSync.notifyUpdateContent(site, path);
+            eventService.firePreviewSyncEvent(site);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -419,7 +419,7 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
-        previewSync.notifyDeleteContent(site, path);
+        eventService.firePreviewSyncEvent(site);
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
@@ -477,7 +477,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean moveContent(String site, String fromPath, String toPath) {
         boolean toReturn = false;
         String commitId = _contentRepository.moveContent(site, fromPath, toPath);
-        previewSync.notifyMoveContent(site, toPath, fromPath);
+        eventService.firePreviewSyncEvent(site);
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
@@ -493,7 +493,7 @@ public class ContentServiceImpl implements ContentService {
         boolean toReturn = false;
 
         String commitId = _contentRepository.moveContent(site, fromPath, toPath, newName);
-        previewSync.notifyMoveContent(site, toPath, fromPath);
+        eventService.firePreviewSyncEvent(site);
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
@@ -977,7 +977,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if (toReturn) {
-            previewSync.notifyUpdateContent(site, path);
+            eventService.firePreviewSyncEvent(site);
         }
 
         return toReturn;
@@ -1317,7 +1317,7 @@ public class ContentServiceImpl implements ContentService {
     protected SecurityProvider securityProvider;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected PreviewSync previewSync;
+    protected EventService eventService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1358,6 +1358,6 @@ public class ContentServiceImpl implements ContentService {
     public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
 
-    public PreviewSync getPreviewSync() { return previewSync; }
-    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
 }

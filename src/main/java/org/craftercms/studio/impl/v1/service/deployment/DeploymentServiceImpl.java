@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -47,7 +48,6 @@ import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.impl.v1.ebus.PreviewSync;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -736,7 +736,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
-        previewSync.syncAllContentToPreview(site);
+        eventService.firePreviewSyncEvent(site);
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {
@@ -902,8 +902,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.notificationService = notificationService;
     }
 
-    public PreviewSync getPreviewSync() { return previewSync; }
-    public void setPreviewSync(PreviewSync previewSync) { this.previewSync = previewSync; }
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -914,11 +914,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectStateService objectStateService;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
-    protected PreviewSync previewSync;
     protected DmPublishService dmPublishService;
     protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;
-
+    protected EventService eventService;
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected PublishContentToDeploymentTarget publishContentToDeploymentTargetJob;
     protected NotificationService notificationService;
