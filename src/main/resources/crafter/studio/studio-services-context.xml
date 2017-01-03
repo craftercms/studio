@@ -39,7 +39,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-        <property name="previewSync" ref="previewSync"/>
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -72,8 +72,6 @@
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="securityProvider" ref="securityProvider" />
-        <property name="clearConfigurationCache" ref="clearConfigurationCache"/>
-        <property name="contentTypeUpdated" ref="contentTypeUpdated"/>
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
@@ -122,14 +120,13 @@
          <property name="objectStateService" ref="cstudioObjectStateService" />
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
          <property name="contentRepository" ref="contentRepository"/>
-         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
-         <property name="previewSync" ref="previewSync"/>
+         <property name="eventService" ref="studioEventService"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
@@ -171,6 +168,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
+        <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
@@ -279,8 +277,8 @@
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="previewSync" ref="previewSync"/>
         <property name="securityProvider" ref="securityProvider"/>
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
@@ -297,6 +295,8 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
+
+    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
@@ -568,6 +568,7 @@
 
     <bean id="cstudioDemoSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DemoSecurityProvider"
           init-method="init">
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioDemoSecurityProviderRegistration"

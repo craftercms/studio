@@ -19,6 +19,9 @@
 
 package org.craftercms.studio.api.v1.ebus;
 
-public class PreviewSyncEventContext extends EventContext {
+import java.io.Serializable;
 
+public class PreviewSyncEventContext extends EventContext implements Serializable {
+
+    private static final long serialVersionUID = 6915982832841499939L;
 }

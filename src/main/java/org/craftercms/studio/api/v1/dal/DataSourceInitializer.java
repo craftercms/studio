@@ -25,7 +25,5 @@ public interface DataSourceInitializer {
 
     void setVendorScriptsMapping(Map<String, String> scriptsMap);
 
-    void setVendor(String vendor);
-
     void initDataSource();
 }

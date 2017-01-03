@@ -30,4 +30,9 @@ public class AllFilter extends AbstractFilter {
     public boolean filter(ContentItemTO item) {
         return true;
     }
+
+    @Override
+    public String getIncludePattern() {
+        return ".*";
+    }
 }

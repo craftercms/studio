@@ -42,6 +42,7 @@ import java.util.Map;
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -172,6 +173,9 @@ public class GitContentRepositoryHelper {
             gitPath = Paths.get(File.separator).relativize(gitPath);
         } catch (IllegalArgumentException e) {
             logger.debug("Path: " + path + " is already relative path.");
+        }
+        if (StringUtils.isEmpty(gitPath.toString())) {
+            return ".";
         }
         return gitPath.toString();
     }

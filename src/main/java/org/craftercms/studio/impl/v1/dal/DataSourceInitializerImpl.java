@@ -25,11 +25,15 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
 import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_PLATFORM;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -37,7 +41,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     @Override
     public void initDataSource() {
-        if (enabled) {
+        if (isEnabled()) {
             String scriptPath = getScriptPath();
             SqlSession session = sqlSessionFactory.openSession();
             Connection conn = session.getConnection();
@@ -56,14 +60,19 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
+    public boolean isEnabled() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_ENABLED));
+        return toReturn;
+    }
+
     private String getScriptPath() {
-        String pathToScript = vendorScriptsMapping.get(vendor);
+        String pathToScript = vendorScriptsMapping.get(getVendor());
         return pathToScript;
     }
 
-    public String getVendor() { return vendor; }
-    @Override
-    public void setVendor(String vendor) { this.vendor = vendor; }
+    public String getVendor() {
+        return studioConfiguration.getProperty(DB_PLATFORM);
+    }
 
     public Map<String, String> getVendorScriptsMapping() { return vendorScriptsMapping; }
     @Override
@@ -75,12 +84,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     public String getDelimiter() { return delimiter; }
     public void setDelimiter(String delimiter) { this.delimiter = delimiter; }
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected boolean enabled;
-    protected String vendor;
     protected Map<String, String> vendorScriptsMapping;
     protected SqlSessionFactory sqlSessionFactory;
     protected String delimiter;
+    protected StudioConfiguration studioConfiguration;
 }

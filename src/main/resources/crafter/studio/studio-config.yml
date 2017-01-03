@@ -191,7 +191,7 @@ studio.security.sessionTimeout: 60
 # Urls to include in restriction for authenticated user only.
 studio.security.urlsToInclude: /api/**
 # Urls to exclude from restriction for authenticated user only.
-studio.security.urlsToExclude: **,/**
+studio.security.urlsToExclude: "**,/**"
 # Urls to be treated as exception to the rules.
 studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json
 # Defines security provider for accessing repository. Possible values:

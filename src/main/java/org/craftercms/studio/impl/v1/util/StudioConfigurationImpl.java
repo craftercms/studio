@@ -72,11 +72,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         }
 
         // Merge the base properties and additional properties
-        for (String key: baseProperties.keySet()) {
-            properties.put(key, baseProperties.get(key).toString());
+        for (Map.Entry<String, Object> entry: baseProperties.entrySet()) {
+            properties.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
-        for (String key: overrideProperties.keySet()) {
-            properties.put(key, overrideProperties.get(key).toString());
+        for (Map.Entry<String, Object> entry: overrideProperties.entrySet()) {
+            properties.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
     }
 
