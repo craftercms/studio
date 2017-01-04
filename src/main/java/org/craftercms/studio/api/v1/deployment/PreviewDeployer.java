@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,17 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.craftercms.studio.api.v1.service.event;
 
-import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
+package org.craftercms.studio.api.v1.deployment;
 
-public interface EventService {
-    String CLUSTER_NAME = "StudioCluster";
+public interface PreviewDeployer {
 
-    /** Preview Sync Event listener method */
-    String PREVIEW_SYNC_LISTENER_METHOD = "onPreviewSyncEvent";
-
-    void firePreviewSyncEvent(String site);
-
-    void onPreviewSyncEvent(PreviewSyncEventContext context);
+    public void onEvent(String site);
 }

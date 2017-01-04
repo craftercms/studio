@@ -21,15 +21,19 @@ package org.craftercms.studio.impl.v1.deployment;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
 import java.io.IOException;
 
-public class PreviewDeployer {
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL;
 
-    private final static Logger logger = LoggerFactory.getLogger(PreviewDeployer.class);
+public class PreviewDeployerImpl implements PreviewDeployer {
+
+    private final static Logger logger = LoggerFactory.getLogger(PreviewDeployerImpl.class);
 
 
     /*
@@ -65,8 +69,7 @@ public class PreviewDeployer {
 
     // TODO: SJ: Rewrite below to match above pseudo code. 2.6.x
 
-    public void onPreviewSyncEvent(PreviewSyncEventContext context) {
-        String site = context.getSite();
+    public void onEvent(String site) {
         String requestUrl = getDeployerPreviewSyncUrl(site);
         PostMethod postMethod = new PostMethod(requestUrl.toString());
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
@@ -84,7 +87,11 @@ public class PreviewDeployer {
     }
 
     private String getDeployerPreviewSyncUrl(String site) {
-        // TODO: DB: implement deployer agent configuration for preview
-        return null;
+        return studioConfiguration.getProperty(PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL);
     }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    protected StudioConfiguration studioConfiguration;
 }

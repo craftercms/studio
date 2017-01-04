@@ -131,7 +131,7 @@ studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-con
 # File name where deployment endpoints configuration is stored.
 studio.configuration.site.deployment.configFileName: endpoints-config.xml
 # File name where configuration of content type is stored.
-studio.configuration.site.contentTypes.configFileName: =config.xml
+studio.configuration.site.contentTypes.configFileName: config.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -279,3 +279,4 @@ studio.publishingManager.importModeEnabled: false
 # Turn on/off (value true/false) publishing without dependencies.
 # When turned on, deployment engine does not check for missing mandatory dependencies of published content.
 studio.publishingManager.publishingWithoutDependencies.enabled: false
+studio.previewDeployer.defaultDeploymentUrl: http://localhost:9191

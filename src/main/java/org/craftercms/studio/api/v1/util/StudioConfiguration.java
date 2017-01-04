@@ -146,6 +146,9 @@ public interface StudioConfiguration {
     String PUBLISHING_MANAGER_IMPORT_MODE_ENABLED  = "studio.publishingManager.importModeEnabled";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
 
+    /** Preview Deployer */
+    String PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL = "studio.previewDeployer.defaultDeploymentUrl";
+
     void loadConfig();
 
     String getProperty(String key);

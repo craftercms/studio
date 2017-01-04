@@ -129,7 +129,7 @@
         </foreach>
 	      order by act.modified_date desc
 	    )
-	    where rownum between #{startPos} and (#{startPos} + #{feedSize});
+	    where rownum between #{startPos} and (#{startPos} + #{feedSize})
     </select>
 
     <select id="selectUserFeedEntriesHideLive" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">

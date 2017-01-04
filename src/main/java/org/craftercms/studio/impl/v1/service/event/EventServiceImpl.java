@@ -19,12 +19,13 @@
 
 package org.craftercms.studio.impl.v1.service.event;
 
+import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.EventContext;
 import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.impl.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
@@ -54,7 +55,7 @@ public class EventServiceImpl implements EventService {
         try {
             EventContext context = new PreviewSyncEventContext();
             context.setSite(site);
-            MethodCall call = new MethodCall(PreviewDeployer.class.getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewSyncEventContext.class));
+            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewSyncEventContext.class));
             call.setArgs(context);
             rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
         } catch (NoSuchMethodException e) {
@@ -64,6 +65,15 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    @Override
+    public void onPreviewSyncEvent(PreviewSyncEventContext context) {
+        previewDeployer.onEvent(context.getSite());
+    }
+
+    public PreviewDeployer getPreviewDeployer() { return previewDeployer; }
+    public void setPreviewDeployer(PreviewDeployer previewDeployer) { this.previewDeployer = previewDeployer; }
+
+    protected PreviewDeployer previewDeployer;
 
     protected RpcDispatcher rpcDispatcher;
 }
