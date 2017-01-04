@@ -35,7 +35,6 @@ import javax.servlet.ServletContext;
 
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -49,8 +48,6 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -73,7 +70,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
-    private volatile String lastCommit;
 
     private final static Map<String, ReentrantLock> repositoryLocks = new HashMap<String, ReentrantLock>();
 
@@ -144,10 +140,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.error("Failed to write content site: " + site + " path: " + path);
         } else {
             logger.error("Missing repository during write for site: " + site + " path: " + path);
-        }
-
-        if (commitId != null) {
-            lastCommit = commitId;
         }
 
         return commitId;
@@ -224,10 +216,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Error while deleting content for site: " + site + " path: " + path, e);
         }
 
-        if (commitId != null) {
-            lastCommit = commitId;
-        }
-
         return commitId;
     }
 
@@ -274,10 +262,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
         }
 
-        if (commitId != null) {
-            lastCommit = commitId;
-        }
-
         return commitId;
     }
 
@@ -314,10 +298,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (IOException | GitAPIException e){
             logger.error("Error while copying content for site: " +
                 site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: ");
-        }
-
-        if (commitId != null) {
-            lastCommit = commitId;
         }
 
         return commitId;

@@ -27,6 +27,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
+
 import java.io.IOException;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL;
@@ -87,8 +89,15 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     }
 
     private String getDeployerPreviewSyncUrl(String site) {
-        return studioConfiguration.getProperty(PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL);
+        // TODO: DB: implement deployer agent configuration for preview
+        return studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
     }
+
+    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }

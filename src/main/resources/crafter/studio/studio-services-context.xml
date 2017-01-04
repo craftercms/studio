@@ -811,6 +811,13 @@
     </bean>
 
     <!-- ////////////////////////////////////// -->
+    <!--          preview deployer              -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployer">
+            <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
     <!--         publishing manager             -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioPublishingManager" class="org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl">
