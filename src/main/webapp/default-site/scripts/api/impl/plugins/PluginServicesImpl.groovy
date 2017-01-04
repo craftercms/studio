@@ -46,16 +46,16 @@ import groovy.xml.XmlUtil
  */
 public class PluginServicesImpl {
 
-    def context = null
+	def context = null
 
-    /**
-     * constructor
-     *
-     * @param context - service context
-     */
-   	def PluginServicesImpl(context) {
-        this.context = context
-    }
+	/**
+	 * constructor
+	 *
+	 * @param context - service context
+	 */
+	def PluginServicesImpl(context) {
+		this.context = context
+	}
 
 	/**
 	 * Install a plugin from romote source.  
@@ -90,16 +90,16 @@ public class PluginServicesImpl {
 			}
 		}
 		finally {
-			cleanupDownload(filename)			
+			cleanupDownload(filename)
 		}
 
 		return true
 	}
 
-	/** 
+	/**
 	 * given a siteId, return a list of installed plugins
 	 * @param siteId, the site where the plugin will be installed
-     * @return an array of installed plugin items
+	 * @return an array of installed plugin items
 	 */
 	def getInstalledPlugins(siteId) {
 		def plugins = [:]
@@ -108,7 +108,7 @@ public class PluginServicesImpl {
 
 		if(pluginItems) {
 			pluginItems.each {  pluginItem ->
-				def plugin = [:] 
+				def plugin = [:]
 				plugin.descriptorId = pluginItem.uri
 				plugin.id = pluginItem.name.replace(".xml", "")
 				plugin.name = pluginItem.internalName
@@ -127,7 +127,7 @@ public class PluginServicesImpl {
 		// note the plugin in the plugin registry
 		def registryPluginDescriptorPath = "/site/plugins/"
 
-			String registryDecriptor = "" + \
+		String registryDecriptor = "" + \
 			 "<component>" + \
 				"<filename>" + props.id + ".xml</filename>" + \
 				"<internal-name>" + props.name + "</internal-name>" + \
@@ -144,37 +144,37 @@ public class PluginServicesImpl {
 				"<plugin-dependencies>" + props.dependencies + "</plugin-dependencies>" + \
 			"</component>"
 
-			try {
-				def registryDecriptorStream = new ByteArrayInputStream(registryDecriptor.getBytes("UTF-8"))
-				ContentServices.writeContentAsset(context, siteId, registryPluginDescriptorPath, (props.id+".xml"), registryDecriptorStream,  "false", "", "", "", "false", "true", null)
-			}
-			catch(err) {
-				System.out.println("error writing plugin registry item  "+ registryPluginDescriptorPath +" :" + err)
-			}
+		try {
+			def registryDecriptorStream = new ByteArrayInputStream(registryDecriptor.getBytes("UTF-8"))
+			ContentServices.writeContentAsset(context, siteId, registryPluginDescriptorPath, (props.id+".xml"), registryDecriptorStream,  "false", "", "", "", "false", "true", null)
+		}
+		catch(err) {
+			System.out.println("error writing plugin registry item  "+ registryPluginDescriptorPath +" :" + err)
+		}
 	}
 
 
 	/** ============= **/
 	// Helper methods
-	/** ============= **/	
+	/** ============= **/
 
-	/** 
+	/**
 	 * Read a manifest file for a plugin
-     * Available properties (MAP KEY  
-	 *		id  
-	 *		name 
-	 *		version 
-	 *		developer 
-	 *		version  
-	 *		url  
-	 *		license  
-	 *		licenseUrl 
-	 *		cost 
-	 *		type  
-	 *		compatibility  
-	 *		dependencies 
+	 * Available properties (MAP KEY
+	 *		id
+	 *		name
+	 *		version
+	 *		developer
+	 *		version
+	 *		url
+	 *		license
+	 *		licenseUrl
+	 *		cost
+	 *		type
+	 *		compatibility
+	 *		dependencies
 	 * @return a map of manifest properties
- 	 */
+	 */
 	def readManifest(path) {
 		def props = [:]
 
@@ -238,11 +238,11 @@ public class PluginServicesImpl {
 		file.close()
 	}
 
-	/** 
+	/**
 	 * cleanup a downloaded file
 	 */
 	def cleanupDownload(path) {
-		return new File(path).delete()  
+		return new File(path).delete()
 	}
 
 	/**
@@ -314,7 +314,7 @@ public class PluginServicesImpl {
 	 * clean up the install path
 	 */
 	def cleanupInstallFolder(path) {
-		return new File(path).deleteDir()  
+		return new File(path).deleteDir()
 	}
 
 	/**
@@ -355,16 +355,17 @@ public class PluginServicesImpl {
 		def request = context.request
 
 		def dir = new File(unzipPath)
-		
+
 		dir.eachFileRecurse (FileType.FILES) { file ->
 
 			def absolutePath = file.getAbsolutePath()
 			def relativePath = absolutePath.substring(absolutePath.indexOf(unzipPath)+unzipPath.length())
 
-			System.out.println("PROCESSING :" + relativePath)
+			//System.out.println("PROCESSING :" + relativePath)
 
 			if(relativePath.startsWith("/templates")
 					|| relativePath.startsWith("/scripts")
+					|| relativePath.startsWith("/config")
 					|| relativePath.startsWith("/static-assets")
 					|| relativePath.startsWith("/site")) {
 
@@ -423,7 +424,8 @@ public class PluginServicesImpl {
 					fromxml.children().each { child ->
 						def xpathResult = toxml.category.find { it.label == child.label }
 
-						if(xpathResult != null) {
+
+						if(xpathResult != null && xpathResult.label != "") {
 							// merge in to existing category
 							child.label[0].replaceNode { }
 							xpathResult << child.children()
@@ -444,7 +446,7 @@ public class PluginServicesImpl {
 					def mergedXMLStream = new ByteArrayInputStream(mergedXML.getBytes("UTF-8"))
 
 					def contextB = SiteServices.createContext(applicationContext, request)
-					// FOR DEBUGGING println groovy.xml.XmlUtil.serialize( toxml )
+					println groovy.xml.XmlUtil.serialize( toxml )
 					SiteServices.writeConfiguration(contextB, repoPath, mergedXMLStream)
 
 				}
@@ -480,10 +482,12 @@ public class PluginServicesImpl {
 			def absolutePath = file.getAbsolutePath()
 			def relativePath = absolutePath.substring(absolutePath.indexOf(unzipPath)+unzipPath.length())
 
-			System.out.println("PROCESSING :" + relativePath)
+			//System.out.println("PROCESSING :" + relativePath)
 
 			if(relativePath.startsWith("/templates")
 					|| relativePath.startsWith("/scripts")
+					|| relativePath.startsWith("/config")
+					|| relativePath.startsWith("/site")
 					|| relativePath.startsWith("/static-assets")) {
 
 				def destPath = cleanPath(studioInstallBasePath + "default-site/" + relativePath)
