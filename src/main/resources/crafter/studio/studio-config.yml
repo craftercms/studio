@@ -287,4 +287,3 @@ studio.publishingManager.importModeEnabled: false
 # Turn on/off (value true/false) publishing without dependencies.
 # When turned on, deployment engine does not check for missing mandatory dependencies of published content.
 studio.publishingManager.publishingWithoutDependencies.enabled: false
-studio.previewDeployer.defaultDeploymentUrl: http://localhost:9191

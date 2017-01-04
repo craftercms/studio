@@ -142,15 +142,12 @@ public interface StudioConfiguration {
     String CONTENT_TYPES_FILTER_DOCUMENTS_INCLUDE_PATTERN = "studio.contentTypes.filter.documents.includePattern";
 
     /** Preview Deployer **/
-    String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewUrl";
+    String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewDeployerUrl";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
     String PUBLISHING_MANAGER_IMPORT_MODE_ENABLED  = "studio.publishingManager.importModeEnabled";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
-
-    /** Preview Deployer */
-    String PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL = "studio.previewDeployer.defaultDeploymentUrl";
 
     void loadConfig();
 

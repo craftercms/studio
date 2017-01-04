@@ -31,8 +31,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFA
 
 import java.io.IOException;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEPLOYER_DEFAULT_DEPLOYMENT_URL;
-
 public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployerImpl.class);
@@ -73,7 +71,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     public void onEvent(String site) {
         String requestUrl = getDeployerPreviewSyncUrl(site);
-        PostMethod postMethod = new PostMethod(requestUrl.toString());
+        PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
 
         // TODO: DB: add all required params to post method
@@ -92,12 +90,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: DB: implement deployer agent configuration for preview
         return studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
     }
-
-    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }

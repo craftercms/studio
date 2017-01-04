@@ -53,7 +53,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public void firePreviewSyncEvent(String site) {
         try {
-            EventContext context = new PreviewSyncEventContext();
+            PreviewSyncEventContext context = new PreviewSyncEventContext();
             context.setSite(site);
             MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewSyncEventContext.class));
             call.setArgs(context);

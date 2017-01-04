@@ -813,7 +813,7 @@
     <!-- ////////////////////////////////////// -->
     <!--          preview deployer              -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployer">
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
             <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -833,10 +833,6 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
         <property name="securityProvider" ref="securityProvider" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
