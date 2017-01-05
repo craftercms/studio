@@ -545,6 +545,14 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
+    @Override
+    public void updateLastCommitId(String site, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site_id", site);
+        params.put("last_commit_id", commitId);
+        siteFeedMapper.updateLastCommitId(params);
+    }
+
     public String getGlobalConfigRoot() {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
     }

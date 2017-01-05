@@ -208,6 +208,7 @@ CREATE TABLE cstudio_site
   name character varying(255) NOT NULL,
   description text,
   status character varying(255),
+  last_commit_id character varying(50),
   CONSTRAINT cstudio_site_pkey PRIMARY KEY (id),
   CONSTRAINT "id_UNIQUE" UNIQUE (id),
   CONSTRAINT "site_id_UNIQUE" UNIQUE (site_id)
