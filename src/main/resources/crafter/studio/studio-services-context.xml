@@ -296,7 +296,9 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
-    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
+    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" >
+        <property name="previewDeployer" ref="previewDeployer" />
+    </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
@@ -811,7 +813,7 @@
     <!-- ////////////////////////////////////// -->
     <!--          preview deployer              -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployer">
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
             <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 

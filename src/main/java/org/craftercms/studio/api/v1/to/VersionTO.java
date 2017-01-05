@@ -52,7 +52,7 @@ public class VersionTO implements Comparable<VersionTO>, Serializable {
      */
     public String getLastModifiedDate() {
         if (lastModifiedDate != null) {
-            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             String dateStr = ContentFormatUtils.formatDate(format, lastModifiedDate, _timezone);
             return dateStr;
         } else {

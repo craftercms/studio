@@ -142,7 +142,7 @@ public interface StudioConfiguration {
     String CONTENT_TYPES_FILTER_DOCUMENTS_INCLUDE_PATTERN = "studio.contentTypes.filter.documents.includePattern";
 
     /** Preview Deployer **/
-    String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewUrl";
+    String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewDeployerUrl";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
