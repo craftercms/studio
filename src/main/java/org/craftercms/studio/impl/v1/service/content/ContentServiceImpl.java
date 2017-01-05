@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
@@ -382,6 +383,7 @@ public class ContentServiceImpl implements ContentService {
         if (result) {
             // Update database with commitId
             objectMetadataManager.updateCommitId(site, path, commitId);
+            siteService.updateLastCommitId(site, commitId);
         }
 
         return result;
@@ -467,6 +469,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, toPath, commitId);
+            siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
 
@@ -482,6 +485,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, toPath, commitId);
+            siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
 
@@ -498,6 +502,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, toPath, commitId);
+            siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
 
@@ -973,6 +978,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
+            siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
 
@@ -1318,6 +1324,7 @@ public class ContentServiceImpl implements ContentService {
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected EventService eventService;
+    protected SiteService siteService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1360,4 +1367,7 @@ public class ContentServiceImpl implements ContentService {
 
     public EventService getEventService() { return eventService; }
     public void setEventService(EventService eventService) { this.eventService = eventService; }
+
+    public SiteService getSiteService() { return siteService; }
+    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 }

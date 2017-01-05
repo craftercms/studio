@@ -135,4 +135,6 @@ public interface SiteService {
     void importSite(String config);
 
     void rebuildRepositoryMetadata(String site);
+
+    void updateLastCommitId(String site, String commitId);
 }

@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT NULL,
   `status` VARCHAR(255) NULL,
+  `last_commit_id` VARCHAR(50) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),

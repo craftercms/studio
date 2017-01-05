@@ -28,6 +28,7 @@
         <result property="name" column="name"/>
         <result property="description" column="description"/>
         <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
+        <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -36,6 +37,7 @@
         <parameter property="name" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="status" jdbcType="VARCHAR"/>
+        <parameter property="lastCommitId" jdbcType="VARCHAR"/>
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -50,4 +52,8 @@
     <delete id="deleteSite" parameterType="java.util.Map" >
         DELETE FROM cstudio_site WHERE  site_id = #{site_id}
     </delete>
+
+    <update id="updateLastCommitId" parameterType="java.util.Map">
+        UPDATE cstudio_site SET last_commit_id = #{last_commit_id} WHERE site_id = #{site_id}
+    </update>
 </mapper>

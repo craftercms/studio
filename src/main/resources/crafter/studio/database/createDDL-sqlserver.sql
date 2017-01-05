@@ -260,6 +260,7 @@ CREATE TABLE [dbo].[cstudio_site](
   [name] [nvarchar](255) NOT NULL,
   [description] [ntext] NULL,
   [status] [nvarchar](255) NULL,
+  [last_commit_id] [nvarchar](50) NULL,
   CONSTRAINT [PK_cstudio_site] PRIMARY KEY CLUSTERED
     (
       [id] ASC

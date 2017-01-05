@@ -21,9 +21,6 @@ package org.craftercms.studio.api.v1.dal;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dejanbrkic on 1/19/15.
- */
 public interface SiteFeedMapper {
 
     List<SiteFeed> getSites();
@@ -31,4 +28,6 @@ public interface SiteFeedMapper {
 	boolean createSite(SiteFeed siteFeed);
 
     boolean deleteSite(String siteId);
+
+    void updateLastCommitId(Map params);
 }

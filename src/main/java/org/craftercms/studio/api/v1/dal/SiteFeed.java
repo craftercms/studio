@@ -38,10 +38,14 @@ public class SiteFeed {
     public String getLiveUrl() { return liveUrl; }
     public void setLiveUrl(String liveUrl) { this.liveUrl = liveUrl; }
 
+    public String getLastCommitId() { return lastCommitId; }
+    public void setLastCommitId(String lastCommitId) { this.lastCommitId = lastCommitId; }
+
     protected long id;
     protected String siteId;
     protected String name;
     protected String description;
     protected String status;
     protected String liveUrl;
+    protected String lastCommitId;
 }
