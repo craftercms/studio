@@ -322,6 +322,8 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
 
+			// TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
+
             deploymentService.syncAllContentToPreview(siteId);
         }
 	 	catch(Exception e) {
@@ -446,8 +448,7 @@ public class SiteServiceImpl implements SiteService {
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
  		try {
- 			contentRepository.deleteContent(siteId, "/wem-projects/"+siteId);
- 			contentRepository.deleteContent(siteId, "/cstudio/config/sites/" + siteId);
+ 			contentRepository.deleteSite(siteId);
 
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
@@ -456,8 +457,9 @@ public class SiteServiceImpl implements SiteService {
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-	 	}
-	 	catch(Exception err) {
+
+            // TODO: SJ: Must call PreviewDeployer to delete site from PreviewDeployer(s)
+	 	} catch(Exception err) {
 	 		success = false;
 	 	}
 

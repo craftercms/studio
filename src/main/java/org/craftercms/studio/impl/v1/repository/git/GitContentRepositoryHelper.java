@@ -306,6 +306,26 @@ public class GitContentRepositoryHelper {
         return toReturn;
     }
 
+    public boolean deleteSiteGitRepo(String site) {
+        boolean toReturn;
+
+        // Get the Sandbox Path
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
+        // Get parent of that (since every site has two repos: Sandbox and Published
+        Path sitePath = siteSandboxPath.getParent();
+        // Get a file handle to the parent and delete it
+        File siteFolder = sitePath.toFile();
+        toReturn = siteFolder.delete();
+
+        // If delete successful, remove from in-memory cache
+        if (toReturn) {
+            sandboxes.remove(site);
+            published.remove(site);
+        }
+
+        return toReturn;
+    }
+
     public boolean updateSitenameConfigVar(String site) {
         boolean toReturn = true;
         String siteConfigFolder = "/config/studio";

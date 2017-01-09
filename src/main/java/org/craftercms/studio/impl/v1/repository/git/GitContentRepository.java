@@ -613,6 +613,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public boolean deleteSite(String siteId) {
+        boolean toReturn;
+
+        toReturn = helper.deleteSiteGitRepo(siteId);
+
+        return toReturn;
+    }
+
+    @Override
     public void publish(String site, List<String> commitIds, String environment, String author, String comment) {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         lockTheWorld(site);
