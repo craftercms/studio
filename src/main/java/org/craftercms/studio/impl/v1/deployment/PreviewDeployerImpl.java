@@ -35,40 +35,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployerImpl.class);
 
-
-    /*
-
-        Preview:
-            onEvent(EventContext eventContext) {
-                trigger preview deployer to pull all; // preview deployer will take care of pull, solr, cache
-            }
-
-        Regular Deployer:
-            onEvent(String site, List<Items> items, String envName, String author, String comment) {
-                List<String> commitIds = new List<String>(items.size());
-                for (Item item : items) {
-                    commitIds.add(item.getCommitId();
-                }
-
-                repo.publish(commitIds, envName, author, comment):
-            }
-
-        in Git Repo
-            publish(String site, List<String> commitIds, String envName, String author, String comment) {
-                repo = published.get(site);
-                LockTheWorld(repo);
-                repo.fetch(origin/master);
-                repo.checkout(envName);
-                repo.cherryPick(commitIds); // iterate?
-                repo.tag(author, message);
-                repo.checkout(master);
-                UnlockTheWorld(repo);
-            }
-
-     */
-
-    // TODO: SJ: Rewrite below to match above pseudo code. 2.6.x
-
     public void onEvent(String site) {
         String requestUrl = getDeployerPreviewSyncUrl(site);
         PostMethod postMethod = new PostMethod(requestUrl);
@@ -88,6 +54,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     private String getDeployerPreviewSyncUrl(String site) {
         // TODO: DB: implement deployer agent configuration for preview
+        // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
+        // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
         return studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
     }
 

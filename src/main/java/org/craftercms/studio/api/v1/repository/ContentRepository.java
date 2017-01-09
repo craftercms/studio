@@ -209,6 +209,14 @@ public interface ContentRepository {
     boolean createSiteFromBlueprint(String blueprintName, String siteId);
 
     /**
+     * Deletes an existing site.
+     *
+     * @param siteId site to delete
+     * @return true if successful, false otherwise
+     */
+    boolean deleteSite(String siteId);
+
+    /**
      * Publish content to specified environment.
      *
      * @param commitIds
