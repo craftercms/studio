@@ -26,7 +26,7 @@ header .logo-bar li {
 header .logo-bar li {
 	border-radius: 10px;
 	margin: 0 5px 0 0;
-	background: #0b5481 url('../images/moptions-bg.png') 0 0 repeat-x;
+	background: #0b5481 url('moptions-bg.png') 0 0 repeat-x;
 }
 
 header .logo-bar a {
@@ -35,7 +35,7 @@ header .logo-bar a {
 }
 
 #brand {
-	background: url('../images/logo-mob.png') 0 0 no-repeat;
+	background: url('logo-mob.png') 0 0 no-repeat;
 	padding: 5px 0 5px 25px;
 	display: block;
 	float: left;
@@ -44,12 +44,12 @@ header .logo-bar a {
 }
 
 .home #hero {
-	background: url('../images/mheader-bg.png') 0 -28px no-repeat;
+	background: url('mheader-bg.png') 0 -28px no-repeat;
 	height: 119px;
 }
 
 .article-page #hero {
-	background: url('../images/marticle-headerbg.png') center 0 no-repeat;
+	background: url('marticle-headerbg.png') center 0 no-repeat;
 	min-height: 81px;
 	overflow: auto;
 }
@@ -80,7 +80,7 @@ nav .nav li {
 }
 
 nav .nav li a {
-	background: #fff url('../images/mnav-bg.png') 0 bottom repeat-x;
+	background: #fff url('mnav-bg.png') 0 bottom repeat-x;
 	border-radius: 25px;
 	color: #005684 !important;
 	position: relative;
@@ -100,7 +100,7 @@ nav .nav li .arrow {
 }
 
 .article-page nav {
-	background: #fff url('../images/mnav-bg.png') 0 bottom repeat-x;
+	background: #fff url('mnav-bg.png') 0 bottom repeat-x;
 }
 
 .article-page nav ul {
