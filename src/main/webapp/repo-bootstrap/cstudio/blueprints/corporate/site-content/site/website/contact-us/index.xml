@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-	<content-type>/page/contact-us</content-type>
-	<display-template>/templates/web/contact-us.ftl</display-template>
-	<merge-strategy>inherit-levels</merge-strategy>
-	<content-type>/page/contact-us</content-type>
+	<content-type>/page/contact-us</content-type>	<content-type>/page/contact-us</content-type>
 	<display-template>/templates/web/contact-us.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>55d0</objectGroupId>
@@ -21,9 +18,12 @@
 	<phone>+33.555.555.5555 </phone>
 	<email>fr.info@globalintegrity.com</email>
 	</item>	<item>	<title>Corporate Headquarters US</title>
-	<address>&lt;p&gt;1564 District Road&lt;/p&gt;
-&lt;p&gt;Washington, DC 20001&lt;/p&gt;</address>
+	<address>&lt;p&gt;1564 District Road&lt;/p&gt;&lt;p&gt;Washington, DC 20001&lt;/p&gt;</address>
 	<phone>+1.555.555.5555</phone>
 	<email>us.info@globalintegrity.com</email>
 	</item></locations>
+	<createdDate>1/10/2017 17:8:13</createdDate>
+	<createdDate_dt>1/10/2017 17:8:13</createdDate_dt>
+	<lastModifiedDate>1/10/2017 17:8:13</lastModifiedDate>
+	<lastModifiedDate_dt>1/10/2017 17:8:13</lastModifiedDate_dt>
 </page>

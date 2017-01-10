@@ -13,7 +13,7 @@
 		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/contact-us.ftl</value>
+			<value>/templates/web/article.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
