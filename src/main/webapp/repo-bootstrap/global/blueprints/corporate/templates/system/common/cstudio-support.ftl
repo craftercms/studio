@@ -34,6 +34,7 @@
    <#if siteContext.overlayCallback??> data-studio-ice="${iceGroup}" <#if path!="">data-studio-ice-path="${path}"</#if> data-studio-ice-label="${label}"</#if>
 </#macro>
 
+
 <#macro ice id="" component="" componentPath="">
     <#if siteContext.overlayCallback??>
         <div data-studio-ice="${id}" ></div>
