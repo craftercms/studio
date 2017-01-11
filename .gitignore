@@ -16,3 +16,6 @@ inputFiles.lst
 *.iml
 
 deploy/*
+data/*
+derby.log
+repos/*
