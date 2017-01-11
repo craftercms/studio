@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
@@ -225,4 +226,37 @@ public interface ContentRepository {
      * @param comment
      */
     void publish(String site, List<String> commitIds, String environment, String author, String comment);
+
+    /**
+     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
+     *
+     * @param site site to use
+     * @param commitIdFrom commit ID to start at
+     * @param commitIdTo commit ID to end at
+     * @return commit ID of current HEAD, updated operationsSinceCommit
+     */
+    List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo);
+
+    /**
+     *
+     * @param site
+     * @return
+     */
+    String getRepoLastCommitId(String site);
+
+    /*
+    List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
+    List<PublishTO> getPublishEvents(String site, String commitIdFrom);
+    List<PublishTO> getPublishEvents(String site, Date from, String to);
+    List<PublishTO> getPublishEvents(String site, Date from);
+    List<PublishTO> getPublishEvents(String site);
+
+    get tags or similar from now to limit
+        get delta from tag to tag
+
+    dump and resync from git
+    import site from disk
+
+    */
+
 }

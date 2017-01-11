@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
 /**
  * Note: consider renaming
- * A site in Crafter Studio is currently the name for a WEM project being managed.  
+ * A site in Crafter Studio is currently the name for a WEM project being managed.
  * This service provides access to site configuration
  * @author russdanner
  */
@@ -53,7 +53,7 @@ public interface SiteService {
 	 * @param path
 	 */
 	boolean writeConfiguration(String path, InputStream content) throws ServiceException;
-	
+
 	/**
 	 * given a site ID return the configuration as a document
 	 * This method allows extensions to add additional properties to the configuration that
@@ -110,6 +110,16 @@ public interface SiteService {
      * remove a site from the system
      */
    	boolean deleteSite(String siteId);
+
+	/**
+	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
+	 * and manipulates the underlying repository directly.
+	 *
+	 * @param siteId site to sync
+	 * @param fromCommitId commit ID to start at and sync up until current commit
+	 * @return true if successful, false otherwise
+	 */
+	boolean syncDatabaseWithRepo(String siteId, String fromCommitId);
 
    	/**
    	 * get a list of available blueprints

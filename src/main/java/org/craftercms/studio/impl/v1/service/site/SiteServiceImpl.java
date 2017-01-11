@@ -22,6 +22,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -40,6 +41,7 @@ import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
@@ -47,7 +49,9 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.*;
+import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -55,6 +59,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -550,9 +555,101 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public void updateLastCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site_id", site);
-        params.put("last_commit_id", commitId);
+        params.put("siteId", site);
+        params.put("lastCommitId", commitId);
         siteFeedMapper.updateLastCommitId(params);
+    }
+
+    public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
+		boolean toReturn = true;
+
+	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
+		    .getRepoLastCommitId(site));
+
+	    for (RepoOperationTO repoOperation: repoOperations) {
+		    switch (repoOperation.getOperation()) {
+			    case CREATE:
+			    case COPY:
+				    objectStateService.insertNewEntry(site, repoOperation.getPath());
+				    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+				    break;
+
+			    case UPDATE:
+				    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+				    break;
+
+			    case DELETE:
+				    objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
+				    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+				    dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
+				    break;
+
+			    case MOVE:
+				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+				    break;
+
+			    default:
+				    logger.error("Error: Unknown repo operation for site " + site + " operation: " +
+					    repoOperation.getOperation());
+			    	toReturn = false;
+				    break;
+		    }
+
+		    // If successful so far, update the database
+		    if (toReturn) {
+			    // TODO: DB: Update database
+			    // TODO: DB: When finished sync all preview deployers
+			    // Update lastCommitId only if successful
+				//			    updateLastCommitId(site, lastCommitId);
+		    } else {
+		    	// Failed during sync database from repo, we're aborting
+			    // TODO: SJ: Must log and make some noise here, this is bad
+		    	break;
+		    }
+	    }
+
+	    return toReturn;
+    }
+
+    protected String getLastCommitId(String site) {
+	    Map<String, Object> params = new HashMap<String, Object>();
+	    params.put("siteId", site);
+	    return siteFeedMapper.getLastCommitId(params);
+    }
+
+    protected boolean extractDependenciesForItem(String site, String path) {
+		boolean toReturn = true;
+
+	    try {
+		    InputStream content = contentRepository.getContent(site, path);
+		    if (path.endsWith(DmConstants.XML_PATTERN)) {
+			    SAXReader saxReader = new SAXReader();
+			    Document doc = saxReader.read(content);
+			    dmDependencyService.extractDependencies(site, path, doc, new HashMap<>());
+		    } else {
+			    boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
+			    boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
+			    boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns
+				    (site));
+			    if (isCss || isJs || isTemplate) {
+				    StringBuffer sb = new StringBuffer(IOUtils.toString(content));
+				    if (isCss) {
+					    dmDependencyService.extractDependenciesStyle(site, path, sb, new HashMap<>());
+				    } else if (isJs) {
+					    dmDependencyService.extractDependenciesJavascript(site, path, sb, new HashMap<>());
+				    } else if (isTemplate) {
+					    dmDependencyService.extractDependenciesTemplate(site, path, sb, new HashMap<>());
+				    }
+			    }
+		    }
+	    } catch (DocumentException | ServiceException | IOException e) {
+		    logger.error("Error extracting dependencies for site " + site + " file: " + path, e);
+		    toReturn = false;
+	    }
+
+	    return toReturn;
     }
 
     public String getGlobalConfigRoot() {
