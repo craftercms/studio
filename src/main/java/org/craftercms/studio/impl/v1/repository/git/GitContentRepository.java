@@ -34,30 +34,51 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
 import com.google.gdata.util.common.base.StringUtil;
+import freemarker.template.utility.DateUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.web.context.ServletContextAware;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
@@ -76,8 +97,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+                SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -102,7 +123,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -130,8 +151,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Write content to git and commit it
         String commitId = null;
 
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+                SANDBOX);
 
         if (repo != null) {
             if (helper.writeFile(repo, site, path, content))
@@ -151,8 +172,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String commitId = null;
         boolean result;
         Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+                SANDBOX);
 
         try {
             // Create basic file
@@ -200,7 +221,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String deleteContent(String site, String path) {
         String commitId = null;
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
 
         try (Git git = new Git(repo)) {
             git.rm().addFilepattern(helper.getGitPath(path))
@@ -228,7 +249,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String moveContent(String site, String fromPath, String toPath, String newName) {
         String commitId = null;
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath + newName);
 
@@ -269,7 +290,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String copyContent(String site, String fromPath, String toPath) {
         String commitId = null;
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath);
 
@@ -308,7 +329,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // TODO: SJ: Rethink this API call for 2.7.x
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -360,7 +381,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public VersionTO[] getContentVersionHistory(String site, String path) {
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
 
         try {
             ObjectId head = repo.resolve(Constants.HEAD);
@@ -454,7 +475,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         InputStream toReturn = null;
 
         Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+            .GLOBAL: SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForCommit(repo, version);
@@ -484,8 +505,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void lockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+                SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -512,8 +533,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void unLockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+                SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -674,6 +695,132 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
+    @Override
+    public List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo) {
+        List<RepoOperationTO> operations = new ArrayList<>();
+
+        try {
+            // Get the sandbox repo, and then get a reference to the commitId we received and another for head
+            Repository repo = helper.getRepository(site, SANDBOX);
+            ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
+            ObjectId objCommitIdTo = repo.resolve(commitIdTo);
+
+            // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
+            if  (!objCommitIdFrom.equals(objCommitIdTo)) {
+                // Compare HEAD with commitId we're given
+                // Get list of commits between commitId and HEAD in chronological order
+                try (Git git = new Git(repo)) {
+                    // Get the log of all the commits between commitId and head
+                    Iterable<RevCommit> commits = git.log()
+                            .addRange(objCommitIdFrom, objCommitIdTo)
+                            .call();
+
+                    // Loop through through the commits and diff one from the next util head
+                    ObjectId prevCommitId = objCommitIdFrom;
+                    ObjectId nextCommitId = objCommitIdFrom;
+
+                    Iterator<RevCommit> iterator = commits.iterator();
+                    while (iterator.hasNext()) {
+                        RevCommit commit = iterator.next();
+                        nextCommitId = commit.getId();
+
+                        RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
+                        RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
+
+                        try (ObjectReader reader = repo.newObjectReader()) {
+                            CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                            CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                            prevCommitTreeParser.reset(reader, prevTree.getId());
+                            nextCommitTreeParser.reset(reader, nextTree.getId());
+
+                            // Diff the two commit Ids
+                            List<DiffEntry> diffEntries = git.diff().setOldTree(prevCommitTreeParser).setNewTree
+                                (nextCommitTreeParser).call();
+
+                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                            // and add them to the list of RepoOperations to return to the caller
+                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                            // convert to java date before sending over
+                            operations.addAll(processDiffEntry(diffEntries, new Date(commit
+                                .getCommitTime() * 1000)));
+                            prevCommitId = nextCommitId;
+                        }
+                    }
+                } catch (GitAPIException e) {
+                    logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
+                            " to commit ID: " + commitIdTo, e);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
+                " to commit ID: " + commitIdTo, e);
+        }
+
+        return operations;
+    }
+
+    @Override
+    public String getRepoLastCommitId(final String site) {
+        String toReturn = StringUtil.EMPTY_STRING;
+
+        Repository repo = helper.getRepository(site, SANDBOX);
+        try {
+            ObjectId commitId = repo.resolve(Constants.HEAD);
+            toReturn = commitId.getName();
+        } catch (IOException e) {
+            logger.error("Error getting last commit ID for site " + site, e);
+        }
+
+        return toReturn;
+    }
+
+    List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, Date commitTime) {
+        List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
+
+        for (DiffEntry diffEntry : diffEntries) {
+            // TODO: SJ: remove these logs
+            logger.error("-------------------------");
+            logger.error("Diff new path: " + diffEntry.getNewPath());
+            logger.error("Diff old path: " + diffEntry.getOldPath());
+            logger.error("Diff change type: " + diffEntry.getChangeType());
+            logger.error("-------------------------");
+
+            // Update the paths to have a preceding separator
+            String pathNew = File.separator +  diffEntry.getNewPath();
+            String pathOld = File.separator +  diffEntry.getOldPath();
+
+            RepoOperationTO repoOperation = null;
+            switch (diffEntry.getChangeType()) {
+                case ADD:
+                    repoOperation = new RepoOperationTO(RepoOperation.CREATE, pathNew,
+                        commitTime, null);
+                    break;
+                case MODIFY:
+                    repoOperation = new RepoOperationTO(RepoOperation.UPDATE, pathNew,
+                        commitTime, null);
+                    break;
+                case DELETE:
+                    repoOperation = new RepoOperationTO(RepoOperation.DELETE, pathOld,
+                        commitTime, null);
+                    break;
+                case RENAME:
+                    repoOperation = new RepoOperationTO(RepoOperation.MOVE, pathOld,
+                        commitTime, pathNew);
+                    break;
+                case COPY:
+                    repoOperation = new RepoOperationTO(RepoOperation.COPY, pathNew,
+                        commitTime, null);
+                    break;
+                default:
+                    logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
+                    break;
+            }
+
+            toReturn.add(repoOperation);
+        }
+        return toReturn;
+    }
+
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
 
     public SecurityProvider getSecurityProvider() {
@@ -687,7 +834,24 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.studioConfiguration = studioConfiguration;
     }
 
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
+    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+
     ServletContext ctx;
     SecurityProvider securityProvider;
     StudioConfiguration studioConfiguration;
+
+    protected ObjectStateService objectStateService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmDependencyService dmDependencyService;
+    protected ServicesConfig servicesConfig;
 }

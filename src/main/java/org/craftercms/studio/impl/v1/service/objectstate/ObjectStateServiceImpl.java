@@ -133,6 +133,11 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
         String path = item.getUri().replace("//", "/");
+        transition(site, path, event);
+    }
+
+    @Override
+    public void transition(String site, String path, TransitionEvent event) {
         String lockId = site + ":" + path;
         generalLockService.lock(lockId);
         try {
@@ -160,11 +165,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             }
             if (currentState == null) {
                 ObjectState newEntry = new ObjectState();
-                if (item.getNodeRef() == null) {
-                    newEntry.setObjectId(UUID.randomUUID().toString());
-                } else {
-                    newEntry.setObjectId(item.getNodeRef());
-                }
+                newEntry.setObjectId(UUID.randomUUID().toString());
                 newEntry.setSite(site);
                 newEntry.setPath(path);
                 newEntry.setSystemProcessing(0);

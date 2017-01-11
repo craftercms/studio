@@ -50,10 +50,14 @@
     </insert>
 
     <delete id="deleteSite" parameterType="java.util.Map" >
-        DELETE FROM cstudio_site WHERE  site_id = #{site_id}
+        DELETE FROM cstudio_site WHERE  site_id = #{siteId}
     </delete>
 
     <update id="updateLastCommitId" parameterType="java.util.Map">
-        UPDATE cstudio_site SET last_commit_id = #{last_commit_id} WHERE site_id = #{site_id}
+        UPDATE cstudio_site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId}
     </update>
+
+    <select id="getLastCommitId" parameterType="java.util.Map" resultType="java.lang.String">
+        SELECT last_commit_id FROM cstudio_site WHERE site_id = #{siteId}
+    </select>
 </mapper>

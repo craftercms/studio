@@ -100,4 +100,9 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.rebuildRepositoryMetadata(site)
     }
+
+    static syncRepository(context, site) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.syncRepository(site)
+    }
 }

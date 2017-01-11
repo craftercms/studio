@@ -110,4 +110,9 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.rebuildRepositoryMetadata(site)
     }
+
+    def syncRepository(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.syncRepository(site)
+    }
 }
