@@ -1,4 +1,5 @@
-studio2
-=======
+Crafter Studio
+==============
 
-Crafter Studio authoring environment without Alfresco Share.
+Crafter content authoring capabilities.
+http://docs.craftercms.org
