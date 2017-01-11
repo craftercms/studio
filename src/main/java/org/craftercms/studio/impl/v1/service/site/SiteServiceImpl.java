@@ -550,9 +550,16 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public void updateLastCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site_id", site);
-        params.put("last_commit_id", commitId);
+        params.put("siteId", site);
+        params.put("lastCommitId", commitId);
         siteFeedMapper.updateLastCommitId(params);
+    }
+
+    public void syncRepository(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        String lastCommitId =  siteFeedMapper.getLastCommitId(params);
+	    contentRepository.syncRepository(site, lastCommitId);
     }
 
     public String getGlobalConfigRoot() {

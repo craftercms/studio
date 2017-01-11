@@ -225,4 +225,13 @@ public interface ContentRepository {
      * @param comment
      */
     void publish(String site, List<String> commitIds, String environment, String author, String comment);
+
+    /**
+     * Sync database from git repository. If someone updates the repo under us, we can sync up to it.
+     *
+     * @param site
+     * @param lastCommitId
+     * @return commit ID of current HEAD
+     */
+    String syncRepository(String site, String lastCommitId);
 }

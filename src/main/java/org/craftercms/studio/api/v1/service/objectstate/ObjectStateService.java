@@ -30,6 +30,8 @@ public interface ObjectStateService {
 
     void transition(String site, ContentItemTO item, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
 
+    void transition(String site, String path, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
+
     void insertNewEntry(String site, ContentItemTO item);
 
     void insertNewEntry(String site, String path);
