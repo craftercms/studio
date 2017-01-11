@@ -19,7 +19,7 @@
 
                 <nav>
                     <ul class="main-nav clearfix">
-                    <renderNavigation "/site/website", 2 />
+                     <@renderNavigation "/site/website", 2 />
                     </ul>
                 </nav>
 
