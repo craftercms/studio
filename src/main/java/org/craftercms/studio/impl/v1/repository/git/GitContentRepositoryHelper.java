@@ -498,20 +498,23 @@ public class GitContentRepositoryHelper {
             }
 
             // Create the file if it doesn't exist already
-            file.createNewFile();
-
-            // Write the bits
-            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
-
-            // Add the file to git
-            try (Git git = new Git(repo)) {
-                git.add().addFilepattern(getGitPath(path)).call();
-
-                git.close();
-                result = true;
-            } catch (GitAPIException e) {
-                logger.error("error adding file to git: site: " + site + " path: " + path, e);
+            if (!file.createNewFile()) {
+                logger.error("error writing file: site: " + site + " path: " + path);
                 result = false;
+            } else {
+                // Write the bits
+                FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
+
+                // Add the file to git
+                try (Git git = new Git(repo)) {
+                    git.add().addFilepattern(getGitPath(path)).call();
+
+                    git.close();
+                    result = true;
+                } catch (GitAPIException e) {
+                    logger.error("error adding file to git: site: " + site + " path: " + path, e);
+                    result = false;
+                }
             }
         } catch (IOException e) {
             logger.error("error writing file: site: " + site + " path: " + path, e);
