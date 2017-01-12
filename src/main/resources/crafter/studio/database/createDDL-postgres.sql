@@ -241,6 +241,7 @@ CREATE TABLE cstudio_objectmetadata
   imageheight integer,
   approvedby character varying(255),
   submittedby character varying(255),
+  submittedfordeletion integer,
   sendemail integer,
   submissioncomment text,
   launchdate timestamp without time zone,

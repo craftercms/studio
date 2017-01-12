@@ -34,31 +34,18 @@
     </header>
     <div class="content" <@studio.iceAttr iceGroup="heroImage" /> style="overflow: hidden; background: url(${model.heroImage!''}) no-repeat scroll center transparent;">
 
-        <@ice id="heroImage" />
         <span id="test" class="arial"
-              <@studio.iceAttr iceGroup="heroText" />
               style="position:absolute; left:28px; bottom:16px; color:#fff;">
             This is a Crafter CMS Demo Site
         </span>
 
         <#if model.enableTouts == "true">
         <div id="carousel" class="carousel slide">
-            <@ice id="touts" />
             <div class="left-cap cap"></div>
             <div class="right-cap cap"></div>
             <div class="carousel-inner">
 
-                <#assign segment = 'Anonymous' />
-                <#if profile??>
-                    <#assign segment = profile['segment']!'Anonymous' />
-                </#if>
-
-                <#assign queryStatement = "content-type:/component/tout AND (segments.item.key:\"" + segment + "\"^10 OR segments.item.key:All)" />
-
-                <#assign query = searchService.createQuery()>
-                <#assign query = query.setQuery(queryStatement)>
-                <#assign query = query.setRows(10)>
-                <#assign touts = searchService.search(query).response.documents>
+  
 
                 <#list touts as tout>
                     <#assign toutKey = tout.localId >
