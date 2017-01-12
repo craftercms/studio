@@ -25,6 +25,8 @@ import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.dal.ObjectMetadata;
+import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -560,6 +562,7 @@ public class SiteServiceImpl implements SiteService {
         siteFeedMapper.updateLastCommitId(params);
     }
 
+    @Override
     public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
 		boolean toReturn = true;
 
@@ -570,13 +573,24 @@ public class SiteServiceImpl implements SiteService {
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:
-				    objectStateService.insertNewEntry(site, repoOperation.getPath());
-				    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+			        ObjectState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+			        if (state == null) {
+                        objectStateService.insertNewEntry(site, repoOperation.getPath());
+                    } else {
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    }
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    case UPDATE:
+                    objectStateService.getObjectState(site, repoOperation.getPath());
 				    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
@@ -587,6 +601,45 @@ public class SiteServiceImpl implements SiteService {
 				    break;
 
 			    case MOVE:
+                    ObjectState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+                    if (stateRename == null) {
+                        objectStateService.getObjectState(site, repoOperation.getPath());
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    } else {
+                        objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                    }
+                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                        } else {
+                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                // set renamed and old path
+                                Map<String, Object> properties = new HashMap<String, Object>();
+                                properties.put(ObjectMetadata.PROP_SITE, site);
+                                properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                properties.put(ObjectMetadata.PROP_RENAMED, 1);
+                                properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                            }
+                        }
+                    } else {
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                            // preform move: update path, set renamed, set old url
+                        } else {
+                            // if not already renamed set renamed and old url
+                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                // set renamed and old path
+                                Map<String, Object> properties = new HashMap<String, Object>();
+                                properties.put(ObjectMetadata.PROP_SITE, site);
+                                properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                properties.put(ObjectMetadata.PROP_RENAMED, 1);
+                                properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                            }
+                            objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                        }
+                    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
@@ -603,6 +656,8 @@ public class SiteServiceImpl implements SiteService {
 			    // TODO: DB: When finished sync all preview deployers
 			    // Update lastCommitId only if successful
 				//			    updateLastCommitId(site, lastCommitId);
+                String lastCommitId = contentRepository.getRepoLastCommitId(site);
+                updateLastCommitId(site, lastCommitId);
 		    } else {
 		    	// Failed during sync database from repo, we're aborting
 			    // TODO: SJ: Must log and make some noise here, this is bad
