@@ -538,10 +538,6 @@
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="securityProvider" ref="securityProvider"/>
-        <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-        <property name="dmDependencyService" ref="cstudioDmDependencyService" />
-        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
