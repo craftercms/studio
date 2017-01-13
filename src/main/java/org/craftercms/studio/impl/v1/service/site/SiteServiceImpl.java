@@ -626,6 +626,13 @@ public class SiteServiceImpl implements SiteService {
                     } else {
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
                             // preform move: update path, set renamed, set old url
+                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                            Map<String, Object> properties = new HashMap<String, Object>();
+                            properties.put(ObjectMetadata.PROP_SITE, site);
+                            properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                            properties.put(ObjectMetadata.PROP_RENAMED, 1);
+                            properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+                            objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                         } else {
                             // if not already renamed set renamed and old url
                             if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
@@ -652,13 +659,16 @@ public class SiteServiceImpl implements SiteService {
 
 		    // If successful so far, update the database
 		    if (toReturn) {
-			    // TODO: DB: Update database
-			    // TODO: DB: When finished sync all preview deployers
-			    // Update lastCommitId only if successful
-				//			    updateLastCommitId(site, lastCommitId);
+			    // Update database
                 String lastCommitId = contentRepository.getRepoLastCommitId(site);
                 updateLastCommitId(site, lastCommitId);
-		    } else {
+                // Sync all preview deployers
+                try {
+                    deploymentService.syncAllContentToPreview(site);
+                } catch (ServiceException e) {
+                    logger.error("Error synchronizing preview with repository for site: " + site, e);
+                }
+            } else {
 		    	// Failed during sync database from repo, we're aborting
 			    // TODO: SJ: Must log and make some noise here, this is bad
 		    	break;

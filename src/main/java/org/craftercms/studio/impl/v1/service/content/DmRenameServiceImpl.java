@@ -222,7 +222,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     protected List<String> getChildrenUri(String site, String path, List<String> paths){
-        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 2);
         if (itemTree.getNumOfChildren() > 0) {
             for (ContentItemTO child : itemTree.getChildren()) {
                 getChildrenUri(site, child.getUri(), paths);
@@ -503,7 +503,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * @param parentNewPath
      */
     protected void updateChildItems(String site, ContentItemTO node, String parentOldPath, String parentNewPath, boolean addNodeProperty, String user, boolean fileContent) {
-        ContentItemTO itemTree = contentService.getContentItemTree(site, node.getUri(), 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, node.getUri(), 2);
         if (itemTree.getNumOfChildren() > 0) {
             for (ContentItemTO child : itemTree.getChildren()) {
                 updateChildItems(site, child, parentOldPath, parentNewPath, addNodeProperty, user, fileContent);
