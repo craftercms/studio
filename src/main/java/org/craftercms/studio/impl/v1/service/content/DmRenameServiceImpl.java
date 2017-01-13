@@ -225,7 +225,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     protected List<String> getChildrenUri(String site, String path, List<String> paths){
-        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 2);
         if (itemTree.getNumOfChildren() > 0) {
             for (ContentItemTO child : itemTree.getChildren()) {
                 getChildrenUri(site, child.getUri(), paths);
@@ -536,19 +536,19 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * @param parentNewPath
      */
     protected void updateChildItems(String site, ContentItemTO node, String parentOldPath, String parentNewPath, boolean addNodeProperty, String user, boolean fileContent) {
-        ContentItemTO itemTree = contentService.getContentItemTree(site, node.getUri(), 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, node.getUri(), 2);
         if (itemTree.getNumOfChildren() > 0) {
             for (ContentItemTO child : itemTree.getChildren()) {
                 updateChildItems(site, child, parentOldPath, parentNewPath, addNodeProperty, user, fileContent);
             }
-        } else {
+        }// else {
             Map<String,String> extraInfo = new HashMap<String,String>();
             String relativePath = contentService.getRelativeSitePath(site, node.getUri());
             addItemPropertyToChildren(site, relativePath, parentNewPath, parentOldPath, addNodeProperty, user,
                     fileContent);
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, getIndexFilePath(relativePath)));
             activityService.postActivity(site, user, getIndexFilePath(relativePath), ActivityService.ActivityType.UPDATED, extraInfo);
-        }
+        //}
     }
 
     protected void addItemPropertyToChildren(String site, String relativePath, String renamedPath, String oldPath, boolean addNodeProperty, String user, boolean fileContent){
