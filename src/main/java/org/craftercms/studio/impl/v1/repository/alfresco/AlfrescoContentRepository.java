@@ -41,15 +41,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpSession;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
-import org.apache.chemistry.opencmis.client.api.ObjectType;
-import org.apache.chemistry.opencmis.client.api.Property;
-import org.apache.chemistry.opencmis.client.api.Repository;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.SessionFactory;
+import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
@@ -60,6 +52,7 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -85,8 +78,6 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.impl.v1.repository.AbstractContentRepository;
 import org.springframework.http.MediaType;
-
-import org.apache.chemistry.opencmis.client.api.Document;
 
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
@@ -167,7 +158,69 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath, String newName) {
-        return this.copyContentInternal(fromPath, toPath, newName, true);
+        //return this.copyContentInternal(fromPath, toPath, newName, true);
+
+        long startTime = System.currentTimeMillis();
+        boolean result = false;
+        String cleanFromPath = fromPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanFromPath.endsWith("/")) {
+            cleanFromPath = cleanFromPath.substring(0, cleanFromPath.length() - 1);
+        }
+        String cleanToPath = toPath.replaceAll("//", "/"); // sometimes sent bad paths
+        if (cleanToPath.endsWith("/")) {
+            cleanToPath = cleanToPath.substring(0, cleanToPath.length() - 1);
+        }
+
+        try {
+            Session session = getCMISSession();
+            CmisObject sourceCmisObject = session.getObjectByPath(cleanFromPath);
+            CmisObject targetCmisObject = session.getObjectByPath(cleanToPath);
+
+            if (sourceCmisObject != null && targetCmisObject != null) {
+                ObjectType sourceType = sourceCmisObject.getType();
+                ObjectType targetType = targetCmisObject.getType();
+                if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
+                    Folder targetFolder = (Folder)targetCmisObject;
+                    if ("cmis:document".equals(sourceType.getId())) {
+                        org.apache.chemistry.opencmis.client.api.Document sourceDocument =
+                                (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                        logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                        List<Folder> sourceParents = sourceDocument.getParents();
+                        Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
+                        sourceDocument.move(sourceParent, targetFolder);
+                    } else if ("cmis:folder".equals(sourceType.getId())) {
+                        Folder sourceFolder = (Folder)sourceCmisObject;
+                        Folder sourceParentFolder = sourceFolder.getFolderParent();
+                        logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                        if (newName != null) {
+                            FileableCmisObject resultObject = sourceFolder.move(sourceParentFolder, targetFolder);
+                            resultObject.rename(newName);
+                        } else {
+                            Iterable<CmisObject> children = sourceFolder.getChildren();
+                            for (CmisObject child : children) {
+                                FileableCmisObject fileableChild = (FileableCmisObject)child;
+                                fileableChild.move(sourceFolder, targetFolder);
+                            }
+                            sourceFolder.delete();
+                        }
+                    }
+                    session.clear();
+                    return true;
+                } else {
+                    logger.error("Move failed since target path " + toPath + " is not folder.");
+                }
+            } else {
+                if (sourceCmisObject == null) {
+                    logger.error("Move failed since source path " + fromPath + " does not exist.");
+                }
+                if (targetCmisObject == null) {
+                    logger.error("Move failed since target path " + toPath + " does not exist.");
+                }
+            }
+        } catch (CmisBaseException err) {
+            logger.error("Error while moving content from " + fromPath + " to " + toPath, err);
+        }
+        return result;
     }
 
     /**
