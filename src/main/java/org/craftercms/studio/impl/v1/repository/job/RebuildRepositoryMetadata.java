@@ -19,12 +19,8 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
-import org.apache.commons.io.FileUtils;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.PublishToTargetMapper;
-import org.craftercms.studio.api.v1.dal.RebuildRepositoryMetadataMapper;
-import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -36,18 +32,12 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PREVIEW_ROOT_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_REBUILD_METADATA_BATCH_SIZE;
 
 public class RebuildRepositoryMetadata {
